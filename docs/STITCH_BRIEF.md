@@ -56,8 +56,8 @@ Café:    #4A2C17 sobre #F5EDE8
 
 ## 4. Tipografía
 
-**Fuente principal:** [PENDIENTE — Calvin confirma el nombre]
-**Fuente alternativa de referencia:** Playfair Display para headings + Inter para body text
+**Fuente principal (Headings):** Playfair Display — serif elegante, peso Regular (400) y Bold (700), serifs finos y definidos. Google Fonts, open source.
+**Fuente secundaria (Body / UI):** Inter — sans-serif moderna, altamente legible, variable font (pesos 300–700). Google Fonts, open source.
 
 **Jerarquía tipográfica:**
 ```
@@ -417,7 +417,7 @@ Animación: bounce al unirse a la sesión
 | Este documento (STITCH_BRIEF.md) | Contexto completo del diseño |
 | `docs/Carta_Ideacion_v3.md` sección 2.1 (Branding) | Paleta de colores oficial + temas |
 | Logo de Carta (cuando esté listo) | Para que use el logo real |
-| Referencia de fuente tipográfica | Para que use la tipografía correcta |
+| Referencia de fuente tipográfica | **Playfair Display** (headings) + **Inter** (body) — Google Fonts |
 
 ### OPCIONALES (contexto adicional):
 | Archivo | Por qué |
@@ -446,4 +446,5 @@ Antes de aprobar cada pantalla de Stitch, verifica:
 - [ ] ¿Las fotos de platillos son dominantes (≥60% del card)?
 - [ ] ¿El estilo se siente como Airbnb + algo mágico (AR)?
 - [ ] ¿Los botones son pill shape (border-radius 50px)?
-- [ ] ¿La tipografía de headings es elegante/serif o la fuente elegida de Carta?
+- [ ] ¿La tipografía de headings usa Playfair Display (serif, elegante)?
+- [ ] ¿El body text usa Inter (sans-serif, limpia, legible)?
