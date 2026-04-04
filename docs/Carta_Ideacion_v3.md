@@ -41,6 +41,20 @@ Carta es un motor de recomendaciones y un canal de comunicacion entre el restaur
 
 ---
 
+## 1.1 Mercado, Target Users y Justificacion de Negocio
+
+> **Documento completo:** [`Carta_Market_Analysis.md`](./Carta_Market_Analysis.md)
+
+**TAM:** ~USD $27B (restaurant tech + digital menus, 2025). **SAM Mexico:** ~USD $2.58B/ano. **SAM LATAM:** ~USD $10B/ano.
+
+**Target users (ecosistema):** Comensales (foodie millennial, lider de grupo, turistas, Gen Z nativa digital), restauranteros (dueno premium, gerente de cadena), chefs (curadores del Top 3), y partners (POS, influencers, fotografos 3D, proveedores de alimentos).
+
+**Por que ahora:** 75% de restaurantes ya usan QR (post-pandemia), la experiencia actual es un PDF glorificado, AR en food aumenta ventas 22% (Kabaq/Bareburger), 5G crece 64% interanual en Mexico, y ningun competidor en LATAM ocupa el cuadrante "inmersivo + ecosistema completo."
+
+**Estrategia:** Fase 0 (5-10 pilotos CDMX) → Fase 1 (150-300 restaurantes premium Mexico) → Fase 2 (500+ restaurantes, B2C Premium) → Fase 3 (LATAM: Colombia, Chile, Argentina, Peru).
+
+---
+
 ## 2. Vision del Producto
 
 **Carta** es una plataforma que transforma la experiencia de elegir comida en restaurantes mediante menus inteligentes, personalizados y visualmente inmersivos.
