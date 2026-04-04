@@ -1,0 +1,18 @@
+# Terraform
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform/
+.terraform.lock.hcl
+*.auto.tfvars
+
+# Sensitive variables — NEVER commit real passwords
+# terraform.tfvars files are committed as templates only
+# Override with *.auto.tfvars locally (gitignored)
+
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
