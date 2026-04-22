@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Digital Sommelier - Analytics Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@700;800&amp;family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#271900",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#5d4200",
+                    "surface-variant": "#e7e2da",
+                    "secondary-container": "#fdc34d",
+                    "on-secondary-container": "#715000",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#ded9d2",
+                    "tertiary": "#4f1728",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#713243",
+                    "on-primary-fixed": "#3b0619",
+                    "tertiary-fixed": "#ffd9df",
+                    "on-primary-container": "#ea96a9",
+                    "secondary": "#7b5800",
+                    "primary-container": "#6b2d3e",
+                    "outline": "#857375",
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#ece8e0",
+                    "surface-container-low": "#f8f3eb",
+                    "inverse-surface": "#32302b",
+                    "inverse-on-surface": "#f5f0e8",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1d1c17",
+                    "on-tertiary-container": "#ea96a9",
+                    "surface-container-highest": "#e7e2da",
+                    "tertiary-container": "#6b2d3e",
+                    "secondary-fixed-dim": "#f7bd48",
+                    "error": "#ba1a1a",
+                    "on-surface": "#1d1c17",
+                    "surface-bright": "#fef9f1",
+                    "inverse-primary": "#ffb1c2",
+                    "primary": "#4f1728",
+                    "on-tertiary-fixed-variant": "#713243",
+                    "surface-tint": "#8e495a",
+                    "primary-fixed-dim": "#ffb1c2",
+                    "primary-fixed": "#ffd9df",
+                    "on-surface-variant": "#524346",
+                    "tertiary-fixed-dim": "#ffb1c2",
+                    "on-tertiary-fixed": "#3b0619",
+                    "on-error-container": "#93000a",
+                    "surface": "#fef9f1",
+                    "on-error": "#ffffff",
+                    "background": "#fef9f1",
+                    "secondary-fixed": "#ffdea6",
+                    "outline-variant": "#d7c1c4",
+                    "surface-container": "#f2ede5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "playfair": ["Playfair Display", "serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .spring-bounce-sm { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .spring-bounce-md { transition: all 0.5s cubic-bezier(0.34, 1.76, 0.64, 1); }
+        .tonal-shift { background-color: rgba(245, 239, 230, 0.8); }
+        .chart-gradient { background: linear-gradient(180deg, rgba(107, 45, 62, 0.1) 0%, rgba(107, 45, 62, 0) 100%); }
+        .heat-bar { width: 8px; border-radius: 4px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-[#F5F0E8] font-body text-on-surface pb-32 min-h-screen">
+<!-- Top AppBar Execution -->
+<header class="sticky top-0 w-full z-40 bg-[#fef9f1] dark:bg-[#1a1a1a] flex justify-between items-center px-6 py-4 border-b border-outline-variant/10">
+<button class="material-symbols-outlined text-[#4f1728] dark:text-[#fef9f1] spring-bounce-sm hover:opacity-80">arrow_back</button>
+<h1 class="font-playfair text-2xl font-bold text-[#6b2d3e] tracking-tight text-center flex-1">Analytics</h1>
+<button class="material-symbols-outlined text-[#4f1728] dark:text-[#fef9f1] spring-bounce-sm hover:opacity-80">notifications</button>
+</header>
+<main class="px-6 pt-6 space-y-8 max-w-4xl mx-auto">
+<!-- Time Period Selector & Date -->
+<section class="space-y-4">
+<div class="flex overflow-x-auto gap-2 no-scrollbar pb-1">
+<button class="px-6 py-2.5 rounded-full bg-surface-container-highest text-on-surface font-medium whitespace-nowrap spring-bounce-sm hover:bg-surface-container-high">Hoy</button>
+<button class="px-6 py-2.5 rounded-full bg-[#6b2d3e] text-white font-medium whitespace-nowrap spring-bounce-sm">7 días</button>
+<button class="px-6 py-2.5 rounded-full bg-surface-container-highest text-on-surface font-medium whitespace-nowrap spring-bounce-sm hover:bg-surface-container-high">30 días</button>
+<button class="px-6 py-2.5 rounded-full bg-surface-container-highest text-on-surface font-medium whitespace-nowrap spring-bounce-sm hover:bg-surface-container-high">Personalizado</button>
+</div>
+<p class="text-xs text-[#7A7A7A] uppercase tracking-wider font-semibold px-1">29 Mar – 5 Abr, 2026</p>
+</section>
+<!-- Revenue Chart Card -->
+<section class="bg-surface-container-lowest p-6 rounded-[32px] shadow-[0px_20px_40px_rgba(29,28,23,0.06)] space-y-6">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="text-on-surface-variant font-medium mb-1">Ingresos</h2>
+<div class="flex items-baseline gap-3">
+<span class="text-3xl font-bold text-on-surface">$238,400</span>
+<span class="text-green-600 font-bold flex items-center text-sm">
+<span class="material-symbols-outlined text-sm">arrow_upward</span> 14%
+                    </span>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant">more_horiz</button>
+</div>
+<!-- Mock Area Chart -->
+<div class="relative h-48 w-full mt-4 flex items-end justify-between px-2">
+<div class="absolute inset-0 chart-gradient rounded-b-xl border-b-2 border-[#6b2d3e]"></div>
+<svg class="absolute bottom-0 left-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 Q15,75 25,60 T50,70 T75,30 T100,50" fill="none" stroke="#6b2d3e" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+<div class="absolute left-[70%] bottom-[75%] -translate-x-1/2 flex flex-col items-center">
+<div class="bg-on-surface text-white text-[10px] py-1 px-2 rounded-lg mb-1 shadow-lg">$42,100</div>
+<div class="w-3 h-3 bg-[#6b2d3e] rounded-full border-2 border-white"></div>
+</div>
+<div class="absolute -bottom-6 w-full flex justify-between text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">
+<span>Lun</span><span>Mar</span><span>Mie</span><span>Jue</span><span>Vie</span><span class="text-primary">Sab</span><span>Dom</span>
+</div>
+</div>
+</section>
+<!-- Key Metrics Row (Updated to single horizontal row) -->
+<section class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+<div class="bg-surface-container-lowest p-4 rounded-2xl shadow-sm border-l-4 border-[#6b2d3e]/10 min-w-[120px] flex-1">
+<p class="text-[10px] text-on-surface-variant font-medium mb-1 whitespace-nowrap">Ticket Prom.</p>
+<div class="flex flex-col">
+<span class="text-lg font-bold text-on-surface">$385</span>
+<span class="text-green-600 flex items-center text-[10px] font-bold">
+<span class="material-symbols-outlined text-[10px]">arrow_upward</span> 4%
+                </span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-2xl shadow-sm border-l-4 border-[#6b2d3e]/10 min-w-[120px] flex-1">
+<p class="text-[10px] text-on-surface-variant font-medium mb-1 whitespace-nowrap">Órdenes</p>
+<div class="flex flex-col">
+<span class="text-lg font-bold text-on-surface">619</span>
+<span class="text-green-600 flex items-center text-[10px] font-bold">
+<span class="material-symbols-outlined text-[10px]">arrow_upward</span> 12%
+                </span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-2xl shadow-sm border-l-4 border-[#6b2d3e]/10 min-w-[120px] flex-1">
+<p class="text-[10px] text-on-surface-variant font-medium mb-1 whitespace-nowrap">Comensales</p>
+<div class="flex flex-col">
+<span class="text-lg font-bold text-on-surface">1,847</span>
+<span class="text-green-600 flex items-center text-[10px] font-bold">
+<span class="material-symbols-outlined text-[10px]">arrow_upward</span> 8%
+                </span>
+</div>
+</div>
+</section>
+<!-- Dish Performance -->
+<section class="space-y-6">
+<h2 class="font-playfair text-xl text-[#6b2d3e] font-bold">Rendimiento de Platillos</h2>
+<div class="bg-surface-container-lowest p-6 rounded-[32px] shadow-sm space-y-5">
+<!-- Bar Chart -->
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium px-1"><span>Costilla de Res</span><span>142</span></div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-[#6b2d3e] rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium px-1"><span>Bowl de Atún</span><span>118</span></div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-[#6b2d3e] rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium px-1"><span>Tacos de Pastor</span><span>95</span></div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-[#6b2d3e] rounded-full" style="width: 65%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium px-1"><span>Ensalada César</span><span>72</span></div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-[#6b2d3e] rounded-full" style="width: 50%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium px-1"><span>Tiramisú</span><span>58</span></div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-[#6b2d3e] rounded-full" style="width: 40%"></div>
+</div>
+</div>
+</div>
+<!-- Insight Callout -->
+<div class="bg-[#fef9f1] p-4 rounded-2xl flex gap-4 items-center">
+<div class="w-10 h-10 bg-[#fdc34d]/20 flex items-center justify-center rounded-full shrink-0">
+<span class="material-symbols-outlined text-[#715000]">lightbulb</span>
+</div>
+<p class="text-sm leading-snug">
+<span class="font-bold text-[#6b2d3e]">Costilla de Res</span> genera 23% de tus ingresos totales este periodo.
+                </p>
+</div>
+</div>
+</section>
+<!-- Insights de Carta -->
+<section class="space-y-4">
+<h2 class="font-playfair text-xl text-[#6b2d3e] font-bold">Insights de Carta</h2>
+<div class="bg-surface-container-lowest p-6 rounded-[32px] border-2 border-secondary-container/30 relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-secondary-container/10 rounded-xl">
+<span class="material-symbols-outlined text-secondary">visibility</span>
+</div>
+<h3 class="font-bold text-on-surface">Visto pero no pedido</h3>
+</div>
+<span class="text-xs font-bold text-secondary-container bg-on-secondary-container px-2 py-1 rounded-md">BAJA CONVERSIÓN</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">
+                El <span class="font-bold text-on-surface">Tiramisú</span> tiene un alto volumen de visualizaciones en el menú AR, pero solo una tasa de conversión del 17%. Considera revisar el precio o la descripción.
+            </p>
+<a class="text-[#6b2d3e] text-sm font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform" href="#">Ver detalles <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-[32px] border-2 border-green-200/50 relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-green-100 rounded-xl">
+<span class="material-symbols-outlined text-green-700">smartphone</span>
+</div>
+<h3 class="font-bold text-on-surface">Impacto del 3D/AR</h3>
+</div>
+<span class="text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded-md">ALTO IMPACTO</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">
+                Los platillos con visualización 3D se ordenan <span class="font-bold text-on-surface">2.4x más</span> que los convencionales y generan un ticket <span class="font-bold text-green-700">31% mayor</span>.
+            </p>
+<a class="text-[#6b2d3e] text-sm font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform" href="#">Ver comparativo <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+</div>
+</section>
+<!-- Peak Hours Heatmap -->
+<section class="space-y-4">
+<h2 class="font-playfair text-xl text-[#6b2d3e] font-bold">Horas Pico</h2>
+<div class="bg-surface-container-lowest p-6 rounded-[32px] shadow-sm">
+<div class="flex items-end justify-between h-24 px-2 mb-6 gap-1">
+<div class="heat-bar bg-surface-container" style="height: 15%"></div>
+<div class="heat-bar bg-surface-container" style="height: 20%"></div>
+<div class="heat-bar bg-[#6b2d3e]/40" style="height: 45%"></div>
+<div class="heat-bar bg-[#6b2d3e]/80 relative" style="height: 100%">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[#6b2d3e]">14:00</div>
+</div>
+<div class="heat-bar bg-[#6b2d3e]/60" style="height: 70%"></div>
+<div class="heat-bar bg-[#6b2d3e]/30" style="height: 35%"></div>
+<div class="heat-bar bg-[#6b2d3e]/20" style="height: 25%"></div>
+<div class="heat-bar bg-[#6b2d3e]/50" style="height: 55%"></div>
+<div class="heat-bar bg-[#6b2d3e]" style="height: 90%">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[#6b2d3e]">21:00</div>
+</div>
+<div class="heat-bar bg-[#6b2d3e]/70" style="height: 75%"></div>
+<div class="heat-bar bg-[#6b2d3e]/30" style="height: 40%"></div>
+<div class="heat-bar bg-surface-container" style="height: 15%"></div>
+</div>
+<div class="flex justify-between text-[10px] font-bold text-on-surface-variant uppercase tracking-widest border-t border-surface-container pt-3">
+<span>12:00</span>
+<span>16:00</span>
+<span>20:00</span>
+<span>23:00</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Updated to 5 tabs with consistent active style) -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[32px] bg-[#fef9f1]/90 dark:bg-[#1a1a1a]/90 backdrop-blur-xl shadow-[0px_-20px_40px_rgba(29,28,23,0.06)] flex justify-around items-center px-2 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center text-[#6b2d3e]/70 dark:text-[#fef9f1]/70 w-16 py-1 hover:opacity-80 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-medium mt-1">Inicio</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#6b2d3e]/70 dark:text-[#fef9f1]/70 w-16 py-1 hover:opacity-80 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-2xl">restaurant_menu</span>
+<span class="text-[10px] font-medium mt-1">Menú</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#6b2d3e]/70 dark:text-[#fef9f1]/70 w-16 py-1 hover:opacity-80 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-2xl">receipt_long</span>
+<span class="text-[10px] font-medium mt-1">Pedidos</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#6b2d3e] text-white rounded-full px-4 py-2 hover:scale-105 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="text-[10px] font-medium mt-1">Analytics</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#6b2d3e]/70 dark:text-[#fef9f1]/70 w-16 py-1 hover:opacity-80 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[10px] font-medium mt-1">Config</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@700&amp;family=Noto+Serif:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#ece8e0",
+                        "inverse-surface": "#32302b",
+                        "surface-container-highest": "#e7e2da",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "primary": "#4f1728",
+                        "tertiary-fixed": "#ffd9df",
+                        "on-surface-variant": "#524346",
+                        "on-secondary-fixed": "#271900",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f8f3eb",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-surface": "#1d1c17",
+                        "secondary": "#7b5800",
+                        "surface-tint": "#8e495a",
+                        "on-tertiary-container": "#ea96a9",
+                        "on-tertiary": "#ffffff",
+                        "on-background": "#1d1c17",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#ffdea6",
+                        "on-tertiary-fixed": "#3b0619",
+                        "primary-container": "#6b2d3e",
+                        "surface-container": "#f2ede5",
+                        "secondary-container": "#fdc34d",
+                        "surface": "#fef9f1",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "outline-variant": "#d7c1c4",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#ffd9df",
+                        "outline": "#857375",
+                        "on-secondary-container": "#715000",
+                        "surface-dim": "#ded9d2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#ea96a9",
+                        "inverse-primary": "#ffb1c2",
+                        "inverse-on-surface": "#f5f0e8",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "on-primary-fixed": "#3b0619",
+                        "surface-bright": "#fef9f1",
+                        "tertiary": "#4f1728",
+                        "surface-variant": "#e7e2da",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#6b2d3e",
+                        "background": "#fef9f1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-[#fef9f1] text-on-surface font-body selection:bg-primary/20">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 tonal-shift bg-[#fef9f1] border-none shadow-[0px_20px_40px_rgba(29,28,23,0.06)] h-16 flex items-center px-6">
+<div class="flex items-center justify-between w-full relative">
+<span class="material-symbols-outlined text-[#4f1728] cursor-pointer hover:opacity-80 transition-opacity scale-95 duration-200 ease-in-out absolute left-0">arrow_back</span>
+<div class="w-full text-center">
+<h1 class="font-headline tracking-tight text-xl text-[#4f1728] font-bold">Dispositivos Autorizados</h1>
+</div>
+<button class="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors absolute right-0">
+<span class="material-symbols-outlined text-xl">add</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Summary Strip -->
+<section class="bg-surface-container-lowest shadow-[0px_10px_30px_rgba(29,28,23,0.04)] rounded-[12px] p-4 flex justify-between items-center">
+<div class="flex flex-col items-center flex-1 border-r border-outline-variant/30">
+<span class="text-green-600 font-bold text-lg">3</span>
+<span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">activos</span>
+</div>
+<div class="flex flex-col items-center flex-1 border-r border-outline-variant/30">
+<span class="text-error font-bold text-lg">1</span>
+<span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">bloqueado</span>
+</div>
+<div class="flex flex-col items-center flex-1">
+<span class="text-on-surface font-bold text-lg">4</span>
+<span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">en turno</span>
+</div>
+</section>
+<!-- Section 1: Shared Devices -->
+<section class="space-y-4">
+<div class="flex flex-col gap-1 px-1">
+<h2 class="text-xs font-bold tracking-[0.15em] text-on-surface-variant uppercase">DEL RESTAURANTE</h2>
+<p class="text-sm italic text-on-surface-variant/70">Cualquier mesero autorizado puede iniciar sesión con su PIN.</p>
+</div>
+<div class="space-y-4">
+<!-- Shared Device Card 1 -->
+<div class="bg-surface-container-lowest p-5 rounded-[20px] shadow-sm flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl">tablet_mac</span>
+</div>
+<div>
+<h3 class="font-semibold text-on-surface">iPad Air · Salón Principal</h3>
+<p class="text-xs text-on-surface-variant">Sesión actual: <span class="text-primary font-medium">Carlos R.</span></p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant/10">
+<span class="text-xs text-on-surface-variant font-medium">Desde las 13:42</span>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+<!-- Shared Device Card 2 -->
+<div class="bg-surface-container-lowest p-5 rounded-[20px] shadow-sm flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl">tablet</span>
+</div>
+<div>
+<h3 class="font-semibold text-on-surface">iPad Mini · Terraza</h3>
+<p class="text-xs text-on-surface-variant">Sesión actual: <span class="text-primary font-medium">Mariana L.</span></p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant/10">
+<span class="text-xs text-on-surface-variant font-medium">Desde las 12:05</span>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Personal Devices -->
+<section class="space-y-4">
+<div class="flex flex-col gap-1 px-1">
+<h2 class="text-xs font-bold tracking-[0.15em] text-on-surface-variant uppercase">PERSONALES DE MESEROS</h2>
+<p class="text-sm italic text-on-surface-variant/70">Solo el mesero asignado puede usar su dispositivo personal.</p>
+</div>
+<div class="space-y-3">
+<!-- Personal 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-[20px] shadow-sm flex items-center justify-between">
+<div class="flex gap-4 items-center">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">smartphone</span>
+</div>
+<div>
+<h3 class="font-semibold text-sm">iPhone 14 Pro · Carlos R.</h3>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<!-- Personal 2 (Mariana L. - Samsung S24) -->
+<div class="bg-surface-container-lowest p-4 rounded-[20px] shadow-sm flex items-center justify-between">
+<div class="flex gap-4 items-center">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">smartphone</span>
+</div>
+<div>
+<h3 class="font-semibold text-sm">Samsung S24 · Mariana L.</h3>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2.5 h-2.5 rounded-full bg-error"></div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<!-- Personal 3 (Luis M. - iPhone 11) -->
+<div class="bg-surface-container-low border-l-4 border-error p-4 rounded-[20px] shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex gap-4 items-center">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center grayscale">
+<span class="material-symbols-outlined text-on-surface-variant">smartphone</span>
+</div>
+<div>
+<h3 class="font-semibold text-sm text-on-surface-variant/80">iPhone 11 · Luis M.</h3>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" disabled="" type="checkbox"/>
+<div class="w-9 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<p class="text-[10px] text-error font-medium pl-14">Bloqueado el 4 abr, 16:30 por administrador</p>
+</div>
+</div>
+</section>
+<!-- Section 3: How it works -->
+<section class="bg-[#6b2d3e]/5 p-6 rounded-[24px] flex gap-4 items-start">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-xl">sync</span>
+</div>
+<div class="space-y-2">
+<h4 class="font-bold text-primary text-sm">¿Cómo funciona el flujo PIN?</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                    Los dispositivos compartidos permiten el intercambio rápido de turnos. Al finalizar una orden, el mesero cierra sesión y el dispositivo queda listo para que el siguiente ingrese su PIN de 4 dígitos.
+                </p>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Refined for Config Active State) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fef9f1]/80 dark:bg-stone-900/80 backdrop-blur-xl rounded-t-[32px] shadow-[0px_-10px_30px_rgba(29,28,23,0.04)]">
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-[#4f1728] transition-all transform active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">home</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Inicio</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-[#4f1728] transition-all transform active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Menú</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-[#4f1728] transition-all transform active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Pedidos</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-[#4f1728] transition-all transform active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Analytics</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#6b2d3e] text-white rounded-full px-4 py-2 transition-all transform active:scale-95 cursor-pointer">
+<span class="material-symbols-outlined filled-icon">settings</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium mt-1">Config</span>
+</div>
+</nav>
+</body></html>

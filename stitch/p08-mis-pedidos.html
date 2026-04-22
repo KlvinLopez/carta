@@ -1,0 +1,316 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Mis Pedidos - Digital Sommelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:wght@700;800;900&amp;family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#271900",
+                        "on-surface": "#1d1c17",
+                        "primary-container": "#6b2d3e",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#f5f0e8",
+                        "on-secondary-container": "#715000",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#fef9f1",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "secondary-fixed": "#ffdea6",
+                        "on-primary-container": "#ea96a9",
+                        "surface-tint": "#8e495a",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#fef9f1",
+                        "on-tertiary-container": "#ea96a9",
+                        "secondary": "#7b5800",
+                        "surface-variant": "#e7e2da",
+                        "primary": "#4f1728",
+                        "on-primary-fixed": "#3b0619",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#32302b",
+                        "secondary-container": "#fdc34d",
+                        "outline-variant": "#d7c1c4",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#3b0619",
+                        "tertiary": "#4f1728",
+                        "surface-container-high": "#ece8e0",
+                        "inverse-primary": "#ffb1c2",
+                        "surface-container-highest": "#e7e2da",
+                        "on-surface-variant": "#524346",
+                        "primary-fixed": "#ffd9df",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "outline": "#857375",
+                        "on-background": "#1d1c17",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "tertiary-fixed": "#ffd9df",
+                        "surface-container": "#f2ede5",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "tertiary-container": "#6b2d3e",
+                        "surface-dim": "#ded9d2",
+                        "surface-container-low": "#f8f3eb",
+                        "background": "#fef9f1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Playfair Display", "Noto Serif"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .tonal-shift { background-color: #fef9f1; }
+        .spring-bounce:active { transform: scale(0.95); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-[#fef9f1] text-on-surface font-body selection:bg-primary-container selection:text-white pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex items-center px-6 h-16 bg-[#fef9f1] dark:bg-[#1A1A1A] shadow-[0px_20px_40px_rgba(29,28,23,0.06)]">
+<div class="flex items-center w-full relative justify-center">
+<span class="material-symbols-outlined text-[#4f1728] dark:text-[#fef9f1] cursor-pointer hover:opacity-80 transition-opacity absolute left-0" data-icon="arrow_back" style="">arrow_back</span>
+<h1 class="font-['Playfair_Display'] tracking-tighter text-xl font-bold text-[#4f1728] dark:text-[#fef9f1]" style="">Mis Pedidos</h1>
+</div>
+</header>
+<main class="mt-20 px-6 space-y-6">
+<!-- Quick Stats Strip -->
+<section class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0px_10px_30px_rgba(29,28,23,0.04)] flex justify-between items-center text-[12px] font-medium tracking-tight">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-lg" style="">payments</span>
+<span class="text-on-surface-variant" style="">$4,230 hoy</span>
+</div>
+<div class="w-px h-4 bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-lg" style="">restaurant</span>
+<span class="text-on-surface-variant" style="">23</span>
+</div>
+<div class="w-px h-4 bg-outline-variant/30"></div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-lg" style="">schedule</span>
+<span class="text-on-surface-variant" style="">4.5 min prom.</span>
+</div>
+</section>
+<!-- Filter Tabs -->
+<nav class="flex overflow-x-auto hide-scrollbar gap-3 -mx-6 px-6 pb-2">
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-primary text-white font-semibold text-sm shadow-lg shadow-primary-container/20" style="">Todos (12)</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-medium text-sm hover:bg-surface-container-highest transition-colors" style="">Pendientes (3)</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-medium text-sm hover:bg-surface-container-highest transition-colors" style="">En Cocina (5)</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-medium text-sm hover:bg-surface-container-highest transition-colors" style="">Listos (2)</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-medium text-sm hover:bg-surface-container-highest transition-colors" style="">Extras (2)</button>
+</nav>
+<!-- Order Feed -->
+<div class="space-y-4">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0px_10px_30px_rgba(29,28,23,0.04)] border-l-4 border-secondary-container flex flex-col">
+<div class="p-5 space-y-3"><div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="font-headline text-lg font-bold text-primary flex items-center gap-1.5" style="">
+<span class="material-symbols-outlined text-xl" style="">table_restaurant</span> Mesa 4
+        </span>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium" style="">
+<span class="material-symbols-outlined text-sm" style="">group</span> 4
+        </div>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium opacity-60" style="">
+<span class="material-symbols-outlined text-sm" style="">schedule</span> 1 min
+        </div>
+</div>
+<div class="flex items-center gap-1.5 bg-secondary-container/20 px-2 py-1 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-wider" style="">Pendiente</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<p class="text-on-surface font-medium leading-relaxed" style="">2x Tiramisú, 1x Café Americano</p>
+<span class="bg-secondary-container/20 text-secondary text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md" style="">EXTRA</span>
+</div>
+<div class="flex justify-end items-center">
+<span class="font-bold text-primary" style="">$360</span>
+</div></div>
+<button class="w-full py-4 bg-primary text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all" style="">Aceptar →</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0px_10px_30px_rgba(29,28,23,0.04)] border-l-4 border-error flex flex-col">
+<div class="p-5 space-y-3"><div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="font-headline text-lg font-bold text-primary flex items-center gap-1.5" style="">
+<span class="material-symbols-outlined text-xl" style="">table_restaurant</span> Mesa 7
+        </span>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium" style="">
+<span class="material-symbols-outlined text-sm" style="">group</span> 2
+        </div>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium opacity-60" style="">
+<span class="material-symbols-outlined text-sm" style="">schedule</span> 6 min
+        </div>
+</div>
+<div class="flex items-center gap-1.5 bg-error/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs text-error" style="">fire_truck</span>
+<span class="text-[10px] font-bold text-error uppercase tracking-wider" style="">En Cocina</span>
+</div>
+</div>
+<p class="text-on-surface font-medium leading-relaxed mb-2" style="">1x Costilla de Res, 1x Ensalada César</p>
+<div class="flex justify-end items-center">
+<span class="font-bold text-primary" style="">$485</span>
+</div></div>
+<button class="w-full py-4 bg-surface-container-high text-primary font-bold text-sm tracking-widest uppercase hover:bg-surface-container-highest active:scale-[0.98] transition-all" style="">Entregado ✓</button>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0px_10px_30px_rgba(29,28,23,0.04)] border-l-4 border-secondary-container flex flex-col">
+<div class="p-5 space-y-3"><div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="font-headline text-lg font-bold text-primary flex items-center gap-1.5" style="">
+<span class="material-symbols-outlined text-xl" style="">local_bar</span> Barra
+        </span>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium" style="">
+<span class="material-symbols-outlined text-sm" style="">person</span> 1
+        </div>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium opacity-60" style="">
+<span class="material-symbols-outlined text-sm" style="">schedule</span> 2 min
+        </div>
+</div>
+<div class="flex items-center gap-1.5 bg-secondary-container/20 px-2 py-1 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-wider" style="">Pendiente</span>
+</div>
+</div>
+<p class="text-on-surface font-medium leading-relaxed mb-2" style="">2x Margarita, 1x Mezcal</p>
+<div class="flex justify-end items-center">
+<span class="font-bold text-primary" style="">$390</span>
+</div></div>
+<button class="w-full py-4 bg-primary text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all" style="">Aceptar →</button>
+</div>
+<!-- Card 4 (Allergy + Delayed Highlight) -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0px_10px_30px_rgba(29,28,23,0.04)] border-l-4 border-error flex flex-col relative">
+<div class="p-5 space-y-3"><div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="font-headline text-lg font-bold text-primary flex items-center gap-1.5" style="">
+<span class="material-symbols-outlined text-xl" style="">table_restaurant</span> Mesa 12
+        </span>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium" style="">
+<span class="material-symbols-outlined text-sm" style="">group</span> 3
+        </div>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium opacity-60" style="">
+<span class="material-symbols-outlined text-sm" style="">schedule</span> 10 min
+        </div>
+</div>
+<div class="flex items-center gap-1.5 bg-error/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs text-error" style="">fire_truck</span>
+<span class="text-[10px] font-bold text-error uppercase tracking-wider" style="">En Cocina</span>
+</div>
+</div>
+<p class="text-on-surface font-medium leading-relaxed mb-2" style="">3x Tacos de Pastor, 2x Agua</p>
+<div class="space-y-2 mb-3">
+<div class="bg-error text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight" style="">
+<span class="material-symbols-outlined text-xs" style="">warning</span> MESA DEMORADA EN COCINA
+</div>
+<div class="flex justify-between items-center">
+<div class="bg-error/10 px-3 py-1.5 rounded-lg flex items-center gap-2 text-error text-[10px] font-bold uppercase tracking-tight" style="">
+<span class="material-symbols-outlined text-xs" style="">warning</span> Alergia: mariscos
+</div>
+<span class="font-bold text-primary" style="">$310</span>
+</div>
+</div></div>
+<button class="w-full py-4 bg-surface-container-high text-primary font-bold text-sm tracking-widest uppercase hover:bg-surface-container-highest active:scale-[0.98] transition-all" style="">Entregado ✓</button>
+</div>
+<!-- Card 5 -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0px_10px_30px_rgba(29,28,23,0.04)] border-l-4 border-green-600/50 flex flex-col">
+<div class="p-5 space-y-3"><div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="font-headline text-lg font-bold text-primary flex items-center gap-1.5" style="">
+<span class="material-symbols-outlined text-xl" style="">table_restaurant</span> Mesa 9
+        </span>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium" style="">
+<span class="material-symbols-outlined text-sm" style="">group</span> 2
+        </div>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium opacity-60" style="">
+<span class="material-symbols-outlined text-sm" style="">schedule</span> 12 min
+        </div>
+</div>
+<div class="flex items-center gap-1.5 bg-green-100 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs text-green-600" style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span>
+<span class="text-[10px] font-bold text-green-600 uppercase tracking-wider" style="">PAGADA</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<p class="text-on-surface font-medium leading-relaxed" style="">1x Copa Malbec</p>
+<span class="bg-secondary-container/20 text-secondary text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md" style="">EXTRA</span>
+</div>
+<div class="flex justify-end items-center">
+<span class="font-bold text-primary" style="">$180</span>
+</div></div>
+<button class="w-full py-4 bg-green-600 text-white font-bold text-sm tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all" style=""><span class="material-symbols-outlined text-sm mr-1" style="">check_circle</span> MARCAR LIMPIA</button>
+</div>
+<!-- Card 6 -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0px_10px_30px_rgba(29,28,23,0.04)] border-l-4 border-error flex flex-col">
+<div class="p-5 space-y-3"><div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="font-headline text-lg font-bold text-primary flex items-center gap-1.5" style="">
+<span class="material-symbols-outlined text-xl" style="">package_2</span> Para llevar
+        </span>
+<div class="flex items-center gap-1 text-on-surface-variant text-xs font-medium opacity-60" style="">
+<span class="material-symbols-outlined text-sm" style="">schedule</span> 15 min
+        </div>
+</div>
+<div class="flex items-center gap-1.5 bg-error/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs text-error" style="">fire_truck</span>
+<span class="text-[10px] font-bold text-error uppercase tracking-wider" style="">En Cocina</span>
+</div>
+</div>
+<p class="text-on-surface font-medium leading-relaxed mb-2" style="">1x Costilla de Res, 2x Ensalada</p>
+<div class="flex justify-between items-end">
+<span class="text-[10px] text-on-surface-variant font-medium" style="">Cliente: Carlos M.</span>
+<span class="font-bold text-primary" style="">$650</span>
+</div></div>
+<button class="w-full py-4 bg-surface-container-high text-primary font-bold text-sm tracking-widest uppercase hover:bg-surface-container-highest active:scale-[0.98] transition-all" style="">Entregado ✓</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[32px] bg-[#fef9f1]/80 dark:bg-[#1A1A1A]/80 backdrop-blur-xl shadow-[0px_-10px_40px_rgba(29,28,23,0.04)] flex justify-around items-center px-4 h-20">
+<!-- Mis Mesas -->
+<div class="flex flex-col items-center justify-center text-[#6b2d3e] dark:text-gray-400 opacity-60 hover:opacity-100 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="table_restaurant" style="">table_restaurant</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest" style="">Mis Mesas</span>
+</div>
+<!-- Menú -->
+<div class="flex flex-col items-center justify-center text-[#6b2d3e] dark:text-gray-400 opacity-60 hover:opacity-100 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="restaurant_menu" style="">restaurant_menu</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest" style="">Menú</span>
+</div>
+<!-- Pedidos (ACTIVE) -->
+<div class="flex flex-col items-center justify-center bg-[#6b2d3e] text-white rounded-full px-4 py-2 spring-bounce scale-110 cursor-pointer shadow-lg shadow-primary-container/30">
+<span class="material-symbols-outlined mb-1" data-icon="receipt_long" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">receipt_long</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest" style="">Pedidos</span>
+</div>
+<!-- Mi Perfil -->
+<div class="flex flex-col items-center justify-center text-[#6b2d3e] dark:text-gray-400 opacity-60 hover:opacity-100 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="person" style="">person</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest" style="">Mi Perfil</span>
+</div>
+</nav>
+</body></html>

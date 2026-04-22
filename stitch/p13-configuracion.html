@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Configuración - Digital Sommelier</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,700;1,700&amp;family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e7e2da",
+                        "on-surface-variant": "#524346",
+                        "on-primary-fixed": "#3b0619",
+                        "secondary": "#7b5800",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-tertiary-fixed": "#3b0619",
+                        "error-container": "#ffdad6",
+                        "on-background": "#1d1c17",
+                        "primary": "#4f1728",
+                        "error": "#ba1a1a",
+                        "primary-container": "#6b2d3e",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#6b2d3e",
+                        "background": "#fef9f1",
+                        "primary-fixed": "#ffd9df",
+                        "surface-tint": "#8e495a",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "surface-container-low": "#f8f3eb",
+                        "on-tertiary-container": "#ea96a9",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "outline-variant": "#d7c1c4",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#fdc34d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#ece8e0",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#f2ede5",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "on-primary-container": "#ea96a9",
+                        "outline": "#857375",
+                        "surface-dim": "#ded9d2",
+                        "inverse-surface": "#32302b",
+                        "surface-container-highest": "#e7e2da",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "on-surface": "#1d1c17",
+                        "inverse-on-surface": "#f5f0e8",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "secondary-fixed": "#ffdea6",
+                        "on-secondary-container": "#715000",
+                        "surface-bright": "#fef9f1",
+                        "surface": "#fef9f1",
+                        "inverse-primary": "#ffb1c2",
+                        "tertiary-fixed": "#ffd9df",
+                        "on-secondary-fixed": "#271900",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#4f1728"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif"],
+                        "serif": ["Playfair Display"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .tonal-shift-no-lines {
+            border: none !important;
+        }
+        body {
+            background-color: #F5F0E8;
+            font-family: 'Inter', sans-serif;
+        }
+        .apple-style-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            left: 56px;
+            height: 1px;
+            background-color: rgba(215, 193, 196, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#F5F0E8] dark:bg-stone-950 shadow-sm dark:shadow-none flex flex-col justify-center px-6 h-24 tonal-shift-no-lines"><div class="flex flex-col items-center justify-center w-full py-4">
+<h2 class="text-2xl font-serif font-bold text-[#6B2D3E]">Configuración</h2>
+<p class="text-[11px] text-on-surface-variant/70 font-medium uppercase tracking-wider">Gestiona tu restaurante y herramientas</p>
+</div></header>
+<main class="pt-28 pb-32 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Header Section -->
+<!-- Profile Card -->
+<div class="bg-white rounded-lg p-6 flex flex-col gap-4 shadow-[0px_4px_20px_rgba(29,28,23,0.04)]">
+<div class="flex items-center gap-5">
+<div class="w-16 h-16 rounded-full bg-surface-container-high overflow-hidden flex items-center justify-center border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="minimalist restaurant logo showing a wine glass and a digital fork in elegant dark burgundy lines on cream background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJXpVhjjEOLlCOfGyWHoMozc1nf7-n9LMlXNW4YRvyRp_ulDnEDvI9s0K2UaOSlqcZgj4M3V9vx2HQkCkfNG4h1QTIgrxwIKH4tYB_Mb18OHadrqTY9JTmD3Xz000CbKLMdk1zrx-R-8n6kGyR6Gg56v1vwUE_aMXGVL4PXiVDfp-hH3LwNGzf7oiw1J-yPByv4rjZGSIbZQearugZQ83C_eWMp94txLuXr-JjexJYwkaWVcpolyvfJKz6pcGudgq979b3FOPnzgc"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2">
+<h3 class="text-xl font-bold text-primary">The Digital Sommelier</h3>
+<span class="bg-[#B8860B]/10 text-[#B8860B] text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full">Plan Pro</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium">Cocina Mexicana Contemporánea · Polanco, CDMX</p>
+</div>
+</div>
+<a class="text-[#6B2D3E] font-semibold text-sm flex items-center gap-1 self-start hover:underline" href="#">
+                Editar Perfil <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<!-- Sections Container -->
+<div class="space-y-6">
+<!-- Mi Carta -->
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 ml-4 mb-3">Mi Carta</h4>
+<div class="bg-white rounded-lg overflow-hidden shadow-[0px_4px_20px_rgba(29,28,23,0.04)]">
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">palette</span>
+<span class="flex-1 font-medium text-on-surface">Tema y Colores</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">description</span>
+<span class="flex-1 font-medium text-on-surface">Nombre y Descripción</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">schedule</span>
+<span class="flex-1 font-medium text-on-surface">Horarios</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">location_on</span>
+<span class="flex-1 font-medium text-on-surface">Ubicación</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Códigos QR y Mesas -->
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 ml-4 mb-3">Códigos QR y Mesas</h4>
+<div class="bg-white rounded-lg overflow-hidden shadow-[0px_4px_20px_rgba(29,28,23,0.04)]">
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">qr_code_2</span>
+<div class="flex-1 flex items-center justify-between mr-2">
+<span class="font-medium text-on-surface">Mis Códigos QR</span>
+<span class="bg-surface-container-high px-2 py-0.5 rounded text-[11px] font-bold text-on-surface-variant">18 mesas</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">table_restaurant</span>
+<span class="flex-1 font-medium text-on-surface">Gestionar Mesas</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">contactless</span>
+<span class="flex-1 font-medium text-on-surface">NFC Tags</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Equipo -->
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 ml-4 mb-3">Equipo</h4>
+<div class="bg-white rounded-lg overflow-hidden shadow-[0px_4px_20px_rgba(29,28,23,0.04)]">
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">group</span>
+<div class="flex-1 flex items-center justify-between mr-2">
+<span class="font-medium text-on-surface">Miembros del Equipo</span>
+<span class="bg-secondary-container/20 px-2 py-0.5 rounded text-[11px] font-bold text-secondary">3 activos</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">security</span>
+<span class="flex-1 font-medium text-on-surface">Roles y Permisos</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Suscripción y Facturación -->
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 ml-4 mb-3">Suscripción y Facturación</h4>
+<div class="bg-white rounded-lg overflow-hidden shadow-[0px_4px_20px_rgba(29,28,23,0.04)]">
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">credit_card</span>
+<div class="flex-1 flex flex-col">
+<span class="font-medium text-on-surface">Mi Plan</span>
+<span class="text-xs text-on-surface-variant/70">Plan Pro · $349/mes</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">receipt_long</span>
+<span class="flex-1 font-medium text-on-surface">Facturación</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#B8860B] bg-[#B8860B]/5 p-2 rounded-xl">auto_awesome</span>
+<div class="flex-1 flex items-center justify-between mr-2">
+<span class="font-medium text-[#B8860B]">Upgrade a Enterprise</span>
+<span class="bg-[#B8860B] text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase">PRO</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Soporte -->
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 ml-4 mb-3">Soporte</h4>
+<div class="bg-white rounded-lg overflow-hidden shadow-[0px_4px_20px_rgba(29,28,23,0.04)]">
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">help</span>
+<span class="flex-1 font-medium text-on-surface">Centro de Ayuda</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="apple-style-item relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">bug_report</span>
+<span class="flex-1 font-medium text-on-surface">Reportar Problema</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="relative w-full flex items-center gap-4 p-4 text-left hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined text-[#6B2D3E] bg-primary/5 p-2 rounded-xl">support_agent</span>
+<span class="flex-1 font-medium text-on-surface">Contactar Soporte</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Info -->
+<div class="text-center pb-8 opacity-40">
+<p class="text-[11px] font-medium tracking-wide uppercase">Carta v1.0.0 · Hecho con ❤️ en México</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-[#F5F0E8]/80 dark:bg-stone-950/80 backdrop-blur-xl flex justify-around items-center px-4 pb-6 pt-3 tonal-shift-no-lines shadow-[0px_-10px_40px_rgba(29,28,23,0.06)] rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#6B2D3E] dark:hover:text-rose-300 transition-transform scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-sans text-xs font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#6B2D3E] dark:hover:text-rose-300 transition-transform scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-sans text-xs font-medium">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#6B2D3E] dark:hover:text-rose-300 transition-transform scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-sans text-xs font-medium">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 hover:text-[#6B2D3E] dark:hover:text-rose-300 transition-transform scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-sans text-xs font-medium">Analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#6B2D3E] text-white rounded-full px-5 py-1.5 transition-transform scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-sans text-xs font-medium">Config</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;family=Noto+Serif:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#6b2d3e",
+                    "on-tertiary-fixed": "#3b0619",
+                    "secondary-fixed": "#ffdea6",
+                    "primary-fixed-dim": "#ffb1c2",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#ded9d2",
+                    "primary-fixed": "#ffd9df",
+                    "outline": "#857375",
+                    "on-secondary-container": "#715000",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#ffb1c2",
+                    "outline-variant": "#d7c1c4",
+                    "secondary-fixed-dim": "#f7bd48",
+                    "on-error": "#ffffff",
+                    "surface": "#fef9f1",
+                    "surface-container": "#f2ede5",
+                    "secondary-container": "#fdc34d",
+                    "surface-bright": "#fef9f1",
+                    "on-primary-fixed": "#3b0619",
+                    "on-tertiary-fixed-variant": "#713243",
+                    "inverse-on-surface": "#f5f0e8",
+                    "inverse-primary": "#ffb1c2",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#ea96a9",
+                    "tertiary-container": "#6b2d3e",
+                    "background": "#fef9f1",
+                    "error": "#ba1a1a",
+                    "tertiary": "#4f1728",
+                    "surface-variant": "#e7e2da",
+                    "tertiary-fixed": "#ffd9df",
+                    "primary": "#4f1728",
+                    "on-secondary-fixed-variant": "#5d4200",
+                    "surface-container-highest": "#e7e2da",
+                    "surface-container-high": "#ece8e0",
+                    "inverse-surface": "#32302b",
+                    "surface-container-low": "#f8f3eb",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#271900",
+                    "on-surface-variant": "#524346",
+                    "on-surface": "#1d1c17",
+                    "on-primary-fixed-variant": "#713243",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1d1c17",
+                    "on-tertiary": "#ffffff",
+                    "surface-tint": "#8e495a",
+                    "on-tertiary-container": "#ea96a9",
+                    "secondary": "#7b5800"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Playfair Display", "serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Inter", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed leading-relaxed">
+<!-- TopAppBar -->
+<header class="bg-[#fef9f1] flex justify-between items-center w-full px-6 py-4 docked full-width top-0 sticky z-40">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-white">restaurant</span>
+</div>
+<h1 class="font-['Playfair_Display'] font-semibold tracking-tight text-xl text-[#4f1728]">The Digital Sommelier</h1>
+</div>
+<button class="material-symbols-outlined text-[#4f1728] text-2xl hover:opacity-80 transition-opacity">notifications</button>
+</header>
+<main class="px-6 pb-32 pt-4 space-y-8">
+<!-- Quick Actions Row -->
+<section class="flex justify-between items-center bg-surface-container-lowest p-4 rounded-xl shadow-[0px_10px_40px_rgba(29,28,23,0.04)]">
+<button class="flex flex-col items-center gap-1 group">
+<div class="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center text-primary group-active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined">restaurant_menu</span>
+</div>
+<span class="text-[10px] font-medium uppercase tracking-wider text-on-surface-variant">Menú</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<div class="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center text-primary group-active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined">upload_file</span>
+</div>
+<span class="text-[10px] font-medium uppercase tracking-wider text-on-surface-variant">Subir</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<div class="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center text-primary group-active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<span class="text-[10px] font-medium uppercase tracking-wider text-on-surface-variant">Analytics</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<div class="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center text-primary group-active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined">grade</span>
+</div>
+<span class="text-[10px] font-medium uppercase tracking-wider text-on-surface-variant">Top 3</span>
+</button>
+</section>
+<!-- Alerts Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold tracking-widest text-on-surface-variant uppercase">Hoy, Sábado 5 de Abril</span>
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+</div>
+<!-- Alert 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl relative border-l-4 border-secondary overflow-hidden shadow-sm">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-secondary">local_fire_department</span>
+<div class="flex-1">
+<p class="text-sm font-medium text-on-surface">🔥 Costilla de Res casi agotada — quedan 3 porciones</p>
+<a class="text-xs font-bold text-primary underline mt-1 inline-block" href="#">Ver Inventario</a>
+</div>
+</div>
+<button class="absolute top-4 right-4 material-symbols-outlined text-stone-400 text-lg">close</button>
+</div>
+<!-- Alert 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl relative border-l-4 border-green-600 overflow-hidden shadow-sm">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-green-600">chat_bubble</span>
+<div class="flex-1">
+<p class="text-sm font-medium text-on-surface">💬 Nueva reseña ⭐⭐⭐⭐⭐ — "Increíble experiencia AR"</p>
+<a class="text-xs font-bold text-primary underline mt-1 inline-block" href="#">Leer Comentario</a>
+</div>
+</div>
+<button class="absolute top-4 right-4 material-symbols-outlined text-stone-400 text-lg">close</button>
+</div>
+</section>
+<!-- Stats Grid -->
+<section class="grid grid-cols-2 gap-4"><!-- Venta del día -->
+<div class="bg-primary-container p-4 rounded-xl text-on-primary shadow-sm flex flex-col justify-between bg-gradient-to-br from-[#4f1728] to-[#6b2d3e]"><div class="space-y-0.5">
+<p class="text-[10px] font-medium opacity-80 uppercase tracking-widest">Venta del día</p>
+<div class="flex justify-between items-center">
+<h2 class="text-xl font-bold font-headline">$34,200</h2>
+<div class="flex items-center gap-1 text-green-300 text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+<span>8%</span>
+</div>
+</div>
+</div></div>
+<!-- Satisfacción -->
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col justify-between"><div class="space-y-0.5">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Satisfacción</p>
+<div class="flex justify-between items-center mt-1">
+<span class="text-xl font-bold flex items-center gap-1">4.7<span class="text-sm text-secondary material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span></span>
+<p class="text-[8px] font-medium text-on-surface-variant/70 italic">Prom. mensual: 4.5</p>
+</div>
+</div></div></section>
+<!-- Live Activity -->
+<section class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline text-lg font-semibold text-primary">Actividad en Vivo</h3>
+<div class="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full">
+<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold text-green-700 uppercase">Live</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="relative w-14 h-14 flex items-center justify-center">
+<svg class="absolute w-full h-full transform -rotate-90">
+<circle class="text-surface-container-high" cx="28" cy="28" fill="transparent" r="24" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-primary" cx="28" cy="28" fill="transparent" r="24" stroke="currentColor" stroke-dasharray="150" stroke-dashoffset="50" stroke-width="4"></circle>
+</svg>
+<span class="text-[10px] font-bold">12/18</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-medium">Mesas</span>
+</div>
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-14 h-14 bg-surface-container-low rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl">groups</span>
+</div>
+<span class="text-[10px] font-bold text-on-surface">47</span>
+<span class="text-[10px] text-on-surface-variant font-medium">Comensales</span>
+</div>
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-14 h-14 bg-surface-container-low rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl">timer</span>
+</div>
+<span class="text-[10px] font-bold text-on-surface">48m</span>
+<span class="text-[10px] text-on-surface-variant font-medium">Prom.</span>
+</div>
+</div>
+</section>
+<!-- Top Dishes -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline text-lg font-semibold text-primary">Más Pedidos Hoy</h3>
+<span class="text-xs font-bold text-on-surface-variant">Ver todos</span>
+</div>
+<div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-6 px-6 pb-4">
+<!-- Dish 1 -->
+<div class="min-w-[140px] bg-surface-container-lowest p-3 rounded-xl shadow-sm flex flex-col gap-2">
+<div class="h-24 rounded-lg overflow-hidden">
+<img alt="Costilla de Res" class="w-full h-full object-cover" data-alt="Close-up gourmet presentation of slow-cooked beef short ribs with a dark balsamic glaze and microgreens, moody dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTPQcyfX7FFE5Brhya_RUqbFvmHoJt6Y077_rE_JYgPTxy-ilG1YB2i624BKswzHcStfVLgQD5S0DKGPwpPpqrUAxY-_8EYw0q6K-uAuHyhsuf92pDnRbPbTGgY5veHJgfQz0Aaks6-ARsOuYEUQDwV_L7XaMTxn2o4nYbwQ2_w-w0eapVdO5wcJFhw5rAyD_B5MuVITV3R5zhYgPju6dOxRdgvXrr0W-7OQyEPzNm4TCaBsUSYQ1xsjDpl3pzeyRhg2UIBkTIdeE"/>
+</div>
+<div class="space-y-1">
+<h4 class="text-xs font-bold line-clamp-1">Costilla de Res</h4>
+<div class="flex justify-between items-center">
+<span class="text-lg font-bold text-primary">42</span>
+<span class="material-symbols-outlined text-green-600 text-sm">trending_up</span>
+</div>
+</div>
+</div>
+<!-- Dish 2 -->
+<div class="min-w-[140px] bg-surface-container-lowest p-3 rounded-xl shadow-sm flex flex-col gap-2">
+<div class="h-24 rounded-lg overflow-hidden">
+<img alt="Bowl de Atún" class="w-full h-full object-cover" data-alt="Vibrant poke bowl with fresh tuna cubes, avocado slices, and bright edamame on a textured ceramic plate, bright natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkz64L094YxU2YDWW1M-ruLID0Cj2A923gMOSHvAx9o_8S0sgaBJTE4hORaMBpYASJAo7gHAkTAgoq_46Ui5QKZ46ncHLaen3o893LgNZIm7xUk7E8dyQ3vUcmQTmN5uIgwRZYTK1XXXI43nrsU6IbKloGnDQIcPVCtC-uLcIeEUW_1smPYJH_2OjR4Cg37hHEZjodj2NnEKp29_vJrbiT-qlSz0WRW6F6CeA0nEA5IrV_k_GwKi2XuQq9QNt4YTNY_-rk89KJ-bI"/>
+</div>
+<div class="space-y-1">
+<h4 class="text-xs font-bold line-clamp-1">Bowl de Atún</h4>
+<div class="flex justify-between items-center">
+<span class="text-lg font-bold text-primary">38</span>
+<span class="material-symbols-outlined text-green-600 text-sm">trending_up</span>
+</div>
+</div>
+</div>
+<!-- Dish 3 -->
+<div class="min-w-[140px] bg-surface-container-lowest p-3 rounded-xl shadow-sm flex flex-col gap-2">
+<div class="h-24 rounded-lg overflow-hidden">
+<img alt="Tacos de Pastor" class="w-full h-full object-cover" data-alt="Authentic street-style pork pastor tacos with pineapple chunks, fresh cilantro, and onions on a rustic clay plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyL-UPjsjfIMEsbs4MOByRk1d_caDJ79tUvdFQ-l8CxGoSk2cY0T4SxkLjS9_WAULuUTmUJmAcQsCccXXwfbiIpGOR1eca6hWHKHzQiTW-GT_YvTqf4_vqnPzqiBLMRukpfPOmKSPO5qhUfbvAviMQovxc58y4ykaTU2ZjrOW4cSeivg_C28Y14NN5uuPDPUACNmmQf0JFwbYtOJ9pztJXF1OaL-GaQS6DNEnxRU4mLt4wC1sn80mRnLWZs7HlIkeey8bnvHO_VJY"/>
+</div>
+<div class="space-y-1">
+<h4 class="text-xs font-bold line-clamp-1">Tacos de Pastor</h4>
+<div class="flex justify-between items-center">
+<span class="text-lg font-bold text-primary">35</span>
+<span class="material-symbols-outlined text-stone-400 text-sm">horizontal_rule</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[40px] bg-[#fef9f1]/80 dark:bg-[#1A1A1A]/80 backdrop-blur-xl shadow-[0px_-10px_40px_rgba(29,28,23,0.06)] flex justify-around items-center px-4 pb-6 pt-3">
+<!-- Inicio Active -->
+<a class="flex flex-col items-center justify-center bg-[#6b2d3e] text-white rounded-full px-5 py-2 hover:scale-105 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Inicio</span>
+</a><a class="flex flex-col items-center justify-center text-[#6b2d3e]/60 px-5 py-2 hover:scale-105 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Menú</span>
+</a>
+<!-- Pedidos Inactive -->
+<a class="flex flex-col items-center justify-center text-[#6b2d3e]/60 px-5 py-2 hover:scale-105 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Pedidos</span>
+</a>
+<!-- Analytics Inactive -->
+<a class="flex flex-col items-center justify-center text-[#6b2d3e]/60 px-5 py-2 hover:scale-105 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Analytics</span>
+</a>
+<!-- Config Inactive -->
+<a class="flex flex-col items-center justify-center text-[#6b2d3e]/60 px-5 py-2 hover:scale-105 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Config</span>
+</a>
+</nav>
+</body></html>

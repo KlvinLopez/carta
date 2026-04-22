@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestión de Equipo - Digital Sommelier</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@700&amp;family=Noto+Serif:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#ffd9df",
+                    "on-secondary-container": "#715000",
+                    "surface-container-highest": "#e7e2da",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#6b2d3e",
+                    "error-container": "#ffdad6",
+                    "secondary": "#7b5800",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed-variant": "#5d4200",
+                    "on-tertiary-fixed-variant": "#713243",
+                    "on-surface": "#1d1c17",
+                    "error": "#ba1a1a",
+                    "surface-container-low": "#f8f3eb",
+                    "surface-tint": "#8e495a",
+                    "primary": "#4f1728",
+                    "surface-container": "#f2ede5",
+                    "on-primary": "#ffffff",
+                    "on-background": "#1d1c17",
+                    "primary-fixed-dim": "#ffb1c2",
+                    "on-tertiary-container": "#ea96a9",
+                    "inverse-primary": "#ffb1c2",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#3b0619",
+                    "secondary-container": "#fdc34d",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#713243",
+                    "inverse-surface": "#32302b",
+                    "surface-bright": "#fef9f1",
+                    "surface": "#fef9f1",
+                    "secondary-fixed": "#ffdea6",
+                    "on-error": "#ffffff",
+                    "on-primary-fixed": "#3b0619",
+                    "tertiary-container": "#6b2d3e",
+                    "secondary-fixed-dim": "#f7bd48",
+                    "inverse-on-surface": "#f5f0e8",
+                    "on-surface-variant": "#524346",
+                    "on-secondary-fixed": "#271900",
+                    "surface-container-high": "#ece8e0",
+                    "on-primary-container": "#ea96a9",
+                    "outline": "#857375",
+                    "tertiary-fixed-dim": "#ffb1c2",
+                    "surface-variant": "#e7e2da",
+                    "surface-dim": "#ded9d2",
+                    "tertiary-fixed": "#ffd9df",
+                    "outline-variant": "#d7c1c4",
+                    "tertiary": "#4f1728",
+                    "background": "#fef9f1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif", "serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Inter", "sans-serif"],
+                    "serif": ["Playfair Display", "serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { background-color: #fef9f1; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body text-on-surface mb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fef9f1] dark:bg-stone-950 flex justify-between items-center px-6 h-16 w-full shadow-sm"><button class="absolute left-6 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-[#4f1728] dark:text-[#6b2d3e]">menu</span>
+</button>
+<div class="w-full text-center">
+<h1 class="font-display tracking-tight text-2xl text-[#4f1728] dark:text-[#6b2d3e] font-bold">Miembros del Equipo</h1>
+</div></header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-10">
+<!-- Section 1: Meseros Activos -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<h2 class="font-serif text-2xl text-primary font-display">Meseros Activos</h2>
+<span class="text-xs font-label text-stone-400">3 Registrados</span>
+</div>
+<div class="space-y-4">
+<!-- Member 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 transition-transform hover:scale-[1.01] duration-200">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="Portrait of a young male waiter smiling professionally wearing a dark uniform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaj0s4N4A-LvNBitg0VYMkgNu1GD_VyVQ2pWkpuAzuQQkX4sjp4iXnyZDl7RsVZXW3KwBLcVbqRRZ4Helc_J1xOYAnZcPQiUAwS4BvVf9dx9Fm-FMvlKrNvJ8R-KzDKbqv5jA1XYue7LL-YZxqKfaVIru5JklqlPUanlmn_MBAO8Ed6do1vDOBkeAj1zAN5OxoxHjTslr-vfCJsEfPfhiUA1OQfR8faak3iX9ALRNUSjLoGdJNDa2zVKSvQuFZmEBoHLE_SrLOVxU"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+</div>
+<div class="flex-1">
+<p class="font-semibold text-on-surface">Carlos R.</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-[#B8860B]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-medium text-stone-600">4.8</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:bg-error-container hover:text-error transition-colors">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Member 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 transition-transform hover:scale-[1.01] duration-200">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="Close up portrait of a female restaurant server with a warm welcoming expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEnU-TViL01HxGLAITQgYAFxiS63UwjN0GK-mDa16KalsdoaQw2hk0Pp7RqwSZTQMUbx3yCxDrAiWD-09srDF839sTwuSlcLS1acLlJVD1nTwDqQA06e2oNZZCc1ohjCsnHmPI2ihxkaOKPRJxxy1jitmuQVndbLdmVN_TJ2m1-GRE7XASopKO2qd9msPXvVVu88MtJBF14RPMB7MselwJ8iIToKEjrGsQ_5TlsichY8NvwE9HmxkAWI2pDgcN22ggFhdnzrQGr7I"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+</div>
+<div class="flex-1">
+<p class="font-semibold text-on-surface">Mariana L.</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-[#B8860B]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-medium text-stone-600">4.5</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:bg-error-container hover:text-error transition-colors">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Member 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 transition-transform hover:scale-[1.01] duration-200">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="Portrait of a middle aged male employee with a serious but professional look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCI-rWg_AgW4_yp-PwJpSwtNk-7KJeEXjOWiWJsSdjXGTfz4jZ8YiRDG-05n9_w3_eylg8cnvwfrDu9NkKkirM8QXkm1jKE1gMrMtC6Pgpuf-y5w2cgZio06ez07sxpRu5eNLBe_CkzsuBuhhenSK1qwKGbkCtuSqJja3l6xmgSyd9qvyYy4aUqILohcJCwUPjDu_ZSP69lUa_3sEmDp43-PxrTqnILGdQL04HHQBv6sHwI_OLwkMEdmUml7QvXTIFadkFDbiZbjHo"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></div>
+</div>
+<div class="flex-1">
+<p class="font-semibold text-on-surface opacity-60">Luis M.</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-stone-300" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-medium text-stone-400">3.8</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:bg-error-container hover:text-error transition-colors">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Divider -->
+<div class="h-px bg-gradient-to-r from-transparent via-outline-variant to-transparent opacity-30"></div>
+<!-- Section 2: Invitar Nuevo Mesero -->
+<section class="space-y-6">
+<h2 class="font-serif text-2xl text-primary text-center font-display">Invitar Nuevo Mesero</h2>
+<div class="bg-surface-container-low rounded-xl p-8 flex flex-col items-center">
+<p class="text-xs uppercase tracking-[0.2em] font-bold text-stone-400 mb-6">Código de Invitación Activo</p>
+<div class="p-4 bg-white rounded-lg shadow-sm mb-6">
+<div class="w-48 h-48 bg-stone-100 flex items-center justify-center border-4 border-white overflow-hidden rounded relative">
+<img class="w-full h-full mix-blend-multiply opacity-80" data-alt="A large minimalist QR code generated for staff invitation on a clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDn5T73IRgmN6nwNiu3dmRc1wWZw0S5i529SYhIwd2w2cWOvk7b2i4B2IPSA2Gk57ijHDQC3O3CT2o7tWW8DPBneWR0afXSltMc18767sbMGPJ4gH9lnxSwLUheHscHr-u02VroDtIXuGLgHItIXj-O6K4PEjau_e-0lKWsrGyk-VkmI5zdbFDVAYKcBUEzWcLrR0xe3HDWNTM_vAocG6ulwanO_7n3f4AtdwWtqd5jJxSGFIJn3yNHIxxpFGU0v2Kt47CHo8d-oIo"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-white p-1 rounded-md shadow-sm">
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-2 mb-8">
+<div class="flex items-center gap-2 text-secondary font-medium">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-sm font-label">Expira en 23:47:12</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+<button class="flex items-center justify-center gap-2 bg-[#6b2d3e] text-white py-4 rounded-full font-medium transition-transform active:scale-95">
+<span class="material-symbols-outlined text-sm">refresh</span>
+                        Regenerar QR
+                    </button>
+<button class="flex items-center justify-center gap-2 bg-surface-container-highest text-primary py-4 rounded-full font-medium transition-transform active:scale-95">
+<span class="material-symbols-outlined text-sm">share</span>
+                        Enviar por WhatsApp
+                    </button>
+</div>
+</div>
+</section>
+<!-- Section 3: Fallback SMS -->
+<section class="space-y-4">
+<div class="text-center space-y-1">
+<h3 class="font-serif text-lg text-primary">¿El QR no funcionó?</h3>
+<p class="text-sm text-stone-500">Envía un código directo por mensaje</p>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center bg-white rounded-full px-5 py-3 border-outline-variant/20 shadow-sm">
+<span class="text-sm font-semibold text-stone-500 mr-3 border-r border-outline-variant pr-3">+52</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-stone-300" placeholder="Número de teléfono" type="tel"/>
+</div>
+<button class="w-full bg-[#6b2d3e] text-white py-4 rounded-full font-medium transition-transform active:scale-95">
+                    Enviar código SMS
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fef9f1]/80 dark:bg-stone-950/80 backdrop-blur-xl rounded-t-[32px] shadow-[0px_-10px_40px_rgba(29,28,23,0.06)]"><a class="flex flex-col items-center justify-center text-[#4f1728]/60 dark:text-stone-400 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-body text-[10px] uppercase tracking-widest font-medium mt-1">Inicio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4f1728]/60 dark:text-stone-400 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-body text-[10px] uppercase tracking-widest font-medium mt-1">Menú</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4f1728]/60 dark:text-stone-400 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-body text-[10px] uppercase tracking-widest font-medium mt-1">Pedidos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4f1728]/60 dark:text-stone-400 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body text-[10px] uppercase tracking-widest font-medium mt-1">Analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#6b2d3e] text-white rounded-full px-4 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body text-[10px] uppercase tracking-widest font-medium mt-1">Config</span>
+</a></nav>
+</body></html>

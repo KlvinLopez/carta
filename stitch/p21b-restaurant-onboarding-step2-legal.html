@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Digital Sommelier Admin - Registration Step 2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "tertiary": "#4f1728",
+                "background": "#fef9f1",
+                "outline": "#857375",
+                "secondary-fixed-dim": "#f7bd48",
+                "secondary-fixed": "#ffdea6",
+                "tertiary-container": "#6b2d3e",
+                "primary-fixed": "#ffd9df",
+                "surface-bright": "#fef9f1",
+                "surface-container-low": "#f8f3eb",
+                "inverse-primary": "#ffb1c2",
+                "primary-fixed-dim": "#ffb1c2",
+                "on-background": "#1d1c17",
+                "error-container": "#ffdad6",
+                "surface": "#fef9f1",
+                "secondary": "#7b5800",
+                "on-surface": "#1d1c17",
+                "on-error": "#ffffff",
+                "on-primary": "#ffffff",
+                "on-tertiary-fixed": "#3b0619",
+                "inverse-on-surface": "#f5f0e8",
+                "error": "#ba1a1a",
+                "on-secondary": "#ffffff",
+                "primary": "#4f1728",
+                "on-surface-variant": "#524346",
+                "tertiary-fixed": "#ffd9df",
+                "surface-container-highest": "#e7e2da",
+                "outline-variant": "#d7c1c4",
+                "on-secondary-fixed-variant": "#5d4200",
+                "surface-container-lowest": "#ffffff",
+                "tertiary-fixed-dim": "#ffb1c2",
+                "on-error-container": "#93000a",
+                "surface-dim": "#ded9d2",
+                "secondary-container": "#fdc34d",
+                "on-tertiary-container": "#ea96a9",
+                "on-tertiary": "#ffffff",
+                "surface-container": "#f2ede5",
+                "primary-container": "#6b2d3e",
+                "surface-container-high": "#ece8e0",
+                "on-primary-fixed": "#3b0619",
+                "surface-variant": "#e7e2da",
+                "on-secondary-container": "#715000",
+                "on-secondary-fixed": "#271900",
+                "inverse-surface": "#32302b",
+                "on-primary-fixed-variant": "#713243",
+                "on-primary-container": "#ea96a9",
+                "surface-tint": "#8e495a",
+                "on-tertiary-fixed-variant": "#713243"
+        },
+        "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+        },
+        "spacing": {},
+        "fontFamily": {
+                "headline": [
+                        "Noto Serif"
+                ],
+                "body": [
+                        "Inter"
+                ],
+                "label": [
+                        "Inter"
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+  body {
+    background-color: theme('colors.background');
+    color: theme('colors.on-background');
+    font-family: theme('fontFamily.body');
+  }
+  .h1-headline {
+    font-family: theme('fontFamily.headline');
+    letter-spacing: -0.02em;
+  }
+  .glass-effect {
+    background-color: rgba(254, 249, 241, 0.8);
+    backdrop-filter: blur(20px);
+  }
+  .soft-shadow {
+    box-shadow: 0px 20px 40px rgba(29, 28, 23, 0.06);
+  }
+  .vino-gradient {
+    background: linear-gradient(135deg, theme('colors.primary'), theme('colors.primary-container'));
+  }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+<!-- Main Container -->
+<main class="w-full max-w-2xl bg-surface-container-lowest rounded-xl p-8 sm:p-12 soft-shadow">
+<!-- Progress Rail -->
+<nav aria-label="Progress" class="mb-12">
+<ol class="flex items-center" role="list">
+<li class="relative pr-8 sm:pr-20">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="h-0.5 w-full bg-primary"></div>
+</div>
+<a class="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary hover:bg-primary-container transition-colors duration-300" href="#">
+<span class="material-symbols-outlined text-on-primary text-sm font-bold" style="font-variation-settings: 'FILL' 1;">check</span>
+<span class="sr-only">Cuenta</span>
+</a>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-medium text-primary tracking-wider uppercase whitespace-nowrap">Cuenta</span>
+</li>
+<li class="relative pr-8 sm:pr-20">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="h-0.5 w-full bg-surface-container-highest"></div>
+</div>
+<a aria-current="step" class="relative flex h-8 w-8 items-center justify-center rounded-full bg-secondary-fixed-dim ring-4 ring-background" href="#">
+<span class="text-on-secondary-fixed font-semibold text-sm">2</span>
+<span class="sr-only">Restaurante</span>
+</a>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-secondary tracking-wider uppercase whitespace-nowrap">Restaurante</span>
+</li>
+<li class="relative pr-8 sm:pr-20">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="h-0.5 w-full bg-surface-container-highest"></div>
+</div>
+<a class="group relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-outline-variant bg-surface hover:border-outline transition-colors duration-300" href="#">
+<span class="text-outline group-hover:text-on-surface-variant font-medium text-sm">3</span>
+<span class="sr-only">Perfil</span>
+</a>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-medium text-outline tracking-wider uppercase whitespace-nowrap">Perfil</span>
+</li>
+<li class="relative pr-8 sm:pr-20">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="h-0.5 w-full bg-surface-container-highest"></div>
+</div>
+<a class="group relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-outline-variant bg-surface hover:border-outline transition-colors duration-300" href="#">
+<span class="text-outline group-hover:text-on-surface-variant font-medium text-sm">4</span>
+<span class="sr-only">Plan</span>
+</a>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-medium text-outline tracking-wider uppercase whitespace-nowrap">Plan</span>
+</li>
+<li class="relative">
+<a class="group relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-outline-variant bg-surface hover:border-outline transition-colors duration-300" href="#">
+<span class="text-outline group-hover:text-on-surface-variant font-medium text-sm">5</span>
+<span class="sr-only">Mesas</span>
+</a>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-medium text-outline tracking-wider uppercase whitespace-nowrap">Mesas</span>
+</li>
+</ol>
+</nav>
+<!-- Header Section -->
+<div class="mb-10 text-center sm:text-left mt-8">
+<h1 class="h1-headline text-3xl sm:text-4xl font-bold text-on-background mb-3">Datos del restaurante</h1>
+<p class="text-on-surface-variant text-base">Los necesitamos para facturación. Proceso seguro y rápido.</p>
+</div>
+<!-- Form -->
+<form action="#" class="space-y-8" method="POST">
+<!-- Input Group -->
+<div class="space-y-6">
+<div>
+<label class="block text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2 ml-4" for="razon_social">Razón Social</label>
+<div class="relative">
+<input class="block w-full rounded-full border-0 py-4 px-6 text-on-background shadow-sm ring-1 ring-inset ring-outline-variant/15 placeholder:text-outline focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-surface-container-low" id="razon_social" name="razon_social" placeholder="Ej. Gastronomía Fina S.A. de C.V." type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2 ml-4" for="rfc">RFC</label>
+<div class="relative">
+<input class="block w-full rounded-full border-0 py-4 px-6 text-on-background shadow-sm ring-1 ring-inset ring-outline-variant/15 placeholder:text-outline focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-surface-container-low" id="rfc" name="rfc" placeholder="ABC123456T89" type="text"/>
+</div>
+<p class="mt-2 text-xs text-outline ml-4">Asegúrate de que coincida con tu Constancia de Situación Fiscal.</p>
+</div>
+<div>
+<label class="block text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2 ml-4" for="direccion_fiscal">Dirección Fiscal</label>
+<div class="relative">
+<input class="block w-full rounded-full border-0 py-4 px-6 text-on-background shadow-sm ring-1 ring-inset ring-outline-variant/15 placeholder:text-outline focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-surface-container-low" id="direccion_fiscal" name="direccion_fiscal" placeholder="Calle, Número, Colonia, C.P." type="text"/>
+</div>
+</div>
+</div>
+<!-- File Upload Area -->
+<div>
+<label class="block text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2 ml-4">Constancia de Situación Fiscal</label>
+<div class="mt-2 flex justify-center rounded-xl border border-dashed border-outline-variant/50 px-6 py-10 bg-surface hover:bg-surface-container-low transition-colors duration-300 cursor-pointer group">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors duration-300 mb-3" style="font-variation-settings: 'FILL' 0;">cloud_upload</span>
+<div class="mt-4 flex text-sm leading-6 text-on-surface-variant justify-center">
+<label class="relative cursor-pointer rounded-md font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary hover:text-primary-container" for="file-upload">
+<span>Subir PDF o imagen</span>
+<input class="sr-only" id="file-upload" name="file-upload" type="file"/>
+</label>
+</div>
+<p class="text-xs leading-5 text-outline mt-1">Máximo 10MB.</p>
+</div>
+</div>
+</div>
+<!-- Franchise Toggle -->
+<div class="bg-surface-container-low rounded-xl p-6 flex items-center justify-between">
+<div class="flex-1">
+<h3 class="text-sm font-medium text-on-background">¿Eres parte de una franquicia o cadena?</h3>
+</div>
+<div class="ml-4 flex-shrink-0">
+<button aria-checked="false" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-surface-container-highest transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" role="switch" type="button">
+<span class="sr-only">Toggle franchise</span>
+<span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+</button>
+</div>
+</div>
+<!-- Bottom Actions -->
+<div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-surface-container-highest mt-8">
+<p class="text-xs text-outline order-2 sm:order-1 text-center sm:text-left">Podrás actualizar esto en Configuración.</p>
+<button class="order-1 sm:order-2 w-full sm:w-auto inline-flex items-center justify-center rounded-full vino-gradient px-8 py-4 text-sm font-medium text-on-primary shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background transition-all duration-300 transform active:scale-95" type="submit">
+          Siguiente
+          <span class="material-symbols-outlined ml-2 text-sm" style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
+</button>
+</div>
+</form>
+</main>
+</body></html>

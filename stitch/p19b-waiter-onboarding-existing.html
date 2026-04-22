@@ -1,0 +1,200 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Digital Sommelier — Waiter Onboarding</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#d7c1c4",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "secondary-fixed": "#ffdea6",
+                        "background": "#fef9f1",
+                        "surface-container-high": "#ece8e0",
+                        "on-tertiary-fixed": "#3b0619",
+                        "inverse-surface": "#32302b",
+                        "on-tertiary-container": "#ea96a9",
+                        "surface-container-low": "#f8f3eb",
+                        "on-background": "#1d1c17",
+                        "surface-container": "#f2ede5",
+                        "surface": "#fef9f1",
+                        "inverse-on-surface": "#f5f0e8",
+                        "tertiary-fixed": "#ffd9df",
+                        "surface-bright": "#fef9f1",
+                        "inverse-primary": "#ffb1c2",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#fdc34d",
+                        "primary-container": "#6b2d3e",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#ffd9df",
+                        "secondary": "#7b5800",
+                        "on-primary-fixed-variant": "#713243",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "tertiary": "#4f1728",
+                        "surface-variant": "#e7e2da",
+                        "on-surface-variant": "#524346",
+                        "on-primary-fixed": "#3b0619",
+                        "on-surface": "#1d1c17",
+                        "on-primary-container": "#ea96a9",
+                        "surface-dim": "#ded9d2",
+                        "surface-tint": "#8e495a",
+                        "surface-container-highest": "#e7e2da",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "outline": "#857375",
+                        "primary": "#4f1728",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "tertiary-container": "#6b2d3e",
+                        "on-secondary-fixed": "#271900",
+                        "on-secondary-container": "#715000",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif", "serif"],
+                        "playfair": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .dorado-glow {
+            box-shadow: 0 0 15px 2px rgba(184, 134, 11, 0.3);
+        }
+        body {
+            min-height: 100dvh;
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased selection:bg-primary-container selection:text-white">
+<!-- TopAppBar -->
+<header class="bg-[#fef9f1] dark:bg-[#1A1A1A] w-full top-0 sticky flex items-center px-6 py-4 z-40 flex-col justify-center">
+<div class="font-['Noto_Serif'] tracking-tighter font-bold text-[#4f1728] dark:text-[#fef9f1] italic text-2xl" style="">
+            Digital Sommelier
+        </div>
+</header>
+<main class="flex flex-col px-6 pt-4 pb-48">
+<!-- Restaurant Context Section -->
+<section class="flex flex-col items-center text-center mb-6">
+<div class="relative">
+<div class="h-20 w-20 rounded-full dorado-glow ring-2 ring-secondary-fixed-dim bg-white flex items-center justify-center overflow-hidden">
+<img alt="La Querencia Logo" class="w-full h-full object-cover" data-alt="Minimalist emblem of a high-end Mexican restaurant with a rustic gold crest on a neutral cream background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv3AHi92in3Ji_uNmz6Ro8eLFfh8F_-mFjiXKspcX7fFmRSyFo3AI_qIqmaxNnDsZnlNsXPA2nZZjVXgAHdV70NmneuYujL1qy4NzxRXbMLpIfQw9RyXKBB2euKexMNopXoR73kIj-Y023fNkQPMHa4De7_aFAGUCeHa8s22Kl_t6hcrLTR26ItxqCtz-RjzmqfxI1__K4El2UKF_6dfAq7K0i8FsXGO-hiauuVQ4ZK9bszeyLYDaAen0R5fgvNcOVIC0jVqwtjuM" style="">
+</div>
+</div>
+</section>
+<!-- Greeting Section -->
+<section class="text-center mb-6">
+<h1 class="font-playfair font-bold text-primary leading-tight mb-2 text-4xl" style="">¡Hola, Carlos!</h1>
+<p class="font-body text-on-surface/80 mx-auto text-lg max-w-[320px]" style="">Digital Sommelier te invita a unirte a su brigada de sala.</p>
+</section>
+<!-- Restaurant Info Card -->
+<section class="mb-8">
+<div class="bg-surface-container-lowest rounded-[20px] p-6 shadow-[0px_20px_40px_rgba(79,23,40,0.04)] relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-surface-container-low rounded-bl-full -mr-8 -mt-8 opacity-50"></div>
+<div class="space-y-6 relative z-10">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-secondary text-[20px]" style="">restaurant</span>
+<div class="space-y-0.5">
+<p class="text-[11px] uppercase tracking-widest text-on-surface-variant font-medium" style="">Concepto</p>
+<p class="text-[13px] font-medium text-on-surface" style="">Cocina Mexicana Contemporánea</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-secondary text-[20px]" style="">location_on</span>
+<div class="space-y-0.5">
+<p class="text-[11px] uppercase tracking-widest text-on-surface-variant font-medium" style="">Ubicación</p>
+<p class="text-[13px] font-medium text-on-surface" style="">Polanco, CDMX</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low/50 p-4 rounded-xl">
+<span class="material-symbols-outlined text-secondary mb-2" style="">table_restaurant</span>
+<p class="text-[11px] uppercase tracking-widest text-on-surface-variant font-medium" style="">Escala</p>
+<p class="text-[13px] font-bold text-on-surface" style="">18 mesas</p>
+</div>
+<div class="bg-surface-container-low/50 p-4 rounded-xl">
+<span class="material-symbols-outlined text-secondary mb-2" style="">groups</span>
+<p class="text-[11px] uppercase tracking-widest text-on-surface-variant font-medium" style="">Equipo</p>
+<p class="text-[13px] font-bold text-on-surface" style="">Brigada de 4</p>
+</div>
+</div>
+<!-- Datos del Restaurante Section -->
+<div class="pt-4 border-t border-surface-variant/30 space-y-4">
+<h3 class="text-[11px] uppercase tracking-[0.2em] text-primary font-bold" style="">Datos del Restaurante</h3>
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-lg bg-secondary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="">workspace_premium</span>
+</div>
+<div>
+<p class="text-[10px] uppercase text-on-surface-variant font-semibold" style="">Mejor Platillo</p>
+<p class="text-[13px] font-medium text-on-surface" style="">Costilla de Res</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" style="">trending_down</span>
+</div>
+<div>
+<p class="text-[10px] uppercase text-on-surface-variant font-semibold" style="">Platillo menos vendido</p>
+<p class="text-[13px] font-medium text-on-surface" style="">Tiramisú</p>
+</div>
+</div>
+<div class="bg-surface-container-low/80 p-4 rounded-xl flex gap-3">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0" style="">info</span>
+<div>
+<p class="text-[10px] uppercase text-primary font-bold mb-1" style="">Notas del Administrador</p>
+<p class="text-[12px] leading-relaxed text-on-surface/90 italic" style="">
+                                    "Ambiente premium, enfoque en servicio al detalle. Promoción activa: Postre de cortesía."
+                                </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed Footer Actions -->
+<div class="fixed bottom-0 left-0 w-full bg-background/95 backdrop-blur-sm px-6 pt-4 pb-8 border-t border-surface-variant/20 z-50">
+<div class="flex flex-col gap-3">
+<button class="w-full h-14 bg-gradient-to-r from-primary to-primary-container text-white font-semibold rounded-full shadow-lg active:scale-[0.98] transition-all duration-200" style="">
+                Aceptar invitación
+            </button>
+<button class="w-full h-12 bg-transparent border border-primary-container text-primary-container font-medium rounded-full active:scale-[0.98] transition-all duration-200" style="">
+                Rechazar
+            </button>
+<p class="text-center font-body text-[10px] leading-relaxed text-on-surface-variant opacity-70" style="">
+                Al aceptar, tu perfil profesional y reputación se vincularán a este establecimiento.
+            </p>
+</div>
+</div>
+<!-- Decorative AR Glass background elements -->
+<div class="fixed top-0 left-0 -z-10 w-full h-full opacity-30 pointer-events-none overflow-hidden">
+<div class="absolute top-[-10%] right-[-20%] w-[300px] h-[300px] bg-tertiary-fixed rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[-10%] left-[-20%] w-[400px] h-[400px] bg-secondary-fixed rounded-full blur-[120px]"></div>
+</div>
+</body></html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Noto+Serif:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e7e2da",
+                        "primary": "#4f1728",
+                        "outline-variant": "#d7c1c4",
+                        "surface-variant": "#e7e2da",
+                        "surface": "#fef9f1",
+                        "tertiary-container": "#6b2d3e",
+                        "surface-container-high": "#ece8e0",
+                        "on-surface": "#1d1c17",
+                        "on-surface-variant": "#524346",
+                        "on-primary-fixed": "#3b0619",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "outline": "#857375",
+                        "on-tertiary-fixed": "#3b0619",
+                        "on-primary-container": "#ea96a9",
+                        "inverse-primary": "#ffb1c2",
+                        "primary-fixed": "#ffd9df",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f5f0e8",
+                        "background": "#fef9f1",
+                        "on-background": "#1d1c17",
+                        "secondary": "#7b5800",
+                        "surface-dim": "#ded9d2",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "on-secondary-container": "#715000",
+                        "on-secondary-fixed": "#271900",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fef9f1",
+                        "tertiary": "#4f1728",
+                        "secondary-container": "#fdc34d",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f8f3eb",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#8e495a",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffd9df",
+                        "inverse-surface": "#32302b",
+                        "primary-container": "#6b2d3e",
+                        "secondary-fixed": "#ffdea6",
+                        "surface-container": "#f2ede5",
+                        "vino": "#6B2D3E",
+                        "crema": "#F5F0E8",
+                        "charcoal-deep": "#2D2D2A"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "24px",
+                        "xl": "28px",
+                        "full": "9999px",
+                        "elegant": "20px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-crema font-body text-on-surface min-h-screen pb-40 max-w-[390px] mx-auto">
+<!-- TopAppBar Section -->
+<header class="bg-[#fef9f1] w-full top-0 sticky z-[100] flex flex-col items-center">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<button class="hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="menu">menu</span>
+</button>
+<h1 class="text-2xl font-headline italic text-primary tracking-tight">Carta</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest flex items-center justify-center">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArueHkLdIBeVXjgDlJwp4mXOiDVdIXkaM-r1UGJDHE2tVKVsMgoT57_LpT4jfwhhG4uUDK0cQlV9yKGnYMsmK8sihLxo5UxWBWePFde9wTt9RVBREkhcw38pJLPpitvS3LRJmXHSSeX9DNoDqZQfJ-AGcYznmcPzvzjPp3FFDe0tTRSDvHBXyyKvHEvyIYKtbOYsMOU9_47HW8YE3YIdicmxdwsgHDwpmDO2Z3la8imWB6NHyaHjc9tQPFlAb-_TpTG6C5E1xrS5Y"/>
+</div>
+</div>
+<div class="pb-4">
+<span class="font-body font-medium text-sm text-stone-500 tracking-wide">The Digital Sommelier</span>
+</div>
+</header>
+<main class="px-6 space-y-8 mt-4">
+<!-- Search Bar -->
+<section class="relative">
+<div class="flex items-center bg-[#F0F0F0] rounded-full px-5 py-3 shadow-sm">
+<span class="material-symbols-outlined text-primary mr-3" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-on-surface placeholder:text-stone-400 font-body" placeholder="Buscar platillo..." type="text"/>
+<button class="ml-2 hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="tune">tune</span>
+</button>
+</div>
+</section>
+<!-- Category Tabs -->
+<section class="relative -mx-6 overflow-hidden">
+<div class="flex space-x-3 overflow-x-auto px-6 hide-scrollbar">
+<!-- Active Tab -->
+<button class="whitespace-nowrap px-6 py-2 bg-primary text-white rounded-full font-label text-sm font-medium transition-all">
+                    Especiales
+                </button>
+<!-- Inactive Tabs -->
+<button class="whitespace-nowrap px-6 py-2 border-2 border-primary/20 text-primary rounded-full font-label text-sm font-medium hover:bg-primary/5 transition-all">
+                    Todo
+                </button>
+<button class="whitespace-nowrap px-6 py-2 border-2 border-primary/20 text-primary rounded-full font-label text-sm font-medium hover:bg-primary/5 transition-all">
+                    Entradas
+                </button>
+<button class="whitespace-nowrap px-6 py-2 border-2 border-primary/20 text-primary rounded-full font-label text-sm font-medium hover:bg-primary/5 transition-all">
+                    Carnes
+                </button>
+</div>
+</section>
+<!-- Top 3 del Chef Section -->
+<section class="space-y-4">
+<h2 class="font-headline text-2xl font-bold text-on-surface">Top 3 del Chef</h2>
+<div class="flex space-x-4 overflow-x-auto -mx-6 px-6 hide-scrollbar">
+<!-- Hero Card 1 -->
+<div class="min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-md flex flex-col relative">
+<div class="h-48 overflow-hidden">
+<img alt="Costilla de Res" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWa4DpphGHLpqHFcnbn97fVGrrJ6me4a6CKJORWA5GAxfSFL9X6OLyN78AdVZi_jIBnbAqV7nzqDHDczPIuWC8HuE1xHreBvvqvnV5VKjGm2DHNamyVVk3XpGdJaLLKTTVcVIY8i2DwQiwVasCANhSX_qYrWKuZIHSsA7eTz91cMU2Z5CPjG9tLiurmcKfPP3lancJ1w6Lc0I08OlZKmtY3CDs1XTRsed3e8-wyegvM8jBHIRWZid8GYhPqnXxQCpSXv8Qo9LHX2o"/>
+</div>
+<div class="p-4 flex justify-between items-end">
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface">Costilla de Res</h3>
+<span class="font-body font-semibold text-[#B8860B]">$540</span>
+</div>
+<button class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+<!-- Hero Card 2 -->
+<div class="min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-md flex flex-col relative">
+<div class="h-48 overflow-hidden">
+<img alt="Langosta Termidor" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3BrVxOk0wQ0SVOQY2oCUh9oRr5zjOrg-0SpXX-ELEyCFJixkDQzYIzElxKPCOJAvz4Agz4F-ZWRQtIYPKCcohcdmuaWdhH-_AelC4x9kbbiqAOIL3tFGRSU2RWPU1JjITW_KDSb9bbwIen4Tg6X9slr4AC_J68QnAY-YTt-7uWS6-Aj_sUJjk9Skdu1cqh7leCpgr6iUj5ooZUuPNEsBhVx-cuWLCDAoli-FEy46QSq3kwFJs8pYeI97X3gWHlb18b53YZXGCRMI"/>
+</div>
+<div class="p-4 flex justify-between items-end">
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface">Langosta Termidor</h3>
+<span class="font-body font-semibold text-[#B8860B]">$720</span>
+</div>
+<button class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Dynamic Content: Promociones y Ofertas (Replacing Menú Completo for Especiales Tab) -->
+<section class="space-y-6">
+<h2 class="font-headline text-2xl font-bold text-on-surface">Promociones y Ofertas</h2>
+<!-- Promotion Card 1 -->
+<div class="flex bg-surface-container-lowest rounded-lg h-[120px] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] overflow-hidden hover:scale-[1.02] transition-transform">
+<div class="w-1/3 h-full overflow-hidden bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="local_bar">local_bar</span>
+</div>
+<div class="flex-1 flex flex-col justify-between p-4">
+<div>
+<h3 class="font-headline text-[16px] font-bold text-on-surface leading-tight">2x1 en Margaritas</h3>
+<p class="font-body text-[13px] text-stone-500 mt-1">Válido en Happy Hour (18:00 - 20:00).</p>
+</div>
+<span class="font-body font-semibold text-[#B8860B]">Ver detalles</span>
+</div>
+<div class="flex items-center pr-4">
+<button class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Promotion Card 2 -->
+<div class="flex bg-surface-container-lowest rounded-lg h-[120px] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] overflow-hidden hover:scale-[1.02] transition-transform">
+<div class="w-1/3 h-full overflow-hidden bg-secondary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-4xl" data-icon="cake">cake</span>
+</div>
+<div class="flex-1 flex flex-col justify-between p-4">
+<div>
+<h3 class="font-headline text-[16px] font-bold text-on-surface leading-tight">Postre de cortesía</h3>
+<p class="font-body text-[13px] text-stone-500 mt-1">En tu primera visita al registrarte.</p>
+</div>
+<span class="font-body font-semibold text-[#B8860B]">Gratis</span>
+</div>
+<div class="flex items-center pr-4">
+<button class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="redeem">redeem</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Bottom Bar (Cart Summary) -->
+<div class="fixed bottom-8 left-0 w-full px-6 z-[110] flex items-center gap-3 h-[68px]" style="max-width: 390px; left: 50%; transform: translateX(-50%);">
+<div class="bg-vino rounded-elegant p-4 flex-1 flex justify-between items-center shadow-xl h-full">
+<div class="flex flex-col"><span class="text-white font-body font-bold text-lg leading-none whitespace-nowrap">3 platillos</span></div>
+<button class="bg-white/10 hover:bg-white/20 transition-colors rounded-full px-5 py-2 flex items-center">
+<span class="text-white font-body font-bold text-sm">$890</span>
+</button>
+</div>
+<button class="w-[68px] h-full bg-charcoal-deep rounded-elegant shadow-xl flex items-center justify-center text-white active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl" data-icon="visibility">visibility</span>
+</button>
+</div>
+</body></html>

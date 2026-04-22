@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&amp;family=Inter:wght@300;400;500;600;700&amp;family=Noto+Serif:ital,wght@0,700;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#d7c1c4",
+                        "tertiary-fixed": "#ffd9df",
+                        "on-tertiary-container": "#ea96a9",
+                        "background": "#fef9f1",
+                        "on-surface": "#1d1c17",
+                        "surface-container": "#f2ede5",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-primary-container": "#ea96a9",
+                        "on-primary-fixed": "#3b0619",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "surface-variant": "#e7e2da",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "surface-dim": "#ded9d2",
+                        "secondary-container": "#fdc34d",
+                        "on-tertiary-fixed": "#3b0619",
+                        "inverse-surface": "#32302b",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "primary-container": "#6b2d3e",
+                        "on-secondary-container": "#715000",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#524346",
+                        "secondary-fixed": "#ffdea6",
+                        "outline": "#857375",
+                        "inverse-primary": "#ffb1c2",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#8e495a",
+                        "tertiary": "#4f1728",
+                        "surface-container-low": "#f8f3eb",
+                        "secondary": "#7b5800",
+                        "primary-fixed": "#ffd9df",
+                        "on-secondary-fixed": "#271900",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#6b2d3e",
+                        "surface-bright": "#fef9f1",
+                        "inverse-on-surface": "#f5f0e8",
+                        "primary": "#4f1728",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "on-background": "#1d1c17",
+                        "surface-container-highest": "#e7e2da",
+                        "surface": "#fef9f1",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#ece8e0",
+                        "on-error-container": "#93000a",
+                        "dorado": "#B8860B"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-[#fef9f1] dark:bg-stone-950 z-40 transition-all duration-300">
+<div class="flex items-center justify-center px-6 py-4 w-full max-w-screen-xl mx-auto">
+<h1 class="font-headline italic tracking-tight text-2xl text-[#4f1728] dark:text-[#6b2d3e]">Perfil</h1>
+</div>
+</header>
+<main class="max-w-md mx-auto px-6 space-y-10">
+<!-- Profile Header Section -->
+<section class="flex flex-col items-center text-center pt-6">
+<div class="relative mb-6">
+<div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-primary to-dorado">
+<img alt="Professional Sommelier" class="w-full h-full object-cover rounded-full border-4 border-surface" data-alt="Close-up portrait of a professional male sommelier with a warm smile, wearing a dark vest and white shirt in a sunlit wine cellar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-ywpJU5aFhLGfrWKpYxCASWFRJ2W4v1PcOKNbwpp2VzX0KzNEBse2GEaALcEPFxA8qPB-eQxpLW9A1DDvEVqDzUYXDv9vyoISHbeZQ_laAuKcpwzX5Nt2Z4IVn70m4XsX1Gfcfw4l_eR6jXdEflgJ5xQGOYNirGnDVK0joRzTgY8vlWKBQ6al_encLUbRYEA_FJmSHd15betWF_Jw6T170wEvopWBo_30SVlZ9njfUA_AMHwCJRXnK-WF_P_h1dydgu58_Psxm2A"/>
+</div>
+<div class="absolute bottom-1 right-1 bg-dorado text-white p-1.5 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<h2 class="font-headline text-3xl text-primary mb-1">Adrian Moretti</h2>
+<p class="text-on-surface-variant font-medium tracking-wide uppercase text-xs mb-6">Maître d' &amp; Sommelier Senior</p>
+<!-- Quick Stats -->
+<div class="grid grid-cols-3 w-full gap-4">
+<div class="bg-surface-container-low rounded-xl py-4">
+<p class="text-primary font-bold text-lg">4.9</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Calificación</p>
+</div>
+<div class="bg-surface-container-low rounded-xl py-4">
+<p class="text-primary font-bold text-lg">12</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Años Exp.</p>
+</div>
+<div class="bg-surface-container-low rounded-xl py-4">
+<p class="text-primary font-bold text-lg">1.2k</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Servicios</p>
+</div>
+</div>
+</section>
+<!-- Sobre Mí -->
+<section>
+<h3 class="font-headline text-xl text-primary mb-3">Sobre mí</h3>
+<p class="text-on-surface-variant leading-relaxed text-sm">
+                Especialista en hospitalidad de lujo con enfoque en maridajes de autor y coctelería clásica. Mi pasión es crear experiencias sensoriales únicas que trasciendan la mesa.
+            </p>
+</section>
+<!-- Especialidades (Redesigned Grid) -->
+<section>
+<h3 class="font-headline text-xl text-primary mb-4">Especialidades</h3>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl mb-2" data-icon="wine_bar">wine_bar</span>
+<span class="text-[11px] font-medium text-center leading-tight">Sommelier</span>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl mb-2" data-icon="local_bar">local_bar</span>
+<span class="text-[11px] font-medium text-center leading-tight">Mixología</span>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl mb-2" data-icon="taco">tapas</span>
+<span class="text-[11px] font-medium text-center leading-tight">Cocina Mexicana</span>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl mb-2" data-icon="language">language</span>
+<span class="text-[11px] font-medium text-center leading-tight">Inglés</span>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl mb-2" data-icon="public">public</span>
+<span class="text-[11px] font-medium text-center leading-tight">Francés</span>
+</div>
+</div>
+</section>
+<!-- Trayectoria -->
+<section>
+<h3 class="font-headline text-xl text-primary mb-4">Trayectoria</h3>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Restaurant Logo" class="w-full h-full object-cover" data-alt="Elegant minimalist restaurant logo with fine lines on a clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5gDVa3a6xChExVe7ePymH5ZoqkD4bCakB25n088mJeoV3mBUri8upC3DVibw4QPNGzUvwqOqhnWyy5TVYFHSprWQoE0kp6xT3cWdrmATC30xOLNhc8yWPlna_zt83wdUCIjevuR1LknJLXThMWlIyDWoy3zuJ4J1UApFxnpiRMfDwtefTZ5DWo5Me0-UGsyQS2KLXIkZSJTjzYts0xUWrPHJCxDqfyG4pgB2wLm9U6whwPfca1fw6Lqh_HTIAX5nzt1JlpggWn_s"/>
+</div>
+<div>
+<h4 class="font-bold text-sm">Le Bistrot Gourmet</h4>
+<p class="text-xs text-on-surface-variant">Head Sommelier • 2019 - Presente</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Bar Logo" class="w-full h-full object-cover" data-alt="Classic cocktail bar logo in gold foil on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyv3OeyRt-GyaLWXagr42kjCe755Mb1lgHAd5IbTVk_sXN-2-MhIezFzoM41EBS0P2pCNQi91Azr0DkoiEhzp4z53uF9-pGJoYxQusXoq934etwpEnRoDe925zmhET9El5FCvPEGlona69vrCWZoygKZ73bCQKETVCAuHPnJ_ZjtvGbg7YMwg3dtuVmY3sWZPblDckdjQVhL_S3VW1K4qEL2DXGBbrSTo1PEmPNE--Fz-sknkb0l3M2_Z6L62wFYHx7ja3XaaLGKY"/>
+</div>
+<div>
+<h4 class="font-bold text-sm">The Gatsby Mixology Bar</h4>
+<p class="text-xs text-on-surface-variant">Lead Bartender • 2016 - 2019</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Reconocimientos -->
+<section>
+<h3 class="font-headline text-xl text-primary mb-4">Reconocimientos</h3>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-dorado text-3xl mb-2" data-icon="military_tech" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<span class="text-[10px] font-bold text-center leading-tight uppercase tracking-tighter">WSET Level 3</span>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-dorado text-3xl mb-2" data-icon="award" style="font-variation-settings: 'FILL' 1;">award_star</span>
+<span class="text-[10px] font-bold text-center leading-tight uppercase tracking-tighter">Best Sommelier 2022</span>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col items-center justify-center aspect-square shadow-sm">
+<span class="material-symbols-outlined text-dorado text-3xl mb-2" data-icon="stars" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="text-[10px] font-bold text-center leading-tight uppercase tracking-tighter">Excellence Award</span>
+</div>
+</div>
+</section>
+<!-- Reseñas -->
+<section class="pb-10">
+<div class="flex justify-between items-end mb-4">
+<h3 class="font-headline text-xl text-primary">Reseñas</h3>
+<span class="text-xs font-bold text-dorado uppercase">Ver todas</span>
+</div>
+<div class="bg-surface-container-low rounded-3xl p-6 relative">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Portrait of a woman smiling, natural lighting, soft background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNsQOhFUU7sPaG2i5K0rOIc2upNzjcZQoieWYIm711G-93c8WpCJ7PnEiNSbkMBN7xEKNUGd17fhua8WT4tnZgZPjBCbJp_VUhB6FlAwcVyMBJ_ZcSCiIPh0Ay-QVGtjNdE_6sp1LHPJ_xKCspZMWR-aH6syZGbPNJspIuQ0jQi0Yfe21LBNQAiNQUxovv971BdyHiopZll1kvmvOtcNFnLqoMLLxSGuHQMChYRm4zbfFG72XG45xx3aLQqN9OUZfcQUklYfi6bZk"/>
+</div>
+<div>
+<p class="text-sm font-bold">Elena Rodriguez</p>
+<div class="flex text-dorado">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant italic leading-relaxed italic">
+                    "La recomendación del vino fue simplemente perfecta. Adrian entendió exactamente lo que buscábamos para nuestra cena de aniversario."
+                </p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 right-0 mx-auto max-w-[390px] z-50 bg-[#fef9f1]/80 backdrop-blur-xl flex justify-around items-center px-4 pb-6 pt-2 rounded-t-[32px] shadow-[0px_-10px_30px_rgba(29,28,23,0.04)]">
+<a class="flex flex-col items-center justify-center text-stone-500 py-2 hover:text-[#4f1728] transition-opacity" href="#">
+<span class="material-symbols-outlined">table_restaurant</span>
+<span class="font-sans text-[10px] font-bold tracking-wider uppercase mt-0.5">Mis Mesas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 py-2 hover:text-[#4f1728] transition-opacity" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-sans text-[10px] font-bold tracking-wider uppercase mt-0.5">Menú</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 py-2 hover:text-[#4f1728] transition-opacity" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-sans text-[10px] font-bold tracking-wider uppercase mt-0.5">Pedidos</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#6b2d3e] text-white rounded-full px-6 py-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-sans text-[10px] font-bold tracking-wider uppercase mt-0.5">Mi Perfil</span>
+</a>
+</nav>
+</body></html>

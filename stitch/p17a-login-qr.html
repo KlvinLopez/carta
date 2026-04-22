@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&amp;family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#ffdea6",
+                    "on-surface-variant": "#524346",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-surface": "#32302b",
+                    "inverse-on-surface": "#f5f0e8",
+                    "tertiary-container": "#6b2d3e",
+                    "on-secondary-container": "#715000",
+                    "surface-container": "#f2ede5",
+                    "primary-fixed": "#ffd9df",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#f7bd48",
+                    "surface-dim": "#ded9d2",
+                    "on-tertiary-fixed": "#3b0619",
+                    "tertiary": "#4f1728",
+                    "secondary": "#7b5800",
+                    "inverse-primary": "#ffb1c2",
+                    "tertiary-fixed": "#ffd9df",
+                    "surface-bright": "#fef9f1",
+                    "tertiary-fixed-dim": "#ffb1c2",
+                    "surface-container-high": "#ece8e0",
+                    "on-primary-fixed": "#3b0619",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f8f3eb",
+                    "on-tertiary-fixed-variant": "#713243",
+                    "on-primary-container": "#ea96a9",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#d7c1c4",
+                    "primary": "#4f1728",
+                    "surface-variant": "#e7e2da",
+                    "outline": "#857375",
+                    "secondary-container": "#fdc34d",
+                    "on-background": "#1d1c17",
+                    "on-tertiary-container": "#ea96a9",
+                    "surface-container-highest": "#e7e2da",
+                    "surface": "#fef9f1",
+                    "on-primary-fixed-variant": "#713243",
+                    "on-secondary-fixed": "#271900",
+                    "primary-container": "#6b2d3e",
+                    "on-surface": "#1d1c17",
+                    "on-secondary-fixed-variant": "#5d4200",
+                    "surface-tint": "#8e495a",
+                    "primary-fixed-dim": "#ffb1c2",
+                    "error": "#ba1a1a",
+                    "background": "#fef9f1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "serif": ["Playfair Display", "serif"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .spring-interaction:active {
+        transform: scale(0.95);
+        transition: transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .glass-overlay {
+        background: rgba(254, 249, 241, 0.8);
+        backdrop-filter: blur(24px);
+      }
+      .vino-gradient {
+        background: linear-gradient(to bottom right, #4f1728, #6b2d3e);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/20 overflow-x-hidden min-h-screen flex flex-col">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 px-6 py-8 flex justify-center items-center">
+<div class="font-serif italic font-bold text-white text-2xl tracking-tighter">
+        The Digital Sommelier
+    </div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative flex-1 flex flex-col">
+<!-- Hero Image Section -->
+<div class="fixed inset-0 z-0 h-full">
+<img alt="Atmospheric Michelin-star restaurant interior" class="w-full h-full object-cover grayscale-[20%] brightness-75" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjUzZwlpXMaZSCe4n496uCmYQQGsvXc_cklI3HbAgbdPU-tatcpE4ncNeKOFYF2BcF9Wdayoz-kd2JZaOPdMm3dPjHpteKl2fyXZs6LRIHlvtSXAhFtBtH3DY5TVX4m6bna7dH-BkfMQ9-PKLiULHsDrZRvx2GJam8TTI1rYtFCgts4me8QSmS3HQKWQazH-v_obaXzuKJb-BkhCRwNZeiV2UDHd3ZhV-T-uGzXXUAyTIJ5xoDrS6FLOtKJTlMjtTHKnFqmGbuyOw"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40"></div>
+</div>
+<!-- Floating Logo Section -->
+<div class="relative z-10 flex-1 flex flex-col items-center justify-center pt-24 pb-12">
+<div class="p-8 glass-overlay rounded-full shadow-[0px_20px_40px_rgba(29,28,23,0.12)] border-none">
+<span class="material-symbols-outlined text-primary text-6xl" style="font-variation-settings: 'wght' 200;">
+                restaurant_menu
+            </span>
+</div>
+<h1 class="mt-8 font-serif text-white text-5xl italic font-light tracking-tight text-center">
+            Carta
+        </h1>
+</div>
+<!-- Bottom Sheet -->
+<section class="relative z-20 bg-surface rounded-t-[40px] shadow-[0px_-20px_40px_rgba(0,0,0,0.15)] px-8 pt-10 pb-12 flex flex-col items-center">
+<!-- Sheet Pull Handle -->
+<div class="w-12 h-1.5 bg-on-surface-variant/20 rounded-full mb-8"></div>
+<div class="text-center space-y-2 mb-10 w-full max-w-md">
+<h2 class="font-serif text-primary text-4xl font-bold tracking-tight">
+                Mesa 4
+            </h2>
+<p class="text-on-surface-variant/70 text-sm tracking-wide font-medium uppercase font-body">
+                BIENVENIDO A UNA EXPERIENCIA CURADA
+            </p>
+</div>
+<!-- Primary CTA -->
+<button class="spring-interaction w-full max-w-md py-5 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-full font-serif italic text-xl shadow-lg flex justify-center items-center gap-3 transition-transform mb-6">
+            Ver menú
+            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+<p class="text-on-surface-variant/60 text-sm font-medium tracking-normal mb-10">
+            Iniciar sesión para guardar tu historial
+        </p>
+<!-- Login Section Integrated from SCREEN_55 -->
+<div class="w-full max-w-md space-y-8">
+<form class="space-y-6">
+<div class="space-y-4">
+<div class="relative">
+<label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2 ml-1 font-label" for="identity">CORREO O TELÉFONO</label>
+<input class="w-full bg-surface-container-low border-0 focus:ring-2 focus:ring-primary/20 rounded-2xl py-4 px-5 text-on-surface placeholder:text-on-surface-variant/40 transition-all duration-300 font-body" id="identity" name="identity" placeholder="usuario@ejemplo.com o +34 000 000 000" type="text"/>
+</div>
+</div>
+<!-- Login CTA -->
+<button class="w-full vino-gradient text-on-primary font-medium py-4 px-8 rounded-full shadow-lg shadow-primary/10 hover:shadow-primary/20 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 group" type="submit">
+<span class="font-body">Continuar</span>
+<span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+<!-- Divider -->
+<div class="relative flex items-center gap-4 py-2">
+<div class="flex-grow h-px bg-outline-variant/30"></div>
+<span class="text-xs text-on-surface-variant/50 uppercase tracking-widest font-medium font-label">o bien</span>
+<div class="flex-grow h-px bg-outline-variant/30"></div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 bg-surface-container-highest/50 hover:bg-surface-container-highest text-on-surface py-3 px-4 rounded-full transition-colors active:scale-95">
+<img alt="Google" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSO4f6mqu7Hc4JTUZeklyr72PZIGlj8WldPqug7Zn7C95NZp0fOKNfp4UvjjBdPoGdKuav8BG4Sri86HrrSmsGCnl2eYKiFP5YyPw7R9bdPpawcjkS_4Ld8uwqcw0rgRuNK00ouFCmbF9fwhsU89WphI-K0_HzUmgESBxpD8b0ohJPlzY8IpwCv8MDgqv22AL7rP-CGYKRm07VJfff_K6XqHWOE_rsVWvLb_BQl7XBUc5cT25lVEZsWonaLhERgP0DlYx7eXgwOt0"/>
+<span class="text-sm font-semibold tracking-tight font-body">Google</span>
+</button>
+<button class="flex items-center justify-center gap-3 bg-surface-container-highest/50 hover:bg-surface-container-highest text-on-surface py-3 px-4 rounded-full transition-colors active:scale-95">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path></svg>
+<span class="text-sm font-semibold tracking-tight font-body">Apple</span>
+</button>
+</div>
+<!-- Footer Link -->
+<p class="text-center text-sm text-on-surface-variant font-body mt-4">
+                ¿No tienes una cuenta? 
+                <a class="text-primary font-bold hover:underline underline-offset-4 decoration-primary/30" href="#">Regístrate ahora</a>
+</p>
+</div>
+</section>
+</main>
+</body></html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Carta - Registro de Administrador</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Serif:ital,wght@0,700;1,400&amp;family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#4f1728",
+                      "surface-variant": "#e7e2da",
+                      "on-tertiary-fixed-variant": "#713243",
+                      "on-primary-fixed-variant": "#713243",
+                      "surface-container-low": "#f8f3eb",
+                      "error-container": "#ffdad6",
+                      "primary-fixed-dim": "#ffb1c2",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-container": "#ea96a9",
+                      "inverse-surface": "#32302b",
+                      "inverse-primary": "#ffb1c2",
+                      "secondary-fixed": "#ffdea6",
+                      "tertiary-fixed-dim": "#ffb1c2",
+                      "surface-container": "#f2ede5",
+                      "tertiary-fixed": "#ffd9df",
+                      "background": "#fef9f1",
+                      "on-tertiary-fixed": "#3b0619",
+                      "surface-dim": "#ded9d2",
+                      "on-secondary-fixed": "#271900",
+                      "surface-container-highest": "#e7e2da",
+                      "on-tertiary-container": "#ea96a9",
+                      "on-surface": "#1d1c17",
+                      "primary-container": "#6b2d3e",
+                      "surface-container-high": "#ece8e0",
+                      "primary": "#4f1728",
+                      "on-secondary-fixed-variant": "#5d4200",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "error": "#ba1a1a",
+                      "surface-bright": "#fef9f1",
+                      "on-background": "#1d1c17",
+                      "tertiary-container": "#6b2d3e",
+                      "surface-tint": "#8e495a",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-container": "#715000",
+                      "outline-variant": "#d7c1c4",
+                      "inverse-on-surface": "#f5f0e8",
+                      "primary-fixed": "#ffd9df",
+                      "on-primary-fixed": "#3b0619",
+                      "on-primary": "#ffffff",
+                      "secondary": "#7b5800",
+                      "outline": "#857375",
+                      "surface": "#fef9f1",
+                      "on-surface-variant": "#524346",
+                      "secondary-fixed-dim": "#f7bd48",
+                      "secondary-container": "#fdc34d",
+                      "dorado": "#B8860B"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1.25rem",
+                      "lg": "1.5rem",
+                      "xl": "2rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Playfair Display", "serif"],
+                      "brand": ["Noto Serif", "serif"],
+                      "body": ["Inter", "sans-serif"],
+                      "label": ["Inter", "sans-serif"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+        .vino-gradient {
+          background: linear-gradient(135deg, #4f1728 0%, #6b2d3e 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body antialiased min-h-screen flex flex-col items-center py-12 px-6">
+<div class="w-full max-w-md mx-auto">
+<!-- Top Header -->
+<header class="flex justify-between items-center mb-10">
+<span class="font-headline font-bold text-2xl tracking-tighter text-primary">Carta</span>
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+</header>
+<!-- Progress Rail (From SCREEN_157) -->
+<nav aria-label="Progress" class="mb-14 px-2">
+<ol class="flex items-center justify-between w-full relative" role="list">
+<!-- Step 1 (Active - Dorado) -->
+<li class="relative flex flex-col items-center flex-1">
+<div class="absolute left-1/2 top-4 w-full h-[2px] bg-surface-container-highest z-0"></div>
+<div class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-dorado shadow-[0px_4px_12px_rgba(184,134,11,0.3)]">
+<span class="text-white font-semibold text-sm">1</span>
+</div>
+<span class="mt-2 text-[10px] font-bold text-dorado tracking-wider uppercase whitespace-nowrap">Cuenta</span>
+</li>
+<!-- Step 2 -->
+<li class="relative flex flex-col items-center flex-1">
+<div class="absolute left-1/2 top-4 w-full h-[2px] bg-surface-container-highest z-0"></div>
+<div class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-outline-variant bg-surface">
+<span class="text-outline font-medium text-sm">2</span>
+</div>
+<span class="mt-2 text-[10px] font-medium text-outline tracking-wider uppercase whitespace-nowrap">Restaurante</span>
+</li>
+<!-- Step 3 -->
+<li class="relative flex flex-col items-center flex-1">
+<div class="absolute left-1/2 top-4 w-full h-[2px] bg-surface-container-highest z-0"></div>
+<div class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-outline-variant bg-surface">
+<span class="text-outline font-medium text-sm">3</span>
+</div>
+<span class="mt-2 text-[10px] font-medium text-outline tracking-wider uppercase whitespace-nowrap">Perfil</span>
+</li>
+<!-- Step 4 -->
+<li class="relative flex flex-col items-center flex-1">
+<div class="absolute left-1/2 top-4 w-full h-[2px] bg-surface-container-highest z-0"></div>
+<div class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-outline-variant bg-surface">
+<span class="text-outline font-medium text-sm">4</span>
+</div>
+<span class="mt-2 text-[10px] font-medium text-outline tracking-wider uppercase whitespace-nowrap">Plan</span>
+</li>
+<!-- Step 5 -->
+<li class="relative flex flex-col items-center">
+<div class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-outline-variant bg-surface">
+<span class="text-outline font-medium text-sm">5</span>
+</div>
+<span class="mt-2 text-[10px] font-medium text-outline tracking-wider uppercase whitespace-nowrap">Mesas</span>
+</li>
+</ol>
+</nav>
+<!-- Hero Section -->
+<div class="mb-10 text-center">
+<h1 class="font-headline font-bold text-3xl md:text-4xl text-on-background leading-tight">
+                Bienvenido a <span class="italic font-normal">Carta</span>
+</h1>
+<p class="text-on-surface-variant text-base mt-2">Primero, crea tu cuenta de administrador.</p>
+</div>
+<!-- Social Signup -->
+<div class="flex flex-col gap-4 mb-8">
+<button class="w-full bg-surface-container-lowest text-on-surface font-medium py-4 px-6 rounded-full flex items-center justify-center gap-3 shadow-[0px_8px_24px_rgba(29,28,23,0.04)] hover:opacity-90 transition-opacity">
+<img alt="Google Logo" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAim7tOJSxL2bTTmkLxQSL800jnT1D5ZxVFqlrZOl0i7SMGEAZCUs1alUB55n8_xUaxKyYL6Me_15sNCFTmos-z_dp2qPk4KsSYIOGXL6iazch0ozE1gOcwLfOS97L8Ji5uU7o5C0ySbEU6KBlkHL67GtBwPMgPyJAsOWmkqB-5q56IumWKBfNhlR37X1XFF11_XMZ_seY1FV2Jgzp20uRrjTBZFbhMppzL8t_u6A4bmQlLe2bMepgb8j17z87cfbLnxH8gzF4IeRw"/>
+                Continuar con Google
+            </button>
+<button class="w-full bg-[#1A1A1A] text-white font-medium py-4 px-6 rounded-full flex items-center justify-center gap-3 shadow-[0px_8px_24px_rgba(29,28,23,0.06)] hover:opacity-90 transition-opacity">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path></svg>
+                Continuar con Apple
+            </button>
+</div>
+<!-- Separator -->
+<div class="flex items-center gap-4 mb-8">
+<div class="h-[1px] flex-1 bg-surface-container-high"></div>
+<span class="text-on-surface-variant font-medium text-sm">o</span>
+<div class="h-[1px] flex-1 bg-surface-container-high"></div>
+</div>
+<!-- Form -->
+<form class="space-y-6 mb-10">
+<!-- Full Name -->
+<div class="bg-surface-container-low rounded-DEFAULT p-4 flex flex-col gap-1 focus-within:bg-surface-container focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+<label class="text-[11px] font-semibold tracking-widest uppercase text-on-surface-variant" for="fullName">Nombre Completo</label>
+<input class="bg-transparent border-none p-0 text-on-surface focus:ring-0 text-base" id="fullName" placeholder="Ej. Juan Pérez" type="text"/>
+</div>
+<!-- Email -->
+<div class="bg-surface-container-low rounded-DEFAULT p-4 flex flex-col gap-1 focus-within:bg-surface-container focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+<label class="text-[11px] font-semibold tracking-widest uppercase text-on-surface-variant" for="email">Correo Electrónico</label>
+<input class="bg-transparent border-none p-0 text-on-surface focus:ring-0 text-base" id="email" placeholder="juan@restaurante.com" type="email"/>
+</div>
+<!-- Phone -->
+<div class="bg-surface-container-low rounded-DEFAULT p-4 flex flex-col gap-1 focus-within:bg-surface-container focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+<label class="text-[11px] font-semibold tracking-widest uppercase text-on-surface-variant" for="phone">Teléfono (+52)</label>
+<input class="bg-transparent border-none p-0 text-on-surface focus:ring-0 text-base" id="phone" placeholder="55 1234 5678" type="tel"/>
+</div>
+<!-- Password -->
+<div class="bg-surface-container-low rounded-DEFAULT p-4 flex flex-col gap-1 focus-within:bg-surface-container focus-within:ring-1 focus-within:ring-primary/20 transition-all relative">
+<label class="text-[11px] font-semibold tracking-widest uppercase text-on-surface-variant" for="password">Contraseña</label>
+<div class="flex items-center">
+<input class="bg-transparent border-none p-0 text-on-surface focus:ring-0 text-base flex-1" id="password" placeholder="••••••••" type="password"/>
+<button class="text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<!-- Terms -->
+<div class="flex items-start gap-3 mt-8">
+<div class="relative flex items-center justify-center mt-1">
+<input class="peer appearance-none w-5 h-5 rounded-full border border-outline-variant bg-transparent checked:bg-primary checked:border-primary transition-colors cursor-pointer" id="terms" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white text-sm pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<label class="text-sm text-on-surface-variant leading-relaxed cursor-pointer" for="terms">
+                    Acepto los <a class="text-primary underline decoration-primary/30 underline-offset-4" href="#">Términos de Servicio</a> y la <a class="text-primary underline decoration-primary/30 underline-offset-4" href="#">Política de Privacidad</a> de Carta.
+                </label>
+</div>
+</form>
+<!-- CTA & Login Link -->
+<div class="flex flex-col items-center gap-6 mt-12 mb-8">
+<button class="w-full vino-gradient text-on-primary font-medium py-5 px-8 rounded-full flex items-center justify-center gap-2 shadow-xl shadow-primary/20 hover:opacity-95 transition-all active:scale-95 duration-200">
+                Siguiente
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<a class="text-primary font-medium text-sm hover:opacity-80 transition-opacity" href="#">
+                ¿Ya tienes cuenta? Inicia sesión
+            </a>
+</div>
+</div>
+</body></html>
