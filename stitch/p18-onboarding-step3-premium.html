@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,700;1,700&amp;family=Noto+Serif:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#715000",
+                        "on-primary-fixed": "#3b0619",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "on-tertiary-fixed": "#3b0619",
+                        "secondary-container": "#fdc34d",
+                        "primary": "#4f1728",
+                        "on-surface": "#1d1c17",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "tertiary-fixed": "#ffd9df",
+                        "tertiary": "#4f1728",
+                        "inverse-surface": "#32302b",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#ffd9df",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "tertiary-container": "#6b2d3e",
+                        "inverse-primary": "#ffb1c2",
+                        "surface-tint": "#8e495a",
+                        "inverse-on-surface": "#f5f0e8",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#ded9d2",
+                        "on-primary-fixed-variant": "#713243",
+                        "surface-variant": "#e7e2da",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#f2ede5",
+                        "surface-container-highest": "#e7e2da",
+                        "secondary": "#7b5800",
+                        "surface-bright": "#fef9f1",
+                        "outline-variant": "#d7c1c4",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#ece8e0",
+                        "on-secondary-fixed": "#271900",
+                        "outline": "#857375",
+                        "surface": "#fef9f1",
+                        "on-primary-container": "#ea96a9",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "surface-container-low": "#f8f3eb",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#ea96a9",
+                        "on-surface-variant": "#524346",
+                        "secondary-fixed": "#ffdea6",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#6b2d3e",
+                        "on-background": "#1d1c17",
+                        "background": "#fef9f1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "serif": ["Playfair Display", "serif"],
+                        "sans": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .dorado-gradient {
+            background: linear-gradient(135deg, #B8860B 0%, #D4AF37 100%);
+        }
+        .vino-gradient {
+            background: linear-gradient(135deg, #4f1728 0%, #713243 100%);
+        }
+        .tonal-shift-no-lines {
+            border: none !important;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-secondary-container">
+<!-- TopAppBar Shell -->
+<header class="w-full top-0 pt-6 flex items-center justify-between px-8 max-w-2xl mx-auto bg-transparent tonal-shift-no-lines sticky z-50 bg-background/80 backdrop-blur-md">
+<div class="flex items-center gap-2 flex-none">
+<div class="w-2.5 h-2.5 rounded-full" style="background-color: #6B2D3E;"></div>
+<div class="w-2.5 h-2.5 rounded-full" style="background-color: #6B2D3E;"></div>
+<div class="w-2.5 h-2.5 rounded-full" style="background-color: #FFD700;"></div>
+</div>
+<div class="flex-1 text-right">
+<span class="font-headline text-lg tracking-tight text-primary">Paso 3 de 3</span>
+</div>
+</header>
+<main class="max-w-2xl mx-auto px-8 pt-12 pb-48 overflow-y-auto">
+<!-- Hero Section -->
+<!-- Feature Visual Moved to Top -->
+<div class="relative w-full aspect-[4/3] mb-8 rounded-xl overflow-hidden shadow-2xl shadow-primary/5">
+<img class="w-full h-full object-cover" data-alt="Luxurious dimly lit restaurant interior" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqXw-TO4JCpBAO6rvvmYr6Jzox6hFlZPfnCgpmym3AhADGkS_LrUpVoXswAKzgsTSjaKVWE1k-j_B2gYfeDyoHHwIux_mgDImlkGJx5ZJnUQ3CSvIYcOjo15QDEYcFN1O6ZI2e03re9ARQPKLZD2Yx8CVwua3Y4PoCq0rxrq-Edvb9n0F3spcxahycbrkQ3b5TE_Jy6MUagjyvE_REUIEKVkpeSxL_Zbv5Atj3UvTo2uFudIQWE0JCj0OE9d5O1EqVBKCaCWFQD48"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<!-- AR Glass-style Floating Card -->
+<div class="absolute bottom-6 left-6 right-6 p-6 bg-[#fef9f1]/70 backdrop-blur-[24px] rounded-xl shadow-xl border border-white/20">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div>
+<p class="font-serif text-lg text-primary italic leading-none mb-1">Carta+</p>
+<p class="text-[10px] font-sans tracking-widest uppercase opacity-60">Plan Premium</p>
+</div>
+</div>
+</div>
+</div><section class="text-center mb-8">
+<h2 class="font-serif text-4xl md:text-5xl text-primary leading-tight mb-4 tracking-tight">
+                ¿Quieres la experiencia completa?
+            </h2>
+<div class="inline-flex flex-col items-center">
+<div class="py-2 px-6 rounded-full bg-surface-container-low mb-2">
+<p class="font-sans text-title-md font-semibold text-primary">
+                        $1 MXN / día
+                    </p>
+</div>
+<p class="text-xs font-sans text-on-surface-variant">(Cargo mensual de $29 MXN)</p>
+</div>
+</section>
+<!-- Feature Visual -->
+<!-- Benefits List -->
+<div class="space-y-6">
+<div class="bg-surface-container-low p-8 rounded-lg">
+<ul class="space-y-8">
+<li class="flex items-start gap-6 group">
+<div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-container-highest rounded-full text-primary transition-transform duration-300 group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div>
+<span class="block font-sans text-sm md:text-base text-on-surface font-semibold">IA personalizada</span>
+<span class="block font-sans text-xs text-on-surface-variant">Experiencia adaptada a tus gustos</span>
+</div>
+</li>
+<li class="flex items-start gap-6 group">
+<div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-container-highest rounded-full text-primary transition-transform duration-300 group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+</div>
+<div>
+<span class="block font-sans text-sm md:text-base text-on-surface font-semibold">Acceso a platillos exclusivos</span>
+<span class="block font-sans text-xs text-on-surface-variant">Menú premium disponible solo para miembros</span>
+</div>
+</li>
+<li class="flex items-start gap-6 group">
+<div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-container-highest rounded-full text-primary transition-transform duration-300 group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+</div>
+<div>
+<span class="block font-sans text-sm md:text-base text-on-surface font-semibold">Reservaciones prioritarias</span>
+<span class="block font-sans text-xs text-on-surface-variant">Asegura tu lugar en horas pico</span>
+</div>
+</li>
+<li class="flex items-start gap-6 group">
+<div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-container-highest rounded-full text-primary transition-transform duration-300 group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+</div>
+<div>
+<span class="block font-sans text-sm md:text-base text-on-surface font-semibold">Carta Charity</span>
+<span class="block font-sans text-xs text-on-surface-variant">Donaciones para contribuir a la alimentación global</span>
+</div>
+</li>
+<li class="pt-2 text-center">
+<span class="font-sans text-xs italic text-on-surface-variant opacity-60">y más...</span>
+</li>
+</ul>
+</div>
+</div>
+</main>
+<!-- Bottom Actions Shell -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center px-10 pb-12 pt-6 max-w-2xl mx-auto bg-gradient-to-t from-background via-background to-transparent gap-4">
+<!-- Primary Action -->
+<button class="w-full dorado-gradient text-white font-sans font-semibold py-5 px-8 rounded-full shadow-xl shadow-[#B8860B]/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
+            Probar 7 días gratis
+        </button>
+<!-- Secondary Action -->
+<button class="w-full vino-gradient text-white font-sans font-semibold py-5 px-8 rounded-full shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300">
+            Finalizar
+        </button>
+</nav>
+</body></html>

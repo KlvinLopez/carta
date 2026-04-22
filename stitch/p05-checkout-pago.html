@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,700;1,700&amp;family=Noto+Serif:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#6b2d3e",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-surface-variant": "#524346",
+                        "on-surface": "#1d1c17",
+                        "surface-tint": "#8e495a",
+                        "on-tertiary-container": "#ea96a9",
+                        "secondary-container": "#fdc34d",
+                        "background": "#fef9f1",
+                        "surface-variant": "#e7e2da",
+                        "on-primary-fixed": "#3b0619",
+                        "on-background": "#1d1c17",
+                        "primary": "#4f1728",
+                        "outline": "#857375",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "secondary": "#7b5800",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#4f1728",
+                        "surface-container": "#f2ede5",
+                        "inverse-surface": "#32302b",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#ffb1c2",
+                        "surface-container-highest": "#e7e2da",
+                        "outline-variant": "#d7c1c4",
+                        "inverse-on-surface": "#f5f0e8",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "error-container": "#ffdad6",
+                        "surface": "#fef9f1",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "on-tertiary-fixed": "#3b0619",
+                        "tertiary-fixed": "#ffd9df",
+                        "tertiary-container": "#6b2d3e",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ffdea6",
+                        "primary-fixed": "#ffd9df",
+                        "on-primary-container": "#ea96a9",
+                        "surface-container-high": "#ece8e0",
+                        "surface-dim": "#ded9d2",
+                        "surface-container-low": "#f8f3eb",
+                        "surface-bright": "#fef9f1",
+                        "on-secondary-fixed": "#271900",
+                        "on-secondary-container": "#715000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .pulsing-dot {
+            box-shadow: 0 0 0 0 rgba(79, 175, 102, 0.7);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 175, 102, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(79, 175, 102, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 175, 102, 0); }
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body {
+            width: 390px;
+            height: 884px;
+            margin: 0 auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-[#f5f0e8] text-on-surface font-body selection:bg-primary-container selection:text-white">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-[390px] z-50 bg-[#fef9f1] flex justify-between items-center px-6 py-4 border-b border-surface-container-high">
+<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 duration-300">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-green-500 pulsing-dot"></div>
+<h1 class="text-[#4f1728] font-headline font-bold italic tracking-tight text-xl">Sesión Activa</h1>
+</div>
+<div class="w-6"></div> <!-- Spacer to maintain centering since share is removed -->
+</header>
+<main class="pt-20 pb-44 px-4 space-y-6 overflow-y-auto h-full no-scrollbar">
+<!-- Member Order Cards -->
+<section class="space-y-4">
+<!-- Expanded: Sofía -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm ring-1 ring-black/5">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full ring-2 ring-secondary p-0.5">
+<img class="w-full h-full rounded-full object-cover" data-alt="Portrait of Sofía, warm and professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkQ4VPWJZtcHlno6b7DWrw06bCakGARfbZFZ9VLSPu3Ro4wgGp2JIQtN-wmyrjWnk0shecarf5tbmOYddY2NyHkoVclGfXXgejVPxgKhvSHhtAygw5kKRIc9lSwm6Lb1RzgTV2bUuTP7VNZfbSp1LVFCzKdVjxUt5pU4yoH4-wYSAcpX0OnsPS3ViejoszuAAip-wKNp9dkHZI_PPLNmg5ikfzw-QCfvbYuAGUhHibYa4HZxix_QjnmQIgN-qBkkc4M80PoMU7YJA"/>
+</div>
+<div>
+<h3 class="font-bold text-lg text-primary">Sofía</h3>
+<span class="bg-secondary/10 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Host</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-stone-300">expand_less</span>
+</div>
+<div class="space-y-6">
+<!-- Dish 1 -->
+<div class="flex gap-4">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Close up of a succulent braised beef short rib on a white ceramic plate, professional food photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIVax24Z5j0LHohmO3X-zmDJiWI1S7vQDWPnj-D6ewHqZqDvzFswgvHA-GXQBO0Kf7lFjKojmTWsJOQCjf5iYfi4VObVY3m8JYdb0kq6YrV549mClZ3O0wXwCSa3zlwDd48mnXY91ewpu9kqOgTk9Rq7VRBjEfS3Oup7n6D_qAwbwYaXIWpVjmUT0BCGSkkeqs4bly6aVE1wIiva1-wmMbCTS3sXpmNop6iM5roTWL782acdjbmhEoUpkxVfIkRbI-tNH6tXU4qJs"/>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-primary italic">Costilla de Res</h4>
+<span class="font-bold text-on-surface">$320</span>
+</div>
+<div class="flex flex-wrap gap-2 py-1">
+<span class="inline-flex items-center gap-1 bg-surface-container-high px-2 py-0.5 rounded-md text-[10px] font-medium font-label">🌶️ Picante</span>
+<span class="inline-flex items-center gap-1 bg-surface-container-high px-2 py-0.5 rounded-md text-[10px] font-medium font-label">🌿 Orgánico</span>
+</div>
+<button class="flex items-center gap-1 text-[11px] text-secondary font-bold uppercase tracking-widest mt-1 font-label">
+<span class="material-symbols-outlined text-sm">visibility</span>
+                                Ver en 3D
+                            </button>
+</div>
+</div>
+<!-- Dish 2 -->
+<div class="flex gap-4">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Glass of deep red cabernet sauvignon wine being swirled, elegant restaurant lighting, dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiD6P13PDazqlpGICILHcPcIs2YEfKDgSU-hoNr9jdPHgk6pwRJzno9Vs_DfmeUiD1Z0lhk8b0_C3kL5dSHImXTjgDbpaqeF8-kkVn8kUDkBcZ4NO9tPsJTNpwb_t8YiMEEjoeBNjN_Su71ObfONGEAjYB0RjUi_q1S-ERLpKppB6JkmbwfCTcmMjBLsjF2QyFxKmzhs1GHil3uDCelkoUsphW4fRJ7OOWCurghA2_JKg_IGByEP6tz1Aogr4bH9YMdSg6JGlKDvE"/>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-primary italic">Copa Cabernet</h4>
+<span class="font-bold text-on-surface">$220</span>
+</div>
+<p class="text-xs text-stone-500 font-label">Reserva de la casa, notas de frutos rojos.</p>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-surface-container-high flex justify-between items-center">
+<span class="text-stone-400 text-sm uppercase tracking-widest font-bold font-label">Subtotal</span>
+<span class="font-bold text-lg text-primary font-label">$540</span>
+</div>
+</div>
+<!-- Collapsed: Diego -->
+<div class="bg-surface-container-low rounded-xl p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Diego's portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEeuVo0k7lsQmwKWLPmXKG61i50NcYAWCcm8xUIALTAVVAA7rB2a9wrYn3FIv4xwlpX7KtVk9RB9BLpF-Xjo8oww6au7lrbj9l20ZzpBaAnxsb-TaoGyLBPI3acO9ze-X-d9Ga0KGoKYAghczlWOVkRbNNDpwBs8EVOXIyuW7PLVANHofs8_Gg-kw56nM0o11o6JyLIGujKq7Qqa23mtqfdJRZzUwm4BvrYw_ycbVIJv5i_c98vbq5MaNkY4lHYY10E82of-25SXE"/>
+</div>
+<div>
+<h3 class="font-bold text-stone-700">Diego</h3>
+<p class="text-xs text-stone-500 font-label">1 platillo · <span class="text-primary font-bold text-[10px] uppercase">✅ Confirmado</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-bold text-stone-800 font-label">$380</span>
+<span class="material-symbols-outlined text-stone-300">expand_more</span>
+</div>
+</div>
+<!-- Collapsed: Valentina -->
+<div class="bg-surface-container-low rounded-xl p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Valentina's portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfKH3amo2q056LxDw69NsagNn8OwUu0rS95xDESo1cMx5WgldMicQJ89MfZnlsLAT-YfmZEyHsHs-3TkY9HEDc9tNCuLZXt796Lkky5UzNl-GQHwYtpRFg7ECSuZnKmFmFezqIwvynwDwJm3gUlviRWKqSOtGAz6J-7Ylzi8oPJ8uKpA4pa_e-pm04p7OJZTx0vofNxkiX--vAo-qW6Rf74ArwcVWqm_-rJlzNtJ4Waige5OURhbGzgNjW2cc-LlF4K0DkgWl9Se8"/>
+</div>
+<div>
+<h3 class="font-bold text-stone-700">Valentina</h3>
+<p class="text-xs text-stone-500 font-label">2 platillos · <span class="text-stone-400 font-bold text-[10px] uppercase italic">✏️ Armando</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-bold text-stone-800 font-label">$290</span>
+<span class="material-symbols-outlined text-stone-300">expand_more</span>
+</div>
+</div>
+<!-- Collapsed: Roberto -->
+<div class="bg-surface-container-low/50 rounded-xl p-4 flex items-center justify-between opacity-70">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-stone-200">
+<img class="w-full h-full object-cover grayscale" data-alt="Roberto's portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcXtKdkpikpYLR6oxTdxzLoA796L5ODIf3QmscN5iDrZOZYsrn2aQDtULH73cKQL0byfUo0XxPNWexhH2ifO5J_27LWPhdWSCtSsycuogYFn9TThNFqBO17f3BtGqdpha699KvNgunm6lVSl75I7icEh-RAefXrByX6C-WYh46POpmXHUBjx-O7Zutf9w--At_00mi0aaupIETG_oE9Tujrs4uUoLhgPh9Wz4emVNY2xO8wfNRUJuUUeebv3_LOTTRAtgffOKn_FQ"/>
+</div>
+<div>
+<h3 class="font-bold text-stone-700">Roberto</h3>
+<p class="text-xs text-stone-400 italic font-label">0 platillos · Sin orden aún</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-bold text-stone-300 font-label">$0</span>
+<span class="material-symbols-outlined text-stone-300">expand_more</span>
+</div>
+</div>
+</section>
+<!-- Group Summary Card -->
+<section class="bg-surface-container-lowest rounded-xl p-6 border-l-4 border-secondary shadow-[0px_20px_40px_rgba(29,28,23,0.06)]">
+<h2 class="font-headline italic font-bold text-xl text-primary mb-4">Cuenta de la Mesa</h2>
+<div class="space-y-3">
+<div class="flex justify-between text-sm text-stone-500 font-label">
+<span>Platillos (5)</span>
+<span class="font-medium">$1,210.00</span>
+</div>
+<div class="flex justify-between text-sm text-stone-500 font-label">
+<span>Propina (15%)</span>
+<span class="font-medium">$181.50</span>
+</div>
+<div class="flex justify-between items-center pt-3 border-t border-surface-container-high">
+<span class="font-bold text-primary uppercase tracking-widest text-xs font-label">Total Mesa</span>
+<span class="font-headline font-bold text-2xl text-primary">$1,391.50</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Bottom Section -->
+<div class="fixed bottom-0 w-[390px] z-50">
+<!-- Bottom Nav Shade -->
+<div class="absolute inset-0 bg-[#fef9f1]/80 backdrop-blur-xl -z-10 rounded-t-[32px] shadow-[0px_-20px_40px_rgba(29,28,23,0.06)]"></div>
+<div class="px-6 py-6 space-y-6">
+<!-- Status Indicators -->
+<div class="flex items-center justify-center gap-6">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary italic font-label">3 de 4 listos</span>
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-stone-300"></div>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full h-16 bg-gradient-to-r from-[#4f1728] to-[#6b2d3e] text-white rounded-full flex items-center justify-center gap-3 font-bold shadow-xl active:scale-95 duration-300 transition-all group font-label">
+<span class="material-symbols-outlined group-active:scale-110 transition-transform">check_circle</span>
+<span class="uppercase tracking-[0.15em] text-sm">Confirmar Mi Orden</span>
+</button>
+</div>
+</div>
+</body></html>

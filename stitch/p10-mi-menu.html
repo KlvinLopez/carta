@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Editor de Menú - Digital Sommelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Inter:wght@400;500;600;700&amp;family=Noto+Serif:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#fef9f1",
+                    "tertiary-fixed-dim": "#ffb1c2",
+                    "on-primary-fixed": "#3b0619",
+                    "on-error": "#ffffff",
+                    "surface-tint": "#8e495a",
+                    "on-background": "#1d1c17",
+                    "surface": "#fef9f1",
+                    "secondary": "#7b5800",
+                    "primary": "#4f1728",
+                    "inverse-surface": "#32302b",
+                    "surface-dim": "#ded9d2",
+                    "tertiary-container": "#6b2d3e",
+                    "on-surface": "#1d1c17",
+                    "on-surface-variant": "#524346",
+                    "on-tertiary-fixed": "#3b0619",
+                    "on-primary-fixed-variant": "#713243",
+                    "on-secondary-fixed-variant": "#5d4200",
+                    "inverse-primary": "#ffb1c2",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#4f1728",
+                    "primary-container": "#6b2d3e",
+                    "inverse-on-surface": "#f5f0e8",
+                    "on-secondary-fixed": "#271900",
+                    "on-tertiary-container": "#ea96a9",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed": "#ffdea6",
+                    "on-secondary-container": "#715000",
+                    "background": "#fef9f1",
+                    "outline-variant": "#d7c1c4",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed": "#ffd9df",
+                    "secondary-container": "#fdc34d",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#ece8e0",
+                    "error": "#ba1a1a",
+                    "on-secondary": "#ffffff",
+                    "on-primary-container": "#ea96a9",
+                    "surface-container": "#f2ede5",
+                    "primary-fixed": "#ffd9df",
+                    "surface-container-low": "#f8f3eb",
+                    "on-tertiary-fixed-variant": "#713243",
+                    "outline": "#857375",
+                    "surface-container-highest": "#e7e2da",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#ffb1c2",
+                    "surface-variant": "#e7e2da",
+                    "secondary-fixed-dim": "#f7bd48"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "serif": ["Playfair Display"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-[#f5f0e8] text-on-surface font-body selection:bg-secondary-container/30">
+<!-- Top Navigation Anchor -->
+<header class="w-full top-0 sticky z-50 bg-[#fef9f1] dark:bg-[#1A1A1A] flex justify-between items-center px-6 py-4">
+<button class="hover:opacity-80 transition-opacity scale-95 duration-200 ease-out flex items-center justify-center">
+<span class="material-symbols-outlined text-[#4f1728] dark:text-[#fef9f1]">arrow_back</span>
+</button>
+<h1 class="text-xl font-serif font-bold tracking-tight text-[#4f1728] dark:text-[#fef9f1]">Mi Menú</h1>
+<button class="bg-[#4f1728] text-white rounded-full w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity scale-95 duration-200 ease-out">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="pb-32 px-6 pt-4 space-y-6">
+<!-- Search & Filter Row -->
+<section class="flex items-center gap-4">
+<div class="flex-1 bg-[#F0F0F0] rounded-full px-5 py-3 flex items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-primary/10">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm font-medium w-full placeholder:text-outline" placeholder="Buscar platillo..." type="text"/>
+</div>
+<button class="bg-surface-container-high w-12 h-12 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</section>
+<!-- Summary Bar (Moved here) -->
+<section class="flex justify-center">
+<div class="bg-surface-container-high/40 px-4 py-2 rounded-full flex items-center gap-2.5">
+<span class="text-[11px] font-medium text-outline uppercase tracking-wider">24 PLATILLOS</span>
+<span class="text-[11px] text-outline-variant">·</span>
+<span class="text-[11px] font-medium text-green-700 uppercase tracking-wider">20 ACTIVOS</span>
+<span class="text-[11px] text-outline-variant">·</span>
+<span class="text-[11px] font-medium text-error uppercase tracking-wider">1 AGOTADO</span>
+<span class="text-[11px] text-outline-variant">·</span>
+<span class="text-[11px] font-medium text-outline uppercase tracking-wider">1 BORRADOR</span>
+</div>
+</section>
+<!-- Category Horizontal Scroll -->
+<section class="-mx-6 px-6 overflow-x-auto">
+<div class="flex gap-3 whitespace-nowrap">
+<!-- Active -->
+<button class="bg-[#4f1728] text-white px-6 py-2.5 rounded-full text-sm font-semibold tracking-wide">
+                    Todos (24)
+                </button>
+<!-- Inactive items -->
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-full text-sm font-medium transition-colors hover:bg-surface-container-highest">
+                    Entradas (6)
+                </button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-full text-sm font-medium transition-colors hover:bg-surface-container-highest">
+                    Carnes (8)
+                </button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-full text-sm font-medium transition-colors hover:bg-surface-container-highest">
+                    Mariscos (4)
+                </button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-full text-sm font-medium transition-colors hover:bg-surface-container-highest">
+                    Postres (3)
+                </button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-full text-sm font-medium transition-colors hover:bg-surface-container-highest">
+                    Bebidas (3)
+                </button>
+</div>
+</section>
+<!-- Dish List -->
+<section class="grid gap-4 pt-2">
+<!-- Card 1: Costilla de Res -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex gap-4 shadow-[0px_4px_24px_rgba(79,23,40,0.04)] hover:scale-[1.02] transition-transform duration-300 group">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Slow-cooked beef short ribs with a dark glaze and microgreens garnish on a slate plate, warm dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxzbIaJrBKSTSPTNzMsaCzVLCLzrW6zi57-2VPgkXG6tF6k0UHBuST8KVPhrSqj7I_45TCJwH74cFavPdYM0lc-lejY8WvZP7YVaGkJuPg33IZUEPv8MvMzGqYkEO7kVSLv70Q-Q1ev0z0ef8mXASlXJi9UrrYUKnR4pATQqqg9xZOglxRqmdqNYzzoBO_DMbOxYzciq-LHs0kuUgO-NTWZNs4qpqey-Opo-TFk6fNjpI_INgpr4b5Pu1-y9Sb3nElwt36QKePT0I"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-secondary font-bold">Carnes</span>
+<h3 class="text-lg font-serif font-bold text-primary -mt-1 leading-tight">Costilla de Res</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-xs font-medium text-green-700">Disponible</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-base font-bold text-on-surface">$320</span>
+<div class="w-10 h-6 bg-primary rounded-full relative p-1 flex items-center justify-end">
+<div class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Bowl de Atún -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex gap-4 shadow-[0px_4px_24px_rgba(79,23,40,0.04)] hover:scale-[1.02] transition-transform duration-300">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Modern tuna poke bowl with fresh avocado, edamame, and vibrant radish slices, bright natural light, top-down view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8K1uukAJZSqfATYOR6psJ1F3JyMWMYP-kTQseSsPTqYR1OJxTw25YAv3-loOMAJ2Q4QdHipGoGnFvj9XpkuBvuQBOdibF-p2rlY1iWryJl44i62RrehcfYfpFBrQjI9GPkKlEhDLR3D9R77diKAuSJ4GACA-R8UQb5z-mYe23UWa7A5LJdlsgU9xAlA5etDyhCK4eJr2zKDhlftbRZfY9QuE-M0U9op-vtwyvOJhb1HcSGe9Yc3-Br3asWRFY1Gg0u2oqf49Hpqg"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-secondary font-bold">Mariscos</span>
+<h3 class="text-lg font-serif font-bold text-primary -mt-1 leading-tight">Bowl de Atún</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<div class="w-2 h-2 rounded-full bg-orange-500"></div>
+<span class="text-xs font-medium text-orange-700">Pocas porciones (3)</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-base font-bold text-on-surface">$280</span>
+<div class="w-10 h-6 bg-primary rounded-full relative p-1 flex items-center justify-end">
+<div class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Ensalada César -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex gap-4 shadow-[0px_4px_24px_rgba(79,23,40,0.04)] hover:scale-[1.02] transition-transform duration-300">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Classic caesar salad with crisp romaine lettuce, large croutons, and shaved parmesan cheese in a white porcelain bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApQyGuxWXgUsK4-V3H7XbrqOf3JHCsGnRlJkCEjDNrkRRNfe4OsmMmDd9nrZsKU4NzOXWBexq12h9QGFWTEgU0TG1O7kIYjdm1JxLtdE8ZbieanAwsoMbAFU8yrueejc3GDcldlfQpmEkZM6UOdVWyE3xgeRi9Xa0WAE_uZlkeMig3hT-0ZQem_eJkR3GvJF9afQMUuJAdkZjvcsdaKGvmLYfUZFOF2zI0crQ4VhtCjbGf7FMp-lmuWHkjHbRzdnQn_L_EgC0K4DI"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-secondary font-bold">Entradas</span>
+<h3 class="text-lg font-serif font-bold text-primary -mt-1 leading-tight">Ensalada César</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-xs font-medium text-green-700">Disponible</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-base font-bold text-on-surface">$165</span>
+<div class="w-10 h-6 bg-primary rounded-full relative p-1 flex items-center justify-end">
+<div class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Tiramisú (Agotado state) -->
+<div class="bg-surface-container-lowest/60 p-4 rounded-xl flex gap-4 border-2 border-error/10 opacity-70 hover:scale-[1.02] transition-transform duration-300">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 grayscale">
+<img class="w-full h-full object-cover" data-alt="Authentic Italian tiramisu with layers of ladyfingers and mascarpone cream, dusted with cocoa powder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9ezqzrokB_Soo6F8666W9_OGsCJxo8owYiHynF9dFkNEO0mW6uegZ4vyvtdwsS9fY0_ZAbiD895kGcRQE-SZsCpCpdJ_tfCrdI9PCLKQ4ti5_91ixUWR3r-cVJaShTIytuYL4Ynno5wiGgR1wFnGbgmPivXOxl7BWwx-kUAjofeQIChpNDdnoqpugUgldxoq1KeGaL-jgSDVi4K6egXQZSp1qFcHZlcytR5NYkPdtJ3bEgACpu8A_dFjmT9Yp9IdgnwK8f5GmljE"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-secondary/50 font-bold">Postres</span>
+<h3 class="text-lg font-serif font-bold text-primary/50 -mt-1 leading-tight">Tiramisú</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="text-xs font-medium text-error">Agotado</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-base font-bold text-on-surface/50">$140</span>
+<div class="w-10 h-6 bg-surface-container-highest rounded-full relative p-1 flex items-center justify-start">
+<div class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5: Nuevo Platillo (Borrador state) -->
+<div class="bg-transparent p-4 rounded-xl flex gap-4 border-2 border-dashed border-outline-variant hover:scale-[1.02] transition-transform duration-300">
+<div class="w-24 h-24 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-outline text-3xl">image</span>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-outline font-bold">Sin categoría</span>
+<h3 class="text-lg font-serif font-bold text-outline -mt-1 leading-tight italic">Nuevo Platillo</h3>
+<div class="flex items-center gap-1.5 mt-1">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<span class="text-xs font-medium text-outline">Borrador</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-base font-bold text-outline">$0</span>
+<div class="w-10 h-6 bg-surface-container-highest rounded-full relative p-1 flex items-center justify-start">
+<div class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-8 bg-[#fef9f1]/80 dark:bg-[#1A1A1A]/80 backdrop-blur-xl rounded-t-[32px] shadow-[0px_-10px_40px_rgba(79,23,40,0.05)]">
+<button class="flex flex-col items-center justify-center text-[#6b2d3e] dark:text-[#fef9f1]/60 px-5 py-2 hover:bg-[#6b2d3e]/10 transition-all">
+<span class="material-symbols-outlined">home</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Inicio</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-[#6b2d3e] text-[#fef9f1] rounded-full px-5 py-2 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Menú</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#6b2d3e] dark:text-[#fef9f1]/60 px-5 py-2 hover:bg-[#6b2d3e]/10 transition-all">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Pedidos</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#6b2d3e] dark:text-[#fef9f1]/60 px-5 py-2 hover:bg-[#6b2d3e]/10 transition-all">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Analytics</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#6b2d3e] dark:text-[#fef9f1]/60 px-5 py-2 hover:bg-[#6b2d3e]/10 transition-all">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Config</span>
+</button>
+</nav>
+</body></html>

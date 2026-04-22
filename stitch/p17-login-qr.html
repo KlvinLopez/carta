@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:ital,wght@0,700;1,700&amp;family=Noto+Serif:wght@700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#6b2d3e",
+                        "on-surface": "#1d1c17",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#ffd9df",
+                        "surface-container-highest": "#e7e2da",
+                        "surface-dim": "#ded9d2",
+                        "surface-variant": "#e7e2da",
+                        "on-secondary-fixed": "#271900",
+                        "on-primary-container": "#ea96a9",
+                        "surface-tint": "#8e495a",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#ffdea6",
+                        "inverse-on-surface": "#f5f0e8",
+                        "primary": "#4f1728",
+                        "on-secondary-container": "#715000",
+                        "outline-variant": "#d7c1c4",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#f2ede5",
+                        "secondary-container": "#fdc34d",
+                        "surface-container-low": "#f8f3eb",
+                        "secondary": "#7b5800",
+                        "on-surface-variant": "#524346",
+                        "on-tertiary": "#ffffff",
+                        "background": "#fef9f1",
+                        "outline": "#857375",
+                        "on-tertiary-fixed": "#3b0619",
+                        "primary-fixed": "#ffd9df",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "on-tertiary-container": "#ea96a9",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "surface": "#fef9f1",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#6b2d3e",
+                        "surface-bright": "#fef9f1",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#ffb1c2",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4f1728",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#ece8e0",
+                        "inverse-surface": "#32302b",
+                        "on-primary-fixed": "#3b0619",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-background": "#1d1c17",
+                        "dorado": "#B8860B"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif", "serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ar-overlay-gradient {
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.85) 100%);
+        }
+        .dish-shadow {
+            box-shadow: 0 40px 60px -20px rgba(0,0,0,0.9);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-stone-950 font-body text-stone-100 overflow-hidden">
+<div class="fixed inset-0 z-0">
+<img class="w-full h-full object-cover opacity-30 grayscale blur-sm" data-alt="Blurred background of a dimly lit luxury restaurant interior with warm ambient lighting on stone tables and wine bottles." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB979cl1RWKpZRQcyQyw1CVI99nB2Rk3J7rJmkPBtPJvvP1Cuj9NxaJZeNxmUZ1epVVwOyvijsuDx2q3PEihOjL7WrzoH-DFDJAIJetZ3J9Y945QjLJRxato9jMQpIreXCPGK41DgTbO0AuCAzhJQdxiBa73KqTWHOZT37gOYqcfC-uv12HGwnP-mve8BfXz39SZ1-u7ZWkkCCTVymT_2HplXuRoorQRY7nmxbuH2SGmc7VV-tihdy4AeIKn9EbUVveUW8Xz40OMQY"/>
+<div class="absolute inset-0 ar-overlay-gradient"></div>
+</div>
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 w-full z-50">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-stone-100 hover:opacity-70 transition-opacity" data-icon="arrow_back">arrow_back</button>
+<h1 class="text-lg font-serif italic text-stone-100">The Digital Sommelier</h1>
+</div>
+<div class="flex items-center gap-3">
+<button aria-label="Close" class="w-10 h-10 flex items-center justify-center rounded-full bg-white text-stone-950 shadow-lg">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</header>
+<main class="relative z-10 h-screen flex flex-col justify-center items-center pb-80">
+<div class="absolute inset-y-0 left-4 flex items-center">
+<button class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+</div>
+<div class="relative group transform rotate-[15deg] transition-transform duration-700">
+<div class="absolute -inset-10 bg-white/5 blur-3xl rounded-full"></div>
+<img class="w-[320px] md:w-[450px] aspect-square object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.6)]" data-alt="Close-up hero shot of grilled beef short ribs with herb garnish on a dark plate, dramatic studio lighting from top left, 3D photorealistic style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByWRyMBIjUGkehCPqjdaPN4ygEerC9MHLYwS7erSnstceoYZMWaHhB4LGlkbZJ943QgtxOXor1ceyvCXeCDvqPkuttPJO5SNCNFLsoVhPZC6jmDrkZJgXESgv1sw3aPKev-mLUp4Wa8kptRUMf0LMZ8DIWdgluUg0iIxF8ZPE9_znqTK7U4FbCdi4ooDQrLWVyl3-IZCXWzsftZb4JPcVrUXS-IP3eFDhLKfdTHyQNiIrpbyZkEH5at7NHsBPENxU2CC31wTlsPLc"/>
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-48 h-6 bg-black/40 blur-xl rounded-[100%] scale-x-150"></div>
+</div>
+<div class="absolute inset-y-0 right-4 flex items-center">
+<button class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</main>
+<section class="fixed bottom-0 left-0 right-0 z-40">
+<div class="bg-stone-900/60 backdrop-blur-3xl rounded-t-[32px] px-8 pt-10 pb-12 shadow-[0px_-20px_40px_rgba(0,0,0,0.5)] max-w-4xl mx-auto border-t border-white/5">
+<div class="flex justify-between items-start mb-4">
+<div class="flex-1">
+<h2 class="text-4xl md:text-5xl font-serif font-bold text-white tracking-tight leading-tight">Costilla de Res</h2>
+<p class="text-white/70 italic font-body mt-2 text-lg">Marinada 24 hrs en hierbas de nuestro huerto</p>
+</div>
+<div class="text-right">
+<span class="text-2xl md:text-3xl font-semibold text-dorado font-body tracking-tight">$320</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-3 mb-6">
+<div class="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/5 flex items-center gap-2">
+<span>🥩</span>
+<span class="text-sm font-medium text-white">Res</span>
+</div>
+<div class="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/5 flex items-center gap-2">
+<span>🌿</span>
+<span class="text-sm font-medium text-white">Hierbas</span>
+</div>
+<div class="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/5 flex items-center gap-2">
+<span>💧</span>
+<span class="text-sm font-medium text-white">Aceite</span>
+</div>
+</div>
+<p class="text-white/50 text-sm mb-10 flex items-center gap-2 font-medium tracking-wide">
+                480 cal <span class="text-white/20">•</span> 🌶️🌶️ <span class="text-white/20">•</span> Sin gluten
+            </p>
+<div class="flex gap-4">
+<button class="flex-1 py-5 rounded-full border border-white/30 text-white font-semibold uppercase tracking-widest text-xs hover:bg-white/5 transition-all active:scale-95">
+                    Ver en AR
+                </button>
+<button class="flex-1 py-5 rounded-full bg-[#6B2D3E] text-white font-semibold uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(107,45,62,0.4)] hover:bg-[#8e495a] transition-all active:scale-95">
+                    Agregar a la Carta
+                </button>
+</div>
+</div>
+</section>
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-8 pb-8 pt-4 hidden md:flex">
+<div class="bg-stone-950/80 backdrop-blur-xl rounded-full px-12 py-4 flex gap-12 shadow-2xl">
+<button class="flex flex-col items-center justify-center text-stone-500 hover:text-stone-200 transition-colors">
+<span class="material-symbols-outlined mb-1" data-icon="wine_bar">wine_bar</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">Cellar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-rose-500 font-bold">
+<span class="material-symbols-outlined mb-1" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">Menu</span>
+</button>
+<button class="flex flex-col items-center justify-center text-stone-500 hover:text-stone-200 transition-colors">
+<span class="material-symbols-outlined mb-1" data-icon="view_in_ar">view_in_ar</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">AR View</span>
+</button>
+<button class="flex flex-col items-center justify-center text-stone-500 hover:text-stone-200 transition-colors">
+<span class="material-symbols-outlined mb-1" data-icon="event_seat">event_seat</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">Reserve</span>
+</button>
+</div>
+</nav>
+</body></html>

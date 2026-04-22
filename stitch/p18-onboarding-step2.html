@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Comensal Onboarding - Paso 2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Inter:wght@300;400;500;600&amp;family=Noto+Serif:ital,wght@0,400..700;1,400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4f1728",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#ffd9df",
+                        "on-secondary-fixed": "#271900",
+                        "primary-container": "#6b2d3e",
+                        "inverse-surface": "#32302b",
+                        "inverse-primary": "#ffb1c2",
+                        "background": "#fef9f1",
+                        "on-surface": "#1d1c17",
+                        "on-surface-variant": "#524346",
+                        "on-background": "#1d1c17",
+                        "tertiary-fixed-dim": "#ffb1c2",
+                        "on-tertiary-fixed": "#3b0619",
+                        "secondary": "#7b5800",
+                        "outline": "#857375",
+                        "on-tertiary-container": "#ea96a9",
+                        "surface": "#fef9f1",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#713243",
+                        "surface-variant": "#e7e2da",
+                        "on-primary-fixed": "#3b0619",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffd9df",
+                        "surface-tint": "#8e495a",
+                        "secondary-fixed": "#ffdea6",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "primary-fixed-dim": "#ffb1c2",
+                        "surface-dim": "#ded9d2",
+                        "on-primary-container": "#ea96a9",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#d7c1c4",
+                        "surface-bright": "#fef9f1",
+                        "on-primary-fixed-variant": "#713243",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#ece8e0",
+                        "tertiary": "#4f1728",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#f2ede5",
+                        "secondary-fixed-dim": "#f7bd48",
+                        "on-secondary-container": "#715000",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f5f0e8",
+                        "tertiary-container": "#6b2d3e",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f8f3eb",
+                        "surface-container-highest": "#e7e2da",
+                        "secondary-container": "#fdc34d"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .vino-gradient {
+            background: linear-gradient(135deg, #4f1728 0%, #6b2d3e 100%);
+        }
+        .custom-shadow {
+            box-shadow: 0px 20px 40px rgba(29, 28, 23, 0.06);
+        }
+        body {
+            background-color: #fef9f1;
+            color: #1d1c17;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen selection:bg-primary-fixed selection:text-primary overflow-x-hidden">
+<!-- Top Navigation Header -->
+<header class="w-full top-0 pt-6 flex items-center justify-between px-8 max-w-2xl mx-auto sticky z-50 bg-background/80 backdrop-blur-md">
+<div class="flex items-center gap-2 flex-none">
+<div class="w-2.5 h-2.5 rounded-full" style="background-color: #6B2D3E;"></div>
+<div class="w-2.5 h-2.5 rounded-full" style="background-color: #FFD700;"></div>
+<div class="w-2.5 h-2.5 rounded-full border border-outline-variant"></div>
+</div>
+<div class="flex-1 text-right">
+<span class="font-headline text-lg tracking-tight text-primary">Paso 2 de 3</span>
+</div>
+</header>
+<main class="max-w-2xl mx-auto px-8 pt-12 pb-40">
+<!-- Header Section -->
+<section class="mb-12">
+<h1 class="font-headline text-4xl md:text-5xl text-primary leading-[1.1] mb-4 tracking-tight">
+                ¿Cómo te gusta comer?
+            </h1>
+<p class="font-body text-lg text-on-surface-variant max-w-md">
+                Personaliza tu menú. Puedes cambiarlo cuando quieras.
+            </p>
+</section>
+<!-- A. Restricciones Alimentarias -->
+<section class="mb-14">
+<h2 class="font-label text-xs font-semibold tracking-[0.2em] text-on-surface-variant uppercase mb-6">
+                RESTRICCIONES ALIMENTARIAS
+            </h2>
+<div class="flex flex-wrap gap-3">
+<button class="vino-gradient text-white px-5 py-3 rounded-full flex items-center gap-2 custom-shadow hover:scale-105 transition-transform">
+<span>🥜</span>
+<span class="text-sm font-medium">Sin nueces</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🥛</span>
+<span class="text-sm font-medium">Sin lácteos</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🌾</span>
+<span class="text-sm font-medium">Sin gluten</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🥚</span>
+<span class="text-sm font-medium">Sin huevo</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🍤</span>
+<span class="text-sm font-medium">Sin mariscos</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🥦</span>
+<span class="text-sm font-medium">Vegetariano</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🌱</span>
+<span class="text-sm font-medium">Vegano</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>✡️</span>
+<span class="text-sm font-medium">Kosher</span>
+</button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-full flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>☪️</span>
+<span class="text-sm font-medium">Halal</span>
+</button>
+</div>
+</section>
+<!-- B. Nivel de Picante -->
+<section class="mb-14">
+<h2 class="font-label text-xs font-semibold tracking-[0.2em] text-on-surface-variant uppercase mb-8">
+                NIVEL DE PICANTE
+            </h2>
+<div class="flex justify-between items-end max-w-md">
+<div class="flex flex-col items-center gap-3">
+<button class="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center text-2xl hover:bg-surface-container-high transition-all">
+                        🍃
+                    </button>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Nada</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<button class="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center text-2xl hover:bg-surface-container-high transition-all">
+                        🌶️
+                    </button>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Suave</span>
+</div>
+<div class="flex flex-col items-center gap-4">
+<button class="w-16 h-16 rounded-full bg-surface-container-lowest flex items-center justify-center text-3xl ring-4 ring-secondary-container custom-shadow scale-110 transition-all relative overflow-hidden">
+<span class="absolute transform -rotate-[20deg] translate-x-[-4px] translate-y-[2px] opacity-40">🌶️</span>
+<span class="relative z-10">🌶️</span>
+</button>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Medio</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<button class="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center text-2xl hover:bg-surface-container-high transition-all relative overflow-hidden">
+<span class="absolute transform -rotate-[25deg] translate-x-[-8px] opacity-30">🌶️</span>
+<span class="absolute transform rotate-[25deg] translate-x-[8px] opacity-30">🌶️</span>
+<span class="relative z-10">🌶️</span>
+</button>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Picoso</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<button class="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center text-2xl hover:bg-surface-container-high transition-all">
+                        🔥
+                    </button>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Extremo</span>
+</div>
+</div>
+</section>
+<!-- C. Tus Ingredientes Favoritos -->
+<section class="mb-8">
+<h2 class="font-label text-xs font-semibold tracking-[0.2em] text-on-surface-variant uppercase mb-6">
+                TUS INGREDIENTES FAVORITOS
+            </h2>
+<div class="relative mb-8">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary-container text-on-surface placeholder:text-stone-400 font-body transition-all" placeholder="Buscar ingrediente..." type="text"/>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🍄</span> Hongos
+                </button>
+<button class="bg-secondary-container text-on-secondary-fixed px-5 py-3 rounded-2xl text-sm font-semibold flex items-center gap-2 custom-shadow hover:scale-105 transition-transform">
+<span>🧀</span> Queso
+                </button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🥑</span> Aguacate
+                </button>
+<button class="bg-secondary-container text-on-secondary-fixed px-5 py-3 rounded-2xl text-sm font-semibold flex items-center gap-2 custom-shadow hover:scale-105 transition-transform">
+<span>🍋</span> Cítricos
+                </button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🌿</span> Hierbas frescas
+                </button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🍫</span> Chocolate
+                </button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🌶️</span> Chiles
+                </button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🐟</span> Pescado
+                </button>
+<button class="bg-surface-container-low text-on-surface px-5 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>🥩</span> Carnes rojas
+                </button>
+</div>
+</section>
+</main>
+<!-- Sticky Bottom CTA -->
+<footer class="fixed bottom-0 left-0 w-full bg-gradient-to-t from-background via-background to-transparent pt-12 pb-10 px-8 z-50">
+<div class="max-w-2xl mx-auto">
+<button class="vino-gradient w-full py-5 rounded-full text-white font-body font-semibold text-lg flex items-center justify-center gap-2 custom-shadow hover:opacity-90 active:scale-[0.98] transition-all">
+                Siguiente
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</footer>
+</body></html>

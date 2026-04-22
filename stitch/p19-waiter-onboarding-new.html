@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Carta AR Experience</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#1d1c17",
+                    "secondary": "#7b5800",
+                    "surface-bright": "#fef9f1",
+                    "surface-container": "#f2ede5",
+                    "on-primary-container": "#ea96a9",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed-variant": "#5d4200",
+                    "primary": "#4f1728",
+                    "on-primary-fixed": "#3b0619",
+                    "secondary-fixed-dim": "#f7bd48",
+                    "surface-variant": "#e7e2da",
+                    "on-surface-variant": "#524346",
+                    "inverse-surface": "#32302b",
+                    "on-tertiary": "#ffffff",
+                    "surface-dim": "#ded9d2",
+                    "surface-container-highest": "#e7e2da",
+                    "surface": "#fef9f1",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#ea96a9",
+                    "on-primary-fixed-variant": "#713243",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffd9df",
+                    "primary-fixed-dim": "#ffb1c2",
+                    "tertiary-container": "#6b2d3e",
+                    "outline": "#857375",
+                    "on-secondary-fixed": "#271900",
+                    "inverse-on-surface": "#f5f0e8",
+                    "secondary-container": "#B8860B",
+                    "background": "#fef9f1",
+                    "tertiary": "#4f1728",
+                    "on-tertiary-fixed": "#3b0619",
+                    "on-tertiary-fixed-variant": "#713243",
+                    "surface-tint": "#8e495a",
+                    "on-secondary-container": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdea6",
+                    "tertiary-fixed-dim": "#ffb1c2",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-primary": "#ffb1c2",
+                    "surface-container-low": "#F5F0E8",
+                    "primary-fixed": "#ffd9df",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#d7c1c4",
+                    "surface-container-high": "#ece8e0",
+                    "on-surface": "#1d1c17",
+                    "primary-container": "#6b2d3e",
+                    "vino": "#6B2D3E",
+                    "crema": "#F5F0E8",
+                    "dorado": "#B8860B"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Playfair Display", "serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Inter", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass {
+            background: rgba(254, 249, 241, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .ar-glow {
+            filter: drop-shadow(0 20px 30px rgba(184, 134, 11, 0.4));
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .avatar-ring {
+            padding: 2px;
+            background: linear-gradient(45deg, #6B2D3E, #B8860B);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body overflow-hidden">
+<!-- AR Camera View Container -->
+<main class="relative h-screen w-full overflow-hidden">
+<!-- Background: Live Camera Viewfinder -->
+<div class="absolute inset-0 z-0">
+<img alt="Restaurant Table" class="w-full h-full object-cover" data-alt="First-person view of a high-end restaurant marble table surface with soft warm ambient lighting and elegant shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSsHJpESw9-Yb92CFmgLgiRKziWPu_SeQLYqXTuVAvHCj_JdLkZTfcE6wOSfFoV25DdErdy2MLtMTXWbVEu53AFh5Bu9mla-XTIcOJs7AY-1xhMehoaBeTp0e736nmJXNBOsy77iOCM65XnLElmuKRPTcLmyNvaBHSWB4YBHEhh4oItUj2mWymvkvbtnf-xtARJMgxTzYziHB9NhWAaInlM2BFFkxMp9OIIjc12igy_oqTPOPW5kbXjMdGMVHxpkw4b0r8f00gOcE"/>
+</div>
+<!-- Header -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 glass shadow-sm" style="height: 60px;">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:opacity-80 transition-opacity">menu</span>
+</div>
+<h1 class="font-headline italic text-2xl text-primary tracking-tight">Carta</h1>
+<div class="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="Professional and warm circular headshot of a woman for a user profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwbJuouwo3lyqCnUQXTg-9exSvtGy12yFh7Ks2q_-1aqadF3lqjZi31O84hTDqT7Ybgi8s7xbO8d_Wnw2BsMwKA5xB7kdFsxV7FseLCFH0TWb__R8kNhTQYuk3CvrnjFiutjKOjsjTZoExvtokvmJWSO_scH7wGaavZlK-qLtJTN9MgeIko1BPmdbIwPNIqTSAm8uh_Fz9ou50ONmTpH8RqAesO9Hgjs-qvS14NzWknF4G8_b7wwUQJy7XAC3SQzt5qRksq-tASaw"/>
+</div>
+</header>
+<!-- Session Avatars (Top Right) -->
+<div class="absolute top-20 right-6 z-50 flex flex-col gap-3">
+<!-- Avatar 1 (Selected Burger) -->
+<div class="relative">
+<div class="w-14 h-14 rounded-full avatar-ring p-[2px]">
+<img alt="User" class="w-full h-full rounded-full border-2 border-crema object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB38DCE-L4GQl-bIL3QH8rjUkCtnhjcmNGlLlMaxwNp6JTQ24mv7DXCntXvqdR_dzzLJtCXl57qP2FamxBlgptegc-5o7DNfdMVJ8dqG2rPWdj_JCOm2zwxi4IWvAweUpq2390UcNnVmrWk22DI9-YSwDzy1tEAKVWL_1iGnkqreuUaIgfZAHmaGCZHme3DOcbmyuVse3UZ-Yed9fNIwvowG9mI0XPWnoDfc4WiWJmA9_t9QaLhGnjlrcY-07oruUkZUiMs-FnErpU"/>
+</div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center overflow-hidden border border-vino/20">
+<img alt="Dish selection" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnShm4iA6nB0BwbV8yBeq3ON0RxM1Fm6kGuySs7yqb2w1ox1ysjrSKvP4jeH4XLM25P0qhi-ObWd0Lyz4mT0AS0RUaEjdJyOjY3o5eoquFlac479axkL2LfyRROCTd-625KEvClXhIKdHMpalA-GcwZiiDk4vJGPtchZgO57SDnOH5dRCoXTeWzCMZKYcZ6-PdqM4FljYZYbtHMtJU3xmzcKbejclNwqT7r3BXpUwVdAeiw2PTBOHjnFAJEgYAi4rJkisW7HYSaAA"/>
+</div>
+</div>
+<!-- Avatar 2 (Selected Salad) -->
+<div class="relative">
+<div class="w-14 h-14 rounded-full avatar-ring p-[2px]">
+<img alt="User" class="w-full h-full rounded-full border-2 border-crema object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD82Ylxw6eNk6JNdnI93zV8W75wHPw57UzE30S3WUGB6YmaSovHiT9tAVyOmYAzjCuhZyW-tUSka63D5bZJdAd5GDY0QJ_m1jfI5Of11n-R_HQ1XdBviQfU886_QVnrgAJs4w9hAiZap2VBfyqUh43pyNa4o8WvKeTPn-SwZpMzaGuiNd_CirdCae2VMftBsipzklZhNpBr_Cg1YKI8VODcDuCuiyOpt-GKcQ_G29HTU0COu9OMgz_kyUnyWZpLRMVF0WjcUi044UA"/>
+</div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center overflow-hidden border border-vino/20">
+<img alt="Dish selection" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgWCOuHS4bkC1i99R0jmNDLIwy2vwiEogTc60NNSJsBPaCCKfF8-83ABtH1MGOcxKwnB0Epb4qn1fKT4iEgxpjlioN0W5k9PimfaVLNlmWJXqBNAYmR2dYvmkX4sYASK9RoY1SZEl9GQQU5pQZDZf7OjQjW2WlYfGvAEQv11TvZpZJdaPfOlLx0ZRY5IOF6qffDDoOrrrZXJpkYoHTFx4rTsgcVsfDMQc5BpN7X2ltvXmGi_ZCaj43yYdcKqiixoWPD_G68H9jCnE"/>
+</div>
+</div>
+<!-- Avatar 3 (No selection) -->
+<div class="relative">
+<div class="w-14 h-14 rounded-full avatar-ring p-[2px]">
+<img alt="User" class="w-full h-full rounded-full border-2 border-crema object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOlD5qKs0sacRrwhwISS6m2Pgogc4VLCxHDUdvkAO52xBXf4HDC1zjhLq7_iL34uEQly8uDKb4dtCK5imw-wLIx18KLBsjSMBhvyAN3haq5dxXGCoNbdNQi-yKPOBO4LVwnC7xJvJF_kpgn0YOyQJX8l4uwV_imExnvdo4lW1C1GByhSXUTFBtm9N9gPMmGKAznizVmjBtfEhxwkcLsYxgx4xGsAa4nQ5gqhfYe7aklHq0SQZYNQKv5Qs0HcBOMMjTqXMA2w16l8E"/>
+</div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full shadow-md flex items-center justify-center border border-vino/20 bg-white">
+<span class="material-symbols-outlined text-[12px] text-vino/60">add</span>
+</div>
+</div>
+</div>
+<!-- Main AR Interactive Dish -->
+<div class="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+<div class="relative flex flex-col items-center transform -translate-y-8 pointer-events-auto cursor-pointer group">
+<!-- Highlighted Main Dish: Wagyu Ribs / Steak -->
+<div class="relative p-4 rounded-xl border-2 border-white/30 bg-white/10 backdrop-blur-sm shadow-2xl"><img alt="AR Steak" class="w-72 h-72 object-contain ar-glow transition-transform duration-500 group-hover:scale-110" data-alt="Hyper-realistic 3D render of a premium glazed steak dish sitting on a white ceramic plate, appearing to rest on a table surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALr2DwFM3DEmVQem2d5A6wjvI0wLfhK0LnbiEBUChlR4TZ9aO3dvtxM_dGCTadlXSrh6_0ovZ9da4OMu_QNbwCxIdciCWcE7ficZR5Hw0tTdSQTrvpki6q4lZDdO9toO1lnBtVMtKULnWnk5PkG2YDLw_W0WvrX9a_lN1k42Bp9JDslHrU9KkrUReJ45xc09x5U8IO_TqcU9Vo0waqERthDenQ549Qoavt5Gtc1KonyLP85MOTLZoMdP3TEQVoANCz4p7eue92dD8"/></div>
+<div class="mt-4 bg-dorado text-white px-6 py-2 rounded-full font-bold shadow-xl text-lg flex items-center gap-1.5 translate-y-8">
+<span class="text-xs opacity-80">$</span>320
+        </div><div class="mt-10 bg-crema border border-vino/20 px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 transform translate-y-2"><span class="font-body text-[11px] font-semibold text-vino">🥩 Res • 🌿 Hierbas • 🫒 Aceite</span></div>
+</div>
+</div>
+<!-- Expandable Bottom Sheet -->
+<section class="fixed bottom-0 left-0 w-full z-40 bg-crema rounded-t-[32px] shadow-[0px_-20px_40px_rgba(29,28,23,0.1)] pb-8 pt-3 h-[25%] transition-all duration-300">
+<!-- Handle & Expansion UI -->
+<div class="flex flex-col items-center mb-4">
+<div class="w-12 h-1.5 rounded-full bg-vino/30 mb-3"></div>
+<div class="w-full px-8 flex justify-center items-center">
+<h2 class="font-headline text-xl text-vino font-bold text-center">Top 3 del Chef</h2>
+</div>
+</div>
+<!-- Horizontal Scrollable Cards -->
+<div class="flex overflow-x-auto gap-4 px-8 hide-scrollbar">
+<!-- Card 1 -->
+<article class="flex-shrink-0 w-56 bg-white rounded-2xl shadow-sm p-3 flex flex-col gap-2">
+<div class="h-24 rounded-xl overflow-hidden">
+<img alt="Short Ribs" class="w-full h-full object-cover" data-alt="Close-up of slow-cooked beef short ribs with a rich glaze and creamy polenta on a ceramic plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALr2DwFM3DEmVQem2d5A6wjvI0wLfhK0LnbiEBUChlR4TZ9aO3dvtxM_dGCTadlXSrh6_0ovZ9da4OMu_QNbwCxIdciCWcE7ficZR5Hw0tTdSQTrvpki6q4lZDdO9toO1lnBtVMtKULnWnk5PkG2YDLw_W0WvrX9a_lN1k42Bp9JDslHrU9KkrUReJ45xc09x5U8IO_TqcU9Vo0waqERthDenQ549Qoavt5Gtc1KonyLP85MOTLZoMdP3TEQVoANCz4p7eue92dD8"/>
+</div>
+<div class="flex justify-between items-center">
+<h3 class="font-headline text-sm font-bold text-vino">Costilla de Res</h3>
+<span class="font-label text-xs font-semibold text-vino">$320</span>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="flex-shrink-0 w-56 bg-white rounded-2xl shadow-sm p-3 flex flex-col gap-2">
+<div class="h-24 rounded-xl overflow-hidden">
+<img alt="Tuna Bowl" class="w-full h-full object-cover" data-alt="Fresh tuna poke bowl with avocado slices, radishes, and sesame seeds in a stone bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdRcEriHDb2AIqFMm7ObIri43J5pY1tjIK5_CFoJ1dZ9Szd4-AsMoanapLMI50wI4P0KOO5T7zEo43B5SJAFT9gtNRlkX8kqrORTo5wGwhTXTKYIxKzkn8pnZLd4N17nKqg83N9Q-4Ap6bM4GxxuJ0V5C3dIxyOwRq-4ek1IqAm0ctz5-yoIxuMJNmGUCCjK_4TvM_SJou_qekj2UuiC7KlV5CaFNcFES60D-qdlIj7yVOFLWpuoePEONurIX89E2RHAWZaB3KMdM"/>
+</div>
+<div class="flex justify-between items-center">
+<h3 class="font-headline text-sm font-bold text-vino">Bowl de Atún</h3>
+<span class="font-label text-xs font-semibold text-vino">$245</span>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="flex-shrink-0 w-56 bg-white rounded-2xl shadow-sm p-3 flex flex-col gap-2">
+<div class="h-24 rounded-xl overflow-hidden">
+<img alt="Grilled Prawns" class="w-full h-full object-cover" data-alt="Platter of grilled jumbo prawns with garlic butter and parsley sprigs on a warm wooden board" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4E2eTF-HJvR515uc8RS9R41jmAP9FnsubZ9Zk82fnxLrESRGj-c4-dnC1cWMOHtrYg6_Ip_vMpii_F_QAwKiDtYBS3xSoYV7M1gsTcT_pEM5ZLoCej9JJQX7NTuzpIFcdT_IhrtzizN7V85vY-VzqVAQr1J3mO0eQdM9HV00T3240Gz1YuhhA8QQqKKYypHoZwJqa6XMFuuelGPzA61FHKU4z9IBd832d4_5d9Bxq6o6i-mQDGm56AMaq5sFAjM_dVQ3AWyO8L7w"/>
+</div>
+<div class="flex justify-between items-center">
+<h3 class="font-headline text-sm font-bold text-vino">Langostinos</h3>
+<span class="font-label text-xs font-semibold text-vino">$380</span>
+</div>
+</article>
+</div>
+</section>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-8 pb-6 pt-2 bg-transparent pointer-events-none">
+<button class="flex flex-col items-center justify-center bg-vino text-white rounded-full p-4 pointer-events-auto transform transition-transform active:scale-90 shadow-2xl">
+<span class="material-symbols-outlined text-3xl" data-icon="filter_center_focus">filter_center_focus</span>
+</button>
+<button class="flex flex-col items-center justify-center text-vino/40 p-3 pointer-events-auto hover:bg-white/40 rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</button>
+<button class="flex flex-col items-center justify-center text-vino/40 p-3 pointer-events-auto hover:bg-white/40 rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+</button>
+</nav>
+</main>
+</body></html>
