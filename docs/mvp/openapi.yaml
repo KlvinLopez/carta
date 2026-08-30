@@ -1,0 +1,1135 @@
+openapi: 3.1.0
+info:
+  title: Carta API
+  version: 1.0.0
+  description: |
+    API del MVP de Carta — menú AR para restaurantes.
+    Tres audiencias con autenticación distinta: comensal (/p), comandas (/op), back-office (/admin).
+    Documento de referencia: docs/mvp/04_API_Spec.md
+  contact:
+    name: Calvin
+    email: calvinisheamus20@gmail.com
+
+servers:
+  - url: https://api.carta.mx/api/v1
+    description: Producción
+  - url: http://localhost:8000/api/v1
+    description: Desarrollo local
+
+tags:
+  - name: comensal
+    description: Endpoints públicos del comensal (token de invitado)
+  - name: comandas
+    description: Vista de comandas del restaurante (token de dispositivo)
+  - name: admin
+    description: Back-office de menú (Firebase + operador)
+  - name: salud
+    description: Health checks
+
+security:
+  - invitadoCookie: []
+
+paths:
+  # ────────────────────────────── COMENSAL ──────────────────────────────
+  /p/sesion/entrar:
+    post:
+      tags: [comensal]
+      summary: Crear o reanudar sesión de mesa
+      description: Primer llamado tras escanear el QR. Emite cookie de invitado. Cubre AC-01.1 a AC-02.5.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codigo_mesa]
+              properties:
+                codigo_mesa:
+                  type: string
+                  minLength: 22
+                  example: "aB3xK9mQ2pL7wR4tY6uZ1s"
+      responses:
+        "200":
+          description: Sesión creada o reanudada
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+              description: "carta_invitado=<jwt>; HttpOnly; Secure; SameSite=Lax; Max-Age=21600"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EntrarRespuesta" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "409":
+          description: Sesión llena (12 miembros)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /p/miembro:
+    patch:
+      tags: [comensal]
+      summary: Cambiar alias del comensal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alias: { type: string, maxLength: 24, example: "Sofía" }
+      responses:
+        "200":
+          description: Alias actualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Miembro" }
+        "422": { $ref: "#/components/responses/ValidacionFallida" }
+
+  /p/menu:
+    get:
+      tags: [comensal]
+      summary: Menú del restaurante de la mesa
+      description: Sólo platillos activos. tiene_modelo_3d es true únicamente con modelo publicado (INV-5).
+      parameters:
+        - $ref: "#/components/parameters/IfNoneMatch"
+      responses:
+        "200":
+          description: Menú completo
+          headers:
+            ETag: { schema: { type: string } }
+            Cache-Control: { schema: { type: string }, example: "private, max-age=30" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Menu" }
+        "304": { description: Sin cambios }
+
+  /p/platillos/{id}:
+    get:
+      tags: [comensal]
+      summary: Detalle de platillo con modelo 3D publicado
+      parameters:
+        - $ref: "#/components/parameters/IdRuta"
+      responses:
+        "200":
+          description: Detalle
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatilloDetalle" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /p/orden:
+    get:
+      tags: [comensal]
+      summary: Orden personal en curso
+      responses:
+        "200":
+          description: Orden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Orden" }
+
+  /p/orden/items:
+    post:
+      tags: [comensal]
+      summary: Agregar ítem a la orden
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [platillo_id]
+              properties:
+                platillo_id: { type: string, format: uuid }
+                cantidad: { type: integer, minimum: 1, maximum: 20, default: 1 }
+                notas: { type: string, maxLength: 140 }
+      responses:
+        "201":
+          description: Ítem agregado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Orden" }
+        "403":
+          description: Orden bloqueada por confirmación (INV-3)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: Platillo no disponible
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422": { $ref: "#/components/responses/ValidacionFallida" }
+
+  /p/orden/items/{item_id}:
+    patch:
+      tags: [comensal]
+      summary: Modificar cantidad o notas de un ítem
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cantidad: { type: integer, minimum: 1, maximum: 20 }
+                notas: { type: string, maxLength: 140 }
+      responses:
+        "200":
+          description: Ítem actualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Orden" }
+        "403": { $ref: "#/components/responses/Prohibido" }
+    delete:
+      tags: [comensal]
+      summary: Eliminar ítem
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Ítem eliminado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Orden" }
+        "403": { $ref: "#/components/responses/Prohibido" }
+
+  /p/orden/confirmar:
+    post:
+      tags: [comensal]
+      summary: Confirmar orden y, si todos confirmaron, crear comanda
+      description: Congela precios. Cubre AC-11.1, AC-12.1. Idempotente vía Idempotency-Key.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Orden confirmada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConfirmarRespuesta" }
+        "409":
+          description: Orden vacía o sesión ya enviada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /p/orden/deshacer-confirmacion:
+    post:
+      tags: [comensal]
+      summary: Deshacer confirmación mientras no exista comanda
+      responses:
+        "200":
+          description: Confirmación deshecha
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Orden" }
+        "409":
+          description: La sesión ya generó comanda
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /p/sesion:
+    get:
+      tags: [comensal]
+      summary: Estado de la sesión para sondeo (3 s)
+      parameters:
+        - $ref: "#/components/parameters/IfNoneMatch"
+      responses:
+        "200":
+          description: Estado de sesión
+          headers:
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SesionEstado" }
+        "304": { description: Sin cambios }
+
+  /p/llamar-mesero:
+    post:
+      tags: [comensal]
+      summary: Llamar al mesero
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motivo:
+                  type: string
+                  enum: [atencion, cuenta, agua, otro]
+                  default: atencion
+      responses:
+        "202": { description: Llamada registrada }
+        "429": { $ref: "#/components/responses/DemasiadasPeticiones" }
+
+  /p/vincular-cuenta:
+    post:
+      tags: [comensal]
+      summary: Vincular sesión de invitado a cuenta Firebase
+      security:
+        - firebaseAuth: []
+      responses:
+        "200":
+          description: Cuenta vinculada, orden preservada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Miembro" }
+
+  /p/perfil:
+    get:
+      tags: [comensal]
+      summary: Perfil alimentario
+      security: [{ firebaseAuth: [] }]
+      responses:
+        "200":
+          description: Perfil
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PerfilAlimentario" }
+    put:
+      tags: [comensal]
+      summary: Actualizar perfil alimentario
+      security: [{ firebaseAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PerfilAlimentario" }
+      responses:
+        "200":
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PerfilAlimentario" }
+    delete:
+      tags: [comensal]
+      summary: Borrar cuenta y anonimizar referencias (derecho ARCO)
+      security: [{ firebaseAuth: [] }]
+      responses:
+        "204": { description: Cuenta eliminada }
+
+  /p/eventos:
+    post:
+      tags: [comensal]
+      summary: Ingesta por lotes de eventos de analítica
+      description: Nunca falla de forma visible para el usuario. Máximo 50 eventos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventos]
+              properties:
+                eventos:
+                  type: array
+                  maxItems: 50
+                  items: { $ref: "#/components/schemas/EventoAnalitica" }
+      responses:
+        "202": { description: Aceptado }
+
+  # ────────────────────────────── COMANDAS ──────────────────────────────
+  /op/dispositivo/activar:
+    post:
+      tags: [comandas]
+      summary: Canjear código de emparejamiento por cookie de dispositivo
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codigo]
+              properties:
+                codigo: { type: string, example: "QW-4821" }
+                nombre: { type: string, example: "iPad barra" }
+      responses:
+        "200":
+          description: Dispositivo activado
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+              description: "carta_dispositivo=<token>; HttpOnly; Secure; Max-Age=7776000"
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /op/comandas:
+    get:
+      tags: [comandas]
+      summary: Comandas abiertas y llamadas pendientes
+      security: [{ dispositivoCookie: [] }]
+      parameters:
+        - $ref: "#/components/parameters/IfNoneMatch"
+      responses:
+        "200":
+          description: Listado
+          headers:
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ComandasRespuesta" }
+        "304": { description: Sin cambios }
+
+  /op/comandas/{id}/atender:
+    post:
+      tags: [comandas]
+      summary: Marcar comanda como atendida (idempotente)
+      security: [{ dispositivoCookie: [] }]
+      parameters:
+        - $ref: "#/components/parameters/IdRuta"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                atendida_por: { type: string, maxLength: 120 }
+      responses:
+        "200":
+          description: Comanda atendida
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comanda" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /op/llamadas/{id}/atender:
+    post:
+      tags: [comandas]
+      summary: Marcar llamada como atendida
+      security: [{ dispositivoCookie: [] }]
+      parameters:
+        - $ref: "#/components/parameters/IdRuta"
+      responses:
+        "200": { description: Llamada atendida }
+
+  # ────────────────────────────── ADMIN ──────────────────────────────
+  /admin/restaurantes:
+    get:
+      tags: [admin]
+      summary: Restaurantes asignados al operador
+      security: [{ firebaseAuth: [] }]
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Restaurante" }
+
+  /admin/restaurantes/{rid}/platillos:
+    get:
+      tags: [admin]
+      summary: Platillos del restaurante con estado de modelo 3D
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/RidRuta" }]
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PlatilloAdmin" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+    post:
+      tags: [admin]
+      summary: Crear platillo
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/RidRuta" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlatilloCrear" }
+      responses:
+        "201":
+          description: Creado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatilloAdmin" }
+        "422": { $ref: "#/components/responses/ValidacionFallida" }
+
+  /admin/platillos/{id}:
+    patch:
+      tags: [admin]
+      summary: Editar platillo (incluye disponibilidad)
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlatilloCrear" }
+      responses:
+        "200":
+          description: Actualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatilloAdmin" }
+    delete:
+      tags: [admin]
+      summary: Desactivación lógica del platillo
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      responses:
+        "204": { description: Desactivado }
+
+  /admin/platillos/{id}/foto:
+    post:
+      tags: [admin]
+      summary: Subir foto del platillo
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [archivo]
+              properties:
+                archivo: { type: string, format: binary }
+      responses:
+        "201":
+          description: Foto subida y variantes generadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  foto_url: { type: string }
+                  foto_thumb_url: { type: string }
+        "413":
+          description: Archivo mayor a 15 MB
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422": { $ref: "#/components/responses/ValidacionFallida" }
+
+  /admin/platillos/{id}/modelo3d/generar:
+    post:
+      tags: [admin]
+      summary: Encolar generación de modelo 3D desde la foto
+      description: Responde en menos de 1 s sin bloquear (AC-18.1).
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      responses:
+        "202":
+          description: Trabajo encolado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Trabajo3D" }
+        "409":
+          description: El platillo no tiene foto
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429": { $ref: "#/components/responses/DemasiadasPeticiones" }
+
+  /admin/platillos/{id}/modelo3d/subir:
+    post:
+      tags: [admin]
+      summary: Subir un GLB hecho a mano (entra a revisión)
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [archivo]
+              properties:
+                archivo: { type: string, format: binary }
+                dimension_cm: { type: string, example: '{"ancho":22,"alto":6,"profundidad":22}' }
+      responses:
+        "201":
+          description: Modelo en revisión
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Modelo3D" }
+        "413": { description: Archivo mayor a 50 MB }
+
+  /admin/trabajos3d/{job_id}:
+    get:
+      tags: [admin]
+      summary: Estado de un trabajo de generación
+      security: [{ firebaseAuth: [] }]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Estado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Trabajo3D" }
+
+  /admin/modelos3d:
+    get:
+      tags: [admin]
+      summary: Cola de revisión de modelos
+      security: [{ firebaseAuth: [] }]
+      parameters:
+        - name: estado
+          in: query
+          schema:
+            type: string
+            enum: [listo_para_revision, publicado, rechazado, despublicado]
+        - name: restaurante_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Lista con URLs firmadas de vista previa (15 min)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Modelo3D" }
+
+  /admin/modelos3d/{id}/aprobar:
+    post:
+      tags: [admin]
+      summary: Publicar el modelo (único camino a publicado, INV-5)
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      responses:
+        "200":
+          description: Publicado con GLB y USDZ generados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Modelo3D" }
+        "422":
+          description: Excede el presupuesto de peso (ADR-006)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /admin/modelos3d/{id}/rechazar:
+    post:
+      tags: [admin]
+      summary: Rechazar el modelo con motivo
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivo]
+              properties:
+                motivo: { type: string, maxLength: 500 }
+      responses:
+        "200": { description: Rechazado }
+
+  /admin/modelos3d/{id}/despublicar:
+    post:
+      tags: [admin]
+      summary: Despublicar un modelo ya publicado
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      responses:
+        "200": { description: Despublicado }
+
+  /admin/restaurantes/{rid}/mesas:
+    get:
+      tags: [admin]
+      summary: Mesas del restaurante
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/RidRuta" }]
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Mesa" }
+    post:
+      tags: [admin]
+      summary: Crear mesa con código de 128 bits
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/RidRuta" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [numero]
+              properties:
+                numero: { type: integer, minimum: 1 }
+                capacidad: { type: integer, minimum: 1, maximum: 20, default: 4 }
+      responses:
+        "201":
+          description: Mesa creada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mesa" }
+
+  /admin/mesas/{id}/regenerar-codigo:
+    post:
+      tags: [admin]
+      summary: Revocar el código anterior y generar uno nuevo
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      responses:
+        "200":
+          description: Código regenerado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mesa" }
+
+  /admin/restaurantes/{rid}/mesas/qr.pdf:
+    get:
+      tags: [admin]
+      summary: PDF imprimible con los QR de todas las mesas
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/RidRuta" }]
+      responses:
+        "200":
+          description: PDF
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+
+  /admin/restaurantes/{rid}/dispositivos:
+    post:
+      tags: [admin]
+      summary: Generar código de emparejamiento de un solo uso
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/RidRuta" }]
+      responses:
+        "201":
+          description: Código generado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codigo: { type: string, example: "QW-4821" }
+                  expira_en: { type: string, format: date-time }
+
+  /admin/dispositivos/{id}:
+    delete:
+      tags: [admin]
+      summary: Revocar dispositivo
+      security: [{ firebaseAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdRuta" }]
+      responses:
+        "204": { description: Revocado }
+
+  /admin/restaurantes/{rid}/metricas:
+    get:
+      tags: [admin]
+      summary: Métricas M1–M5 del piloto
+      security: [{ firebaseAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/RidRuta"
+        - name: desde
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: hasta
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Métricas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Metricas" }
+
+  # ────────────────────────────── SALUD ──────────────────────────────
+  /health:
+    get:
+      tags: [salud]
+      summary: Estado del servicio
+      security: []
+      servers: [{ url: https://api.carta.mx }]
+      responses:
+        "200":
+          description: Vivo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  version: { type: string }
+                  db: { type: string, example: ok }
+
+components:
+  securitySchemes:
+    invitadoCookie:
+      type: apiKey
+      in: cookie
+      name: carta_invitado
+    dispositivoCookie:
+      type: apiKey
+      in: cookie
+      name: carta_dispositivo
+    firebaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdRuta:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    RidRuta:
+      name: rid
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, maxLength: 64 }
+
+  responses:
+    NoEncontrado:
+      description: No existe o no es visible para quien pregunta
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Prohibido:
+      description: Acción no permitida sobre el recurso
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ValidacionFallida:
+      description: Validación de negocio fallida
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    DemasiadasPeticiones:
+      description: Límite de tasa excedido
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [codigo, mensaje]
+          properties:
+            codigo: { type: string, example: MESA_NO_ENCONTRADA }
+            mensaje: { type: string, example: "No encontramos esta mesa." }
+            detalles: { type: object }
+            request_id: { type: string }
+
+    Restaurante:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        nombre: { type: string }
+        slug: { type: string }
+        logo_url: { type: string, nullable: true }
+
+    Mesa:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        numero: { type: integer }
+        capacidad: { type: integer }
+        codigo_publico: { type: string }
+        url_qr: { type: string, example: "https://carta.mx/m/aB3xK9mQ2pL7wR4tY6uZ1s" }
+        activa: { type: boolean }
+
+    Miembro:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        alias: { type: string, example: "Sofía" }
+        color_avatar: { type: string, example: "#B8860B" }
+        rol: { type: string, enum: [host, miembro] }
+        estado: { type: string, enum: [armando, listo, desconectado] }
+
+    EntrarRespuesta:
+      type: object
+      properties:
+        sesion:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            estado: { type: string, enum: [activa, lista_para_enviar, cerrada, cancelada] }
+            mesa: { $ref: "#/components/schemas/Mesa" }
+            restaurante: { $ref: "#/components/schemas/Restaurante" }
+        miembro: { $ref: "#/components/schemas/Miembro" }
+
+    Platillo:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        precio: { type: string, example: "245.00" }
+        disponible: { type: boolean }
+        foto_url: { type: string, nullable: true }
+        foto_thumb_url: { type: string, nullable: true }
+        tiene_modelo_3d: { type: boolean }
+        alergenos:
+          type: array
+          items: { type: string, enum: [nueces, lacteos, gluten, huevo, mariscos, soya, pescado] }
+        etiquetas:
+          type: array
+          items: { type: string }
+        nivel_picante: { type: integer, minimum: 0, maximum: 5 }
+        calorias: { type: integer, nullable: true }
+
+    PlatilloDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Platillo"
+        - type: object
+          properties:
+            modelo_3d:
+              nullable: true
+              allOf: [{ $ref: "#/components/schemas/Modelo3DPublico" }]
+
+    PlatilloAdmin:
+      allOf:
+        - $ref: "#/components/schemas/Platillo"
+        - type: object
+          properties:
+            activo: { type: boolean }
+            categoria_id: { type: string, format: uuid, nullable: true }
+            estado_modelo_3d:
+              type: string
+              enum: [sin_modelo, en_proceso, listo_para_revision, publicado, rechazado]
+
+    PlatilloCrear:
+      type: object
+      required: [nombre, precio]
+      properties:
+        nombre: { type: string, maxLength: 200 }
+        descripcion: { type: string }
+        precio: { type: string, pattern: '^[0-9]+(\.[0-9]{1,2})?$' }
+        categoria_id: { type: string, format: uuid, nullable: true }
+        alergenos: { type: array, items: { type: string } }
+        etiquetas: { type: array, items: { type: string } }
+        nivel_picante: { type: integer, minimum: 0, maximum: 5 }
+        calorias: { type: integer, minimum: 0 }
+        disponible: { type: boolean }
+        dimension_cm:
+          type: object
+          properties:
+            ancho: { type: number }
+            alto: { type: number }
+            profundidad: { type: number }
+
+    Modelo3DPublico:
+      type: object
+      properties:
+        glb_url: { type: string }
+        usdz_url: { type: string, nullable: true }
+        poster_url: { type: string }
+        dimension_cm:
+          type: object
+          properties:
+            ancho: { type: number }
+            alto: { type: number }
+            profundidad: { type: number }
+
+    Modelo3D:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        platillo_id: { type: string, format: uuid }
+        version: { type: integer }
+        origen: { type: string, enum: [generado, manual] }
+        estado: { type: string, enum: [listo_para_revision, publicado, rechazado, despublicado] }
+        glb_url: { type: string, nullable: true }
+        usdz_url: { type: string, nullable: true }
+        poster_url: { type: string, nullable: true }
+        glb_bytes: { type: integer, nullable: true }
+        triangulos: { type: integer, nullable: true }
+        motivo_rechazo: { type: string, nullable: true }
+        aprobado_en: { type: string, format: date-time, nullable: true }
+        creado_en: { type: string, format: date-time }
+
+    Trabajo3D:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        platillo_id: { type: string, format: uuid }
+        estado: { type: string, enum: [pendiente, procesando, completado, fallido, cancelado] }
+        intentos: { type: integer }
+        error_mensaje: { type: string, nullable: true }
+        modelo_3d_id: { type: string, format: uuid, nullable: true }
+        creado_en: { type: string, format: date-time }
+
+    Menu:
+      type: object
+      properties:
+        categorias:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              nombre: { type: string }
+              orden: { type: integer }
+              platillos:
+                type: array
+                items: { $ref: "#/components/schemas/Platillo" }
+        actualizado_en: { type: string, format: date-time }
+
+    ItemOrden:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        platillo_id: { type: string, format: uuid }
+        nombre: { type: string }
+        cantidad: { type: integer }
+        notas: { type: string, nullable: true }
+        precio_unitario: { type: string }
+        subtotal: { type: string }
+
+    Orden:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        estado: { type: string, enum: [armando, confirmada, enviada, cerrada] }
+        bloqueada: { type: boolean }
+        total: { type: string }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ItemOrden" }
+
+    SesionEstado:
+      type: object
+      properties:
+        estado: { type: string, enum: [activa, lista_para_enviar, cerrada, cancelada] }
+        listos: { type: integer }
+        total_miembros: { type: integer }
+        miembros:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Miembro"
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: Sólo lectura; no incluye identificadores de orden ajena (AC-09.2)
+                    items:
+                      type: object
+                      properties:
+                        platillo_id: { type: string, format: uuid }
+                        nombre: { type: string }
+                        cantidad: { type: integer }
+
+    ConfirmarRespuesta:
+      type: object
+      properties:
+        orden: { $ref: "#/components/schemas/Orden" }
+        sesion: { $ref: "#/components/schemas/SesionEstado" }
+        comanda_creada: { type: boolean }
+
+    Comanda:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        mesa: { type: integer }
+        secuencia: { type: integer }
+        estado: { type: string, enum: [abierta, atendida, cancelada] }
+        creada_en: { type: string, format: date-time }
+        minutos_espera: { type: integer }
+        num_comensales: { type: integer }
+        total_estimado: { type: string }
+        ordenes:
+          type: array
+          items:
+            type: object
+            properties:
+              alias: { type: string }
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    nombre: { type: string }
+                    cantidad: { type: integer }
+                    notas: { type: string, nullable: true }
+
+    ComandasRespuesta:
+      type: object
+      properties:
+        comandas:
+          type: array
+          items: { $ref: "#/components/schemas/Comanda" }
+        llamadas:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              mesa: { type: integer }
+              motivo: { type: string }
+              creada_en: { type: string, format: date-time }
+        actualizado_en: { type: string, format: date-time }
+
+    PerfilAlimentario:
+      type: object
+      properties:
+        alergenos:
+          type: array
+          items: { type: string }
+        dieta: { type: string, enum: [ninguna, vegetariana, vegana, kosher, halal] }
+        nivel_picante_max: { type: integer, minimum: 0, maximum: 5 }
+
+    EventoAnalitica:
+      type: object
+      required: [tipo]
+      properties:
+        tipo:
+          type: string
+          enum: [scan, menu_view, dish_view, model_view, ar_open, item_add, item_remove,
+                 order_confirm, order_unconfirm, session_ready, waiter_call, login]
+        platillo_id: { type: string, format: uuid, nullable: true }
+        propiedades: { type: object }
+        ts: { type: string, format: date-time }
+
+    Metricas:
+      type: object
+      properties:
+        m1_tasa_escaneo: { type: number, example: 0.42 }
+        m2_tasa_activacion_ar: { type: number, example: 0.63 }
+        m3_tasa_orden: { type: number, example: 0.28 }
+        m4_delta_ticket: { type: number, nullable: true, example: 0.09 }
+        m5_restaurantes_activos: { type: integer }
+        sesiones_totales: { type: integer }
+        desde: { type: string, format: date }
+        hasta: { type: string, format: date }
