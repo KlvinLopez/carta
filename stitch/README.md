@@ -64,7 +64,7 @@ Fuente de verdad: carpeta `stitch_carta/` del proyecto Stitch (abril 2026).
 | Archivo | Qué es |
 |---|---|
 | `DESIGN.md` | Sistema de diseño original que generó Stitch ("The Digital Sommelier"). La versión consolidada vive en `docs/Carta_Design_System.md`. |
-| `p01-ar-landing.png` | Captura de P01 tal como la generó Stitch (única imagen de pantalla recuperada). |
+| `p*.png` | Captura de cada pantalla tal como la generó Stitch, junto a su `.html`. Hay 23; faltan P02, P03, P04 y P20. |
 | `archivo/p18c-onboarding-step3-premium-v0.html` | Versión del 10 de abril de P18c: prueba de 7 días. La vigente (`p18c-…`) ofrece 1 mes gratis. |
 
 ## Pendientes de generar

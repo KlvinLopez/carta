@@ -4,7 +4,7 @@
 
 ## Estado del proyecto (septiembre 2026)
 
-Carta terminó su fase de diseño y está lista para construirse. Todavía no hay una app funcionando: hay un producto definido, 27 pantallas diseñadas y un paquete técnico para construir el MVP.
+Carta terminó su fase de diseño y está lista para construirse. Todavía no hay una app funcionando: hay un producto definido, 27 pantallas diseñadas, un prototipo navegable de 35 pantallas y un paquete técnico para construir el MVP.
 
 | Qué | Dónde |
 |---|---|
@@ -14,6 +14,7 @@ Carta terminó su fase de diseño y está lista para construirse. Todavía no ha
 | Mercado y modelo de negocio | [`docs/Carta_Market_Analysis.md`](docs/Carta_Market_Analysis.md) |
 | Sistema de diseño | [`docs/Carta_Design_System.md`](docs/Carta_Design_System.md) |
 | Pantallas diseñadas en Stitch | [`stitch/`](stitch/README.md) |
+| Prototipo navegable (Claude Design) | [`prototipo/`](prototipo/README.md) |
 | Pitch deck y branding | [`docs/pitch/Carta_Pitch_Deck.pdf`](docs/pitch/Carta_Pitch_Deck.pdf) |
 | Resumen para retomar el contexto | [`docs/Carta_Contexto_Proyecto.docx`](docs/Carta_Contexto_Proyecto.docx) |
 

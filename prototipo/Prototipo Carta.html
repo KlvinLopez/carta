@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Carta — Prototipo Navegable</title>
+<link rel="stylesheet" href="carta-assets/fonts/fonts.css"/>
+<link rel="stylesheet" href="carta-assets/colors_and_type.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="js/image-slot.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(ellipse at 50% -20%, #2A1B16 0%, #171210 60%);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  a { color: #B8860B; }
+  a:hover { color: #FDC34D; }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-family: 'Material Symbols Outlined';
+    font-style: normal; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+    user-select: none; overflow: hidden; width: 1em; height: 1em; flex-shrink: 0;
+    color: transparent;
+  }
+  .fonts-loaded .material-symbols-outlined { color: inherit; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .hide-scroll::-webkit-scrollbar { display: none; }
+  .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+  @keyframes screenIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+  .screen { animation: screenIn 250ms cubic-bezier(0.22, 1.2, 0.36, 1) both; height: 100%; }
+  @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-up { animation: sheetUp 320ms cubic-bezier(0.22, 1.4, 0.36, 1) both; }
+  @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .pop-in { animation: popIn 380ms cubic-bezier(0.22, 1.6, 0.36, 1) both; }
+  @keyframes shimmerMove { from { transform: translateX(-100%); } to { transform: translateX(200%); } }
+  @keyframes pulseSoft { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+  @keyframes confettiFall {
+    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(140px) rotate(320deg); opacity: 0; }
+  }
+  @keyframes reticlePulse { 0%,100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.06); opacity: 0.5; } }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes ripple { 0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); } 70% { box-shadow: 0 0 0 9px rgba(220,38,38,0); } 100% { box-shadow: 0 0 0 9px rgba(220,38,38,0); } }
+  @keyframes ringPulse { 0% { box-shadow: 0 0 0 0 rgba(79,23,40,0.35); } 70% { box-shadow: 0 0 0 12px rgba(79,23,40,0); } 100% { box-shadow: 0 0 0 12px rgba(79,23,40,0); } }
+  @keyframes pulseDot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.82); } }
+  @keyframes cookFill { 0% { width: 8%; } 55% { width: 82%; } 100% { width: 92%; } }
+
+  input, textarea, select { font-family: 'DM Sans', sans-serif; }
+  input:focus, textarea:focus { outline: none; }
+  button { font-family: 'DM Sans', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="js/tweaks-panel.jsx"></script>
+<script type="text/babel" src="js/shared.jsx"></script>
+<script type="text/babel" src="js/login.jsx"></script>
+<script type="text/babel" src="js/comensal-onboarding.jsx"></script>
+<script type="text/babel" src="js/comensal-core.jsx"></script>
+<script type="text/babel" src="js/comensal-flow.jsx"></script>
+<script type="text/babel" src="js/comensal-extra.jsx"></script>
+<script type="text/babel" src="js/checkout-v2.jsx"></script>
+<script type="text/babel" src="js/mesero.jsx"></script>
+<script type="text/babel" src="js/capitan.jsx"></script>
+<script type="text/babel" src="js/admin-core.jsx"></script>
+<script type="text/babel" src="js/admin-ops.jsx"></script>
+<script type="text/babel" src="js/admin-onboarding.jsx"></script>
+<script type="text/babel" src="js/admin-mobile.jsx"></script>
+<script type="text/babel" src="js/admin-mobile2.jsx"></script>
+<script type="text/babel" src="js/app.jsx"></script>
+<script>document.fonts.ready.then(function(){ document.body.classList.add('fonts-loaded'); });</script>
+</body>
+</html>

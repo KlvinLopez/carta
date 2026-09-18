@@ -1,0 +1,309 @@
+/* ============================================================
+   CARTA DESIGN SYSTEM — colors_and_type.css
+   "The Digital Sommelier"
+   Last updated: April 2026
+   ============================================================ */
+
+/* Google Fonts — import in HTML head:
+   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"/>
+   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+*/
+
+:root {
+
+  /* ─── BASE COLOR TOKENS ─────────────────────────────────── */
+
+  /* Surfaces — "el mantel" */
+  --surface:              #FEF9F1;   /* Crema — app base bg */
+  --surface-low:          #F5F0E8;   /* Crema oscura — agrupaciones, categorías */
+  --surface-lowest:       #FFFFFF;   /* Blanco — cards interactivas primarias */
+  --surface-high:         #ECE8E0;   /* Crema gris — chips, badges secundarios */
+  --surface-highest:      #E7E2DA;   /* Gris crema — superficie más alta */
+  --surface-container:    #F2EDE5;   /* Container general */
+  --surface-dim:          #DED9D2;   /* Dim state */
+  --surface-bright:       #FEF9F1;   /* Alias de surface */
+
+  /* Primary — Vino */
+  --primary:              #4F1728;   /* CTA principal, hero headers */
+  --primary-container:    #6B2D3E;   /* Gradiente con primary, activos */
+  --on-primary:           #FFFFFF;   /* Texto sobre primary */
+  --primary-fixed:        #FFD9DF;
+  --primary-fixed-dim:    #FFB1C2;
+
+  /* Tertiary — Dorado (highlight esporádico) */
+  --tertiary:             #B8860B;   /* Chef's Specials, rewards, estados activos */
+  --tertiary-container:   #6B2D3E;   /* Alias container */
+  --on-tertiary:          #FFFFFF;
+  --tertiary-fixed:       #FFD9DF;
+  --tertiary-fixed-dim:   #FFB1C2;
+
+  /* Secondary — Ámbar / Gold light */
+  --secondary:            #7B5800;
+  --secondary-container:  #FDC34D;   /* Dorado claro — chips especiales */
+  --on-secondary:         #FFFFFF;
+  --secondary-fixed:      #FFDEA6;
+  --secondary-fixed-dim:  #F7BD48;
+
+  /* On-surface — texto */
+  --on-surface:           #1D1C17;   /* Deep Charcoal — nunca #000 */
+  --on-surface-variant:   #524346;   /* Texto secundario, labels */
+  --on-background:        #1D1C17;
+
+  /* Outline */
+  --outline:              #857375;
+  --outline-variant:      #D7C1C4;   /* Ghost border — usar a 15% opacity */
+
+  /* Error */
+  --error:                #BA1A1A;
+  --error-container:      #FFDAD6;
+  --on-error:             #FFFFFF;
+
+  /* Inverse */
+  --inverse-surface:      #32302B;
+  --inverse-on-surface:   #F5F0E8;
+  --inverse-primary:      #FFB1C2;
+
+  /* Surface tint */
+  --surface-tint:         #8E495A;
+
+  /* ─── SEMANTIC / NAMED ALIASES ──────────────────────────── */
+  --vino:                 #6B2D3E;   /* Shorthand para Vino medio */
+  --crema:                #F5F0E8;   /* Shorthand para Crema */
+  --dorado:               #B8860B;   /* Shorthand para Dorado */
+  --charcoal:             #1D1C17;   /* Deep Charcoal */
+
+  /* ─── SURFACE LAYER SYSTEM ──────────────────────────────── */
+  /* Layer 0 — base */        --layer-0: var(--surface);
+  /* Layer 1 — categorías */  --layer-1: var(--surface-low);
+  /* Layer 2 — cards */       --layer-2: var(--surface-lowest);
+  /* Layer 3 — chips */       --layer-3: var(--surface-high);
+
+  /* ─── SEMANTIC COLORS ───────────────────────────────────── */
+  --color-success:        #22C55E;
+  --color-warning:        #F59E0B;
+  --color-danger:         #BA1A1A;
+  --color-info:           #3B82F6;
+
+  /* Mesa states */
+  --mesa-libre:           #9CA3AF;   /* Gris — libre */
+  --mesa-activa:          #B8860B;   /* Dorado — activa */
+  --mesa-alerta:          #4F1728;   /* Vino — alerta/demora */
+
+  /* ─── TYPOGRAPHY TOKENS ─────────────────────────────────── */
+
+  /* Font families */
+  --font-display:         'DM Serif Display', Georgia, serif;
+  --font-body:            'DM Sans', system-ui, sans-serif;
+
+  /* Display scale — DM Serif Display */
+  --display-lg-size:      48px;
+  --display-lg-line:      56px;
+  --display-lg-weight:    700;
+  --display-lg-tracking:  -0.02em;
+
+  --display-md-size:      36px;
+  --display-md-line:      44px;
+  --display-md-weight:    700;
+  --display-md-tracking:  -0.015em;
+
+  /* Headline scale — DM Serif Display */
+  --headline-md-size:     28px;
+  --headline-md-line:     36px;
+  --headline-md-weight:   700;
+  --headline-md-tracking: -0.01em;
+
+  --headline-sm-size:     22px;
+  --headline-sm-line:     30px;
+  --headline-sm-weight:   400;
+  --headline-sm-tracking: -0.01em;
+
+  /* Title scale — DM Sans */
+  --title-md-size:        18px;
+  --title-md-line:        26px;
+  --title-md-weight:      600;
+  --title-md-tracking:    0;
+
+  /* Body scale — DM Sans */
+  --body-lg-size:         16px;
+  --body-lg-line:         24px;
+  --body-lg-weight:       400;
+
+  --body-md-size:         14px;
+  --body-md-line:         22px;
+  --body-md-weight:       400;
+
+  /* Label scale — DM Sans */
+  --label-md-size:        13px;
+  --label-md-line:        18px;
+  --label-md-weight:      500;
+
+  --label-sm-size:        11px;
+  --label-sm-line:        16px;
+  --label-sm-weight:      500;
+
+  /* ─── ELEVATION / SHADOW TOKENS ─────────────────────────── */
+  --shadow-float:   0px 20px 40px rgba(29, 28, 23, 0.06);  /* FAB, modales AR */
+  --shadow-card:    0 4px 16px rgba(79, 23, 40, 0.08);     /* Cards tintadas Vino */
+  --shadow-sheet:   0px -20px 40px rgba(29, 28, 23, 0.10); /* Bottom sheets */
+  --shadow-sm:      0 2px 8px rgba(29, 28, 23, 0.05);
+
+  /* ─── BORDER RADIUS TOKENS ──────────────────────────────── */
+  --radius-sm:      12px;   /* Inputs, chips */
+  --radius-md:      16px;   /* Cards pequeñas (default) */
+  --radius-lg:      24px;   /* Cards medianas */
+  --radius-xl:      32px;   /* Bottom sheets, modales AR */
+  --radius-2xl:     48px;   /* AR glass overlays grandes */
+  --radius-full:    9999px; /* Botones pill, avatares */
+
+  /* ─── SPACING TOKENS ────────────────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+
+  /* ─── GLASS EFFECT ──────────────────────────────────────── */
+  --glass-bg:     rgba(254, 249, 241, 0.72);
+  --glass-blur:   blur(20px);
+  --glass-blur-lg: blur(40px);
+}
+
+/* ─── SEMANTIC CLASS SHORTCUTS ──────────────────────────── */
+
+.h1, h1 {
+  font-family: var(--font-display);
+  font-size: var(--display-lg-size);
+  line-height: var(--display-lg-line);
+  font-weight: var(--display-lg-weight);
+  letter-spacing: var(--display-lg-tracking);
+  color: var(--on-surface);
+}
+
+.h2, h2 {
+  font-family: var(--font-display);
+  font-size: var(--display-md-size);
+  line-height: var(--display-md-line);
+  font-weight: var(--display-md-weight);
+  letter-spacing: var(--display-md-tracking);
+  color: var(--on-surface);
+}
+
+.h3, h3 {
+  font-family: var(--font-display);
+  font-size: var(--headline-md-size);
+  line-height: var(--headline-md-line);
+  font-weight: var(--headline-md-weight);
+  letter-spacing: var(--headline-md-tracking);
+  color: var(--on-surface);
+}
+
+.h4, h4 {
+  font-family: var(--font-display);
+  font-size: var(--headline-sm-size);
+  line-height: var(--headline-sm-line);
+  font-weight: var(--headline-sm-weight);
+  color: var(--on-surface);
+}
+
+.price {
+  font-family: var(--font-body);
+  font-size: var(--title-md-size);
+  line-height: var(--title-md-line);
+  font-weight: var(--title-md-weight);
+  color: var(--on-surface);
+}
+
+p, .body-lg {
+  font-family: var(--font-body);
+  font-size: var(--body-lg-size);
+  line-height: var(--body-lg-line);
+  font-weight: var(--body-lg-weight);
+  color: var(--on-surface);
+}
+
+.body-md {
+  font-family: var(--font-body);
+  font-size: var(--body-md-size);
+  line-height: var(--body-md-line);
+  color: var(--on-surface-variant);
+}
+
+.label-md {
+  font-family: var(--font-body);
+  font-size: var(--label-md-size);
+  line-height: var(--label-md-line);
+  font-weight: var(--label-md-weight);
+  color: var(--on-surface-variant);
+}
+
+/* ─── UTILITY CLASSES ───────────────────────────────────── */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.glass-dark {
+  background: rgba(79, 23, 40, 0.72);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+  color: var(--on-primary);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 14px 28px;
+  font-family: var(--font-body);
+  font-size: var(--body-lg-size);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms ease, transform 100ms ease;
+}
+.btn-primary:hover   { opacity: 0.88; }
+.btn-primary:active  { transform: scale(0.96); }
+
+.btn-secondary {
+  background: var(--surface-high);
+  color: var(--on-surface);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 14px 28px;
+  font-family: var(--font-body);
+  font-size: var(--body-lg-size);
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 150ms ease, transform 100ms ease;
+}
+.btn-secondary:hover  { opacity: 0.80; }
+.btn-secondary:active { transform: scale(0.96); }
+
+.card {
+  background: var(--surface-lowest);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-high);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-family: var(--font-body);
+  font-size: var(--label-md-size);
+  font-weight: var(--label-md-weight);
+  color: var(--on-surface-variant);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
