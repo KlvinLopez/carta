@@ -59,6 +59,14 @@ Fuente de verdad: carpeta `stitch_carta/` del proyecto Stitch (abril 2026).
 | `p21a-v2-restaurant-onboarding-step1-dorado.html` | P21 Step 1 v2 — Restaurant Onboarding: Cuenta (variante Dorado) |
 | `p21b-restaurant-onboarding-step2-legal.html` | P21 Step 2 — Restaurant Onboarding: Datos legales |
 
+## Otros archivos
+
+| Archivo | Qué es |
+|---|---|
+| `DESIGN.md` | Sistema de diseño original que generó Stitch ("The Digital Sommelier"). La versión consolidada vive en `docs/Carta_Design_System.md`. |
+| `p01-ar-landing.png` | Captura de P01 tal como la generó Stitch (única imagen de pantalla recuperada). |
+| `archivo/p18c-onboarding-step3-premium-v0.html` | Versión del 10 de abril de P18c: prueba de 7 días. La vigente (`p18c-…`) ofrece 1 mes gratis. |
+
 ## Pendientes de generar
 
 | Pantalla | Descripción |

@@ -2,6 +2,25 @@
 
 > The Intelligent Interface Between Diner and Kitchen
 
+## Estado del proyecto (septiembre 2026)
+
+Carta terminó su fase de diseño y está lista para construirse. Todavía no hay una app funcionando: hay un producto definido, 27 pantallas diseñadas y un paquete técnico para construir el MVP.
+
+| Qué | Dónde |
+|---|---|
+| Plan del MVP (empieza aquí) | [`docs/mvp/README.md`](docs/mvp/README.md) |
+| Reglas para construir con Claude Code | [`CLAUDE.md`](CLAUDE.md) |
+| Definición de producto | [`docs/Carta_Ideacion_v3.md`](docs/Carta_Ideacion_v3.md) |
+| Mercado y modelo de negocio | [`docs/Carta_Market_Analysis.md`](docs/Carta_Market_Analysis.md) |
+| Sistema de diseño | [`docs/Carta_Design_System.md`](docs/Carta_Design_System.md) |
+| Pantallas diseñadas en Stitch | [`stitch/`](stitch/README.md) |
+| Pitch deck y branding | [`docs/pitch/Carta_Pitch_Deck.pdf`](docs/pitch/Carta_Pitch_Deck.pdf) |
+| Resumen para retomar el contexto | [`docs/Carta_Contexto_Proyecto.docx`](docs/Carta_Contexto_Proyecto.docx) |
+
+El resto de este README es la guía técnica original del backend (abril 2026). Donde no coincida con `docs/mvp/` (30 de agosto de 2026), manda `docs/mvp/`: por ejemplo, el comensal usa una PWA web ([ADR-002](docs/mvp/adr/ADR-002-pwa-vs-nativa.md)), y el backend todavía no arranca hasta completar la tarea T-0.1 del [plan de implementación](docs/mvp/06_Implementation_Plan.md).
+
+---
+
 A modern, AI-powered restaurant menu system that replaces traditional QR menus with a personalized, engaging dining experience.
 
 ## Overview
