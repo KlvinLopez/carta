@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Carta — The intelligent interface between diner and kitchen</title>
+<meta name="description" content="Carta turns the restaurant QR menu into an interactive, social experience: see every dish in AR, order together and pay at the table." />
+<meta property="og:title" content="Carta — AR restaurant menu" />
+<meta property="og:description" content="Scan the table QR, see every dish in 3D on your table, order together and pay without waiting for the bill." />
+<meta property="og:image" content="https://klvinlopez.github.io/carta/docs/readme/hero.jpg" />
+<style>
+  @font-face { font-family: "DM Serif Display"; font-style: normal; font-weight: 400; font-display: swap; src: url("prototipo/carta-assets/fonts/DMSerifDisplay-Regular-latin.woff2") format("woff2"); }
+  @font-face { font-family: "DM Serif Display"; font-style: italic; font-weight: 400; font-display: swap; src: url("prototipo/carta-assets/fonts/DMSerifDisplay-Italic-latin.woff2") format("woff2"); }
+  @font-face { font-family: "DM Sans"; font-style: normal; font-weight: 300 700; font-display: swap; src: url("prototipo/carta-assets/fonts/DMSans-variable-latin.woff2") format("woff2"); }
+  :root { --crema: #fef9f1; --vino: #4f1728; --vino2: #6b2d3e; --dorado: #b8860b; --oro: #fdc34d; --bg: #171210; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: radial-gradient(ellipse 90% 60% at 50% 0%, #2a1b16 0%, var(--bg) 70%) fixed, var(--bg); color: var(--crema); font-family: "DM Sans", system-ui, sans-serif; line-height: 1.5; }
+  main { max-width: 1120px; margin: 0 auto; padding: 72px 20px 48px; }
+  .kicker { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 13px; letter-spacing: .26em; text-transform: uppercase; color: var(--oro); }
+  .kicker::before { content: ""; width: 34px; height: 2px; background: var(--oro); }
+  h1 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: clamp(64px, 12vw, 132px); line-height: 1; margin-top: 14px; }
+  .tag { font-family: "DM Serif Display", serif; font-style: italic; font-size: clamp(22px, 3.4vw, 32px); color: var(--oro); margin-top: 10px; }
+  .lead { max-width: 720px; font-size: 18px; color: rgba(254,249,241,.8); margin-top: 18px; }
+  .film { margin-top: 36px; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(254,249,241,.08); }
+  .film video { display: block; width: 100%; height: auto; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 999px; font-weight: 600; font-size: 15px; text-decoration: none; }
+  .btn.primary { color: #fff; background: linear-gradient(135deg, var(--vino), var(--vino2)); box-shadow: 0 10px 26px rgba(79,23,40,.5); }
+  .btn.gold { color: #2b1f00; background: linear-gradient(135deg, var(--dorado), var(--oro)); }
+  .btn.ghost { color: var(--crema); border: 1px solid rgba(254,249,241,.24); background: rgba(254,249,241,.06); }
+  .btn:hover { filter: brightness(1.08); }
+  section { margin-top: 48px; }
+  h2 { font-family: "DM Serif Display", serif; font-weight: 400; font-size: clamp(30px, 4.6vw, 44px); line-height: 1.1; margin-top: 10px; }
+  h2 em { color: var(--oro); }
+  img.board { display: block; width: 100%; height: auto; border-radius: 16px; margin-top: 22px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid rgba(254,249,241,.1); font-size: 14px; color: rgba(254,249,241,.6); display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+  footer a { color: var(--oro); }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">AR restaurant menu · Mexico &amp; LATAM</div>
+  <h1>Carta</h1>
+  <p class="tag">The intelligent interface between diner and kitchen.</p>
+  <p class="lead">Scan the QR on your table — no app, no sign-up. See every dish in 3D on the table before you order, build the order together with everyone at the table, and pay without waiting for the bill.</p>
+
+  <div class="film">
+    <video controls playsinline preload="metadata" poster="marketing/video/carta-lanzamiento-16x9.jpg">
+      <source src="marketing/video/carta-lanzamiento-16x9.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <div class="actions">
+    <a class="btn primary" href="prototipo/">Try the live prototype</a>
+    <a class="btn gold" href="marketing/video/carta-lanzamiento-9x16.mp4">Watch the vertical cut (9:16)</a>
+    <a class="btn ghost" href="https://github.com/KlvinLopez/carta">View the repository</a>
+  </div>
+
+  <section>
+    <h2 class="sr-only">How it works</h2>
+    <a href="docs/readme/how-it-works.jpg"><img class="board" src="docs/readme/how-it-works.jpg" alt="How it works: scan the table QR, see the dish in AR, order together, pay at the table" loading="lazy" /></a>
+  </section>
+
+  <section>
+    <h2 class="sr-only">For the restaurant</h2>
+    <a href="docs/readme/back-office.jpg"><img class="board" src="docs/readme/back-office.jpg" alt="Restaurant back-office: dashboard, orders, menu management and analytics" loading="lazy" /></a>
+  </section>
+
+  <footer>
+    <span>© 2026 Calvin (<a href="https://github.com/KlvinLopez">@KlvinLopez</a>). All rights reserved.</span>
+    <span>Music: Sascha Ende (ende.app), CC BY 4.0</span>
+  </footer>
+</main>
+</body>
+</html>
