@@ -27,3 +27,7 @@ y abrir `Prototipo Carta.html` en la dirección que aparezca. Necesita internet:
 - **Tipografía:** el prototipo usa DM Serif Display + DM Sans; Stitch y `docs/Carta_Design_System.md` usan Playfair Display + Inter.
 - **Rol nuevo:** Capitán (pantallas C01–C08), que no existe en Stitch.
 - **Espacios para fotos subidas** (logo del restaurante, foto del mesero): fuera de Claude Design se ven vacíos.
+
+## Correcciones
+
+- **Tipografía (septiembre 2026):** en la exportación de Claude Design, los archivos de DM Serif Display venían con los nombres intercambiados: el que decía "Regular" era la cursiva y viceversa. Por eso todos los títulos se veían en cursiva. Se renombraron `carta-assets/fonts/DMSerifDisplay-*.woff2` para que cada nombre coincida con su contenido. Ahora los títulos salen derechos y la cursiva solo aparece donde el código la pide.
