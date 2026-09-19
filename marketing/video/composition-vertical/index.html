@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Carta — Lanzamiento vertical</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="assets/data/audio.js"></script>
+    <style>
+      @font-face {
+        font-family: "DM Serif Display";
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url("assets/fonts/DMSerifDisplay-Regular-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "DM Serif Display";
+        font-style: italic;
+        font-weight: 400;
+        font-display: block;
+        src: url("assets/fonts/DMSerifDisplay-Italic-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "DM Sans";
+        font-style: normal;
+        font-weight: 300 700;
+        font-display: block;
+        src: url("assets/fonts/DMSans-variable-latin.woff2") format("woff2");
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #171210;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #171210;
+        font-family: "DM Sans", sans-serif;
+        color: #fef9f1;
+      }
+
+      /* ── Fondo persistente ─────────────────────────────── */
+      .layer {
+        position: absolute;
+        inset: 0;
+      }
+      #bg-field {
+        background: radial-gradient(ellipse 80% 60% at 50% 52%, #2a1b16 0%, #1d1512 50%, #171210 100%);
+      }
+      #bg-photo {
+        position: absolute;
+        left: -54px;
+        top: -96px;
+        width: 1188px;
+        height: 2112px;
+        object-fit: cover;
+        opacity: 0;
+      }
+      .glow {
+        position: absolute;
+        border-radius: 50%;
+      }
+      #glow-vino {
+        left: -500px;
+        top: 1000px;
+        width: 1200px;
+        height: 1200px;
+        background: radial-gradient(circle, rgba(107, 45, 62, 0.62) 0%, rgba(107, 45, 62, 0.22) 38%, rgba(107, 45, 62, 0) 66%);
+      }
+      #glow-dorado {
+        left: 40px;
+        top: 610px;
+        width: 1000px;
+        height: 1000px;
+      }
+      #glow-dorado-core {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(184, 134, 11, 0.5) 0%, rgba(184, 134, 11, 0.16) 36%, rgba(184, 134, 11, 0) 64%);
+        opacity: 0.35;
+      }
+      #vignette {
+        background: radial-gradient(ellipse 90% 70% at 50% 50%, rgba(10, 7, 6, 0) 40%, rgba(10, 7, 6, 0.74) 100%);
+      }
+      #grain {
+        inset: -40px;
+        opacity: 0.07;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      }
+
+      /* ── Tipografía ────────────────────────────────────── */
+      .kicker {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font-family: "DM Sans", sans-serif;
+        font-weight: 600;
+        font-size: 26px;
+        line-height: 1;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: #fdc34d;
+      }
+      .kicker .rule {
+        display: block;
+        width: 56px;
+        height: 3px;
+        background: #fdc34d;
+        transform-origin: left center;
+      }
+      .kicker .label {
+        display: block;
+      }
+      .headline {
+        font-family: "DM Serif Display", serif;
+        font-weight: 400;
+        font-size: 100px;
+        line-height: 1.04;
+        letter-spacing: -0.015em;
+        color: #fef9f1;
+      }
+      .headline .line {
+        display: block;
+        white-space: nowrap;
+      }
+      .headline em,
+      .accent {
+        font-style: italic;
+        color: #fdc34d;
+      }
+      .sub {
+        font-family: "DM Sans", sans-serif;
+        font-weight: 400;
+        font-size: 38px;
+        line-height: 1.3;
+        color: rgba(254, 249, 241, 0.8);
+      }
+      .top-block {
+        position: absolute;
+        left: 108px;
+        top: 250px;
+        width: 864px;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+
+      /* ── Escena 1 ───────────────────────────────────────── */
+      #s1-hook {
+        position: absolute;
+        left: 108px;
+        top: 770px;
+        font-size: 124px;
+        line-height: 1.14;
+      }
+      #s1-hook .word {
+        display: inline-block;
+        line-height: 1.14;
+      }
+      #s1-mark {
+        position: absolute;
+        left: 108px;
+        top: 760px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+      }
+      #s1-wordmark {
+        display: block;
+        font-family: "DM Serif Display", serif;
+        font-size: 230px;
+        line-height: 1;
+        color: #fef9f1;
+      }
+      #s1-rule {
+        display: block;
+        width: 560px;
+        height: 3px;
+        background: rgba(253, 195, 77, 0.7);
+        transform-origin: left center;
+      }
+      #s1-tagline {
+        display: block;
+        font-family: "DM Sans", sans-serif;
+        font-weight: 600;
+        font-size: 28px;
+        letter-spacing: 0.3em;
+        color: #fdc34d;
+      }
+
+      /* ── Teléfonos ─────────────────────────────────────── */
+      .phone-body {
+        position: absolute;
+        width: 416px;
+        height: 900px;
+        border-radius: 58px;
+        box-shadow:
+          0 0 0 12px #100c0a,
+          0 0 0 14px #3a322d,
+          0 70px 130px rgba(0, 0, 0, 0.6),
+          0 24px 48px rgba(0, 0, 0, 0.4);
+      }
+      #main-body {
+        left: 332px;
+        top: 660px;
+      }
+      #left-body {
+        left: 48px;
+        top: 720px;
+      }
+      #right-body {
+        left: 616px;
+        top: 720px;
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        border-radius: 58px;
+        overflow: hidden;
+        background: #fef9f1;
+      }
+      .scr {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 416px;
+        height: 900px;
+        display: block;
+      }
+      .fade-in {
+        opacity: 0;
+      }
+      .tap {
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        margin-left: -40px;
+        margin-top: -40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.34);
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 24px rgba(255, 255, 255, 0.45);
+        opacity: 0;
+      }
+      #tap-continuar {
+        left: 208px;
+        top: 771px;
+      }
+      #tap-dish {
+        left: 213px;
+        top: 308px;
+      }
+      #tap-pagar {
+        left: 208px;
+        top: 828px;
+      }
+
+      /* ── Escena 4 ───────────────────────────────────────── */
+      #s4-toast-row {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 676px;
+        display: flex;
+        justify-content: center;
+      }
+      #s4-toast {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 18px 32px 18px 20px;
+        border-radius: 999px;
+        background: #ffffff;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      }
+      #s4-toast .check {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: #4f1728;
+      }
+      #s4-toast .msg {
+        font-family: "DM Sans", sans-serif;
+        font-weight: 600;
+        font-size: 30px;
+        color: #1d1c17;
+        white-space: nowrap;
+      }
+      #s4-toast .msg .dim {
+        font-weight: 400;
+        color: #524346;
+      }
+
+      /* ── Escena 6 ───────────────────────────────────────── */
+      #s6-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 26px;
+        padding-bottom: 120px;
+      }
+      #s6-wordmark {
+        display: block;
+        font-family: "DM Serif Display", serif;
+        font-size: 250px;
+        line-height: 1;
+        color: #fef9f1;
+      }
+      #s6-tagline {
+        display: block;
+        font-family: "DM Serif Display", serif;
+        font-style: italic;
+        font-size: 78px;
+        line-height: 1.1;
+        color: #fdc34d;
+      }
+      #s6-soon {
+        display: block;
+        margin-top: 18px;
+        font-family: "DM Sans", sans-serif;
+        font-weight: 600;
+        font-size: 28px;
+        letter-spacing: 0.4em;
+        color: rgba(254, 249, 241, 0.74);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="25" data-width="1080" data-height="1920">
+      <!-- Fondo persistente -->
+      <div id="bg-field" class="layer"></div>
+      <img id="bg-photo" data-layout-allow-overflow src="assets/images/bg-mesa-v.jpg" alt="" />
+      <div id="glow-vino" class="glow" data-layout-allow-overflow></div>
+      <div id="glow-dorado" class="glow" data-layout-allow-overflow><div id="glow-dorado-core"></div></div>
+      <div id="vignette" class="layer"></div>
+
+      <!-- Escena 1 — La mesa -->
+      <section id="s1" class="clip" data-start="0" data-duration="4.6" data-track-index="1" style="z-index: 5">
+        <div id="s1-hook" class="headline">
+          <span class="line"><span class="word">Todo</span> <span class="word">empieza</span></span>
+          <span class="line"><span class="word">en</span> <span class="word accent">la mesa.</span></span>
+        </div>
+        <div id="s1-mark">
+          <span id="s1-wordmark">Carta</span>
+          <span id="s1-rule"></span>
+          <span id="s1-tagline">ELEVANDO EL ARTE DE LA MESA</span>
+        </div>
+      </section>
+
+      <!-- Teléfonos laterales (escena 4) -->
+      <div id="phone-left" class="clip" data-start="12.9" data-duration="4.9" data-track-index="2" style="z-index: 10">
+        <div id="left-body" class="phone-body">
+          <div class="screen"><img class="scr" src="assets/screens/p03-menu.png" alt="" /></div>
+        </div>
+      </div>
+      <div id="phone-right" class="clip" data-start="12.9" data-duration="4.9" data-track-index="3" style="z-index: 10">
+        <div id="right-body" class="phone-body">
+          <div class="screen"><img class="scr" src="assets/screens/p01-ar-amigo.png" alt="" /></div>
+        </div>
+      </div>
+
+      <!-- Teléfono principal (escenas 2 a 5) -->
+      <div id="phone-main" class="clip" data-start="4.3" data-duration="18.2" data-track-index="4" style="z-index: 12">
+        <div id="main-body" class="phone-body">
+          <div class="screen">
+            <img id="m-scan" class="scr" src="assets/screens/p17a-scan.png" alt="" />
+            <img id="m-found" class="scr fade-in" src="assets/screens/p17a-found.png" alt="" />
+            <img id="m-ar" class="scr fade-in" src="assets/screens/p01-ar.png" alt="" />
+            <img id="m-dish" class="scr" data-layout-allow-overflow src="assets/screens/p02-dish.png" alt="" />
+            <img id="m-group" class="scr fade-in" src="assets/screens/p04-group.png" alt="" />
+            <img id="m-track" class="scr fade-in" src="assets/screens/p04b-tracking.png" alt="" />
+            <img id="m-checkout" class="scr" data-layout-allow-overflow src="assets/screens/p05-checkout.png" alt="" />
+            <img id="m-success" class="scr fade-in" src="assets/screens/p05b-success.png" alt="" />
+            <div id="tap-continuar" class="tap"></div>
+            <div id="tap-dish" class="tap"></div>
+            <div id="tap-pagar" class="tap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Escena 2 — Escanea -->
+      <section id="s2" class="clip" data-start="4.3" data-duration="4.7" data-track-index="5" style="z-index: 15">
+        <div id="s2-block" class="top-block">
+          <div id="s2-kicker" class="kicker"><span class="rule"></span><span class="label">01 · Escanea</span></div>
+          <div class="headline">
+            <span id="s2-l1" class="line">Apunta al QR</span>
+            <span id="s2-l2" class="line">de <em>tu mesa.</em></span>
+          </div>
+          <p id="s2-sub" class="sub">Sin descarga. Sin registro. Inmediato.</p>
+        </div>
+      </section>
+
+      <!-- Escena 3 — Míralo antes de pedirlo -->
+      <section id="s3" class="clip" data-start="8.6" data-duration="4.7" data-track-index="6" style="z-index: 15">
+        <div id="s3-block" class="top-block">
+          <div id="s3-kicker" class="kicker"><span class="rule"></span><span class="label">02 · Mira</span></div>
+          <div class="headline" style="font-size: 94px">
+            <span id="s3-l1" class="line">Mira tu platillo</span>
+            <span id="s3-l2" class="line"><em>antes</em> de pedirlo.</span>
+          </div>
+          <p id="s3-sub" class="sub">En 3D, sobre tu mesa.</p>
+        </div>
+      </section>
+
+      <!-- Escena 4 — Toda la mesa -->
+      <section id="s4" class="clip" data-start="12.95" data-duration="4.75" data-track-index="7" style="z-index: 15">
+        <div id="s4-block" class="top-block">
+          <div id="s4-kicker" class="kicker"><span class="rule"></span><span class="label">03 · Comparte</span></div>
+          <div class="headline">
+            <span id="s4-l1" class="line">Toda la mesa,</span>
+            <span id="s4-l2" class="line"><em>en sintonía.</em></span>
+          </div>
+          <p id="s4-sub" class="sub">Cuando estén los cuatro, llamamos al mesero.</p>
+        </div>
+        <div id="s4-toast-row">
+          <div id="s4-toast">
+            <span class="check">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+            <span class="msg">Todos confirmaron <span class="dim">· Llamando al mesero</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Escena 5 — Pide y paga -->
+      <section id="s5" class="clip" data-start="17.35" data-duration="4.7" data-track-index="8" style="z-index: 15">
+        <div id="s5-block" class="top-block">
+          <div id="s5-kicker" class="kicker"><span class="rule"></span><span class="label">04 · Paga</span></div>
+          <div class="headline">
+            <span id="s5-l1" class="line">Pide, sigue</span>
+            <span id="s5-l2" class="line">y <em>paga.</em></span>
+          </div>
+          <p id="s5-sub" class="sub">Sin esperar la cuenta.</p>
+        </div>
+      </section>
+
+      <!-- Escena 6 — Tu menú, Tu Carta -->
+      <section id="s6" class="clip" data-start="21.7" data-duration="3.3" data-track-index="9" style="z-index: 15">
+        <div id="s6-center">
+          <span id="s6-wordmark">Carta</span>
+          <span id="s6-tagline">Tu menú, Tu Carta.</span>
+          <span id="s6-soon">MUY PRONTO</span>
+        </div>
+      </section>
+
+      <div id="grain" class="layer" data-layout-allow-overflow style="z-index: 30"></div>
+
+      <!-- Audio -->
+      <audio
+        id="music"
+        src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"
+        data-start="0"
+        data-duration="25"
+        data-track-index="20"
+        data-volume="1"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.8,"v":0.4},{"t":23.8,"v":0.4},{"t":25,"v":0}]}]}'
+      ></audio>
+      <audio id="sfx-found" src="assets/sfx/drop_001.ogg" data-start="6.54" data-duration="0.11" data-track-index="21" data-volume="0.4"></audio>
+      <audio id="sfx-tap-continuar" src="assets/sfx/click_003.ogg" data-start="8.17" data-duration="0.01" data-track-index="22" data-volume="0.4"></audio>
+      <audio id="sfx-reveal" src="assets/sfx/impactSoft_medium_001.ogg" data-start="8.72" data-duration="0.18" data-track-index="23" data-volume="0.5"></audio>
+      <audio id="sfx-tap-dish" src="assets/sfx/click_002.ogg" data-start="11.44" data-duration="0.01" data-track-index="24" data-volume="0.35"></audio>
+      <audio id="sfx-toast" src="assets/sfx/drop_001.ogg" data-start="15.82" data-duration="0.11" data-track-index="25" data-volume="0.4"></audio>
+      <audio id="sfx-tap-pagar" src="assets/sfx/click_003.ogg" data-start="20.73" data-duration="0.01" data-track-index="26" data-volume="0.4"></audio>
+      <audio id="sfx-success" src="assets/sfx/bong_001.ogg" data-start="20.85" data-duration="0.12" data-track-index="27" data-volume="0.4"></audio>
+      <audio id="sfx-logo" src="assets/sfx/impactBell_heavy_003.ogg" data-start="22.35" data-duration="0.65" data-track-index="28" data-volume="0.4"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // ── Fondo ────────────────────────────────────────────
+      tl.fromTo("#bg-photo", { opacity: 0, scale: 1.04 }, { opacity: 0.55, scale: 1.08, duration: 1.4, ease: "sine.out" }, 0.1);
+      tl.to("#bg-photo", { scale: 1.16, duration: 20.5, ease: "none" }, 1.5);
+      tl.to("#bg-photo", { opacity: 0.18, duration: 0.9, ease: "power1.inOut" }, 4.2);
+      tl.to("#bg-photo", { opacity: 0.08, duration: 0.8, ease: "power1.inOut" }, 21.7);
+      tl.fromTo("#glow-vino", { x: 0, y: 0 }, { x: 160, y: -160, duration: 21.4, ease: "sine.inOut" }, 0.2);
+      tl.to("#glow-vino", { x: 440, y: -760, scale: 1.25, duration: 1.3, ease: "power2.inOut" }, 21.7);
+      // La luz dorada vive detrás del teléfono; en el cierre sube al logo.
+      // Destello en la caída mientras el teléfono cruza fuera de cuadro
+      tl.to("#glow-dorado", { scale: 1.45, duration: 0.3, ease: "power2.out" }, 8.8);
+      tl.to("#glow-dorado", { scale: 1, duration: 0.7, ease: "power2.inOut" }, 9.12);
+      tl.to("#glow-dorado", { y: 30, duration: 0.85, ease: "power3.inOut" }, 13.11);
+      tl.to("#glow-dorado", { y: 0, duration: 0.85, ease: "power3.inOut" }, 17.47);
+      tl.to("#glow-dorado", { y: -240, scale: 1.2, duration: 1.1, ease: "power2.inOut" }, 21.84);
+
+      // ── Escena 1 — La mesa ───────────────────────────────
+      tl.fromTo("#s1-hook .word", { opacity: 0, y: 34, filter: "blur(10px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8, ease: "power3.out", stagger: 0.22 }, 0.3);
+      tl.to("#s1-hook", { opacity: 0, y: -26, duration: 0.3, ease: "power2.in" }, 2.42);
+      tl.fromTo("#s1-wordmark", { opacity: 0, y: 22, scale: 1.05, filter: "blur(10px)" },
+        { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.1, ease: "expo.out" }, 2.73);
+      tl.fromTo("#s1-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power4.out" }, 3.05);
+      tl.fromTo("#s1-tagline", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.9, ease: "power2.out" }, 3.27);
+      tl.to("#s1-mark", { opacity: 0, y: -24, duration: 0.32, ease: "power2.in" }, 4.18);
+
+      // ── Teléfono principal ───────────────────────────────
+      tl.fromTo("#main-body", { opacity: 0, y: 360, scale: 0.9, rotation: 7 },
+        { opacity: 1, y: 0, scale: 1, rotation: 0, duration: 1.15, ease: "expo.out" }, 4.39);
+      tl.to("#main-body", { y: -10, duration: 2.6, ease: "sine.inOut" }, 5.6);
+      tl.to("#m-found", { opacity: 1, duration: 0.28, ease: "power1.out" }, 6.56);
+      // Toque en "Continuar"
+      tl.fromTo("#tap-continuar", { opacity: 0, scale: 0.5 }, { opacity: 0.95, scale: 1, duration: 0.12, ease: "power2.out" }, 8.19);
+      tl.to("#tap-continuar", { opacity: 0, scale: 1.55, duration: 0.42, ease: "power2.out" }, 8.33);
+      // La caída: el teléfono sale disparado a la izquierda y vuelve por la derecha con la vista AR  // beat-locked: 8.74s
+      tl.to("#main-body", { x: -1060, y: 0, rotation: -9, duration: 0.34, ease: "power3.in" }, 8.74);
+      tl.set("#m-ar", { opacity: 1 }, 9.08);
+      tl.fromTo("#main-body", { x: 1060, rotation: 9 }, { x: 0, rotation: 0, duration: 0.6, ease: "expo.out", immediateRender: false }, 9.08);
+      tl.to("#main-body", { y: -12, duration: 2.3, ease: "sine.inOut" }, 9.8);
+      // Toque en el platillo → detalle
+      tl.fromTo("#tap-dish", { opacity: 0, scale: 0.5 }, { opacity: 0.95, scale: 1, duration: 0.12, ease: "power2.out" }, 11.46);
+      tl.to("#tap-dish", { opacity: 0, scale: 1.55, duration: 0.42, ease: "power2.out" }, 11.6);
+      tl.fromTo("#m-dish", { xPercent: 100 }, { xPercent: 0, duration: 0.5, ease: "power3.out" }, 11.58);
+      // Toda la mesa: el teléfono se reduce y aparecen los amigos
+      tl.to("#main-body", { y: 30, scale: 0.9, duration: 0.85, ease: "power3.inOut" }, 13.11);
+      tl.to("#m-group", { opacity: 1, duration: 0.35, ease: "power1.out" }, 13.2);
+      // Pide y paga
+      tl.to("#main-body", { y: 0, scale: 1, duration: 0.85, ease: "power3.inOut" }, 17.47);
+      tl.to("#m-track", { opacity: 1, duration: 0.35, ease: "power1.out" }, 17.5);
+      tl.to("#main-body", { y: -10, duration: 2.3, ease: "sine.inOut" }, 18.4);
+      tl.fromTo("#m-checkout", { xPercent: 100 }, { xPercent: 0, duration: 0.5, ease: "power3.out" }, 19.1);
+      // Toque en "Pagar"
+      tl.fromTo("#tap-pagar", { opacity: 0, scale: 0.5 }, { opacity: 0.95, scale: 1, duration: 0.12, ease: "power2.out" }, 20.75);
+      tl.to("#tap-pagar", { opacity: 0, scale: 1.55, duration: 0.42, ease: "power2.out" }, 20.89);
+      tl.fromTo("#m-success", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.28, ease: "power2.out" }, 20.88);
+      // Salida del teléfono
+      tl.to("#main-body", { opacity: 0, scale: 0.9, y: 60, duration: 0.45, ease: "power2.in" }, 21.84);
+
+      // ── Escena 2 — Escanea ───────────────────────────────
+      tl.fromTo("#s2-kicker .rule", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power4.out" }, 4.62);
+      tl.fromTo("#s2-kicker .label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 4.68);
+      tl.fromTo("#s2-l1", { opacity: 0, y: 46 }, { opacity: 1, y: 0, duration: 0.8, ease: "expo.out" }, 4.78);
+      tl.fromTo("#s2-l2", { opacity: 0, y: 46 }, { opacity: 1, y: 0, duration: 0.8, ease: "expo.out" }, 4.9);
+      tl.fromTo("#s2-sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 6.62);
+      tl.to("#s2-block", { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, 8.62);
+
+      // ── Escena 3 — Míralo antes de pedirlo ───────────────
+      tl.fromTo("#s3-kicker .rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power4.out" }, 9.2);
+      tl.fromTo("#s3-kicker .label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 9.24);
+      tl.fromTo("#s3-l1", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.75, ease: "expo.out" }, 9.28);
+      tl.fromTo("#s3-l2", { opacity: 0, x: 70 }, { opacity: 1, x: 0, duration: 0.75, ease: "expo.out" }, 9.4);
+      tl.fromTo("#s3-sub", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 11.7);
+      tl.to("#s3-block", { opacity: 0, y: -30, duration: 0.3, ease: "power2.in" }, 12.98);
+
+      // ── Escena 4 — Toda la mesa ──────────────────────────
+      tl.fromTo("#left-body", { opacity: 0, x: -300, y: 220, scale: 0.6, rotation: -15 },
+        { opacity: 1, x: 0, y: 0, scale: 0.66, rotation: -6, duration: 0.95, ease: "expo.out" }, 13.3);
+      tl.fromTo("#right-body", { opacity: 0, x: 300, y: 220, scale: 0.6, rotation: 15 },
+        { opacity: 1, x: 0, y: 0, scale: 0.66, rotation: 6, duration: 0.95, ease: "expo.out" }, 13.44);
+      tl.to("#left-body", { opacity: 0, x: -260, y: 80, duration: 0.4, ease: "power2.in" }, 17.3);
+      tl.to("#right-body", { opacity: 0, x: 260, y: 80, duration: 0.4, ease: "power2.in" }, 17.3);
+      tl.fromTo("#s4-kicker .rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power4.out" }, 13.3);
+      tl.fromTo("#s4-kicker .label", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power1.out" }, 13.35);
+      tl.fromTo("#s4-l1", { opacity: 0, y: 30, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }, 13.4);
+      tl.fromTo("#s4-l2", { opacity: 0, y: 30, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }, 13.52);
+      tl.fromTo("#s4-sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 14.2);
+      // Notificación de mesa lista  // beat-locked: 15.84s
+      tl.fromTo("#s4-toast", { opacity: 0, y: -26, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "back.out(1.6)" }, 15.84);
+      tl.to("#s4-block", { opacity: 0, duration: 0.28, ease: "power2.in" }, 17.32);
+      tl.to("#s4-toast-row", { opacity: 0, y: -20, duration: 0.28, ease: "power2.in" }, 17.32);
+
+      // ── Escena 5 — Pide y paga ───────────────────────────
+      tl.fromTo("#s5-kicker .rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power4.out" }, 17.72);
+      tl.fromTo("#s5-kicker .label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 17.76);
+      tl.fromTo("#s5-l1", { opacity: 0, y: 46 }, { opacity: 1, y: 0, duration: 0.75, ease: "expo.out" }, 17.82);
+      tl.fromTo("#s5-l2", { opacity: 0, y: 46 }, { opacity: 1, y: 0, duration: 0.75, ease: "expo.out" }, 17.94);
+      tl.fromTo("#s5-sub", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 19.2);
+      tl.to("#s5-block", { opacity: 0, y: -30, duration: 0.3, ease: "power2.in" }, 21.62);
+
+      // ── Escena 6 — Tu menú, Tu Carta ─────────────────────
+      // beat-locked: 22.37s (logo) y 22.93s (lema)
+      tl.fromTo("#s6-wordmark", { opacity: 0, scale: 1.09, filter: "blur(12px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 1.1, ease: "expo.out" }, 22.37);
+      tl.fromTo("#s6-tagline", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 22.93);
+      tl.fromTo("#s6-soon", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.9, ease: "sine.out" }, 23.46);
+
+      // ── Luz dorada reactiva a la música (graves, suavizados) ──
+      const A = window.CARTA_AUDIO;
+      const bass = A.frames.map(f => f.bands[0]);
+      const smooth = bass.map((_, i) => {
+        let acc = 0, n = 0;
+        for (let k = -3; k <= 3; k++) {
+          const j = i + k;
+          if (j >= 0 && j < bass.length) { acc += bass[j]; n++; }
+        }
+        return acc / n;
+      });
+      const core = document.getElementById("glow-dorado-core");
+      for (let f = 0; f < A.totalFrames; f++) {
+        tl.call(
+          (function (v) {
+            return function () {
+              core.style.opacity = (0.3 + 0.55 * v).toFixed(3);
+              core.style.transform = "scale(" + (0.9 + 0.16 * v).toFixed(3) + ")";
+            };
+          })(smooth[f]),
+          [],
+          f / A.fps,
+        );
+      }
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

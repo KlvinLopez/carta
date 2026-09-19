@@ -67,3 +67,8 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Video (HyperFrames): capturas de revisión, cachés y carpeta de trabajo de /brag
+marketing/video/**/snapshots/
+marketing/video/**/.hyperframes/
+brag-output/
