@@ -15,7 +15,7 @@ Film de 25 s estilo lanzamiento tipo Apple. Cuenta una cena en *La Ceiba · Mesa
 
 ## Notas
 
-- Las pantallas dentro del teléfono se capturaron **antes** de corregir la tipografía del prototipo; por eso en ellas los títulos se ven en cursiva. Los textos del propio video ya usan la tipografía correcta.
+- Las pantallas dentro del teléfono son capturas del prototipo con su tipografía ya corregida (19 de septiembre de 2026).
 - Después del render, el audio se normalizó a -16 LUFS (nivel de redes) y la miniatura se insertó como primer cuadro. El render directo sale cerca de -23 LUFS.
 
 ## Cómo volver a renderizar
