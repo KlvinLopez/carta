@@ -8,11 +8,26 @@
 
 ---
 
+## ⚠️ Corrección del 19 de septiembre de 2026
+
+Este documento se escribió en abril de 2026 apoyado, en su mayor parte, en fuentes globales o de Estados Unidos. Dos rondas de investigación posteriores sobre fuentes oficiales mexicanas —INEGI (Censos Económicos y DENUE), SAT y los sitios de cada competidor— corrigieron cuatro cosas de fondo. Cada sección afectada lleva su corrección en el lugar donde estaba el error:
+
+1. **El mercado es entre nueve y doce veces más chico.** No son 736 mil restaurantes: son **59,296 restaurantes de servicio completo** en el país y **8,142 en la Ciudad de México** (clase SCIAN 722511). La cifra vieja es todo el sector de alimentos e incluye taquerías, fondas y puestos, que no son el mercado de Carta. La compensación es real: esos restaurantes son el 10.2% de los negocios del sector pero el **33.2% de su producción bruta**. Ver §2.2.
+2. **La competencia real es el punto de venta que el restaurante ya tiene instalado**, no las apps de reparto ni los competidores estadounidenses. Soft Restaurant y Fudo ya venden menú QR con pedido desde la mesa. Ver §5.5.
+3. **Las cifras de realidad aumentada citadas no resisten verificación:** el «+22%» estaba mal atribuido y el «+25%» salió de un estudio del propio vendedor de la tecnología. Ver §5.5.
+4. **Las estadísticas de adopción de punto de venta son de Estados Unidos.** En México esa medición no existe. Ver §6.1.
+
+---
+
 ## 1. Resumen Ejecutivo
 
 Carta entra en la intersección de tres mercados en expansión acelerada: restaurant technology (USD $46.5B proyectado a 2032), menús digitales QR (USD $5B proyectado a 2032, CAGR 20%), y realidad aumentada aplicada a food & beverage (dentro de un mercado AR global que alcanza USD $140B en 2025). La oportunidad específica de Carta es capturar la brecha entre los menús QR estáticos que el 75% de los restaurantes full-service en EE.UU. ya adoptaron, y la experiencia inmersiva y personalizada que los comensales de 20–45 años esperan de cualquier plataforma digital en 2026.
 
-México, mercado inicial de Carta, cuenta con más de 736,000 establecimientos de alimentos y bebidas registrados (DENUE 2025), un mercado foodservice de USD $41.28B (2024) creciendo a 8.4% CAGR, y una penetración de smartphones que sigue en ascenso con 5G creciendo 64% interanual. El timing es ideal: la infraestructura móvil ya está lista, los restaurantes ya están condicionados a adoptar tecnología post-pandemia, pero ningún competidor en LATAM ofrece la combinación de AR + personalización + sesiones grupales que Carta propone.
+México, mercado inicial de Carta, tiene **59,296 restaurantes de servicio completo** (clase SCIAN 722511, INEGI, Censos Económicos), de los cuales **8,142 están en la Ciudad de México**. El sector de alimentos y bebidas completo suma 740,231 unidades económicas (DENUE, mayo de 2026), pero incluye taquerías, fondas, puestos y cafeterías: **ese no es el mercado de Carta**. El mercado foodservice del país se valúa en USD $41.28B (2024), creciendo a 8.4% anual.
+
+El *timing* se sostiene por dos razones, una de infraestructura y otra de producto. La infraestructura móvil ya está lista. Y **Carta no exige que el restaurante tenga computadora**: corre en el teléfono del mesero, del capitán y del dueño, con versión de tableta para todos los roles y de escritorio solo para capitán y administración. Eso importa en un país donde **solo el 22.3% de las microempresas usa equipo de cómputo** (INEGI, Censos Económicos 2024) y 96 de cada 100 negocios restauranteros son microempresas.
+
+Sobre la competencia hay que hablar con precisión: **sí existen competidores en México que ya venden menú QR con pedido y pago desde la mesa** —Soft Restaurant y Fudo—. Lo que ninguna plataforma revisada ofrece es que **varios comensales armen una sola orden juntos desde sus propios teléfonos**: las que existen dividen la cuenta al pagar, no construyen la orden al pedir. Ese es el hueco real (§5.5).
 
 ---
 
@@ -35,6 +50,37 @@ El TAM de Carta se define como el gasto total en tecnología de menú y experien
 
 El SAM de Carta se enfoca en restaurantes en México y LATAM que ya tienen o están dispuestos a adoptar menú digital.
 
+> **Corregido el 19 de septiembre de 2026.** El cálculo original —conservado más abajo— multiplicaba tres supuestos frágiles: un universo que no es el segmento de Carta, un porcentaje de adopción global aplicado a México sin fuente, y un gasto en tecnología por restaurante tomado de Estados Unidos. El resultado estaba inflado por un factor de nueve a doce.
+
+### El universo real
+
+| Métrica | Dato | Fuente |
+|---------|------|--------|
+| Restaurantes de servicio completo, nacional (SCIAN **722511**) | **59,296** | INEGI, Censos Económicos |
+| Servicio completo ampliado (722511 + 722512, con marisquerías) | 81,518 | INEGI, Censos Económicos |
+| Servicio completo en la Ciudad de México | **8,142** | INEGI, Censos Económicos |
+| Sector de alimentos y bebidas completo (el número viejo) | 740,231 | DENUE, corte de mayo de 2026 |
+| Peso de la clase 722511 en la industria | 10.2% de las unidades · 24.7% del personal · **33.2% de la producción bruta** | INEGI, Censos Económicos |
+| Rentabilidad de la clase | **44.9%** contra 30.9% de la economía nacional | INEGI, Censos Económicos |
+| Precios reales del software de restaurante en México | $360 a $2,900 MXN al mes **por el sistema completo** | Sitios oficiales de Fudo, Soft Restaurant y Last.app, consultados 19-sep-2026 |
+
+**Advertencia sobre la cifra:** la clase 722511 se llama hoy «a la carta **o de comida corrida**», así que incluye fondas. El segmento verdadero de Carta es algo menor que 59,296, y con datos públicos no se puede precisar cuánto.
+
+### SAM corregido, en pesos
+
+Se calcula en pesos porque es como se cobra este mercado, y sobre precios mexicanos observados, no sobre gasto estadounidense en tecnología.
+
+| Escenario | Cálculo | SAM anual |
+|---|---|---|
+| Carta como **complemento** a $349/mes, todo el segmento nacional | 59,296 × $349 × 12 | **≈ $248 millones MXN** |
+| Carta como **reemplazo del punto de venta** a $690–$1,100/mes | 59,296 × ($690 a $1,100) × 12 | **≈ $491 a $782 millones MXN** |
+| Solo la Ciudad de México, como complemento | 8,142 × $349 × 12 | ≈ $34 millones MXN |
+
+**Lo que esto obliga a aceptar:** el mercado es mucho más chico, pero cada cliente vale unas **3.3 veces** el negocio promedio del sector y es el más rentable de toda la industria restaurantera. El caso de negocio no se cae; cambia de forma. Deja de ser «capturar un pedacito de un mercado enorme» y pasa a ser «cobrarle bien a un mercado chico y rentable».
+
+<details>
+<summary>Cálculo original de abril de 2026 — conservado para trazabilidad, <b>no usar</b></summary>
+
 | Métrica | Dato | Fuente |
 |---------|------|--------|
 | Restaurantes registrados en México | 736,367 | DENUE 2025 |
@@ -42,9 +88,9 @@ El SAM de Carta se enfoca en restaurantes en México y LATAM que ya tienen o est
 | Restaurantes que ya usan QR en alguna forma | ~70% (global) | MenuTiger / QR Code Chimp |
 | Gasto promedio en tech por restaurante (estimado) | USD $3,000–$8,000/año | Toast / Industry avg |
 
-**SAM estimado:** Si el 70% de los 736K restaurantes en México (~515K) gastan en promedio USD $5,000/año en tech de menú y experiencia digital → **SAM México ≈ USD $2.58B/año**.
+**SAM estimado:** Si el 70% de los 736K restaurantes en México (~515K) gastan en promedio USD $5,000/año en tech de menú y experiencia digital → SAM México ≈ USD $2.58B/año. Expandiendo a LATAM: SAM LATAM ≈ USD $10B/año.
 
-Expandiendo a LATAM (mercado QSR LATAM de USD $94.6B en 2025): el SAM regional se multiplica por ~4x → **SAM LATAM ≈ USD $10B/año**.
+</details>
 
 ### 2.3 SOM — Serviceable Obtainable Market
 
@@ -245,6 +291,8 @@ Marcas como Coca-Cola, Bimbo, o cerveceras artesanales pueden patrocinar visibil
 
 **Nota:** Los unit economics mejorarán significativamente con el plan Enterprise (ARPU alto, churn bajo) y el revenue de advertising (margen ~90%).
 
+> **Corregido el 19 de septiembre de 2026.** Con el mercado ajustado a 59,296 restaurantes en lugar de 736 mil, un ARPU de ~$250 MXN al mes ya no basta para sostener el caso: **el precio tiene que subir o el negocio no cierra**. Hay con qué defenderlo — el cliente objetivo es 3.3 veces más productivo que el negocio promedio del sector y tiene 44.9% de rentabilidad —, pero el cálculo debe hacerse sobre 59 mil clientes potenciales, no sobre 736 mil. Además, el modelo vigente del producto es **gratuito de base con publicidad**, con funciones que se desbloquean al pagar; por lo tanto el ingreso por restaurante depende de la tasa de conversión a pago y del ingreso publicitario por mesa atendida, no de un precio de lista. Ambos están en medición.
+
 ### 4.4 Ventajas Competitivas Defendibles
 
 **Red de datos (network effect):** Cada comensal que usa Carta genera datos de preferencia que mejoran las recomendaciones para todos los comensales en todos los restaurantes. Más restaurantes → más datos → mejores recomendaciones → más comensales → más restaurantes. Este flywheel es difícil de replicar.
@@ -310,13 +358,40 @@ Marcas como Coca-Cola, Bimbo, o cerveceras artesanales pueden patrocinar visibil
 
 Carta ocupa el cuadrante superior derecho: experiencia inmersiva + ecosistema completo. Ningún competidor actual ocupa ese espacio.
 
+### 5.5 Corrección de septiembre de 2026 — la competencia real en México
+
+Las secciones 5.1 a 5.4 listan nueve competidores de Estados Unidos, España o globales, y **ninguno de los sistemas que un restaurante mexicano tiene instalado hoy**. Una investigación sobre los sitios oficiales de cada empresa, hecha el 19 de septiembre de 2026, encontró lo siguiente.
+
+| Sistema | ¿Ya hace menú QR y orden en mesa? | Precio publicado | ¿Acepta que un sistema externo le registre una orden? |
+|---|---|---|---|
+| **Soft Restaurant** (National Soft) | **Sí, los tres.** Su módulo e-Menu QR deja al comensal ver el menú, ordenar y pagar desde su celular | $799 a $1,099 MXN/mes + IVA | **No.** Su conexión pública sirve para entregar el menú, no para recibir órdenes |
+| **Fudo** | **Sí.** «Pedido desde la mesa con Carta QR» desde su plan intermedio | $360 · $690 · $1,050 MXN/mes | **Sí**, solo en el plan más caro |
+| **Parrot Software** | Parcial: vende autofacturación por QR, no menú para el comensal | Sin precio público | Solo lectura |
+| **Wansoft** (by Clip) | Parcial: comandero móvil y cobro con terminal | Sin precio público | Sin documentación pública |
+| **Oracle Simphony** | Vía socios; es el sistema de hoteles y cadenas | Sin precio público en México | **Sí**, la conexión más completa del mercado |
+| **Last.app** | Sí, con menú QR y pedido en mesa. Entró a México en 2025 | $1,000 a $2,900 MXN/mes por sucursal | — |
+| **Toast** | **No opera en México.** Sus mercados son EE.UU., Canadá, Irlanda y Reino Unido | No aplica | No aplica |
+
+**Lo que cambia con esto:**
+
+1. La afirmación de que «ningún competidor en LATAM ofrece esta combinación» **es falsa en la parte de menú QR, orden y pago en mesa**, y sigue siendo cierta en 3D/AR y en la orden compartida.
+2. **Toast, Square y Aloha no sirven como socios de integración** para un piloto en México: el primero no opera aquí.
+3. **El menú QR no es un producto vendible:** es gratis en al menos cinco lugares, incluido un generador que regala Soft Restaurant.
+4. **El diferenciador defendible es la orden compartida.** Sunday, Getnet y Yumminn dividen la cuenta *al pagar*; ninguna plataforma revisada la construye *al pedir*.
+5. **Las apps de reparto no están en la mesa.** Ni Rappi, ni DiDi Food, ni Uber Eats tienen hoy producto activo de menú, orden o pago en mesa en México, así que el riesgo «Alto» que les asigna §5.3 está sobrestimado en el corto plazo.
+6. **Kabaq ya no compite:** se renombró QReal, pertenece a The Glimpse Group y se movió a moda, lujo y automotriz.
+
+**Y sobre las cifras de realidad aumentada que aparecen en §4.1 y §6.3:** el «+22% en ventas» no es de Bareburger sino de un wine bar de Nueva York, difundido por el propio proveedor; el «+25% en postres» proviene de un estudio hecho por Kabaq, es decir, por quien vendía la tecnología; y el estudio de Washington State University midió **intención de visitar y de recomendar** en un experimento simulado, no ventas. **No existe evidencia pública, independiente y verificable de que un menú en 3D suba el ticket promedio.** El piloto de Carta sería la primera medición seria, y por eso vale la pena hacerla con grupo de control.
+
 ---
 
 ## 6. Datos de Mercado que Sustentan el Proyecto
 
 ### 6.1 Mercado de Restaurant Tech
 
-El mercado global de restaurant technology fue valuado en USD $25.6B en 2024 y se proyecta alcanzar USD $46.5B para 2032 (CAGR 7.95%). El 65% de los restaurantes ya adoptó sistemas POS integrados, y el 78% usa alguna forma de software POS. El 26% de los operadores planea implementar nuevos sistemas de tecnología en 2025, un incremento de 7 puntos porcentuales respecto a 2023 — la disposición a invertir en tech está en su punto más alto.
+El mercado global de restaurant technology fue valuado en USD $25.6B en 2024 y se proyecta alcanzar USD $46.5B para 2032 (CAGR 7.95%).
+
+> **Corregido el 19 de septiembre de 2026.** Este párrafo decía que «el 65% de los restaurantes ya adoptó sistemas POS integrados, y el 78% usa alguna forma de software POS». Esas cifras son globales o de Estados Unidos y no describen a México. **No existe una medición pública de penetración de punto de venta en restaurantes mexicanos.** El dato oficial mexicano más cercano apunta en dirección contraria: solo el **22.3% de las microempresas usa equipo de cómputo** (INEGI, Censos Económicos 2024) y 96 de cada 100 negocios restauranteros son microempresas. Para Carta eso es una ventaja y no un obstáculo: corre en teléfono y tableta, y solo el capitán y la administración tienen versión de escritorio — el restaurante no necesita comprar una computadora para usarla. El 26% de los operadores planea implementar nuevos sistemas de tecnología en 2025, un incremento de 7 puntos porcentuales respecto a 2023 — la disposición a invertir en tech está en su punto más alto.
 
 Fuentes: [Business Research Insights](https://www.businessresearchinsights.com/market-reports/restaurant-technology-market-118085), [Restroworks](https://www.restroworks.com/blog/restaurant-technology-industry-statistics/)
 
@@ -334,7 +409,11 @@ Fuentes: [TechXplore / WSU Study](https://techxplore.com/news/2026-02-augmented-
 
 ### 6.4 México y LATAM
 
-México registra 736,367 establecimientos de alimentos y bebidas (DENUE 2025), con los estados de mayor concentración en Estado de México (88,987), CDMX (55,370) y Jalisco (48,760). El sector genera 3.8 millones de empleos y contribuye 3.2% al PIB nacional y 13.4% al PIB turístico. El mercado foodservice de México fue valuado en USD $41.28B (2024) con proyección a USD $92.48B para 2034 (CAGR 8.4%). Los restaurantes independientes representan el 56.53% del mercado.
+México registra **740,231** establecimientos de alimentos y bebidas (DENUE, corte de **mayo de 2026**), con los estados de mayor concentración en Estado de México (89,408), CDMX (55,753) y Jalisco (48,957). De esos, los **restaurantes de servicio completo —el mercado de Carta— son 59,296 en el país y 8,142 en la Ciudad de México** (INEGI, Censos Económicos). El mercado foodservice de México fue valuado en USD $41.28B (2024) con proyección a USD $92.48B para 2034 (CAGR 8.4%).
+
+> **Corregido el 19 de septiembre de 2026.** La versión anterior citaba 736,367 establecimientos (corte de mayo de 2025) y **3.8 millones de empleos**. Esa cifra de empleo no concuerda con la fuente oficial: el INEGI, junto con la CANIRAC, reporta **poco más de 2 millones** de empleos en la industria restaurantera, equivalentes al 7.5% del empleo del país, y que **96 de cada 100 unidades del sector son microempresas**, que dan trabajo a 70 de cada 100 personas ocupadas en él.
+
+Dentro de la Ciudad de México, cuatro alcaldías concentran el **53%** de los restaurantes de servicio completo: Cuauhtémoc (1,944), Benito Juárez (1,041), Miguel Hidalgo (828) y Coyoacán (538). Benito Juárez es donde la proporción es más alta: el 28.5% de sus establecimientos de alimentos son de servicio completo, contra el 15.1% del promedio de la ciudad.
 
 En LATAM, el mercado QSR fue valuado en USD $94.61B (2025) con proyección a USD $182.80B para 2032 (CAGR 9.87%). El mercado de Digital Transformation en LATAM alcanza USD $107.23B (2025) con CAGR de 17.69%.
 
