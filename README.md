@@ -152,6 +152,8 @@ Carta is a solo project by Calvin ([@KlvinLopez](https://github.com/KlvinLopez))
 
 | Path | What's inside |
 |---|---|
+| [`docs/Carta_Blueprint.md`](docs/Carta_Blueprint.md) | **Master product document** — scope version by version, exit criteria, business model, risks and open questions. Where the decisions live |
+| [`docs/research/`](docs/research/) | Market research against primary Mexican sources (September 2026): the real competition, the measured market, the business model, payments and the Fintech Law |
 | [`docs/mvp/`](docs/mvp/README.md) | MVP technical design package — **start here** to build |
 | [`docs/`](docs/) | Product definition, diagrams, user stories, market analysis and design system |
 | [`docs/pitch/`](docs/pitch/Carta_Pitch_Deck.pdf) | Pitch deck and branding |
