@@ -135,7 +135,8 @@ The market sizing, personas and competitive landscape are in [`docs/Carta_Market
 - [x] Interactive prototype: 35 screens and 4 roles (diner, waiter, captain, admin) — July 2026
 - [x] MVP technical design package — August 2026: PRD with 24 user stories and 83 EARS acceptance criteria, technical design, 10 ADRs, data model, OpenAPI spec with 42 operations, 3D pipeline, and an implementation plan with 58 tasks, plus test and security strategies
 - [x] Launch film in 16:9 and 9:16 — September 2026
-- [ ] Build the MVP in seven phases: foundations → data and back-office → diner menu → orders → AR experience → 3D pipeline → analytics, security and pilot
+- [x] v1 plan for multi-agent execution — November 2026: single-server architecture, PDF-to-menu onboarding, staff role with PIN, no AR/3D in v1 (photos first; 3D generated on-device comes in v2). See [`docs/plan/`](docs/plan/README.md) and ADR-011 to ADR-014
+- [ ] Build v1 in five phases: foundations and first deploy → restaurant and menu → diner → group order, tickets and staff → beta and pilot
 
 ## How it was built
 

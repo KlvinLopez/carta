@@ -72,3 +72,7 @@ htmlcov/
 marketing/video/**/snapshots/
 marketing/video/**/.hyperframes/
 brag-output/
+
+# Claude Code (sesión)
+.claude/session-start.log
+.claude/settings.local.json

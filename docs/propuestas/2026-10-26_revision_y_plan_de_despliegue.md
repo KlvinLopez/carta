@@ -1,6 +1,8 @@
 # Carta — Revisión del estado y plan hacia el primer despliegue
 
-**Fecha:** 26 de octubre de 2026 · **Autor:** Calvin + Claude Code · **Estado:** propuesta, pendiente de aprobación
+> **Superada el 2 de noviembre de 2026** por [`docs/plan/`](../plan/README.md). Las decisiones cambiaron en tres puntos: sin 3D/AR en la v1 (ADR-011), un solo servidor con Docker Compose en lugar de Cloud Run (ADR-012) y rol de mesero con PIN (ADR-013). Se conserva por el diagnóstico del estado del código (§2), que sigue siendo válido.
+
+**Fecha:** 26 de octubre de 2026 · **Autor:** Calvin + Claude Code · **Estado:** superada
 
 > Este documento **no cambia** ningún ADR ni el plan de implementación. Revisa dónde está el proyecto, señala contradicciones y propone cambios. Según la regla de `CLAUDE.md`, los documentos de `docs/mvp/` se actualizan primero (sección 11) y sólo después se escribe código que los siga.
 

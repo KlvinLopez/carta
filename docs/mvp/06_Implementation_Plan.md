@@ -1,5 +1,7 @@
 # Carta MVP — Plan de Implementación
 
+> **Sustituido el 2 de noviembre de 2026 por [`docs/plan/04_Fases_y_Tareas.md`](../plan/04_Fases_y_Tareas.md).** Se conserva como referencia histórica; ver el registro de cambios al final.
+
 **Versión:** 1.0 · **Fecha:** 30 de agosto de 2026
 **Destinatario:** Claude Code (o cualquier persona) construyendo sin contexto previo.
 
@@ -337,4 +339,4 @@ Cuando una tarea revele que el plan estaba equivocado, **se corrige el plan**, n
 
 | Fecha | Tarea | Qué se descubrió | Cambio aplicado |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-11-02 | Todas | El 3D/AR como núcleo hacía inviable el primer restaurante para una sola persona; la infraestructura de agosto costaba 130–160 USD/mes desde el día uno; faltaba el rol de mesero; el alta a mano era la primera fricción. | **Este plan queda sustituido por [`docs/plan/`](../plan/README.md)** (ADR-011 a ADR-014). Las convenciones, los criterios EARS y el modelo de amenazas de este paquete siguen vigentes donde `docs/plan/` no diga otra cosa. |
