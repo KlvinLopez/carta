@@ -7,6 +7,14 @@ description: Cierra la sesión guardando lo aprendido donde la próxima sesión 
 
 > Antes de cerrar: ¿qué aprendimos en esta sesión que la próxima debería saber? Propón dónde guardarlo y hazlo.
 
+## Según el resultado de la sesión
+
+| Resultado | Además de las lecciones, guarda |
+|---|---|
+| **TERMINADA** | Estado en `docs/plan/README.md` si la tarea cierra una fase; nada más que las lecciones reales |
+| **BLOQUEADA** | Fila en `docs/plan/04_Fases_y_Tareas.md` §11: la contradicción exacta (documento vs código, dependencia, decisión) y la decisión que se necesita de Calvin. Sin código a medias en la rama |
+| **FALLIDA** | Fila en 04 §11: qué se intentó (tres intentos), qué hipótesis quedaron y cuál descartarías primero; la prueba que falla se queda en la rama `wip/T-x.y` (nunca `skip` ni `xfail`) |
+
 ## Procedimiento
 
 1. **Recorre la sesión.** Revisa `git diff master...HEAD --stat`, los commits de la sesión y la conversación. Busca:

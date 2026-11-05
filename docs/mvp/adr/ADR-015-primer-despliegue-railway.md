@@ -1,6 +1,6 @@
 # ADR-015 — Primer despliegue en Railway; la VM queda como camino de ahorro y Cloud Run como camino de escala
 
-**Estado:** propuesta, pendiente de confirmación de Calvin · **Fecha:** 2026-11-05 · **Complementa:** ADR-012 (portabilidad, Cloudflare delante, sin Redis, sin SDKs propietarios: todo sigue vigente) · **Enmienda:** ADR-010 vuelve a su forma original (la API sirve los estáticos)
+**Estado:** aceptada (Calvin, 2026-11-05) · **Fecha:** 2026-11-05 · **Complementa:** ADR-012 (portabilidad, Cloudflare delante, sin Redis, sin SDKs propietarios: todo sigue vigente) · **Enmienda:** ADR-010 vuelve a su forma original (la API sirve los estáticos)
 
 ## Contexto
 ADR-012 fijó una VM con Docker Compose como primer destino por costo y control. Al comparar con las plataformas de contenedores (análisis en `docs/plan/06_Hosting.md`), la diferencia de costo durante el piloto es de 5–15 USD/mes, mientras que la diferencia de operación es completa: en una VM, una sola persona que no ha administrado servidores asume SSH, parches, disco, reinicios y seguridad del host. La restricción dominante del proyecto es la fricción, no esos dólares.

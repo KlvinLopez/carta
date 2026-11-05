@@ -29,8 +29,12 @@
       "Bash(git push -f*)",
       "Bash(terraform destroy*)",
       "Read(.env)",
-      "Read(.env.*)",
-      "Read(deploy/.env*)"
+      "Read(.env.local)",
+      "Read(.env.staging)",
+      "Read(.env.produccion)",
+      "Read(deploy/.env)",
+      "Read(deploy/.env.staging)",
+      "Read(deploy/.env.produccion)"
     ]
   },
   "hooks": {

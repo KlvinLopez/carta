@@ -25,20 +25,24 @@ Para cada tarea `T-x.y`, con `mcp__claude-code-remote__create_session` (mismo en
 ```
 /tarea T-x.y
 
-Contexto de la maestra: trabajas en la rama agente/T-x.y-<descripcion>, creada desde origin/master.
+Contexto de la maestra: trabajas en la rama agente/T-x.y-<descripcion>, creada desde <rama base>.
 Tu carril es <letra> y sólo tocas sus carpetas (04 §2). Las tareas de las que dependes ya están
-integradas en master. Al terminar: comando de Verificar en verde, puerta de calidad en verde,
-commit con el ID, push a tu rama. No abras PR. Si algo del brief contradice el código o un
-documento, no improvises: termina tu turno explicando la contradicción.
+integradas en la rama base. Entorno: sin Docker; el hook de sesión deja PostgreSQL local listo y
+exporta DATABASE_URL, DATABASE_URL_SYNC y TEST_DATABASE_URL (omite `docker compose up`).
+Al terminar: comando de Verificar en verde, puerta de calidad en verde, commit con el ID, push a
+tu rama. No abras PR. Si algo del brief contradice el código o un documento, no improvises:
+cierra como BLOQUEADA. Termina SIEMPRE con /compound y el bloque:
+RESULTADO: TERMINADA | BLOQUEADA | FALLIDA / Qué quedó / Qué lo verifica / Compound / Siguiente.
 ```
 
-Guarda `session_id` ↔ tarea ↔ rama en una tabla en tu respuesta (es tu estado).
+Hasta que el plan esté integrado en `master`, la rama base es `claude/gifted-allen-rqjiup` (`source_revision` en `create_session`). Guarda `session_id` ↔ tarea ↔ rama en una tabla en tu respuesta (es tu estado).
 
 ## 2. Vigilar
 
 - Cada 20–30 min (o con `send_later` si está disponible): `get_session` para el estado y `list_events` con `kinds: ["assistant","result"]` para los últimos mensajes.
 - Hija atascada (pide algo que el brief debía tener, o lleva > 1 h sin commits): mándale el contexto con `send_message`; si repite, `interrupt_session`, corrige el brief en 04 y relanza.
-- Hija que termina: comprueba que la rama existe en `origin` y que el último commit lleva el ID.
+- Hija que termina: lee su último mensaje y toma la etiqueta `RESULTADO:` (sin etiqueta = BLOQUEADA). Comprueba que la rama existe en `origin`, que el último commit lleva el ID y que hubo `/compound` (commit `compound:` o la línea "sin lecciones nuevas").
+- **BLOQUEADA:** lee la fila que dejó en 04 §11; resuelve tú (corrige el brief, aporta el contexto) o escala a Calvin con la pregunta exacta; relanza **en una sesión nueva**. **FALLIDA:** decide entre brief nuevo, dividir la tarea o ADR; nunca relances el mismo brief sin cambiarlo.
 
 ## 3. Revisar e integrar (en orden backend → frontend dentro de la ola)
 
@@ -47,7 +51,7 @@ Para cada rama terminada, en la maestra:
 2. `/revisar` y `/analizar T-x.y` sobre ese diff (haz checkout de la rama en un worktree aparte: `git worktree add ../carta-T-x.y origin/agente/T-x.y-…`).
 3. Hallazgos bloqueantes → de vuelta a la hija con `send_message` (es su rama). Hallazgos menores → anótalos en el PR.
 4. Con permiso del usuario: abre el PR con `.github/pull_request_template.md`, espera CI y `/code-review`, integra (*squash*) en el orden de dependencias. Si dos ramas chocan en `app/schemas/` o `frontend/src/compartido/`, integra primero la de backend y pide a la hija de frontend que haga `git merge origin/master`.
-5. `archive_session` de la hija integrada.
+5. `archive_session` de la hija integrada. Una sesión hija nunca se reutiliza para otra tarea: la siguiente arranca limpia con la memoria ya actualizada.
 
 ## 4. Cerrar la ola
 

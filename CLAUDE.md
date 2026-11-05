@@ -62,7 +62,7 @@ No se negocian sin un ADR nuevo.
 
 ## Arquitectura en 10 líneas
 
-- Una imagen Docker portable: API FastAPI (uvicorn, N workers) que sirve también la PWA, más PostgreSQL 16. Primer destino Railway (ADR-015, propuesta); variante VM con Compose y Caddy en `deploy/vps/` (ADR-012). Cloudflare delante; R2 para fotos y respaldos.
+- Una imagen Docker portable: API FastAPI (uvicorn, N workers) que sirve también la PWA, más PostgreSQL 16. Primer destino Railway (ADR-015); variante VM con Compose y Caddy en `deploy/vps/` (ADR-012). Cloudflare delante; R2 para fotos y respaldos.
 - Tres audiencias, tres autenticaciones: `/api/v1/p` (comensal, JWT de invitado en cookie), `/api/v1/op` (personal, PIN → cookie de 12 h), `/api/v1/admin` (operador, Firebase).
 - El menú es público por `slug` y cacheable en el borde; el sondeo responde `304` sin tocar la base.
 - Sin WebSockets: sondeo adaptativo con ETag, 3 s comensal y 5 s personal, pausado en segundo plano (ADR-004).
@@ -120,7 +120,7 @@ Cada lección se vuelve un artefacto: bug que regresa → test (`tests/`); halla
 1. El comando de **Verificar** de la tarea y la puerta de calidad en verde. Si algo falla, la tarea no está hecha.
 2. Commit con el ID de la tarea. No hagas push a `master` ni fuerces un push; todo entra por PR con `.github/pull_request_template.md`.
 3. Si el plan estaba equivocado, corrígelo en `docs/plan/04_Fases_y_Tareas.md` y añade la fila en su registro de cambios (§11).
-4. `/compound`.
+4. **`/compound` siempre**, según el resultado (TERMINADA · BLOQUEADA · FALLIDA, ver `07_Spec_Driven.md` §2.3), y termina con el bloque `RESULTADO:`. Después la sesión se cierra: **una tarea, una sesión**; la siguiente arranca en una sesión nueva con la memoria actualizada.
 
 ---
 

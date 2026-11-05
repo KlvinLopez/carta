@@ -34,9 +34,19 @@ Entra en plan mode. Escribe el plan con: archivos que se crean o cambian, prueba
 2. `uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q` en verde (y `npm --prefix frontend test` si tocaste frontend).
 3. Lee tu diff como si fueras otra persona: ¿qué haría que CI lo rechazara? Arréglalo antes.
 
-## 5. Cerrar
+## 5. Cerrar (obligatorio, según el resultado)
 
-1. Commit: `$ARGUMENTS: <qué se construyó>` (sin mencionar modelos de IA en el mensaje).
-2. Si el plan estaba mal, corrígelo en 04 y añade la fila en §11 en el mismo commit o en uno `docs:`.
-3. Sugiere `/revisar` antes del PR y `/compound` antes de cerrar la sesión.
-4. Resume al usuario en tres líneas: qué quedó, qué comando lo verifica, qué sigue.
+1. **TERMINADA:** commit `$ARGUMENTS: <qué se construyó>` (sin mencionar modelos de IA en el mensaje) y push a tu rama. Si el plan estaba mal, corrígelo en 04 y añade la fila en §11 en el mismo commit o en uno `docs:`.
+   **BLOQUEADA** (contradicción, dependencia o decisión que falta): no dejes código a medias; fila en 04 §11 con la contradicción exacta y la decisión que se necesita.
+   **FALLIDA** (tres intentos y la verificación sigue en rojo): fila en 04 §11 con lo intentado y las hipótesis; la prueba que falla **se queda** (nunca `skip` ni `xfail`); sube la rama como `wip/$ARGUMENTS`.
+2. Ejecuta `/compound` (no lo sugieras: hazlo). Si no hubo lecciones, dilo.
+3. Sugiere `/revisar` y `/analizar $ARGUMENTS` para quien integre (la maestra o el usuario).
+4. Termina tu turno con este formato exacto y después la sesión se cierra; la siguiente tarea arranca en una sesión nueva:
+
+```
+RESULTADO: TERMINADA | BLOQUEADA | FALLIDA
+Qué quedó: …
+Qué lo verifica: <comando>
+Compound: <qué se guardó y dónde, o "sin lecciones nuevas">
+Siguiente: …
+```

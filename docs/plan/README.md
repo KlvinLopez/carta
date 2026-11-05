@@ -71,3 +71,5 @@ Los documentos de `docs/mvp/` (PRD, TDD, modelo de datos, API, seguridad, ADR 00
 | 5 | Alta self-service: el operador sube su PDF y un modelo de lenguaje lo convierte en borrador de menú que él revisa | ADR-014 |
 | 6 | El plan se ejecuta por fases con entregable observable y se despliega desde la Fase 0 | 04 |
 | 7 | Compound Engineering: ciclo planear → trabajar → revisar → compound, con skills, agentes y hooks en `.claude/` | `CLAUDE.md` |
+| 8 | Primer despliegue en Railway; VM como camino de ahorro, Cloud Run como camino de escala (5 de noviembre) | ADR-015, `06_Hosting.md` |
+| 9 | Spec-driven: una tarea por sesión; toda sesión cierra con `/compound` y una etiqueta de resultado (5 de noviembre) | `07_Spec_Driven.md` §2.3 |

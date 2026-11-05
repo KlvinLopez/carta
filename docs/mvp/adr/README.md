@@ -18,7 +18,7 @@ Registro de decisiones técnicas del MVP de Carta. Cada una documenta el context
 | [012](ADR-012-un-servidor-portable.md) | Un solo servidor con Docker Compose, imagen portable, Cloudflare delante | Aceptada · 2026-11-02; el primer destino lo decide ADR-015 |
 | [013](ADR-013-personal-con-pin.md) | El personal entra con nombre y PIN; el capitán es un mesero con opciones extra | Aceptada · 2026-11-02 |
 | [014](ADR-014-importacion-menu-con-llm.md) | Alta self-service: el PDF se convierte en borrador de menú con un modelo de lenguaje | Aceptada · 2026-11-02 |
-| [015](ADR-015-primer-despliegue-railway.md) | Primer despliegue en Railway; la VM como camino de ahorro y Cloud Run como camino de escala | **Propuesta** · 2026-11-05 · pendiente de confirmación |
+| [015](ADR-015-primer-despliegue-railway.md) | Primer despliegue en Railway; la VM como camino de ahorro y Cloud Run como camino de escala | Aceptada · 2026-11-05 |
 
 **Pospuestas a v2 por ADR-011:** 005 y 006 (3D). **Vigentes:** 001, 002, 003, 004, 008, 009; 007 en espíritu (dos buckets) sobre R2.
 

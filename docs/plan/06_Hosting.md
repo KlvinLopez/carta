@@ -1,6 +1,6 @@
 # Carta v1 — Dónde alojar la primera versión
 
-**Versión:** 1.0 · **Fecha:** 5 de noviembre de 2026 · **Decisión:** [ADR-015](../mvp/adr/ADR-015-primer-despliegue-railway.md) (propuesta) · **Contexto:** [02 §11](02_Arquitectura_v1.md)
+**Versión:** 1.0 · **Fecha:** 5 de noviembre de 2026 · **Decisión:** [ADR-015](../mvp/adr/ADR-015-primer-despliegue-railway.md) (aceptada el 5 de noviembre de 2026) · **Contexto:** [02 §11](02_Arquitectura_v1.md)
 
 > Los precios son los publicados en noviembre de 2026 según fuentes de terceros y cambian seguido; **confírmalos en la página de cada proveedor antes de dar la tarjeta.** Lo que no cambia es la forma de cobrar de cada uno, que es lo que decide.
 
@@ -124,7 +124,7 @@ Lo que es: una máquina virtual tuya con Docker; Caddy, la API, PostgreSQL y el 
 
 **Lo que cambia en el plan** (ADR-015): T-0.6 deja la imagen lista para cualquier destino (la API sirve también el frontend, como el ADR-010 original); T-0.7 despliega en Railway y deja documentado el camino de VM en `deploy/vps/` sin ejecutarlo. Cloudflare sigue delante (DNS, caché del menú, límites de tasa) apuntando al dominio de Railway. El respaldo a R2 se mantiene como servicio con horario en Railway.
 
-**Qué te pido confirmar:** Railway como primer destino. Si prefieres la VM desde el principio (más barata, tú la operas), el plan ya la soporta y no hay nada que reescribir.
+**Confirmado por Calvin el 5 de noviembre de 2026:** Railway como primer destino. La VM (más barata, operada por uno mismo) sigue documentada en `05_Operacion.md` Anexo A por si cambia la decisión.
 
 ---
 

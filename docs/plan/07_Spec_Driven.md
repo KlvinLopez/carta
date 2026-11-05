@@ -40,8 +40,33 @@ flowchart LR
   D --> E["Verificar + puerta de calidad"]
   E --> F["/revisar · /analizar"]
   F --> G["PR con la plantilla"]
-  G --> H["/compound"]
+  G --> H["/compound<br/>según el resultado"]
+  H --> I["cerrar la sesión<br/>la siguiente tarea arranca en una nueva"]
 ```
+
+**Una tarea, una sesión.** La sesión termina con `/compound` y se cierra; la siguiente tarea arranca en una sesión nueva, con el contexto limpio y la memoria ya actualizada (`CLAUDE.md`, skills, hooks, tests, ADRs). Así cada sesión llega sabiendo más que la anterior y ninguna arrastra el ruido de la anterior.
+
+### 2.3 Cierre obligatorio según el resultado
+
+Toda sesión de trabajo termina con `/compound` y una etiqueta de resultado en su último mensaje. No hay sesión que "simplemente acaba".
+
+| Resultado | Cuándo | Qué hace `/compound` | Qué hace la maestra |
+|---|---|---|---|
+| **TERMINADA** | Verificar y puerta de calidad en verde, commit con el ID, push a su rama | Guarda las lecciones (test, regla, skill, hook, ADR); actualiza el estado en `docs/plan/README.md` si la tarea cierra una fase | `/revisar` + `/analizar`, PR, integra, archiva la sesión |
+| **BLOQUEADA** | El brief contradice un documento o el código, falta una dependencia, falta una decisión de Calvin | Fila en `04 §11` con la contradicción exacta y la decisión que se necesita; nada de código a medias en la rama | Resuelve o escala a Calvin; corrige el brief; relanza en una sesión nueva |
+| **FALLIDA** | Tras tres intentos la verificación sigue en rojo, o el enfoque del brief no funciona | Fila en `04 §11` con qué se intentó y qué hipótesis quedaron; **la prueba que falla se queda** (nunca `skip` ni `xfail`) y la rama se sube como `wip/T-x.y` | Decide: brief nuevo, dividir la tarea, o ADR si el problema es de diseño |
+
+Formato del último mensaje de toda sesión hija:
+
+```
+RESULTADO: TERMINADA | BLOQUEADA | FALLIDA
+Qué quedó: …
+Qué lo verifica: <comando>
+Compound: <qué se guardó y dónde, o "sin lecciones nuevas">
+Siguiente: …
+```
+
+La maestra lee esa etiqueta para decidir; una hija sin etiqueta se considera BLOQUEADA. Por qué no es un hook: un hook de `Stop` se dispararía en cada turno, no al final de la tarea; la regla vive en `/tarea`, `/orquestar` y en el brief de arranque de cada hija.
 
 ### 2.2 Feature nueva o cambio de alcance (fuera del plan)
 
@@ -128,7 +153,7 @@ flowchart TB
 Reglas:
 - **Máximo tres hijas a la vez**, una por carril; nunca dos en el mismo carril.
 - La maestra **no escribe código**: crea sesiones, vigila (`get_session`, `list_events`), revisa, integra y actualiza el estado. Si una hija se atasca, la maestra le manda el contexto que falta (`send_message`) o la archiva y relanza con un brief corregido.
-- Cada hija arranca con el mismo entorno (hook de sesión incluido), su rama y el prompt `/tarea T-x.y`. No necesita saber que existen las otras.
+- Cada hija arranca con el mismo entorno (hook de sesión incluido), su rama y el prompt `/tarea T-x.y`. No necesita saber que existen las otras. Termina con `/compound` y la etiqueta de resultado de §2.3; después se archiva. **Nunca se reutiliza una sesión hija para otra tarea.**
 - Los PR los abre la maestra con la plantilla, **sólo con permiso explícito de Calvin** en cada ola; la integración sigue el orden de dependencias de 04.
 - Cada hija consume cuota de uso; una ola de tres tareas medianas son unas 6–12 h de agente. La maestra reporta al final de cada ola: qué se integró, qué quedó bloqueado y qué aprendimos.
 
