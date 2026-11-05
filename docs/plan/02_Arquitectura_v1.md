@@ -357,7 +357,7 @@ El modelo de amenazas A1–A12 de [`08_Security_Compliance.md`](../mvp/08_Securi
 | Datos sensibles del comensal | Ninguno en el servidor: los filtros de alérgenos viven en `localStorage` |
 | Multi-tenant | `restaurante_id` del token; prueba parametrizada "otro restaurante → 404" sobre **todos** los endpoints; usuario de base sin permiso de alterar esquema |
 | Registros | Cloudflare y Caddy guardan IPs 30 días para investigar abusos; se declara en el aviso de privacidad |
-| Cabeceras | HSTS, CSP sin `unsafe-inline` (Vite con nonces), `nosniff`, `Referrer-Policy`, `Permissions-Policy` sin cámara ni ubicación |
+| Cabeceras | HSTS, CSP sin `unsafe-inline` **por `'self'`, sin nonces** (`default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' <dominio público de R2>; manifest-src 'self'; connect-src 'self'`): la build de Vite de T-0.5 no inyecta `<style>` ni scripts en línea ni `modulepreload` en el HTML inicial, así que los nonces no aportan nada y complicarían el servidor; se añadirían sólo si algún día hiciera falta inline. `nosniff`, `Referrer-Policy`, `Permissions-Policy` sin cámara ni ubicación |
 | Secretos | `.env` en la VM con permisos 600; GitHub Secrets para CI; rotación trimestral del secreto JWT |
 | Ley | Nueva LFPDPPP de 2025; aviso de privacidad revisado por abogado antes del primer restaurante |
 

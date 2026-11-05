@@ -51,7 +51,7 @@ Los documentos de `docs/mvp/` (PRD, TDD, modelo de datos, API, seguridad, ADR 00
 
 | Fase | Entregable observable | Estado |
 |---|---|---|
-| 0 · Cimientos y primer despliegue | `https://staging.<dominio>/health` responde desde un teléfono | En curso: T-0.1, T-0.2 y T-0.3 integradas (5 de noviembre); T-0.4 y T-0.5 en marcha |
+| 0 · Cimientos y primer despliegue | `https://staging.<dominio>/health` responde desde un teléfono | En curso: T-0.1, T-0.2, T-0.3 y T-0.5 integradas (5 de noviembre); T-0.4 en corrección tras la revisión; T-0.6 después |
 | 1 · Restaurante y menú | Un restaurante sube su PDF y ve su menú con fotos y sus QR impresos | Pendiente |
 | 2 · Comensal | Un comensal escanea y ve el menú en su teléfono | Pendiente |
 | 3 · Orden en grupo, comandas y personal | La mesa arma la orden junta y el mesero la recibe | Pendiente |
