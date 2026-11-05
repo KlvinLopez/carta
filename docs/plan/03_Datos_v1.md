@@ -49,9 +49,15 @@ CREATE TABLE personal_restaurante (
     ultimo_acceso_en TIMESTAMPTZ,
     creado_en        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     actualizado_en   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (restaurante_id, nombre)
+    CONSTRAINT ck_personal_nombre   CHECK (length(btrim(nombre)) > 0),
+    CONSTRAINT ck_personal_intentos CHECK (intentos_fallidos >= 0),
+    CONSTRAINT ck_personal_pin_hash CHECK (pin_hash LIKE '$argon2id$%')   -- INV-7 verificable
 );
-CREATE INDEX idx_personal_restaurante ON personal_restaurante (restaurante_id) WHERE activo;
+-- Regla dura 9: la baja es lógica, así que el nombre sólo es único entre el personal activo,
+-- sin distinguir mayúsculas ni espacios (se puede recontratar a "Ana").
+CREATE UNIQUE INDEX uq_personal_activo_por_nombre
+    ON personal_restaurante (restaurante_id, lower(btrim(nombre))) WHERE activo;
+CREATE INDEX idx_personal_restaurante ON personal_restaurante (restaurante_id);
 ```
 
 La sesión del personal es un JWT firmado (`sub = personal_id`, `restaurante_id`, `rol`, 12 h) en cookie `carta_personal`; al desactivar a la persona, la verificación en cada petición consulta `activo` (una lectura por índice) y la rechaza.
@@ -79,10 +85,14 @@ CREATE TABLE importacion_menu (
     finalizado_en    TIMESTAMPTZ,
     confirmado_en    TIMESTAMPTZ,
     creado_en        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT ck_importacion_intentos CHECK (intentos <= 3)
+    CONSTRAINT ck_importacion_intentos CHECK (intentos BETWEEN 0 AND 3),
+    -- INV-9 en la base: confirmado exige marca de tiempo y borrador
+    CONSTRAINT ck_importacion_confirmada CHECK (
+        estado <> 'confirmado' OR (confirmado_en IS NOT NULL AND resultado IS NOT NULL))
 );
 CREATE INDEX idx_importacion_cola ON importacion_menu (creado_en) WHERE estado = 'pendiente';
-CREATE INDEX idx_importacion_restaurante ON importacion_menu (restaurante_id, creado_en DESC);
+CREATE INDEX idx_importacion_restaurante ON importacion_menu (restaurante_id, creado_en);
+CREATE INDEX idx_importacion_solicitado_por ON importacion_menu (solicitado_por);
 ```
 
 Esquema de `resultado` (Pydantic en `app/schemas/importacion.py`, también es el esquema de salida estructurada que se le pide al modelo):
@@ -121,7 +131,8 @@ CREATE TABLE clave_idempotencia (
     estado_http   SMALLINT     NOT NULL,
     respuesta     JSONB        NOT NULL,
     creada_en     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (ambito, clave)
+    PRIMARY KEY (ambito, clave),
+    CONSTRAINT ck_idempotencia_ambito CHECK (ambito <> '')
 );
 CREATE INDEX idx_idempotencia_purga ON clave_idempotencia (creada_en);
 ```
@@ -146,25 +157,46 @@ ALTER TABLE platillo ADD COLUMN no_disponible_desde TIMESTAMPTZ;
 ALTER TABLE platillo ADD COLUMN no_disponible_por UUID REFERENCES personal_restaurante(id) ON DELETE SET NULL;
 ALTER TABLE platillo ADD COLUMN orden INTEGER NOT NULL DEFAULT 0;
 CREATE INDEX idx_platillo_categoria_orden ON platillo (categoria_id, orden);
+CREATE INDEX idx_platillo_no_disponible_por ON platillo (no_disponible_por);
+ALTER TABLE platillo ADD CONSTRAINT ck_platillo_alergenos_lista CHECK (jsonb_typeof(alergenos) = 'array');
+ALTER TABLE platillo ADD CONSTRAINT ck_platillo_etiquetas_lista CHECK (jsonb_typeof(etiquetas) = 'array');
+-- CATEGORIA_MENU: unicidad sólo entre las activas (regla dura 9)
+ALTER TABLE categoria_menu DROP CONSTRAINT categoria_menu_restaurante_id_nombre_key;
+CREATE UNIQUE INDEX uq_categoria_activa_por_nombre
+    ON categoria_menu (restaurante_id, lower(btrim(nombre))) WHERE activa;
+-- RESTAURANTE
+ALTER TABLE restaurante ADD CONSTRAINT ck_restaurante_slug CHECK (slug <> '');
 
 -- MESA
 ALTER TABLE mesa RENAME COLUMN qr_code TO codigo_publico;
 ALTER TABLE mesa ADD COLUMN codigo_revocado_en TIMESTAMPTZ;
 ALTER TABLE mesa ADD CONSTRAINT ck_codigo_largo CHECK (length(codigo_publico) >= 22);
+ALTER TABLE mesa ADD CONSTRAINT ck_mesa_capacidad CHECK (capacidad > 0);
+ALTER TABLE mesa DROP CONSTRAINT mesa_restaurante_id_numero_key;   -- regla dura 9
+CREATE UNIQUE INDEX uq_mesa_activa_por_numero ON mesa (restaurante_id, numero) WHERE activa;
 
 -- SESION_GRUPAL
 ALTER TABLE sesion_grupal ADD COLUMN ultima_actividad_en TIMESTAMPTZ NOT NULL DEFAULT NOW();
 ALTER TABLE sesion_grupal ADD COLUMN cerrada_por_personal_id UUID REFERENCES personal_restaurante(id) ON DELETE SET NULL;
+CREATE INDEX idx_sesion_cerrada_por ON sesion_grupal (cerrada_por_personal_id);
 CREATE UNIQUE INDEX uq_sesion_viva_por_mesa ON sesion_grupal (mesa_id)
     WHERE estado IN ('activa','lista_para_enviar');
 
 -- MIEMBRO_SESION
 ALTER TABLE miembro_sesion ADD COLUMN alias VARCHAR(24);
 ALTER TABLE miembro_sesion ADD COLUMN color_avatar VARCHAR(7);
+ALTER TABLE miembro_sesion ADD CONSTRAINT ck_miembro_sesion_color
+    CHECK (color_avatar IS NULL OR color_avatar ~ '^#[0-9A-Fa-f]{6}$');
 
 -- ORDEN_PERSONAL
 ALTER TABLE orden_personal ADD COLUMN bloqueada BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE orden_personal ADD COLUMN confirmada_en TIMESTAMPTZ;
+-- INV-3: bloqueada sigue al estado (confirmada, enviada y cerrada van bloqueadas)
+ALTER TABLE orden_personal ADD CONSTRAINT ck_orden_bloqueada_coherente CHECK (bloqueada = (estado <> 'armando'));
+-- ITEM_ORDEN
+ALTER TABLE item_orden ADD CONSTRAINT ck_item_orden_notas CHECK (notas IS NULL OR length(notas) <= 140);  -- AC-10.1
+ALTER TABLE item_orden ADD CONSTRAINT ck_item_orden_precio CHECK (precio_unitario >= 0);
+ALTER TABLE item_orden ADD CONSTRAINT ck_item_orden_subtotal CHECK (subtotal >= 0);
 CREATE UNIQUE INDEX uq_orden_viva_por_miembro ON orden_personal (miembro_id)
     WHERE estado IN ('armando','confirmada');
 
@@ -173,6 +205,31 @@ ALTER TYPE estado_comanda ADD VALUE 'servida';
 ALTER TABLE comanda ADD COLUMN servida_en TIMESTAMPTZ;
 ALTER TABLE comanda DROP COLUMN atendida_por;
 ALTER TABLE comanda ADD COLUMN atendida_por_personal_id UUID REFERENCES personal_restaurante(id) ON DELETE SET NULL;
+CREATE INDEX idx_comanda_restaurante ON comanda (restaurante_id);
+CREATE INDEX idx_comanda_atendida_por ON comanda (atendida_por_personal_id);
+-- INV-6 ampliado: servida exige atendida_en y servida_en >= atendida_en
+ALTER TABLE comanda DROP CONSTRAINT ck_comanda_terminal;
+ALTER TABLE comanda ADD CONSTRAINT ck_comanda_terminal CHECK (
+    (estado = 'abierta'  AND atendida_en IS NULL     AND servida_en IS NULL) OR
+    (estado = 'atendida' AND atendida_en IS NOT NULL AND servida_en IS NULL) OR
+    (estado = 'servida'  AND atendida_en IS NOT NULL AND servida_en >= atendida_en) OR
+    (estado = 'cancelada'));
+
+-- COMANDA_ORDEN: una orden se cobra en una sola comanda
+ALTER TABLE comanda_orden ADD CONSTRAINT uq_comanda_orden_orden_id UNIQUE (orden_id);
+
+-- LLAMADA_MESERO: índices de apoyo a sus llaves foráneas
+CREATE INDEX idx_llamada_restaurante ON llamada_mesero (restaurante_id);
+CREATE INDEX idx_llamada_mesa ON llamada_mesero (mesa_id);
+CREATE INDEX idx_llamada_sesion ON llamada_mesero (sesion_id);
+CREATE INDEX idx_llamada_miembro ON llamada_mesero (miembro_id);
+CREATE INDEX idx_llamada_atendida_por ON llamada_mesero (atendida_por_personal_id);
+
+-- OPERADOR_RESTAURANTE y EVENTO_ANALITICA: ídem
+CREATE INDEX idx_operador_restaurante ON operador_restaurante (restaurante_id);
+CREATE INDEX idx_evento_mesa ON evento_analitica (mesa_id);
+CREATE INDEX idx_evento_miembro ON evento_analitica (miembro_id);
+CREATE INDEX idx_evento_platillo ON evento_analitica (platillo_id);
 ```
 
 > Como **no existe ninguna base en producción**, la migración `0001_base_v1` crea el esquema final directamente, en lugar de la secuencia 0001–0008 de agosto. Las sentencias de arriba describen el delta conceptual, no el orden de ejecución.
@@ -215,14 +272,20 @@ erDiagram
 |---|---|
 | INV-1 · una sesión viva por mesa | `uq_sesion_viva_por_mesa` |
 | INV-2 · una orden viva por miembro | `uq_orden_viva_por_miembro` |
-| INV-3 · ítems inmutables tras confirmar | trigger `tr_item_orden_inmutable` (agosto §5) |
+| INV-3 · ítems inmutables tras confirmar | `ck_orden_bloqueada_coherente` (`bloqueada = (estado <> 'armando')`); trigger `tr_item_orden_inmutable` (INSERT, UPDATE y DELETE; mira la orden de NEW **y** la de OLD, y toma `FOR SHARE` sobre la orden para que una confirmación concurrente lo haga esperar); trigger `tr_orden_bloqueada_no_se_borra` (BEFORE DELETE en `orden_personal`) |
 | INV-4 · sin borrado físico con historial | `activo = false`; revisión de código; ningún `DELETE` sobre `platillo` en `app/services/` |
 | INV-6 · comanda con estado terminal | `ck_comanda_terminal` ampliado con `servida` |
 | INV-7 · el PIN nunca se guarda en claro | columna `pin_hash` única; prueba que inspecciona la fila tras crear |
-| INV-8 · una comanda sólo agrupa órdenes de su sesión | trigger `tr_comanda_orden_misma_sesion` |
+| INV-8 · una comanda sólo agrupa órdenes de su sesión | trigger `tr_comanda_orden_misma_sesion` (INSERT y UPDATE en `comanda_orden`); `sesion_id` inmutable en `comanda` y `orden_personal` (`tr_comanda_sesion_inmutable`, `tr_orden_sesion_inmutable`); `UNIQUE (orden_id)` en `comanda_orden`: una orden se cobra en una sola comanda |
 | INV-9 · nada entra al menú sin confirmación del operador | `importacion_menu.estado = 'confirmado'` sólo lo escribe el endpoint `confirmar`; el *task* de IA no tiene ese permiso en código |
 
 INV-5 (modelo 3D publicado exige aprobación) se retira con el 3D y vuelve en v2.
+
+Reglas de toda migración (se comprueban en `tests/unit/test_modelos.py`):
+
+- **Toda llave foránea con `ON DELETE CASCADE` o `SET NULL` lleva un índice** cuya primera columna es la FK (los parciales no cuentan). Sin él, cada borrado o `SET NULL` en cascada recorre la tabla hija completa: medido, 2.4 s por 20 sesiones con 300 k eventos.
+- Las funciones de trigger fijan `SET search_path = pg_catalog, public`, para que una tabla temporal no suplante a la real.
+- Los CHECK de dominio viven en la base (`ck_*` arriba), no sólo en Pydantic: la base es la última línea.
 
 | Consulta | Índice |
 |---|---|
@@ -244,10 +307,10 @@ Presupuesto: ninguna consulta del camino crítico del comensal o del personal su
 | Usuario | Permisos | Quién lo usa |
 |---|---|---|
 | `carta_migrador` | dueño del esquema | sólo el paso de migraciones del despliegue |
-| `carta_app` | `SELECT, INSERT, UPDATE, DELETE` sobre las tablas; sin `CREATE`, `ALTER`, `DROP` | la API |
-| `carta_lector` | `SELECT` | reportes y el capitán del futuro panel de analítica |
+| `carta_app` | `SELECT, INSERT, UPDATE, DELETE` sobre las tablas; sin `CREATE`, `ALTER`, `DROP`; **sin acceso a `alembic_version`** | la API |
+| `carta_lector` | `SELECT`, **sin** `personal_restaurante.pin_hash`, `usuario.firebase_uid` ni `evento_analitica.ip_hash` (permisos por columna) | reportes y el capitán del futuro panel de analítica |
 
-Una inyección SQL con `carta_app` puede leer o alterar filas, pero no borrar el esquema.
+Una inyección SQL con `carta_app` puede leer o alterar filas, pero no borrar el esquema. El script es `scripts/usuarios_bd.sql`: lee las contraseñas de variables de entorno (`\getenv`), silencia el log del servidor mientras crea los roles, y se corre dos veces en un servidor nuevo (antes de la primera migración, para que `carta_migrador` sea el dueño; después, para los permisos por tabla y columna).
 
 ---
 
@@ -261,6 +324,8 @@ Una inyección SQL con `carta_app` puede leer o alterar filas, pero no borrar el
 | `clave_idempotencia` | 24 h | purga horaria |
 | fotos originales | vida del platillo + 6 meses | borrado |
 | respaldos | 30 días | ciclo de vida del bucket |
+
+`restaurante` nunca se borra físicamente: la baja es `activo = false` más una exportación. Por eso `item_orden.platillo_id` es `ON DELETE RESTRICT` y un `DELETE FROM restaurante` con historial falla, y es lo correcto (regla dura 9).
 
 ---
 

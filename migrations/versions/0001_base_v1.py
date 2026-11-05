@@ -116,24 +116,35 @@ def _lista_sql(valores: Sequence[str]) -> str:
 # Triggers de invariantes
 # ---------------------------------------------------------------------------
 
+# Todas las funciones fijan `search_path`: una tabla temporal `pg_temp.orden_personal`
+# no puede suplantar a la real y anular una invariante.
+#
 # INV-3: los ítems de una orden confirmada (`bloqueada = true`) no se tocan.
+# - Mira la orden de NEW y la de OLD: mover un ítem a otra orden no lo saca de la bloqueada.
+# - `FOR SHARE` bloquea la fila de la orden: si otra transacción la está confirmando
+#   (UPDATE ... bloqueada = true sin commit), esta espera y después ve el valor nuevo.
 SQL_FN_ITEM_ORDEN_INMUTABLE = """
 CREATE OR REPLACE FUNCTION fn_item_orden_inmutable()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $$
 DECLARE
     v_bloqueada BOOLEAN;
 BEGIN
-    SELECT bloqueada INTO v_bloqueada
-    FROM orden_personal
-    WHERE id = COALESCE(NEW.orden_id, OLD.orden_id);
-
-    IF v_bloqueada THEN
-        RAISE EXCEPTION 'La orden está confirmada y no admite cambios (INV-3)'
-            USING ERRCODE = 'check_violation';
-    END IF;
+    FOR v_bloqueada IN
+        SELECT bloqueada FROM orden_personal
+        WHERE id IN (NEW.orden_id, OLD.orden_id)
+        FOR SHARE
+    LOOP
+        IF v_bloqueada THEN
+            RAISE EXCEPTION 'La orden está confirmada y no admite cambios (INV-3)'
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END LOOP;
     RETURN COALESCE(NEW, OLD);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 """
 SQL_TR_ITEM_ORDEN_INMUTABLE = """
 CREATE TRIGGER tr_item_orden_inmutable
@@ -141,10 +152,37 @@ CREATE TRIGGER tr_item_orden_inmutable
     FOR EACH ROW EXECUTE FUNCTION fn_item_orden_inmutable();
 """
 
+# INV-3 y regla dura 9: una orden confirmada no se borra (ni en cascada desde su sesión).
+SQL_FN_ORDEN_BLOQUEADA_NO_SE_BORRA = """
+CREATE OR REPLACE FUNCTION fn_orden_bloqueada_no_se_borra()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+    IF OLD.bloqueada THEN
+        RAISE EXCEPTION 'La orden está confirmada y no se puede borrar (INV-3)'
+            USING ERRCODE = 'check_violation';
+    END IF;
+    RETURN OLD;
+END;
+$$;
+"""
+SQL_TR_ORDEN_BLOQUEADA_NO_SE_BORRA = """
+CREATE TRIGGER tr_orden_bloqueada_no_se_borra
+    BEFORE DELETE ON orden_personal
+    FOR EACH ROW EXECUTE FUNCTION fn_orden_bloqueada_no_se_borra();
+"""
+
 # INV-8: una comanda sólo agrupa órdenes de su propia sesión.
+# Si la comanda o la orden no existen se devuelve NEW y falla la llave foránea, que es el
+# error verdadero; el mensaje de INV-8 se reserva para sesiones distintas.
 SQL_FN_COMANDA_ORDEN_MISMA_SESION = """
 CREATE OR REPLACE FUNCTION fn_comanda_orden_misma_sesion()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $$
 DECLARE
     v_sesion_comanda UUID;
     v_sesion_orden   UUID;
@@ -152,19 +190,50 @@ BEGIN
     SELECT sesion_id INTO v_sesion_comanda FROM comanda WHERE id = NEW.comanda_id;
     SELECT sesion_id INTO v_sesion_orden FROM orden_personal WHERE id = NEW.orden_id;
 
-    IF v_sesion_comanda IS NULL OR v_sesion_comanda IS DISTINCT FROM v_sesion_orden THEN
+    IF v_sesion_comanda IS NULL OR v_sesion_orden IS NULL THEN
+        RETURN NEW;
+    END IF;
+    IF v_sesion_comanda <> v_sesion_orden THEN
         RAISE EXCEPTION 'La orden % no pertenece a la sesión de la comanda % (INV-8)',
             NEW.orden_id, NEW.comanda_id
             USING ERRCODE = 'check_violation';
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 """
 SQL_TR_COMANDA_ORDEN_MISMA_SESION = """
 CREATE TRIGGER tr_comanda_orden_misma_sesion
     BEFORE INSERT OR UPDATE ON comanda_orden
     FOR EACH ROW EXECUTE FUNCTION fn_comanda_orden_misma_sesion();
+"""
+
+# INV-8 por el otro lado: `sesion_id` es inmutable en comanda y en orden_personal, de modo que
+# la relación comanda ↔ órdenes no se rompe moviendo a los padres de sesión.
+SQL_FN_SESION_ID_INMUTABLE = """
+CREATE OR REPLACE FUNCTION fn_sesion_id_inmutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+    IF NEW.sesion_id IS DISTINCT FROM OLD.sesion_id THEN
+        RAISE EXCEPTION '% no puede cambiar de sesión (INV-8)', TG_TABLE_NAME
+            USING ERRCODE = 'check_violation';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+"""
+SQL_TR_COMANDA_SESION_INMUTABLE = """
+CREATE TRIGGER tr_comanda_sesion_inmutable
+    BEFORE UPDATE OF sesion_id ON comanda
+    FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable();
+"""
+SQL_TR_ORDEN_SESION_INMUTABLE = """
+CREATE TRIGGER tr_orden_sesion_inmutable
+    BEFORE UPDATE OF sesion_id ON orden_personal
+    FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable();
 """
 
 
@@ -193,6 +262,7 @@ def upgrade() -> None:
             "tema IN ('vino', 'verde', 'azul', 'ocre', 'cafe')", name="ck_restaurante_tema"
         ),
         sa.CheckConstraint("plan IN ('gratis', 'pro', 'enterprise')", name="ck_restaurante_plan"),
+        sa.CheckConstraint("slug <> ''", name="ck_restaurante_slug"),
         sa.PrimaryKeyConstraint("id", name="pk_restaurante"),
         sa.UniqueConstraint("slug", name="uq_restaurante_slug"),
     )
@@ -208,9 +278,14 @@ def upgrade() -> None:
         sa.Column("orden", sa.Integer(), server_default="0", nullable=False),
         _booleano("activa", True),
         sa.PrimaryKeyConstraint("id", name="pk_categoria_menu"),
-        sa.UniqueConstraint(
-            "restaurante_id", "nombre", name="uq_categoria_menu_restaurante_id_nombre"
-        ),
+    )
+    # Regla dura 9: la baja es lógica, así que el nombre sólo es único entre las activas.
+    op.create_index(
+        "uq_categoria_activa_por_nombre",
+        "categoria_menu",
+        ["restaurante_id", sa.text("lower(btrim(nombre))")],
+        unique=True,
+        postgresql_where=sa.text("activa"),
     )
     op.create_index("idx_categoria_restaurante", "categoria_menu", ["restaurante_id"])
 
@@ -249,6 +324,7 @@ def upgrade() -> None:
         ["usuario_id"],
         postgresql_where=sa.text("activo"),
     )
+    op.create_index("idx_operador_restaurante", "operador_restaurante", ["restaurante_id"])
 
     op.create_table(
         "personal_restaurante",
@@ -263,17 +339,21 @@ def upgrade() -> None:
         _marca("ultimo_acceso_en"),
         _ahora("creado_en"),
         _ahora("actualizado_en"),
+        sa.CheckConstraint("length(btrim(nombre)) > 0", name="ck_personal_nombre"),
+        sa.CheckConstraint("intentos_fallidos >= 0", name="ck_personal_intentos"),
+        # INV-7 verificable en la base: sólo entra un hash Argon2id, nunca el PIN.
+        sa.CheckConstraint("pin_hash LIKE '$argon2id$%'", name="ck_personal_pin_hash"),
         sa.PrimaryKeyConstraint("id", name="pk_personal_restaurante"),
-        sa.UniqueConstraint(
-            "restaurante_id", "nombre", name="uq_personal_restaurante_restaurante_id_nombre"
-        ),
     )
+    # Regla dura 9: se puede recontratar a "Ana" después de darla de baja.
     op.create_index(
-        "idx_personal_restaurante",
+        "uq_personal_activo_por_nombre",
         "personal_restaurante",
-        ["restaurante_id"],
+        ["restaurante_id", sa.text("lower(btrim(nombre))")],
+        unique=True,
         postgresql_where=sa.text("activo"),
     )
+    op.create_index("idx_personal_restaurante", "personal_restaurante", ["restaurante_id"])
 
     # ── Platillo (referencia a personal_restaurante por `no_disponible_por`) ──
     op.create_table(
@@ -312,9 +392,12 @@ def upgrade() -> None:
         _ahora("actualizado_en"),
         sa.CheckConstraint("precio >= 0", name="ck_platillo_precio"),
         sa.CheckConstraint("nivel_picante BETWEEN 0 AND 5", name="ck_platillo_nivel_picante"),
+        sa.CheckConstraint("jsonb_typeof(alergenos) = 'array'", name="ck_platillo_alergenos_lista"),
+        sa.CheckConstraint("jsonb_typeof(etiquetas) = 'array'", name="ck_platillo_etiquetas_lista"),
         sa.PrimaryKeyConstraint("id", name="pk_platillo"),
     )
     op.create_index("idx_platillo_restaurante", "platillo", ["restaurante_id"])
+    op.create_index("idx_platillo_no_disponible_por", "platillo", ["no_disponible_por"])
     op.create_index("idx_platillo_categoria_orden", "platillo", ["categoria_id", "orden"])
     op.create_index(
         "idx_platillo_activo",
@@ -337,9 +420,17 @@ def upgrade() -> None:
         sa.Column("capacidad", sa.Integer(), server_default="4", nullable=False),
         _booleano("activa", True),
         sa.CheckConstraint("length(codigo_publico) >= 22", name="ck_codigo_largo"),
+        sa.CheckConstraint("capacidad > 0", name="ck_mesa_capacidad"),
         sa.PrimaryKeyConstraint("id", name="pk_mesa"),
         sa.UniqueConstraint("codigo_publico", name="uq_mesa_codigo_publico"),
-        sa.UniqueConstraint("restaurante_id", "numero", name="uq_mesa_restaurante_id_numero"),
+    )
+    # Regla dura 9: el número sólo es único entre las mesas activas.
+    op.create_index(
+        "uq_mesa_activa_por_numero",
+        "mesa",
+        ["restaurante_id", "numero"],
+        unique=True,
+        postgresql_where=sa.text("activa"),
     )
     op.create_index("idx_mesa_restaurante", "mesa", ["restaurante_id"])
 
@@ -367,6 +458,7 @@ def upgrade() -> None:
     )
     op.create_index("idx_sesion_mesa", "sesion_grupal", ["mesa_id"])
     op.create_index("idx_sesion_restaurante", "sesion_grupal", ["restaurante_id"])
+    op.create_index("idx_sesion_cerrada_por", "sesion_grupal", ["cerrada_por_personal_id"])
     # INV-1: una sesión viva por mesa.
     op.create_index(
         "uq_sesion_viva_por_mesa",
@@ -388,6 +480,10 @@ def upgrade() -> None:
         _ahora("unido_en"),
         sa.CheckConstraint("rol IN ('host', 'miembro')", name="ck_miembro_sesion_rol"),
         sa.CheckConstraint("estado IN ('activo', 'desconectado')", name="ck_miembro_sesion_estado"),
+        sa.CheckConstraint(
+            "color_avatar IS NULL OR color_avatar ~ '^#[0-9A-Fa-f]{6}$'",
+            name="ck_miembro_sesion_color",
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_miembro_sesion"),
     )
     op.create_index("idx_miembro_sesion", "miembro_sesion", ["sesion_id"])
@@ -408,8 +504,16 @@ def upgrade() -> None:
             "estado IN ('armando', 'confirmada', 'enviada', 'cerrada')",
             name="ck_orden_personal_estado",
         ),
+        # INV-3: `bloqueada` sigue al estado; no se puede confirmar sin bloquear.
+        sa.CheckConstraint(
+            "bloqueada = (estado <> 'armando')", name="ck_orden_bloqueada_coherente"
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_orden_personal"),
     )
+    op.execute(SQL_FN_ORDEN_BLOQUEADA_NO_SE_BORRA)
+    op.execute(SQL_TR_ORDEN_BLOQUEADA_NO_SE_BORRA)
+    op.execute(SQL_FN_SESION_ID_INMUTABLE)
+    op.execute(SQL_TR_ORDEN_SESION_INMUTABLE)
     op.create_index("idx_orden_sesion", "orden_personal", ["sesion_id"])
     op.create_index("idx_orden_miembro", "orden_personal", ["miembro_id"])
     # INV-2: una orden viva por miembro.
@@ -431,6 +535,9 @@ def upgrade() -> None:
         sa.Column("precio_unitario", sa.Numeric(10, 2), nullable=False),
         sa.Column("subtotal", sa.Numeric(10, 2), nullable=False),
         sa.CheckConstraint("cantidad > 0", name="ck_item_orden_cantidad"),
+        sa.CheckConstraint("notas IS NULL OR length(notas) <= 140", name="ck_item_orden_notas"),
+        sa.CheckConstraint("precio_unitario >= 0", name="ck_item_orden_precio"),
+        sa.CheckConstraint("subtotal >= 0", name="ck_item_orden_subtotal"),
         sa.PrimaryKeyConstraint("id", name="pk_item_orden"),
     )
     op.create_index("idx_item_orden", "item_orden", ["orden_id"])
@@ -464,13 +571,16 @@ def upgrade() -> None:
         sa.CheckConstraint(
             "(estado = 'abierta' AND atendida_en IS NULL AND servida_en IS NULL) OR "
             "(estado = 'atendida' AND atendida_en IS NOT NULL AND servida_en IS NULL) OR "
-            "(estado = 'servida' AND servida_en IS NOT NULL) OR "
+            "(estado = 'servida' AND atendida_en IS NOT NULL AND servida_en >= atendida_en) OR "
             "(estado = 'cancelada')",
             name="ck_comanda_terminal",
         ),
         sa.PrimaryKeyConstraint("id", name="pk_comanda"),
         sa.UniqueConstraint("sesion_id", "secuencia", name="uq_comanda_sesion_id_secuencia"),
     )
+    op.execute(SQL_TR_COMANDA_SESION_INMUTABLE)
+    op.create_index("idx_comanda_restaurante", "comanda", ["restaurante_id"])
+    op.create_index("idx_comanda_atendida_por", "comanda", ["atendida_por_personal_id"])
     op.create_index(
         "idx_comanda_abierta",
         "comanda",
@@ -484,6 +594,8 @@ def upgrade() -> None:
         _fk("comanda_orden", "comanda_id", "comanda.id", ondelete="CASCADE"),
         _fk("comanda_orden", "orden_id", "orden_personal.id", ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("comanda_id", "orden_id", name="pk_comanda_orden"),
+        # Una orden personal se cobra en una sola comanda.
+        sa.UniqueConstraint("orden_id", name="uq_comanda_orden_orden_id"),
     )
     op.execute(SQL_FN_COMANDA_ORDEN_MISMA_SESION)
     op.execute(SQL_TR_COMANDA_ORDEN_MISMA_SESION)
@@ -509,6 +621,11 @@ def upgrade() -> None:
         _ahora("creada_en"),
         sa.PrimaryKeyConstraint("id", name="pk_llamada_mesero"),
     )
+    op.create_index("idx_llamada_restaurante", "llamada_mesero", ["restaurante_id"])
+    op.create_index("idx_llamada_mesa", "llamada_mesero", ["mesa_id"])
+    op.create_index("idx_llamada_sesion", "llamada_mesero", ["sesion_id"])
+    op.create_index("idx_llamada_miembro", "llamada_mesero", ["miembro_id"])
+    op.create_index("idx_llamada_atendida_por", "llamada_mesero", ["atendida_por_personal_id"])
     op.create_index(
         "idx_llamada_pendiente",
         "llamada_mesero",
@@ -536,9 +653,15 @@ def upgrade() -> None:
         _marca("finalizado_en"),
         _marca("confirmado_en"),
         _ahora("creado_en"),
-        sa.CheckConstraint("intentos <= 3", name="ck_importacion_intentos"),
+        sa.CheckConstraint("intentos BETWEEN 0 AND 3", name="ck_importacion_intentos"),
+        # INV-9 en la base: confirmado exige marca de tiempo y borrador.
+        sa.CheckConstraint(
+            "estado <> 'confirmado' OR (confirmado_en IS NOT NULL AND resultado IS NOT NULL)",
+            name="ck_importacion_confirmada",
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_importacion_menu"),
     )
+    op.create_index("idx_importacion_solicitado_por", "importacion_menu", ["solicitado_por"])
     op.create_index(
         "idx_importacion_cola",
         "importacion_menu",
@@ -557,6 +680,7 @@ def upgrade() -> None:
         sa.Column("estado_http", sa.SmallInteger(), nullable=False),
         sa.Column("respuesta", postgresql.JSONB(), nullable=False),
         _ahora("creada_en"),
+        sa.CheckConstraint("ambito <> ''", name="ck_idempotencia_ambito"),
         sa.PrimaryKeyConstraint("ambito", "clave", name="pk_clave_idempotencia"),
     )
     op.create_index("idx_idempotencia_purga", "clave_idempotencia", ["creada_en"])
@@ -590,6 +714,9 @@ def upgrade() -> None:
     )
     op.create_index("idx_evento_tipo", "evento_analitica", ["tipo", "ocurrido_en"])
     op.create_index("idx_evento_sesion", "evento_analitica", ["sesion_id"])
+    op.create_index("idx_evento_mesa", "evento_analitica", ["mesa_id"])
+    op.create_index("idx_evento_miembro", "evento_analitica", ["miembro_id"])
+    op.create_index("idx_evento_platillo", "evento_analitica", ["platillo_id"])
 
 
 # Orden inverso de dependencias: cada tabla antes que las que referencia.
@@ -614,11 +741,26 @@ TABLAS_EN_ORDEN_DE_BORRADO = (
 )
 
 
+TRIGGERS = (
+    ("tr_comanda_orden_misma_sesion", "comanda_orden"),
+    ("tr_comanda_sesion_inmutable", "comanda"),
+    ("tr_orden_sesion_inmutable", "orden_personal"),
+    ("tr_orden_bloqueada_no_se_borra", "orden_personal"),
+    ("tr_item_orden_inmutable", "item_orden"),
+)
+FUNCIONES = (
+    "fn_comanda_orden_misma_sesion",
+    "fn_sesion_id_inmutable",
+    "fn_orden_bloqueada_no_se_borra",
+    "fn_item_orden_inmutable",
+)
+
+
 def downgrade() -> None:
-    op.execute("DROP TRIGGER IF EXISTS tr_comanda_orden_misma_sesion ON comanda_orden")
-    op.execute("DROP FUNCTION IF EXISTS fn_comanda_orden_misma_sesion()")
-    op.execute("DROP TRIGGER IF EXISTS tr_item_orden_inmutable ON item_orden")
-    op.execute("DROP FUNCTION IF EXISTS fn_item_orden_inmutable()")
+    for trigger, tabla in TRIGGERS:
+        op.execute(f"DROP TRIGGER IF EXISTS {trigger} ON {tabla}")
+    for funcion in FUNCIONES:
+        op.execute(f"DROP FUNCTION IF EXISTS {funcion}()")
     # `drop_table` elimina también los índices y las restricciones de cada tabla.
     for tabla in TABLAS_EN_ORDEN_DE_BORRADO:
         op.drop_table(tabla)

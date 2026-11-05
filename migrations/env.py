@@ -2,14 +2,17 @@
 
 La URL sale de `app.core.config.settings` (variable `DATABASE_URL`), salvo que se pase
 `-x url=...` por línea de comandos, que es lo que usan las pruebas para apuntar a `carta_test`.
+La URL **no** pasa por `alembic.ini`: ConfigParser interpreta `%` y una contraseña con
+`%40` rompería `upgrade head` antes de conectar.
 """
 
 import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import Connection, pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy import Connection
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.db import models  # noqa: F401  (registra los modelos en Base.metadata)
@@ -20,8 +23,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-url_cli = context.get_x_argument(as_dictionary=True).get("url")
-config.set_main_option("sqlalchemy.url", url_cli or settings.DATABASE_URL)
+URL = context.get_x_argument(as_dictionary=True).get("url") or settings.DATABASE_URL
 
 target_metadata = Base.metadata
 
@@ -29,7 +31,7 @@ target_metadata = Base.metadata
 def run_migrations_offline() -> None:
     """Modo sin conexión: emite el SQL en lugar de ejecutarlo."""
     context.configure(
-        url=config.get_main_option("sqlalchemy.url"),
+        url=URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -46,14 +48,10 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-    async with connectable.connect() as connection:
+    motor = create_async_engine(URL, poolclass=NullPool)
+    async with motor.connect() as connection:
         await connection.run_sync(do_run_migrations)
-    await connectable.dispose()
+    await motor.dispose()
 
 
 def run_migrations_online() -> None:

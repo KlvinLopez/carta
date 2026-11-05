@@ -182,6 +182,7 @@ class Restaurante(Base):
             "tema IN ('vino', 'verde', 'azul', 'ocre', 'cafe')", name="ck_restaurante_tema"
         ),
         CheckConstraint("plan IN ('gratis', 'pro', 'enterprise')", name="ck_restaurante_plan"),
+        CheckConstraint("slug <> ''", name="ck_restaurante_slug"),
         Index("idx_restaurante_activo", "activo", postgresql_where=text("activo")),
     )
 
@@ -201,7 +202,14 @@ class CategoriaMenu(Base):
     platillos: Mapped[list[Platillo]] = relationship(back_populates="categoria")
 
     __table_args__ = (
-        UniqueConstraint("restaurante_id", "nombre"),
+        # Regla dura 9: la baja es lógica, así que el nombre sólo es único entre las activas.
+        Index(
+            "uq_categoria_activa_por_nombre",
+            "restaurante_id",
+            text("lower(btrim(nombre))"),
+            unique=True,
+            postgresql_where=text("activa"),
+        ),
         Index("idx_categoria_restaurante", "restaurante_id"),
     )
 
@@ -235,8 +243,19 @@ class PersonalRestaurante(Base):
     restaurante: Mapped[Restaurante] = relationship(back_populates="personal")
 
     __table_args__ = (
-        UniqueConstraint("restaurante_id", "nombre"),
-        Index("idx_personal_restaurante", "restaurante_id", postgresql_where=text("activo")),
+        CheckConstraint("length(btrim(nombre)) > 0", name="ck_personal_nombre"),
+        CheckConstraint("intentos_fallidos >= 0", name="ck_personal_intentos"),
+        # INV-7 verificable en la base: sólo entra un hash Argon2id, nunca el PIN.
+        CheckConstraint("pin_hash LIKE '$argon2id$%'", name="ck_personal_pin_hash"),
+        # Regla dura 9: se puede recontratar a "Ana" después de darla de baja.
+        Index(
+            "uq_personal_activo_por_nombre",
+            "restaurante_id",
+            text("lower(btrim(nombre))"),
+            unique=True,
+            postgresql_where=text("activo"),
+        ),
+        Index("idx_personal_restaurante", "restaurante_id"),
     )
 
 
@@ -297,7 +316,10 @@ class Platillo(Base):
     __table_args__ = (
         CheckConstraint("precio >= 0", name="ck_platillo_precio"),
         CheckConstraint("nivel_picante BETWEEN 0 AND 5", name="ck_platillo_nivel_picante"),
+        CheckConstraint("jsonb_typeof(alergenos) = 'array'", name="ck_platillo_alergenos_lista"),
+        CheckConstraint("jsonb_typeof(etiquetas) = 'array'", name="ck_platillo_etiquetas_lista"),
         Index("idx_platillo_restaurante", "restaurante_id"),
+        Index("idx_platillo_no_disponible_por", "no_disponible_por"),
         Index("idx_platillo_categoria_orden", "categoria_id", "orden"),
         Index("idx_platillo_activo", "restaurante_id", "activo", postgresql_where=text("activo")),
         Index("idx_platillo_alergenos", "alergenos", postgresql_using="gin"),
@@ -329,8 +351,16 @@ class Mesa(Base):
     sesiones: Mapped[list[SesionGrupal]] = relationship(back_populates="mesa")
 
     __table_args__ = (
-        UniqueConstraint("restaurante_id", "numero"),
         CheckConstraint("length(codigo_publico) >= 22", name="ck_codigo_largo"),
+        CheckConstraint("capacidad > 0", name="ck_mesa_capacidad"),
+        # Regla dura 9: el número sólo es único entre las mesas activas.
+        Index(
+            "uq_mesa_activa_por_numero",
+            "restaurante_id",
+            "numero",
+            unique=True,
+            postgresql_where=text("activa"),
+        ),
         Index("idx_mesa_restaurante", "restaurante_id"),
     )
 
@@ -385,6 +415,7 @@ class SesionGrupal(Base):
         ),
         Index("idx_sesion_mesa", "mesa_id"),
         Index("idx_sesion_restaurante", "restaurante_id"),
+        Index("idx_sesion_cerrada_por", "cerrada_por_personal_id"),
         # INV-1: una sesión viva por mesa.
         Index(
             "uq_sesion_viva_por_mesa",
@@ -421,6 +452,10 @@ class MiembroSesion(Base):
     __table_args__ = (
         CheckConstraint("rol IN ('host', 'miembro')", name="ck_miembro_sesion_rol"),
         CheckConstraint("estado IN ('activo', 'desconectado')", name="ck_miembro_sesion_estado"),
+        CheckConstraint(
+            "color_avatar IS NULL OR color_avatar ~ '^#[0-9A-Fa-f]{6}$'",
+            name="ck_miembro_sesion_color",
+        ),
         Index("idx_miembro_sesion", "sesion_id"),
         Index("idx_miembro_usuario", "usuario_id"),
     )
@@ -458,6 +493,8 @@ class OrdenPersonal(Base):
         CheckConstraint(
             f"estado IN ({_lista_sql(ESTADOS_ORDEN)})", name="ck_orden_personal_estado"
         ),
+        # INV-3: `bloqueada` sigue al estado; no se puede confirmar sin bloquear.
+        CheckConstraint("bloqueada = (estado <> 'armando')", name="ck_orden_bloqueada_coherente"),
         Index("idx_orden_sesion", "sesion_id"),
         Index("idx_orden_miembro", "miembro_id"),
         # INV-2: una orden viva por miembro.
@@ -488,6 +525,11 @@ class ItemOrden(Base):
 
     __table_args__ = (
         CheckConstraint("cantidad > 0", name="ck_item_orden_cantidad"),
+        CheckConstraint(
+            "notas IS NULL OR length(notas) <= 140", name="ck_item_orden_notas"
+        ),  # AC-10.1
+        CheckConstraint("precio_unitario >= 0", name="ck_item_orden_precio"),
+        CheckConstraint("subtotal >= 0", name="ck_item_orden_subtotal"),
         Index("idx_item_orden", "orden_id"),
         Index("idx_item_platillo", "platillo_id"),
     )
@@ -532,10 +574,12 @@ class Comanda(Base):
         CheckConstraint(
             "(estado = 'abierta' AND atendida_en IS NULL AND servida_en IS NULL) OR "
             "(estado = 'atendida' AND atendida_en IS NOT NULL AND servida_en IS NULL) OR "
-            "(estado = 'servida' AND servida_en IS NOT NULL) OR "
+            "(estado = 'servida' AND atendida_en IS NOT NULL AND servida_en >= atendida_en) OR "
             "(estado = 'cancelada')",
             name="ck_comanda_terminal",
         ),
+        Index("idx_comanda_restaurante", "restaurante_id"),
+        Index("idx_comanda_atendida_por", "atendida_por_personal_id"),
         Index(
             "idx_comanda_abierta",
             "restaurante_id",
@@ -558,6 +602,9 @@ class ComandaOrden(Base):
         UUID(as_uuid=True), ForeignKey("orden_personal.id", ondelete="CASCADE"), primary_key=True
     )
 
+    # Una orden personal se cobra en una sola comanda (INV-8 ampliada).
+    __table_args__ = (UniqueConstraint("orden_id"),)
+
 
 class LlamadaMesero(Base):
     __tablename__ = "llamada_mesero"
@@ -579,6 +626,11 @@ class LlamadaMesero(Base):
     creada_en: Mapped[datetime] = _marca_tiempo()
 
     __table_args__ = (
+        Index("idx_llamada_restaurante", "restaurante_id"),
+        Index("idx_llamada_mesa", "mesa_id"),
+        Index("idx_llamada_sesion", "sesion_id"),
+        Index("idx_llamada_miembro", "miembro_id"),
+        Index("idx_llamada_atendida_por", "atendida_por_personal_id"),
         Index(
             "idx_llamada_pendiente",
             "restaurante_id",
@@ -616,6 +668,7 @@ class OperadorRestaurante(Base):
     __table_args__ = (
         UniqueConstraint("usuario_id", "restaurante_id"),
         Index("idx_operador_usuario", "usuario_id", postgresql_where=text("activo")),
+        Index("idx_operador_restaurante", "restaurante_id"),
     )
 
 
@@ -652,8 +705,14 @@ class ImportacionMenu(Base):
     restaurante: Mapped[Restaurante] = relationship(back_populates="importaciones")
 
     __table_args__ = (
-        CheckConstraint("intentos <= 3", name="ck_importacion_intentos"),
+        CheckConstraint("intentos BETWEEN 0 AND 3", name="ck_importacion_intentos"),
+        # INV-9 en la base: confirmado exige marca de tiempo y borrador.
+        CheckConstraint(
+            "estado <> 'confirmado' OR (confirmado_en IS NOT NULL AND resultado IS NOT NULL)",
+            name="ck_importacion_confirmada",
+        ),
         Index("idx_importacion_cola", "creado_en", postgresql_where=text("estado = 'pendiente'")),
+        Index("idx_importacion_solicitado_por", "solicitado_por"),
         Index("idx_importacion_restaurante", "restaurante_id", "creado_en"),
     )
 
@@ -674,7 +733,10 @@ class ClaveIdempotencia(Base):
     respuesta: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     creada_en: Mapped[datetime] = _marca_tiempo()
 
-    __table_args__ = (Index("idx_idempotencia_purga", "creada_en"),)
+    __table_args__ = (
+        CheckConstraint("ambito <> ''", name="ck_idempotencia_ambito"),
+        Index("idx_idempotencia_purga", "creada_en"),
+    )
 
 
 class EventoAnalitica(Base):
@@ -707,4 +769,7 @@ class EventoAnalitica(Base):
         Index("idx_evento_restaurante_fecha", "restaurante_id", "ocurrido_en"),
         Index("idx_evento_tipo", "tipo", "ocurrido_en"),
         Index("idx_evento_sesion", "sesion_id"),
+        Index("idx_evento_mesa", "mesa_id"),
+        Index("idx_evento_miembro", "miembro_id"),
+        Index("idx_evento_platillo", "platillo_id"),
     )
