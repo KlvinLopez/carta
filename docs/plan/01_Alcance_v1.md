@@ -124,9 +124,9 @@ El capitán **no tiene pantallas propias** (C01–C08 del prototipo): es la mism
 
 ## 6. Historias de usuario de la v1
 
-Se conservan del PRD, con sus criterios EARS: **US-01 a US-06** (entrada, sesión, alias, menú, filtros, búsqueda), **US-10 a US-14** (orden, confirmar, comanda, vista del personal, llamada), **US-15 a US-17** (operador, menú, fotos), **US-21** (mesas y QR), **US-24** (analítica, con los eventos de §7).
+Se conservan del PRD, con sus criterios EARS: **US-01 a US-06** (entrada, sesión, alias, menú, filtros, búsqueda), **US-09** (ver, sin editar, lo que va a pedir otro comensal), **US-10 a US-14** (orden, confirmar, comanda, vista del personal, llamada), **US-15 a US-17** (operador, menú, fotos), **US-21** (mesas y QR), **US-24** (analítica, con los eventos de §7).
 
-Se retiran: US-07, US-08, US-09 (3D/AR), US-18, US-19, US-20 (pipeline 3D), US-22, US-23 (cuenta del comensal).
+Se retiran: US-07, US-08 (3D/AR), US-18, US-19, US-20 (pipeline 3D), US-22, US-23 (cuenta del comensal). El criterio AC-05.4 (filtros preseleccionados desde el perfil) depende de la cuenta y no aplica en v1.
 
 Se agregan:
 

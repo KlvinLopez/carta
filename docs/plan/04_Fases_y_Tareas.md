@@ -263,7 +263,7 @@ Dentro de una ola, el orden de integración es: backend (A, D, F+G) primero, fro
 ### T-2.5 — Menú (P03)
 **Depende de:** T-2.4 · **Historias:** US-04, US-05, US-06
 **Entregable:** `frontend/src/comensal/menu/`: inicio con "Top 3 del chef" y categorías con desplazamiento horizontal, lista con foto o ilustración, precio en DM Sans SemiBold, chips; búsqueda insensible a acentos (≥ 2 caracteres, ≤ 300 ms); filtros por alérgeno y etiqueta en hoja inferior, guardados en `localStorage`; conteo de resultados; aviso permanente de alérgenos; carga diferida de imágenes; platillo no disponible atenuado con "Agotado hoy".
-**Criterios:** AC-04.2, AC-04.3, AC-05.1–AC-05.3, AC-06.1.
+**Criterios:** AC-01.1 (manual: Lighthouse móvil contra staging), AC-04.2, AC-04.3, AC-05.1–AC-05.3, AC-06.1.
 **Verificar:** `npm --prefix frontend test -- filtros busqueda` + Lighthouse móvil ≥ 85 en rendimiento contra staging.
 
 ### T-2.6 — Detalle del platillo (P02)
@@ -315,12 +315,13 @@ Dentro de una ola, el orden de integración es: backend (A, D, F+G) primero, fro
 ### T-3.5 — Mi orden, sesión grupal y estado (P04, P04b)
 **Depende de:** T-2.6 (contrato de T-3.2) · **Historias:** US-09 (modo consulta), US-10, US-11, US-12
 **Entregable:** `frontend/src/comensal/orden/`: hoja "Mi orden" con cantidades, nota, subtotal recalculado en ≤ 300 ms, persistida en `localStorage` hasta confirmar (AC-10.3); botón confirmar con `Idempotency-Key`, deshacer; sesión grupal con avatares apilados, "3 de 4 listos", tocar un avatar muestra su orden en modo consulta sin controles de edición (AC-09.1, AC-09.2); estados tras confirmar: *enviada al mesero* → *en preparación* → *servida* con ilustración; botón "Llamar al mesero" con enfriamiento visible; sondeo adaptativo (02 §6) con pausa en segundo plano.
+**Criterios:** AC-09.1, AC-09.2, AC-10.1–AC-10.4 (UI), AC-11.1–AC-11.4 (UI), AC-12.3 (UI).
 **Verificar:** `npm --prefix frontend test -- orden sesion-grupal` + prueba manual con tres teléfonos.
 
 ### T-3.6 — App del personal (P06, P07 simplificadas)
 **Depende de:** T-0.5 (contrato de T-3.4) · **Historias:** US-13, US-14, US-26, US-27, US-28
 **Entregable:** `frontend/src/personal/`: `/staff/:slug` con lista de nombres y teclado de PIN; lista de mesas con estado por color (libre · armando · lista · atendida), tiempo desde la comanda, llamadas arriba con alerta sonora (`AudioContext` desbloqueado al primer toque) y resaltado 10 s; detalle de mesa con comanda por comensal y botones *Atender*, *Servida*, *Liberar mesa*; "Agotado" como búsqueda rápida con interruptor; indicador "sin conexión" y reintento; capitán: pestaña *Turno* con el resumen; sondeo 5 s con pausa en segundo plano y petición inmediata al volver.
-**Criterios:** AC-13.2, AC-13.4, AC-13.5, AC-26.1, AC-26.4 (UI), AC-27.1, AC-28.1–AC-28.3.
+**Criterios:** AC-12.2, AC-13.2, AC-13.4, AC-13.5, AC-26.1, AC-26.4 (UI), AC-27.1, AC-28.1–AC-28.3.
 **Verificar:** `npm --prefix frontend test -- personal` + prueba manual: con el teléfono en modo avión aparece "sin conexión"; al volver, la comanda pendiente sigue ahí.
 
 ### T-3.7 — Pedidos en vivo en el panel del operador
@@ -356,11 +357,17 @@ Dentro de una ola, el orden de integración es: backend (A, D, F+G) primero, fro
 
 ### T-4.6 — Métricas mínimas y reporte
 **Depende de:** T-2.3, T-3.2 · **Entregable:** consultas SQL para M1–M4 y G1 en `app/services/metricas.py`; `GET /admin/restaurantes/{rid}/resumen` (escaneos y órdenes de hoy y de la semana) y tarjeta en el panel; `scripts/reporte_semanal.py` → Markdown ([05 §10](05_Operacion.md)).
+**Criterios:** AC-24.3.
 **Verificar:** `uv run pytest tests/integration/test_metricas.py -q` con eventos sembrados y valores calculados a mano.
 
 ### T-4.7 — Ensayo en restaurante real
 **Depende de:** T-4.1–T-4.6 · **Entregable:** el procedimiento de [05 §9](05_Operacion.md) ejecutado en el primer restaurante con iPhone y Android; lista de 12 pasos (`docs/piloto/ensayo.md`, derivada de `07_Test_Strategy.md` §5 sin AR) firmada; hallazgos convertidos en tareas.
 **Verificar:** los 12 pasos en verde; ninguna comanda perdida en 3 días de operación.
+
+### T-4.9 — Trazabilidad y contrato en CI
+**Depende de:** T-3.4 · **Entregable:** `scripts/verificar_trazabilidad.py --fase N --estricto` en CI para cada fase cerrada (toda prueba de criterio lleva `@pytest.mark.ac`); `schemathesis` como dependencia de desarrollo y paso de CI contra `/openapi.json` con la API levantada sobre la semilla (`--checks all`, excluyendo rutas de subida de archivos si hace falta); `docs/piloto/ensayo.md` con los criterios manuales listados por ID para que el verificador los cuente.
+**Verificar:** `uv run python scripts/verificar_trazabilidad.py --fase 1 --fase 2 --fase 3 --estricto` en verde y el paso de `schemathesis` en verde en CI.
+**Notas:** ver `docs/plan/07_Spec_Driven.md` §4.
 
 ### T-4.8 — Lanzamiento beta
 **Depende de:** T-4.7 · **Entregable:** etiqueta `v0.1.0` desplegada a producción; `README.md` y `docs/plan/README.md` con el estado; primer reporte semanal entregado; lista de "qué pedimos a los siguientes 4 restaurantes".
@@ -376,7 +383,7 @@ En orden tentativo de valor: ilustración generada por IA para platillos sin fot
 
 ## 10. Criterio de terminado de la v1
 
-- [ ] Las 44 tareas de las Fases 0–4 tienen su comando de verificación en verde.
+- [ ] Las 45 tareas de las Fases 0–4 tienen su comando de verificación en verde.
 - [ ] Las historias US-01–06, US-10–17, US-21, US-24–28 tienen al menos una prueba automatizada por criterio EARS (o un paso manual documentado en `docs/piloto/ensayo.md`).
 - [ ] `pytest` completo con cobertura ≥ 80 % en `app/services/`.
 - [ ] Los SLOs de 02 §10.2 medidos y en verde en staging.

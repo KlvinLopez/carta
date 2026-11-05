@@ -75,3 +75,7 @@ plugins = ["pydantic.mypy"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+markers = [
+    "ac(*ids): criterios de aceptación (AC-x.y) que cubre la prueba; los lee scripts/verificar_trazabilidad.py",
+    "live: usa la API real de Claude; requiere ANTHROPIC_API_KEY y se corre a mano",
+]

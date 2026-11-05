@@ -1,6 +1,6 @@
 # CLAUDE.md — Reglas de trabajo en el repositorio Carta
 
-Se carga en cada sesión. Es la primera lectura obligatoria. El detalle vive en skills (`.claude/skills/`) para que este archivo se mantenga corto.
+Se carga en cada sesión. Es la primera lectura obligatoria. El detalle vive en skills (`.claude/skills/`) para que este archivo se mantenga corto. `AGENTS.md` apunta aquí para otras herramientas.
 
 ---
 
@@ -12,14 +12,9 @@ Un restaurante sube su carta en PDF y en minutos tiene un menú visual por QR; l
 
 ## Antes de escribir código
 
-Lee, en este orden:
+Lee, en este orden: `docs/plan/README.md` (plan vigente y decisiones) → `docs/plan/04_Fases_y_Tareas.md` (**tu tarea** `T-x.y`, su carril y su comando de verificación) → `docs/plan/02_Arquitectura_v1.md` y `03_Datos_v1.md` (contratos) → `docs/mvp/04_API_Spec.md` §1 (convenciones y errores), `docs/mvp/01_PRD.md` §7 (criterios EARS) y el ADR que toque (`docs/mvp/adr/`).
 
-1. `docs/plan/README.md` — índice del plan vigente y decisiones del 2 de noviembre de 2026.
-2. `docs/plan/04_Fases_y_Tareas.md` — **tu tarea** (`T-x.y`), su carril y su comando de verificación.
-3. `docs/plan/02_Arquitectura_v1.md` y `docs/plan/03_Datos_v1.md` — contratos exactos.
-4. `docs/mvp/04_API_Spec.md` §1 (convenciones y formato de error), `docs/mvp/01_PRD.md` §7 (criterios EARS) y el ADR que toque (`docs/mvp/adr/`).
-
-**Regla:** si lo que vas a hacer contradice un documento, **no lo hagas**. Detente, explica la contradicción y propón actualizar el documento primero. Los documentos son la fuente de verdad; el código los sigue.
+**Regla:** si lo que vas a hacer contradice un documento, **no lo hagas**. Detente, explica la contradicción y propón actualizar el documento primero. Los documentos son la fuente de verdad; el código los sigue. Lo que no está en el plan se especifica antes con `/especificar`.
 
 ---
 
@@ -34,17 +29,12 @@ uv run uvicorn app.main:app --reload --port 8000
 
 # Calidad — deben pasar antes de cada commit
 uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q
-uv run pytest tests/unit -q               # rápido
-uv run pytest tests/integration -q        # requiere PostgreSQL
+uv run python scripts/verificar_trazabilidad.py --tarea T-x.y --estricto   # criterio → prueba
 
-# Frontend
-npm --prefix frontend run dev
+# Frontend (desde T-0.5)
 npm --prefix frontend run tipos           # tipos desde /openapi.json
-npm --prefix frontend test
-npm --prefix frontend run build && node frontend/scripts/presupuesto.mjs
+npm --prefix frontend test && npm --prefix frontend run build && node frontend/scripts/presupuesto.mjs
 ```
-
-Hasta que termine la Fase 0 (T-0.1), el `pyproject.toml` es el viejo y la aplicación no arranca: la primera tarea es arreglarlo.
 
 ---
 
@@ -66,7 +56,7 @@ No se negocian sin un ADR nuevo.
 12. **Sin secretos en el repositorio.** Todo por variable de entorno.
 13. **Sin SDKs propietarios de nube.** PostgreSQL, S3 compatible y variables de entorno (ADR-012).
 14. **Sin 3D ni AR en la v1** (ADR-011).
-15. **Una tarea del plan = un commit** con el ID: `T-2.3: menú público con ETag`.
+15. **Una tarea del plan = un commit** con el ID: `T-2.3: menú público con ETag`. Cada prueba de criterio lleva `@pytest.mark.ac("AC-x.y")`.
 
 ---
 
@@ -81,7 +71,7 @@ No se negocian sin un ADR nuevo.
 - Frontend: Vite + React + TypeScript, una SPA con tres áreas (`/m`, `/staff`, `/admin`), PWA, bundle ≤ 250 KB.
 - Imagen del platillo: foto (recomendada) → ilustración por categoría → generada por IA (v1.1).
 - Contrato primero: el backend publica `app/schemas/` y `/openapi.json`; el frontend genera tipos desde ahí.
-- Despliegue: push a `master` → staging; etiqueta `v*` → producción. Rollback = etiqueta anterior.
+- Despliegue: push a `master` → staging; etiqueta `v*` → producción. Rollback = versión anterior.
 
 ---
 
@@ -109,38 +99,28 @@ Todo lo que ve un usuario sigue el skill `/diseno-visual`. Lo esencial: fondo Cr
 
 ---
 
-## Ciclo de trabajo (Compound Engineering)
+## Ciclo de trabajo (spec-driven + Compound Engineering)
 
-Cada sesión recorre cuatro pasos, y cada vuelta deja una capa que la siguiente sesión hereda.
+Detalle en `docs/plan/07_Spec_Driven.md`. Cada sesión recorre cinco pasos y cada vuelta deja una capa que la siguiente hereda.
 
 | Paso | Cómo | Deja |
 |---|---|---|
+| 0 · Especificar | Sólo si no está en el plan: `/especificar` → `docs/specs/NNN-*/spec.md` → tareas en 04 | Criterios verificables |
 | 1 · Planear | Plan mode (`shift+tab`) o `/tarea T-x.y`: investiga sin tocar nada | Un plan revisable |
-| 2 · Trabajar | Implementa el plan; subagente `implementador` para pasos aislados, `explorador` para buscar sin ensuciar el contexto | Código y pruebas |
-| 3 · Revisar | `/revisar` (seguridad · pruebas · adversarial) y `/code-review` antes del PR | Hallazgos resueltos |
+| 2 · Trabajar | Pruebas primero (marcadas con el criterio), luego código; subagente `implementador` para pasos aislados, `explorador` para buscar | Código y pruebas |
+| 3 · Revisar | `/revisar` (seguridad · pruebas · adversarial), `/analizar T-x.y` (spec ↔ contrato ↔ código ↔ pruebas) y `/code-review` antes del PR | Hallazgos resueltos |
 | 4 · Compound | `/compound` antes de cerrar: ¿qué aprendimos que la próxima sesión debería saber? | Memoria para la próxima |
 
-Cada lección se vuelve un artefacto:
-
-| Lección | Artefacto | Dónde |
-|---|---|---|
-| Un bug que regresa | Un test de regresión | `tests/` |
-| Un hallazgo de revisión | Una regla | este archivo (corto) |
-| Un procedimiento que se repite | Una skill | `.claude/skills/` |
-| Una regla que no puede fallar | Un hook | `.claude/settings.json`, `.claude/hooks/` |
-| Una decisión costosa | Un ADR | `docs/mvp/adr/` |
-
-Mantenimiento: este archivo no pasa de 150 líneas; lo que crezca se mueve a una skill.
+Cada lección se vuelve un artefacto: bug que regresa → test (`tests/`); hallazgo de revisión → regla (aquí, corto); procedimiento repetido → skill (`.claude/skills/`); regla que no puede fallar → hook (`.claude/hooks/`); decisión costosa → ADR (`docs/mvp/adr/`). Varias tareas en paralelo: una sesión maestra con `/orquestar`, una hija por carril. Este archivo no pasa de 150 líneas; lo que crezca se mueve a una skill.
 
 ---
 
 ## Al terminar una tarea
 
-1. Ejecuta el comando de **Verificar** de la tarea. Si falla, la tarea no está hecha.
-2. Ejecuta los comandos de calidad.
-3. Commit con el ID de la tarea. No hagas push a `master` ni fuerces un push.
-4. Si el plan estaba equivocado, corrígelo en `docs/plan/04_Fases_y_Tareas.md` y añade la fila en su registro de cambios.
-5. `/compound`.
+1. El comando de **Verificar** de la tarea y la puerta de calidad en verde. Si algo falla, la tarea no está hecha.
+2. Commit con el ID de la tarea. No hagas push a `master` ni fuerces un push; todo entra por PR con `.github/pull_request_template.md`.
+3. Si el plan estaba equivocado, corrígelo en `docs/plan/04_Fases_y_Tareas.md` y añade la fila en su registro de cambios (§11).
+4. `/compound`.
 
 ---
 
@@ -150,6 +130,6 @@ El alcance de la v1 está cerrado. No construyas, aunque parezca obvio o fácil:
 
 ---
 
-## Estado del código antes de la Fase 0
+## Estado del código
 
-No arranca (driver síncrono con motor asíncrono), `create_all()` al arrancar, `.gitignore` que ignora las migraciones, pruebas con SQLite que no corren, CI escuchando ramas inexistentes, CORS abierto. La lista completa con la tarea que corrige cada punto está en `docs/plan/04_Fases_y_Tareas.md` §4.
+Fase 0 en curso: T-0.1 hecha (toolchain, `Settings`). Hasta T-0.2 la aplicación no arranca (motor y migraciones pendientes). La lista de problemas heredados y la tarea que corrige cada uno está en `docs/plan/04_Fases_y_Tareas.md` §4.
