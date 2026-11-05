@@ -64,3 +64,17 @@ Para cada rama terminada, en la maestra:
 - Nunca dos hijas en el mismo carril.
 - Nunca `git push --force` ni push a `master`: todo entra por PR.
 - Si el usuario lleva más de 4 h sin escribir, no abras olas nuevas: termina la actual y reporta.
+
+## Lecciones de la ola 0 (5 de noviembre de 2026, T-0.2 a T-0.6)
+
+Tiempos reales: una tarea de Fase 0 tarda 15–35 min de hija, la revisión con tres lentes 15–25 min más, y la ronda de correcciones 15–25 min; cada hija cuesta 6–21 USD y cada lente 100–220 k tokens. Dos hijas en paralelo más seis lentes agotan el límite de 5 h de la cuenta: cuando una hija muere con «You've hit your 5-hour limit», no la relances; espera el reinicio y reanúdala con `send_message` en la misma sesión (conserva el contexto).
+
+1. **La hija no ve tu scratchpad.** Lo que un revisor deja ahí (pruebas propuestas, scripts) se le pasa dentro del `send_message` (límite 64 KiB), no como ruta.
+2. **Cada lente con su base y su puerto.** Tres revisores a la vez sobre el mismo worktree comparten `carta_test` y se tumban el esquema (así salió la «intermitencia» de T-0.4). Dales `TEST_DATABASE_URL=...carta_test_<lente>` y puertos distintos (8011, 8021…), y exige `git status --porcelain` vacío al terminar.
+3. **Worktree ≠ venv.** El editable del `.venv` del worktree apunta al repo principal: `uv sync --locked --reinstall-package carta` en cada worktree antes de verificar; en frontend, `npm ci` por worktree.
+4. **Nunca `$?` tras una tubería.** Para confirmar que una mutación falla, corre el comando sin `| tail` y lee su código; o `PIPESTATUS[0]`.
+5. **El guard lee el texto del comando.** Un grep o un heredoc que contenga `create_all(` o la sentencia destructiva de base de datos se bloquea aunque sea texto: usa `create_al[l]`, o escribe el archivo con Write/Edit (este mismo apartado se escribió así).
+6. **Verificar que necesita Docker → job de CI** en push a `agente/**`; la maestra lo comprueba con `mcp__github__actions_list` (`list_workflow_runs` por rama y `list_workflow_jobs` del run: un `success` de 60 s puede ser sólo `calidad`).
+7. **Integración:** la rama que sea fast-forward entra primero (aunque sea la de frontend); la siguiente va con `merge --no-ff`; el único choque recurrente es la tabla de 04 §11 (ambas añaden filas al final): conservar las dos partes. Mientras dos hijas corren, ninguna edita «Estado del código» de CLAUDE.md ni el README del plan: lo hace la maestra al integrar.
+8. **Reproduce cada bloqueante tú misma** antes de devolverlo (una mutación, un curl); los revisores aciertan, pero la hija responde mejor a «lo reproduje así».
+9. **Cadencia:** check-in con `send_later` a 25 min funciona; bórralo (`delete_trigger`) al integrar para que no dispare sobre trabajo ya hecho.
