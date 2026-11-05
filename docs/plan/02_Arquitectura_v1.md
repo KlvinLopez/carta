@@ -325,8 +325,12 @@ Comparación: el diseño de agosto costaba 130–160 USD desde el primer día; l
 
 ### 11.2 Qué proveedor
 
-- **Para la v1 no importa:** la imagen es portable. Lo que decide es precio, región y simplicidad. Hetzner es el más barato (sin región en México; desde Ashburn la latencia a CDMX es ~60 ms y el borde de Cloudflare está en México); Vultr tiene Ciudad de México a ~12 USD; DigitalOcean es el más documentado.
-- **Cuando haga falta nube administrada (§11.3), Google Cloud:** Cloud Run es el producto de contenedores sin servidor más simple, tiene región en Querétaro y `terraform/` ya apunta ahí. El equivalente en AWS (App Runner o ECS Fargate + RDS) exige más configuración. Si llega un crédito de AWS, la misma imagen corre en App Runner en un día.
+Análisis completo, con pros, contras y precios de Vercel, Netlify, Railway, Render, Fly.io, DigitalOcean, Cloud Run, AWS y VPS, en [`06_Hosting.md`](06_Hosting.md). Resumen ([ADR-015](../mvp/adr/ADR-015-primer-despliegue-railway.md), propuesta):
+
+- **Primer despliegue: Railway.** Misma imagen Docker, PostgreSQL con volumen, respaldo a R2 como servicio con horario, Cloudflare delante. ≈ 5–10 USD/mes al arrancar, 20–25 con 10 restaurantes. Sin servidor que administrar.
+- **Camino de ahorro: la VM con Compose** de esta sección y del ADR-012 (6–12 USD/mes, costo fijo), cuando la factura de Railway pase de ~40 USD sostenidos o se quiera control total. Hetzner es el más barato; Vultr tiene Ciudad de México; DigitalOcean es el más documentado.
+- **Camino de escala: Google Cloud** (Cloud Run + Cloud SQL, región en Querétaro, `terraform/` ya apunta ahí) cuando un disparador de §11.3 lo pida. El equivalente en AWS exige más configuración; si llega un crédito de AWS, la misma imagen corre en App Runner en un día.
+- **Nunca para la API:** Vercel y Netlify (funciones serverless sin proceso de larga duración, cobro por invocación, sin PostgreSQL).
 
 ### 11.3 Disparadores de crecimiento
 

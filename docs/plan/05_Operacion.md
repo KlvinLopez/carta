@@ -9,22 +9,22 @@
 | Entorno | Dominio | Stack de Compose | Base | Se despliega con |
 |---|---|---|---|---|
 | Desarrollo | `localhost:5173` (Vite) + `localhost:8000` (API) | `docker-compose.yml` (sólo PostgreSQL) | `carta_dev` | `uv run uvicorn …` |
-| Staging | `staging.<dominio>` | `deploy/docker-compose.prod.yml -p carta-staging` | `carta_staging` | cada push a `master` |
-| Producción | `<dominio>` · `img.<dominio>` (R2) | `deploy/docker-compose.prod.yml -p carta-prod` | `carta_prod` | cada etiqueta `v*` |
+| Staging | `staging.<dominio>` | Railway, *environment* `staging` | PostgreSQL de Railway (`staging`) | cada push a `master` |
+| Producción | `<dominio>` · `img.<dominio>` (R2) | Railway, *environment* `produccion` | PostgreSQL de Railway (`produccion`) | cada etiqueta `v*` |
 
-Los dos stacks de la VM comparten la instancia de PostgreSQL (un contenedor, dos bases, dos usuarios) y el mismo Caddy, que enruta por nombre de host.
+Cada *environment* de Railway tiene sus propios servicios y variables; nada se comparte entre staging y producción. (Variante VM: dos stacks de Compose en la misma máquina; ver Anexo A.)
 
 ---
 
-## 2. Crear la VM (una vez)
+## 2. Primer despliegue en Railway (una vez)
 
-1. Cuenta en el proveedor con 2FA. Llave SSH propia; la contraseña de root se desactiva.
-2. VM Ubuntu LTS, 2 vCPU / 4 GB, con `deploy/cloud-init.yml`: crea el usuario `carta`, instala Docker, `ufw` (22, 80, 443), `fail2ban`, actualizaciones automáticas, y clona `deploy/` en `/opt/carta`.
-3. `/opt/carta/.env` (permisos 600) con: `DATABASE_URL`, `SECRET_KEY` (256 bits, `openssl rand -base64 32`), `R2_*`, `ANTHROPIC_API_KEY`, `FIREBASE_PROJECT_ID`, `SENTRY_DSN`, `RESEND_API_KEY`, `DOMINIO`.
-4. Cloudflare: zona del dominio, registros `A` para `@` y `staging` apuntando a la VM con proxy activado, `CNAME img` al bucket R2 público, SSL en modo *Full (strict)*, regla de caché para `/api/v1/p/menu/*`, regla de límite de tasa (p. ej. 300 peticiones/min por IP), *Bot Fight Mode*.
-5. `docker compose up -d` en staging; `curl https://staging.<dominio>/health`.
+1. Cuenta en Railway con 2FA y tarjeta (plan Hobby). Proyecto `carta` con *environments* `staging` y `produccion`.
+2. En cada *environment*: servicio `postgres` (plantilla oficial, con volumen); servicio `api` conectado al repositorio de GitHub (`staging` sigue `master`; `produccion` se despliega desde CI con etiquetas), construido con el `Dockerfile`, con `railway.toml` (`healthcheckPath = "/health"`, comando previo al despliegue `uv run alembic upgrade head`); servicio `respaldo` con horario diario (imagen de `deploy/respaldo/`).
+3. Variables del servicio `api` (las de `.env.example`): `ENTORNO`, `DATABASE_URL` (referencia a la variable del servicio `postgres`), `SECRET_KEY` (256 bits, `openssl rand -base64 32`), `DOMINIO`, `R2_*`, `ANTHROPIC_API_KEY`, `FIREBASE_PROJECT_ID`, `SENTRY_DSN`. Las de `respaldo`: `DATABASE_URL`, `R2_*`, `RESPALDO_CLAVE_AGE`.
+4. Dominio: en Railway, *custom domain* `staging.<dominio>` y `<dominio>`; en Cloudflare, los `CNAME` que Railway indique, con proxy activado, SSL *Full (strict)*, `CNAME img` al bucket R2 público, regla de caché para `/api/v1/p/menu/*`, regla de límite de tasa (p. ej. 300 peticiones/min por IP), *Bot Fight Mode*.
+5. `curl https://staging.<dominio>/health`; en GitHub, el secreto `RAILWAY_TOKEN` para el despliegue a producción.
 
-Todo esto queda documentado paso a paso en `deploy/README.md` (T-0.7) para poder recrear la VM en menos de una hora.
+Todo esto queda documentado paso a paso en `deploy/README.md` (T-0.7) para poder recrearlo en menos de una hora. La variante de VM está en el Anexo A.
 
 ---
 
@@ -33,18 +33,18 @@ Todo esto queda documentado paso a paso en `deploy/README.md` (T-0.7) para poder
 ```mermaid
 flowchart LR
   A["push a master"] --> B["CI: ruff · mypy · pytest (PostgreSQL) · build PWA · presupuesto de bundle"]
-  B --> C["imagen ghcr.io/klvinlopez/carta:<sha>"]
-  C --> D["ssh a la VM"]
-  D --> E["compose pull + run migrador (alembic upgrade head)"]
-  E --> F["compose up -d --wait (staging)"]
-  F --> G["prueba de humo: /health /ready /m/<codigo-semilla>"]
-  G -->|"git tag vX.Y.Z"| H["misma imagen → prod"]
+  B --> C["Railway construye la imagen (staging)"]
+  C --> D["comando previo: alembic upgrade head"]
+  D --> E["healthcheck /health → tráfico a la versión nueva"]
+  E --> F["prueba de humo: /health /ready /m/<codigo-semilla>"]
+  F -->|"git tag vX.Y.Z"| G["GitHub Actions: railway up --environment produccion"]
 ```
 
 - **Migraciones compatibles hacia atrás** (expandir → usar → contraer): primero se agrega la columna o tabla, se despliega el código que la usa, y sólo en una versión posterior se borra lo viejo. Así un *rollback* de la imagen nunca choca con el esquema.
-- **Rollback:** `IMAGEN_TAG=<sha-anterior> docker compose up -d`. Un comando, menos de un minuto. Se documenta en `deploy/README.md`.
-- **Secretos de CI:** `SSH_PRIVATE_KEY`, `VM_HOST`; nada más. La VM tiene su `.env`.
-- **Desde el teléfono:** GitHub Actions permite relanzar el despliegue y el proveedor de la VM permite reiniciarla desde su app. Para emergencias, una app de SSH en el teléfono con la llave.
+- **Rollback:** en el panel de Railway, *redeploy* de la versión anterior (o `railway redeploy`). Un clic, menos de un minuto. Se documenta en `deploy/README.md`.
+- **Secretos de CI:** sólo `RAILWAY_TOKEN`. Las variables de la aplicación viven en Railway.
+- **Desde el teléfono:** el panel de Railway permite ver logs, reiniciar y hacer rollback desde el navegador del teléfono; GitHub Actions permite relanzar el despliegue a producción.
+- **Variante VM (Anexo A):** imagen en GHCR → `ssh` → `compose pull` + migrador → `compose up -d --wait`; rollback `IMAGEN_TAG=<sha-anterior> docker compose up -d`.
 
 ---
 
@@ -151,3 +151,17 @@ Todo incidente se registra en `docs/incidentes/AAAA-MM-DD-titulo.md`, aunque no 
 ## 10. Reporte semanal del piloto
 
 `uv run python scripts/reporte_semanal.py --restaurante <slug> --semana 2026-W47` produce un Markdown con M1–M4 y G1, los platillos más vistos y más pedidos, los más vistos y no pedidos, las horas pico y los errores de la semana. Se envía al restaurante y se archiva en `docs/plan/piloto/`.
+
+---
+
+## Anexo A — Variante de VM con Docker Compose (ADR-012)
+
+Se adopta cuando la factura de Railway supere ~40 USD/mes sostenidos o se quiera control total. Todo está en `deploy/vps/` desde T-0.6.
+
+1. Cuenta en el proveedor con 2FA (Hetzner, Vultr en Ciudad de México o DigitalOcean). Llave SSH propia; la contraseña de root se desactiva.
+2. VM Ubuntu LTS, 2 vCPU / 4 GB, con `deploy/vps/cloud-init.yml`: crea el usuario `carta`, instala Docker, `ufw` (22, 80, 443), `fail2ban`, actualizaciones automáticas, y clona `deploy/vps/` en `/opt/carta`.
+3. `/opt/carta/.env` (permisos 600) con las variables de `.env.example` más `IMAGEN_TAG`.
+4. Cloudflare: registros `A` para `@` y `staging` apuntando a la VM con proxy activado; el resto igual que en §2.
+5. `docker compose up -d` (Caddy sirve HTTPS y hace proxy a la API; PostgreSQL y `respaldo` en la misma red interna); dos stacks `-p carta-staging` y `-p carta-prod` comparten la instancia de PostgreSQL con dos bases y dos usuarios.
+6. Despliegue: `.github/workflows/deploy-vps.yml` (imagen en GHCR → `ssh` → migrador → `compose up -d --wait`); rollback con `IMAGEN_TAG` anterior.
+7. Respaldos y monitoreo: idénticos a §4 y §5; además, alerta de disco de la VM.

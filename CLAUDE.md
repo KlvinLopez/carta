@@ -72,7 +72,7 @@ No se negocian sin un ADR nuevo.
 
 ## Arquitectura en 10 líneas
 
-- Una VM con Docker Compose: Caddy (HTTPS y estáticos) → API FastAPI (uvicorn, N workers) → PostgreSQL 16. Cloudflare delante; R2 para fotos y respaldos (ADR-012).
+- Una imagen Docker portable: API FastAPI (uvicorn, N workers) que sirve también la PWA, más PostgreSQL 16. Primer destino Railway (ADR-015, propuesta); variante VM con Compose y Caddy en `deploy/vps/` (ADR-012). Cloudflare delante; R2 para fotos y respaldos.
 - Tres audiencias, tres autenticaciones: `/api/v1/p` (comensal, JWT de invitado en cookie), `/api/v1/op` (personal, PIN → cookie de 12 h), `/api/v1/admin` (operador, Firebase).
 - El menú es público por `slug` y cacheable en el borde; el sondeo responde `304` sin tocar la base.
 - Sin WebSockets: sondeo adaptativo con ETag, 3 s comensal y 5 s personal, pausado en segundo plano (ADR-004).
