@@ -1,17 +1,32 @@
-"""Motor de base de datos y sesiones.
+"""Motor asíncrono de base de datos y sesiones.
 
-Provisional hasta T-0.2 (motor asíncrono con asyncpg, sin `create_all`).
+El esquema se crea y cambia sólo con migraciones de Alembic (regla dura 3):
+aquí no hay `create_all` ni ninguna inicialización del esquema.
 La configuración vive en `app.core.config`.
 """
 
 from collections.abc import AsyncIterator
 
+from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
 
-Base = declarative_base()
+# Nombres deterministas para las restricciones que el DDL del plan deja sin nombre.
+# Los índices y los CHECK llevan siempre nombre explícito (los de docs/plan/03_Datos_v1.md).
+CONVENCION_DE_NOMBRES = {
+    "pk": "pk_%(table_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s",
+    "uq": "uq_%(table_name)s_%(column_0_N_name)s",
+}
+
+
+class Base(DeclarativeBase):
+    """Base declarativa de todos los modelos de Carta."""
+
+    metadata = MetaData(naming_convention=CONVENCION_DE_NOMBRES)
+
 
 engine = create_async_engine(
     settings.DATABASE_URL,
@@ -30,9 +45,6 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
         yield session
 
 
-async def init_db() -> None:
-    """Se elimina en T-0.2: el esquema se crea sólo con migraciones de Alembic (regla dura 3)."""
-
-
 async def close_db() -> None:
+    """Cierra el pool de conexiones al apagar la aplicación."""
     await engine.dispose()

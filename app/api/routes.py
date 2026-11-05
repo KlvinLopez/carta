@@ -111,7 +111,7 @@ async def delete_restaurante(
             detail="Restaurante no encontrado",
         )
 
-    db_restaurante.activo = False  # type: ignore[assignment]  # Column legado; Mapped[] en T-0.2
+    db_restaurante.activo = False
     await session.commit()
 
 
@@ -228,7 +228,7 @@ async def delete_platillo(
             detail="Platillo no encontrado",
         )
 
-    db_platillo.activo = False  # type: ignore[assignment]  # Column legado; Mapped[] en T-0.2
+    db_platillo.activo = False
     await session.commit()
 
 

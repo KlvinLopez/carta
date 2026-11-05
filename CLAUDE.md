@@ -132,4 +132,4 @@ El alcance de la v1 está cerrado. No construyas, aunque parezca obvio o fácil:
 
 ## Estado del código
 
-Fase 0 en curso: T-0.1 hecha (toolchain, `Settings`). Hasta T-0.2 la aplicación no arranca (motor y migraciones pendientes). La lista de problemas heredados y la tarea que corrige cada uno está en `docs/plan/04_Fases_y_Tareas.md` §4.
+Fase 0 en curso: T-0.1 (toolchain, `Settings`) y T-0.2 (motor asyncpg, modelos v1 con `Mapped[]`, migración `0001_base_v1` con triggers INV-3/INV-8) hechas. Faltan errores, `/ready` y la estructura de carpetas (T-0.3). La lista de problemas heredados y la tarea que corrige cada uno está en `docs/plan/04_Fases_y_Tareas.md` §4.

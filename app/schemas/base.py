@@ -73,7 +73,6 @@ class PlatilloBase(BaseModel):
     descripcion: str | None = None
     precio: float = Field(..., gt=0)
     foto_url: str | None = None
-    modelo_3d_url: str | None = None
     alergenos: list = Field(default_factory=list)
     etiquetas: list = Field(default_factory=list)
     calorias: int | None = None
@@ -97,7 +96,6 @@ class PlatilloUpdate(BaseModel):
     descripcion: str | None = None
     precio: float | None = None
     foto_url: str | None = None
-    modelo_3d_url: str | None = None
     alergenos: list | None = None
     etiquetas: list | None = None
     calorias: int | None = None
@@ -146,7 +144,7 @@ class MesaBase(BaseModel):
 
     restaurante_id: UUID
     numero: int = Field(..., gt=0)
-    qr_code: str
+    codigo_publico: str
     nfc_id: str | None = None
     capacidad: int = Field(default=4, gt=0)
     activa: bool = True

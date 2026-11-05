@@ -10,7 +10,7 @@
 |---|---|---|---|
 | Catálogo | `restaurante` | Fase 1 | + `slug` único (ya existe), + `logo_url`, + `tema` (ya existe); `plan` se queda pero sin uso |
 | | `categoria_menu` | Fase 1 | sin cambios |
-| | `platillo` | Fase 1 | − `modelo_3d_url`; + `disponible BOOLEAN NOT NULL DEFAULT true`; + `foto_thumb_url`, `foto_detalle_url`, `foto_original_url`; + `imagen_tipo` (`foto` · `ilustracion_categoria` · `ilustracion_generada`); + `ilustracion_clave VARCHAR(40)`; + `no_disponible_desde TIMESTAMPTZ`, `no_disponible_por UUID` |
+| | `platillo` | Fase 1 | − `modelo_3d_url`; + `disponible BOOLEAN NOT NULL DEFAULT true`; + `foto_thumb_url`, `foto_detalle_url`, `foto_original_url`; + `imagen_tipo` (`foto` · `ilustracion_categoria` · `ilustracion_generada`); + `ilustracion_clave VARCHAR(40)`; + `no_disponible_desde TIMESTAMPTZ`, `no_disponible_por UUID`; + `orden INTEGER NOT NULL DEFAULT 0` (posición dentro de la categoría; lo exige el índice `(categoria_id, orden)` de §5) |
 | Mesa y sesión | `mesa` | Fase 1 | `qr_code` → `codigo_publico` (≥ 22 caracteres), + `codigo_revocado_en` |
 | | `sesion_grupal` | Fase 1 | estados `activa` · `lista_para_enviar` · `cerrada` · `cancelada`; + `ultima_actividad_en`; + `cerrada_por_personal_id UUID NULL` |
 | | `miembro_sesion` | Fase 1 | + `alias VARCHAR(24)`, + `color_avatar VARCHAR(7)`; `usuario_id` siempre nulo en v1 |
@@ -19,7 +19,7 @@
 | | `comanda` | Agosto | estados `abierta` · `atendida` · `servida` · `cancelada`; + `servida_en`; `atendida_por` pasa a `atendida_por_personal_id UUID NULL REFERENCES personal_restaurante` |
 | | `comanda_orden` | Agosto | sin cambios |
 | | `llamada_mesero` | Agosto | + `atendida_por_personal_id UUID NULL` |
-| Acceso | `usuario` | Fase 1 | sólo operadores en v1; `provider` ∈ `google` · `email_link` |
+| Acceso | `usuario` | Fase 1 | sólo operadores en v1; `provider` ∈ `google` · `email_link`; − `perfil_alimentario` (regla dura 10: los filtros de alérgenos viven en el teléfono) |
 | | `operador_restaurante` | Agosto | sin cambios |
 | | `personal_restaurante` | **Nueva** | §2.1 |
 | Importación | `importacion_menu` | **Nueva** | §2.2 |
@@ -64,7 +64,7 @@ CREATE TYPE estado_importacion AS ENUM ('pendiente','procesando','listo','confir
 CREATE TABLE importacion_menu (
     id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     restaurante_id   UUID NOT NULL REFERENCES restaurante(id) ON DELETE CASCADE,
-    solicitado_por   UUID NOT NULL REFERENCES usuario(id) ON DELETE SET NULL,
+    solicitado_por   UUID NOT NULL REFERENCES usuario(id) ON DELETE RESTRICT,  -- NOT NULL + SET NULL era contradictorio
     archivo_url      VARCHAR(500) NOT NULL,          -- bucket privado
     archivo_tipo     VARCHAR(40) NOT NULL,           -- application/pdf, image/jpeg…
     paginas          SMALLINT,
@@ -144,6 +144,8 @@ ALTER TABLE platillo ADD COLUMN imagen_tipo imagen_tipo NOT NULL DEFAULT 'ilustr
 ALTER TABLE platillo ADD COLUMN ilustracion_clave VARCHAR(40);
 ALTER TABLE platillo ADD COLUMN no_disponible_desde TIMESTAMPTZ;
 ALTER TABLE platillo ADD COLUMN no_disponible_por UUID REFERENCES personal_restaurante(id) ON DELETE SET NULL;
+ALTER TABLE platillo ADD COLUMN orden INTEGER NOT NULL DEFAULT 0;
+CREATE INDEX idx_platillo_categoria_orden ON platillo (categoria_id, orden);
 
 -- MESA
 ALTER TABLE mesa RENAME COLUMN qr_code TO codigo_publico;
@@ -174,6 +176,8 @@ ALTER TABLE comanda ADD COLUMN atendida_por_personal_id UUID REFERENCES personal
 ```
 
 > Como **no existe ninguna base en producción**, la migración `0001_base_v1` crea el esquema final directamente, en lugar de la secuencia 0001–0008 de agosto. Las sentencias de arriba describen el delta conceptual, no el orden de ejecución.
+>
+> Detalles de la migración real (T-0.2): los `id` usan `gen_random_uuid()` (nativo desde PostgreSQL 13; no hace falta la extensión `uuid-ossp`); los índices `idx_comanda_mesa` e `idx_importacion_restaurante` son ascendentes (un índice B-tree se recorre en ambos sentidos); `item_orden.platillo_id` es `ON DELETE RESTRICT` (INV-4); los estados de `sesion_grupal` y `orden_personal` siguen siendo `VARCHAR` con `CHECK`, y sólo `comanda`, `importacion_menu`, `imagen_tipo` y los roles usan tipos enumerados. Los triggers INV-3 (`tr_item_orden_inmutable`) e INV-8 (`tr_comanda_orden_misma_sesion`) y el `downgrade()` completo viven en `migrations/versions/0001_base_v1.py`; `tests/unit/test_modelos.py` comprueba con `compare_metadata` que los modelos y el esquema real coinciden.
 
 ---
 

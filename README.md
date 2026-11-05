@@ -156,8 +156,8 @@ Requirements: [uv](https://docs.astral.sh/uv/) (installs Python 3.12 for you), D
 ```bash
 cp .env.example .env            # defaults work with docker compose
 uv sync                         # dependencies, into .venv
-docker compose up -d            # PostgreSQL 16
-uv run alembic upgrade head     # schema (from T-0.2)
+docker compose up -d            # PostgreSQL 16 (creates carta_db and carta_test)
+uv run alembic upgrade head     # schema: migrations/versions/0001_base_v1.py
 uv run uvicorn app.main:app --reload --port 8000
 
 # Quality gate — must pass before every commit

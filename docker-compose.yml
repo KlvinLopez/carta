@@ -1,8 +1,9 @@
-version: '3.8'
-
+# Desarrollo local: sólo PostgreSQL 16 con volumen (ADR-012, ADR-015).
+# Sin Redis (caché e idempotencia van en proceso y en PostgreSQL) ni Adminer.
+# La imagen de producción y sus variantes de despliegue viven en Dockerfile y deploy/ (T-0.6).
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: carta-postgres
     environment:
       POSTGRES_USER: carta
@@ -12,32 +13,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_bd_desarrollo.sql:/docker-entrypoint-initdb.d/10-carta-test.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U carta"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U carta -d carta_db"]
+      interval: 5s
       timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: carta-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  adminer:
-    image: adminer:latest
-    container_name: carta-adminer
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    environment:
-      ADMINER_DEFAULT_SERVER: postgres
+      retries: 10
 
 volumes:
   postgres_data:

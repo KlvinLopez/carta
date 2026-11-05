@@ -6,19 +6,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import router
-from app.db import close_db, init_db
+from app.db import close_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup and shutdown events."""
-    # Startup
-    await init_db()
-    print("✓ Database initialized")
+    """Arranque y apagado. El esquema lo crean las migraciones, no la aplicación."""
     yield
-    # Shutdown
     await close_db()
-    print("✓ Database connections closed")
 
 
 def create_app() -> FastAPI:
