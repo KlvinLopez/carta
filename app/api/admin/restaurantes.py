@@ -1,4 +1,9 @@
-"""API routes for Carta."""
+"""CRUD heredado de restaurantes y platillos (temporal).
+
+Sin autenticación ni aislamiento por restaurante todavía: T-1.2 lo pone detrás del token
+del operador y T-1.3 lo reescribe contra 02_Arquitectura_v1 §5.3. Los 404 que lanza salen
+con la envoltura única por el manejador de `app.core.errores`.
+"""
 
 from uuid import UUID
 
@@ -230,14 +235,3 @@ async def delete_platillo(
 
     db_platillo.activo = False
     await session.commit()
-
-
-# ============================================================================
-# HEALTH CHECK
-# ============================================================================
-
-
-@router.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "version": "0.1.0"}

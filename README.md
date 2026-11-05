@@ -178,7 +178,7 @@ The build plan, task by task, is in [`docs/plan/04_Fases_y_Tareas.md`](docs/plan
 | [`marketing/video/`](marketing/video/README.md) | Launch films and their HyperFrames source |
 | [`app/`](app/), [`migrations/`](migrations/), [`tests/`](tests/) | FastAPI backend skeleton — see the [backend guide](docs/BACKEND.md) |
 | [`terraform/`](terraform/), [`.github/workflows/`](.github/workflows/) | Google Cloud infrastructure and CI/CD |
-| [`wireframes/`](wireframes/) | First interactive wireframes (React) |
+| [`docs/archivo/wireframes/`](docs/archivo/wireframes/) | First interactive wireframes (React), superseded by the prototype |
 | [`CLAUDE.md`](CLAUDE.md) | Build guardrails for Claude Code |
 
 Most project documentation is written in Spanish, since the product targets Mexico and Latin America.

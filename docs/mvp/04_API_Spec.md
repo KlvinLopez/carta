@@ -18,7 +18,7 @@
 
 ### 1.2 Formato de error
 
-Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas ni mensajes de base de datos.
+Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas ni mensajes de base de datos. `request_id` es el de la cabecera `X-Request-ID` de la petición (si vino y es `[A-Za-z0-9._-]{1,64}`) o uno generado; la respuesta siempre lo devuelve en la misma cabecera. En `PAYLOAD_INVALIDO`, `detalles.errores[]` lleva `campo`, `mensaje` y `tipo` de cada error, nunca el valor enviado.
 
 ```json
 {
@@ -33,13 +33,13 @@ Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas
 
 | HTTP | Cuándo | Códigos de ejemplo |
 |---|---|---|
-| 400 | Petición malformada | `PAYLOAD_INVALIDO` |
+| 400 | Petición malformada (cabeceras, multipart) | `PAYLOAD_INVALIDO` |
 | 401 | Falta credencial o expiró | `TOKEN_EXPIRADO`, `SIN_CREDENCIAL` |
 | 403 | Credencial válida, acción no permitida | `ORDEN_AJENA`, `ORDEN_BLOQUEADA` |
 | 404 | No existe **o** no es visible para quien pregunta | `MESA_NO_ENCONTRADA`, `RECURSO_NO_ENCONTRADO` |
 | 409 | Conflicto de estado | `SESION_YA_ENVIADA`, `ORDEN_VACIA` |
 | 413 | Archivo demasiado grande | `ARCHIVO_EXCEDE_LIMITE` |
-| 422 | Validación de negocio | `PRECIO_INVALIDO`, `ALIAS_NO_PERMITIDO` |
+| 422 | Validación del payload (Pydantic) o de negocio | `PAYLOAD_INVALIDO`, `PRECIO_INVALIDO`, `ALIAS_NO_PERMITIDO` |
 | 429 | Límite de tasa | `DEMASIADAS_PETICIONES` |
 | 500 | Error interno | `ERROR_INTERNO` |
 

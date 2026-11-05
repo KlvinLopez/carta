@@ -1,63 +1,51 @@
-"""Main FastAPI application for Carta."""
+"""Aplicación FastAPI de Carta.
 
+Sin middleware de CORS: la PWA se sirve desde el mismo dominio que la API (ADR-010, ADR-015).
+"""
+
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import router
+from app import __version__
+from app.api import router as router_api_v1
+from app.api.salud import router as router_salud
+from app.core.errores import registrar_manejadores
+from app.core.peticion import MiddlewareRequestId
+from app.core.registro import configurar_registro
 from app.db import close_db
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Arranque y apagado. El esquema lo crean las migraciones, no la aplicación."""
     yield
     await close_db()
 
 
 def create_app() -> FastAPI:
-    """Create and configure FastAPI application."""
+    configurar_registro()
+
     app = FastAPI(
         title="Carta API",
-        description="Intelligent Restaurant Menu Platform",
-        version="0.1.0",
+        description="Menú visual por QR, orden compartida en la mesa y comanda directa al personal.",
+        version=__version__,
         lifespan=lifespan,
     )
 
-    # CORS middleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Configure properly in production
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    app.add_middleware(MiddlewareRequestId)
+    registrar_manejadores(app)
 
-    # Include API routes
-    app.include_router(router, prefix="/api/v1")
+    app.include_router(router_salud)
+    app.include_router(router_api_v1, prefix="/api/v1")
 
-    # Root endpoint
-    @app.get("/")
-    async def root():
-        return {
-            "name": "Carta API",
-            "version": "0.1.0",
-            "docs": "/docs",
-            "status": "running",
-        }
+    @app.get("/", include_in_schema=False)
+    async def raiz() -> dict[str, str]:
+        # T-0.6 sirve aquí la PWA (`frontend/dist`).
+        return {"name": "Carta API", "version": __version__, "docs": "/docs"}
 
     return app
 
 
 app = create_app()
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-    )
