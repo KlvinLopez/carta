@@ -19,7 +19,7 @@
 
   /* Acento — Dorado. Un destacado por pantalla como máximo. */
   --dorado: #b8860b;
-  --dorado-oscuro: #8a6508;
+  --dorado-oscuro: #7f5d07;
   --dorado-tenue: rgba(184, 134, 11, 0.14);
   --gradiente-dorado: linear-gradient(135deg, var(--dorado) 0%, #d4a017 100%);
 
@@ -27,16 +27,16 @@
   --carbon: #1a1a1a;
   --carbon-suave: #5b4a3d;
 
-  /* Semánticos */
-  --exito: #15803d;
+  /* Semánticos. Cada texto cumple AA (≥ 4.5:1) sobre su fondo tenue y sobre Crema: lo vigila esqueleto.test.ts */
+  --exito: #116a33;
   --exito-tenue: rgba(34, 197, 94, 0.12);
   --error: #ba1a1a;
   --error-tenue: rgba(186, 26, 26, 0.1);
-  --aviso: #b45309;
+  --aviso: #9a4707;
   --aviso-tenue: rgba(245, 158, 11, 0.14);
 
   /* Estados de mesa (personal) */
-  --mesa-libre: #9ca3af;
+  --mesa-libre: #6b7280;
   --mesa-activa: var(--dorado);
   --mesa-alerta: var(--vino);
 

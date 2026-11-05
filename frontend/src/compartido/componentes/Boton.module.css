@@ -1,5 +1,6 @@
 .boton {
   display: inline-flex;
+  text-decoration: none; /* también se aplica a enlaces con clasesBoton() */
   align-items: center;
   justify-content: center;
   gap: var(--esp-2);
@@ -54,7 +55,7 @@
 
 .dorado {
   background: var(--gradiente-dorado);
-  color: var(--sobre-vino);
+  color: var(--carbon); /* blanco sobre dorado no llega a 4.5:1; carbón da ≥ 5.3:1 */
   box-shadow: 0 10px 26px rgba(184, 134, 11, 0.3);
 }
 
@@ -99,5 +100,13 @@
 @keyframes gira {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .espera {
+    animation: none;
+    border-right-color: currentColor;
+    opacity: 0.5;
   }
 }

@@ -20,6 +20,7 @@
   position: relative;
   width: 100%;
   max-width: var(--ancho-telefono);
+  max-height: 88vh; /* respaldo Safari 15.0–15.3 */
   max-height: 88dvh;
   display: flex;
   flex-direction: column;

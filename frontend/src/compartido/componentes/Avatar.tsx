@@ -4,22 +4,37 @@ import estilos from './Avatar.module.css';
 
 export const TONOS_AVATAR = 8;
 
-/** Índice de color estable para un nombre: la misma persona siempre recibe el mismo tono. */
+/** Nombre comparable: sin espacios sobrantes ni diferencias de mayúsculas. */
+function normalizar(nombre: string): string {
+  return nombre.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es');
+}
+
+/** Índice de color estable para un nombre (FNV-1a): la misma persona siempre recibe el mismo tono. */
 export function tonoDeNombre(nombre: string): number {
-  let hash = 0;
-  for (const caracter of nombre.trim().toLowerCase()) {
-    hash = (hash * 31 + caracter.codePointAt(0)!) >>> 0;
+  let hash = 0x811c9dc5;
+  for (const caracter of normalizar(nombre)) {
+    hash ^= caracter.codePointAt(0)!;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
   }
   return hash % TONOS_AVATAR;
 }
 
-/** Iniciales legibles: "Ana María López" → "AL"; "Valeria" → "V". */
+/** Primer carácter alfanumérico de una palabra, como punto de código entero (no corta emojis). */
+function inicialDe(palabra: string): string {
+  const letra = palabra.match(/[\p{L}\p{N}]/u)?.[0];
+  if (!letra) return '';
+  const mayuscula = letra.toLocaleUpperCase('es');
+  // 'ß' → 'SS' y otros casos que crecen: se conserva el carácter original.
+  return [...mayuscula].length === 1 ? mayuscula : letra;
+}
+
+/** Iniciales legibles: "Ana María López" → "AL"; "Valeria" → "V"; "🍕 Luis" → "L"; sin letras → "?". */
 export function inicialesDe(nombre: string): string {
-  const partes = nombre.trim().split(/\s+/).filter(Boolean);
-  if (partes.length === 0) return '?';
-  const primera = partes[0]!.charAt(0);
-  const ultima = partes.length > 1 ? partes[partes.length - 1]!.charAt(0) : '';
-  return (primera + ultima).toUpperCase();
+  const iniciales = nombre.split(/\s+/).map(inicialDe).filter(Boolean);
+  if (iniciales.length === 0) return '?';
+  const primera = iniciales[0]!;
+  const ultima = iniciales.length > 1 ? iniciales[iniciales.length - 1]! : '';
+  return primera + ultima;
 }
 
 export interface PropsAvatar {

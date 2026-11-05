@@ -2,41 +2,74 @@
 // Presupuesto del bundle inicial de la PWA (T-0.5, T-2.7).
 //
 // Mide lo que el navegador descarga para pintar la primera pantalla: los <script type="module">,
-// los <link rel="modulepreload"> y las hojas <link rel="stylesheet"> que referencia dist/index.html.
-// Los trozos que entran con React.lazy (una por área) no cuentan: se descargan al navegar.
+// los <link rel="modulepreload"> y las hojas <link rel="stylesheet"> que referencia dist/index.html,
+// más el propio HTML. Los trozos que entran con React.lazy (uno por área, `Area-*.js`) no cuentan:
+// se descargan al navegar; este script exige que existan al menos tres y que index.html no los
+// referencie (guarda del code splitting, punto del Entregable de T-0.5).
+//
+// Decisión: el presupuesto es de JS + CSS + HTML. Las fuentes precargadas (≈ 55 KB en woff2) no
+// entran en los 250 KB: se sirven con caché de un año y no bloquean el pintado (font-display: swap).
 //
 // La medida es **gzip (nivel 9)**: es la compresión mínima que garantiza cualquier borde o servidor;
 // brotli sale más chico y se imprime sólo como referencia. Límite: 250 KB = 250 × 1024 bytes.
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const LIMITE_BYTES = 250 * 1024;
+const MINIMO_TROZOS_AREA = 3;
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const dist = join(raiz, 'dist');
+const dist = resolve(raiz, 'dist');
 const indice = join(dist, 'index.html');
 
+const fallar = (mensaje, codigo = 1) => {
+  console.error(mensaje);
+  process.exit(codigo);
+};
+
 if (!existsSync(indice)) {
-  console.error(`No existe ${indice}. Corre antes: npm --prefix frontend run build`);
-  process.exit(2);
+  fallar(`No existe ${indice}. Corre antes: npm --prefix frontend run build`, 2);
 }
 
+// Sin comentarios HTML: una etiqueta comentada no se descarga.
 const html = readFileSync(indice, 'utf8');
-const rutas = new Set();
-for (const coincidencia of html.matchAll(/<script[^>]+type="module"[^>]+src="([^"]+)"/g)) {
-  rutas.add(coincidencia[1]);
-}
-for (const coincidencia of html.matchAll(/<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"/g)) {
-  rutas.add(coincidencia[1]);
-}
-for (const coincidencia of html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)) {
-  rutas.add(coincidencia[1]);
+const htmlVivo = html.replace(/<!--[\s\S]*?-->/g, '');
+
+/** Atributos de una etiqueta sin depender del orden ni de las comillas. */
+function atributosDe(etiqueta) {
+  const atributos = {};
+  for (const m of etiqueta.matchAll(/([A-Za-z-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/g)) {
+    atributos[m[1].toLowerCase()] = m[2] ?? m[3] ?? m[4] ?? '';
+  }
+  return atributos;
 }
 
-if (rutas.size === 0) {
-  console.error('dist/index.html no referencia ningún script ni hoja de estilo: ¿la build falló?');
-  process.exit(2);
+const rutas = new Set();
+let scriptsModulo = 0;
+for (const [etiqueta, nombre] of htmlVivo.matchAll(/<(script|link)\b[^>]*>/gi)) {
+  const a = atributosDe(etiqueta);
+  if (nombre.toLowerCase() === 'script') {
+    if ((a.type ?? '').toLowerCase() === 'module' && a.src) {
+      rutas.add(a.src);
+      scriptsModulo += 1;
+    }
+  } else {
+    const rel = (a.rel ?? '').toLowerCase().split(/\s+/);
+    if ((rel.includes('modulepreload') || rel.includes('stylesheet')) && a.href) rutas.add(a.href);
+  }
+}
+
+if (scriptsModulo === 0) {
+  fallar('dist/index.html no tiene ningún <script type="module">: ¿la build falló?', 2);
+}
+
+/** Ruta absoluta dentro de dist/, o falla si apunta fuera. */
+function archivoDe(ruta) {
+  const archivo = resolve(dist, ruta.replace(/^\//, ''));
+  if (!archivo.startsWith(dist + sep)) fallar(`index.html referencia ${ruta}, fuera de dist/`, 2);
+  if (!existsSync(archivo)) fallar(`index.html referencia ${ruta} pero no existe en dist/`, 2);
+  return archivo;
 }
 
 const gzip = (buf) => gzipSync(buf, { level: 9 }).length;
@@ -48,26 +81,16 @@ let totalCrudo = 0;
 let totalGzip = 0;
 let totalBrotli = 0;
 const filas = [];
-for (const ruta of [...rutas].sort()) {
-  const archivo = join(dist, ruta.replace(/^\//, ''));
-  if (!existsSync(archivo)) {
-    console.error(`index.html referencia ${ruta} pero no existe en dist/`);
-    process.exit(2);
-  }
-  const contenido = readFileSync(archivo);
+const sumar = (contenido, nombre) => {
   const g = gzip(contenido);
   const b = brotli(contenido);
   totalCrudo += contenido.length;
   totalGzip += g;
   totalBrotli += b;
-  filas.push(`${kb(contenido.length)}  ${kb(g)}  ${kb(b)}  ${ruta}`);
-}
-
-const htmlBuf = Buffer.from(html);
-totalCrudo += htmlBuf.length;
-totalGzip += gzip(htmlBuf);
-totalBrotli += brotli(htmlBuf);
-filas.push(`${kb(htmlBuf.length)}  ${kb(gzip(htmlBuf))}  ${kb(brotli(htmlBuf))}  /index.html`);
+  filas.push(`${kb(contenido.length)}  ${kb(g)}  ${kb(b)}  ${nombre}`);
+};
+for (const ruta of [...rutas].sort()) sumar(readFileSync(archivoDe(ruta)), ruta);
+sumar(Buffer.from(html), '/index.html');
 
 console.log('Bundle inicial (lo que carga la primera pantalla, sin los trozos de cada área)');
 console.log('     crudo       gzip     brotli  archivo');
@@ -76,8 +99,23 @@ console.log('-'.repeat(72));
 console.log(`${kb(totalCrudo)}  ${kb(totalGzip)}  ${kb(totalBrotli)}  total`);
 console.log(`Límite (gzip): ${kb(LIMITE_BYTES)}  ·  usado: ${((totalGzip / LIMITE_BYTES) * 100).toFixed(0)} %`);
 
+// Guarda del code splitting: un trozo por área, y ninguno en la carga inicial.
+const carpetaAssets = join(dist, 'assets');
+const trozosArea = existsSync(carpetaAssets)
+  ? readdirSync(carpetaAssets).filter((n) => /^Area-.*\.js$/.test(n))
+  : [];
+console.log(`Trozos de área (React.lazy): ${trozosArea.length} → ${trozosArea.join(', ') || 'ninguno'}`);
+if (trozosArea.length < MINIMO_TROZOS_AREA) {
+  fallar(
+    `\nCode splitting roto: se esperaban ≥ ${MINIMO_TROZOS_AREA} trozos dist/assets/Area-*.js (uno por área) y hay ${trozosArea.length}.`,
+  );
+}
+const referenciados = trozosArea.filter((n) => [...rutas].some((r) => r.endsWith('/' + n)));
+if (referenciados.length > 0) {
+  fallar(`\nCode splitting roto: index.html carga de inicio ${referenciados.join(', ')}.`);
+}
+
 if (totalGzip > LIMITE_BYTES) {
-  console.error(`\nPresupuesto excedido: ${kb(totalGzip)} gzip > ${kb(LIMITE_BYTES)}.`);
-  process.exit(1);
+  fallar(`\nPresupuesto excedido: ${kb(totalGzip)} gzip > ${kb(LIMITE_BYTES)}.`);
 }
 console.log('\nPresupuesto en verde.');

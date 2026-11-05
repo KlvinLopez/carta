@@ -29,6 +29,7 @@
 }
 
 .sobretitulo {
+  overflow-wrap: anywhere; /* un código largo no debe desbordar a 320 px */
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -113,4 +114,12 @@
   font-size: 0.8125rem;
   color: var(--carbon-suave);
   text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .espera {
+    animation: none;
+    border-color: var(--vino);
+    opacity: 0.5;
+  }
 }

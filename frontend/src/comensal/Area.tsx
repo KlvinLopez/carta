@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { Avatar, AvatarGrupo, Boton, Chip, HojaInferior, Tarjeta } from '../compartido/componentes';
+import { NoEncontrada } from '../compartido/pantalla/NoEncontrada';
 import { Pantalla, estilosPantalla as e } from '../compartido/pantalla/Pantalla';
+
+/** Forma de `mesa.codigo_publico` (03 §2: ≥ 22 caracteres, columna de 100). */
+export const CODIGO_MESA = /^[A-Za-z0-9_-]{22,100}$/;
 
 /**
  * Área del comensal (`/m/:codigo`). Marcador de posición de T-0.5: aplica los tokens y los
@@ -11,6 +15,9 @@ import { Pantalla, estilosPantalla as e } from '../compartido/pantalla/Pantalla'
 export default function AreaComensal() {
   const { codigo } = useParams<{ codigo: string }>();
   const [hojaAbierta, setHojaAbierta] = useState(false);
+
+  // Un código que no puede ser de una mesa no llega a la API: 404 de la marca.
+  if (!codigo || !CODIGO_MESA.test(codigo)) return <NoEncontrada />;
 
   return (
     <Pantalla>

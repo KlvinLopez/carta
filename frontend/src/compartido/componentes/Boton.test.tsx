@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Boton } from './Boton';
+import { Boton, clasesBoton } from './Boton';
 
 describe('Boton', () => {
   it('es un botón de tipo button por defecto y dispara onClick', async () => {
@@ -45,5 +45,28 @@ describe('Boton', () => {
     expect(boton).toHaveAttribute('aria-busy', 'true');
     await userEvent.click(boton);
     expect(alHacerClic).not.toHaveBeenCalled();
+  });
+});
+
+describe('Boton · indicador de espera y enlaces', () => {
+  it('cargando muestra el indicador de espera (decorativo) y marca la clase cargando', () => {
+    render(<Boton cargando>Enviando</Boton>);
+    const boton = screen.getByRole('button');
+    expect(boton.querySelector('[aria-hidden="true"]')).not.toBeNull();
+    expect(boton).toHaveClass('cargando');
+  });
+
+  it('sin cargando no hay indicador de espera', () => {
+    render(<Boton>Enviar</Boton>);
+    expect(screen.getByRole('button').querySelector('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it('clasesBoton da las mismas clases para un enlace que se ve como botón', () => {
+    render(
+      <a href="/" className={clasesBoton({ variante: 'fantasma', ancho: true })}>
+        Ir al inicio
+      </a>,
+    );
+    expect(screen.getByRole('link')).toHaveClass('boton', 'fantasma', 'ancho');
   });
 });
