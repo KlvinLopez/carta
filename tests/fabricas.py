@@ -1,0 +1,81 @@
+"""Fábricas mínimas de datos de prueba, coherentes con `app/db/models.py`.
+
+Cada función recibe la `AsyncSession` transaccional de `conftest.py`, inserta con los
+modelos reales (nunca con SQL que esquive los CHECK) y termina con `commit()`: con
+`join_transaction_mode="create_savepoint"` eso sólo libera un *savepoint* (nada sale de la
+transacción de la prueba, que se revierte al terminar), pero deja lo creado a salvo de un
+`rollback()` del código bajo prueba, que vuelve al último *savepoint*.
+Los valores por defecto son únicos por llamada para que varias fábricas convivan en una
+misma prueba (slug, `codigo_publico`, `firebase_uid`).
+"""
+
+from __future__ import annotations
+
+import secrets
+from itertools import count
+from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models import Mesa, OperadorRestaurante, Restaurante, RolOperador, Usuario
+
+_contador = count(1)
+
+# `mesa.codigo_publico` exige al menos 22 caracteres (CHECK `ck_codigo_largo`, 03 §3).
+LARGO_CODIGO_MESA = 22
+
+
+def codigo_de_mesa() -> str:
+    """Código público opaco, como el que irá en el QR (base64url, 22 caracteres)."""
+    return secrets.token_urlsafe(16)[:LARGO_CODIGO_MESA]
+
+
+async def crear_restaurante(sesion: AsyncSession, **valores: Any) -> Restaurante:
+    n = next(_contador)
+    datos: dict[str, Any] = {"nombre": f"Restaurante {n}", "slug": f"restaurante-{n}"}
+    datos.update(valores)
+    restaurante = Restaurante(**datos)
+    sesion.add(restaurante)
+    await sesion.commit()
+    return restaurante
+
+
+async def crear_usuario(sesion: AsyncSession, **valores: Any) -> Usuario:
+    n = next(_contador)
+    datos: dict[str, Any] = {"firebase_uid": f"uid-{n}", "provider": "google"}
+    datos.update(valores)
+    usuario = Usuario(**datos)
+    sesion.add(usuario)
+    await sesion.commit()
+    return usuario
+
+
+async def crear_operador(
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    usuario: Usuario | None = None,
+    rol: RolOperador = RolOperador.propietario,
+    **valores: Any,
+) -> OperadorRestaurante:
+    """Operador (dueño por defecto) del restaurante; crea el `usuario` si no se pasa."""
+    if usuario is None:
+        usuario = await crear_usuario(sesion)
+    operador = OperadorRestaurante(
+        usuario_id=usuario.id, restaurante_id=restaurante.id, rol=rol, **valores
+    )
+    sesion.add(operador)
+    await sesion.commit()
+    return operador
+
+
+async def crear_mesa(sesion: AsyncSession, restaurante: Restaurante, **valores: Any) -> Mesa:
+    datos: dict[str, Any] = {
+        "restaurante_id": restaurante.id,
+        "numero": next(_contador),
+        "codigo_publico": codigo_de_mesa(),
+    }
+    datos.update(valores)
+    mesa = Mesa(**datos)
+    sesion.add(mesa)
+    await sesion.commit()
+    return mesa

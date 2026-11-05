@@ -1,9 +1,8 @@
 """T-0.2: los modelos SQLAlchemy mapean contra el esquema real que crea `0001_base_v1`.
 
-Las pruebas aplican la migración en la base de pruebas (`TEST_DATABASE_URL`, o `carta_test`
-junto a `DATABASE_URL`) por medio de la CLI de Alembic, exactamente como en el despliegue,
-y comparan `Base.metadata` con lo que PostgreSQL reporta. El esquema nunca se crea desde
-los modelos (regla dura 3).
+Las pruebas usan la base de pruebas migrada por la CLI de Alembic (fixture `esquema_migrado`
+de `tests/conftest.py`, exactamente como en el despliegue) y comparan `Base.metadata` con lo
+que PostgreSQL reporta. El esquema nunca se crea desde los modelos (regla dura 3).
 
 `compare_metadata` no ve las restricciones CHECK, el WHERE de los índices parciales, el
 método (GIN) ni los triggers: esas partes se comprueban contra el catálogo de PostgreSQL.
@@ -11,29 +10,21 @@ método (GIN) ni los triggers: esas partes se comprueban contra el catálogo de 
 
 from __future__ import annotations
 
-import os
-import subprocess
-import sys
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from pathlib import Path
-from urllib.parse import urlsplit, urlunsplit
 from uuid import UUID
 
 import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
 from sqlalchemy import CheckConstraint, Connection, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from app.core.config import settings
 from app.db import models
 from app.db.database import Base
-
-RAIZ = Path(__file__).resolve().parents[2]
+from tests.bd_pruebas import RAIZ, alembic, base_desechable
 
 TABLAS_V1 = {
     "restaurante",
@@ -141,71 +132,14 @@ PIN_HASH = "$argon2id$v=19$m=65536,t=3,p=4$abc$def"
 
 
 # ---------------------------------------------------------------------------
-# Base de pruebas y migración
+# Conexión sin transacción exterior (`compare_metadata` y el escenario abren la suya)
 # ---------------------------------------------------------------------------
-
-
-def url_de_pruebas() -> str:
-    """`TEST_DATABASE_URL` si existe; si no, la base `carta_test` del mismo servidor.
-
-    Salvaguarda: estas pruebas hacen `downgrade base`, así que se niegan a correr contra
-    una base cuyo nombre no contenga `test` o fuera de desarrollo/pruebas.
-    """
-    url = os.environ.get("TEST_DATABASE_URL")
-    if not url:
-        partes = urlsplit(settings.DATABASE_URL)
-        url = urlunsplit(partes._replace(path="/carta_test"))
-    for prefijo in ("postgresql://", "postgres://"):
-        if url.startswith(prefijo):
-            url = "postgresql+asyncpg://" + url[len(prefijo) :]
-    nombre_bd = make_url(url).database or ""
-    if "test" not in nombre_bd or not settings.es_desarrollo:
-        pytest.exit(
-            f"Me niego a migrar y vaciar {nombre_bd!r} con ENTORNO={settings.ENTORNO}: "
-            "la base de pruebas debe llamarse *test* y el entorno ser desarrollo o pruebas."
-        )
-    return url
-
-
-def alembic(*argumentos: str, url: str) -> subprocess.CompletedProcess[str]:
-    """Corre la CLI de Alembic contra `url`, como lo hace el paso previo al despliegue."""
-    try:
-        return subprocess.run(
-            [sys.executable, "-m", "alembic", "-x", f"url={url}", *argumentos],
-            cwd=RAIZ,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except subprocess.CalledProcessError as error:
-        # `make_url` enmascara la contraseña en el mensaje.
-        pytest.fail(f"alembic {' '.join(argumentos)} contra {make_url(url)} falló:\n{error.stderr}")
-
-
-@pytest.fixture(scope="session")
-def url_bd() -> str:
-    return url_de_pruebas()
-
-
-@pytest.fixture(scope="session")
-def esquema_migrado(url_bd: str) -> str:
-    """Base de pruebas en `head`. Es idempotente: `upgrade head` no hace nada si ya está."""
-    alembic("upgrade", "head", url=url_bd)
-    return url_bd
+# `url_bd`, `esquema_migrado`, `motor_pruebas` (conftest.py) y `alembic()` (bd_pruebas.py).
 
 
 @pytest.fixture
-async def motor(esquema_migrado: str) -> AsyncIterator[AsyncEngine]:
-    motor = create_async_engine(esquema_migrado, poolclass=NullPool)
-    try:
-        yield motor
-    finally:
-        await motor.dispose()
-
-
-@pytest.fixture
-async def conexion(motor: AsyncEngine) -> AsyncIterator[AsyncConnection]:
-    async with motor.connect() as conexion:
+async def conexion(motor_pruebas: AsyncEngine) -> AsyncIterator[AsyncConnection]:
+    async with motor_pruebas.connect() as conexion:
         yield conexion
 
 
@@ -255,19 +189,28 @@ async def _funciones(conexion: AsyncConnection) -> set[str]:
 # ---------------------------------------------------------------------------
 
 
-async def test_migracion_sube_baja_y_vuelve_a_subir(esquema_migrado: str) -> None:
-    """`downgrade()` es completo: tras bajar no queda ninguna tabla, tipo ni función nuestra."""
-    motor = create_async_engine(esquema_migrado, poolclass=NullPool)
-    try:
-        alembic("downgrade", "base", url=esquema_migrado)
-        async with motor.connect() as conexion:
-            assert await _tablas(conexion) <= {"alembic_version"}
-            assert await _tipos_enumerados(conexion) == {}
-            assert await _funciones(conexion) == set()
-    finally:
-        # Pase lo que pase, la base vuelve a `head` para las demás pruebas.
-        alembic("upgrade", "head", url=esquema_migrado)
-        await motor.dispose()
+async def test_migracion_sube_baja_y_vuelve_a_subir(url_bd: str) -> None:
+    """`downgrade()` es completo: tras bajar no queda ninguna tabla, tipo ni función nuestra.
+
+    Corre en una base desechable propia de este proceso: la compartida nunca baja de `head`,
+    así que varias corridas de pytest a la vez (o un SIGKILL a media prueba) no la tumban.
+    """
+    async with base_desechable(url_bd, "mig") as url:
+        motor = create_async_engine(url, poolclass=NullPool)
+        try:
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert TABLAS_V1 <= await _tablas(conexion)
+            alembic("downgrade", "base", url=url)
+            async with motor.connect() as conexion:
+                assert await _tablas(conexion) <= {"alembic_version"}
+                assert await _tipos_enumerados(conexion) == {}
+                assert await _funciones(conexion) == set()
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert TABLAS_V1 <= await _tablas(conexion)
+        finally:
+            await motor.dispose()
 
 
 def test_la_url_no_pasa_por_el_ini_de_alembic() -> None:

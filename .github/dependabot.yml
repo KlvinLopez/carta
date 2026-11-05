@@ -1,0 +1,10 @@
+# Las acciones de CI van fijadas por SHA en .github/workflows/*.yml; Dependabot propone las
+# actualizaciones (SHA y comentario del tag) una vez por semana.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"

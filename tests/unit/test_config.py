@@ -34,7 +34,14 @@ def test_secreto_de_ejemplo_se_acepta_en_desarrollo() -> None:
 
 @pytest.mark.parametrize("entorno", ["staging", "produccion"])
 @pytest.mark.parametrize(
-    "secreto", ["dev-secret-key", "corto", "y" * (SECRET_KEY_LONGITUD_MINIMA - 1)]
+    "secreto",
+    [
+        "dev-secret-key",
+        "corto",
+        "y" * (SECRET_KEY_LONGITUD_MINIMA - 1),
+        # La de .github/workflows/ci.yml es pública aunque mida más de 32.
+        "clave-solo-para-ci-de-github-actions-sin-valor-real-0123456789",
+    ],
 )
 def test_secreto_debil_falla_fuera_de_desarrollo(entorno: str, secreto: str) -> None:
     with pytest.raises(ValidationError, match="SECRET_KEY"):
@@ -47,8 +54,10 @@ def test_secreto_fuerte_arranca_en_produccion() -> None:
 
 
 def test_variables_desconocidas_se_ignoran() -> None:
-    s = crear(REDIS_URL="redis://no-existe", GEMMA_MODEL_PATH="/x")
+    # `ENTORNO` explícito: en CI el entorno trae `ENTORNO=pruebas` y `crear` sólo ignora `.env`.
+    s = crear(ENTORNO="desarrollo", REDIS_URL="redis://no-existe", GEMMA_MODEL_PATH="/x")
     assert s.ENTORNO == "desarrollo"
+    assert not hasattr(s, "REDIS_URL") and not hasattr(s, "GEMMA_MODEL_PATH")
 
 
 def test_almacen_en_nube_solo_con_credenciales_completas() -> None:
