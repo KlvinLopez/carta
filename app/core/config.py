@@ -75,6 +75,10 @@ class Settings(BaseSettings):
     # Observabilidad
     SENTRY_DSN: str | None = None
 
+    # PWA construida que sirve la propia API (T-0.6). Relativa al directorio de trabajo:
+    # `frontend/dist` en el repositorio y en la imagen (`WORKDIR /app`).
+    FRONTEND_DIST: str = "frontend/dist"
+
     @field_validator("DATABASE_URL")
     @classmethod
     def _normalizar_driver(cls, url: str) -> str:

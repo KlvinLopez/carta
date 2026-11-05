@@ -1,5 +1,7 @@
 # CI de Carta (T-0.4): la misma puerta de calidad que se corre antes de cada commit
-# (CLAUDE.md § Comandos), sobre PostgreSQL 16 real.
+# (CLAUDE.md § Comandos), sobre PostgreSQL 16 real. El job `imagen` (T-0.6) construye y
+# arranca la imagen de Docker: es el comando de Verificar de T-0.6, que en las sesiones de
+# agente no se puede correr porque no hay daemon de Docker.
 #
 # Corre en push a `master`, en cada pull request y también en push a las ramas de agente
 # (`agente/**`, `claude/**`): así cada rama de agente tiene CI sin abrir PR y la sesión maestra
@@ -106,3 +108,98 @@ jobs:
           uv export --frozen --no-emit-project --no-hashes -o "${RUNNER_TEMP}/requisitos.txt"
           uv run pip-audit --strict --progress-spinner off --disable-pip --no-deps \
             -r "${RUNNER_TEMP}/requisitos.txt"
+
+  imagen:
+    # El Verificar de T-0.6 (04_Fases_y_Tareas §4), tal cual, más la migración desde la imagen.
+    # Corre en paralelo con `calidad`: no depende de ella.
+    name: Imagen portable (docker build + humo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: carta
+          POSTGRES_PASSWORD: carta_ci
+          POSTGRES_DB: carta_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U carta -d carta_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: docker build
+        run: docker build -t carta:test .
+
+      - name: docker run (la base del job, vista desde el contenedor como host.docker.internal)
+        run: |
+          docker run -d -p 8000:8000 --env-file .env.example -e ENTORNO=pruebas \
+            --add-host=host.docker.internal:host-gateway \
+            -e DATABASE_URL=postgresql+asyncpg://carta:carta_ci@host.docker.internal:5432/carta_test \
+            --name carta-test carta:test
+          sleep 3
+          # Hasta 30 s más por si el arranque de los workers tarda en el runner.
+          for intento in $(seq 1 30); do
+            curl -sf localhost:8000/health > /dev/null && break
+            sleep 1
+          done
+
+      - name: Verificar del brief
+        run: |
+          curl -sf localhost:8000/health
+          curl -sf localhost:8000/ | grep -q '<div id="app"'
+          curl -sI localhost:8000/ | grep -i content-security-policy
+          docker compose -f deploy/vps/docker-compose.yml config > /dev/null
+          echo ok
+
+      - name: La base responde y la migración corre desde la imagen (comando previo al despliegue)
+        run: |
+          curl -sf localhost:8000/ready | grep -q '"db":"ok"'
+          docker exec carta-test uv run alembic upgrade head
+          docker exec carta-test uv run alembic current | grep -q 0001_base_v1
+
+      - name: Cachés, 404 JSON, cabeceras y logs JSON del supervisor
+        run: |
+          curl -sI localhost:8000/ | grep -i 'cache-control: no-cache'
+          asset="$(curl -s localhost:8000/ | grep -o '/assets/[^"]*\.js' | head -1)"
+          test -n "$asset"
+          curl -sI "localhost:8000$asset" | grep -i 'cache-control: public, max-age=31536000, immutable'
+          curl -sI localhost:8000/fonts/DMSans-variable-latin.woff2 | grep -i 'immutable'
+          curl -sI localhost:8000/manifest.webmanifest | grep -i 'content-type: application/manifest+json'
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8000/api/v1/nada)" = "404"
+          curl -s localhost:8000/api/v1/nada | grep -q RECURSO_NO_ENCONTRADO
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8000/assets/no-existe.js)" = "404"
+          curl -sI localhost:8000/health | grep -i 'x-content-type-options: nosniff'
+          curl -sI localhost:8000/health | grep -i 'referrer-policy: strict-origin-when-cross-origin'
+          curl -sI localhost:8000/health | grep -i 'permissions-policy'
+          # En pruebas no hay HSTS (sólo staging y producción).
+          ! curl -sI localhost:8000/health | grep -qi strict-transport-security
+          # El supervisor (proceso padre) también escribe JSON por línea.
+          docker logs carta-test 2>&1 | head -1 | grep -q '^{"ts"'
+          docker logs carta-test 2>&1 | grep -q 'Started parent process'
+          # El contenedor corre sin privilegios y el HEALTHCHECK pasa (la primera sonda corre
+          # tras el intervalo de 30 s).
+          test "$(docker exec carta-test id -u)" != "0"
+          for intento in $(seq 1 60); do
+            test "$(docker inspect -f '{{.State.Health.Status}}' carta-test)" = "healthy" && break
+            sleep 1
+          done
+          test "$(docker inspect -f '{{.State.Health.Status}}' carta-test)" = "healthy"
+
+      - name: Imagen de respaldo
+        run: |
+          docker build -t carta-respaldo:test deploy/respaldo
+          docker run --rm carta-respaldo:test sh -c 'pg_dump --version && age --version && rclone version | head -1'
+          # Sin variables sale con 2 y dice cuál falta.
+          set +e; docker run --rm carta-respaldo:test; estado=$?; set -e
+          test "$estado" = "2"
+
+      - name: Logs del contenedor
+        if: always()
+        run: docker logs carta-test || true

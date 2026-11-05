@@ -1,0 +1,154 @@
+"""Cabeceras de seguridad en toda respuesta (02_Arquitectura_v1 §12).
+
+La imagen no lleva proxy delante (ADR-015): la propia API pone CSP, `nosniff`,
+`Referrer-Policy`, `Permissions-Policy` y HSTS en **todas** las respuestas: estáticos, SPA,
+API, errores manejados y el 500 de una excepción no controlada.
+
+Decisiones:
+
+- **CSP por `'self'`, sin nonces** (02 §12, decidido en la revisión de T-0.5): la build de
+  Vite no inyecta estilos ni scripts en línea. `img-src` suma el origen público de R2 cuando
+  `Settings.R2_URL_PUBLICA` lo tiene (las fotos de los platillos se sirven desde ahí); de la
+  URL sólo se toma `esquema://host[:puerto]`, y si no es un origen limpio se ignora: una
+  variable mal puesta no debe abrir la política ni romper la cabecera.
+- **HSTS sólo en `staging` y `produccion`.** Ahí la aplicación siempre va por HTTPS (Railway
+  o Caddy, con Cloudflare delante). En desarrollo y pruebas corre por HTTP: el navegador
+  ignora HSTS sin TLS, pero un `curl -I` en `localhost` sugeriría lo contrario y una
+  cabecera «de adorno» confunde más de lo que protege. Un año e `includeSubDomains`, sin
+  `preload` (exige registrarse en la lista de los navegadores y es irreversible en la práctica).
+- El 500 de una excepción no controlada lo envía `ServerErrorMiddleware`, **por fuera** de
+  todo middleware (ver `app.core.errores`): `registrar_cabeceras_seguridad` envuelve ese
+  manejador para que también ese 500 las lleve.
+
+`MiddlewareCabecerasSeguridad` es ASGI puro, como `MiddlewareRequestId`, y se añade **antes**
+que él en `create_app` (queda por dentro; el de `request_id` sigue siendo el más externo).
+Las cabeceras se calculan una vez al crear la aplicación, no por petición.
+"""
+
+from __future__ import annotations
+
+import inspect
+import logging
+import re
+from collections.abc import Mapping
+from typing import Any
+from urllib.parse import urlsplit
+
+from fastapi import FastAPI, Request, Response
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+from app.core.config import Settings
+
+log = logging.getLogger("carta.cabeceras")
+
+HSTS = "max-age=31536000; includeSubDomains"
+REFERRER_POLICY = "strict-origin-when-cross-origin"
+PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=()"
+
+# Sólo host (letras, dígitos, puntos y guiones) y puerto opcional: nada que pueda colarse
+# como otra directiva o romper la cabecera.
+_HOST_VALIDO = re.compile(r"[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?::\d{1,5})?")
+
+
+def origen_imagenes(url_publica: str | None) -> str | None:
+    """Origen (`esquema://host[:puerto]`) de `R2_URL_PUBLICA` para `img-src`, o `None`.
+
+    Acepta `http` y `https` (en desarrollo puede ser un S3 local). Credenciales, espacios,
+    `;` o cualquier otra cosa que no sea un origen limpio devuelven `None` con un aviso en el
+    log: la política se queda en `'self'` y las fotos no cargan, que es visible y seguro.
+    """
+    if not url_publica or not url_publica.strip():
+        return None
+    try:
+        partes = urlsplit(url_publica.strip())
+    except ValueError:
+        partes = None
+    if (
+        partes is None
+        or partes.scheme not in ("http", "https")
+        or not partes.netloc
+        or "@" in partes.netloc
+        or not _HOST_VALIDO.fullmatch(partes.netloc.lower())
+    ):
+        log.warning("R2_URL_PUBLICA no es un origen válido; img-src se queda en 'self'")
+        return None
+    return f"{partes.scheme}://{partes.netloc.lower()}"
+
+
+def politica_csp(origen_imagenes_externas: str | None) -> str:
+    """La política exacta de 02 §12, con el origen de R2 en `img-src` si lo hay."""
+    img_src = "'self'" if not origen_imagenes_externas else f"'self' {origen_imagenes_externas}"
+    return "; ".join(
+        (
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self'",
+            "font-src 'self'",
+            f"img-src {img_src}",
+            "manifest-src 'self'",
+            "connect-src 'self'",
+        )
+    )
+
+
+CSP_SIN_IMAGENES_EXTERNAS = politica_csp(None)
+
+
+def cabeceras_seguridad(ajustes: Settings) -> dict[str, str]:
+    """Las cabeceras que lleva toda respuesta en este entorno."""
+    cabeceras = {
+        "Content-Security-Policy": politica_csp(origen_imagenes(ajustes.R2_URL_PUBLICA)),
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": REFERRER_POLICY,
+        "Permissions-Policy": PERMISSIONS_POLICY,
+    }
+    if not ajustes.es_desarrollo:
+        cabeceras["Strict-Transport-Security"] = HSTS
+    return cabeceras
+
+
+def poner_cabeceras(destino: MutableHeaders, cabeceras: Mapping[str, str]) -> None:
+    """Fija (no añade) cada cabecera: una ruta no puede relajar la política."""
+    for nombre, valor in cabeceras.items():
+        destino[nombre] = valor
+
+
+class MiddlewareCabecerasSeguridad:
+    def __init__(self, app: ASGIApp, cabeceras: Mapping[str, str]) -> None:
+        self.app = app
+        self.cabeceras = dict(cabeceras)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def enviar(mensaje: Message) -> None:
+            if mensaje["type"] == "http.response.start":
+                cabeceras = MutableHeaders(raw=list(mensaje.get("headers", [])))
+                poner_cabeceras(cabeceras, self.cabeceras)
+                mensaje = {**mensaje, "headers": cabeceras.raw}
+            await send(mensaje)
+
+        await self.app(scope, receive, enviar)
+
+
+def registrar_cabeceras_seguridad(app: FastAPI, cabeceras: Mapping[str, str]) -> None:
+    """Añade el middleware y envuelve el manejador del 500 para que ese camino también las lleve.
+
+    Llámala después de `registrar_manejadores` (necesita el manejador de `Exception`) y antes
+    de `add_middleware(MiddlewareRequestId)`.
+    """
+    app.add_middleware(MiddlewareCabecerasSeguridad, cabeceras=cabeceras)
+
+    manejador_original = app.exception_handlers[Exception]
+
+    async def manejar_500_con_cabeceras(request: Request, exc: Exception) -> Response:
+        respuesta: Any = manejador_original(request, exc)
+        if inspect.isawaitable(respuesta):
+            respuesta = await respuesta
+        poner_cabeceras(respuesta.headers, cabeceras)
+        return respuesta  # type: ignore[no-any-return]
+
+    app.add_exception_handler(Exception, manejar_500_con_cabeceras)

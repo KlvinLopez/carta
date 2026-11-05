@@ -1,0 +1,97 @@
+# Variante de VM con Docker Compose (ADR-012, 05_Operacion Anexo A). Lista, no ejecutada:
+# el primer destino es Railway (ADR-015). Se adopta cuando la factura de Railway supere
+# ~40 USD/mes sostenidos o se quiera control total.
+#
+#   cp ../../.env.example .env   # y rellenar (permisos 600); DATABASE_URL apunta al host `postgres`
+#   docker compose up -d                       # api (+ migracion + postgres)
+#   docker compose --profile caddy up -d       # además Caddy con HTTPS (sin otro proxy en la VM)
+#   docker compose run --rm respaldo           # un respaldo a mano; el horario lo pone el cron del host
+#
+# La misma imagen que en Railway: nada de app/ sabe dónde corre. Dos stacks en la misma VM
+# (`-p carta-staging`, `-p carta-prod`) usan dos .env y dos puertos distintos.
+name: carta
+
+x-imagen: &imagen
+  image: ${IMAGEN:-ghcr.io/klvinlopez/carta}:${IMAGEN_TAG:-latest}
+  env_file:
+    - path: .env
+      required: false   # `docker compose config` debe pasar sin .env (CI); en la VM siempre existe
+
+services:
+  caddy:
+    # Opcional (perfil `caddy`): HTTPS automático y proxy a la API. Las cabeceras de seguridad
+    # las pone la aplicación; Caddy no añade ninguna.
+    image: caddy:2-alpine
+    profiles: ["caddy"]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMINIO: ${DOMINIO:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-carta}
+      # Obligatoria en .env: la imagen de PostgreSQL se niega a arrancar si va vacía.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-carta_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-carta} -d ${POSTGRES_DB:-carta_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  migracion:
+    # Corre `alembic upgrade head` con la imagen nueva y termina; `api` arranca sólo si salió bien.
+    <<: *imagen
+    command: ["uv", "run", "alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *imagen
+    restart: unless-stopped
+    environment:
+      WORKERS: ${WORKERS:-2}
+    ports:
+      # Sólo la propia máquina: Caddy (o Cloudflare Tunnel) es quien expone 443.
+      - "127.0.0.1:${PUERTO_API:-8000}:8000"
+    depends_on:
+      migracion:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  respaldo:
+    # Una ejecución = un respaldo (deploy/respaldo/). No arranca con `up`: lo lanza el cron
+    # del host (`docker compose run --rm respaldo`, instalado por cloud-init.yml a las 04:00).
+    build: ../respaldo
+    image: ${IMAGEN_RESPALDO:-ghcr.io/klvinlopez/carta-respaldo}:${IMAGEN_TAG:-latest}
+    profiles: ["respaldo"]
+    env_file:
+      - path: .env
+        required: false
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

@@ -1,17 +1,23 @@
 """Aplicación FastAPI de Carta.
 
-Sin middleware de CORS: la PWA se sirve desde el mismo dominio que la API (ADR-010, ADR-015).
+Sin middleware de CORS: la PWA se sirve desde el mismo dominio que la API (ADR-010, ADR-015);
+la sirve esta misma aplicación (`app.core.estaticos`) con las cabeceras de seguridad de
+`app.core.cabeceras`, así la imagen no necesita ningún proxy delante.
 """
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 
 from app import __version__
 from app.api import router as router_api_v1
 from app.api.salud import router as router_salud
+from app.core.cabeceras import cabeceras_seguridad, registrar_cabeceras_seguridad
+from app.core.config import settings
 from app.core.errores import registrar_manejadores
+from app.core.estaticos import montar_frontend
 from app.core.peticion import MiddlewareRequestId
 from app.core.registro import configurar_registro
 from app.db import close_db
@@ -34,16 +40,16 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    app.add_middleware(MiddlewareRequestId)
     registrar_manejadores(app)
+    # Orden: el de cabeceras primero y `MiddlewareRequestId` al final, para que éste quede el
+    # más externo (regla de CLAUDE.md: uno por fuera que falle pierde cabecera y línea de acceso).
+    registrar_cabeceras_seguridad(app, cabeceras_seguridad(settings))
+    app.add_middleware(MiddlewareRequestId)
 
     app.include_router(router_salud)
     app.include_router(router_api_v1, prefix="/api/v1")
-
-    @app.get("/", include_in_schema=False)
-    async def raiz() -> dict[str, str]:
-        # T-0.6 sirve aquí la PWA (`frontend/dist`).
-        return {"name": "Carta API", "version": __version__, "docs": "/docs"}
+    # Al final: la SPA y los estáticos atienden sólo lo que ninguna ruta anterior reclamó.
+    montar_frontend(app, Path(settings.FRONTEND_DIST))
 
     return app
 

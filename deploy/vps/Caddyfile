@@ -1,0 +1,15 @@
+# Caddy mínimo para la variante de VM (ADR-012): HTTPS automático (ACME) y proxy a la API.
+# El dominio llega por la variable DOMINIO del servicio `caddy` en docker-compose.yml.
+# Las cabeceras de seguridad (HSTS, CSP, nosniff, Referrer-Policy, Permissions-Policy) las pone
+# la aplicación: aquí no se añade ni se quita ninguna.
+# Con Cloudflare delante: SSL/TLS en modo Full (strict); el reto ACME HTTP-01 pasa por el proxy.
+
+{$DOMINIO} {
+	encode zstd gzip
+	reverse_proxy api:8000
+
+	log {
+		output stdout
+		format json
+	}
+}
