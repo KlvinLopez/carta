@@ -147,7 +147,7 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 
 ### 5.4 Infraestructura
 
-`GET /health` (proceso vivo), `GET /ready` (base y almacenamiento accesibles), `GET /openapi.json`, páginas `/acerca`, `/privacidad`, `/terminos` servidas como estáticos.
+`GET /health` (proceso vivo), `GET /ready` (base accesible; el almacenamiento se añade en T-1.4), `GET /openapi.json`, páginas `/acerca`, `/privacidad`, `/terminos` servidas como estáticos.
 
 ---
 
