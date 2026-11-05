@@ -38,7 +38,8 @@ Las fábricas viven en `tests/fabricas.py` (una función `crear_<entidad>(sesion
 9. **Cada prueba de criterio lleva `@pytest.mark.ac("AC-x.y")`** (regla dura 15); `uv run python scripts/verificar_trazabilidad.py --tarea T-x.y --estricto` lo comprueba. Nada de `skip` ni `xfail`.
 10. **Variables de entorno:** una prueba que dependa de `ENTORNO` o `SECRET_KEY` los fija explícitamente (`monkeypatch` o `Settings(_env_file=None, ENTORNO=...)`); CI corre con `ENTORNO=pruebas`.
 11. **El guard de Bash lee el texto de los comandos:** una prueba que mencione `create_all(`, `downgrade base` o `DROP TABLE` se escribe con Write/Edit, no con `cat <<EOF`.
-12. **Timeouts:** cada prueba tiene 60 s (`pytest-timeout`) y cada sentencia de `motor_pruebas` 30 s, con 5 s de espera de candado. Si una prueba los necesita más largos, el diseño está mal (una espera de candado casi siempre es una fila sin confirmar de otra sesión).
+12. **Cabeceras, cachés y políticas se comparan con literales** (`"public, max-age=31536000, immutable"`, la CSP de 02 §12), nunca con la constante del módulo: una constante cambiada a `max-age=60` pasaría la prueba que la importa (24 de 56 mutaciones sobrevivieron así en T-0.6).
+13. **Timeouts:** cada prueba tiene 60 s (`pytest-timeout`) y cada sentencia de `motor_pruebas` 30 s, con 5 s de espera de candado. Si una prueba los necesita más largos, el diseño está mal (una espera de candado casi siempre es una fila sin confirmar de otra sesión).
 
 ## 3. Receta de carreras (dos conexiones)
 
