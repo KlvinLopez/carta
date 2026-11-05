@@ -134,4 +134,4 @@ El alcance de la v1 está cerrado. No construyas, aunque parezca obvio o fácil:
 
 ## Estado del código
 
-Fase 0 en curso: T-0.1 (toolchain, `Settings`) y T-0.2 (motor asyncpg, modelos v1 con `Mapped[]`, migración `0001_base_v1` con triggers INV-3/INV-8) hechas. Faltan errores, `/ready` y la estructura de carpetas (T-0.3). La lista de problemas heredados y la tarea que corrige cada uno está en `docs/plan/04_Fases_y_Tareas.md` §4.
+Fase 0 en curso: T-0.1 (toolchain, `Settings`), T-0.2 (motor asyncpg, modelos v1 con `Mapped[]`, migración `0001_base_v1` con triggers INV-3/INV-8) y T-0.3 (routers por audiencia en `app/api/{publico,operacion,admin}/`, `ErrorCarta` y manejadores en `app/core/errores.py`, `X-Request-ID` y logs JSON en `app/core/{peticion,registro}.py`, `/health` y `/ready`) hechas. Todo error sale con la envoltura única: en rutas y servicios lanza `ErrorCarta(codigo, mensaje, http)`, nunca construyas el JSON de error a mano. Falta `tests/conftest.py` con la app sobre `TEST_DATABASE_URL` y CI (T-0.4). La lista de problemas heredados y la tarea que corrige cada uno está en `docs/plan/04_Fases_y_Tareas.md` §4.
