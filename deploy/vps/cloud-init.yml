@@ -1,9 +1,14 @@
 #cloud-config
 # VM Ubuntu LTS (2 vCPU / 4 GB) para la variante de Compose (05_Operacion Anexo A, ADR-012).
 # Lista, no ejecutada. Antes de usarlo: pega tu llave SSH pública donde dice REEMPLAZA.
-# Qué hace: usuario `carta` con Docker, ufw (22, 80, 443), fail2ban, actualizaciones automáticas,
+# Qué hace: usuario `carta` con Docker (sudo sin contraseña + grupo docker: es root sin fricción,
+# decisión consciente para operar desde el teléfono), ufw (22, 80, 443), fail2ban, actualizaciones automáticas,
 # clona el repositorio en /opt/carta y deja el cron del respaldo diario (04:00 UTC).
 # Después, a mano: /opt/carta/deploy/vps/.env (permisos 600) y `docker compose --profile caddy up -d`.
+
+# Sin contraseñas por SSH ni root: lo nativo de cloud-init gana a cualquier sshd_config.d/*.conf.
+ssh_pwauth: false
+disable_root: true
 
 users:
   - name: carta

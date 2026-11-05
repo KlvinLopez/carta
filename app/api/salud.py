@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
@@ -29,12 +30,10 @@ router = APIRouter(tags=["infraestructura"])
 READY_TIMEOUT_SEGUNDOS = 3.0
 
 
-@router.api_route("/health", methods=["GET", "HEAD"])
 async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.api_route("/ready", methods=["GET", "HEAD"])
 async def ready(sesion: AsyncSession = Depends(get_db_session)) -> dict[str, str]:
     try:
         await asyncio.wait_for(sesion.execute(text("SELECT 1")), timeout=READY_TIMEOUT_SEGUNDOS)
@@ -44,3 +43,16 @@ async def ready(sesion: AsyncSession = Depends(get_db_session)) -> dict[str, str
         log.error("la base de datos no responde: %s", type(error).__name__)
         raise ErrorCarta("BASE_NO_DISPONIBLE", "La base de datos no responde.", 503) from error
     return {"db": "ok"}
+
+
+def _publicar(ruta: str, endpoint: Any) -> None:
+    """Una ruta GET+HEAD atiende las peticiones (y da `Allow: GET, HEAD` en el 405); va fuera
+    del esquema porque con dos métodos FastAPI repite el `operation_id` y avisa en cada
+    `pytest`. Una segunda ruta sólo GET, registrada después y nunca alcanzada, publica la
+    operación en `/openapi.json` una sola vez."""
+    router.add_api_route(ruta, endpoint, methods=["GET", "HEAD"], include_in_schema=False)
+    router.add_api_route(ruta, endpoint, methods=["GET"])
+
+
+_publicar("/health", health)
+_publicar("/ready", ready)

@@ -139,7 +139,7 @@ jobs:
 
       - name: docker run (la base del job, vista desde el contenedor como host.docker.internal)
         run: |
-          docker run -d -p 8000:8000 --env-file .env.example -e ENTORNO=pruebas \
+          docker run -d -p 127.0.0.1:8000:8000 --env-file .env.example -e ENTORNO=pruebas \
             --add-host=host.docker.internal:host-gateway \
             -e DATABASE_URL=postgresql+asyncpg://carta:carta_ci@host.docker.internal:5432/carta_test \
             --name carta-test carta:test
@@ -171,6 +171,11 @@ jobs:
           test -n "$asset"
           curl -sI "localhost:8000$asset" | grep -i 'cache-control: public, max-age=31536000, immutable'
           curl -sI localhost:8000/fonts/DMSans-variable-latin.woff2 | grep -i 'immutable'
+          curl -sI localhost:8000/fonts/DMSans-variable-latin.woff2 | grep -i 'content-type: font/woff2'
+          curl -sI localhost:8000/assets/no-existe.js | grep -i 'cache-control: no-store'
+          curl -sI localhost:8000/health | grep -i 'x-frame-options: deny'
+          curl -sI localhost:8000/health | grep -i "frame-ancestors 'none'"
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8000/docs)" = "404"
           curl -sI localhost:8000/manifest.webmanifest | grep -i 'content-type: application/manifest+json'
           test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8000/api/v1/nada)" = "404"
           curl -s localhost:8000/api/v1/nada | grep -q RECURSO_NO_ENCONTRADO
@@ -180,9 +185,11 @@ jobs:
           curl -sI localhost:8000/health | grep -i 'permissions-policy'
           # En pruebas no hay HSTS (sólo staging y producción).
           ! curl -sI localhost:8000/health | grep -qi strict-transport-security
-          # El supervisor (proceso padre) también escribe JSON por línea.
-          docker logs carta-test 2>&1 | head -1 | grep -q '^{"ts"'
-          docker logs carta-test 2>&1 | grep -q 'Started parent process'
+          # El supervisor (proceso padre) también escribe JSON por línea. A un archivo: bajo
+          # pipefail `head` cerraría el tubo y `docker logs` saldría con 141.
+          docker logs carta-test > "$RUNNER_TEMP/logs.txt" 2>&1
+          head -1 "$RUNNER_TEMP/logs.txt" | grep -q '^{"ts"'
+          grep -q 'Started parent process' "$RUNNER_TEMP/logs.txt"
           # El contenedor corre sin privilegios y el HEALTHCHECK pasa (la primera sonda corre
           # tras el intervalo de 30 s).
           test "$(docker exec carta-test id -u)" != "0"

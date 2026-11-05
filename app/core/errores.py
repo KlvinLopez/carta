@@ -133,6 +133,9 @@ def _respuesta(
 ) -> JSONResponse:
     request_id = request_id_de(request)
     cabeceras = dict(headers or {})
+    # Ningún error se cachea: Cloudflare cachea por defecto los 404 de `.js`, `.css` y `.woff2`
+    # (3 min) y en el solape de un despliegue dejaría a todos sin ese trozo (02 §12).
+    cabeceras["Cache-Control"] = "no-store"
     if request_id:
         cabeceras[CABECERA_REQUEST_ID] = request_id
     return JSONResponse(

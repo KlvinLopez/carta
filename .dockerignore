@@ -2,21 +2,23 @@
 # El Dockerfile copia rutas explícitas (app/, migrations/, scripts/, frontend/, deploy/uvicorn_log.json,
 # pyproject.toml, uv.lock, alembic.ini, README.md); esto además mantiene el contexto pequeño y
 # garantiza que un .env o los datos locales no puedan colarse en ninguna capa.
+# Los patrones van anclados a la raíz del contexto: `**/` cubre también las subcarpetas
+# (frontend/.env.production, app/**/__pycache__). Ninguna línea empieza por `!`.
 
 # Secretos y datos locales
-.env*
+**/.env*
 datos/
-deploy/vps/.env
 
 # Entornos y cachés locales
 .venv/
 frontend/node_modules/
 frontend/dist/
-__pycache__/
-*.pyc
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.vite/
 .coverage
 htmlcov/
 

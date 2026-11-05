@@ -5,8 +5,9 @@ Qué se sirve y con qué caché:
 - `/assets/*` y `/fonts/*` (nombres con hash, o fuentes que no cambian):
   `Cache-Control: public, max-age=31536000, immutable`.
 - `index.html` para `/` y las rutas de la SPA (`/m/*`, `/staff/*`, `/admin*`):
-  `Cache-Control: no-cache` (el navegador revalida siempre; `FileResponse` pone `ETag`).
+  `Cache-Control: no-cache` (el navegador revalida siempre y recibe 304 si no cambió).
 - Los archivos sueltos de la raíz del dist (`manifest.webmanifest`, íconos): `no-cache`.
+- Nada oculto: ningún segmento que empiece por `.` se sirve (`.vite/`, `.env`).
 
 Qué no:
 
@@ -24,25 +25,31 @@ tal cual y recibe `index.html`: React Router absorbe el `decodeURI` fallido.
 Si el dist no existe la aplicación arranca igual (aviso en el log): `/` responde 404 con la
 envoltura y el código `FRONTEND_NO_CONSTRUIDO`; `/assets/*` 404 (`check_dir=False`).
 
-Nota: `/docs` carga Swagger UI desde un CDN con un script en línea; la CSP de 02 §12 lo
-bloquea en el navegador. `/openapi.json` (lo que usa `npm run tipos`) no se ve afectado.
+`/docs` y `/redoc` sólo existen en desarrollo (ver `app.core.cabeceras.RUTAS_DOCS`).
 """
 
 from __future__ import annotations
 
 import logging
+import mimetypes
 import os
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 from fastapi import FastAPI
+from starlette.datastructures import Headers
 from starlette.exceptions import HTTPException
 from starlette.responses import FileResponse, Response
-from starlette.staticfiles import StaticFiles
+from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.core.errores import ErrorCarta
 
 log = logging.getLogger("carta.estaticos")
+
+# `python:3.12-slim` no trae /etc/mime.types: sin esto las fuentes saldrían como octet-stream.
+mimetypes.add_type("font/woff2", ".woff2")
+mimetypes.add_type("font/woff", ".woff")
 
 CACHE_INMUTABLE = "public, max-age=31536000, immutable"
 CACHE_REVALIDAR = "no-cache"
@@ -74,6 +81,9 @@ class EstaticosInmutables(StaticFiles):
         await super().check_config()
 
     async def get_response(self, path: str, scope: Scope) -> Response:
+        # Nada oculto (`.vite/manifest.json`, `.DS_Store`): un segmento con punto inicial es 404.
+        if any(segmento.startswith(".") for segmento in path.split(os.sep) if segmento):
+            raise HTTPException(status_code=404)
         respuesta = await super().get_response(path, scope)
         respuesta.headers["Cache-Control"] = CACHE_INMUTABLE
         return respuesta
@@ -96,20 +106,16 @@ class RespaldoSpa:
 
         ruta = _ruta_sin_root_path(scope)
         if es_ruta_spa(ruta):
-            respuesta = self._indice()
+            if not self.indice.is_file():
+                raise ErrorCarta("FRONTEND_NO_CONSTRUIDO", MENSAJE_SIN_FRONTEND, 404)
+            archivo = self.indice
         else:
-            archivo = self._archivo_de_la_raiz(ruta)
-            if archivo is None:
+            candidato = self._archivo_de_la_raiz(ruta)
+            if candidato is None:
                 raise HTTPException(status_code=404)
-            respuesta = FileResponse(archivo, headers={"Cache-Control": CACHE_REVALIDAR})
+            archivo = candidato
+        respuesta: Response = _respuesta_revalidable(archivo, scope)
         await respuesta(scope, receive, send)
-
-    def _indice(self) -> Response:
-        if not self.indice.is_file():
-            raise ErrorCarta("FRONTEND_NO_CONSTRUIDO", MENSAJE_SIN_FRONTEND, 404)
-        return FileResponse(
-            self.indice, media_type="text/html", headers={"Cache-Control": CACHE_REVALIDAR}
-        )
 
     def _archivo_de_la_raiz(self, ruta: str) -> Path | None:
         """`/manifest.webmanifest`, `/icono.svg`…: un archivo regular directamente en el dist."""
@@ -123,6 +129,42 @@ class RespaldoSpa:
         except (OSError, ValueError):
             return None
         return None
+
+
+def _respuesta_revalidable(archivo: Path, scope: Scope) -> Response:
+    """`FileResponse` con `no-cache`, o 304 si el navegador ya tiene esta versión.
+
+    `FileResponse` sola no mira `If-None-Match`; se calcula aquí con sus mismas cabeceras
+    (`ETag`, `Last-Modified`), como hace `StaticFiles`.
+    """
+    stat_result = os.stat(archivo)
+    media_type = "text/html" if archivo.name == "index.html" else None
+    respuesta = FileResponse(
+        archivo,
+        stat_result=stat_result,
+        media_type=media_type,
+        headers={"Cache-Control": CACHE_REVALIDAR},
+    )
+    if _no_modificado(respuesta.headers, Headers(scope=scope)):
+        return NotModifiedResponse(respuesta.headers)
+    return respuesta
+
+
+def _no_modificado(respuesta: Headers, peticion: Headers) -> bool:
+    etag = respuesta.get("etag")
+    if_none_match = peticion.get("if-none-match")
+    if etag and if_none_match:
+        etags = [e.strip().removeprefix("W/") for e in if_none_match.split(",")]
+        if "*" in etags or etag.removeprefix("W/") in etags:
+            return True
+    if_modified_since = peticion.get("if-modified-since")
+    last_modified = respuesta.get("last-modified")
+    if if_modified_since and last_modified:
+        try:
+            return parsedate_to_datetime(last_modified) <= parsedate_to_datetime(if_modified_since)
+        except (TypeError, ValueError):
+            return False
+    return False
 
 
 def _ruta_sin_root_path(scope: Scope) -> str:

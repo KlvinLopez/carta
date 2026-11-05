@@ -11,14 +11,20 @@ Decisiones:
   `Settings.R2_URL_PUBLICA` lo tiene (las fotos de los platillos se sirven desde ahí); de la
   URL sólo se toma `esquema://host[:puerto]`, y si no es un origen limpio se ignora: una
   variable mal puesta no debe abrir la política ni romper la cabecera.
-- **HSTS sólo en `staging` y `produccion`.** Ahí la aplicación siempre va por HTTPS (Railway
-  o Caddy, con Cloudflare delante). En desarrollo y pruebas corre por HTTP: el navegador
+- **HSTS sólo en `staging` y `produccion`.** Ahí la aplicación siempre va por HTTPS (el
+  proxy del proveedor o Caddy, con Cloudflare delante). En desarrollo y pruebas corre por HTTP: el navegador
   ignora HSTS sin TLS, pero un `curl -I` en `localhost` sugeriría lo contrario y una
   cabecera «de adorno» confunde más de lo que protege. Un año e `includeSubDomains`, sin
   `preload` (exige registrarse en la lista de los navegadores y es irreversible en la práctica).
+- `frame-ancestors 'none'`, `base-uri 'self'` y `form-action 'self'` van explícitas:
+  `default-src` no las cubre. `X-Frame-Options: DENY` para los navegadores sin
+  `frame-ancestors`.
 - El 500 de una excepción no controlada lo envía `ServerErrorMiddleware`, **por fuera** de
   todo middleware (ver `app.core.errores`): `registrar_cabeceras_seguridad` envuelve ese
   manejador para que también ese 500 las lleve.
+- Toda envoltura de error lleva `Cache-Control: no-store` (`app.core.errores._respuesta`):
+  Cloudflare cachea por defecto los 404 de `.js`, `.css` y `.woff2`, y en el solape de un
+  despliegue un 404 cacheado en el borde dejaría a todos sin ese trozo.
 
 `MiddlewareCabecerasSeguridad` es ASGI puro, como `MiddlewareRequestId`, y se añade **antes**
 que él en `create_app` (queda por dentro; el de `request_id` sigue siendo el más externo).
@@ -30,7 +36,7 @@ from __future__ import annotations
 import inspect
 import logging
 import re
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -88,6 +94,11 @@ def politica_csp(origen_imagenes_externas: str | None) -> str:
             f"img-src {img_src}",
             "manifest-src 'self'",
             "connect-src 'self'",
+            # `default-src` no cubre estas tres: sin `frame-ancestors` la pantalla de PIN se
+            # podría embeber en un iframe ajeno (clickjacking).
+            "frame-ancestors 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
         )
     )
 
@@ -99,6 +110,8 @@ def cabeceras_seguridad(ajustes: Settings) -> dict[str, str]:
     """Las cabeceras que lleva toda respuesta en este entorno."""
     cabeceras = {
         "Content-Security-Policy": politica_csp(origen_imagenes(ajustes.R2_URL_PUBLICA)),
+        # Navegadores sin `frame-ancestors`; los demás ignoran esta cabecera cuando hay CSP.
+        "X-Frame-Options": "DENY",
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": REFERRER_POLICY,
         "Permissions-Policy": PERMISSIONS_POLICY,
@@ -114,33 +127,49 @@ def poner_cabeceras(destino: MutableHeaders, cabeceras: Mapping[str, str]) -> No
         destino[nombre] = valor
 
 
+# La documentación interactiva de FastAPI (Swagger desde un CDN, con un script en línea) no
+# funciona bajo la CSP. Fuera de desarrollo no se publica (`create_app`); en desarrollo estas
+# rutas, y sólo éstas, salen sin CSP (las demás cabeceras se conservan).
+RUTAS_DOCS = frozenset({"/docs", "/docs/oauth2-redirect", "/redoc"})
+
+
 class MiddlewareCabecerasSeguridad:
-    def __init__(self, app: ASGIApp, cabeceras: Mapping[str, str]) -> None:
+    def __init__(
+        self, app: ASGIApp, cabeceras: Mapping[str, str], sin_csp: Iterable[str] = ()
+    ) -> None:
         self.app = app
         self.cabeceras = dict(cabeceras)
+        self.sin_csp = frozenset(sin_csp)
+        self.cabeceras_sin_csp = {
+            k: v for k, v in self.cabeceras.items() if k.lower() != "content-security-policy"
+        }
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
+        a_poner = self.cabeceras_sin_csp if scope["path"] in self.sin_csp else self.cabeceras
 
         async def enviar(mensaje: Message) -> None:
             if mensaje["type"] == "http.response.start":
                 cabeceras = MutableHeaders(raw=list(mensaje.get("headers", [])))
-                poner_cabeceras(cabeceras, self.cabeceras)
+                poner_cabeceras(cabeceras, a_poner)
                 mensaje = {**mensaje, "headers": cabeceras.raw}
             await send(mensaje)
 
         await self.app(scope, receive, enviar)
 
 
-def registrar_cabeceras_seguridad(app: FastAPI, cabeceras: Mapping[str, str]) -> None:
+def registrar_cabeceras_seguridad(
+    app: FastAPI, cabeceras: Mapping[str, str], sin_csp: Iterable[str] = ()
+) -> None:
     """Añade el middleware y envuelve el manejador del 500 para que ese camino también las lleve.
 
     Llámala después de `registrar_manejadores` (necesita el manejador de `Exception`) y antes
-    de `add_middleware(MiddlewareRequestId)`.
+    de `add_middleware(MiddlewareRequestId)`. Un `add_exception_handler(Exception, ...)`
+    posterior pisaría la envoltura en silencio: lo vigila una prueba por el nombre del manejador.
     """
-    app.add_middleware(MiddlewareCabecerasSeguridad, cabeceras=cabeceras)
+    app.add_middleware(MiddlewareCabecerasSeguridad, cabeceras=cabeceras, sin_csp=sin_csp)
 
     manejador_original = app.exception_handlers[Exception]
 

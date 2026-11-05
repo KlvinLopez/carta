@@ -10,7 +10,23 @@
 
 ## Variables (`/opt/carta/deploy/vps/.env`, permisos 600)
 
-Las de `.env.example` más: `POSTGRES_PASSWORD` (obligatoria), `POSTGRES_USER`/`POSTGRES_DB` (por defecto `carta`/`carta_db`), `DATABASE_URL=postgresql+asyncpg://carta:<POSTGRES_PASSWORD>@postgres:5432/carta_db` (el host es el servicio `postgres`), `IMAGEN_TAG` (SHA o etiqueta de la imagen en GHCR; rollback = la anterior), `WORKERS`, `PUERTO_API` (8000; 8001 para un segundo stack), `DOMINIO`, y las del respaldo (`RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS`).
+Las de `.env.example` más las que interpola el compose. Cada servicio recibe sólo las suyas (lista explícita en `docker-compose.yml`): `respaldo` no ve `SECRET_KEY` ni `ANTHROPIC_API_KEY`; `api` no ve `POSTGRES_PASSWORD` ni `RESPALDO_CLAVE_AGE`.
+
+| Variable | Qué es |
+|---|---|
+| `POSTGRES_PASSWORD` | Obligatoria; `POSTGRES_USER`/`POSTGRES_DB` por defecto `carta`/`carta_db` |
+| `DATABASE_URL` | `postgresql+asyncpg://carta:<POSTGRES_PASSWORD>@postgres:5432/carta_db` (el host es el servicio `postgres`) |
+| `IMAGEN`, `IMAGEN_TAG` | Imagen de la API: `ghcr.io/klvinlopez/carta` + SHA o etiqueta; rollback = la etiqueta anterior. **Nadie publica en GHCR todavía** (decisión pendiente en T-0.7: publicar en etiquetas `v*` o construir en la VM): si la imagen no existe, `docker compose up --build` la construye desde la raíz del repositorio clonado |
+| `IMAGEN_RESPALDO` | Imagen del respaldo (`ghcr.io/klvinlopez/carta-respaldo`); si no existe, se construye de `deploy/respaldo/` |
+| `WORKERS`, `PUERTO_API` | Workers de uvicorn (2) y puerto local de la API (8000; 8001 para un segundo stack) |
+| `DOMINIO` | Para Caddy |
+| `ENTORNO`, `SECRET_KEY`, `R2_*`, `ANTHROPIC_API_KEY`, `IMPORTACION_MODELO`, `FIREBASE_PROJECT_ID`, `SENTRY_DSN` | Las de `.env.example` |
+| `RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS` | Llave pública de `age` y días que se conservan (≥ 1) |
+
+## Dos avisos
+
+- **ACME detrás de Cloudflare:** con el proxy naranja y «Always Use HTTPS» activo, el reto HTTP-01 de Caddy falla (Cloudflare redirige el reto a HTTPS antes de que exista el certificado). Opciones: certificado *Origin CA* de Cloudflare montado en Caddy, o el reto DNS-01 con el módulo de Cloudflare de Caddy y un token de API. Se decide al adoptar la VM.
+- **`carta` es root sin fricción:** `sudo` sin contraseña y grupo `docker` (equivalente a root). Es consciente: una sola persona opera la VM desde el teléfono. La llave SSH es la única puerta (`ssh_pwauth: false`, `disable_root: true`).
 
 ## Comprobar sin VM
 

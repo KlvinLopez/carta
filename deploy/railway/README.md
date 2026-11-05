@@ -41,6 +41,7 @@ Servicio `api`: todas las de `.env.example`.
 | `ANTHROPIC_API_KEY`, `FIREBASE_PROJECT_ID`, `SENTRY_DSN` | de cada proveedor |
 | `WORKERS` | `2` (el `CMD` de la imagen lo lee; subir con la RAM del plan) |
 | `PORT` | la pone Railway; la imagen escucha en `${PORT:-8000}` |
+| `FORWARDED_ALLOW_IPS` | `*`, fijada en la imagen (no hace falta ponerla): uvicorn sólo confía `X-Forwarded-*` desde 127.0.0.1 y detrás del proxy de Railway vería `http` y la IP del proxy. El contenedor sólo es alcanzable a través de ese proxy |
 
 Servicio `respaldo`: `DATABASE_URL` (misma referencia), `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_PRIVADO`, `ENTORNO`, `RESPALDO_CLAVE_AGE` (llave pública de `age`), `RESPALDO_DIAS=30`.
 
@@ -50,7 +51,7 @@ Secreto en GitHub (sólo uno): `RAILWAY_TOKEN`, para `.github/workflows/deploy.y
 
 1. Railway → servicio `api` → *Settings* → *Networking* → *Custom domain*: `staging.<dominio>` en `staging`, `<dominio>` en `produccion`. Railway muestra el `CNAME` a crear.
 2. Cloudflare → DNS: esos `CNAME` con proxy activado; `CNAME img` al dominio público del bucket R2.
-3. Cloudflare → SSL/TLS: *Full (strict)*. HSTS lo manda la aplicación (sólo en `staging` y `produccion`), no hace falta activarlo en Cloudflare.
+3. Cloudflare → SSL/TLS: *Full (strict)*. HSTS lo manda la aplicación (sólo en `staging` y `produccion`), no hace falta activarlo en Cloudflare. **Decisión consciente:** `includeSubDomains` desde el apex `<dominio>` obliga a HTTPS en **todos** los subdominios de la zona durante un año (`img.`, `staging.` y cualquier otro que exista o se cree); no pongas en esa zona nada que deba servirse por HTTP.
 4. Cloudflare → *Rules*: caché para `/api/v1/p/menu/*` (respeta el `ETag` de la API), límite de tasa (p. ej. 300 peticiones/min por IP), *Bot Fight Mode*.
 
 ## Comprobar

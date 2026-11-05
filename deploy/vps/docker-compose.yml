@@ -7,15 +7,23 @@
 #   docker compose --profile caddy up -d       # además Caddy con HTTPS (sin otro proxy en la VM)
 #   docker compose run --rm respaldo           # un respaldo a mano; el horario lo pone el cron del host
 #
-# La misma imagen que en Railway: nada de app/ sabe dónde corre. Dos stacks en la misma VM
-# (`-p carta-staging`, `-p carta-prod`) usan dos .env y dos puertos distintos.
+# La misma imagen que en Railway: nada de app/ sabe dónde corre. Las variables se leen del .env
+# de esta carpeta (interpolación de Compose) y cada servicio recibe SÓLO las suyas: `respaldo` no
+# ve SECRET_KEY ni ANTHROPIC_API_KEY, `api` no ve POSTGRES_PASSWORD ni RESPALDO_CLAVE_AGE.
+# Dos stacks en la misma VM (`-p carta-staging`, `-p carta-prod`) usan dos .env y dos puertos.
 name: carta
 
 x-imagen: &imagen
+  # Si la imagen no está en el registro (nadie publica en GHCR todavía: decisión pendiente en
+  # T-0.7), Compose la construye desde la raíz del repositorio con el mismo Dockerfile.
   image: ${IMAGEN:-ghcr.io/klvinlopez/carta}:${IMAGEN_TAG:-latest}
-  env_file:
-    - path: .env
-      required: false   # `docker compose config` debe pasar sin .env (CI); en la VM siempre existe
+  build:
+    context: ../..
+    dockerfile: Dockerfile
+
+x-base-de-datos: &base_de_datos
+  DATABASE_URL: ${DATABASE_URL:-}
+  ENTORNO: ${ENTORNO:-produccion}
 
 services:
   caddy:
@@ -39,6 +47,7 @@ services:
         condition: service_healthy
 
   postgres:
+    # Sin `ports`: sólo la red interna del stack llega a la base.
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -59,6 +68,9 @@ services:
     <<: *imagen
     command: ["uv", "run", "alembic", "upgrade", "head"]
     restart: "no"
+    environment:
+      <<: *base_de_datos
+      SECRET_KEY: ${SECRET_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,7 +79,20 @@ services:
     <<: *imagen
     restart: unless-stopped
     environment:
+      <<: *base_de_datos
+      DOMINIO: ${DOMINIO:-localhost}
+      SECRET_KEY: ${SECRET_KEY:-}
       WORKERS: ${WORKERS:-2}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_PUBLICO: ${R2_BUCKET_PUBLICO:-}
+      R2_BUCKET_PRIVADO: ${R2_BUCKET_PRIVADO:-}
+      R2_URL_PUBLICA: ${R2_URL_PUBLICA:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      IMPORTACION_MODELO: ${IMPORTACION_MODELO:-claude-opus-5-5}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
     ports:
       # Sólo la propia máquina: Caddy (o Cloudflare Tunnel) es quien expone 443.
       - "127.0.0.1:${PUERTO_API:-8000}:8000"
@@ -83,10 +108,15 @@ services:
     build: ../respaldo
     image: ${IMAGEN_RESPALDO:-ghcr.io/klvinlopez/carta-respaldo}:${IMAGEN_TAG:-latest}
     profiles: ["respaldo"]
-    env_file:
-      - path: .env
-        required: false
     restart: "no"
+    environment:
+      <<: *base_de_datos
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_PRIVADO: ${R2_BUCKET_PRIVADO:-}
+      RESPALDO_CLAVE_AGE: ${RESPALDO_CLAVE_AGE:-}
+      RESPALDO_DIAS: ${RESPALDO_DIAS:-30}
     depends_on:
       postgres:
         condition: service_healthy

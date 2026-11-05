@@ -56,7 +56,12 @@ COPY --from=frontend /src/frontend/dist frontend/dist
 
 # En tiempo de ejecución `uv run` no sincroniza ni escribe nada: el entorno ya está completo y
 # el usuario no tiene permiso de escritura sobre /app (el código es de root, sólo lectura).
-ENV UV_NO_SYNC=1
+# FORWARDED_ALLOW_IPS=*: uvicorn sólo confía X-Forwarded-* desde 127.0.0.1; detrás del proxy de
+# Railway o de Caddy `request.url.scheme` sería `http` y `request.client.host` la IP del proxy
+# (307 con Location http://, cookies Secure, URLs de QR, límite por IP). El contenedor sólo es
+# alcanzable a través de ese proxy, así que confiar en todos los orígenes es correcto aquí.
+ENV UV_NO_SYNC=1 \
+    FORWARDED_ALLOW_IPS=*
 
 USER carta
 EXPOSE 8000
@@ -68,4 +73,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # `exec` deja a uvicorn como PID 1 (recibe SIGTERM y apaga a los workers con gracia).
 # --log-config: con --workers N el supervisor escribiría texto plano; el JSON lo deja en una
 # línea JSON por evento con el mismo formateador de la aplicación (deploy/uvicorn_log.json).
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WORKERS:-2} --log-config deploy/uvicorn_log.json"]
+# WORKERS debe ser un entero ≥ 1: uvicorn con `--workers abc` moriría con una traza poco clara.
+CMD ["sh", "-c", "case \"${WORKERS:-2}\" in ''|*[!0-9]*|0) echo \"WORKERS debe ser un entero >= 1, no '${WORKERS:-}'\" >&2; exit 1;; esac; exec uvicorn app.main:app --host 0.0.0.0 --port \"${PORT:-8000}\" --workers \"${WORKERS:-2}\" --log-config deploy/uvicorn_log.json"]

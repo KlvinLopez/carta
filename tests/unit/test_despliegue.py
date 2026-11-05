@@ -3,8 +3,10 @@
 Lo que de verdad prueba la imagen (`docker build`, `docker run`, `curl`) corre en el job
 `imagen` de `.github/workflows/ci.yml`: en las sesiones de agente no hay daemon de Docker.
 Aquí se comprueba lo que sí se puede sin Docker: que la configuración de registro del
-supervisor de uvicorn produce JSON y no duplica manejadores, que el compose y el workflow son
-YAML válido con la forma esperada, y que el `Dockerfile` y `.dockerignore` llevan lo acordado.
+supervisor de uvicorn produce JSON y no duplica manejadores, que el compose, cloud-init y el
+workflow son YAML válido con la forma acordada (pyyaml, dependencia de desarrollo), y que el
+`Dockerfile`, `.dockerignore` y el Caddyfile llevan lo acordado (instrucción por instrucción,
+no por `grep`).
 """
 
 from __future__ import annotations
@@ -22,8 +24,30 @@ DOCKERFILE = RAIZ / "Dockerfile"
 DOCKERIGNORE = RAIZ / ".dockerignore"
 LOG_CONFIG = RAIZ / "deploy" / "uvicorn_log.json"
 COMPOSE_VPS = RAIZ / "deploy" / "vps" / "docker-compose.yml"
+CLOUD_INIT = RAIZ / "deploy" / "vps" / "cloud-init.yml"
+CADDYFILE = RAIZ / "deploy" / "vps" / "Caddyfile"
 CI = RAIZ / ".github" / "workflows" / "ci.yml"
 RESPALDAR = RAIZ / "deploy" / "respaldo" / "respaldar.sh"
+
+
+def instrucciones_dockerfile(texto: str) -> list[tuple[str, str]]:
+    """`[(INSTRUCCION, argumentos)]` con las continuaciones `\\` unidas y sin comentarios."""
+    lineas: list[str] = []
+    pendiente = ""
+    for cruda in texto.splitlines():
+        linea = cruda.rstrip()
+        if not pendiente and (not linea.strip() or linea.lstrip().startswith("#")):
+            continue
+        if linea.endswith("\\"):
+            pendiente += linea[:-1] + " "
+            continue
+        lineas.append((pendiente + linea).strip())
+        pendiente = ""
+    resultado = []
+    for linea in lineas:
+        nombre, _, argumentos = linea.partition(" ")
+        resultado.append((nombre.upper(), argumentos.strip()))
+    return resultado
 
 
 # --- registro del supervisor de uvicorn ---------------------------------------------------
@@ -78,34 +102,93 @@ def test_log_config_reutiliza_el_formateador_de_la_aplicacion() -> None:
 # --- Dockerfile y .dockerignore -----------------------------------------------------------
 
 
-def test_dockerfile_multietapa_segun_el_brief() -> None:
-    texto = DOCKERFILE.read_text(encoding="utf-8")
-    assert re.search(r"^FROM node:22-slim AS \w+", texto, re.MULTILINE)
-    assert re.search(r"^FROM python:3\.12-slim", texto, re.MULTILINE)
-    assert "ghcr.io/astral-sh/uv:0.11.32" in texto
-    assert "uv sync --locked --no-dev" in texto
-    assert re.search(r"^USER \w+", texto, re.MULTILINE)
-    assert "PYTHONIOENCODING=utf-8" in texto and "PYTHONUNBUFFERED=1" in texto
-    assert re.search(r"^HEALTHCHECK .*", texto, re.MULTILINE)
-    assert "/health" in texto
-    assert "--log-config deploy/uvicorn_log.json" in texto
-    assert "${WORKERS:-2}" in texto
-    assert "alembic upgrade" not in texto  # la migración la corre el despliegue, no el CMD
-    assert "frontend/dist" in texto
+def test_dockerfile_multietapa_instruccion_por_instruccion() -> None:
+    instrucciones = instrucciones_dockerfile(DOCKERFILE.read_text(encoding="utf-8"))
+    froms = [arg for ins, arg in instrucciones if ins == "FROM"]
+    assert froms[0].startswith("node:22-slim AS ")
+    assert froms[-1].startswith("python:3.12-slim")
+
+    copias = [arg for ins, arg in instrucciones if ins == "COPY"]
+    assert any(arg.startswith("--from=ghcr.io/astral-sh/uv:0.11.32 ") for arg in copias)
+    assert not any(arg.split()[-2] == "." for arg in copias), "ninguna COPY con origen `.`"
+    assert any("frontend/dist" in arg for arg in copias)
+
+    runs = [arg for ins, arg in instrucciones if ins == "RUN"]
+    syncs = [arg for arg in runs if "uv sync" in arg]
+    assert syncs and all("--locked" in arg and "--no-dev" in arg for arg in syncs)
+    assert not any("alembic upgrade" in arg for arg in runs)
+
+    usuarios = [arg for ins, arg in instrucciones if ins == "USER"]
+    assert usuarios and usuarios[-1] not in ("root", "0")
+
+    envs = " ".join(arg for ins, arg in instrucciones if ins == "ENV")
+    for variable in ("PYTHONIOENCODING=utf-8", "PYTHONUNBUFFERED=1", "FORWARDED_ALLOW_IPS=*"):
+        assert variable in envs, variable
+
+    (healthcheck,) = [arg for ins, arg in instrucciones if ins == "HEALTHCHECK"]
+    assert "/health" in healthcheck and "urlopen" in healthcheck
+
+    (cmd,) = [arg for ins, arg in instrucciones if ins == "CMD"]
+    partes = json.loads(cmd)
+    assert partes[:2] == ["sh", "-c"]
+    guion = partes[2]
+    assert guion.startswith("case ")
+    assert "exec uvicorn app.main:app" in guion
+    assert '--workers "${WORKERS:-2}"' in guion
+    assert '--port "${PORT:-8000}"' in guion
+    assert "--log-config deploy/uvicorn_log.json" in guion
+    assert "alembic" not in guion
+
+
+def test_el_cmd_rechaza_workers_no_numerico_y_acepta_un_entero() -> None:
+    instrucciones = instrucciones_dockerfile(DOCKERFILE.read_text(encoding="utf-8"))
+    (cmd,) = [arg for ins, arg in instrucciones if ins == "CMD"]
+    guion = json.loads(cmd)[2].replace("exec uvicorn", "exec echo uvicorn")
+    entorno_base = {"PATH": "/usr/bin:/bin"}
+    for malo in ("abc", "0", "2x", "-1"):
+        r = subprocess.run(
+            ["sh", "-c", guion],
+            env={**entorno_base, "WORKERS": malo},
+            capture_output=True,
+            text=True,
+        )
+        assert r.returncode == 1, malo
+        assert "WORKERS" in r.stderr
+    r = subprocess.run(
+        ["sh", "-c", guion],
+        env={**entorno_base, "WORKERS": "4", "PORT": "9000"},
+        capture_output=True,
+        text=True,
+    )
+    assert r.returncode == 0
+    assert "--port 9000 --workers 4" in r.stdout
+    # Sin WORKERS, o vacía, vale el valor por defecto del brief: 2.
+    for entorno in (entorno_base, {**entorno_base, "WORKERS": ""}):
+        r = subprocess.run(["sh", "-c", guion], env=entorno, capture_output=True, text=True)
+        assert r.returncode == 0 and "--port 8000 --workers 2" in r.stdout
 
 
 def test_dockerignore_deja_fuera_secretos_datos_y_lo_que_no_entra_en_la_imagen() -> None:
-    lineas = {
+    lineas = [
         linea.strip()
         for linea in DOCKERIGNORE.read_text(encoding="utf-8").splitlines()
         if linea.strip() and not linea.startswith("#")
-    }
+    ]
+    assert not any(linea.startswith("!") for linea in lineas), "sin excepciones que reabran algo"
+    patrones = set(lineas)
+    # Los patrones van anclados a la raíz: lo que puede vivir en subcarpetas lleva `**/`.
     for patron in (
-        ".env*",
+        "**/.env*",
         "datos/",
         ".venv/",
         "frontend/node_modules/",
         "frontend/dist/",
+        "**/__pycache__/",
+        "**/*.pyc",
+        "**/.pytest_cache/",
+        "**/.mypy_cache/",
+        "**/.ruff_cache/",
+        "**/.vite/",
         "tests/",
         "docs/",
         "prototipo/",
@@ -113,10 +196,19 @@ def test_dockerignore_deja_fuera_secretos_datos_y_lo_que_no_entra_en_la_imagen()
         "terraform/",
         ".git/",
     ):
-        assert patron in lineas, patron
-    # Lo que sí tiene que entrar no está ignorado.
-    for necesario in ("app/", "migrations/", "frontend/src/", "deploy/", "uv.lock"):
-        assert necesario not in lineas, necesario
+        assert patron in patrones, patron
+    assert ".env*" not in patrones and "__pycache__/" not in patrones, (
+        "sin `**/` no cubre subcarpetas"
+    )
+    for necesario in ("app/", "migrations/", "frontend/src/", "deploy/", "uv.lock", "frontend/"):
+        assert necesario not in patrones, necesario
+
+
+def test_ningun_archivo_de_app_sabe_en_que_proveedor_corre() -> None:
+    for archivo in (RAIZ / "app").rglob("*.py"):
+        texto = archivo.read_text(encoding="utf-8").lower()
+        for proveedor in ("railway", "hetzner", "cloud run", "vultr"):
+            assert proveedor not in texto, (archivo, proveedor)
 
 
 # --- deploy/ ------------------------------------------------------------------------------
@@ -133,27 +225,82 @@ def test_compose_de_la_vm_es_valido_y_tiene_la_forma_acordada() -> None:
     assert servicios["migracion"]["depends_on"]["postgres"]["condition"] == "service_healthy"
     assert "alembic" in " ".join(servicios["migracion"]["command"])
     assert any("postgresql/data" in v for v in servicios["postgres"]["volumes"])
+    assert "ports" not in servicios["postgres"], "la base no se expone fuera del stack"
+    assert all(str(p).startswith("127.0.0.1:") for p in servicios["api"]["ports"])
+    assert servicios["postgres"]["environment"]["POSTGRES_PASSWORD"] == "${POSTGRES_PASSWORD:-}"
+    # La imagen se construye si no está en el registro; `config` no necesita .env.
+    for nombre in ("api", "migracion"):
+        assert servicios[nombre]["build"] == {"context": "../..", "dockerfile": "Dockerfile"}
     for nombre in ("api", "migracion", "respaldo"):
-        for env_file in servicios[nombre]["env_file"]:
-            assert env_file["required"] is False, "`docker compose config` sin .env debe pasar"
+        assert "env_file" not in servicios[nombre], "cada servicio recibe sólo sus variables"
+    entorno_api = servicios["api"]["environment"]
+    entorno_respaldo = servicios["respaldo"]["environment"]
+    assert "POSTGRES_PASSWORD" not in entorno_api and "RESPALDO_CLAVE_AGE" not in entorno_api
+    assert "SECRET_KEY" not in entorno_respaldo and "ANTHROPIC_API_KEY" not in entorno_respaldo
+    assert {"DATABASE_URL", "SECRET_KEY", "ENTORNO", "WORKERS", "R2_URL_PUBLICA"} <= set(
+        entorno_api
+    )
+    assert {"DATABASE_URL", "RESPALDO_CLAVE_AGE", "RESPALDO_DIAS", "R2_BUCKET_PRIVADO"} <= set(
+        entorno_respaldo
+    )
     texto = COMPOSE_VPS.read_text(encoding="utf-8")
     assert "password" not in texto.lower().replace("postgres_password", "")
 
 
+def test_cloud_init_endurece_la_vm_y_programa_el_respaldo() -> None:
+    texto = CLOUD_INIT.read_text(encoding="utf-8")
+    assert texto.splitlines()[0] == "#cloud-config"
+    config = yaml.safe_load(texto)
+    assert config["ssh_pwauth"] is False
+    assert config["disable_root"] is True
+    permitidos = {
+        linea.removeprefix("ufw allow ").strip()
+        for linea in config["runcmd"]
+        if isinstance(linea, str) and linea.startswith("ufw allow ")
+    }
+    assert permitidos <= {"22/tcp", "80/tcp", "443/tcp", "443/udp"}
+    assert any("ufw --force enable" in str(linea) for linea in config["runcmd"])
+    cron = [a for a in config["write_files"] if a["path"] == "/etc/cron.d/carta-respaldo"]
+    assert cron and "docker compose run --rm respaldo" in cron[0]["content"]
+    assert "0 4 * * * carta" in cron[0]["content"]
+    assert not re.search(r"ssh-ed25519 AAAA", texto), "sin llaves reales"
+
+
+def test_caddyfile_solo_hace_proxy_y_tls() -> None:
+    texto = CADDYFILE.read_text(encoding="utf-8")
+    directivas = [
+        linea.strip().split()[0]
+        for linea in texto.splitlines()
+        if linea.strip() and not linea.strip().startswith("#")
+    ]
+    assert "header" not in directivas, "las cabeceras las pone la aplicación"
+    assert "reverse_proxy api:8000" in texto
+    assert "{$DOMINIO}" in texto
+
+
 def test_ci_tiene_el_job_imagen_con_el_verificar_del_brief() -> None:
-    ci = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    texto = CI.read_text(encoding="utf-8")
+    ci = yaml.safe_load(texto)
     imagen = ci["jobs"]["imagen"]
     assert "needs" not in imagen, "corre en paralelo con `calidad`"
     pasos = "\n".join(paso.get("run", "") for paso in imagen["steps"])
     for fragmento in (
         "docker build -t carta:test .",
-        "docker run -d -p 8000:8000 --env-file .env.example -e ENTORNO=pruebas",
+        "docker run -d -p 127.0.0.1:8000:8000 --env-file .env.example -e ENTORNO=pruebas",
         "curl -sf localhost:8000/health",
         '<div id="app"',
         "content-security-policy",
         "docker compose -f deploy/vps/docker-compose.yml config",
+        "content-type: font/woff2",
+        "cache-control: no-store",
+        "docker build -t carta-respaldo:test deploy/respaldo",
     ):
         assert fragmento in pasos, fragmento
+    for job in ci["jobs"].values():
+        for paso in job["steps"]:
+            assert "secrets." not in json.dumps(paso), "los jobs no usan secretos"
+            if "uses" in paso:
+                assert re.fullmatch(r"[\w.-]+/[\w.-]+@[0-9a-f]{40}", paso["uses"]), paso["uses"]
 
 
 def test_script_de_respaldo_falla_pronto_y_no_trae_secretos() -> None:
@@ -161,7 +308,13 @@ def test_script_de_respaldo_falla_pronto_y_no_trae_secretos() -> None:
     assert texto.startswith("#!/bin/sh")
     assert "set -eu" in texto
     assert "pg_dump" in texto and "age" in texto and "rclone" in texto
-    for variable in ("DATABASE_URL", "RESPALDO_CLAVE_AGE", "R2_BUCKET_PRIVADO", "RESPALDO_DIAS"):
+    for variable in (
+        "DATABASE_URL",
+        "RESPALDO_CLAVE_AGE",
+        "R2_BUCKET_PRIVADO",
+        "RESPALDO_DIAS",
+        "PGPASSWORD",
+    ):
         assert variable in texto, variable
     assert not re.search(r"(AKIA|age1[a-z0-9]{50,})", texto)
     resultado = subprocess.run(["sh", "-n", str(RESPALDAR)], capture_output=True, text=True)

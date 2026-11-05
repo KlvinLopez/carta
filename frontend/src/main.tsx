@@ -7,13 +7,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './App';
+import { instalarGuardiaDeRecarga } from './recarga';
 
 // Un trozo que ya no existe en el servidor (despliegue nuevo mientras una pestaña vieja navega):
-// Vite avisa con este evento y la salida limpia es recargar (patrón documentado por Vite).
-window.addEventListener('vite:preloadError', (evento) => {
-  evento.preventDefault();
-  window.location.reload();
-});
+// Vite avisa con `vite:preloadError` y la salida limpia es recargar, una sola vez por URL
+// (ver recarga.ts: un 404 cacheado en el borde no debe convertirse en una tormenta de recargas).
+instalarGuardiaDeRecarga(window);
 
 const raiz = document.getElementById('app');
 if (!raiz) {

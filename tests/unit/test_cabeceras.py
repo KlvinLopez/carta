@@ -1,4 +1,8 @@
-"""T-0.6: construcción de las cabeceras de seguridad a partir de `Settings`."""
+"""T-0.6: construcción de las cabeceras de seguridad a partir de `Settings`.
+
+Los valores van como literales (los del brief y de 02 §12), no como las constantes del módulo:
+una constante cambiada a `max-age=60` pasaría una prueba que la importa.
+"""
 
 from __future__ import annotations
 
@@ -13,10 +17,13 @@ from app.core.cabeceras import (
 )
 from app.core.config import Settings
 
+# La política exacta de 02 §12 (sin el origen de R2).
 CSP_02_12 = (
     "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; "
-    "img-src 'self'; manifest-src 'self'; connect-src 'self'"
+    "img-src 'self'; manifest-src 'self'; connect-src 'self'; "
+    "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 )
+HSTS_02_12 = "max-age=31536000; includeSubDomains"
 
 
 def _ajustes(**valores: object) -> Settings:
@@ -29,6 +36,15 @@ def test_la_csp_es_la_de_02_12_sin_nonces() -> None:
     assert CSP_SIN_IMAGENES_EXTERNAS == CSP_02_12
     assert "unsafe-inline" not in CSP_SIN_IMAGENES_EXTERNAS
     assert "nonce" not in CSP_SIN_IMAGENES_EXTERNAS
+
+
+def test_la_csp_lleva_las_directivas_que_default_src_no_cubre() -> None:
+    directivas = {
+        d.split(" ", 1)[0]: d.split(" ", 1)[1] for d in CSP_SIN_IMAGENES_EXTERNAS.split("; ")
+    }
+    assert directivas["frame-ancestors"] == "'none'"
+    assert directivas["base-uri"] == "'self'"
+    assert directivas["form-action"] == "'self'"
 
 
 @pytest.mark.parametrize(
@@ -64,12 +80,25 @@ def test_politica_csp_con_y_sin_origen_de_imagenes() -> None:
     )
 
 
+def test_valores_literales_del_brief_y_de_02_12() -> None:
+    cabeceras = cabeceras_seguridad(_ajustes(ENTORNO="produccion"))
+    assert cabeceras == {
+        "Content-Security-Policy": CSP_02_12,
+        "X-Frame-Options": "DENY",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Strict-Transport-Security": HSTS_02_12,
+    }
+
+
 @pytest.mark.parametrize("entorno", ["desarrollo", "pruebas"])
 def test_sin_hsts_donde_se_corre_por_http(entorno: str) -> None:
     cabeceras = cabeceras_seguridad(_ajustes(ENTORNO=entorno))
     assert "Strict-Transport-Security" not in cabeceras
     assert set(cabeceras) == {
         "Content-Security-Policy",
+        "X-Frame-Options",
         "X-Content-Type-Options",
         "Referrer-Policy",
         "Permissions-Policy",
@@ -79,7 +108,8 @@ def test_sin_hsts_donde_se_corre_por_http(entorno: str) -> None:
 @pytest.mark.parametrize("entorno", ["staging", "produccion"])
 def test_hsts_un_anio_con_subdominios_fuera_de_desarrollo(entorno: str) -> None:
     cabeceras = cabeceras_seguridad(_ajustes(ENTORNO=entorno))
-    assert cabeceras["Strict-Transport-Security"] == HSTS == "max-age=31536000; includeSubDomains"
+    assert cabeceras["Strict-Transport-Security"] == HSTS_02_12
+    assert HSTS == HSTS_02_12
     assert "preload" not in HSTS
 
 

@@ -8,3 +8,16 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
+  # Imágenes base del Dockerfile y de deploy/respaldo (tags; los digests @sha256 quedan para T-0.7).
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+  - package-ecosystem: docker
+    directory: /deploy/respaldo
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
