@@ -109,7 +109,7 @@ Detalle en `docs/plan/07_Spec_Driven.md`. Cada sesión recorre cinco pasos y cad
 |---|---|---|
 | 0 · Especificar | Sólo si no está en el plan: `/especificar` → `docs/specs/NNN-*/spec.md` → tareas en 04 | Criterios verificables |
 | 1 · Planear | Plan mode (`shift+tab`) o `/tarea T-x.y`: investiga sin tocar nada | Un plan revisable |
-| 2 · Trabajar | Pruebas primero (marcadas con el criterio), luego código; subagente `implementador` para pasos aislados, `explorador` para buscar | Código y pruebas |
+| 2 · Trabajar | Pruebas primero (marcadas con el criterio, con las fixtures y fábricas del skill `/pruebas`), luego código; subagente `implementador` para pasos aislados, `explorador` para buscar | Código y pruebas |
 | 3 · Revisar | `/revisar` (seguridad · pruebas · adversarial), `/analizar T-x.y` (spec ↔ contrato ↔ código ↔ pruebas) y `/code-review` antes del PR | Hallazgos resueltos |
 | 4 · Compound | `/compound` antes de cerrar: ¿qué aprendimos que la próxima sesión debería saber? | Memoria para la próxima |
 
