@@ -24,7 +24,7 @@ from sqlalchemy.pool import NullPool
 
 from app.db import models
 from app.db.database import Base
-from tests.bd_pruebas import RAIZ, alembic
+from tests.bd_pruebas import RAIZ, alembic, base_desechable
 
 TABLAS_V1 = {
     "restaurante",
@@ -134,21 +134,12 @@ PIN_HASH = "$argon2id$v=19$m=65536,t=3,p=4$abc$def"
 # ---------------------------------------------------------------------------
 # Conexión sin transacción exterior (`compare_metadata` y el escenario abren la suya)
 # ---------------------------------------------------------------------------
-# `url_bd`, `esquema_migrado` y `alembic()` viven en tests/conftest.py y tests/bd_pruebas.py.
+# `url_bd`, `esquema_migrado`, `motor_pruebas` (conftest.py) y `alembic()` (bd_pruebas.py).
 
 
 @pytest.fixture
-async def motor(esquema_migrado: str) -> AsyncIterator[AsyncEngine]:
-    motor = create_async_engine(esquema_migrado, poolclass=NullPool)
-    try:
-        yield motor
-    finally:
-        await motor.dispose()
-
-
-@pytest.fixture
-async def conexion(motor: AsyncEngine) -> AsyncIterator[AsyncConnection]:
-    async with motor.connect() as conexion:
+async def conexion(motor_pruebas: AsyncEngine) -> AsyncIterator[AsyncConnection]:
+    async with motor_pruebas.connect() as conexion:
         yield conexion
 
 
@@ -198,19 +189,28 @@ async def _funciones(conexion: AsyncConnection) -> set[str]:
 # ---------------------------------------------------------------------------
 
 
-async def test_migracion_sube_baja_y_vuelve_a_subir(esquema_migrado: str) -> None:
-    """`downgrade()` es completo: tras bajar no queda ninguna tabla, tipo ni función nuestra."""
-    motor = create_async_engine(esquema_migrado, poolclass=NullPool)
-    try:
-        alembic("downgrade", "base", url=esquema_migrado)
-        async with motor.connect() as conexion:
-            assert await _tablas(conexion) <= {"alembic_version"}
-            assert await _tipos_enumerados(conexion) == {}
-            assert await _funciones(conexion) == set()
-    finally:
-        # Pase lo que pase, la base vuelve a `head` para las demás pruebas.
-        alembic("upgrade", "head", url=esquema_migrado)
-        await motor.dispose()
+async def test_migracion_sube_baja_y_vuelve_a_subir(url_bd: str) -> None:
+    """`downgrade()` es completo: tras bajar no queda ninguna tabla, tipo ni función nuestra.
+
+    Corre en una base desechable propia de este proceso: la compartida nunca baja de `head`,
+    así que varias corridas de pytest a la vez (o un SIGKILL a media prueba) no la tumban.
+    """
+    async with base_desechable(url_bd, "mig") as url:
+        motor = create_async_engine(url, poolclass=NullPool)
+        try:
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert TABLAS_V1 <= await _tablas(conexion)
+            alembic("downgrade", "base", url=url)
+            async with motor.connect() as conexion:
+                assert await _tablas(conexion) <= {"alembic_version"}
+                assert await _tipos_enumerados(conexion) == {}
+                assert await _funciones(conexion) == set()
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert TABLAS_V1 <= await _tablas(conexion)
+        finally:
+            await motor.dispose()
 
 
 def test_la_url_no_pasa_por_el_ini_de_alembic() -> None:

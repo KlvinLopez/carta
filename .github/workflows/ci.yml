@@ -4,6 +4,10 @@
 # Corre en push a `master`, en cada pull request y también en push a las ramas de agente
 # (`agente/**`, `claude/**`): así cada rama de agente tiene CI sin abrir PR y la sesión maestra
 # ve el resultado antes de integrar (04_Fases_y_Tareas §11).
+#
+# Las acciones van fijadas por SHA completo (el tag es sólo comentario): este workflow es la
+# puerta de integración y un tag es mutable. Dependabot (.github/dependabot.yml) propone las
+# actualizaciones.
 name: CI
 
 on:
@@ -15,9 +19,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Un push a una rama con PR abierto cae en una sola corrida (`head_ref` es la rama en ambos
+# eventos); las corridas de `master` nunca se cancelan.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 permissions:
   contents: read
@@ -26,10 +32,9 @@ env:
   # Credenciales de la base efímera del job, no un secreto real.
   DATABASE_URL: postgresql+asyncpg://carta:carta_ci@localhost:5432/carta_test
   TEST_DATABASE_URL: postgresql+asyncpg://carta:carta_ci@localhost:5432/carta_test
-  # Cualquier cadena larga sirve en pruebas; nunca una llave de verdad (regla dura 12).
+  # Pública a propósito; está en `SECRETOS_DE_EJEMPLO` para que `Settings` la rechace fuera de pruebas.
   SECRET_KEY: clave-solo-para-ci-de-github-actions-sin-valor-real-0123456789
   ENTORNO: pruebas
-  UV_FROZEN: "1"
 
 jobs:
   calidad:
@@ -53,20 +58,22 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Python (versión de .python-version)
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
 
       - name: uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
+          version: "0.11.32"
           enable-cache: true
 
-      - name: Dependencias (uv sync --frozen)
-        run: uv sync --frozen
+      - name: Dependencias (uv sync --locked)
+        # `--locked` falla si uv.lock no está al día con pyproject.toml.
+        run: uv sync --locked
 
       - name: ruff check
         run: uv run ruff check .
@@ -77,18 +84,25 @@ jobs:
       - name: mypy app
         run: uv run mypy app
 
-      - name: app/services no importa FastAPI (regla dura 2)
+      - name: app/services no importa FastAPI ni Starlette (regla dura 2)
         run: |
           mkdir -p app/services
-          con_fastapi="$(grep -rl "fastapi" app/services/ | wc -l)"
-          if [ "$con_fastapi" -ne 0 ]; then
-            echo "::error::app/services/ importa fastapi en $con_fastapi archivo(s):"
-            grep -rl "fastapi" app/services/
+          # Sólo sentencias de importación, no texto en comentarios o docstrings.
+          con_framework="$(grep -rlE --include='*.py' '^\s*(from|import)\s+(fastapi|starlette)\b' app/services/ | wc -l)"
+          if [ "$con_framework" -ne 0 ]; then
+            echo "::error::app/services/ importa fastapi o starlette en $con_framework archivo(s):"
+            grep -rlE --include='*.py' '^\s*(from|import)\s+(fastapi|starlette)\b' app/services/
             exit 1
           fi
 
       - name: pytest --cov=app
-        run: uv run pytest --cov=app --cov-report=term-missing:skip-covered -q
+        run: uv run pytest --cov=app --cov-report=term-missing:skip-covered -q -rfE
 
-      - name: pip-audit
-        run: uv run pip-audit --progress-spinner off
+      - name: pip-audit (sobre uv.lock)
+        # Corre aunque un paso anterior haya fallado: una vulnerabilidad no debe esperar a que
+        # pase el lint. Audita el lock exportado, no el venv: determinista y sin resolver con pip.
+        if: ${{ !cancelled() }}
+        run: |
+          uv export --frozen --no-emit-project --no-hashes -o "${RUNNER_TEMP}/requisitos.txt"
+          uv run pip-audit --strict --progress-spinner off --disable-pip --no-deps \
+            -r "${RUNNER_TEMP}/requisitos.txt"

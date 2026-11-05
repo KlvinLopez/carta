@@ -1,8 +1,10 @@
 """Fábricas mínimas de datos de prueba, coherentes con `app/db/models.py`.
 
 Cada función recibe la `AsyncSession` transaccional de `conftest.py`, inserta con los
-modelos reales (nunca con SQL que esquive los CHECK) y hace `flush`, no `commit`: la
-transacción exterior de la prueba se revierte al terminar y nada queda en la base.
+modelos reales (nunca con SQL que esquive los CHECK) y termina con `commit()`: con
+`join_transaction_mode="create_savepoint"` eso sólo libera un *savepoint* (nada sale de la
+transacción de la prueba, que se revierte al terminar), pero deja lo creado a salvo de un
+`rollback()` del código bajo prueba, que vuelve al último *savepoint*.
 Los valores por defecto son únicos por llamada para que varias fábricas convivan en una
 misma prueba (slug, `codigo_publico`, `firebase_uid`).
 """
@@ -34,7 +36,7 @@ async def crear_restaurante(sesion: AsyncSession, **valores: Any) -> Restaurante
     datos.update(valores)
     restaurante = Restaurante(**datos)
     sesion.add(restaurante)
-    await sesion.flush()
+    await sesion.commit()
     return restaurante
 
 
@@ -44,7 +46,7 @@ async def crear_usuario(sesion: AsyncSession, **valores: Any) -> Usuario:
     datos.update(valores)
     usuario = Usuario(**datos)
     sesion.add(usuario)
-    await sesion.flush()
+    await sesion.commit()
     return usuario
 
 
@@ -62,7 +64,7 @@ async def crear_operador(
         usuario_id=usuario.id, restaurante_id=restaurante.id, rol=rol, **valores
     )
     sesion.add(operador)
-    await sesion.flush()
+    await sesion.commit()
     return operador
 
 
@@ -75,5 +77,5 @@ async def crear_mesa(sesion: AsyncSession, restaurante: Restaurante, **valores: 
     datos.update(valores)
     mesa = Mesa(**datos)
     sesion.add(mesa)
-    await sesion.flush()
+    await sesion.commit()
     return mesa

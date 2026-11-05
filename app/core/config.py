@@ -22,6 +22,8 @@ SECRETOS_DE_EJEMPLO = frozenset(
         "cambia-este-secreto-en-produccion",
         "your-super-secret-key-change-in-production",
         "solo-para-desarrollo-local-no-usar-en-produccion-0123456789",
+        # La de .github/workflows/ci.yml: es pública, así que no sirve fuera de pruebas.
+        "clave-solo-para-ci-de-github-actions-sin-valor-real-0123456789",
     }
 )
 SECRET_KEY_LONGITUD_MINIMA = 32
@@ -42,6 +44,8 @@ class Settings(BaseSettings):
 
     # Base de datos
     DATABASE_URL: str = "postgresql+asyncpg://carta:carta_dev_password@localhost:5432/carta_db"
+    # Base que migran y vacían las pruebas (`tests/bd_pruebas.py`); la aplicación no la usa.
+    TEST_DATABASE_URL: str | None = None
     DATABASE_ECHO: bool = False
     DB_POOL_SIZE: int = 10
     DB_MAX_OVERFLOW: int = 10
