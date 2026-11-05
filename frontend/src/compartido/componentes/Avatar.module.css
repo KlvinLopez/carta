@@ -1,0 +1,90 @@
+.avatar {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  border-radius: var(--radio-pildora);
+  transition: filter 300ms ease;
+}
+
+.chico {
+  width: 32px;
+  height: 32px;
+  font-size: 0.75rem;
+}
+.normal {
+  width: 48px;
+  height: 48px;
+  font-size: 1.0625rem;
+}
+.grande {
+  width: 64px;
+  height: 64px;
+  font-size: 1.5rem;
+}
+
+.anillo {
+  padding: 2.5px;
+  background: linear-gradient(45deg, var(--vino-claro), var(--dorado));
+}
+
+.atenuado {
+  filter: grayscale(0.9) opacity(0.65);
+}
+
+/* El borde de 2 px color Crema separa figuras apiladas: única excepción a la regla no-line. */
+.interior {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radio-pildora);
+  overflow: hidden;
+  border: 2px solid var(--crema);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-titulo);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--sobre-vino);
+  user-select: none;
+}
+
+.foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Color estable por miembro: ocho tonos cálidos; el índice sale del nombre. */
+.tono0 {
+  background: #6b2d3e;
+}
+.tono1 {
+  background: #8a6508;
+}
+.tono2 {
+  background: #2f5d50;
+}
+.tono3 {
+  background: #4a4e8a;
+}
+.tono4 {
+  background: #a0522d;
+}
+.tono5 {
+  background: #5b4a3d;
+}
+.tono6 {
+  background: #2d6a7a;
+}
+.tono7 {
+  background: #7a3b69;
+}
+
+/* Grupo apilado: avatares solapados en una fila. */
+.grupo {
+  display: inline-flex;
+  align-items: center;
+}
+.grupo > .avatar + .avatar {
+  margin-left: -10px;
+}

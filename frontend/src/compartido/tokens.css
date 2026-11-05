@@ -1,0 +1,84 @@
+/* ═══════════════════════════════════════════════════════════
+   Carta · tokens — "The Digital Sommelier"
+   Fuente: .claude/skills/diseno-visual/SKILL.md y prototipo/js/shared.jsx
+   La interfaz es el marco; la comida es el arte.
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  /* Superficies — "el mantel". Nunca blanco puro de fondo de página. */
+  --crema: #fef9f1;
+  --crema-baja: #f8f1e5;
+  --crema-alta: #ece8e0;
+  --superficie: #ffffff;
+
+  /* Primario — Vino */
+  --vino: #4f1728;
+  --vino-claro: #6b2d3e;
+  --vino-tenue: rgba(79, 23, 40, 0.09);
+  --sobre-vino: #ffffff;
+  --gradiente-vino: linear-gradient(135deg, var(--vino) 0%, var(--vino-claro) 100%);
+
+  /* Acento — Dorado. Un destacado por pantalla como máximo. */
+  --dorado: #b8860b;
+  --dorado-oscuro: #8a6508;
+  --dorado-tenue: rgba(184, 134, 11, 0.14);
+  --gradiente-dorado: linear-gradient(135deg, var(--dorado) 0%, #d4a017 100%);
+
+  /* Texto. Nunca #000000. */
+  --carbon: #1a1a1a;
+  --carbon-suave: #5b4a3d;
+
+  /* Semánticos */
+  --exito: #15803d;
+  --exito-tenue: rgba(34, 197, 94, 0.12);
+  --error: #ba1a1a;
+  --error-tenue: rgba(186, 26, 26, 0.1);
+  --aviso: #b45309;
+  --aviso-tenue: rgba(245, 158, 11, 0.14);
+
+  /* Estados de mesa (personal) */
+  --mesa-libre: #9ca3af;
+  --mesa-activa: var(--dorado);
+  --mesa-alerta: var(--vino);
+
+  /* Tipografía: servida desde el propio dominio (base.css) */
+  --fuente-titulo: 'DM Serif Display', Georgia, serif;
+  --fuente-cuerpo: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  /* Radios: ningún contenedor por debajo de 20 px; botones y chips píldora */
+  --radio: 20px;
+  --radio-grande: 24px;
+  --radio-hoja: 32px;
+  --radio-pildora: 9999px;
+
+  /* Sombras cálidas, tintadas; nunca negras */
+  --sombra: 0 20px 40px rgba(29, 28, 23, 0.06);
+  --sombra-suave: 0 2px 10px rgba(29, 28, 23, 0.06);
+  --sombra-tarjeta: 0 4px 16px rgba(79, 23, 40, 0.08);
+  --sombra-flotante: 0 12px 32px rgba(79, 23, 40, 0.28);
+  --sombra-hoja: 0 -24px 60px rgba(29, 28, 23, 0.3);
+
+  /* Movimiento: resorte (rigidez 300, amortiguación 20) y scale-fade */
+  --resorte: cubic-bezier(0.22, 1.4, 0.36, 1);
+  --resorte-suave: cubic-bezier(0.22, 1.2, 0.36, 1);
+  --duracion-corta: 120ms;
+  --duracion: 250ms;
+  --duracion-hoja: 320ms;
+
+  /* Espaciado */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 20px;
+  --esp-6: 24px;
+  --esp-8: 32px;
+  --esp-10: 40px;
+  --esp-12: 48px;
+
+  /* Área táctil mínima */
+  --tactil: 44px;
+
+  /* Ancho de diseño: teléfono primero (390 px); escritorio sólo en /admin */
+  --ancho-telefono: 430px;
+  --ancho-escritorio: 1120px;
+}

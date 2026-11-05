@@ -1,0 +1,27 @@
+{
+  "name": "Carta",
+  "short_name": "Carta",
+  "description": "Menú visual por QR: arma tu orden con tu mesa y el mesero la recibe en su teléfono.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FEF9F1",
+  "theme_color": "#4F1728",
+  "icons": [
+    {
+      "src": "/icono.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icono-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

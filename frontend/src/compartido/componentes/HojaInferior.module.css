@@ -1,0 +1,113 @@
+.capa {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.fondo {
+  position: absolute;
+  inset: 0;
+  background: rgba(29, 28, 23, 0.45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: aparece var(--duracion) ease both;
+}
+
+.hoja {
+  position: relative;
+  width: 100%;
+  max-width: var(--ancho-telefono);
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--crema);
+  border-radius: var(--radio-hoja) var(--radio-hoja) 0 0;
+  box-shadow: var(--sombra-hoja);
+  padding: 0 var(--esp-6) calc(var(--esp-8) + env(safe-area-inset-bottom, 0px));
+  outline: none;
+  animation: sube var(--duracion-hoja) var(--resorte) both;
+}
+
+.asa {
+  display: flex;
+  justify-content: center;
+  padding: var(--esp-3) 0 var(--esp-2);
+  flex-shrink: 0;
+}
+.asa::before {
+  content: '';
+  width: 40px;
+  height: 5px;
+  border-radius: var(--radio-pildora);
+  background: rgba(79, 23, 40, 0.22);
+}
+
+.encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  margin-bottom: var(--esp-4);
+  flex-shrink: 0;
+}
+
+.titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.4375rem;
+  color: var(--vino);
+  line-height: 1.2;
+}
+
+.descripcion {
+  margin-top: var(--esp-1);
+  font-size: 0.875rem;
+  color: var(--carbon-suave);
+}
+
+.cerrar {
+  flex-shrink: 0;
+  width: var(--tactil);
+  height: var(--tactil);
+  margin: -6px -8px 0 0;
+  border-radius: var(--radio-pildora);
+  background: rgba(29, 28, 23, 0.06);
+  color: var(--vino);
+  font-size: 1.25rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--duracion-corta) var(--resorte);
+}
+.cerrar:active {
+  transform: scale(0.92);
+}
+
+.contenido {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes aparece {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sube {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

@@ -1,0 +1,60 @@
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radio-pildora);
+  font-family: var(--fuente-cuerpo);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition:
+    transform var(--duracion-corta) var(--resorte),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.neutro {
+  background: var(--crema-alta);
+  color: var(--carbon-suave);
+}
+.vino {
+  background: var(--vino-tenue);
+  color: var(--vino);
+}
+.dorado {
+  background: var(--dorado-tenue);
+  color: var(--dorado-oscuro);
+}
+.exito {
+  background: var(--exito-tenue);
+  color: var(--exito);
+}
+.error {
+  background: var(--error-tenue);
+  color: var(--error);
+}
+
+/* Chip tocable (filtro, categoría): el área táctil se extiende a ≥ 44 px sin crecer visualmente. */
+.tocable {
+  cursor: pointer;
+  min-height: 36px;
+  padding: 8px 14px;
+  -webkit-tap-highlight-color: transparent;
+}
+.tocable::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+.tocable:active {
+  transform: scale(0.96);
+}
+
+.activo {
+  background: var(--gradiente-vino);
+  color: var(--sobre-vino);
+  box-shadow: 0 6px 16px rgba(79, 23, 40, 0.24);
+}

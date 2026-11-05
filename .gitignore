@@ -79,3 +79,8 @@ brag-output/
 
 # Cartas reales de terceros descargadas por scripts/descargar_cartas.py (no se redistribuyen)
 tests/fixtures/menus/externas/
+
+# Frontend (Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

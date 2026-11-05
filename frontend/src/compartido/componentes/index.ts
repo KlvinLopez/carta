@@ -1,0 +1,10 @@
+export { Avatar, AvatarGrupo, inicialesDe, tonoDeNombre } from './Avatar';
+export type { PropsAvatar, PropsAvatarGrupo } from './Avatar';
+export { Boton } from './Boton';
+export type { PropsBoton, VarianteBoton } from './Boton';
+export { Chip } from './Chip';
+export type { PropsChip, TonoChip } from './Chip';
+export { HojaInferior } from './HojaInferior';
+export type { PropsHojaInferior } from './HojaInferior';
+export { Tarjeta } from './Tarjeta';
+export type { PropsTarjeta } from './Tarjeta';
