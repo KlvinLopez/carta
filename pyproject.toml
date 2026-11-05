@@ -73,7 +73,10 @@ plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
+# Un solo bucle de eventos para toda la sesión: una conexión asyncpg sólo sirve en el bucle
+# donde nació, y el motor de pruebas (tests/conftest.py) vive toda la sesión.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
 markers = [
     "ac(*ids): criterios de aceptación (AC-x.y) que cubre la prueba; los lee scripts/verificar_trazabilidad.py",

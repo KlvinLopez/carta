@@ -1,7 +1,8 @@
 """T-0.3: salud del proceso, disponibilidad de la base, envoltura de error y `request_id`.
 
-Corre contra la aplicación real (`app.main.app`) con httpx en modo ASGI; `/ready` consulta la
-base de `DATABASE_URL` con `SELECT 1`, así que necesita PostgreSQL levantado (no el esquema).
+Corre contra la aplicación real (`app.main.app`) con la fixture `cliente` de `tests/conftest.py`
+(httpx en modo ASGI sobre la base de pruebas, transacción por prueba); `/ready` hace `SELECT 1`
+en esa misma sesión.
 Los caminos que no se pueden provocar desde fuera (base caída, `ErrorCarta`, excepción no
 controlada) usan una aplicación nueva de `create_app()` con una ruta ad hoc o una sesión falsa.
 """
@@ -26,23 +27,10 @@ from app.core.config import settings
 from app.core.errores import ErrorCarta
 from app.core.peticion import MiddlewareRequestId
 from app.core.registro import NOMBRE_MANEJADOR, FormateadorJson, request_id_actual
-from app.db import close_db, get_db_session
+from app.db import get_db_session
 from app.main import app, create_app
 
 CLAVES_ERROR = {"codigo", "mensaje", "detalles", "request_id"}
-
-
-@pytest.fixture
-async def cliente() -> AsyncIterator[AsyncClient]:
-    """Cliente sobre la app real. Al salir vacía el pool: cada prueba corre en su propio bucle
-    de eventos y una conexión asyncpg del bucle anterior ya no sirve (T-0.4 lo resuelve en
-    `conftest.py` con un motor por sesión de pruebas)."""
-    transporte = ASGITransport(app=app, raise_app_exceptions=False)
-    try:
-        async with AsyncClient(transport=transporte, base_url="http://pruebas") as c:
-            yield c
-    finally:
-        await close_db()
 
 
 def _cliente_de(aplicacion: FastAPI) -> AsyncClient:

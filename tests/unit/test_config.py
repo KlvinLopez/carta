@@ -47,8 +47,10 @@ def test_secreto_fuerte_arranca_en_produccion() -> None:
 
 
 def test_variables_desconocidas_se_ignoran() -> None:
-    s = crear(REDIS_URL="redis://no-existe", GEMMA_MODEL_PATH="/x")
+    # `ENTORNO` explícito: en CI el entorno trae `ENTORNO=pruebas` y `crear` sólo ignora `.env`.
+    s = crear(ENTORNO="desarrollo", REDIS_URL="redis://no-existe", GEMMA_MODEL_PATH="/x")
     assert s.ENTORNO == "desarrollo"
+    assert not hasattr(s, "REDIS_URL") and not hasattr(s, "GEMMA_MODEL_PATH")
 
 
 def test_almacen_en_nube_solo_con_credenciales_completas() -> None:

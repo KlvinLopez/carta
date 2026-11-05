@@ -1,71 +1,94 @@
+# CI de Carta (T-0.4): la misma puerta de calidad que se corre antes de cada commit
+# (CLAUDE.md § Comandos), sobre PostgreSQL 16 real.
+#
+# Corre en push a `master`, en cada pull request y también en push a las ramas de agente
+# (`agente/**`, `claude/**`): así cada rama de agente tiene CI sin abrir PR y la sesión maestra
+# ve el resultado antes de integrar (04_Fases_y_Tareas §11).
 name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - master
+      - "agente/**"
+      - "claude/**"
   pull_request:
-    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Credenciales de la base efímera del job, no un secreto real.
+  DATABASE_URL: postgresql+asyncpg://carta:carta_ci@localhost:5432/carta_test
+  TEST_DATABASE_URL: postgresql+asyncpg://carta:carta_ci@localhost:5432/carta_test
+  # Cualquier cadena larga sirve en pruebas; nunca una llave de verdad (regla dura 12).
+  SECRET_KEY: clave-solo-para-ci-de-github-actions-sin-valor-real-0123456789
+  ENTORNO: pruebas
+  UV_FROZEN: "1"
 
 jobs:
-  test:
+  calidad:
+    name: Lint, tipos, pruebas y auditoría
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:16
         env:
           POSTGRES_USER: carta
-          POSTGRES_PASSWORD: carta_test
+          POSTGRES_PASSWORD: carta_ci
           POSTGRES_DB: carta_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U carta -d carta_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Python (versión de .python-version)
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version-file: .python-version
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Lint with Ruff
-        run: ruff check app tests
-
-      - name: Format check with Black
-        run: black --check app tests
-
-      - name: Type check with mypy
-        run: mypy app
-
-      - name: Run tests
-        env:
-          DATABASE_URL: postgresql://carta:carta_test@localhost:5432/carta_test
-        run: pytest --cov=app --cov-report=xml
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+      - name: uv
+        uses: astral-sh/setup-uv@v6
         with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
+          enable-cache: true
 
-  build:
-    runs-on: ubuntu-latest
-    needs: test
+      - name: Dependencias (uv sync --frozen)
+        run: uv sync --frozen
 
-    steps:
-      - uses: actions/checkout@v4
+      - name: ruff check
+        run: uv run ruff check .
 
-      - name: Build Docker image
+      - name: ruff format --check
+        run: uv run ruff format --check .
+
+      - name: mypy app
+        run: uv run mypy app
+
+      - name: app/services no importa FastAPI (regla dura 2)
         run: |
-          docker build -t carta:latest .
+          mkdir -p app/services
+          con_fastapi="$(grep -rl "fastapi" app/services/ | wc -l)"
+          if [ "$con_fastapi" -ne 0 ]; then
+            echo "::error::app/services/ importa fastapi en $con_fastapi archivo(s):"
+            grep -rl "fastapi" app/services/
+            exit 1
+          fi
+
+      - name: pytest --cov=app
+        run: uv run pytest --cov=app --cov-report=term-missing:skip-covered -q
+
+      - name: pip-audit
+        run: uv run pip-audit --progress-spinner off
