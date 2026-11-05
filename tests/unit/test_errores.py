@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.core.errores import ErrorCarta, codigo_por_http, envoltura
+from app.core.errores import ErrorCarta, codigo_por_http, envoltura, mensaje_por_http
 
 CLAVES = {"codigo", "mensaje", "detalles", "request_id"}
 
@@ -58,3 +58,16 @@ def test_envoltura_copia_los_detalles() -> None:
 )
 def test_codigo_por_http(http: int, codigo: str) -> None:
     assert codigo_por_http(http) == codigo
+
+
+@pytest.mark.parametrize(
+    ("http", "mensaje"),
+    [
+        (404, "No encontramos lo que buscas."),
+        (500, "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento."),
+        (503, "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento."),
+        (418, "No pudimos completar la petición."),
+    ],
+)
+def test_mensaje_por_http(http: int, mensaje: str) -> None:
+    assert mensaje_por_http(http) == mensaje

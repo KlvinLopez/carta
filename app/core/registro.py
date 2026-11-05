@@ -3,6 +3,11 @@
 `request_id_actual` es la variable de contexto que fija el middleware de `app.core.peticion`;
 cualquier log emitido mientras se atiende la petición la lleva sin que el código que lo emite
 tenga que pasarla.
+
+Regla para `extra=`: usa sólo las claves de `CAMPOS_EXTRA` (y `request_id`). Nunca pases
+`message`, `asctime` ni otro atributo estándar de `LogRecord`: `logging` lanza `KeyError`
+al construir el registro y la petición termina en 500. Es un error de programación, no se
+tolera en tiempo de ejecución.
 """
 
 from __future__ import annotations
@@ -17,6 +22,7 @@ from typing import Any
 request_id_actual: ContextVar[str | None] = ContextVar("request_id_actual", default=None)
 
 NOMBRE_MANEJADOR = "carta_json"
+NOMBRE_FILTRO_UVICORN = "carta_sin_traza_duplicada"
 
 # Campos `extra` que se copian a la línea cuando el registro los trae.
 CAMPOS_EXTRA = ("metodo", "ruta", "estado", "latencia_ms", "codigo", "http")
@@ -29,8 +35,20 @@ _ATRIBUTOS_ESTANDAR = frozenset(vars(logging.LogRecord("", 0, "", 0, "", (), Non
 }
 
 
+def _seguro(valor: object) -> str:
+    """`default` de `json.dumps`: un valor que no se serializa jamás tira la línea."""
+    try:
+        return str(valor)
+    except Exception:
+        return repr(type(valor))
+
+
 class FormateadorJson(logging.Formatter):
-    """Serializa cada registro como un objeto JSON en una sola línea."""
+    """Serializa cada registro como un objeto JSON en una sola línea.
+
+    Si algo del registro no se puede serializar (estructura circular, `__str__` que lanza),
+    sale una línea mínima con `error_formato` en lugar de perder el evento.
+    """
 
     def format(self, record: logging.LogRecord) -> str:
         datos: dict[str, Any] = {
@@ -45,7 +63,29 @@ class FormateadorJson(logging.Formatter):
                 datos[clave] = valor
         if record.exc_info:
             datos["excepcion"] = self.formatException(record.exc_info)
-        return json.dumps(datos, ensure_ascii=False, default=str)
+        try:
+            return json.dumps(datos, ensure_ascii=False, default=_seguro)
+        except Exception as error:
+            minimo = {
+                "ts": datos["ts"],
+                "nivel": datos["nivel"],
+                "logger": datos["logger"],
+                "mensaje": datos["mensaje"],
+                "request_id": datos["request_id"],
+                "error_formato": f"{type(error).__name__}: {error}",
+            }
+            return json.dumps(minimo, ensure_ascii=False, default=_seguro)
+
+
+class FiltroTrazaDuplicada(logging.Filter):
+    """Descarta la traza que `ServerErrorMiddleware` relanza a `uvicorn.error`.
+
+    La excepción ya la registró `app.core.errores` con `request_id`; uvicorn volvería a
+    escribir la misma traza como «Exception in ASGI application», sin él.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not record.getMessage().startswith("Exception in ASGI application")
 
 
 def configurar_registro(nivel: int = logging.INFO) -> None:
@@ -53,7 +93,7 @@ def configurar_registro(nivel: int = logging.INFO) -> None:
 
     El log de acceso de uvicorn se apaga: la línea por petición la escribe el middleware
     de `request_id`, con ruta, estado y latencia. Los demás loggers de uvicorn se redirigen
-    al raíz para que todo salga en el mismo formato.
+    al raíz para que todo salga en el mismo formato, sin la traza duplicada.
     """
     raiz = logging.getLogger()
     raiz.setLevel(nivel)
@@ -68,3 +108,6 @@ def configurar_registro(nivel: int = logging.INFO) -> None:
         logger = logging.getLogger(nombre)
         logger.handlers.clear()
         logger.propagate = True
+    uvicorn_error = logging.getLogger("uvicorn.error")
+    if not any(getattr(f, "name", None) == NOMBRE_FILTRO_UVICORN for f in uvicorn_error.filters):
+        uvicorn_error.addFilter(FiltroTrazaDuplicada(NOMBRE_FILTRO_UVICORN))

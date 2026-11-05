@@ -8,6 +8,14 @@
 Es ASGI puro (no `BaseHTTPMiddleware`) para no romper la propagación de contexto ni las
 respuestas en streaming. Si la petición termina en una excepción no controlada, la línea
 sale con estado 500 y la excepción sigue su camino hasta el manejador de `app.core.errores`.
+
+Debe ser el middleware **más externo** (el último `add_middleware` en `create_app`): uno
+más externo que lance o responda por su cuenta saldría sin cabecera ni línea de acceso.
+`app.core.errores.request_id_de` cubre ese caso leyendo la cabecera entrante.
+
+Dos detalles de la medición: la latencia incluye las `BackgroundTasks` (corren antes de que
+la aplicación devuelva el control); y si una excepción ocurre después de `http.response.start`
+la línea lleva el estado ya enviado, no 500 (en la v1 no hay respuestas en streaming).
 """
 
 from __future__ import annotations
@@ -26,7 +34,7 @@ log = logging.getLogger("carta.peticion")
 
 CABECERA = "X-Request-ID"
 LONGITUD_MAXIMA = 64
-_FORMATO_VALIDO = re.compile(rf"^[A-Za-z0-9._-]{{1,{LONGITUD_MAXIMA}}}$")
+_FORMATO_VALIDO = re.compile(rf"[A-Za-z0-9._-]{{1,{LONGITUD_MAXIMA}}}")
 
 
 def generar_request_id() -> str:
@@ -34,8 +42,11 @@ def generar_request_id() -> str:
 
 
 def request_id_valido(valor: str | None) -> str | None:
-    """El valor entrante si es seguro para cabeceras y logs; `None` si no sirve."""
-    if valor and _FORMATO_VALIDO.match(valor):
+    """El valor entrante si es seguro para cabeceras y logs; `None` si no sirve.
+
+    `fullmatch`, no `match` con `$`: `$` aceptaría un salto de línea final.
+    """
+    if valor and _FORMATO_VALIDO.fullmatch(valor):
         return valor
     return None
 

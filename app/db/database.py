@@ -28,12 +28,22 @@ class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=CONVENCION_DE_NOMBRES)
 
 
+# Tiempos de espera cortos: una base que acepta TCP y no contesta no debe retener cada
+# petición 60 s (asyncpg) ni dejar el pool esperando 30 s (`QueuePool`): mejor un 503 pronto.
+CONEXION_TIMEOUT_SEGUNDOS = 5
+POOL_TIMEOUT_SEGUNDOS = 5
+
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DATABASE_ECHO,
     pool_pre_ping=True,
     pool_size=settings.DB_POOL_SIZE,
     max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_timeout=POOL_TIMEOUT_SEGUNDOS,
+    connect_args={"timeout": CONEXION_TIMEOUT_SEGUNDOS},
+    # Fuera de desarrollo, los errores de SQLAlchemy no llevan `[parameters: ...]`: ese texto
+    # acaba en el log del 500 y repite el cuerpo de la petición (correo, teléfono, PIN).
+    hide_parameters=not settings.es_desarrollo,
 )
 
 async_session = async_sessionmaker(engine, expire_on_commit=False)
