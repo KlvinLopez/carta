@@ -1,24 +1,24 @@
 """SQLAlchemy database models for Carta (Fase 1)."""
 
 import uuid
-from datetime import datetime
+
 from sqlalchemy import (
-    Column,
-    String,
-    Integer,
-    Boolean,
-    DateTime,
-    Numeric,
-    Text,
-    ForeignKey,
     JSON,
-    UniqueConstraint,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
     Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
     func,
-    event,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from app.db.database import Base
 
 
@@ -57,25 +57,19 @@ class Restaurante(Base):
     categorias = relationship(
         "CategoriaMenu", back_populates="restaurante", cascade="all, delete-orphan"
     )
-    platillos = relationship(
-        "Platillo", back_populates="restaurante", cascade="all, delete-orphan"
-    )
-    mesas = relationship(
-        "Mesa", back_populates="restaurante", cascade="all, delete-orphan"
-    )
+    platillos = relationship("Platillo", back_populates="restaurante", cascade="all, delete-orphan")
+    mesas = relationship("Mesa", back_populates="restaurante", cascade="all, delete-orphan")
     sesiones = relationship(
         "SesionGrupal", back_populates="restaurante", cascade="all, delete-orphan"
     )
-    escaneos = relationship(
-        "Escaneo", back_populates="restaurante", cascade="all, delete-orphan"
-    )
+    escaneos = relationship("Escaneo", back_populates="restaurante", cascade="all, delete-orphan")
     anuncios = relationship(
         "AdRestaurante", back_populates="restaurante", cascade="all, delete-orphan"
     )
 
     __table_args__ = (
         Index("idx_restaurante_slug", "slug"),
-        Index("idx_restaurante_activo", "activo", postgresql_where=activo == True),
+        Index("idx_restaurante_activo", "activo", postgresql_where=activo.is_(True)),
     )
 
 
@@ -86,8 +80,7 @@ class CategoriaMenu(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     restaurante_id = Column(
-        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"), nullable=False
     )
     nombre = Column(String(100), nullable=False)
     orden = Column(Integer, default=0, nullable=False)
@@ -95,9 +88,7 @@ class CategoriaMenu(Base):
 
     # Relationships
     restaurante = relationship("Restaurante", back_populates="categorias")
-    platillos = relationship(
-        "Platillo", back_populates="categoria", cascade="all, delete-orphan"
-    )
+    platillos = relationship("Platillo", back_populates="categoria", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("restaurante_id", "nombre"),
@@ -112,8 +103,7 @@ class Platillo(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     restaurante_id = Column(
-        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"), nullable=False
     )
     categoria_id = Column(
         UUID(as_uuid=True),
@@ -128,9 +118,7 @@ class Platillo(Base):
     alergenos = Column(JSON, default=[])  # Array of allergen strings
     etiquetas = Column(JSON, default=[])  # Tags like "vegano", "picante", etc
     calorias = Column(Integer)
-    nivel_picante = Column(
-        Integer, default=0, comment="0-5 scale"
-    )  # 0-5 spice level
+    nivel_picante = Column(Integer, default=0, comment="0-5 scale")  # 0-5 spice level
     destacado = Column(Boolean, default=False, nullable=False)
     activo = Column(Boolean, default=True, nullable=False)
     creado_en = Column(DateTime(timezone=True), nullable=False, default=func.now())
@@ -141,12 +129,8 @@ class Platillo(Base):
     # Relationships
     restaurante = relationship("Restaurante", back_populates="platillos")
     categoria = relationship("CategoriaMenu", back_populates="platillos")
-    items_orden = relationship(
-        "ItemOrden", back_populates="platillo", cascade="all, delete-orphan"
-    )
-    vistas = relationship(
-        "VistaPlatillo", back_populates="platillo", cascade="all, delete-orphan"
-    )
+    items_orden = relationship("ItemOrden", back_populates="platillo", cascade="all, delete-orphan")
+    vistas = relationship("VistaPlatillo", back_populates="platillo", cascade="all, delete-orphan")
     anuncios = relationship(
         "AdRestaurante", back_populates="platillo", cascade="all, delete-orphan"
     )
@@ -158,7 +142,7 @@ class Platillo(Base):
             "idx_platillo_activo",
             "restaurante_id",
             "activo",
-            postgresql_where=activo == True,
+            postgresql_where=activo.is_(True),
         ),
         Index("idx_platillo_alergenos", "alergenos", postgresql_using="gin"),
         Index("idx_platillo_etiquetas", "etiquetas", postgresql_using="gin"),
@@ -172,8 +156,7 @@ class Mesa(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     restaurante_id = Column(
-        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"), nullable=False
     )
     numero = Column(Integer, nullable=False)
     qr_code = Column(String(100), unique=True, nullable=False)
@@ -183,12 +166,8 @@ class Mesa(Base):
 
     # Relationships
     restaurante = relationship("Restaurante", back_populates="mesas")
-    sesiones = relationship(
-        "SesionGrupal", back_populates="mesa", cascade="all, delete-orphan"
-    )
-    escaneos = relationship(
-        "Escaneo", back_populates="mesa", cascade="all, delete-orphan"
-    )
+    sesiones = relationship("SesionGrupal", back_populates="mesa", cascade="all, delete-orphan")
+    escaneos = relationship("Escaneo", back_populates="mesa", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("restaurante_id", "numero"),
@@ -220,12 +199,8 @@ class Usuario(Base):
     miembros_sesion = relationship(
         "MiembroSesion", back_populates="usuario", cascade="all, delete-orphan"
     )
-    escaneos = relationship(
-        "Escaneo", back_populates="usuario", cascade="all, delete-orphan"
-    )
-    vistas = relationship(
-        "VistaPlatillo", back_populates="usuario", cascade="all, delete-orphan"
-    )
+    escaneos = relationship("Escaneo", back_populates="usuario", cascade="all, delete-orphan")
+    vistas = relationship("VistaPlatillo", back_populates="usuario", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_usuario_firebase", "firebase_uid"),
@@ -239,12 +214,9 @@ class SesionGrupal(Base):
     __tablename__ = "sesion_grupal"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    mesa_id = Column(
-        UUID(as_uuid=True), ForeignKey("mesa.id", ondelete="CASCADE"), nullable=False
-    )
+    mesa_id = Column(UUID(as_uuid=True), ForeignKey("mesa.id", ondelete="CASCADE"), nullable=False)
     restaurante_id = Column(
-        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"), nullable=False
     )
     estado = Column(
         String(20),
@@ -258,12 +230,8 @@ class SesionGrupal(Base):
     # Relationships
     mesa = relationship("Mesa", back_populates="sesiones")
     restaurante = relationship("Restaurante", back_populates="sesiones")
-    miembros = relationship(
-        "MiembroSesion", back_populates="sesion", cascade="all, delete-orphan"
-    )
-    ordenes = relationship(
-        "OrdenPersonal", back_populates="sesion", cascade="all, delete-orphan"
-    )
+    miembros = relationship("MiembroSesion", back_populates="sesion", cascade="all, delete-orphan")
+    ordenes = relationship("OrdenPersonal", back_populates="sesion", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_sesion_mesa", "mesa_id"),
@@ -284,8 +252,7 @@ class MiembroSesion(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     sesion_id = Column(
-        UUID(as_uuid=True), ForeignKey("sesion_grupal.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("sesion_grupal.id", ondelete="CASCADE"), nullable=False
     )
     usuario_id = Column(
         UUID(as_uuid=True),
@@ -309,9 +276,7 @@ class MiembroSesion(Base):
     # Relationships
     sesion = relationship("SesionGrupal", back_populates="miembros")
     usuario = relationship("Usuario", back_populates="miembros_sesion")
-    ordenes = relationship(
-        "OrdenPersonal", back_populates="miembro", cascade="all, delete-orphan"
-    )
+    ordenes = relationship("OrdenPersonal", back_populates="miembro", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_miembro_sesion", "sesion_id"),
@@ -326,12 +291,10 @@ class OrdenPersonal(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     sesion_id = Column(
-        UUID(as_uuid=True), ForeignKey("sesion_grupal.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("sesion_grupal.id", ondelete="CASCADE"), nullable=False
     )
     miembro_id = Column(
-        UUID(as_uuid=True), ForeignKey("miembro_sesion.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("miembro_sesion.id", ondelete="CASCADE"), nullable=False
     )
     estado = Column(
         String(20),
@@ -346,9 +309,7 @@ class OrdenPersonal(Base):
     # Relationships
     sesion = relationship("SesionGrupal", back_populates="ordenes")
     miembro = relationship("MiembroSesion", back_populates="ordenes")
-    items = relationship(
-        "ItemOrden", back_populates="orden", cascade="all, delete-orphan"
-    )
+    items = relationship("ItemOrden", back_populates="orden", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_orden_sesion", "sesion_id"),
@@ -363,12 +324,10 @@ class ItemOrden(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     orden_id = Column(
-        UUID(as_uuid=True), ForeignKey("orden_personal.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("orden_personal.id", ondelete="CASCADE"), nullable=False
     )
     platillo_id = Column(
-        UUID(as_uuid=True), ForeignKey("platillo.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("platillo.id", ondelete="CASCADE"), nullable=False
     )
     cantidad = Column(Integer, nullable=False, default=1)
     notas = Column(Text)  # e.g., "sin cebolla", "extra picante"
@@ -391,12 +350,9 @@ class Escaneo(Base):
     __tablename__ = "escaneo"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    mesa_id = Column(
-        UUID(as_uuid=True), ForeignKey("mesa.id", ondelete="CASCADE"), nullable=False
-    )
+    mesa_id = Column(UUID(as_uuid=True), ForeignKey("mesa.id", ondelete="CASCADE"), nullable=False)
     restaurante_id = Column(
-        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"), nullable=False
     )
     usuario_id = Column(
         UUID(as_uuid=True),
@@ -411,9 +367,7 @@ class Escaneo(Base):
     mesa = relationship("Mesa", back_populates="escaneos")
     restaurante = relationship("Restaurante", back_populates="escaneos")
     usuario = relationship("Usuario", back_populates="escaneos")
-    vistas = relationship(
-        "VistaPlatillo", back_populates="escaneo", cascade="all, delete-orphan"
-    )
+    vistas = relationship("VistaPlatillo", back_populates="escaneo", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_escaneo_restaurante", "restaurante_id"),
@@ -429,8 +383,7 @@ class VistaPlatillo(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     platillo_id = Column(
-        UUID(as_uuid=True), ForeignKey("platillo.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("platillo.id", ondelete="CASCADE"), nullable=False
     )
     escaneo_id = Column(
         UUID(as_uuid=True),
@@ -465,12 +418,10 @@ class AdRestaurante(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     restaurante_id = Column(
-        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("restaurante.id", ondelete="CASCADE"), nullable=False
     )
     platillo_id = Column(
-        UUID(as_uuid=True), ForeignKey("platillo.id", ondelete="CASCADE"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("platillo.id", ondelete="CASCADE"), nullable=False
     )
     tipo = Column(
         String(20),

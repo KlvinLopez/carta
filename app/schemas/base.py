@@ -1,8 +1,8 @@
 """Base Pydantic schemas for request/response validation."""
 
-from typing import Optional
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -10,7 +10,7 @@ class TimestampMixin(BaseModel):
     """Mixin for models with timestamps."""
 
     creado_en: datetime
-    actualizado_en: Optional[datetime] = None
+    actualizado_en: datetime | None = None
 
 
 class UUIDMixin(BaseModel):
@@ -24,10 +24,10 @@ class RestauranteBase(BaseModel):
 
     nombre: str = Field(..., min_length=1, max_length=200)
     slug: str = Field(..., min_length=1, max_length=100)
-    direccion: Optional[str] = None
-    telefono: Optional[str] = None
-    email: Optional[str] = None
-    logo_url: Optional[str] = None
+    direccion: str | None = None
+    telefono: str | None = None
+    email: str | None = None
+    logo_url: str | None = None
     tema: str = Field(default="vino", pattern="^(vino|verde|azul|ocre|cafe)$")
     plan: str = Field(default="gratis", pattern="^(gratis|pro|enterprise)$")
     horarios: dict = Field(default_factory=dict)
@@ -45,15 +45,15 @@ class RestauranteCreate(RestauranteBase):
 class RestauranteUpdate(BaseModel):
     """Schema for updating restaurants."""
 
-    nombre: Optional[str] = None
-    direccion: Optional[str] = None
-    telefono: Optional[str] = None
-    email: Optional[str] = None
-    logo_url: Optional[str] = None
-    tema: Optional[str] = None
-    plan: Optional[str] = None
-    horarios: Optional[dict] = None
-    activo: Optional[bool] = None
+    nombre: str | None = None
+    direccion: str | None = None
+    telefono: str | None = None
+    email: str | None = None
+    logo_url: str | None = None
+    tema: str | None = None
+    plan: str | None = None
+    horarios: dict | None = None
+    activo: bool | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -68,15 +68,15 @@ class PlatilloBase(BaseModel):
     """Base dish schema."""
 
     restaurante_id: UUID
-    categoria_id: Optional[UUID] = None
+    categoria_id: UUID | None = None
     nombre: str = Field(..., min_length=1, max_length=200)
-    descripcion: Optional[str] = None
+    descripcion: str | None = None
     precio: float = Field(..., gt=0)
-    foto_url: Optional[str] = None
-    modelo_3d_url: Optional[str] = None
+    foto_url: str | None = None
+    modelo_3d_url: str | None = None
     alergenos: list = Field(default_factory=list)
     etiquetas: list = Field(default_factory=list)
-    calorias: Optional[int] = None
+    calorias: int | None = None
     nivel_picante: int = Field(default=0, ge=0, le=5)
     destacado: bool = False
     activo: bool = True
@@ -93,17 +93,17 @@ class PlatilloCreate(PlatilloBase):
 class PlatilloUpdate(BaseModel):
     """Schema for updating dishes."""
 
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
-    precio: Optional[float] = None
-    foto_url: Optional[str] = None
-    modelo_3d_url: Optional[str] = None
-    alergenos: Optional[list] = None
-    etiquetas: Optional[list] = None
-    calorias: Optional[int] = None
-    nivel_picante: Optional[int] = None
-    destacado: Optional[bool] = None
-    activo: Optional[bool] = None
+    nombre: str | None = None
+    descripcion: str | None = None
+    precio: float | None = None
+    foto_url: str | None = None
+    modelo_3d_url: str | None = None
+    alergenos: list | None = None
+    etiquetas: list | None = None
+    calorias: int | None = None
+    nivel_picante: int | None = None
+    destacado: bool | None = None
+    activo: bool | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -117,7 +117,7 @@ class PlatilloResponse(PlatilloBase, UUIDMixin, TimestampMixin):
 class UsuarioBase(BaseModel):
     """Base user schema."""
 
-    nombre_display: Optional[str] = None
+    nombre_display: str | None = None
     plan: str = Field(default="gratis", pattern="^(gratis|premium)$")
     perfil_alimentario: dict = Field(default_factory=dict)
 
@@ -147,7 +147,7 @@ class MesaBase(BaseModel):
     restaurante_id: UUID
     numero: int = Field(..., gt=0)
     qr_code: str
-    nfc_id: Optional[str] = None
+    nfc_id: str | None = None
     capacidad: int = Field(default=4, gt=0)
     activa: bool = True
 

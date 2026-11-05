@@ -149,6 +149,23 @@ Carta is a solo project by Calvin ([@KlvinLopez](https://github.com/KlvinLopez))
 - **Claude Code:** this repository and the launch film production.
 - **HyperFrames:** the launch film, via the `/brag` skill.
 
+## Run it locally
+
+Requirements: [uv](https://docs.astral.sh/uv/) (installs Python 3.12 for you), Docker (for PostgreSQL 16) and Node 22 (frontend, from Phase 0 on).
+
+```bash
+cp .env.example .env            # defaults work with docker compose
+uv sync                         # dependencies, into .venv
+docker compose up -d            # PostgreSQL 16
+uv run alembic upgrade head     # schema (from T-0.2)
+uv run uvicorn app.main:app --reload --port 8000
+
+# Quality gate — must pass before every commit
+uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q
+```
+
+The build plan, task by task, is in [`docs/plan/04_Fases_y_Tareas.md`](docs/plan/04_Fases_y_Tareas.md). Claude Code sessions start with `/tarea T-x.y` (see [`CLAUDE.md`](CLAUDE.md)).
+
 ## Repository map
 
 | Path | What's inside |

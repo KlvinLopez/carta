@@ -19,15 +19,16 @@ log() { echo "[carta] $*" | tee -a "$registro"; }
 
 # ── 1. Python y dependencias ─────────────────────────────────────────────────
 if command -v uv >/dev/null 2>&1; then
-  if [ ! -x .venv/bin/python ]; then
-    log "creando .venv con Python 3.12"
-    uv venv --python 3.12 .venv >>"$registro" 2>&1 || log "no se pudo crear .venv (ver $registro)"
-  fi
-  if [ -x .venv/bin/python ]; then
-    if [ -f uv.lock ]; then
-      log "uv sync"
-      uv sync --frozen >>"$registro" 2>&1 || uv sync >>"$registro" 2>&1 || log "uv sync falló (ver $registro)"
-    else
+  if [ -f uv.lock ]; then
+    # Camino normal desde T-0.1: uv crea .venv con el Python de pyproject e instala todo (incluido el grupo dev).
+    log "uv sync --frozen"
+    uv sync --frozen >>"$registro" 2>&1 || uv sync >>"$registro" 2>&1 || log "uv sync falló (ver $registro)"
+  else
+    if [ ! -x .venv/bin/python ]; then
+      log "creando .venv con Python 3.12"
+      uv venv --python 3.12 .venv >>"$registro" 2>&1 || log "no se pudo crear .venv (ver $registro)"
+    fi
+    if [ -x .venv/bin/python ]; then
       log "instalando dependencias desde pyproject.toml"
       if ! uv pip install --python .venv/bin/python -e ".[dev]" >>"$registro" 2>&1; then
         # Si el paquete no se puede construir (pyproject viejo), instala sólo las dependencias.

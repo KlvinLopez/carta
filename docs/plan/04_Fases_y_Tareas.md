@@ -391,3 +391,4 @@ En orden tentativo de valor: ilustración generada por IA para platillos sin fot
 | Fecha | Tarea | Qué se descubrió | Cambio aplicado |
 |---|---|---|---|
 | 2026-11-02 | — | El plan de agosto construía 3D/AR como núcleo, exigía Redis/VPC/Cloud Run desde el día uno y no tenía rol de mesero. Decisiones del 2 de noviembre. | Este plan sustituye a `06_Implementation_Plan.md`; ADR-011 a ADR-014 |
+| 2026-11-05 | T-0.1 | `tests/test_api.py` (SQLite con tipos de PostgreSQL) impedía que `pytest` pasara la puerta de calidad de T-0.1; `uv sync` resolvió `anthropic` 2.x, FastAPI 0.162 y SQLAlchemy 2.1 (la 2.1 marca `declarative_base` como legado); `ruff format .` reformateaba bloques de código dentro de `docs/*.md`. | `tests/test_api.py` se eliminó en T-0.1 (T-0.4 ya no lo hace); `tests/unit/test_config.py` cubre `Settings`; `app/db/database.py` usa el `Settings` nuevo desde T-0.1; T-0.2 debe usar `DeclarativeBase` y `Mapped[]`; `docs` y `*.md` excluidos de ruff. |

@@ -47,6 +47,9 @@ env/
 *.sqlite
 *.sqlite3
 
+# Archivos subidos en desarrollo (AlmacenLocal)
+datos/
+
 # Pytest
 .pytest_cache/
 .coverage
@@ -55,9 +58,6 @@ htmlcov/
 # Logs
 *.log
 logs/
-
-# Migrations (Alembic)
-migrations/versions/*.py
 
 # OS
 .DS_Store

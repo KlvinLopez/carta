@@ -1,11 +1,12 @@
 """Main FastAPI application for Carta."""
 
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.db import init_db, close_db
 from app.api import router
+from app.db import close_db, init_db
 
 
 @asynccontextmanager

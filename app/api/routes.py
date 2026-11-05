@@ -1,24 +1,23 @@
 """API routes for Carta."""
 
-from typing import List
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import (
-    get_db_session,
-    Restaurante,
     Platillo,
-    CategoriaMenu,
+    Restaurante,
+    get_db_session,
 )
 from app.schemas import (
-    RestauranteCreate,
-    RestauranteResponse,
-    RestauranteUpdate,
     PlatilloCreate,
     PlatilloResponse,
     PlatilloUpdate,
+    RestauranteCreate,
+    RestauranteResponse,
+    RestauranteUpdate,
 )
 
 router = APIRouter()
@@ -29,7 +28,7 @@ router = APIRouter()
 # ============================================================================
 
 
-@router.get("/restaurantes", response_model=List[RestauranteResponse])
+@router.get("/restaurantes", response_model=list[RestauranteResponse])
 async def list_restaurantes(
     skip: int = 0,
     limit: int = 100,
@@ -43,7 +42,9 @@ async def list_restaurantes(
     return restaurantes
 
 
-@router.post("/restaurantes", response_model=RestauranteResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/restaurantes", response_model=RestauranteResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_restaurante(
     restaurante: RestauranteCreate,
     session: AsyncSession = Depends(get_db_session),
@@ -62,9 +63,7 @@ async def get_restaurante(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get a specific restaurant."""
-    result = await session.execute(
-        select(Restaurante).where(Restaurante.id == restaurante_id)
-    )
+    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
     restaurante = result.scalar_one_or_none()
     if not restaurante:
         raise HTTPException(
@@ -81,9 +80,7 @@ async def update_restaurante(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Update a restaurant."""
-    result = await session.execute(
-        select(Restaurante).where(Restaurante.id == restaurante_id)
-    )
+    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
     db_restaurante = result.scalar_one_or_none()
     if not db_restaurante:
         raise HTTPException(
@@ -106,9 +103,7 @@ async def delete_restaurante(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Soft delete a restaurant."""
-    result = await session.execute(
-        select(Restaurante).where(Restaurante.id == restaurante_id)
-    )
+    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
     db_restaurante = result.scalar_one_or_none()
     if not db_restaurante:
         raise HTTPException(
@@ -116,7 +111,7 @@ async def delete_restaurante(
             detail="Restaurante no encontrado",
         )
 
-    db_restaurante.activo = False
+    db_restaurante.activo = False  # type: ignore[assignment]  # Column legado; Mapped[] en T-0.2
     await session.commit()
 
 
@@ -127,7 +122,7 @@ async def delete_restaurante(
 
 @router.get(
     "/restaurantes/{restaurante_id}/platillos",
-    response_model=List[PlatilloResponse],
+    response_model=list[PlatilloResponse],
 )
 async def list_platillos(
     restaurante_id: UUID,
@@ -138,9 +133,7 @@ async def list_platillos(
 ):
     """List all dishes for a restaurant."""
     # Verify restaurant exists
-    result = await session.execute(
-        select(Restaurante).where(Restaurante.id == restaurante_id)
-    )
+    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
     if not result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -148,8 +141,7 @@ async def list_platillos(
         )
 
     query = select(Platillo).where(
-        (Platillo.restaurante_id == restaurante_id) &
-        (Platillo.activo == activo)
+        (Platillo.restaurante_id == restaurante_id) & (Platillo.activo == activo)
     )
     result = await session.execute(query.offset(skip).limit(limit))
     platillos = result.scalars().all()
@@ -168,9 +160,7 @@ async def create_platillo(
 ):
     """Create a new dish for a restaurant."""
     # Verify restaurant exists
-    result = await session.execute(
-        select(Restaurante).where(Restaurante.id == restaurante_id)
-    )
+    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
     if not result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -190,9 +180,7 @@ async def get_platillo(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get a specific dish."""
-    result = await session.execute(
-        select(Platillo).where(Platillo.id == platillo_id)
-    )
+    result = await session.execute(select(Platillo).where(Platillo.id == platillo_id))
     platillo = result.scalar_one_or_none()
     if not platillo:
         raise HTTPException(
@@ -209,9 +197,7 @@ async def update_platillo(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Update a dish."""
-    result = await session.execute(
-        select(Platillo).where(Platillo.id == platillo_id)
-    )
+    result = await session.execute(select(Platillo).where(Platillo.id == platillo_id))
     db_platillo = result.scalar_one_or_none()
     if not db_platillo:
         raise HTTPException(
@@ -234,9 +220,7 @@ async def delete_platillo(
     session: AsyncSession = Depends(get_db_session),
 ):
     """Soft delete a dish."""
-    result = await session.execute(
-        select(Platillo).where(Platillo.id == platillo_id)
-    )
+    result = await session.execute(select(Platillo).where(Platillo.id == platillo_id))
     db_platillo = result.scalar_one_or_none()
     if not db_platillo:
         raise HTTPException(
@@ -244,7 +228,7 @@ async def delete_platillo(
             detail="Platillo no encontrado",
         )
 
-    db_platillo.activo = False
+    db_platillo.activo = False  # type: ignore[assignment]  # Column legado; Mapped[] en T-0.2
     await session.commit()
 
 

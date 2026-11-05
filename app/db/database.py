@@ -1,64 +1,38 @@
-"""Database configuration and session management."""
+"""Motor de base de datos y sesiones.
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base
-from pydantic_settings import BaseSettings
+Provisional hasta T-0.2 (motor asíncrono con asyncpg, sin `create_all`).
+La configuración vive en `app.core.config`.
+"""
 
+from collections.abc import AsyncIterator
 
-class Settings(BaseSettings):
-    """Application settings from environment variables."""
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/carta_db"
-    DATABASE_ECHO: bool = False
-    DEBUG: bool = True
-    ENVIRONMENT: str = "development"
-    SECRET_KEY: str = "dev-secret-key"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+from app.core.config import settings
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-
-settings = Settings()
-
-# Create declarative base for models
 Base = declarative_base()
 
-# Database engine - using async PostgreSQL driver
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DATABASE_ECHO,
-    future=True,
     pool_pre_ping=True,
-    pool_size=20,
-    max_overflow=0,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
 )
 
-# Session factory
-async_session = sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autocommit=False,
-    autoflush=False,
-)
+async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
-async def get_db_session() -> AsyncSession:
-    """Dependency for FastAPI to get database session."""
+async def get_db_session() -> AsyncIterator[AsyncSession]:
+    """Dependencia de FastAPI: una sesión por petición."""
     async with async_session() as session:
         yield session
 
 
-async def init_db():
-    """Initialize database - create all tables."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+async def init_db() -> None:
+    """Se elimina en T-0.2: el esquema se crea sólo con migraciones de Alembic (regla dura 3)."""
 
 
-async def close_db():
-    """Close database connections."""
+async def close_db() -> None:
     await engine.dispose()
