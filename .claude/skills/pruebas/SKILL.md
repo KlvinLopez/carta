@@ -21,6 +21,7 @@ description: Cómo se escribe una prueba en Carta con la infraestructura de test
 | `motor_pruebas` | Motor de la sesión de pruebas (`NullPool`, `lock_timeout=5s`, `statement_timeout=30s`) | Sólo para mirar la base desde **otra** conexión (carreras, aislamiento) |
 | `esquema_migrado`, `url_bd` | Base compartida migrada a `head` con la CLI de Alembic (sólo `upgrade head`) | Pruebas de esquema o que corren Alembic |
 | `tests.bd_pruebas.base_desechable(url_bd, "sufijo")` | Base vacía propia del proceso, borrada al salir | Lo único que puede hacer `downgrade base` o destruir el esquema |
+| `tests.dist_pruebas.construir_dist(tmp_path / "dist")` | Un `frontend/dist` mínimo (index, un asset, una fuente, manifest) | Pruebas que sirven la PWA: `monkeypatch.setattr(settings, "FRONTEND_DIST", str(dist))` y luego `create_app()` (ejemplo: `tests/integration/test_estaticos.py`) |
 
 Las fábricas viven en `tests/fabricas.py` (una función `crear_<entidad>(sesion, ...)` por entidad; terminan en `commit()`, que con `create_savepoint` es un RELEASE SAVEPOINT: nada sale de la transacción de la prueba, pero lo creado sobrevive a un `rollback()` del código bajo prueba). Si una tarea necesita otra entidad (categoría, platillo, personal), **agrégala ahí** con el mismo patrón y su fixture en `conftest.py`.
 
@@ -61,6 +62,10 @@ async def test_carrera_inv3(motor_pruebas: AsyncEngine) -> None:
 ```
 
 Cada conexión sale de `motor_pruebas.connect()` (dos conexiones asyncpg distintas); el `lock_timeout` de 5 s convierte un cuelgue en un error con diagnóstico.
+
+## 3b. Rutas crudas (`..`, `%ZZ`, `%2F`)
+
+httpx normaliza la URL antes de enviarla (`/assets/../x` llega como `/x`, `/..` como `/`), así que un *path traversal* o un escape inválido no se pueden probar con `cliente.get(...)`. Llama a la aplicación con un `scope` ASGI escrito a mano (`_llamar_crudo` en `tests/integration/test_estaticos.py`): `asgi.spec_version = "2.4"` y un `receive` que devuelva `http.request` y después `http.disconnect`, o `FileResponse` se queda esperando la desconexión hasta el `timeout`.
 
 ## 4. Esqueleto
 
