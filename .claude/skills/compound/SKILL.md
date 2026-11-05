@@ -24,7 +24,7 @@ description: Cierra la sesión guardando lo aprendido donde la próxima sesión 
    | Bug que regresa | Test de regresión | `tests/unit/` o `tests/integration/` | Nombre `test_<regresion>_<descripcion>`; debe fallar sin el arreglo |
    | Hallazgo de revisión | Regla de una línea | `CLAUDE.md` (sección "Reglas duras" sólo si no se negocia; si no, en la skill que corresponda) | Imperativa, verificable |
    | Procedimiento repetido | Skill | `.claude/skills/<nombre>/SKILL.md` | Frontmatter `name` y `description` que diga cuándo usarla; pasos numerados; comando de verificación |
-   | Regla que no puede fallar | Hook | `.claude/hooks/*.sh` + `.claude/settings.json` | Probar el hook con `echo '<json>' \| script` antes de registrarlo |
+   | Regla que no puede fallar | Hook | `.claude/hooks/*.sh` + `.claude/settings.json` | Probar el hook con `echo '<json>' \| script` **desde un script en el scratchpad** (el guard de Bash inspecciona el texto del comando y bloquearía la propia prueba) |
    | Decisión costosa | ADR | `docs/mvp/adr/ADR-0NN-*.md` | Contexto → Decisión → Alternativas con motivo → Consecuencias → Verificación; agregar al índice |
    | Plan equivocado | Corrección del plan | `docs/plan/04_Fases_y_Tareas.md` §11 | Fila con fecha, tarea, qué se descubrió, cambio aplicado |
 

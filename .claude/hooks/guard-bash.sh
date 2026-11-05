@@ -1,6 +1,11 @@
 #!/bin/bash
 # PreToolUse (Bash): bloquea comandos que no deben correr nunca desde una sesión de agente en Carta.
 # Recibe el JSON del hook por stdin. Sale con 2 y un mensaje en stderr para bloquear.
+#
+# Nota: inspecciona el TEXTO del comando, así que un comando que sólo menciona un patrón
+# (p. ej. un bucle de pruebas con 'git push --force' entre comillas) también se bloquea.
+# Para probar este hook, escribe los casos en un script aparte y ejecútalo:
+#   bash <scratchpad>/test-guard.sh
 
 set -u
 entrada="$(cat)"
