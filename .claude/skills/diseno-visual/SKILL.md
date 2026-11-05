@@ -5,7 +5,7 @@ description: Tokens, reglas y checklist del lenguaje visual de Carta ("The Digit
 
 # /diseno-visual — The Digital Sommelier
 
-La interfaz es el marco; la comida es el arte. Calidez de comedor fino con precisión digital. Fuente completa: `docs/Carta_Design_System.md` (con la tipografía corregida abajo) y el prototipo en `prototipo/` (`js/shared.jsx`, `carta-assets/colors_and_type.css`).
+La interfaz es el marco; la comida es el arte. Calidez de comedor fino con precisión digital. Fuente completa: `docs/Carta_Design_System.md` (con la tipografía corregida abajo) y el prototipo en `prototipo/` (`js/shared.jsx`, `carta-assets/colors_and_type.css`). Los componentes base ya viven en `frontend/src/compartido/componentes/` (`Boton`, `Chip`, `Tarjeta`, `HojaInferior`, `Avatar`) y el armazón de página en `frontend/src/compartido/pantalla/`: úsalos, no los reescribas.
 
 ## Tokens (`frontend/src/compartido/tokens.css`)
 
@@ -39,12 +39,15 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 7. **Estados:** cada lista tiene estado vacío con ilustración y una frase; cada acción tiene estado de carga y de error en el lenguaje de la marca ("No encontramos esta mesa. Pide al personal que te comparta el QR.").
 8. **Fotos:** proporción 4:3 en listas, 1:1 en miniaturas, `object-fit: cover`, carga diferida, *placeholder* con la ilustración de la categoría.
 9. **Avatares** del grupo: círculos apilados con color estable por miembro, borde de 2 px `--crema` entre ellos (es la única excepción a no-line, porque separa figuras, no secciones).
+10. **Sin estilos en línea** (`style={{…}}`): la CSP de producción no permite `unsafe-inline` (02 §12). Lo que varía (color del avatar, tamaño, tono) se expresa con clases del módulo CSS o atributos `data-*`.
+11. **Chips tocables** miden 36 px visibles; el pseudo-elemento `::after` extiende el área táctil a 44 px sin engordar el chip. Un botón real siempre mide ≥ 44 px.
 
 ## Checklist antes de dar por terminada una pantalla
 
 - [ ] Fondo `--crema`; ningún `#000` ni `#fff` como fondo de página
 - [ ] DM Serif Display en títulos, DM Sans en el resto, precios SemiBold
 - [ ] Ningún `border: 1px solid` separando secciones
+- [ ] Ningún `style={{` en el JSX (`grep -rn "style={{" frontend/src` vacío)
 - [ ] Radios ≥ 20 px; botones píldora
 - [ ] Sombra cálida, no negra
 - [ ] Estados vacío, cargando y error

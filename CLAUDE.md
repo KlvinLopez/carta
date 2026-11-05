@@ -38,6 +38,8 @@ npm --prefix frontend run tipos           # tipos desde /openapi.json
 npm --prefix frontend test && npm --prefix frontend run build && node frontend/scripts/presupuesto.mjs
 ```
 
+En sesiones de agente un `&` y `kill %1` no sobreviven entre llamadas a Bash: lanza la API con `nohup … &` guardando el PID en el scratchpad y mátala por PID al terminar.
+
 ---
 
 ## Reglas duras
