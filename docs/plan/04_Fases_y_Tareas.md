@@ -113,7 +113,7 @@ Dentro de una ola, el orden de integración es: backend (A, D, F+G) primero, fro
 **Carril:** I · **Depende de:** T-0.3 · **Historias:** —
 **Entregable:** `tests/conftest.py` con base PostgreSQL real (`TEST_DATABASE_URL`), transacción por prueba con *rollback*, `AsyncClient` de httpx sobre la app, fábricas mínimas (`restaurante`, `operador`, `mesa`); una prueba unitaria y una de integración reales; `.github/workflows/ci.yml` escuchando `master` y PRs, con servicio PostgreSQL 16, pasos `uv sync`, `ruff check`, `ruff format --check`, `mypy`, `pytest --cov=app`, `pip-audit`, `grep` de servicios sin FastAPI; eliminar `tests/test_api.py` (SQLite).
 **Verificar:** `uv run pytest -q` en verde local; el workflow en verde en GitHub en un PR de prueba.
-**Notas:** `pytest-asyncio` en modo `auto`. Cobertura mínima no se exige todavía; se exige ≥ 80 % en `app/services/` al cerrar la Fase 3.
+**Notas:** `pytest-asyncio` en modo `auto`. Cobertura mínima no se exige todavía; se exige ≥ 80 % en `app/services/` al cerrar la Fase 3. La base de pruebas se migra con la CLI de Alembic (`-x url=...`): mueve `url_de_pruebas()` y la fixture `esquema_migrado` de `tests/unit/test_modelos.py` a `tests/conftest.py` y reutilízalas; no crees el esquema desde los modelos.
 
 ### T-0.5 — Esqueleto del frontend
 **Carril:** I (después C/E/H) · **Depende de:** T-0.3 · **Historias:** —

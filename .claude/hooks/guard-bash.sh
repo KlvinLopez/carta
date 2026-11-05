@@ -6,6 +6,8 @@
 # (p. ej. un bucle de pruebas con 'git push --force' entre comillas) también se bloquea.
 # Para probar este hook, escribe los casos en un script aparte y ejecútalo:
 #   bash <scratchpad>/test-guard.sh
+# Por lo mismo, un archivo que deba MENCIONAR un patrón bloqueado (una prueba o un comentario)
+# no se escribe con `cat <<EOF` desde Bash: se escribe con la herramienta Write/Edit del agente.
 
 set -u
 entrada="$(cat)"
