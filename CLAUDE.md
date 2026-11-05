@@ -14,6 +14,8 @@ Un restaurante sube su carta en PDF y en minutos tiene un menú visual por QR; l
 
 Lee, en este orden: `docs/plan/README.md` (plan vigente y decisiones) → `docs/plan/04_Fases_y_Tareas.md` (**tu tarea** `T-x.y`, su carril y su comando de verificación) → `docs/plan/02_Arquitectura_v1.md` y `03_Datos_v1.md` (contratos) → `docs/mvp/04_API_Spec.md` §1 (convenciones y errores), `docs/mvp/01_PRD.md` §7 (criterios EARS) y el ADR que toque (`docs/mvp/adr/`).
 
+Si vas a tocar `migrations/` o `app/db/models.py`, lee antes el skill `/migracion` (índices en FKs con cascada, CHECK en la base, triggers con `FOR SHARE` y `search_path`, qué no ve `compare_metadata`).
+
 **Regla:** si lo que vas a hacer contradice un documento, **no lo hagas**. Detente, explica la contradicción y propón actualizar el documento primero. Los documentos son la fuente de verdad; el código los sigue. Lo que no está en el plan se especifica antes con `/especificar`.
 
 ---
