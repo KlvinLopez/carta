@@ -1,0 +1,48 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.etiqueta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--carbon-suave);
+}
+
+/* Sin borde (regla no-line): el campo se distingue por tono y foco con halo vino. */
+.campo {
+  width: 100%;
+  min-height: var(--tactil);
+  padding: var(--esp-3) var(--esp-5);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.campo:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+}
+
+.separador {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+.aviso {
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font-size: 0.9375rem;
+}
+
+.error {
+  background: var(--error-tenue);
+  color: var(--error);
+}

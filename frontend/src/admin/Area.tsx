@@ -1,40 +1,51 @@
-import { Boton, Chip, Tarjeta } from '../compartido/componentes';
-import { Pantalla, estilosPantalla as e } from '../compartido/pantalla/Pantalla';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+
+import { Cargando } from '../compartido/pantalla/Cargando';
+import { NoEncontrada } from '../compartido/pantalla/NoEncontrada';
+import PantallaAcceso from './acceso/PantallaAcceso';
+import { SesionProvider, useSesion, type FabricaProveedor } from './acceso/Sesion';
+import Armazon from './armazon/Armazon';
+import {
+  SeccionAjustes,
+  SeccionMenu,
+  SeccionMesas,
+  SeccionPedidos,
+  SeccionPersonal,
+} from './secciones';
+
+/** Todo lo que no es `/admin/acceso` exige sesión; sin ella se vuelve al acceso recordando adónde iba. */
+function RutaProtegida() {
+  const { estado } = useSesion();
+  const ubicacion = useLocation();
+  if (estado.tipo === 'cargando') return <Cargando />;
+  if (estado.tipo !== 'con-sesion') {
+    return <Navigate to="/admin/acceso" replace state={{ desde: ubicacion.pathname }} />;
+  }
+  return <Outlet />;
+}
 
 /**
- * Área del operador (`/admin`). Marcador de posición de T-0.5. El acceso con Firebase, el
- * asistente de alta con PDF y las pantallas del panel llegan en la Fase 1 (carril C).
+ * Área del operador (`/admin`). El SDK de Firebase entra con `import()` dinámico desde
+ * `acceso/proveedor.ts`, así que sólo se descarga aquí, nunca en el bundle inicial.
+ * `fabrica` permite a las pruebas entregar un proveedor simulado.
  */
-export default function AreaOperador() {
+export default function AreaOperador({ fabrica }: { fabrica?: FabricaProveedor }) {
   return (
-    <Pantalla escritorio>
-      <header className={e.encabezado}>
-        <span className={e.marca}>Carta</span>
-        <p className={e.sobretitulo}>Panel del operador</p>
-        <h1 className={e.titulo}>Tu restaurante, listo en minutos</h1>
-        <p className={e.texto}>
-          Sube tu carta en PDF y Carta la convierte en un menú visual con QR por mesa.
-        </p>
-      </header>
-
-      <div className={e.lista}>
-        <Tarjeta>
-          <Chip tono="vino">Paso 1</Chip>
-          <h3>Importa tu menú</h3>
-          <p className={e.texto}>Nada entra al menú sin que lo confirmes.</p>
-        </Tarjeta>
-        <Tarjeta tono="crema-baja">
-          <Chip>Paso 2</Chip>
-          <h3>Imprime los QR de tus mesas</h3>
-        </Tarjeta>
-      </div>
-
-      <div className={e.acciones}>
-        <Boton disabled>Entrar con Google</Boton>
-        <Boton variante="fantasma" disabled>
-          Enlace por correo
-        </Boton>
-      </div>
-    </Pantalla>
+    <SesionProvider fabrica={fabrica}>
+      <Routes>
+        <Route path="acceso" element={<PantallaAcceso />} />
+        <Route element={<RutaProtegida />}>
+          <Route element={<Armazon />}>
+            <Route index element={<Navigate to="menu" replace />} />
+            <Route path="menu" element={<SeccionMenu />} />
+            <Route path="mesas" element={<SeccionMesas />} />
+            <Route path="personal" element={<SeccionPersonal />} />
+            <Route path="pedidos" element={<SeccionPedidos />} />
+            <Route path="ajustes" element={<SeccionAjustes />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<NoEncontrada />} />
+      </Routes>
+    </SesionProvider>
   );
 }

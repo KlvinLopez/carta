@@ -17,8 +17,7 @@ export interface paths {
         post?: never;
         delete?: never;
         options?: never;
-        /** Health */
-        head: operations["health_health_get"];
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -35,8 +34,7 @@ export interface paths {
         post?: never;
         delete?: never;
         options?: never;
-        /** Ready */
-        head: operations["ready_ready_get"];
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -64,7 +62,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/restaurantes/{restaurante_id}": {
+    "/api/v1/admin/restaurantes/{rid}": {
         parameters: {
             query?: never;
             header?: never;
@@ -75,24 +73,20 @@ export interface paths {
          * Get Restaurante
          * @description Get a specific restaurant.
          */
-        get: operations["get_restaurante_api_v1_admin_restaurantes__restaurante_id__get"];
+        get: operations["get_restaurante_api_v1_admin_restaurantes__rid__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
         /**
          * Update Restaurante
          * @description Update a restaurant.
          */
-        put: operations["update_restaurante_api_v1_admin_restaurantes__restaurante_id__put"];
-        post?: never;
-        /**
-         * Delete Restaurante
-         * @description Soft delete a restaurant.
-         */
-        delete: operations["delete_restaurante_api_v1_admin_restaurantes__restaurante_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
+        patch: operations["update_restaurante_api_v1_admin_restaurantes__rid__patch"];
         trace?: never;
     };
-    "/api/v1/admin/restaurantes/{restaurante_id}/platillos": {
+    "/api/v1/admin/restaurantes/{rid}/platillos": {
         parameters: {
             query?: never;
             header?: never;
@@ -103,13 +97,13 @@ export interface paths {
          * List Platillos
          * @description List all dishes for a restaurant.
          */
-        get: operations["list_platillos_api_v1_admin_restaurantes__restaurante_id__platillos_get"];
+        get: operations["list_platillos_api_v1_admin_restaurantes__rid__platillos_get"];
         put?: never;
         /**
          * Create Platillo
          * @description Create a new dish for a restaurant.
          */
-        post: operations["create_platillo_api_v1_admin_restaurantes__restaurante_id__platillos_post"];
+        post: operations["create_platillo_api_v1_admin_restaurantes__rid__platillos_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -123,22 +117,278 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get Platillo
-         * @description Get a specific dish.
-         */
-        get: operations["get_platillo_api_v1_admin_platillos__platillo_id__get"];
-        /**
-         * Update Platillo
-         * @description Update a dish.
-         */
-        put: operations["update_platillo_api_v1_admin_platillos__platillo_id__put"];
+        get?: never;
+        put?: never;
         post?: never;
         /**
          * Delete Platillo
          * @description Soft delete a dish.
          */
         delete: operations["delete_platillo_api_v1_admin_platillos__platillo_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Platillo
+         * @description Update a dish.
+         */
+        patch: operations["update_platillo_api_v1_admin_platillos__platillo_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/categorias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Categorias */
+        get: operations["listar_categorias_api_v1_admin_restaurantes__rid__categorias_get"];
+        put?: never;
+        /** Crear Categoria */
+        post: operations["crear_categoria_api_v1_admin_restaurantes__rid__categorias_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/categorias/reordenar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reordenar Categorias */
+        post: operations["reordenar_categorias_api_v1_admin_restaurantes__rid__categorias_reordenar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/categorias/{categoria_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Desactivar Categoria */
+        delete: operations["desactivar_categoria_api_v1_admin_categorias__categoria_id__delete"];
+        options?: never;
+        head?: never;
+        /** Editar Categoria */
+        patch: operations["editar_categoria_api_v1_admin_categorias__categoria_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/platillos/reordenar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reordenar Platillos */
+        post: operations["reordenar_platillos_api_v1_admin_restaurantes__rid__platillos_reordenar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platillos/{platillo_id}/foto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Subir Foto */
+        post: operations["subir_foto_api_v1_admin_platillos__platillo_id__foto_post"];
+        /** Quitar Foto */
+        delete: operations["quitar_foto_api_v1_admin_platillos__platillo_id__foto_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/mesas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Mesas */
+        get: operations["listar_mesas_api_v1_admin_restaurantes__rid__mesas_get"];
+        put?: never;
+        /** Crear Mesas */
+        post: operations["crear_mesas_api_v1_admin_restaurantes__rid__mesas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/mesas/{mesa_id}/regenerar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Regenerar Codigo */
+        post: operations["regenerar_codigo_api_v1_admin_mesas__mesa_id__regenerar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/mesas/qr.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Descargar Qr */
+        get: operations["descargar_qr_api_v1_admin_restaurantes__rid__mesas_qr_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/personal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Personal */
+        get: operations["listar_personal_api_v1_admin_restaurantes__rid__personal_get"];
+        put?: never;
+        /** Crear Personal */
+        post: operations["crear_personal_api_v1_admin_restaurantes__rid__personal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/personal/{personal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Editar Personal */
+        patch: operations["editar_personal_api_v1_admin_personal__personal_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/personal/{personal_id}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cambiar Pin */
+        post: operations["cambiar_pin_api_v1_admin_personal__personal_id__pin_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/importaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Crear Importacion */
+        post: operations["crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consultar Importacion */
+        get: operations["consultar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}/confirmar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirmar Importacion */
+        post: operations["confirmar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__confirmar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}/reintentar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reintentar Importacion */
+        post: operations["reintentar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__reintentar_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -148,10 +398,237 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
+        /** Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post */
+        Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post: {
+            /** Archivo */
+            archivo: string;
+        };
+        /** Body_subir_foto_api_v1_admin_platillos__platillo_id__foto_post */
+        Body_subir_foto_api_v1_admin_platillos__platillo_id__foto_post: {
+            /** Archivo */
+            archivo: string;
+        };
+        /**
+         * CategoriaCambios
+         * @description `PATCH /categorias/{id}`: sólo los campos presentes cambian.
+         */
+        CategoriaCambios: {
+            /** Nombre */
+            nombre?: string | null;
+            /** Activa */
+            activa?: boolean | null;
+        };
+        /** CategoriaCrear */
+        CategoriaCrear: {
+            /** Nombre */
+            nombre: string;
+        };
+        /** CategoriaImportada */
+        "CategoriaImportada-Input": {
+            /** Nombre */
+            nombre: string;
+            /** Orden */
+            orden: number;
+            /** Platillos */
+            platillos: components["schemas"]["PlatilloImportado-Input"][];
+        };
+        /** CategoriaImportada */
+        "CategoriaImportada-Output": {
+            /** Nombre */
+            nombre: string;
+            /** Orden */
+            orden: number;
+            /** Platillos */
+            platillos: components["schemas"]["PlatilloImportado-Output"][];
+        };
+        /** CategoriaRespuesta */
+        CategoriaRespuesta: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nombre */
+            nombre: string;
+            /** Orden */
+            orden: number;
+            /** Activa */
+            activa: boolean;
+        };
+        /** DetalleError */
+        DetalleError: {
+            /**
+             * Codigo
+             * @example RECURSO_NO_ENCONTRADO
+             */
+            codigo: string;
+            /**
+             * Mensaje
+             * @example No encontramos lo que buscas.
+             */
+            mensaje: string;
+            /** Detalles */
+            detalles: {
+                [key: string]: unknown;
+            };
+            /**
+             * Request Id
+             * @example 01J8XW3Q4T5R6Y7Z
+             */
+            request_id: string | null;
+        };
+        /**
+         * ErrorRespuesta
+         * @description `{"error": {"codigo", "mensaje", "detalles", "request_id"}}`.
+         * @example {
+         *       "error": {
+         *         "codigo": "MESA_NO_ENCONTRADA",
+         *         "detalles": {},
+         *         "mensaje": "No encontramos esta mesa.",
+         *         "request_id": "01J8XW3Q4T5R6Y7Z"
+         *       }
+         *     }
+         * @example {
+         *       "error": {
+         *         "codigo": "PAYLOAD_INVALIDO",
+         *         "detalles": {
+         *           "errores": [
+         *             {
+         *               "campo": "body.nombre",
+         *               "mensaje": "String should have at least 1 character",
+         *               "tipo": "string_too_short"
+         *             }
+         *           ]
+         *         },
+         *         "mensaje": "Revisa los datos enviados.",
+         *         "request_id": "01J8XW3Q4T5R6Y7Z"
+         *       }
+         *     }
+         */
+        ErrorRespuesta: {
+            error: components["schemas"]["DetalleError"];
+        };
+        /**
+         * EstadoImportacion
+         * @enum {string}
+         */
+        EstadoImportacion: "pendiente" | "procesando" | "listo" | "confirmado" | "fallido";
+        /**
+         * ImportacionRespuesta
+         * @description Estado de una importación. Sin `archivo_url` (bucket privado) ni tokens ni modelo.
+         */
+        ImportacionRespuesta: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            estado: components["schemas"]["EstadoImportacion"];
+            /** Archivo Tipo */
+            archivo_tipo: string;
+            /** Paginas */
+            paginas?: number | null;
+            /** Intentos */
+            intentos: number;
+            /** Error Mensaje */
+            error_mensaje?: string | null;
+            resultado?: components["schemas"]["ResultadoImportacion-Output"] | null;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /** Iniciado En */
+            iniciado_en?: string | null;
+            /** Finalizado En */
+            finalizado_en?: string | null;
+            /** Confirmado En */
+            confirmado_en?: string | null;
+        };
+        /** MesaRespuesta */
+        MesaRespuesta: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Numero */
+            numero: number;
+            /** Codigo Publico */
+            codigo_publico: string;
+            /**
+             * Url Publica
+             * @example https://carta.cooking/m/Jx3k9QwLmN2pR7sT4vY8zA
+             */
+            url_publica: string;
+            /** Capacidad */
+            capacidad: number;
+            /** Activa */
+            activa: boolean;
+        };
+        /**
+         * MesasCrear
+         * @description `POST /restaurantes/{rid}/mesas`: crea `cantidad` mesas numeradas a continuación.
+         */
+        MesasCrear: {
+            /** Cantidad */
+            cantidad: number;
+            /**
+             * Capacidad
+             * @default 4
+             */
+            capacidad: number;
+        };
+        /**
+         * PersonalCambios
+         * @description `PATCH /personal/{id}`. `activo = false` revoca su sesión (AC-26.3).
+         */
+        PersonalCambios: {
+            /** Nombre */
+            nombre?: string | null;
+            rol?: components["schemas"]["RolPersonal"] | null;
+            /** Activo */
+            activo?: boolean | null;
+        };
+        /** PersonalCrear */
+        PersonalCrear: {
+            /** Nombre */
+            nombre: string;
+            /** @default mesero */
+            rol: components["schemas"]["RolPersonal"];
+            /**
+             * Pin
+             * @description 4 a 6 dígitos (AC-26.1)
+             */
+            pin: string;
+        };
+        /** PersonalRespuesta */
+        PersonalRespuesta: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nombre */
+            nombre: string;
+            rol: components["schemas"]["RolPersonal"];
+            /** Activo */
+            activo: boolean;
+            /** Ultimo Acceso En */
+            ultimo_acceso_en?: string | null;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+        };
+        /** PinNuevo */
+        PinNuevo: {
+            /**
+             * Pin
+             * @description 4 a 6 dígitos (AC-26.1)
+             */
+            pin: string;
         };
         /**
          * PlatilloCreate
@@ -195,59 +672,106 @@ export interface components {
              */
             activo: boolean;
         };
-        /**
-         * PlatilloResponse
-         * @description Schema for dish responses.
-         */
-        PlatilloResponse: {
+        /** PlatilloImportado */
+        "PlatilloImportado-Input": {
+            /** Nombre */
+            nombre: string;
+            /** Descripcion */
+            descripcion?: string | null;
+            /** Precio */
+            precio?: (number | string) | null;
             /**
-             * Creado En
-             * Format: date-time
+             * Precio Confianza
+             * @enum {string}
              */
-            creado_en: string;
-            /** Actualizado En */
-            actualizado_en?: string | null;
+            precio_confianza: "alta" | "media" | "baja";
+            /** Variantes */
+            variantes?: components["schemas"]["VarianteImportada-Input"][];
+            /** Alergenos Sugeridos */
+            alergenos_sugeridos?: string[];
+            /** Etiquetas Sugeridas */
+            etiquetas_sugeridas?: string[];
+            /** Pagina */
+            pagina?: number | null;
+        };
+        /** PlatilloImportado */
+        "PlatilloImportado-Output": {
+            /** Nombre */
+            nombre: string;
+            /** Descripcion */
+            descripcion?: string | null;
+            /** Precio */
+            precio?: number | null;
+            /**
+             * Precio Confianza
+             * @enum {string}
+             */
+            precio_confianza: "alta" | "media" | "baja";
+            /** Variantes */
+            variantes?: components["schemas"]["VarianteImportada-Output"][];
+            /** Alergenos Sugeridos */
+            alergenos_sugeridos?: string[];
+            /** Etiquetas Sugeridas */
+            etiquetas_sugeridas?: string[];
+            /** Pagina */
+            pagina?: number | null;
+        };
+        /**
+         * PlatilloRespuesta
+         * @description Platillo con su imagen resuelta (foto → ilustración por categoría, 02 §8).
+         */
+        PlatilloRespuesta: {
             /**
              * Id
              * Format: uuid
              */
             id: string;
-            /**
-             * Restaurante Id
-             * Format: uuid
-             */
-            restaurante_id: string;
             /** Categoria Id */
             categoria_id?: string | null;
             /** Nombre */
             nombre: string;
             /** Descripcion */
             descripcion?: string | null;
-            /** Precio */
+            /**
+             * Precio
+             * @example 145
+             */
             precio: number;
-            /** Foto Url */
-            foto_url?: string | null;
+            imagen_tipo: components["schemas"]["TipoImagen"];
+            /** Foto Thumb Url */
+            foto_thumb_url?: string | null;
+            /** Foto Detalle Url */
+            foto_detalle_url?: string | null;
+            /** Ilustracion Clave */
+            ilustracion_clave?: string | null;
             /** Alergenos */
-            alergenos?: unknown[];
+            alergenos: string[];
             /** Etiquetas */
-            etiquetas?: unknown[];
+            etiquetas: string[];
             /** Calorias */
             calorias?: number | null;
-            /**
-             * Nivel Picante
-             * @default 0
-             */
+            /** Nivel Picante */
             nivel_picante: number;
-            /**
-             * Destacado
-             * @default false
-             */
+            /** Destacado */
             destacado: boolean;
-            /**
-             * Activo
-             * @default true
-             */
+            /** Orden */
+            orden: number;
+            /** Disponible */
+            disponible: boolean;
+            /** No Disponible Desde */
+            no_disponible_desde?: string | null;
+            /** Activo */
             activo: boolean;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /**
+             * Actualizado En
+             * Format: date-time
+             */
+            actualizado_en: string;
         };
         /**
          * PlatilloUpdate
@@ -274,6 +798,14 @@ export interface components {
             destacado?: boolean | null;
             /** Activo */
             activo?: boolean | null;
+        };
+        /**
+         * Reordenar
+         * @description Cuerpo de `POST .../reordenar`: los ids en el orden nuevo, sin repetir.
+         */
+        Reordenar: {
+            /** Ids */
+            ids: string[];
         };
         /**
          * RestauranteCreate
@@ -313,17 +845,10 @@ export interface components {
             activo: boolean;
         };
         /**
-         * RestauranteResponse
-         * @description Schema for restaurant responses.
+         * RestauranteRespuesta
+         * @description Lo que el panel muestra de un restaurante. Sin `plan` ni `horarios` (sin uso en v1).
          */
-        RestauranteResponse: {
-            /**
-             * Creado En
-             * Format: date-time
-             */
-            creado_en: string;
-            /** Actualizado En */
-            actualizado_en?: string | null;
+        RestauranteRespuesta: {
             /**
              * Id
              * Format: uuid
@@ -343,23 +868,16 @@ export interface components {
             logo_url?: string | null;
             /**
              * Tema
-             * @default vino
+             * @enum {string}
              */
-            tema: string;
-            /**
-             * Plan
-             * @default gratis
-             */
-            plan: string;
-            /** Horarios */
-            horarios?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Activo
-             * @default true
-             */
+            tema: "vino" | "verde" | "azul" | "ocre" | "cafe";
+            /** Activo */
             activo: boolean;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
         };
         /**
          * RestauranteUpdate
@@ -387,18 +905,59 @@ export interface components {
             /** Activo */
             activo?: boolean | null;
         };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-            /** Input */
-            input?: unknown;
-            /** Context */
-            ctx?: Record<string, never>;
+        /** ResultadoImportacion */
+        "ResultadoImportacion-Input": {
+            /**
+             * Moneda
+             * @default MXN
+             */
+            moneda: string;
+            /** Categorias */
+            categorias: components["schemas"]["CategoriaImportada-Input"][];
+            /** Avisos */
+            avisos?: string[];
+        };
+        /** ResultadoImportacion */
+        "ResultadoImportacion-Output": {
+            /**
+             * Moneda
+             * @default MXN
+             */
+            moneda: string;
+            /** Categorias */
+            categorias: components["schemas"]["CategoriaImportada-Output"][];
+            /** Avisos */
+            avisos?: string[];
+        };
+        /**
+         * RolPersonal
+         * @enum {string}
+         */
+        RolPersonal: "mesero" | "capitan";
+        /**
+         * TipoImagen
+         * @enum {string}
+         */
+        TipoImagen: "foto" | "ilustracion_categoria" | "ilustracion_generada";
+        /** VarianteImportada */
+        "VarianteImportada-Input": {
+            /** Nombre */
+            nombre: string;
+            /**
+             * Precio
+             * @example 145
+             */
+            precio: number | string;
+        };
+        /** VarianteImportada */
+        "VarianteImportada-Output": {
+            /** Nombre */
+            nombre: string;
+            /**
+             * Precio
+             * @example 145
+             */
+            precio: number;
         };
     };
     responses: never;
@@ -410,50 +969,6 @@ export interface components {
 export type $defs = Record<string, never>;
 export interface operations {
     health_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-        };
-    };
-    health_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-        };
-    };
-    ready_ready_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -516,16 +1031,34 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RestauranteResponse"][];
+                    "application/json": components["schemas"]["RestauranteRespuesta"][];
                 };
             };
-            /** @description Validation Error */
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };
@@ -549,26 +1082,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RestauranteResponse"];
+                    "application/json": components["schemas"]["RestauranteRespuesta"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };
     };
-    get_restaurante_api_v1_admin_restaurantes__restaurante_id__get: {
+    get_restaurante_api_v1_admin_restaurantes__rid__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                restaurante_id: string;
+                rid: string;
             };
             cookie?: never;
         };
@@ -580,26 +1131,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RestauranteResponse"];
+                    "application/json": components["schemas"]["RestauranteRespuesta"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };
     };
-    update_restaurante_api_v1_admin_restaurantes__restaurante_id__put: {
+    update_restaurante_api_v1_admin_restaurantes__rid__patch: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                restaurante_id: string;
+                rid: string;
             };
             cookie?: never;
         };
@@ -615,50 +1184,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RestauranteResponse"];
+                    "application/json": components["schemas"]["RestauranteRespuesta"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };
     };
-    delete_restaurante_api_v1_admin_restaurantes__restaurante_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurante_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_platillos_api_v1_admin_restaurantes__restaurante_id__platillos_get: {
+    list_platillos_api_v1_admin_restaurantes__rid__platillos_get: {
         parameters: {
             query?: {
                 skip?: number;
@@ -667,7 +1225,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                restaurante_id: string;
+                rid: string;
             };
             cookie?: never;
         };
@@ -679,26 +1237,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PlatilloResponse"][];
+                    "application/json": components["schemas"]["PlatilloRespuesta"][];
                 };
             };
-            /** @description Validation Error */
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };
     };
-    create_platillo_api_v1_admin_restaurantes__restaurante_id__platillos_post: {
+    create_platillo_api_v1_admin_restaurantes__rid__platillos_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                restaurante_id: string;
+                rid: string;
             };
             cookie?: never;
         };
@@ -714,82 +1290,34 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PlatilloResponse"];
+                    "application/json": components["schemas"]["PlatilloRespuesta"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_platillo_api_v1_admin_platillos__platillo_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                platillo_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlatilloResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_platillo_api_v1_admin_platillos__platillo_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                platillo_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlatilloUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlatilloResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };
@@ -812,13 +1340,1161 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Validation Error */
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    update_platillo_api_v1_admin_platillos__platillo_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platillo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatilloUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatilloRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    listar_categorias_api_v1_admin_restaurantes__rid__categorias_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoriaRespuesta"][];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    crear_categoria_api_v1_admin_restaurantes__rid__categorias_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoriaCrear"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoriaRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    reordenar_categorias_api_v1_admin_restaurantes__rid__categorias_reordenar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reordenar"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoriaRespuesta"][];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    desactivar_categoria_api_v1_admin_categorias__categoria_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoria_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    editar_categoria_api_v1_admin_categorias__categoria_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoria_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoriaCambios"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoriaRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    reordenar_platillos_api_v1_admin_restaurantes__rid__platillos_reordenar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reordenar"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatilloRespuesta"][];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    subir_foto_api_v1_admin_platillos__platillo_id__foto_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platillo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_subir_foto_api_v1_admin_platillos__platillo_id__foto_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatilloRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Tipo de archivo no permitido */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    quitar_foto_api_v1_admin_platillos__platillo_id__foto_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platillo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatilloRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    listar_mesas_api_v1_admin_restaurantes__rid__mesas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaRespuesta"][];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    crear_mesas_api_v1_admin_restaurantes__rid__mesas_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MesasCrear"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaRespuesta"][];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    regenerar_codigo_api_v1_admin_mesas__mesa_id__regenerar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    descargar_qr_api_v1_admin_restaurantes__rid__mesas_qr_pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tarjetas con QR */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    listar_personal_api_v1_admin_restaurantes__rid__personal_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalRespuesta"][];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    crear_personal_api_v1_admin_restaurantes__rid__personal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonalCrear"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    editar_personal_api_v1_admin_personal__personal_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                personal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonalCambios"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    cambiar_pin_api_v1_admin_personal__personal_id__pin_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                personal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinNuevo"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Tipo de archivo no permitido */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    consultar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                importacion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    confirmar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__confirmar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                importacion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResultadoImportacion-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    reintentar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__reintentar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                importacion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };

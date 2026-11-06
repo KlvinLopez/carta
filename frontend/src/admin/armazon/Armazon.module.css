@@ -1,0 +1,123 @@
+/* Armazón del panel: navegación inferior en teléfono, lateral en escritorio.
+   La barra es `position: fixed` y vive FUERA de cualquier elemento con `transform`
+   (diseno-visual §12): el contenido anima en `.contenido`, nunca en un ancestro de la barra. */
+.armazon {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+.contenido {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--ancho-escritorio);
+  margin: 0 auto;
+  padding: calc(var(--esp-6) + env(safe-area-inset-top, 0px)) var(--esp-5)
+    calc(var(--esp-12) * 2 + env(safe-area-inset-bottom, 0px));
+  gap: var(--esp-5);
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.marca {
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  color: var(--vino);
+}
+
+.selector {
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navegacion {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  padding: var(--esp-2) var(--esp-2) calc(var(--esp-2) + env(safe-area-inset-bottom, 0px));
+  background: var(--superficie);
+  border-radius: var(--radio-grande) var(--radio-grande) 0 0;
+  box-shadow: var(--sombra-hoja);
+}
+
+.enlace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--tactil);
+  min-height: 56px;
+  border-radius: var(--radio);
+  color: var(--carbon-suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.enlace[aria-current='page'] {
+  background: var(--vino-tenue);
+  color: var(--vino);
+}
+
+.enlace:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: -3px;
+}
+
+.restaurantes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .armazon {
+    flex-direction: row;
+  }
+
+  .navegacion {
+    position: sticky;
+    top: 0;
+    inset: 0 auto auto 0;
+    align-self: flex-start;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--esp-2);
+    width: 220px;
+    height: 100dvh;
+    padding: var(--esp-8) var(--esp-4);
+    border-radius: 0 var(--radio-grande) var(--radio-grande) 0;
+    box-shadow: var(--sombra);
+  }
+
+  .enlace {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--esp-3);
+    padding: 0 var(--esp-4);
+    font-size: 0.9375rem;
+  }
+
+  .contenido {
+    padding-bottom: var(--esp-8);
+  }
+}
