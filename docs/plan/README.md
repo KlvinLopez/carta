@@ -73,3 +73,4 @@ Los documentos de `docs/mvp/` (PRD, TDD, modelo de datos, API, seguridad, ADR 00
 | 7 | Compound Engineering: ciclo planear → trabajar → revisar → compound, con skills, agentes y hooks en `.claude/` | `CLAUDE.md` |
 | 8 | Primer despliegue en Railway; VM como camino de ahorro, Cloud Run como camino de escala (5 de noviembre) | ADR-015, `06_Hosting.md` |
 | 9 | Spec-driven: una tarea por sesión; toda sesión cierra con `/compound` y una etiqueta de resultado (5 de noviembre) | `07_Spec_Driven.md` §2.3 |
+| 10 | Modelos por rol: la sesión maestra (planear, revisar, integrar) corre en Claude Fable 5.1; las hijas que implementan corren en Opus 5.5 (tareas 🔴, migraciones, seguridad, concurrencia) o Sonnet 5.5 (el resto), y Haiku 5.5 sólo para tareas mecánicas sin código de producción; las lentes de `/revisar` en Sonnet (seguridad en Opus para tareas 🔴). Ahorro: Opus cuesta 2.5× menos que Fable, Sonnet 5×, Haiku 100× (6 de noviembre) | skill `/orquestar` §1 y §3 |

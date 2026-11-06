@@ -20,6 +20,7 @@ Para cada tarea `T-x.y`, con `mcp__claude-code-remote__create_session` (mismo en
 
 - `title`: `T-x.y · <título del brief>`
 - `outcome_branch`: `agente/T-x.y-<descripcion-corta>`
+- `model` (decisión 10 del plan, 6 de noviembre): **siempre explícito**, porque sin él la hija hereda el modelo de la maestra (Fable 5.1, el más caro). `claude-opus-5-5` para las tareas marcadas 🔴 en 04 y para cualquiera que toque `migrations/`, `app/core/seguridad*`, concurrencia o dinero; `claude-sonnet-5-5` para el resto (servicios, endpoints, pantallas, semillas, docs de despliegue); `claude-haiku-5-5` sólo para tareas mecánicas sin código de producción (regenerar tipos, mover archivos, redactar un README). Si una hija en Sonnet cierra FALLIDA por el fondo del problema y no por el brief, relánzala en Opus con el brief corregido. La maestra se queda en Fable: planea, consolida las lentes, decide e integra.
 - `prompt`:
 
 ```
@@ -48,7 +49,7 @@ Hasta que el plan esté integrado en `master`, la rama base es `claude/gifted-al
 
 Para cada rama terminada, en la maestra:
 1. `git fetch origin agente/T-x.y-…` y `git diff origin/master...origin/agente/T-x.y-… --stat`.
-2. `/revisar` y `/analizar T-x.y` sobre ese diff (haz checkout de la rama en un worktree aparte: `git worktree add ../carta-T-x.y origin/agente/T-x.y-…`).
+2. `/revisar` y `/analizar T-x.y` sobre ese diff (haz checkout de la rama en un worktree aparte: `git worktree add ../carta-T-x.y origin/agente/T-x.y-…`). Las tres lentes se lanzan con el `Agent` y `model: "sonnet"`; la de seguridad con `model: "opus"` cuando la tarea es 🔴 o toca autenticación, dinero o aislamiento entre restaurantes. La consolidación y la reproducción de bloqueantes las hace la maestra.
 3. Hallazgos bloqueantes → de vuelta a la hija con `send_message` (es su rama). Hallazgos menores → anótalos en el PR.
 4. Con permiso del usuario: abre el PR con `.github/pull_request_template.md`, espera CI y `/code-review`, integra (*squash*) en el orden de dependencias. Si dos ramas chocan en `app/schemas/` o `frontend/src/compartido/`, integra primero la de backend y pide a la hija de frontend que haga `git merge origin/master`.
 5. `archive_session` de la hija integrada. Una sesión hija nunca se reutiliza para otra tarea: la siguiente arranca limpia con la memoria ya actualizada.
