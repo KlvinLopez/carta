@@ -24,7 +24,7 @@ from uuid import UUID
 from fastapi import APIRouter, File, Response, UploadFile, status
 
 from app.db.models import EstadoImportacion, RolPersonal, TipoImagen
-from app.schemas.comun import Reordenar
+from app.schemas.comun import Reordenar, errores
 from app.schemas.importacion import (
     CategoriaImportada,
     ImportacionRespuesta,
@@ -213,7 +213,9 @@ async def reordenar_platillos(rid: UUID, datos: Reordenar) -> list[PlatilloRespu
 # ---------------------------------------------------------------------------
 
 
-@router.post("/platillos/{platillo_id}/foto", response_model=PlatilloRespuesta)
+@router.post(
+    "/platillos/{platillo_id}/foto", response_model=PlatilloRespuesta, responses=errores(413, 415)
+)
 async def subir_foto(platillo_id: UUID, archivo: UploadFile = File(...)) -> PlatilloRespuesta:
     base = f"{URL_EJEMPLO}/img/platillos/{platillo_id}"
     return _platillo(
@@ -303,6 +305,7 @@ async def cambiar_pin(personal_id: UUID, datos: PinNuevo) -> None:
     "/restaurantes/{rid}/importaciones",
     response_model=ImportacionRespuesta,
     status_code=status.HTTP_202_ACCEPTED,
+    responses=errores(413, 415),
 )
 async def crear_importacion(rid: UUID, archivo: UploadFile = File(...)) -> ImportacionRespuesta:
     return _importacion(estado=EstadoImportacion.pendiente)
@@ -318,6 +321,7 @@ async def consultar_importacion(rid: UUID, importacion_id: UUID) -> ImportacionR
 @router.post(
     "/restaurantes/{rid}/importaciones/{importacion_id}/confirmar",
     response_model=ImportacionRespuesta,
+    responses=errores(409),  # ya confirmada (T-1.9: confirmar dos veces → 409)
 )
 async def confirmar_importacion(
     rid: UUID, importacion_id: UUID, revisado: ResultadoImportacion
@@ -329,6 +333,7 @@ async def confirmar_importacion(
     "/restaurantes/{rid}/importaciones/{importacion_id}/reintentar",
     response_model=ImportacionRespuesta,
     status_code=status.HTTP_202_ACCEPTED,
+    responses=errores(409),  # sólo una importación `fallido` se reintenta
 )
 async def reintentar_importacion(rid: UUID, importacion_id: UUID) -> ImportacionRespuesta:
     return _importacion(importacion_id, EstadoImportacion.pendiente)

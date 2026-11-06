@@ -7,14 +7,21 @@ ponen las rutas reales. Las rutas están en 02_Arquitectura_v1 §5.3.
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
 from typing import Any
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from pydantic import ValidationError
 
 from app.core.config import settings
 from app.db.models import Restaurante
 from app.main import app
+from app.schemas.comun import ErrorRespuesta, Reordenar
+from app.schemas.importacion import ResultadoImportacion
+from app.schemas.menu import CategoriaCambios, CategoriaCrear
+from app.schemas.personal import PersonalCambios, PersonalCrear
 
 A = "/api/v1/admin"
 
@@ -270,3 +277,447 @@ async def test_los_ejemplos_se_esconden_fuera_de_desarrollo(
     respuesta = await cliente.get(A + ruta)
     assert respuesta.status_code == 404
     assert respuesta.json()["error"]["codigo"] == "RECURSO_NO_ENCONTRADO"
+
+
+# ---------------------------------------------------------------------------
+# B3 · El contrato de errores es la envoltura que responde la API (04_API_Spec §1.2)
+# ---------------------------------------------------------------------------
+
+
+def _operaciones_admin(openapi: dict[str, Any]) -> list[tuple[str, str, dict[str, Any]]]:
+    return [
+        (metodo, ruta, operacion)
+        for ruta, item in openapi["paths"].items()
+        if ruta.startswith(A)
+        for metodo, operacion in item.items()
+    ]
+
+
+def test_ninguna_operacion_publica_el_error_de_validacion_de_fastapi(
+    openapi: dict[str, Any],
+) -> None:
+    assert "HTTPValidationError" not in str(openapi)
+    assert "ErrorRespuesta" in openapi["components"]["schemas"]
+
+
+def test_toda_operacion_del_operador_declara_401_404_y_422_con_la_envoltura(
+    openapi: dict[str, Any],
+) -> None:
+    operaciones = _operaciones_admin(openapi)
+    assert len(operaciones) >= len(CONTRATO_FASE_1)
+    for metodo, ruta, operacion in operaciones:
+        for codigo in ("401", "404", "422"):
+            esquema = operacion["responses"][codigo]["content"]["application/json"]["schema"]
+            assert esquema["$ref"].endswith("/ErrorRespuesta"), (metodo, ruta, codigo)
+
+
+@pytest.mark.parametrize(
+    ("metodo", "ruta", "codigos"),
+    [
+        ("post", "/restaurantes/{rid}/importaciones", {"413", "415"}),
+        ("post", "/platillos/{platillo_id}/foto", {"413", "415"}),
+        ("post", "/restaurantes/{rid}/importaciones/{importacion_id}/confirmar", {"409"}),
+    ],
+)
+def test_las_rutas_declaran_sus_errores_propios(
+    openapi: dict[str, Any], metodo: str, ruta: str, codigos: set[str]
+) -> None:
+    assert codigos <= set(openapi["paths"][A + ruta][metodo]["responses"])
+
+
+@pytest.mark.parametrize(
+    "ruta", ["/restaurantes/no-es-un-uuid/categorias", "/restaurantes/x/importaciones/y"]
+)
+async def test_un_422_real_cumple_el_esquema_publicado(cliente: AsyncClient, ruta: str) -> None:
+    respuesta = await cliente.get(A + ruta)
+    assert respuesta.status_code == 422, respuesta.text
+    cuerpo = ErrorRespuesta.model_validate(respuesta.json())
+    assert cuerpo.error.codigo == "PAYLOAD_INVALIDO"
+    assert cuerpo.error.detalles["errores"][0]["campo"].startswith("path.")
+
+
+async def test_un_422_de_cuerpo_cumple_el_esquema_publicado(cliente: AsyncClient) -> None:
+    respuesta = await cliente.patch(f"{A}/categorias/no-es-un-uuid", json={"nombre": ""})
+    assert respuesta.status_code == 422
+    cuerpo = ErrorRespuesta.model_validate(respuesta.json())
+    assert {e["campo"] for e in cuerpo.error.detalles["errores"]} >= {"path.categoria_id"}
+
+
+async def test_un_404_real_cumple_el_esquema_publicado(cliente: AsyncClient) -> None:
+    respuesta = await cliente.get(f"{A}/restaurantes/{UUID_X}")
+    assert respuesta.status_code == 404
+    assert ErrorRespuesta.model_validate(respuesta.json()).error.codigo == "RECURSO_NO_ENCONTRADO"
+
+
+# ---------------------------------------------------------------------------
+# B5 · El borrador de importación viene de un PDF ajeno o de un modelo: todo tiene tope
+# ---------------------------------------------------------------------------
+
+
+def _platillo_importado(**cambios: Any) -> dict[str, Any]:
+    return {"nombre": "Sopa", "precio": 90, "precio_confianza": "alta", **cambios}
+
+
+def _resultado(**cambios: Any) -> dict[str, Any]:
+    datos: dict[str, Any] = {
+        "moneda": "MXN",
+        "categorias": [{"nombre": "Entradas", "orden": 1, "platillos": [_platillo_importado()]}],
+        "avisos": [],
+    }
+    datos.update(cambios)
+    return datos
+
+
+def _con_platillo(**cambios: Any) -> dict[str, Any]:
+    return _resultado(
+        categorias=[
+            {"nombre": "Entradas", "orden": 1, "platillos": [_platillo_importado(**cambios)]}
+        ]
+    )
+
+
+TOPES_IMPORTACION = {
+    "101 categorías": _resultado(
+        categorias=[{"nombre": f"C{n}", "orden": n, "platillos": []} for n in range(101)]
+    ),
+    "501 platillos": _resultado(
+        categorias=[
+            {
+                "nombre": "Entradas",
+                "orden": 1,
+                "platillos": [_platillo_importado(nombre=f"P{n}") for n in range(501)],
+            }
+        ]
+    ),
+    "21 variantes": _con_platillo(variantes=[{"nombre": f"V{n}", "precio": 1} for n in range(21)]),
+    "31 alérgenos": _con_platillo(alergenos_sugeridos=[f"a{n}" for n in range(31)]),
+    "31 etiquetas": _con_platillo(etiquetas_sugeridas=[f"e{n}" for n in range(31)]),
+    "etiqueta de 41": _con_platillo(etiquetas_sugeridas=["x" * 41]),
+    "51 avisos": _resultado(avisos=[f"aviso {n}" for n in range(51)]),
+    "aviso de 501": _resultado(avisos=["x" * 501]),
+    "descripción de 1001": _con_platillo(descripcion="x" * 1001),
+    "nombre de platillo de 201": _con_platillo(nombre="x" * 201),
+    "nombre de platillo en blanco": _con_platillo(nombre="   "),
+    "orden > 10 000": _resultado(
+        categorias=[{"nombre": "Entradas", "orden": 10_001, "platillos": []}]
+    ),
+    "orden > int4": _resultado(
+        categorias=[{"nombre": "Entradas", "orden": 2**31, "platillos": []}]
+    ),
+    "página 0": _con_platillo(pagina=0),
+    "página > 10 000": _con_platillo(pagina=10_001),
+    "moneda minúscula": _resultado(moneda="mxn"),
+    "moneda con salto": _resultado(moneda="MXN\n"),
+    "precio negativo": _con_platillo(precio=-1),
+    "precio > NUMERIC(10,2)": _con_platillo(precio=100_000_000),
+    "confianza inventada": _con_platillo(precio_confianza="segura"),
+}
+
+
+@pytest.mark.parametrize("caso", list(TOPES_IMPORTACION), ids=list(TOPES_IMPORTACION))
+def test_el_borrador_de_importacion_tiene_topes(caso: str) -> None:
+    with pytest.raises(ValidationError):
+        ResultadoImportacion.model_validate(TOPES_IMPORTACION[caso])
+
+
+def test_el_borrador_en_el_limite_pasa() -> None:
+    ResultadoImportacion.model_validate(
+        _resultado(
+            categorias=[{"nombre": f"C{n}", "orden": 10_000, "platillos": []} for n in range(99)]
+            + [
+                {
+                    "nombre": "Entradas",
+                    "orden": 0,
+                    "platillos": [
+                        _platillo_importado(
+                            nombre="x" * 200,
+                            descripcion="x" * 1000,
+                            pagina=10_000,
+                            variantes=[{"nombre": f"V{n}", "precio": 1} for n in range(20)],
+                            alergenos_sugeridos=["x" * 40] * 30,
+                        )
+                    ]
+                    * 500,
+                }
+            ],
+            avisos=["x" * 500] * 50,
+        )
+    )
+
+
+async def test_confirmar_un_borrador_sin_topes_es_422(cliente: AsyncClient) -> None:
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{UUID_X}/importaciones/{UUID_X}/confirmar",
+        json=TOPES_IMPORTACION["orden > int4"],
+    )
+    assert respuesta.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# B6 · Los esquemas de entrada no son más laxos que los CHECK de la base
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "construir",
+    [
+        lambda: PersonalCrear(nombre="   ", pin="1234"),
+        lambda: PersonalCambios(nombre=" \t "),
+        lambda: CategoriaCrear(nombre="  "),
+        lambda: CategoriaCambios(nombre=""),
+        lambda: PersonalCrear(nombre="x" * 61, pin="1234"),
+        lambda: Reordenar(ids=[UUID_X, UUID_X]),
+    ],
+    ids=[
+        "personal en blanco",
+        "cambio de personal en blanco",
+        "categoria en blanco",
+        "cambio de categoria vacio",
+        "personal de 61",
+        "ids repetidos",
+    ],
+)
+def test_entradas_invalidas_se_rechazan_antes_de_la_base(construir: Any) -> None:
+    with pytest.raises(ValidationError):
+        construir()
+
+
+def test_los_nombres_se_recortan() -> None:
+    assert PersonalCrear(nombre="  Ana  ", pin="1234").nombre == "Ana"
+    assert CategoriaCrear(nombre=" Postres ").nombre == "Postres"
+
+
+async def test_reordenar_con_ids_repetidos_es_422(cliente: AsyncClient) -> None:
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{UUID_X}/categorias/reordenar", json={"ids": [UUID_X, UUID_X]}
+    )
+    assert respuesta.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# C1 · El CRUD heredado no toma el restaurante del cuerpo ni responde 500
+# ---------------------------------------------------------------------------
+
+
+async def test_el_platillo_heredado_es_del_restaurante_de_la_ruta(
+    cliente: AsyncClient, restaurante: Restaurante, fabrica_restaurante: Any
+) -> None:
+    ajeno = await fabrica_restaurante()
+    creado = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos",
+        json={"restaurante_id": str(ajeno.id), "nombre": "Tostada", "precio": 10},
+    )
+    assert creado.status_code == 201, creado.text
+    listado = await cliente.get(f"{A}/restaurantes/{restaurante.id}/platillos")
+    assert creado.json()["id"] in {p["id"] for p in listado.json()}
+    del_ajeno = await cliente.get(f"{A}/restaurantes/{ajeno.id}/platillos")
+    assert del_ajeno.json() == []
+
+
+async def test_una_categoria_ajena_es_404_y_no_500(
+    cliente: AsyncClient, restaurante: Restaurante, fabrica_restaurante: Any, sesion: Any
+) -> None:
+    from app.db.models import CategoriaMenu
+
+    ajeno = await fabrica_restaurante()
+    categoria = CategoriaMenu(restaurante_id=ajeno.id, nombre="Ajena")
+    sesion.add(categoria)
+    await sesion.commit()
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos",
+        json={
+            "restaurante_id": str(restaurante.id),
+            "categoria_id": str(categoria.id),
+            "nombre": "Tostada",
+            "precio": 10,
+        },
+    )
+    assert respuesta.status_code == 404, respuesta.text
+    assert respuesta.json()["error"]["codigo"] == "RECURSO_NO_ENCONTRADO"
+
+
+async def test_un_precio_negativo_al_editar_es_422_y_no_500(
+    cliente: AsyncClient, restaurante: Restaurante
+) -> None:
+    creado = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos",
+        json={"restaurante_id": str(restaurante.id), "nombre": "Tostada", "precio": 10},
+    )
+    respuesta = await cliente.patch(
+        f"{A}/platillos/{creado.json()['id']}", json={"precio": -1, "nivel_picante": 9}
+    )
+    assert respuesta.status_code == 422, respuesta.text
+    assert respuesta.json()["error"]["codigo"] == "PAYLOAD_INVALIDO"
+
+
+async def test_un_slug_repetido_es_409(cliente: AsyncClient, restaurante: Restaurante) -> None:
+    respuesta = await cliente.post(
+        f"{A}/restaurantes", json={"nombre": "Otro", "slug": restaurante.slug}
+    )
+    assert respuesta.status_code == 409
+    assert respuesta.json()["error"]["codigo"] == "CONFLICTO"
+
+
+# ---------------------------------------------------------------------------
+# D2 · Campos exactos de cada respuesta (el frontend genera sus tipos de aquí)
+# ---------------------------------------------------------------------------
+
+# (propiedades, obligatorias) de 03 §1–§2 y 02 §5.3/§7/§8.
+CAMPOS = {
+    "PlatilloRespuesta": (
+        {
+            "id",
+            "categoria_id",
+            "nombre",
+            "descripcion",
+            "precio",
+            "imagen_tipo",
+            "foto_thumb_url",
+            "foto_detalle_url",
+            "ilustracion_clave",
+            "alergenos",
+            "etiquetas",
+            "calorias",
+            "nivel_picante",
+            "destacado",
+            "orden",
+            "disponible",
+            "no_disponible_desde",
+            "activo",
+            "creado_en",
+            "actualizado_en",
+        },
+        {
+            "id",
+            "nombre",
+            "precio",
+            "imagen_tipo",
+            "alergenos",
+            "etiquetas",
+            "nivel_picante",
+            "destacado",
+            "orden",
+            "disponible",
+            "activo",
+            "creado_en",
+            "actualizado_en",
+        },
+    ),
+    "MesaRespuesta": (
+        {"id", "numero", "codigo_publico", "url_publica", "capacidad", "activa"},
+        {"id", "numero", "codigo_publico", "url_publica", "capacidad", "activa"},
+    ),
+    "PersonalRespuesta": (
+        {"id", "nombre", "rol", "activo", "ultimo_acceso_en", "creado_en"},
+        {"id", "nombre", "rol", "activo", "creado_en"},
+    ),
+    "CategoriaRespuesta": (
+        {"id", "nombre", "orden", "activa"},
+        {"id", "nombre", "orden", "activa"},
+    ),
+    "ImportacionRespuesta": (
+        {
+            "id",
+            "estado",
+            "archivo_tipo",
+            "paginas",
+            "intentos",
+            "error_mensaje",
+            "resultado",
+            "creado_en",
+            "iniciado_en",
+            "finalizado_en",
+            "confirmado_en",
+        },
+        {"id", "estado", "archivo_tipo", "intentos", "creado_en"},
+    ),
+    "PlatilloImportado-Output": (
+        {
+            "nombre",
+            "descripcion",
+            "precio",
+            "precio_confianza",
+            "variantes",
+            "alergenos_sugeridos",
+            "etiquetas_sugeridas",
+            "pagina",
+        },
+        {"nombre", "precio_confianza"},
+    ),
+    "RestauranteRespuesta": (
+        {
+            "id",
+            "nombre",
+            "slug",
+            "direccion",
+            "telefono",
+            "email",
+            "logo_url",
+            "tema",
+            "activo",
+            "creado_en",
+        },
+        {"id", "nombre", "slug", "tema", "activo", "creado_en"},
+    ),
+    "DetalleError": (
+        {"codigo", "mensaje", "detalles", "request_id"},
+        {"codigo", "mensaje", "detalles", "request_id"},
+    ),
+}
+
+
+@pytest.mark.parametrize("esquema", list(CAMPOS))
+def test_esquemas_fase1_exponen_los_campos_de_03(openapi: dict[str, Any], esquema: str) -> None:
+    definicion = openapi["components"]["schemas"][esquema]
+    propiedades, obligatorias = CAMPOS[esquema]
+    assert set(definicion["properties"]) == propiedades
+    assert set(definicion.get("required", [])) == obligatorias
+
+
+def test_los_limites_numericos_estan_en_el_contrato(openapi: dict[str, Any]) -> None:
+    esquemas = openapi["components"]["schemas"]
+    picante = esquemas["PlatilloRespuesta"]["properties"]["nivel_picante"]
+    assert (picante["minimum"], picante["maximum"]) == (0, 5)
+    precio = esquemas["PlatilloRespuesta"]["properties"]["precio"]
+    assert (precio["type"], precio["minimum"], precio["maximum"]) == ("number", 0, 99999999.99)
+    confianza = esquemas["PlatilloImportado-Output"]["properties"]["precio_confianza"]
+    assert confianza["enum"] == ["alta", "media", "baja"]
+    imagen = esquemas["TipoImagen"]
+    assert imagen["enum"] == ["foto", "ilustracion_categoria", "ilustracion_generada"]
+
+
+# ---------------------------------------------------------------------------
+# D3 · Toda ruta del operador de 02 §5.3 (Fase 1) está en el contrato
+# ---------------------------------------------------------------------------
+
+ARQUITECTURA = Path(__file__).resolve().parents[2] / "docs" / "plan" / "02_Arquitectura_v1.md"
+# Historias de la Fase 1 (04 §5). US-24 (`/resumen`) y US-13 (`/mesas-vivo`) llegan después.
+HISTORIAS_FASE_1 = {"US-15", "US-16", "US-17", "US-21", "US-25", "US-26"}
+
+
+def _rutas_de_la_arquitectura() -> set[tuple[str, str]]:
+    texto = ARQUITECTURA.read_text(encoding="utf-8")
+    seccion = texto.split("### 5.3")[1].split("### 5.4")[0]
+    rutas: set[tuple[str, str]] = set()
+    for fila in seccion.splitlines():
+        celdas = [c.strip() for c in fila.strip().strip("|").split("|")]
+        if len(celdas) != 3 or celdas[2] not in HISTORIAS_FASE_1:
+            continue
+        for metodos, ruta in re.findall(r"`([A-Z/]+) (\S+?)`", celdas[0]):
+            ruta = ruta.replace("...", "/restaurantes/{rid}")
+            for metodo in metodos.split("/"):
+                rutas.add((metodo.lower(), re.sub(r"\{[^}]+\}", "{}", ruta)))
+    return rutas
+
+
+def test_toda_ruta_de_la_fase_1_en_02_esta_en_openapi(openapi: dict[str, Any]) -> None:
+    documentadas = _rutas_de_la_arquitectura()
+    assert len(documentadas) >= 25  # la tabla se leyó de verdad
+    publicadas = {
+        (metodo, re.sub(r"\{[^}]+\}", "{}", ruta[len(A) :]))
+        for metodo, ruta, _ in _operaciones_admin(openapi)
+    }
+    assert documentadas - publicadas == set()
+    # Y la lista a mano de este archivo no se queda atrás de la documentación.
+    a_mano = {(m, re.sub(r"\{[^}]+\}", "{}", r)) for m, r, _ in CONTRATO_FASE_1}
+    assert documentadas == a_mano

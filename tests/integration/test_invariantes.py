@@ -298,6 +298,7 @@ async def test_inv3_carrera_confirmar_mientras_otro_agrega(motor_pruebas: AsyncE
             datos = await _crear_inquilino(c, 9, sufijo=f"-carrera-{time.monotonic_ns()}")
 
     bloqueada = asyncio.Event()
+    esperas: list[float] = []
 
     async def confirma() -> None:
         async with motor_pruebas.connect() as c1:
@@ -314,14 +315,16 @@ async def test_inv3_carrera_confirmar_mientras_otro_agrega(motor_pruebas: AsyncE
                 async with c2.begin():
                     await _agregar_item(c2, datos.orden, datos.platillo)
             finally:
-                espera = time.monotonic() - inicio
-        return espera
+                esperas.append(time.monotonic() - inicio)
+        return esperas[-1]
 
     try:
         resultados = await asyncio.gather(confirma(), agrega(), return_exceptions=True)
         assert resultados[0] is None, resultados[0]
         assert isinstance(resultados[1], IntegrityError), resultados[1]
         assert "INV-3" in str(resultados[1])
+        # Esperó por la fila: sin `FOR SHARE` el INSERT no esperaría y entraría.
+        assert esperas and esperas[0] >= ESPERA_CONFIRMACION * 0.8, esperas
         async with motor_pruebas.connect() as c:
             items = await c.execute(
                 text("SELECT count(*) FROM item_orden WHERE orden_id = :o"), {"o": datos.orden}
@@ -572,6 +575,31 @@ CASOS_MEZCLA = {
     "categoria con platillos cambiada de restaurante": (
         "UPDATE categoria_menu SET restaurante_id = :r2 WHERE id = :c"
     ),
+    "orden movida a la sesion de otro restaurante": (
+        "UPDATE orden_personal SET sesion_id = :s2 WHERE id = :o"
+    ),
+    # El miembro está atado a su sesión (y, por ella, a su restaurante).
+    "orden con miembro de otra sesion": (
+        "INSERT INTO orden_personal (sesion_id, miembro_id, estado, bloqueada) "
+        "VALUES (:s2, :mb, 'cerrada', true)"
+    ),
+    "miembro cambiado de sesion": ("UPDATE miembro_sesion SET sesion_id = :s2 WHERE id = :mb"),
+    "llamada con miembro ajeno": (
+        "INSERT INTO llamada_mesero (restaurante_id, mesa_id, sesion_id, miembro_id) "
+        "VALUES (:r2, :m2, :s2, :mb)"
+    ),
+    # La analítica tampoco mezcla restaurantes.
+    "evento con mesa ajena": (
+        "INSERT INTO evento_analitica (restaurante_id, tipo, mesa_id) VALUES (:r2, 'scan', :m)"
+    ),
+    "evento con sesion ajena": (
+        "INSERT INTO evento_analitica (restaurante_id, tipo, sesion_id) "
+        "VALUES (:r2, 'session_ready', :s)"
+    ),
+    "evento con platillo ajeno": (
+        "INSERT INTO evento_analitica (restaurante_id, tipo, platillo_id) "
+        "VALUES (:r2, 'dish_view', :p)"
+    ),
 }
 
 
@@ -585,12 +613,15 @@ def _parametros(sql: str, uno: Inquilino, otro: Inquilino) -> dict[str, UUID]:
         "p": uno.platillo,
         "pr": uno.personal,
         "o": uno.orden,
+        "mb": uno.miembro,
         "r2": otro.restaurante,
         "m2": otro.mesa,
         "s2": otro.sesion,
         "c2": otro.categoria,
         "p2": otro.platillo,
         "pr2": otro.personal,
+        "o2": otro.orden,
+        "mb2": otro.miembro,
     }
     return {nombre: ids[nombre] for nombre in set(re.findall(r":(\w+)", sql))}
 
@@ -637,6 +668,21 @@ CASOS_MISMO_RESTAURANTE = {
     ),
     "platillo editado sin cambiar de restaurante": (
         "UPDATE platillo SET restaurante_id = :r, nombre = 'Guacamole grande' WHERE id = :p"
+    ),
+    "orden de un miembro nuevo de la misma sesion": (
+        "WITH nuevo AS (INSERT INTO miembro_sesion (sesion_id) VALUES (:s) RETURNING id) "
+        "INSERT INTO orden_personal (sesion_id, miembro_id) SELECT :s, id FROM nuevo"
+    ),
+    "llamada de un miembro de la sesion": (
+        "INSERT INTO llamada_mesero (restaurante_id, mesa_id, sesion_id, miembro_id) "
+        "VALUES (:r, :m, :s, :mb)"
+    ),
+    "evento propio con mesa, sesion, miembro y platillo": (
+        "INSERT INTO evento_analitica (restaurante_id, tipo, mesa_id, sesion_id, miembro_id, "
+        "platillo_id) VALUES (:r, 'dish_view', :m, :s, :mb, :p)"
+    ),
+    "evento sin mesa ni sesion": (
+        "INSERT INTO evento_analitica (restaurante_id, tipo) VALUES (:r, 'menu_view')"
     ),
 }
 
@@ -766,3 +812,60 @@ async def test_inv10_borrar_la_sesion_borra_sus_comandas_y_llamadas(
             {"r": uno.restaurante},
         )
         assert quedan.scalar_one() == 0, tabla
+
+
+def _sqlstate(error: IntegrityError) -> str | None:
+    return getattr(error.orig, "sqlstate", None)
+
+
+@pytest.mark.ac("AC-15.2")
+async def test_inv10_una_sesion_sin_comandas_no_se_muda_de_restaurante(
+    conexion_pruebas: AsyncConnection, uno: Inquilino, otro: Inquilino
+) -> None:
+    """Sin comandas ni llamadas, cambiar a la vez `mesa_id` y `restaurante_id` satisface la
+    FK compuesta hacia `mesa`; la sesión arrastraría su orden y sus ítems (platillos de `uno`)
+    a `otro`. `tr_sesion_restaurante_inmutable` lo impide con `check_violation`."""
+    c = conexion_pruebas
+    await _agregar_item(c, uno.orden, uno.platillo)
+    with pytest.raises(IntegrityError) as error:
+        async with c.begin_nested():
+            await _ejecutar(
+                c,
+                "UPDATE sesion_grupal SET mesa_id = :m2, restaurante_id = :r2 WHERE id = :s",
+                m2=otro.mesa,
+                r2=otro.restaurante,
+                s=uno.sesion,
+            )
+    assert _sqlstate(error.value) == "23514"
+    assert "INV-10" in str(error.value)
+    # Cambiar de mesa dentro del mismo restaurante sí se puede (la mesa del QR se reasigna).
+    otra_mesa = await _uno(
+        c,
+        "INSERT INTO mesa (restaurante_id, numero, codigo_publico) VALUES (:r, 2, :codigo) "
+        "RETURNING id",
+        r=uno.restaurante,
+        codigo="otra-mesa-del-mismo-rest",
+    )
+    await _ejecutar(
+        c, "UPDATE sesion_grupal SET mesa_id = :m WHERE id = :s", m=otra_mesa, s=uno.sesion
+    )
+
+
+@pytest.mark.ac("AC-12.1")
+async def test_inv8_comanda_orden_no_junta_restaurantes(
+    conexion_pruebas: AsyncConnection, uno: Inquilino, otro: Inquilino
+) -> None:
+    """Una comanda de `otro` no puede llevar la orden de `uno` (INV-8, por sesión)."""
+    comanda_otro = await _uno(
+        conexion_pruebas,
+        "INSERT INTO comanda (restaurante_id, mesa_id, sesion_id) VALUES (:r, :m, :s) RETURNING id",
+        r=otro.restaurante,
+        m=otro.mesa,
+        s=otro.sesion,
+    )
+    await _debe_fallar(
+        conexion_pruebas,
+        "INSERT INTO comanda_orden (comanda_id, orden_id) VALUES (:c, :o)",
+        c=comanda_otro,
+        o=uno.orden,
+    )

@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends
 from app.api.admin import ejemplos, restaurantes
 from app.core.config import settings
 from app.core.errores import ErrorCarta, mensaje_por_http
+from app.schemas.comun import errores
 
 
 async def solo_desarrollo() -> None:
@@ -21,7 +22,10 @@ async def solo_desarrollo() -> None:
         raise ErrorCarta("RECURSO_NO_ENCONTRADO", mensaje_por_http(404), 404)
 
 
-router = APIRouter(tags=["operador"])
+# Toda ruta del operador puede responder 401 (sin token, desde T-1.2), 404 (no existe o es de
+# otro restaurante) y 422 con la envoltura de 04_API_Spec §1.2; declararlo aquí sustituye el
+# `HTTPValidationError` que FastAPI publicaría por defecto y que la API nunca responde.
+router = APIRouter(tags=["operador"], responses=errores(401, 404, 422))
 router.include_router(restaurantes.router, dependencies=[Depends(solo_desarrollo)])
 router.include_router(ejemplos.router, dependencies=[Depends(solo_desarrollo)])
 

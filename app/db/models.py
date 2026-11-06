@@ -136,21 +136,24 @@ def _uuid_nulo() -> Mapped[Any]:
     return mapped_column(UUID(as_uuid=True), nullable=True)
 
 
-def _fk_inquilino(columna: str, padre: str, *, ondelete: str) -> ForeignKeyConstraint:
-    """INV-10: `(columna, restaurante_id) → padre(id, restaurante_id)`.
+def _fk_compuesta(
+    columna: str, padre: str, *, ondelete: str, clave: str = "restaurante_id"
+) -> ForeignKeyConstraint:
+    """INV-10: `(columna, clave) → padre(id, clave)`, con `clave` = `restaurante_id` o, para el
+    miembro, `sesion_id`.
 
     El nombre es el de la FK simple que sustituye (`fk_<tabla>_<columna>`, por convención).
-    `SET NULL` lleva la lista de columnas de PostgreSQL 15+ para no anular `restaurante_id`.
+    `SET NULL` lleva la lista de columnas de PostgreSQL 15+ para no anular la clave compartida.
     """
     accion = f"SET NULL ({columna})" if ondelete == "SET NULL" else ondelete
     return ForeignKeyConstraint(
-        [columna, "restaurante_id"], [f"{padre}.id", f"{padre}.restaurante_id"], ondelete=accion
+        [columna, clave], [f"{padre}.id", f"{padre}.{clave}"], ondelete=accion
     )
 
 
-def _unico_con_restaurante() -> UniqueConstraint:
-    """`UNIQUE (id, restaurante_id)`: destino de las FK compuestas de INV-10."""
-    return UniqueConstraint("id", "restaurante_id")
+def _unico_con(clave: str = "restaurante_id") -> UniqueConstraint:
+    """`UNIQUE (id, clave)`: destino de las FK compuestas de INV-10."""
+    return UniqueConstraint("id", clave)
 
 
 def _marca_tiempo(*, nullable: bool = False, al_actualizar: bool = False) -> Mapped[Any]:
@@ -229,7 +232,7 @@ class CategoriaMenu(Base):
     )
 
     __table_args__ = (
-        _unico_con_restaurante(),
+        _unico_con(),
         # Regla dura 9: la baja es lógica, así que el nombre sólo es único entre las activas.
         Index(
             "uq_categoria_activa_por_nombre",
@@ -271,7 +274,7 @@ class PersonalRestaurante(Base):
     restaurante: Mapped[Restaurante] = relationship(back_populates="personal")
 
     __table_args__ = (
-        _unico_con_restaurante(),
+        _unico_con(),
         CheckConstraint("length(btrim(nombre)) > 0", name="ck_personal_nombre"),
         CheckConstraint("intentos_fallidos >= 0", name="ck_personal_intentos"),
         # INV-7 verificable en la base: sólo entra un hash Argon2id, nunca el PIN.
@@ -342,9 +345,9 @@ class Platillo(Base):
     )
 
     __table_args__ = (
-        _unico_con_restaurante(),
-        _fk_inquilino("categoria_id", "categoria_menu", ondelete="SET NULL"),
-        _fk_inquilino("no_disponible_por", "personal_restaurante", ondelete="SET NULL"),
+        _unico_con(),
+        _fk_compuesta("categoria_id", "categoria_menu", ondelete="SET NULL"),
+        _fk_compuesta("no_disponible_por", "personal_restaurante", ondelete="SET NULL"),
         CheckConstraint("precio >= 0", name="ck_platillo_precio"),
         CheckConstraint("nivel_picante BETWEEN 0 AND 5", name="ck_platillo_nivel_picante"),
         CheckConstraint("jsonb_typeof(alergenos) = 'array'", name="ck_platillo_alergenos_lista"),
@@ -384,7 +387,7 @@ class Mesa(Base):
     )
 
     __table_args__ = (
-        _unico_con_restaurante(),
+        _unico_con(),
         CheckConstraint("length(codigo_publico) >= 22", name="ck_codigo_largo"),
         CheckConstraint("capacidad > 0", name="ck_mesa_capacidad"),
         # Regla dura 9: el número sólo es único entre las mesas activas.
@@ -446,9 +449,9 @@ class SesionGrupal(Base):
     )
 
     __table_args__ = (
-        _unico_con_restaurante(),
-        _fk_inquilino("mesa_id", "mesa", ondelete="CASCADE"),
-        _fk_inquilino("cerrada_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
+        _unico_con(),
+        _fk_compuesta("mesa_id", "mesa", ondelete="CASCADE"),
+        _fk_compuesta("cerrada_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
         CheckConstraint(
             f"estado IN ({_lista_sql(ESTADOS_SESION)})", name="ck_sesion_grupal_estado"
         ),
@@ -486,9 +489,13 @@ class MiembroSesion(Base):
     unido_en: Mapped[datetime] = _marca_tiempo()
 
     sesion: Mapped[SesionGrupal] = relationship(back_populates="miembros")
-    ordenes: Mapped[list[OrdenPersonal]] = relationship(back_populates="miembro")
+    ordenes: Mapped[list[OrdenPersonal]] = relationship(
+        back_populates="miembro",
+        primaryjoin="MiembroSesion.id == foreign(OrdenPersonal.miembro_id)",
+    )
 
     __table_args__ = (
+        _unico_con("sesion_id"),
         CheckConstraint("rol IN ('host', 'miembro')", name="ck_miembro_sesion_rol"),
         CheckConstraint("estado IN ('activo', 'desconectado')", name="ck_miembro_sesion_estado"),
         CheckConstraint(
@@ -510,7 +517,7 @@ class OrdenPersonal(Base):
 
     id: Mapped[uuid.UUID] = _id_uuid()
     sesion_id: Mapped[uuid.UUID] = _fk_uuid("sesion_grupal.id", ondelete="CASCADE")
-    miembro_id: Mapped[uuid.UUID] = _fk_uuid("miembro_sesion.id", ondelete="CASCADE")
+    miembro_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     estado: Mapped[str] = mapped_column(
         String(20), nullable=False, default="armando", server_default="armando"
     )
@@ -525,10 +532,14 @@ class OrdenPersonal(Base):
     confirmada_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
 
     sesion: Mapped[SesionGrupal] = relationship(back_populates="ordenes")
-    miembro: Mapped[MiembroSesion] = relationship(back_populates="ordenes")
+    miembro: Mapped[MiembroSesion] = relationship(
+        back_populates="ordenes",
+        primaryjoin="foreign(OrdenPersonal.miembro_id) == MiembroSesion.id",
+    )
     items: Mapped[list[ItemOrden]] = relationship(back_populates="orden")
 
     __table_args__ = (
+        _fk_compuesta("miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
         CheckConstraint(
             f"estado IN ({_lista_sql(ESTADOS_ORDEN)})", name="ck_orden_personal_estado"
         ),
@@ -608,9 +619,9 @@ class Comanda(Base):
     ordenes: Mapped[list[OrdenPersonal]] = relationship(secondary="comanda_orden", viewonly=True)
 
     __table_args__ = (
-        _fk_inquilino("sesion_id", "sesion_grupal", ondelete="CASCADE"),
-        _fk_inquilino("mesa_id", "mesa", ondelete="CASCADE"),
-        _fk_inquilino("atendida_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
+        _fk_compuesta("sesion_id", "sesion_grupal", ondelete="CASCADE"),
+        _fk_compuesta("mesa_id", "mesa", ondelete="CASCADE"),
+        _fk_compuesta("atendida_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
         UniqueConstraint("sesion_id", "secuencia"),
         # INV-6: el estado terminal exige su marca de tiempo.
         CheckConstraint(
@@ -655,9 +666,7 @@ class LlamadaMesero(Base):
     restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
     mesa_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     sesion_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "miembro_sesion.id", ondelete="SET NULL", nullable=True
-    )
+    miembro_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     motivo: Mapped[str] = mapped_column(
         String(40), nullable=False, default="atencion", server_default="atencion"
     )
@@ -666,9 +675,10 @@ class LlamadaMesero(Base):
     creada_en: Mapped[datetime] = _marca_tiempo()
 
     __table_args__ = (
-        _fk_inquilino("sesion_id", "sesion_grupal", ondelete="CASCADE"),
-        _fk_inquilino("mesa_id", "mesa", ondelete="CASCADE"),
-        _fk_inquilino("atendida_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
+        _fk_compuesta("sesion_id", "sesion_grupal", ondelete="CASCADE"),
+        _fk_compuesta("mesa_id", "mesa", ondelete="CASCADE"),
+        _fk_compuesta("miembro_id", "miembro_sesion", ondelete="SET NULL", clave="sesion_id"),
+        _fk_compuesta("atendida_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
         Index("idx_llamada_restaurante", "restaurante_id"),
         Index("idx_llamada_mesa", "mesa_id"),
         Index("idx_llamada_sesion", "sesion_id"),
@@ -789,16 +799,12 @@ class EventoAnalitica(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
-    mesa_id: Mapped[uuid.UUID | None] = _fk_uuid("mesa.id", ondelete="SET NULL", nullable=True)
-    sesion_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "sesion_grupal.id", ondelete="SET NULL", nullable=True
-    )
+    mesa_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    sesion_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
         "miembro_sesion.id", ondelete="SET NULL", nullable=True
     )
-    platillo_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "platillo.id", ondelete="SET NULL", nullable=True
-    )
+    platillo_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     tipo: Mapped[str] = mapped_column(String(40), nullable=False)
     propiedades: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb")
@@ -808,6 +814,9 @@ class EventoAnalitica(Base):
     ocurrido_en: Mapped[datetime] = _marca_tiempo()
 
     __table_args__ = (
+        _fk_compuesta("mesa_id", "mesa", ondelete="SET NULL"),
+        _fk_compuesta("sesion_id", "sesion_grupal", ondelete="SET NULL"),
+        _fk_compuesta("platillo_id", "platillo", ondelete="SET NULL"),
         CheckConstraint(f"tipo IN ({_lista_sql(TIPOS_EVENTO)})", name="ck_tipo_evento"),
         Index("idx_evento_restaurante_fecha", "restaurante_id", "ocurrido_en"),
         Index("idx_evento_tipo", "tipo", "ocurrido_en"),

@@ -11,7 +11,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.db.models import TipoImagen
-from app.schemas.comun import Esquema, Precio
+from app.schemas.comun import Esquema, Nombre100, Precio
 
 
 class CategoriaRespuesta(Esquema):
@@ -22,13 +22,13 @@ class CategoriaRespuesta(Esquema):
 
 
 class CategoriaCrear(BaseModel):
-    nombre: str = Field(min_length=1, max_length=100)
+    nombre: Nombre100
 
 
 class CategoriaCambios(BaseModel):
     """`PATCH /categorias/{id}`: sólo los campos presentes cambian."""
 
-    nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    nombre: Nombre100 | None = None
     activa: bool | None = None
 
 
