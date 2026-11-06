@@ -51,7 +51,7 @@ Los documentos de `docs/mvp/` (PRD, TDD, modelo de datos, API, seguridad, ADR 00
 
 | Fase | Entregable observable | Estado |
 |---|---|---|
-| 0 · Cimientos y primer despliegue | `https://staging.<dominio>/health` responde desde un teléfono | T-0.1 a T-0.6 integradas (5 de noviembre: 278 pruebas backend, 70 de frontend, CI con `docker build` y humo). Falta T-0.7 (espera la cuenta de Railway con tarjeta, el dominio y la zona de Cloudflare) y T-0.8 |
+| 0 · Cimientos y primer despliegue | `https://staging.<dominio>/health` responde desde un teléfono | T-0.1 a T-0.7 integradas (6 de noviembre: 300 pruebas backend, 70 de frontend, CI con `docker build`, comando previo y humo). De T-0.7 falta la parte operativa: servicios y variables en el panel de Railway (Calvin, `deploy/railway/README.md`), DNS y reglas en Cloudflare (maestra) y la primera etiqueta `v0.0.1` tras el merge a `master`. Falta T-0.8 |
 | 1 · Restaurante y menú | Un restaurante sube su PDF y ve su menú con fotos y sus QR impresos | Pendiente |
 | 2 · Comensal | Un comensal escanea y ve el menú en su teléfono | Pendiente |
 | 3 · Orden en grupo, comandas y personal | La mesa arma la orden junta y el mesero la recibe | Pendiente |
