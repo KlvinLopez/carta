@@ -42,6 +42,7 @@ GUIA_DESPLIEGUE = RAIZ / "deploy" / "README.md"
 ETAPA2 = RAIZ / "deploy" / "etapa2-gcp"
 ACCION_POR_SHA = r"[\w.-]+/[\w.-]+@[0-9a-f]{40}"
 DIGEST = r"@sha256:[0-9a-f]{64}"
+LLAVE_PUBLICA_AGE = "age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk"
 
 
 def instrucciones_dockerfile(texto: str) -> list[tuple[str, str]]:
@@ -506,7 +507,12 @@ def test_guias_de_despliegue_dicen_que_poner_y_no_traen_secretos() -> None:
     pasos = GUIA_DESPLIEGUE.read_text(encoding="utf-8")
     for fragmento in ("git tag", "git push origin", "Rollback", "deploy.yml", "workflow_dispatch"):
         assert fragmento in pasos, fragmento
+    # La llave PÚBLICA de age de Calvin va escrita (la misma en los dos ambientes); la privada,
+    # nunca, ni otra llave age que no sea ésa.
+    assert guia.count(f"RESPALDO_CLAVE_AGE={LLAVE_PUBLICA_AGE}") == 2
     for texto in (guia, pasos):
-        assert not re.search(r"age1[a-z0-9]{50,}", texto), "llave age real"
+        assert "AGE-SECRET-KEY-" not in texto.upper(), "llave age privada"
+        otras = set(re.findall(r"age1[a-z0-9]{50,}", texto)) - {LLAVE_PUBLICA_AGE}
+        assert not otras, otras
         assert not re.search(r"\b[0-9a-f]{32}\b", texto), "parece un Account ID o una llave real"
         assert not re.search(r"SECRET_KEY=[A-Za-z0-9+/]{30,}", texto)

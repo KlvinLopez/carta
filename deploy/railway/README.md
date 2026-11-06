@@ -17,7 +17,7 @@ Quién hace qué:
 ## Antes de empezar: ten esto a mano
 
 1. Los **dos tokens S3 de R2** que ya creaste (uno de staging y uno de producción): de cada uno, el **Access Key ID** y el **Secret Access Key**.
-2. Tu **llave pública de age** (empieza con `age1…`). La privada **no** se usa aquí.
+2. Tu **llave pública de age** ya está escrita en los bloques de abajo (es pública: no hace falta sellarla). La privada **no** se usa aquí ni se escribe en ningún lado.
 3. **Dos claves `SECRET_KEY` nuevas**, una por ambiente. En Windows abre **PowerShell** (tecla Windows → escribe `PowerShell` → Enter), pega esta línea y pulsa Enter:
 
    ```powershell
@@ -122,7 +122,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    R2_ACCESS_KEY_ID=<Access Key ID del token de staging>
    R2_SECRET_ACCESS_KEY=<Secret Access Key del token de staging>
    R2_BUCKET_PRIVADO=carta-privado-staging
-   RESPALDO_CLAVE_AGE=<tu llave pública age1…>
+   RESPALDO_CLAVE_AGE=age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk
    RESPALDO_DIAS=30
    ```
 
@@ -164,7 +164,7 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    R2_ACCESS_KEY_ID=<Access Key ID del token de producción>
    R2_SECRET_ACCESS_KEY=<Secret Access Key del token de producción>
    R2_BUCKET_PRIVADO=carta-privado-produccion
-   RESPALDO_CLAVE_AGE=<tu llave pública age1…>
+   RESPALDO_CLAVE_AGE=age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk
    RESPALDO_DIAS=30
    ```
 
@@ -244,7 +244,7 @@ Desde el teléfono también puedes, en el panel de Railway: ver logs (**Deployme
 | Origen público de imágenes (`R2_URL_PUBLICA`) | staging: `https://img-staging.carta.cooking` · producción: `https://img.carta.cooking` (dominios propios conectados a los buckets públicos, TLS mínimo 1.2; las URL `r2.dev` quedan apagadas: tienen límite de tasa y no pasan por la caché) |
 | Ciclo de vida de los buckets privados | regla `respaldos-90-dias`: borra bajo el prefijo `respaldos/` a los 90 días (red de seguridad de la poda de 30 días de `deploy/respaldo/respaldar.sh`; las fotos originales viven fuera de ese prefijo y no caducan) |
 | Tokens S3 de R2 (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`) | *Account API tokens* con permiso *Object Read & Write*, uno por ambiente, limitados a sus dos buckets; los valores sólo en el panel de Railway |
-| Llave de respaldo (`RESPALDO_CLAVE_AGE`) | la pública `age1…` generada por Calvin; la privada vive fuera de todo servidor |
+| Llave de respaldo (`RESPALDO_CLAVE_AGE`) | `age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk` (pública, la misma en staging y producción); la privada vive fuera de todo servidor |
 | Servicios por environment | `Postgres` (plantilla con volumen), `api` (staging: GitHub; produccion: *Empty Service* desplegado por CI), `respaldo` (GitHub, `/deploy/respaldo`, cron `0 4 * * *`) |
 
 ---
