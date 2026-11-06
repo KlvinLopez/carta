@@ -682,6 +682,41 @@ CAMPOS = {
         {"codigo", "mensaje", "detalles", "request_id"},
         {"codigo", "mensaje", "detalles", "request_id"},
     ),
+    # Cuerpos de entrada de T-1.3 (revisión, B8): ni `restaurante_id`, ni `orden`, ni imagen.
+    "PlatilloCrear": (
+        {
+            "categoria_id",
+            "nombre",
+            "descripcion",
+            "precio",
+            "alergenos",
+            "etiquetas",
+            "calorias",
+            "nivel_picante",
+            "destacado",
+            "disponible",
+        },
+        {"nombre", "precio"},
+    ),
+    "PlatilloCambios": (
+        {
+            "categoria_id",
+            "nombre",
+            "descripcion",
+            "precio",
+            "alergenos",
+            "etiquetas",
+            "calorias",
+            "nivel_picante",
+            "destacado",
+            "disponible",
+            "activo",
+        },
+        set(),
+    ),
+    "CategoriaCrear": ({"nombre"}, {"nombre"}),
+    "CategoriaCambios": ({"nombre", "activa"}, set()),
+    "Reordenar": ({"ids"}, {"ids"}),
 }
 
 

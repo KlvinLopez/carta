@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Iterable
 
 import httpx
 import pytest
-from pydantic import SecretStr
+from pydantic import SecretStr, ValidationError
 
 from app.core.config import Settings, settings
 from app.services import cache_menu as modulo
@@ -63,7 +64,8 @@ async def test_invalidar_sin_credenciales_solo_borra_lo_local(
     cache = CacheMenu()
     cache.guardar("a", 1)
     cache.guardar("b", 2)
-    await cache.invalidar("a")
+    cache.invalidar("a")
+    await cache.esperar_purgas()
     assert (cache.obtener("a"), cache.obtener("b")) == (None, 2)
     assert llamadas == []
     assert purgador_desde_settings() is None
@@ -100,7 +102,9 @@ async def test_con_credenciales_purga_la_url_del_menu(monkeypatch: pytest.Monkey
         lambda **_: ClienteReal(transport=httpx.MockTransport(cloudflare)),
     )
     assert settings.purga_cloudflare is True
-    await CacheMenu().invalidar("la-ceiba", "la-ceiba")
+    cache = CacheMenu(ventana=0)
+    cache.invalidar("la-ceiba", "la-ceiba")
+    await cache.esperar_purgas()
     (peticion,) = recibidas
     assert str(peticion.url) == "https://api.cloudflare.com/client/v4/zones/z123/purge_cache"
     assert peticion.headers["authorization"] == "Bearer tok-secreto"
@@ -127,3 +131,81 @@ async def test_sin_urls_no_llama() -> None:
 def test_el_token_no_aparece_en_la_configuracion() -> None:
     config = Settings(_env_file=None, CLOUDFLARE_API_TOKEN="tok-secreto")  # type: ignore[call-arg]
     assert "tok-secreto" not in repr(config)
+
+
+# --- A6 · generación por slug ------------------------------------------------------------
+
+
+@pytest.mark.ac("AC-16.1")
+def test_un_menu_leido_antes_de_invalidar_no_se_guarda() -> None:
+    """La carrera lectura/escritura: la lectura toma la generación, consulta la base, una
+    escritura invalida en medio y la lectura guarda después. Sin generación quedaría 30 s."""
+    cache = CacheMenu()
+    leida = cache.generacion("la-ceiba")
+    cache.invalidar("la-ceiba")  # la escritura confirma e invalida mientras la lectura consulta
+    assert cache.guardar("la-ceiba", {"menu": "viejo"}, leida) is False
+    assert cache.obtener("la-ceiba") is None
+    nueva = cache.generacion("la-ceiba")
+    assert nueva == leida + 1
+    assert cache.guardar("la-ceiba", {"menu": "nuevo"}, nueva) is True
+    assert cache.obtener("la-ceiba") == {"menu": "nuevo"}
+
+
+def test_la_generacion_es_por_slug() -> None:
+    cache = CacheMenu()
+    g = cache.generacion("otro")
+    cache.invalidar("la-ceiba")
+    assert cache.guardar("otro", 1, g) is True
+    assert cache.generacion("otro") == g
+
+
+async def test_las_purgas_seguidas_salen_juntas_y_lo_que_llega_durante_una_purga_no_se_pierde() -> (
+    None
+):
+    llamadas: list[list[str]] = []
+    liberar = asyncio.Event()
+
+    class Purgador(PurgadorCloudflare):
+        async def purgar(self, urls: Iterable[str]) -> bool:
+            llamadas.append(sorted(urls))
+            if len(llamadas) == 1:
+                await liberar.wait()
+            return True
+
+    cache = CacheMenu(purgador=Purgador("z", "t"), ventana=0.01)
+    cache.invalidar("a")
+    cache.invalidar("b")
+    await asyncio.sleep(0.05)  # la primera purga (a, b) está en vuelo
+    cache.invalidar("c")
+    liberar.set()
+    await cache.esperar_purgas()
+    assert [[u.rsplit("/", 1)[1] for u in llamada] for llamada in llamadas] == [["a", "b"], ["c"]]
+
+
+def test_invalidar_sin_bucle_no_falla() -> None:
+    cache = CacheMenu()
+    cache.guardar("a", 1)
+    cache.invalidar("a")  # fuera de un bucle de eventos: sólo la caché local
+    assert cache.obtener("a") is None
+
+
+# --- B2 · el id de zona va en la URL: sólo 32 hex -----------------------------------------
+
+
+@pytest.mark.parametrize(
+    "zona",
+    ["../../accounts/x?y=", "zona-pruebas", "A" * 32, "a" * 31, "a" * 33, "a" * 32 + "/x"],
+)
+def test_un_id_de_zona_que_no_es_hexadecimal_se_rechaza(zona: str) -> None:
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, CLOUDFLARE_ZONE_ID=zona)  # type: ignore[call-arg]
+
+
+def test_un_id_de_zona_valido_o_vacio_se_acepta() -> None:
+    assert Settings(_env_file=None, CLOUDFLARE_ZONE_ID="0" * 32).CLOUDFLARE_ZONE_ID == "0" * 32  # type: ignore[call-arg]
+    vacio = Settings(_env_file=None, CLOUDFLARE_ZONE_ID="", CLOUDFLARE_API_TOKEN="")  # type: ignore[call-arg]
+    assert (vacio.CLOUDFLARE_ZONE_ID, vacio.CLOUDFLARE_API_TOKEN, vacio.purga_cloudflare) == (
+        None,
+        None,
+        False,
+    )

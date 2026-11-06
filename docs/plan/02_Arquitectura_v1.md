@@ -85,7 +85,7 @@ flowchart LR
 | Petición | Ruta | Quién responde | Caché |
 |---|---|---|---|
 | PWA y estáticos | `/`, `/m/*`, `/staff/*`, `/admin/*`, `/assets/*` | Caddy desde `frontend/dist` | Cloudflare 1 año (nombres con hash); `index.html` sin caché |
-| Menú público | `GET /api/v1/p/menu/{slug}` | API, **sin cookie**, `Cache-Control: public, max-age=30, s-maxage=60` + `ETag` | Cloudflare 60 s; purga por API al editar un platillo |
+| Menú público | `GET /api/v1/p/menu/{slug}` | API, **sin cookie**, `Cache-Control: public, max-age=30, s-maxage=60` + `ETag` | Cloudflare 60 s; purga por API al editar el menú (en segundo plano, agrupada; T-1.3). El `ETag` lleva la versión del contenido y la ruta no rellena el borde con caché local de otra generación |
 | Fotos de platillos | `https://img.<dominio>/...` | R2 detrás de Cloudflare | 1 año, nombres inmutables por hash |
 | Sondeo del comensal | `GET /api/v1/p/sesion` cada 3 s con `If-None-Match` | API; `304` si el ETag coincide (ETag en memoria, invalidado al escribir) | Nunca en el borde (`Cache-Control: private, no-store`) |
 | Sondeo del personal | `GET /api/v1/op/mesas` cada 5 s | API; igual | Igual |
@@ -222,7 +222,7 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 |---|---|---|
 | Cliente / servidor | PWA (SPA) + API JSON; el servidor nunca renderiza HTML de negocio | — |
 | Bases de datos | Una PostgreSQL 16; esquema en español; migraciones Alembic | — |
-| Caché | Menú en Cloudflare (60 s) y en proceso (30 s); ETags en memoria (2 s); sin Redis | > 3 instancias de API → Redis |
+| Caché | Menú en Cloudflare (60 s) y en proceso (30 s, con generación por `slug`: lo leído antes de una escritura no se guarda); invalidar borra sólo la caché del worker que escribió, los demás caducan en ≤ 30 s; ETags en memoria (2 s); sin Redis | > 3 instancias de API → Redis |
 | Colas | Tabla `importacion_menu` + tarea en proceso; sin broker | > 500 trabajos/día o trabajos > 5 min → worker aparte (tabla con `SKIP LOCKED` ya diseñada) |
 | Escalar | Vertical primero (2 → 4 → 8 vCPU); horizontal después (§11) | p95 > 300 ms sostenido con CPU > 70 % |
 | Consistencia vs disponibilidad | Consistencia fuerte en órdenes y comandas (transacciones, `FOR UPDATE`); el menú tolera 60 s de desfase | — |

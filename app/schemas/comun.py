@@ -39,16 +39,59 @@ def _texto(maximo: int) -> StringConstraints:
     return StringConstraints(strip_whitespace=True, min_length=1, max_length=maximo)
 
 
+# Formato invisible (categoría Unicode `Cf`: espacio de ancho cero, BOM, marcas bidi…). Se
+# conservan los que dan forma a lo visible: ZWNJ/ZWJ (emojis compuestos, escrituras índicas y
+# árabes) y las etiquetas de las banderas de subdivisión (🏴󠁧󠁢󠁳󠁣󠁴󠁿).
+CF_QUE_SE_CONSERVAN = frozenset("\u200c\u200d") | frozenset(map(chr, range(0xE0020, 0xE0080)))
+
+
+def es_invisible(caracter: str) -> bool:
+    """Formato invisible que se quita del texto (no ZWJ/ZWNJ ni etiquetas de bandera)."""
+    return unicodedata.category(caracter) == "Cf" and caracter not in CF_QUE_SE_CONSERVAN
+
+
+def _visible(caracter: str) -> bool:
+    return not caracter.isspace() and unicodedata.category(caracter) != "Cf"
+
+
+def limpiar_texto(valor: object, *, saltos: bool = False) -> object:
+    """Para textos que no escribió una persona (la importación, T-1.8): quita los
+    caracteres de control y el formato invisible; el espacio en blanco de control (`\\t`,
+    `\\n`, `\\r`…) pasa a espacio, salvo `\\n` si `saltos`. Lo que no es `str` pasa igual."""
+    if not isinstance(valor, str):
+        return valor
+    if saltos:
+        valor = valor.replace("\r\n", "\n")
+    partes: list[str] = []
+    for caracter in valor:
+        if es_invisible(caracter):
+            continue
+        if unicodedata.category(caracter) == "Cc":
+            if saltos and caracter == "\n":
+                partes.append(caracter)
+            elif caracter.isspace():
+                partes.append(" ")
+            continue
+        partes.append(caracter)
+    return "".join(partes)
+
+
 def sin_caracteres_de_control(permitidos: str = "") -> AfterValidator:
-    """Rechaza los caracteres de control (categoría Unicode `Cc`: `\\x00`–`\\x1f`,
-    `\\x7f`–`\\x9f`) salvo los `permitidos` (p. ej. `"\\n"` en textos largos). Un NUL
-    llega a PostgreSQL como `CharacterNotInRepertoireError` y daría 500; los demás ensucian
-    pantallas y registros. Revisión de T-1.2 (A2)."""
+    """Para lo que escribe el operador: rechaza los caracteres de control (categoría
+    Unicode `Cc`: `\\x00`–`\\x1f`, `\\x7f`–`\\x9f`) salvo los `permitidos` (p. ej.
+    `"\\n"` en textos largos), quita el formato invisible (`es_invisible`) y rechaza el
+    texto que no era vacío y se queda sin nada visible (un nombre hecho sólo de espacios de
+    ancho cero o marcas bidi). Un NUL llega a PostgreSQL como
+    `CharacterNotInRepertoireError` y daría 500; los demás ensucian pantallas y registros.
+    Revisiones de T-1.2 (A2) y T-1.3 (B6)."""
 
     def validar(texto: str) -> str:
         if any(c not in permitidos and unicodedata.category(c) == "Cc" for c in texto):
             raise ValueError("no se permiten caracteres de control")
-        return texto
+        limpio = "".join(c for c in texto if not es_invisible(c)).strip()
+        if texto and not any(_visible(c) for c in limpio):
+            raise ValueError("el texto no tiene ningún carácter visible")
+        return limpio
 
     return AfterValidator(validar)
 
@@ -80,8 +123,9 @@ def _sin_repetidos(ids: list[UUID]) -> list[UUID]:
     return ids
 
 
-class Reordenar(BaseModel):
-    """Cuerpo de `POST .../reordenar`: los ids en el orden nuevo, sin repetir."""
+class Reordenar(Entrada):
+    """Cuerpo de `POST .../reordenar`: los ids en el orden nuevo, sin repetir. Un campo
+    desconocido (`restaurante_id`) es 422 (revisión de T-1.3, B1)."""
 
     ids: Annotated[list[UUID], Field(min_length=1, max_length=500), AfterValidator(_sin_repetidos)]
 

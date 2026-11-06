@@ -121,6 +121,7 @@ async def test_cada_restriccion_tiene_su_respuesta(
     assert respuesta.status_code == http
     cuerpo = json.loads(bytes(respuesta.body))
     assert ErrorRespuesta.model_validate(cuerpo).error.codigo == codigo
+    assert cuerpo["error"]["detalles"] == ({"errores": []} if http == 422 else {})
     assert respuesta.headers["cache-control"] == "no-store"
     registros = " ".join(r.getMessage() for r in caplog.records)
     assert SECRETO not in registros and SECRETO not in json.dumps(cuerpo)  # …y no sale

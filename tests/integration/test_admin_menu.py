@@ -9,8 +9,10 @@ invalidación de la caché del menú en cada escritura, y la traducción de `Int
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import time
 from collections.abc import Iterator
 from decimal import Decimal
 from typing import Any
@@ -23,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.errores import ErrorCarta
 from app.db.models import (
     CategoriaMenu,
     ItemOrden,
@@ -34,7 +37,8 @@ from app.db.models import (
     SesionGrupal,
 )
 from app.schemas.comun import ErrorRespuesta
-from app.services.cache_menu import PurgadorCloudflare, cache_menu
+from app.services import menu
+from app.services.cache_menu import CacheMenu, PurgadorCloudflare, cache_menu
 from tests.conftest import Fabrica
 
 A = "/api/v1/admin"
@@ -56,9 +60,12 @@ class CloudflareFalso:
     def __init__(self) -> None:
         self.peticiones: list[httpx.Request] = []
         self.respuesta: httpx.Response | Exception = httpx.Response(200, json={"success": True})
+        self.demora = 0.0
 
-    def __call__(self, peticion: httpx.Request) -> httpx.Response:
+    async def __call__(self, peticion: httpx.Request) -> httpx.Response:
         self.peticiones.append(peticion)
+        if self.demora:
+            await asyncio.sleep(self.demora)
         if isinstance(self.respuesta, Exception):
             raise self.respuesta
         return self.respuesta
@@ -72,13 +79,15 @@ class CloudflareFalso:
 def cloudflare() -> Iterator[CloudflareFalso]:
     falso = CloudflareFalso()
     cliente = httpx.AsyncClient(transport=httpx.MockTransport(falso))
-    anterior = cache_menu.purgador
+    anterior, ventana = cache_menu.purgador, cache_menu.ventana
     cache_menu.purgador = PurgadorCloudflare("zona-pruebas", "token-pruebas", cliente=cliente)
+    cache_menu.ventana = 0.01  # la purga sale en segundo plano; `esperar_purgas()` la espera
     cache_menu.vaciar()
     try:
         yield falso
     finally:
-        cache_menu.purgador = anterior
+        cache_menu.cancelar_purgas()
+        cache_menu.purgador, cache_menu.ventana = anterior, ventana
         cache_menu.vaciar()
 
 
@@ -179,8 +188,7 @@ async def test_reordenar_categorias(
     lista = await cliente.get(
         f"{A}/restaurantes/{restaurante.id}/categorias", headers=cabecera_operador
     )
-    assert [x["nombre"] for x in lista.json()] == ["C", "A", "B", "D"]
-    assert d.id  # usada
+    assert [x["id"] for x in lista.json()] == [str(f.id) for f in (c, a, b, d)]
 
 
 @pytest.mark.ac("AC-16.1")
@@ -421,8 +429,7 @@ async def test_reordenar_platillos_dentro_de_su_categoria(
         params={"categoria_id": str(categoria.id)},
         headers=cabecera_operador,
     )
-    assert [p["nombre"] for p in lista.json()] == ["C", "A", "B"]
-    assert b.id
+    assert [p["id"] for p in lista.json()] == [str(f.id) for f in (c, a, b)]
 
 
 @pytest.mark.ac("AC-16.1")
@@ -487,8 +494,6 @@ async def test_listar_platillos_activos_por_defecto_y_las_bajas_aparte(
     assert {p["id"] for p in activos.json()} == {str(platillo.id)}
     bajas = await cliente.get(ruta, params={"activo": "false"}, headers=cabecera_operador)
     assert {p["id"] for p in bajas.json()} == {str(baja.id)}
-    pagina = await cliente.get(ruta, params={"skip": 1, "limit": 1}, headers=cabecera_operador)
-    assert pagina.json() == []
 
 
 # ===========================================================================
@@ -794,6 +799,7 @@ async def test_toda_escritura_invalida_el_menu(
         antes = len(cloudflare.peticiones)
         respuesta = await cliente.request(metodo, A + ruta, json=cuerpo, headers=cabecera_operador)
         assert respuesta.status_code < 300, (metodo, ruta, respuesta.text)
+        await cache_menu.esperar_purgas()
         assert cache_menu.obtener(restaurante.slug) is None, (metodo, ruta)
         assert len(cloudflare.peticiones) == antes + 1, (metodo, ruta)
     peticion = cloudflare.peticiones[0]
@@ -816,6 +822,7 @@ async def test_leer_no_invalida(
     cache_menu.guardar(restaurante.slug, {"menu": 1})
     for ruta in ("platillos", "categorias"):
         await cliente.get(f"{A}/restaurantes/{restaurante.id}/{ruta}", headers=cabecera_operador)
+    await cache_menu.esperar_purgas()
     assert cache_menu.obtener(restaurante.slug) == {"menu": 1}
     assert cloudflare.peticiones == []
 
@@ -833,6 +840,7 @@ async def test_una_escritura_rechazada_no_invalida(
         f"{A}/platillos/{platillo.id}", json={"precio": -1}, headers=cabecera_operador
     )
     assert respuesta.status_code == 422
+    await cache_menu.esperar_purgas()
     assert cache_menu.obtener(restaurante.slug) == {"menu": 1}
     assert cloudflare.peticiones == []
 
@@ -851,6 +859,8 @@ async def test_cambiar_el_slug_invalida_el_viejo_y_el_nuevo(
         headers=cabecera_operador,
     )
     assert respuesta.status_code == 200, respuesta.text
+    await cache_menu.esperar_purgas()
+    assert len(cloudflare.peticiones) == 1  # una sola llamada con las dos URL
     assert set(cloudflare.urls) == {
         f"https://{settings.DOMINIO}/api/v1/p/menu/{viejo}",
         f"https://{settings.DOMINIO}/api/v1/p/menu/la-nueva-casa",
@@ -882,12 +892,14 @@ async def test_si_cloudflare_falla_la_escritura_igual_se_guarda(
         respuesta = await cliente.patch(
             f"{A}/platillos/{platillo.id}", json={"nombre": "Pozole"}, headers=cabecera_operador
         )
+        await cache_menu.esperar_purgas()
     assert respuesta.status_code == 200, respuesta.text
     await sesion.refresh(platillo)
     assert platillo.nombre == "Pozole"
     assert len(cloudflare.peticiones) == 1
     registros = [r for r in caplog.records if r.name == "carta.cache_menu"]
-    assert registros, "la purga fallida se registra"
+    assert [getattr(r, "codigo", None) for r in registros] == ["PURGA_FALLIDA"]
+    assert registros[0].getMessage().startswith("purga de Cloudflare")
     texto = " ".join(r.getMessage() for r in registros)
     assert "token-pruebas" not in texto and "caído" not in texto
 
@@ -923,6 +935,7 @@ async def test_un_nombre_de_categoria_repetido_es_409(
     registros = " ".join(r.getMessage() for r in caplog.records)
     assert "uq_categoria_activa_por_nombre" in registros
     assert "ecretas" not in registros  # nunca los parámetros
+    await cache_menu.esperar_purgas()
     assert cloudflare.peticiones == []  # nada cambió, nada se purga
 
 
@@ -949,3 +962,502 @@ async def test_reactivar_con_un_nombre_ocupado_es_409(
         headers=cabecera_operador,
     )
     assert nueva.status_code == 200
+
+
+# ===========================================================================
+# Revisión de la maestra (T-1.3)
+# ===========================================================================
+
+# --- A1 · precios que desbordan `quantize` o redondean a 0 → 422, nunca 500 ---------------
+
+PRECIOS_FUERA_DE_RANGO = ["1e26", "1e30", 1e30, "9" * 30, "1E+999999999999", -1e30, "-0.001"]
+PRECIOS_MAL_ESCRITOS = ["１２", "+5", "1,5", " ", "-0"]  # B6: sólo dígitos ASCII, sin signo
+
+
+@pytest.mark.ac("AC-16.2")
+@pytest.mark.parametrize("metodo", ["POST", "PATCH"])
+@pytest.mark.parametrize(
+    "precio", PRECIOS_FUERA_DE_RANGO + PRECIOS_MAL_ESCRITOS, ids=lambda p: repr(p)[:20]
+)
+async def test_un_precio_fuera_de_rango_o_mal_escrito_es_422(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    metodo: str,
+    precio: Any,
+) -> None:
+    ruta = (
+        f"{A}/restaurantes/{restaurante.id}/platillos"
+        if metodo == "POST"
+        else f"{A}/platillos/{platillo.id}"
+    )
+    respuesta = await cliente.request(
+        metodo, ruta, json={"nombre": "Sopa", "precio": precio}, headers=cabecera_operador
+    )
+    assert respuesta.status_code == 422, respuesta.text
+    error = ErrorRespuesta.model_validate(respuesta.json()).error
+    assert [e["campo"] for e in error.detalles["errores"]] == ["body.precio"]
+    await sesion.refresh(platillo)
+    assert platillo.precio == Decimal("100.00")
+
+
+# --- A2 · restaurante ajeno en las rutas por {rid} y listados sin datos ajenos ----------
+
+RUTAS_RID_DEL_MENU = [
+    ("GET", "/restaurantes/{rid}/categorias", None),
+    ("POST", "/restaurantes/{rid}/categorias", {"nombre": "Intrusa"}),
+    ("POST", "/restaurantes/{rid}/categorias/reordenar", {"ids": ["{cid}"]}),
+    ("POST", "/restaurantes/{rid}/platillos/reordenar", {"ids": ["{pid}"]}),
+]
+
+
+@pytest.mark.ac("AC-15.3")
+@pytest.mark.ac("AC-16.1")
+@pytest.mark.parametrize(("metodo", "ruta", "cuerpo"), RUTAS_RID_DEL_MENU)
+async def test_un_restaurante_ajeno_es_404_en_categorias_y_reordenar(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    ajeno: Restaurante,
+    fabrica_categoria: Fabrica,
+    fabrica_platillo: Fabrica,
+    cabecera_operador: dict[str, str],
+    metodo: str,
+    ruta: str,
+    cuerpo: dict[str, Any] | None,
+) -> None:
+    c1 = await fabrica_categoria(ajeno, nombre="Primera", orden=1)
+    c2 = await fabrica_categoria(ajeno, nombre="Segunda", orden=2)
+    p1 = await fabrica_platillo(ajeno, c1, orden=1)
+    p2 = await fabrica_platillo(ajeno, c1, orden=2)
+    texto = json.dumps(cuerpo).replace("{cid}", str(c2.id)).replace("{pid}", str(p2.id))
+    errores = []
+    for rid in (ajeno.id, UUID_X):
+        respuesta = await cliente.request(
+            metodo,
+            A + ruta.format(rid=rid),
+            json=json.loads(texto),
+            headers=cabecera_operador,
+        )
+        assert respuesta.status_code == 404, respuesta.text
+        errores.append({k: v for k, v in respuesta.json()["error"].items() if k != "request_id"})
+    assert errores[0] == errores[1]
+    for fila in (c1, c2, p1, p2):
+        await sesion.refresh(fila)
+    assert (c1.orden, c2.orden, p1.orden, p2.orden) == (1, 2, 1, 2)
+    intrusas = await sesion.scalar(
+        select(CategoriaMenu.id).where(CategoriaMenu.nombre == "Intrusa")
+    )
+    assert intrusas is None
+
+
+@pytest.mark.ac("AC-15.3")
+@pytest.mark.ac("AC-16.1")
+async def test_los_listados_no_incluyen_datos_de_otro_restaurante(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    categoria: CategoriaMenu,
+    platillo: Platillo,
+    ajeno: Restaurante,
+    fabrica_categoria: Fabrica,
+    fabrica_platillo: Fabrica,
+    cabecera_operador: dict[str, str],
+) -> None:
+    suya = await fabrica_categoria(ajeno, orden=0)
+    await fabrica_platillo(ajeno, suya, orden=0)
+    await fabrica_platillo(ajeno, orden=0, activo=False)
+    base = f"{A}/restaurantes/{restaurante.id}"
+    categorias = await cliente.get(f"{base}/categorias", headers=cabecera_operador)
+    assert [c["id"] for c in categorias.json()] == [str(categoria.id)]
+    for params in ({}, {"activo": "false"}, {"categoria_id": str(suya.id)}):
+        platillos = await cliente.get(f"{base}/platillos", params=params, headers=cabecera_operador)
+        esperado = [str(platillo.id)] if not params else []
+        assert [p["id"] for p in platillos.json()] == esperado, params
+
+
+# --- A3 · paginación, filtros y orden ------------------------------------------------
+
+
+@pytest.mark.ac("AC-16.1")
+async def test_listar_pagina_filtra_y_ordena(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    fabrica_categoria: Fabrica,
+    fabrica_platillo: Fabrica,
+    cabecera_operador: dict[str, str],
+) -> None:
+    # Categorías con `orden` contrario al alfabético y al de creación.
+    tercera = await fabrica_categoria(restaurante, nombre="A tercera", orden=30)
+    primera = await fabrica_categoria(restaurante, nombre="C primera", orden=10)
+    segunda = await fabrica_categoria(restaurante, nombre="B segunda", orden=20)
+    esperado = []
+    for categoria in (primera, segunda, tercera):
+        despues = await fabrica_platillo(restaurante, categoria, nombre="a", orden=2)
+        antes = await fabrica_platillo(restaurante, categoria, nombre="z", orden=1)
+        esperado += [antes, despues]
+    suelto = await fabrica_platillo(restaurante, nombre="0 sin categoría", orden=0)
+    esperado.append(suelto)  # sin categoría al final
+    ids = [str(p.id) for p in esperado]
+    base = f"{A}/restaurantes/{restaurante.id}"
+
+    async def listar(recurso: str, **params: Any) -> list[str]:
+        r = await cliente.get(f"{base}/{recurso}", params=params, headers=cabecera_operador)
+        assert r.status_code == 200, r.text
+        return [x["id"] for x in r.json()]
+
+    assert await listar("platillos") == ids
+    assert await listar("platillos", limit=2) == ids[:2]
+    assert await listar("platillos", skip=2, limit=2) == ids[2:4]
+    assert await listar("platillos", skip=6) == ids[6:]
+    assert await listar("platillos", categoria_id=str(segunda.id)) == ids[2:4]
+    cats = [str(c.id) for c in (primera, segunda, tercera)]
+    assert await listar("categorias") == cats
+    assert await listar("categorias", limit=2) == cats[:2]
+    assert await listar("categorias", skip=1, limit=1) == cats[1:2]
+    assert await listar("categorias", skip=2) == cats[2:]
+
+
+@pytest.mark.ac("AC-16.1")
+async def test_reordenar_conserva_el_orden_previo_de_los_no_enviados(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    categoria: CategoriaMenu,
+    fabrica_categoria: Fabrica,
+    fabrica_platillo: Fabrica,
+    cabecera_operador: dict[str, str],
+) -> None:
+    categoria.orden = 5
+    await sesion.commit()
+    # Nombres en orden inverso al alfabético y `orden` con huecos: manda `orden`.
+    z, y, x, w = [
+        await fabrica_platillo(restaurante, categoria, nombre=n, orden=o)
+        for n, o in (("z", 10), ("y", 20), ("x", 30), ("w", 40))
+    ]
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos/reordenar",
+        json={"ids": [str(x.id)]},
+        headers=cabecera_operador,
+    )
+    assert [(p["id"], p["orden"]) for p in respuesta.json()] == [
+        (str(x.id), 1),
+        (str(z.id), 2),
+        (str(y.id), 3),
+        (str(w.id), 4),
+    ]
+    cz, cy, cx = [
+        await fabrica_categoria(restaurante, nombre=n, orden=o)
+        for n, o in (("z", 10), ("y", 20), ("x", 30))
+    ]
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/categorias/reordenar",
+        json={"ids": [str(cx.id)]},
+        headers=cabecera_operador,
+    )
+    # `categoria` (fixture, `orden` 5) queda la segunda.
+    assert [c["id"] for c in respuesta.json()] == [
+        str(cx.id),
+        str(categoria.id),
+        str(cz.id),
+        str(cy.id),
+    ]
+    assert [c["orden"] for c in respuesta.json()] == [1, 2, 3, 4]
+
+
+# --- A5 · categoría inactiva -----------------------------------------------------------
+
+
+@pytest.mark.ac("AC-16.2")
+@pytest.mark.parametrize("metodo", ["POST", "PATCH"])
+async def test_un_platillo_no_entra_en_una_categoria_dada_de_baja(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    platillo: Platillo,
+    fabrica_categoria: Fabrica,
+    cabecera_operador: dict[str, str],
+    metodo: str,
+) -> None:
+    baja = await fabrica_categoria(restaurante, activa=False)
+    categoria_original = platillo.categoria_id
+    ruta = (
+        f"{A}/restaurantes/{restaurante.id}/platillos"
+        if metodo == "POST"
+        else f"{A}/platillos/{platillo.id}"
+    )
+    respuesta = await cliente.request(
+        metodo,
+        ruta,
+        json={"nombre": "Sope", "precio": 10, "categoria_id": str(baja.id)},
+        headers=cabecera_operador,
+    )
+    assert respuesta.status_code == 422, respuesta.text
+    error = ErrorRespuesta.model_validate(respuesta.json()).error
+    assert error.codigo == "PAYLOAD_INVALIDO"
+    assert "dada de baja" in error.mensaje
+    assert [e["campo"] for e in error.detalles["errores"]] == ["body.categoria_id"]
+    await sesion.refresh(platillo)
+    assert platillo.categoria_id == categoria_original
+    assert await sesion.scalar(select(Platillo.id).where(Platillo.nombre == "Sope")) is None
+
+
+@pytest.mark.ac("AC-16.3")
+async def test_desactivar_una_categoria_no_desactiva_sus_platillos(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    categoria: CategoriaMenu,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+) -> None:
+    respuesta = await cliente.delete(f"{A}/categorias/{categoria.id}", headers=cabecera_operador)
+    assert respuesta.status_code == 204
+    await sesion.refresh(platillo)
+    assert (platillo.activo, platillo.disponible, platillo.categoria_id) == (
+        True,
+        True,
+        categoria.id,
+    )
+
+
+# --- B1 · `Reordenar` rechaza campos desconocidos --------------------------------------
+
+
+@pytest.mark.ac("AC-15.3")
+@pytest.mark.parametrize("recurso", ["categorias", "platillos"])
+async def test_reordenar_con_restaurante_id_en_el_cuerpo_es_422(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    categoria: CategoriaMenu,
+    platillo: Platillo,
+    ajeno: Restaurante,
+    cabecera_operador: dict[str, str],
+    recurso: str,
+) -> None:
+    ident = categoria.id if recurso == "categorias" else platillo.id
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/{recurso}/reordenar",
+        json={"ids": [str(ident)], "restaurante_id": str(ajeno.id)},
+        headers=cabecera_operador,
+    )
+    assert respuesta.status_code == 422, respuesta.text
+
+
+# --- B4 · la purga no demora la escritura y se agrupa ---------------------------------
+
+
+@pytest.mark.ac("AC-16.1")
+async def test_la_escritura_no_espera_a_cloudflare(
+    cliente: AsyncClient,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    cloudflare: CloudflareFalso,
+) -> None:
+    cloudflare.demora = 10.0
+    assert cache_menu.purgador is not None
+    cache_menu.purgador.plazo = 10.0
+    inicio = time.perf_counter()
+    respuesta = await cliente.patch(
+        f"{A}/platillos/{platillo.id}", json={"nombre": "Rápido"}, headers=cabecera_operador
+    )
+    duracion = time.perf_counter() - inicio
+    assert respuesta.status_code == 200
+    # Holgura para CI: sin el cambio tardaría los 10 s de Cloudflare.
+    assert duracion < 0.5, duracion
+
+
+@pytest.mark.ac("AC-16.1")
+async def test_tres_escrituras_seguidas_son_una_purga(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    cloudflare: CloudflareFalso,
+) -> None:
+    cache_menu.ventana = 0.3
+    for nombre in ("Uno", "Dos", "Tres"):
+        respuesta = await cliente.patch(
+            f"{A}/platillos/{platillo.id}", json={"nombre": nombre}, headers=cabecera_operador
+        )
+        assert respuesta.status_code == 200
+    await cache_menu.esperar_purgas()
+    assert len(cloudflare.peticiones) == 1
+    assert cloudflare.urls == [_url_menu(restaurante)]
+
+
+# --- B6 · validaciones laxas ------------------------------------------------------------
+
+INVISIBLES = {
+    "ancho cero": "​​",
+    "marcas bidi": "‮⁦‏",
+    "BOM y ZWJ": "﻿‍",
+}
+
+
+@pytest.mark.ac("AC-16.2")
+@pytest.mark.parametrize("nombre", INVISIBLES.values(), ids=INVISIBLES.keys())
+async def test_un_nombre_sin_nada_visible_es_422(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    nombre: str,
+) -> None:
+    base = f"{A}/restaurantes/{restaurante.id}"
+    platillo = await cliente.post(
+        f"{base}/platillos", json={"nombre": nombre, "precio": 1}, headers=cabecera_operador
+    )
+    categoria = await cliente.post(
+        f"{base}/categorias", json={"nombre": nombre}, headers=cabecera_operador
+    )
+    assert (platillo.status_code, categoria.status_code) == (422, 422)
+
+
+@pytest.mark.ac("AC-16.2")
+async def test_el_formato_invisible_se_quita_y_los_emojis_compuestos_se_conservan(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
+) -> None:
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos",
+        json={"nombre": "​Sopa‮ de la casa " + FAMILIA, "precio": 1},
+        headers=cabecera_operador,
+    )
+    assert respuesta.status_code == 201, respuesta.text
+    assert respuesta.json()["nombre"] == "Sopa de la casa " + FAMILIA
+
+
+@pytest.mark.ac("AC-16.2")
+@pytest.mark.parametrize("picante", ["3", True, 2.0], ids=["texto", "booleano", "decimal"])
+async def test_el_picante_es_un_entero_estricto(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    picante: Any,
+) -> None:
+    respuesta = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos",
+        json={"nombre": "Sopa", "precio": 1, "nivel_picante": picante},
+        headers=cabecera_operador,
+    )
+    assert respuesta.status_code == 422, respuesta.text
+
+
+@pytest.mark.ac("AC-16.2")
+@pytest.mark.parametrize("metodo", ["POST", "PATCH"])
+async def test_las_claves_se_normalizan_antes_de_quitar_repetidas(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    metodo: str,
+) -> None:
+    ruta = (
+        f"{A}/restaurantes/{restaurante.id}/platillos"
+        if metodo == "POST"
+        else f"{A}/platillos/{platillo.id}"
+    )
+    respuesta = await cliente.request(
+        metodo,
+        ruta,
+        json={
+            "nombre": "Sopa",
+            "precio": 1,
+            "alergenos": ["a", "a", "A", " Frutos   Secos ", "frutos secos"],
+            "etiquetas": ["Vegano", "vegano "],
+        },
+        headers=cabecera_operador,
+    )
+    assert respuesta.status_code in (200, 201), respuesta.text
+    assert respuesta.json()["alergenos"] == ["a", "frutos secos"]
+    assert respuesta.json()["etiquetas"] == ["vegano"]
+
+
+# --- B7 · huecos de pruebas --------------------------------------------------------------
+
+
+@pytest.mark.ac("AC-16.2")
+@pytest.mark.parametrize("nombre", ["Sopa\x00", "\x07Sopa", "So\x1bpa"])
+async def test_un_caracter_de_control_en_la_categoria_es_422(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    categoria: CategoriaMenu,
+    cabecera_operador: dict[str, str],
+    nombre: str,
+) -> None:
+    creada = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/categorias",
+        json={"nombre": nombre},
+        headers=cabecera_operador,
+    )
+    editada = await cliente.patch(
+        f"{A}/categorias/{categoria.id}", json={"nombre": nombre}, headers=cabecera_operador
+    )
+    assert (creada.status_code, editada.status_code) == (422, 422)
+
+
+# --- B7 · servicio: invalida después del commit; rechaza antes de tocar la base ----------
+
+
+class CacheQueAnota(CacheMenu):
+    def __init__(self, eventos: list[str]) -> None:
+        super().__init__()
+        self.eventos = eventos
+
+    def invalidar(self, *slugs: str) -> None:
+        self.eventos.append("invalidar")
+        super().invalidar(*slugs)
+
+
+@pytest.mark.ac("AC-16.1")
+async def test_el_servicio_invalida_despues_del_commit(
+    sesion: AsyncSession, restaurante: Restaurante, platillo: Platillo
+) -> None:
+    from sqlalchemy import event
+
+    eventos: list[str] = []
+
+    def al_confirmar(_sesion: Any) -> None:
+        eventos.append("commit")
+
+    event.listen(sesion.sync_session, "after_commit", al_confirmar)
+    try:
+        cache = CacheQueAnota(eventos)
+        await menu.cambiar_platillo(sesion, platillo, {"nombre": "Tamal"}, cache)
+        await menu.crear_categoria(sesion, restaurante.id, "Nueva", cache)
+    finally:
+        event.remove(sesion.sync_session, "after_commit", al_confirmar)
+        cache.cancelar_purgas()
+    assert eventos == ["commit", "invalidar", "commit", "invalidar"]
+
+
+@pytest.mark.ac("AC-16.1")
+async def test_el_servicio_rechaza_una_categoria_ajena_o_de_baja_sin_escribir(
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    ajeno: Restaurante,
+    fabrica_categoria: Fabrica,
+) -> None:
+    suya = await fabrica_categoria(ajeno)
+    baja = await fabrica_categoria(restaurante, activa=False)
+    cache = CacheMenu()
+    for categoria_id, http in ((suya.id, 404), (baja.id, 422)):
+        with pytest.raises(ErrorCarta) as error:
+            await menu.crear_platillo(
+                sesion,
+                restaurante.id,
+                {"nombre": "Fantasma", "precio": Decimal(1), "categoria_id": categoria_id},
+                cache,
+            )
+        assert error.value.http == http
+    assert not sesion.new and cache.invalidaciones == 0
+    assert await sesion.scalar(select(Platillo.id).where(Platillo.nombre == "Fantasma")) is None
+
+
+def test_un_null_en_un_campo_obligatorio_del_patch_es_error_de_validacion() -> None:
+    from pydantic import ValidationError
+
+    from app.schemas.menu import CategoriaCambios, PlatilloCambios
+
+    for esquema, campo in ((PlatilloCambios, "precio"), (CategoriaCambios, "activa")):
+        with pytest.raises(ValidationError, match=f"no pueden ser null: {campo}"):
+            esquema.model_validate({campo: None})
+    assert PlatilloCambios.model_validate({"descripcion": None}).descripcion is None

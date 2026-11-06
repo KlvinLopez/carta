@@ -68,5 +68,5 @@ async def cambiar_restaurante(
     cambiado = await operadores.actualizar_restaurante(
         sesion, restaurante, cambios.model_dump(exclude_unset=True)
     )
-    await cache_menu.invalidar(*{slug_anterior, cambiado.slug})
+    cache_menu.invalidar(*{slug_anterior, cambiado.slug})
     return cambiado

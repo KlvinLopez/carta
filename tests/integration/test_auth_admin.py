@@ -10,6 +10,7 @@ El token lo verifica `VerificadorDePrueba` (`tests/auth_pruebas.py`), instalado 
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime, timedelta
@@ -404,6 +405,11 @@ RUTAS_POR_RESTAURANTE = [
     ("PATCH", "/restaurantes/{rid}", {"nombre": "Robado"}),
     ("GET", "/restaurantes/{rid}/platillos", None),
     ("POST", "/restaurantes/{rid}/platillos", {"nombre": "Intruso", "precio": 1}),
+    # T-1.3 (revisión, A2)
+    ("GET", "/restaurantes/{rid}/categorias", None),
+    ("POST", "/restaurantes/{rid}/categorias", {"nombre": "Intruso"}),
+    ("POST", "/restaurantes/{rid}/categorias/reordenar", {"ids": ["{pid}"]}),
+    ("POST", "/restaurantes/{rid}/platillos/reordenar", {"ids": ["{pid}"]}),
 ]
 RUTAS_POR_PLATILLO = [
     ("PATCH", "/platillos/{pid}", {"nombre": "Robado"}),
@@ -428,7 +434,7 @@ async def test_un_recurso_ajeno_es_404_igual_que_uno_inexistente(
         respuesta = await cliente.request(
             metodo,
             A + ruta.format(rid=rid, pid=pid),
-            json=cuerpo,
+            json=json.loads(json.dumps(cuerpo).replace("{pid}", str(pid))),
             headers=cabecera_operador,
         )
         _es_404(respuesta)

@@ -14,6 +14,7 @@ así que un nombre que no cabe es 422 y no `StringDataRightTruncation` (fila T-1
 from __future__ import annotations
 
 import math
+import re
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Annotated, Any, ClassVar
@@ -77,25 +78,48 @@ class PlatilloRespuesta(Esquema):
 CENTAVOS = Decimal("0.01")
 
 
+# Texto de un precio: dígitos ASCII, sin signo «+», sin exponente (`"１２"` o `"1e3"` son 422).
+RE_PRECIO = re.compile(r"-?\d+(\.\d+)?", re.ASCII)
+
+
 def _cuantizar_precio(valor: object) -> object:
-    """`1.005` → `1.01` (`ROUND_HALF_UP`) antes de validar el rango: `NUMERIC(10,2)`
-    redondearía en silencio, y un `float` se lee por su texto (`str(1.005)`), no por su
-    binario. `NaN`/`Infinity` no son precio. Lo que no es número lo rechaza Pydantic."""
+    """`1.005` → `1.01` (`ROUND_HALF_UP`): `NUMERIC(10,2)` redondearía en silencio, y un
+    `float` se lee por su texto (`repr(1.005)`), no por su binario.
+
+    El rango se comprueba **antes** de cuantizar: `quantize` sobre `1e30` desborda los 28
+    dígitos del contexto (`InvalidOperation`, que sería 500) y `-0.001` redondearía a `0.00`.
+    Negativo (también `-0`), no finito o por encima de `PRECIO_MAXIMO` → `ValueError` (422).
+    Lo que no es número lo rechaza Pydantic. Revisión de T-1.3 (A1, B6)."""
     if isinstance(valor, bool):
         return valor  # Pydantic lo rechaza como `decimal_type`
     if isinstance(valor, float):
         if not math.isfinite(valor):
             raise ValueError("el precio debe ser un número finito")
-        valor = str(valor)
-    if isinstance(valor, int | str | Decimal):
-        try:
-            decimal = Decimal(str(valor).strip())
-        except InvalidOperation:
-            return valor
-        if not decimal.is_finite():
-            raise ValueError("el precio debe ser un número finito")
-        return decimal.quantize(CENTAVOS, rounding=ROUND_HALF_UP)
-    return valor
+        decimal = Decimal(repr(valor))
+    elif isinstance(valor, int):
+        decimal = Decimal(valor)
+    elif isinstance(valor, str):
+        texto = valor.strip()
+        if not RE_PRECIO.fullmatch(texto):
+            raise ValueError("el precio debe escribirse con dígitos, p. ej. 145.50")
+        decimal = Decimal(texto)
+    elif isinstance(valor, Decimal):
+        decimal = valor
+    else:
+        return valor
+    if not decimal.is_finite():
+        raise ValueError("el precio debe ser un número finito")
+    if decimal.is_signed():
+        raise ValueError("el precio no puede ser negativo")
+    if decimal > PRECIO_MAXIMO:
+        raise ValueError("precio fuera de rango")
+    try:
+        cuantizado = decimal.quantize(CENTAVOS, rounding=ROUND_HALF_UP)
+    except InvalidOperation:  # pragma: no cover - el rango ya se comprobó
+        raise ValueError("precio fuera de rango") from None
+    if cuantizado > PRECIO_MAXIMO:  # 99999999.995 redondea a 100000000.00
+        raise ValueError("precio fuera de rango")
+    return cuantizado
 
 
 # AC-16.2 y `ck_platillo_precio` (`precio >= 0`): un platillo puede costar 0 (tortillas,
@@ -118,12 +142,15 @@ MAX_CLAVES = 30
 
 
 def _sin_claves_repetidas(claves: list[str]) -> list[str]:
-    return list(dict.fromkeys(claves))
+    """Las claves de alérgenos y etiquetas son las del filtro del teléfono: minúsculas,
+    espacios internos colapsados y sin repetir (`["Nueces", " nueces "]` → `["nueces"]`)."""
+    return list(dict.fromkeys(" ".join(c.split()).lower() for c in claves))
 
 
 # Las repetidas se quitan en el modelo, después de recortar cada clave.
 Claves = Annotated[list[ClaveMenu], Field(max_length=MAX_CLAVES)]
-NivelPicante = Annotated[int, Field(ge=0, le=5)]  # `ck_platillo_nivel_picante`
+# `ck_platillo_nivel_picante`; estricto: `"3"` o `true` son 422, no 3 o 1 (B6).
+NivelPicante = Annotated[int, Field(ge=0, le=5, strict=True)]
 Calorias = Annotated[int, Field(ge=0, le=100_000)]  # cabe en `INTEGER`
 
 
