@@ -24,7 +24,7 @@ Si vas a tocar `migrations/` o `app/db/models.py`, lee antes el skill `/migracio
 
 ```bash
 uv sync                                   # dependencias (Python 3.12)
-docker compose up -d                      # PostgreSQL 16 local
+docker compose up -d                      # PostgreSQL 16 local (en la nube el hook de sesión ya lo deja listo: omítelo)
 uv run alembic upgrade head               # migraciones
 uv run python scripts/seed.py             # datos de desarrollo
 uv run uvicorn app.main:app --reload --port 8000

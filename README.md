@@ -138,7 +138,7 @@ The market sizing, personas and competitive landscape are in [`docs/Carta_Market
 - [x] MVP technical design package — August 2026: PRD with 24 user stories and 83 EARS acceptance criteria, technical design, 10 ADRs, data model, OpenAPI spec with 42 operations, 3D pipeline, and an implementation plan with 58 tasks, plus test and security strategies
 - [x] Launch film in 16:9 and 9:16 — September 2026
 - [x] v1 plan for multi-agent execution — November 2026: single-server architecture, PDF-to-menu onboarding, staff role with PIN, no AR/3D in v1 (photos first; 3D generated on-device comes in v2). See [`docs/plan/`](docs/plan/README.md) and ADR-011 to ADR-014
-- [x] Phase 0, foundations — November 2026: toolchain and settings, database models and first migration with invariant triggers, routers per audience with a single error envelope and JSON logs, test infrastructure and CI on GitHub Actions, PWA skeleton (Vite + React + TypeScript), and one portable Docker image that serves the API and the PWA with security headers
+- [x] Phase 0, foundations (T-0.1 to T-0.6, T-0.8) — November 2026: toolchain and settings, database models and first migration with invariant triggers, routers per audience with a single error envelope and JSON logs, test infrastructure and CI on GitHub Actions, PWA skeleton (Vite + React + TypeScript), and one portable Docker image that serves the API and the PWA with security headers; cloud Claude Code sessions start ready to test (session hook installs dependencies and starts a local PostgreSQL) and carry `/desplegar` and `/carga` skills
 - [ ] Phase 0, first deploy (T-0.7): repository side ready (`deploy.yml` deploys `v*` tags to Railway production and publishes the image to GHCR; click-by-click setup guide in [`deploy/railway/`](deploy/railway/README.md)); waiting for the Railway services and Cloudflare DNS to go live
 - [ ] Build the rest of v1: restaurant and menu → diner → group order, tickets and staff → beta and pilot
 
@@ -166,7 +166,12 @@ uv run uvicorn app.main:app --reload --port 8000
 
 # Quality gate — must pass before every commit
 uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q
+
+# Frontend (PWA)
+npm --prefix frontend ci && npm --prefix frontend test && npm --prefix frontend run build
 ```
+
+In a Claude Code cloud session there is nothing to do by hand: the `SessionStart` hook ([`.claude/hooks/session-start.sh`](.claude/hooks/session-start.sh)) runs `uv sync --frozen`, starts a local PostgreSQL 16 without Docker and exports `DATABASE_URL`, `DATABASE_URL_SYNC` and `TEST_DATABASE_URL`, so `uv run pytest -q` works from the first command.
 
 ## Deploy
 
