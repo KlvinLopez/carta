@@ -40,6 +40,7 @@ export interface OpcionesCliente {
 }
 
 export interface OpcionesSolicitud {
+  /** JSON por defecto; un `FormData` (multipart) viaja tal cual y el navegador pone el `boundary`. */
   cuerpo?: unknown;
   consulta?: Record<string, string | number | boolean | undefined>;
   signal?: AbortSignal;
@@ -48,6 +49,11 @@ export interface OpcionesSolicitud {
 export interface ClienteHttp {
   solicitar<T>(metodo: string, ruta: string, opciones?: OpcionesSolicitud): Promise<T>;
   obtener<T>(ruta: string, opciones?: OpcionesSolicitud): Promise<T>;
+  /**
+   * GET de un archivo (PDF de QR): con `Authorization` y la misma envoltura de error, devuelve el
+   * `Blob`. Un enlace `<a href>` no llevaría la credencial.
+   */
+  descargar(ruta: string, opciones?: OpcionesSolicitud): Promise<Blob>;
 }
 
 function esDetalle(valor: unknown): valor is { error: Partial<DetalleError> } {
@@ -125,6 +131,7 @@ export function crearCliente(opciones: OpcionesCliente): ClienteHttp {
     ruta: string,
     { cuerpo, consulta, signal }: OpcionesSolicitud,
     token: string | null,
+    archivo = false,
   ): Promise<Response> {
     const url = new URL(PREFIJO_API.slice(0, -1) + ruta, window.location.origin);
     if (url.origin !== window.location.origin || !url.pathname.startsWith(PREFIJO_API)) {
@@ -133,14 +140,15 @@ export function crearCliente(opciones: OpcionesCliente): ClienteHttp {
     for (const [clave, valor] of Object.entries(consulta ?? {})) {
       if (valor !== undefined) url.searchParams.set(clave, String(valor));
     }
-    const cabeceras: Record<string, string> = { Accept: 'application/json' };
+    const cabeceras: Record<string, string> = { Accept: archivo ? '*/*' : 'application/json' };
     if (token) cabeceras.Authorization = `Bearer ${token}`;
-    if (cuerpo !== undefined) cabeceras['Content-Type'] = 'application/json';
+    const esFormulario = typeof FormData !== 'undefined' && cuerpo instanceof FormData;
+    if (cuerpo !== undefined && !esFormulario) cabeceras['Content-Type'] = 'application/json';
     try {
       return await (opciones.fetch ?? fetch)(url, {
         method: metodo,
         headers: cabeceras,
-        body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
+        body: cuerpo === undefined ? undefined : esFormulario ? cuerpo : JSON.stringify(cuerpo),
         signal,
       });
     } catch (error) {
@@ -149,8 +157,14 @@ export function crearCliente(opciones: OpcionesCliente): ClienteHttp {
     }
   }
 
-  async function solicitar<T>(metodo: string, ruta: string, op: OpcionesSolicitud = {}): Promise<T> {
-    let respuesta = await enviar(metodo, ruta, op, opciones.token());
+  /** Envía, renueva una vez ante un 401 y devuelve una respuesta `ok`; lo demás lanza `ErrorApi`. */
+  async function responder(
+    metodo: string,
+    ruta: string,
+    op: OpcionesSolicitud,
+    archivo: boolean,
+  ): Promise<Response> {
+    let respuesta = await enviar(metodo, ruta, op, opciones.token(), archivo);
     if (respuesta.status === 401) {
       let renovacion: { fresco: string | null; generacion: number };
       try {
@@ -159,13 +173,18 @@ export function crearCliente(opciones: OpcionesCliente): ClienteHttp {
         // No se pudo ni preguntar a Firebase (red móvil caída): el token puede seguir valiendo.
         throw new ErrorApi(ESTADO_SIN_RED, 'SIN_RED', MENSAJE_SIN_RED);
       }
-      if (renovacion.fresco) respuesta = await enviar(metodo, ruta, op, renovacion.fresco);
+      if (renovacion.fresco) respuesta = await enviar(metodo, ruta, op, renovacion.fresco, archivo);
       if (!renovacion.fresco || respuesta.status === 401) {
         avisarNoAutorizado(renovacion.generacion);
         throw await aErrorApi(respuesta);
       }
     }
     if (!respuesta.ok) throw await aErrorApi(respuesta);
+    return respuesta;
+  }
+
+  async function solicitar<T>(metodo: string, ruta: string, op: OpcionesSolicitud = {}): Promise<T> {
+    const respuesta = await responder(metodo, ruta, op, false);
     if (respuesta.status === 204) return undefined as T;
     try {
       return (await respuesta.json()) as T;
@@ -175,5 +194,14 @@ export function crearCliente(opciones: OpcionesCliente): ClienteHttp {
     }
   }
 
-  return { solicitar, obtener: (ruta, op) => solicitar('GET', ruta, op) };
+  async function descargar(ruta: string, op: OpcionesSolicitud = {}): Promise<Blob> {
+    const respuesta = await responder('GET', ruta, op, true);
+    try {
+      return await respuesta.blob();
+    } catch {
+      throw new ErrorApi(respuesta.status, 'RESPUESTA_INVALIDA', MENSAJE_GENERICO, {}, respuesta.headers.get('X-Request-ID'));
+    }
+  }
+
+  return { solicitar, obtener: (ruta, op) => solicitar('GET', ruta, op), descargar };
 }

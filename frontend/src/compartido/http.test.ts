@@ -202,3 +202,44 @@ describe('crearCliente: el token no sale del propio origen', () => {
     expect(url.search).toBe('?a=1');
   });
 });
+
+describe('crearCliente: multipart y descargas (T-1.11)', () => {
+  it('un FormData viaja tal cual y sin Content-Type (el navegador pone el boundary)', async () => {
+    const { cliente, peticiones } = armar();
+    const formulario = new FormData();
+    formulario.append('archivo', new File(['x'], 'a.pdf', { type: 'application/pdf' }));
+    await cliente.solicitar('POST', '/admin/restaurantes/r1/importaciones', { cuerpo: formulario });
+    const [, init] = peticiones.mock.calls[0]!;
+    expect(init.body).toBe(formulario);
+    expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+    expect(auth(peticiones.mock.calls[0]!)).toBe('Bearer viejo');
+  });
+
+  it('un cuerpo normal sigue siendo JSON', async () => {
+    const { cliente, peticiones } = armar();
+    await cliente.solicitar('POST', '/x', { cuerpo: { a: 1 } });
+    const init = peticiones.mock.calls[0]![1];
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+    expect(init.body).toBe('{"a":1}');
+  });
+
+  it('descargar lleva el token, devuelve el Blob y renueva una vez ante un 401', async () => {
+    const { cliente, peticiones, renovar } = armar();
+    peticiones
+      .mockResolvedValueOnce(json(NO_AUTENTICADO, 401))
+      .mockResolvedValueOnce(new Response('%PDF', { status: 200, headers: { 'Content-Type': 'application/pdf' } }));
+    const pdf = await cliente.descargar('/admin/restaurantes/r1/mesas/qr.pdf');
+    expect(pdf.type).toBe('application/pdf');
+    expect(renovar).toHaveBeenCalledOnce();
+    expect(auth(peticiones.mock.calls[1]!)).toBe('Bearer fresco');
+    expect(((peticiones.mock.calls[0]![1] as RequestInit).headers as Record<string, string>).Accept).toBe('*/*');
+  });
+
+  it('descargar con error de la API lanza ErrorApi con el mensaje de la envoltura', async () => {
+    const { cliente, peticiones } = armar();
+    peticiones.mockResolvedValueOnce(
+      json({ error: { codigo: 'RECURSO_NO_ENCONTRADO', mensaje: 'No encontramos tus mesas.', detalles: {} } }, 404),
+    );
+    await expect(cliente.descargar('/x')).rejects.toBeInstanceOf(ErrorApi);
+  });
+});
