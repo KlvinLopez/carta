@@ -31,7 +31,9 @@ Tu carril es <letra> y sólo tocas sus carpetas (04 §2). Las tareas de las que 
 integradas en la rama base. Entorno: sin Docker; el hook de sesión deja PostgreSQL local listo y
 exporta DATABASE_URL, DATABASE_URL_SYNC y TEST_DATABASE_URL (omite `docker compose up`).
 Al terminar: comando de Verificar en verde, puerta de calidad en verde, commit con el ID, push a
-tu rama. No abras PR. Si algo del brief contradice el código o un documento, no improvises:
+tu rama. No abras PR. Después de tu RESULTADO, la maestra te mandará por send_message la ronda
+de revisión (lista A/B/C/D): aplícala en tu rama sin pedir confirmación, es parte de la tarea.
+Si algo del brief contradice el código o un documento, no improvises:
 cierra como BLOQUEADA. Termina SIEMPRE con /compound y el bloque:
 RESULTADO: TERMINADA | BLOQUEADA | FALLIDA / Qué quedó / Qué lo verifica / Compound / Siguiente.
 ```
@@ -82,4 +84,5 @@ Tiempos reales: una tarea de Fase 0 tarda 15–35 min de hija, la revisión con 
 10. **Las lentes mutan el worktree compartido** (T-0.7: el script de una lente dejó un README en 0 bytes mientras otra corría, y la tercera lo reportó como fallo del commit). Pídeles que restauren con `git checkout --` tras cada mutación y comprueba tú `git status --porcelain` antes de reproducir nada.
 12. **Una migración reescrita conserva su id de revisión:** la base de pruebas de la maestra (y la de cada lente) queda en `head` con el esquema viejo y `alembic upgrade` no hace nada: en T-1.1 la segunda verificación dio 10 fallos y los cruces de seguridad «seguían pasando» hasta que corrí todo sobre bases nuevas (`carta_test_t11b`). Por cada ronda de correcciones que toque `migrations/`, bases con nombre nuevo.
 13. **Comprueba que el merge ocurrió antes de tocar el estado:** `git merge -F -` no lee de stdin (`could not read file '-'`) y la cadena siguió como si nada; la puerta dio 300 pruebas en vez de 472 y el commit de estado salió antes del merge. Usa `--file <ruta>` o `-m`, y mira `git log --oneline -3` antes de la puerta.
+14. **Una hija puede negarse a aplicar correcciones que llegan por `send_message`** («necesita la confirmación del usuario en esta sesión»; pasó con T-1.10 en Sonnet, no con las de Opus). Por eso el brief ya avisa que la ronda llega así y se aplica sin confirmar. Si aun así se niega, no insistas: archívala y crea una sesión nueva cuyo prompt inicial sea la lista de correcciones, con `source_revision` y `outcome_branch` en la misma rama `agente/…`.
 11. **La lista de correcciones se escribe con Write, no con un heredoc:** el guard lee el texto del comando y bloquea frases como «push … master» aunque sean documentación. Reproduce cada «sobrevive» con un script de mutaciones propio (`scratchpad/maestra-T-x.y/mutaciones.py`) y vuelve a correrlo sobre la rama corregida: en T-0.7 las 18 mutaciones pasaron de sobrevivir a fallar.
