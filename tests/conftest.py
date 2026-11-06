@@ -57,10 +57,12 @@ settings.DATABASE_URL = URL_PRUEBAS
 
 # Sólo después de fijar la URL: importar cualquier `app.db.*` crea el motor global de la
 # aplicación, que así nace ya sobre la base de pruebas.
+from app.core.firebase import obtener_verificador  # noqa: E402
 from app.db.database import close_db, get_db_session  # noqa: E402
-from app.db.models import Mesa, OperadorRestaurante, Restaurante  # noqa: E402
+from app.db.models import Mesa, OperadorRestaurante, Restaurante, Usuario  # noqa: E402
 from app.main import app  # noqa: E402
 from tests import fabricas  # noqa: E402
+from tests.auth_pruebas import VERIFICADOR_DE_PRUEBA, cabecera_de  # noqa: E402
 
 # Una segunda conexión que choque con una fila sin confirmar de la prueba no debe esperar
 # hasta el final de la transacción (cuelgue sin diagnóstico): mejor un error pronto.
@@ -146,12 +148,16 @@ async def cliente(
             yield sesion_peticion
 
     app.dependency_overrides[get_db_session] = sesion_por_peticion
+    # El token del operador lo verifica `VerificadorDePrueba` (`tests/auth_pruebas.py`):
+    # `cabecera_operador` o `cabecera_de(uid)` dan la cabecera `Authorization`.
+    app.dependency_overrides[obtener_verificador] = lambda: VERIFICADOR_DE_PRUEBA
     transporte = ASGITransport(app=app, raise_app_exceptions=False)
     try:
         async with AsyncClient(transport=transporte, base_url="http://pruebas") as c:
             yield c
     finally:
         app.dependency_overrides.pop(get_db_session, None)
+        app.dependency_overrides.pop(obtener_verificador, None)
 
 
 # ---------------------------------------------------------------------------
@@ -196,6 +202,14 @@ async def operador(fabrica_operador: Fabrica, restaurante: Restaurante) -> Opera
     """Dueño (`propietario`) del `restaurante`, con su `usuario`."""
     operador: OperadorRestaurante = await fabrica_operador(restaurante)
     return operador
+
+
+@pytest.fixture
+async def cabecera_operador(sesion: AsyncSession, operador: OperadorRestaurante) -> dict[str, str]:
+    """`Authorization` del dueño del `restaurante` (con el `cliente` de esta prueba)."""
+    usuario = await sesion.get(Usuario, operador.usuario_id)
+    assert usuario is not None
+    return cabecera_de(usuario.firebase_uid)
 
 
 @pytest.fixture

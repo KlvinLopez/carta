@@ -124,3 +124,95 @@ def test_las_cabeceras_son_ascii_y_sin_saltos_de_linea() -> None:
         nombre.encode("ascii")
         valor.encode("ascii")
         assert "\n" not in valor and "\r" not in valor
+
+
+# ---------------------------------------------------------------------------
+# T-1.2 · La CSP se abre a Firebase Auth desde `Settings` (02 §12), cerrada por defecto
+# ---------------------------------------------------------------------------
+
+# Los valores de staging documentados en 04 §11 (fila T-1.2) y en `.env.example`.
+FIREBASE_STAGING = {
+    "FIREBASE_CSP_CONNECT_SRC": (
+        "https://identitytoolkit.googleapis.com https://securetoken.googleapis.com"
+    ),
+    "FIREBASE_CSP_SCRIPT_SRC": "https://apis.google.com",
+    "FIREBASE_CSP_FRAME_SRC": "https://carta-staging.firebaseapp.com",
+}
+CSP_STAGING_CON_FIREBASE = (
+    "default-src 'self'; script-src 'self' https://apis.google.com; style-src 'self'; "
+    "font-src 'self'; img-src 'self'; manifest-src 'self'; "
+    "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; "
+    "frame-src 'self' https://carta-staging.firebaseapp.com; "
+    "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+)
+
+
+def test_sin_firebase_en_settings_la_csp_es_la_de_02_12() -> None:
+    for entorno in ("pruebas", "staging", "produccion"):
+        cabeceras = cabeceras_seguridad(_ajustes(ENTORNO=entorno))
+        assert cabeceras["Content-Security-Policy"] == CSP_02_12
+        assert "frame-src" not in cabeceras["Content-Security-Policy"]
+
+
+def test_la_csp_de_staging_abre_solo_los_origenes_de_firebase() -> None:
+    cabeceras = cabeceras_seguridad(_ajustes(ENTORNO="staging", **FIREBASE_STAGING))
+    assert cabeceras["Content-Security-Policy"] == CSP_STAGING_CON_FIREBASE
+    assert "unsafe-inline" not in cabeceras["Content-Security-Policy"]
+
+
+def test_firebase_y_r2_conviven_en_la_csp() -> None:
+    csp = cabeceras_seguridad(_ajustes(R2_URL_PUBLICA="https://img.carta.mx", **FIREBASE_STAGING))[
+        "Content-Security-Policy"
+    ]
+    assert csp == CSP_STAGING_CON_FIREBASE.replace(
+        "img-src 'self'", "img-src 'self' https://img.carta.mx"
+    )
+
+
+def test_las_listas_aceptan_comas_y_quitan_repetidos() -> None:
+    csp = cabeceras_seguridad(
+        _ajustes(
+            FIREBASE_CSP_CONNECT_SRC=(
+                " https://identitytoolkit.googleapis.com/,https://securetoken.googleapis.com ,"
+                "https://IDENTITYTOOLKIT.googleapis.com"
+            )
+        )
+    )["Content-Security-Policy"]
+    assert (
+        "connect-src 'self' https://identitytoolkit.googleapis.com "
+        "https://securetoken.googleapis.com;" in csp
+    )
+
+
+@pytest.mark.parametrize(
+    "entrada",
+    [
+        "http://identitytoolkit.googleapis.com",  # sin TLS
+        "https://*.googleapis.com",  # comodín
+        "*",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        "data:",
+        "https://securetoken.googleapis.com/v1/token",  # con ruta
+        "https://usuario:clave@apis.google.com",
+        "https://apis.google.com?x=1",
+        "https://apis.google.com;script-src",
+        "apis.google.com",  # sin esquema
+    ],
+)
+def test_una_entrada_que_no_es_un_origen_https_limpio_no_abre_la_csp(entrada: str) -> None:
+    csp = cabeceras_seguridad(
+        _ajustes(
+            FIREBASE_CSP_CONNECT_SRC=entrada,
+            FIREBASE_CSP_SCRIPT_SRC=entrada,
+            FIREBASE_CSP_FRAME_SRC=entrada,
+        )
+    )["Content-Security-Policy"]
+    assert csp == CSP_02_12
+
+
+def test_una_entrada_mala_no_tira_las_buenas() -> None:
+    csp = cabeceras_seguridad(
+        _ajustes(FIREBASE_CSP_SCRIPT_SRC="https://*.google.com https://apis.google.com")
+    )["Content-Security-Policy"]
+    assert "script-src 'self' https://apis.google.com;" in csp

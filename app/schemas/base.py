@@ -19,55 +19,9 @@ class UUIDMixin(BaseModel):
     id: UUID
 
 
-class RestauranteBase(BaseModel):
-    """Base restaurant schema."""
-
-    nombre: str = Field(..., min_length=1, max_length=200)
-    slug: str = Field(..., min_length=1, max_length=100)
-    direccion: str | None = None
-    telefono: str | None = None
-    email: str | None = None
-    logo_url: str | None = None
-    tema: str = Field(default="vino", pattern="^(vino|verde|azul|ocre|cafe)$")
-    plan: str = Field(default="gratis", pattern="^(gratis|pro|enterprise)$")
-    horarios: dict = Field(default_factory=dict)
-    activo: bool = True
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class RestauranteCreate(RestauranteBase):
-    """Schema for creating restaurants."""
-
-    pass
-
-
-class RestauranteUpdate(BaseModel):
-    """Schema for updating restaurants."""
-
-    nombre: str | None = None
-    direccion: str | None = None
-    telefono: str | None = None
-    email: str | None = None
-    logo_url: str | None = None
-    tema: str | None = None
-    plan: str | None = None
-    horarios: dict | None = None
-    activo: bool | None = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class RestauranteResponse(RestauranteBase, UUIDMixin, TimestampMixin):
-    """Schema for restaurant responses."""
-
-    pass
-
-
 class PlatilloBase(BaseModel):
-    """Base dish schema."""
+    """Base dish schema. Sin `restaurante_id`: sale de la ruta (regla dura 5)."""
 
-    restaurante_id: UUID
     categoria_id: UUID | None = None
     nombre: str = Field(..., min_length=1, max_length=200)
     descripcion: str | None = None
@@ -109,7 +63,7 @@ class PlatilloUpdate(BaseModel):
 class PlatilloResponse(PlatilloBase, UUIDMixin, TimestampMixin):
     """Schema for dish responses."""
 
-    pass
+    restaurante_id: UUID
 
 
 class UsuarioBase(BaseModel):
@@ -117,7 +71,6 @@ class UsuarioBase(BaseModel):
 
     nombre_display: str | None = None
     plan: str = Field(default="gratis", pattern="^(gratis|premium)$")
-    perfil_alimentario: dict = Field(default_factory=dict)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -126,7 +79,7 @@ class UsuarioCreate(UsuarioBase):
     """Schema for creating users."""
 
     firebase_uid: str
-    provider: str = Field(..., pattern="^(google|apple)$")
+    provider: str = Field(..., pattern="^(google|email_link)$")
 
 
 class UsuarioResponse(UsuarioBase, UUIDMixin):
@@ -140,9 +93,8 @@ class UsuarioResponse(UsuarioBase, UUIDMixin):
 
 
 class MesaBase(BaseModel):
-    """Base table schema."""
+    """Base table schema. Sin `restaurante_id`: sale de la ruta (regla dura 5)."""
 
-    restaurante_id: UUID
     numero: int = Field(..., gt=0)
     codigo_publico: str
     nfc_id: str | None = None
@@ -161,4 +113,4 @@ class MesaCreate(MesaBase):
 class MesaResponse(MesaBase, UUIDMixin):
     """Schema for table responses."""
 
-    pass
+    restaurante_id: UUID

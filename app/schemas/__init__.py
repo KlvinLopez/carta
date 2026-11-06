@@ -8,20 +8,12 @@ from app.schemas.base import (
     PlatilloCreate,
     PlatilloResponse,
     PlatilloUpdate,
-    RestauranteBase,
-    RestauranteCreate,
-    RestauranteResponse,
-    RestauranteUpdate,
     UsuarioBase,
     UsuarioCreate,
     UsuarioResponse,
 )
 
 __all__ = [
-    "RestauranteBase",
-    "RestauranteCreate",
-    "RestauranteUpdate",
-    "RestauranteResponse",
     "PlatilloBase",
     "PlatilloCreate",
     "PlatilloUpdate",

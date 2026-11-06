@@ -22,8 +22,6 @@ from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel, Field
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.api.admin import solo_desarrollo
-from app.core.config import settings
 from app.core.errores import ErrorCarta
 from app.core.peticion import MiddlewareRequestId
 from app.core.registro import NOMBRE_MANEJADOR, FormateadorJson, request_id_actual
@@ -399,17 +397,3 @@ def test_create_app_configura_el_registro_una_sola_vez() -> None:
     assert len(manejadores) == 1
     assert isinstance(manejadores[0].formatter, FormateadorJson)
     assert logging.getLogger("uvicorn.access").disabled
-
-
-async def test_crud_heredado_oculto_fuera_de_desarrollo(
-    cliente: AsyncClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(settings, "ENTORNO", "staging")
-    respuesta = await cliente.get("/api/v1/admin/restaurantes")
-    assert respuesta.status_code == 404
-    assert _error(respuesta.json())["codigo"] == "RECURSO_NO_ENCONTRADO"
-
-
-async def test_crud_heredado_visible_en_desarrollo() -> None:
-    assert settings.es_desarrollo
-    assert await solo_desarrollo() is None

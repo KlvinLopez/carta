@@ -69,8 +69,14 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str | None = None
     IMPORTACION_MODELO: str = "claude-opus-5-5"
 
-    # Operadores (Firebase Auth)
+    # Operadores (Firebase Auth). Sin proyecto, ningún token de operador es válido.
     FIREBASE_PROJECT_ID: str | None = None
+    # Orígenes que el SDK web de Firebase Auth necesita en la CSP (02 §12), separados por
+    # espacios o comas; sólo `https://host[:puerto]`. Vacíos = la política de 02 §12 tal cual.
+    # Valores de staging en 04 §11 (fila T-1.2).
+    FIREBASE_CSP_CONNECT_SRC: str = ""
+    FIREBASE_CSP_SCRIPT_SRC: str = ""
+    FIREBASE_CSP_FRAME_SRC: str = ""
 
     # Observabilidad
     SENTRY_DSN: str | None = None

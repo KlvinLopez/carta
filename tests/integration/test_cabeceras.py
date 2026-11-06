@@ -90,7 +90,7 @@ def _comprobar(respuesta: Any) -> None:
         ("GET", "/assets/no-existe.js", 404, None),  # error de StaticFiles, envoltura
         ("GET", "/api/v1/nada", 404, None),  # 404 del enrutador
         ("DELETE", "/health", 405, None),  # HTTPException con cabeceras propias (Allow)
-        ("POST", "/api/v1/admin/restaurantes", 422, {}),  # validación del payload
+        ("POST", "/api/v1/admin/restaurantes", 401, {}),  # sin token (T-1.2), antes del 422
         ("GET", "/explota", 500, None),  # excepción no controlada: ServerErrorMiddleware
         ("GET", "/openapi.json", 200, None),
         ("GET", "/docs", 404, None),  # fuera de desarrollo no se publica
@@ -112,7 +112,7 @@ async def test_toda_respuesta_lleva_las_cabeceras_de_seguridad(
         ("GET", "/api/v1/nada", 404, None),
         ("GET", "/no-existe.txt", 404, None),
         ("DELETE", "/health", 405, None),
-        ("POST", "/api/v1/admin/restaurantes", 422, {}),
+        ("POST", "/api/v1/admin/restaurantes", 401, {}),
         ("GET", "/explota", 500, None),
     ],
 )

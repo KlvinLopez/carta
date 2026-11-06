@@ -1,36 +1,31 @@
-"""CRUD heredado de restaurantes y platillos (temporal).
+"""Restaurantes del operador (US-15, T-1.2) y el CRUD heredado de platillos (hasta T-1.3).
 
-Sin autenticación ni aislamiento por restaurante todavía: T-1.2 lo pone detrás del token
-del operador y T-1.3 lo reescribe contra 02_Arquitectura_v1 §5.3. Los 404 que lanza salen
-con la envoltura única por el manejador de `app.core.errores`.
+Todo pasa por el token del operador (`operador_actual` en el router de `/admin`) y por el
+aislamiento por restaurante: el restaurante sale de `{rid}` validado contra el operador
+(`restaurante_del_operador`) o del platillo (`platillo_del_operador`), nunca del cuerpo
+(regla dura 5); uno ajeno o inexistente responde el mismo 404 (AC-15.3).
 
-Desde T-1.1 sus rutas, métodos y esquemas de respuesta ya son los del contrato v1
-(`{rid}`, `PATCH`, `app.schemas.{restaurante,menu}`), para que `/openapi.json` publique la
-forma final; los cuerpos de entrada siguen siendo los heredados hasta T-1.2 y T-1.3. Las
-demás rutas de la Fase 1 devuelven ejemplos desde `app.api.admin.ejemplos`.
+Las rutas de platillos siguen con los cuerpos heredados (`PlatilloCreate`, `PlatilloUpdate`)
+hasta que T-1.3 las reescriba con `app/services/menu.py`.
 """
 
-from uuid import UUID
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.admin.dependencias import (
+    operador_actual,
+    platillo_del_operador,
+    restaurante_del_operador,
+)
 from app.core.errores import ErrorCarta, mensaje_por_http
-from app.db import (
-    Platillo,
-    Restaurante,
-    get_db_session,
-)
-from app.schemas import (
-    PlatilloCreate,
-    PlatilloUpdate,
-    RestauranteCreate,
-    RestauranteUpdate,
-)
+from app.db import Platillo, Restaurante, Usuario, get_db_session
+from app.schemas import PlatilloCreate, PlatilloUpdate
+from app.schemas.comun import errores
 from app.schemas.menu import PlatilloRespuesta
-from app.schemas.restaurante import RestauranteRespuesta
+from app.schemas.restaurante import RestauranteCambios, RestauranteCrear, RestauranteRespuesta
+from app.services import operadores
 
 router = APIRouter()
 
@@ -38,7 +33,7 @@ router = APIRouter()
 # recurso que no existe para quien pregunta: 404, nunca 403 ni 500 (regla dura 6).
 RESPUESTA_POR_SQLSTATE = {
     "23503": (404, "RECURSO_NO_ENCONTRADO"),  # foreign_key_violation
-    "23505": (409, "CONFLICTO"),  # unique_violation (p. ej. `slug` repetido)
+    "23505": (409, "CONFLICTO"),  # unique_violation
     "23514": (422, "PAYLOAD_INVALIDO"),  # check_violation (precio < 0, picante > 5…)
     "23502": (422, "PAYLOAD_INVALIDO"),  # not_null_violation
 }
@@ -47,8 +42,7 @@ RESPUESTA_POR_SQLSTATE = {
 async def _confirmar(session: AsyncSession) -> None:
     """`commit()` que convierte las violaciones de restricciones en la envoltura de error.
 
-    Temporal, como todo este módulo: T-1.3 pone el manejador de `IntegrityError` en
-    `app/core/errores.py` (que registra sólo `constraint_name`, nunca los parámetros).
+    Temporal: T-1.3 pone el manejador de `IntegrityError` en `app/core/errores.py`.
     """
     try:
         await session.commit()
@@ -62,108 +56,72 @@ async def _confirmar(session: AsyncSession) -> None:
 
 
 # ============================================================================
-# RESTAURANTE ROUTES
+# Restaurantes (02 §5.3, US-15)
 # ============================================================================
 
 
 @router.get("/restaurantes", response_model=list[RestauranteRespuesta])
-async def list_restaurantes(
-    skip: int = 0,
-    limit: int = 100,
-    activo: bool = True,
-    session: AsyncSession = Depends(get_db_session),
-):
-    """List all restaurants."""
-    query = select(Restaurante).where(Restaurante.activo == activo)
-    result = await session.execute(query.offset(skip).limit(limit))
-    restaurantes = result.scalars().all()
-    return restaurantes
+async def listar_restaurantes(
+    usuario: Usuario = Depends(operador_actual),
+    sesion: AsyncSession = Depends(get_db_session),
+) -> list[Restaurante]:
+    """Los restaurantes del operador (AC-15.2). Lista vacía si todavía no tiene ninguno."""
+    return await operadores.restaurantes_del_usuario(sesion, usuario.id)
 
 
 @router.post(
-    "/restaurantes", response_model=RestauranteRespuesta, status_code=status.HTTP_201_CREATED
+    "/restaurantes",
+    response_model=RestauranteRespuesta,
+    status_code=status.HTTP_201_CREATED,
+    responses=errores(409),
 )
-async def create_restaurante(
-    restaurante: RestauranteCreate,
-    session: AsyncSession = Depends(get_db_session),
-):
-    """Create a new restaurant."""
-    db_restaurante = Restaurante(**restaurante.model_dump())
-    session.add(db_restaurante)
-    await _confirmar(session)
-    await session.refresh(db_restaurante)
-    return db_restaurante
+async def crear_restaurante(
+    datos: RestauranteCrear,
+    usuario: Usuario = Depends(operador_actual),
+    sesion: AsyncSession = Depends(get_db_session),
+) -> Restaurante:
+    """Alta: crea el restaurante y al operador como `propietario`, con `slug` único."""
+    return await operadores.crear_restaurante(sesion, usuario, datos.model_dump())
 
 
 @router.get("/restaurantes/{rid}", response_model=RestauranteRespuesta)
-async def get_restaurante(
-    rid: UUID,
-    session: AsyncSession = Depends(get_db_session),
-):
-    """Get a specific restaurant."""
-    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
-    restaurante = result.scalar_one_or_none()
-    if not restaurante:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Restaurante no encontrado",
-        )
+async def ver_restaurante(
+    restaurante: Restaurante = Depends(restaurante_del_operador),
+) -> Restaurante:
     return restaurante
 
 
-@router.patch("/restaurantes/{rid}", response_model=RestauranteRespuesta)
-async def update_restaurante(
-    rid: UUID,
-    restaurante_update: RestauranteUpdate,
-    session: AsyncSession = Depends(get_db_session),
-):
-    """Update a restaurant."""
-    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
-    db_restaurante = result.scalar_one_or_none()
-    if not db_restaurante:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Restaurante no encontrado",
-        )
-
-    update_data = restaurante_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_restaurante, field, value)
-
-    await _confirmar(session)
-    await session.refresh(db_restaurante)
-    return db_restaurante
+@router.patch("/restaurantes/{rid}", response_model=RestauranteRespuesta, responses=errores(409))
+async def cambiar_restaurante(
+    cambios: RestauranteCambios,
+    restaurante: Restaurante = Depends(restaurante_del_operador),
+    sesion: AsyncSession = Depends(get_db_session),
+) -> Restaurante:
+    """Nombre, logo, slug y datos de contacto; sólo cambian los campos enviados."""
+    return await operadores.actualizar_restaurante(
+        sesion, restaurante, cambios.model_dump(exclude_unset=True)
+    )
 
 
 # ============================================================================
-# PLATILLO ROUTES
+# Platillos: CRUD heredado (T-1.3 lo reescribe)
 # ============================================================================
 
 
-@router.get(
-    "/restaurantes/{rid}/platillos",
-    response_model=list[PlatilloRespuesta],
-)
+@router.get("/restaurantes/{rid}/platillos", response_model=list[PlatilloRespuesta])
 async def list_platillos(
-    rid: UUID,
     skip: int = 0,
     limit: int = 100,
     activo: bool = True,
+    restaurante: Restaurante = Depends(restaurante_del_operador),
     session: AsyncSession = Depends(get_db_session),
 ):
     """List all dishes for a restaurant."""
-    # Verify restaurant exists
-    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
-    if not result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Restaurante no encontrado",
-        )
-
-    query = select(Platillo).where((Platillo.restaurante_id == rid) & (Platillo.activo == activo))
+    query = select(Platillo).where(
+        (Platillo.restaurante_id == restaurante.id) & (Platillo.activo == activo)
+    )
     result = await session.execute(query.offset(skip).limit(limit))
-    platillos = result.scalars().all()
-    return platillos
+    return result.scalars().all()
 
 
 @router.post(
@@ -172,21 +130,13 @@ async def list_platillos(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_platillo(
-    rid: UUID,
     platillo: PlatilloCreate,
+    restaurante: Restaurante = Depends(restaurante_del_operador),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Create a new dish for a restaurant."""
-    # Verify restaurant exists
-    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
-    if not result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Restaurante no encontrado",
-        )
-
-    # Regla dura 5: el restaurante sale de la ruta, nunca del cuerpo (T-1.2 lo saca del token).
-    db_platillo = Platillo(**{**platillo.model_dump(), "restaurante_id": rid})
+    # Regla dura 5: el restaurante sale de la ruta validada contra el operador.
+    db_platillo = Platillo(**platillo.model_dump(), restaurante_id=restaurante.id)
     session.add(db_platillo)
     await _confirmar(session)
     await session.refresh(db_platillo)
@@ -195,19 +145,11 @@ async def create_platillo(
 
 @router.patch("/platillos/{platillo_id}", response_model=PlatilloRespuesta)
 async def update_platillo(
-    platillo_id: UUID,
     platillo_update: PlatilloUpdate,
+    db_platillo: Platillo = Depends(platillo_del_operador),
     session: AsyncSession = Depends(get_db_session),
 ):
     """Update a dish."""
-    result = await session.execute(select(Platillo).where(Platillo.id == platillo_id))
-    db_platillo = result.scalar_one_or_none()
-    if not db_platillo:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Platillo no encontrado",
-        )
-
     update_data = platillo_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_platillo, field, value)
@@ -219,17 +161,9 @@ async def update_platillo(
 
 @router.delete("/platillos/{platillo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_platillo(
-    platillo_id: UUID,
+    db_platillo: Platillo = Depends(platillo_del_operador),
     session: AsyncSession = Depends(get_db_session),
-):
+) -> None:
     """Soft delete a dish."""
-    result = await session.execute(select(Platillo).where(Platillo.id == platillo_id))
-    db_platillo = result.scalar_one_or_none()
-    if not db_platillo:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Platillo no encontrado",
-        )
-
     db_platillo.activo = False
     await session.commit()

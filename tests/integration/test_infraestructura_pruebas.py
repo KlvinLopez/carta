@@ -92,20 +92,24 @@ async def test_un_rollback_del_codigo_no_borra_lo_confirmado_por_las_fabricas(
 
 
 async def test_el_cliente_ve_lo_que_crean_las_fabricas(
-    cliente: AsyncClient, restaurante: Restaurante
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
 ) -> None:
-    respuesta = await cliente.get("/api/v1/admin/restaurantes")
+    respuesta = await cliente.get("/api/v1/admin/restaurantes", headers=cabecera_operador)
     assert respuesta.status_code == 200
     assert restaurante.slug in {r["slug"] for r in respuesta.json()}
 
 
 async def test_el_commit_de_la_aplicacion_no_sale_de_la_transaccion_de_la_prueba(
-    cliente: AsyncClient, sesion: AsyncSession, motor_pruebas: AsyncEngine
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    motor_pruebas: AsyncEngine,
+    cabecera_operador: dict[str, str],
 ) -> None:
     """`POST` hace `commit()`; con `create_savepoint` sólo libera un *savepoint*."""
     respuesta = await cliente.post(
         "/api/v1/admin/restaurantes",
         json={"nombre": "Aislamiento", "slug": SLUG_QUE_NO_DEBE_SOBREVIVIR},
+        headers=cabecera_operador,
     )
     assert respuesta.status_code == 201
     _creados_en_pruebas_anteriores[SLUG_QUE_NO_DEBE_SOBREVIVIR] = UUID(respuesta.json()["id"])
@@ -128,16 +132,17 @@ async def test_nada_sobrevive_a_la_prueba_anterior(
 
 
 async def test_cada_peticion_tiene_su_propia_sesion(
-    cliente: AsyncClient, restaurante: Restaurante
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
 ) -> None:
     """Como en producción: una petición que revienta en la base no contamina a la siguiente.
     Con una sola sesión para toda la prueba, el GET daría 500 (`PendingRollbackError`)."""
     duplicado = await cliente.post(
-        "/api/v1/admin/restaurantes", json={"nombre": "Duplicado", "slug": restaurante.slug}
+        "/api/v1/admin/restaurantes",
+        json={"nombre": "Duplicado", "slug": restaurante.slug},
+        headers=cabecera_operador,
     )
-    # 500 hoy (IntegrityError sin manejar); 409 cuando T-1.3 ponga el manejador.
-    assert duplicado.status_code in (409, 500)
-    siguiente = await cliente.get("/api/v1/admin/restaurantes")
+    assert duplicado.status_code == 409
+    siguiente = await cliente.get("/api/v1/admin/restaurantes", headers=cabecera_operador)
     assert siguiente.status_code == 200
     assert restaurante.slug in {r["slug"] for r in siguiente.json()}
 

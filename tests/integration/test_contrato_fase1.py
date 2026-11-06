@@ -81,6 +81,15 @@ PROHIBIDOS = {
 UUID_X = "00000000-0000-4000-8000-0000000000aa"
 
 
+@pytest.fixture(autouse=True)
+def _con_token_del_operador(request: pytest.FixtureRequest) -> None:
+    """Desde T-1.2 todo `/admin` exige token: las pruebas que usan `cliente` hablan como el
+    dueño de `restaurante` (`cabecera_operador`)."""
+    if "cliente" in request.fixturenames:
+        cliente: AsyncClient = request.getfixturevalue("cliente")
+        cliente.headers.update(request.getfixturevalue("cabecera_operador"))
+
+
 @pytest.fixture(scope="module")
 async def openapi() -> dict[str, Any]:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://pruebas") as c:
@@ -270,13 +279,20 @@ async def test_el_crud_heredado_responde_con_el_esquema_v1(
 @pytest.mark.parametrize(
     "ruta", [f"/restaurantes/{UUID_X}/importaciones/{UUID_X}", f"/restaurantes/{UUID_X}/mesas"]
 )
-async def test_los_ejemplos_se_esconden_fuera_de_desarrollo(
-    cliente: AsyncClient, monkeypatch: pytest.MonkeyPatch, ruta: str
+async def test_los_ejemplos_exigen_token_tambien_fuera_de_desarrollo(
+    cliente: AsyncClient,
+    cabecera_operador: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    ruta: str,
 ) -> None:
+    """T-1.2 quitó `solo_desarrollo`: en staging los ejemplos ya no se esconden, piden token."""
     monkeypatch.setattr(settings, "ENTORNO", "staging")
+    del cliente.headers["Authorization"]
     respuesta = await cliente.get(A + ruta)
-    assert respuesta.status_code == 404
-    assert respuesta.json()["error"]["codigo"] == "RECURSO_NO_ENCONTRADO"
+    assert respuesta.status_code == 401
+    assert respuesta.json()["error"]["codigo"] == "SIN_CREDENCIAL"
+    con_token = await cliente.get(A + ruta, headers=cabecera_operador)
+    assert con_token.status_code == 200
 
 
 # ---------------------------------------------------------------------------
@@ -511,7 +527,7 @@ async def test_el_platillo_heredado_es_del_restaurante_de_la_ruta(
     listado = await cliente.get(f"{A}/restaurantes/{restaurante.id}/platillos")
     assert creado.json()["id"] in {p["id"] for p in listado.json()}
     del_ajeno = await cliente.get(f"{A}/restaurantes/{ajeno.id}/platillos")
-    assert del_ajeno.json() == []
+    assert del_ajeno.status_code == 404  # desde T-1.2 el restaurante ajeno no existe (AC-15.3)
 
 
 async def test_una_categoria_ajena_es_404_y_no_500(

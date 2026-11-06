@@ -82,25 +82,79 @@ def origen_imagenes(url_publica: str | None) -> str | None:
     return f"{partes.scheme}://{partes.netloc.lower()}"
 
 
-def politica_csp(origen_imagenes_externas: str | None) -> str:
-    """La política exacta de 02 §12, con el origen de R2 en `img-src` si lo hay."""
+def origenes_https(lista: str | None, variable: str = "FIREBASE_CSP_*") -> tuple[str, ...]:
+    """Orígenes `https://host[:puerto]` de una lista separada por espacios o comas.
+
+    Para abrir la CSP a Firebase Auth desde `Settings` (02 §12, T-1.2). Cada entrada debe
+    ser un origen limpio por HTTPS (sin ruta salvo `/`, sin comodines, sin credenciales ni
+    `;`); las demás se descartan con un aviso: una variable mal puesta no abre la política.
+    Sin repetidos y en el orden dado.
+    """
+    if not lista:
+        return ()
+    origenes: list[str] = []
+    for entrada in re.split(r"[\s,]+", lista.strip()):
+        if not entrada:
+            continue
+        try:
+            partes = urlsplit(entrada)
+        except ValueError:
+            partes = None
+        if (
+            partes is None
+            or partes.scheme != "https"
+            or "@" in partes.netloc
+            or partes.path not in ("", "/")
+            or partes.query
+            or partes.fragment
+            or not _HOST_VALIDO.fullmatch(partes.netloc.lower())
+        ):
+            log.warning("%s: se ignora una entrada que no es un origen https limpio", variable)
+            continue
+        origen = f"https://{partes.netloc.lower()}"
+        if origen not in origenes:
+            origenes.append(origen)
+    return tuple(origenes)
+
+
+def _fuente(origenes: Iterable[str]) -> str:
+    return " ".join(("'self'", *origenes))
+
+
+def politica_csp(
+    origen_imagenes_externas: str | None,
+    *,
+    connect_src: Iterable[str] = (),
+    script_src: Iterable[str] = (),
+    frame_src: Iterable[str] = (),
+) -> str:
+    """La política exacta de 02 §12, con el origen de R2 en `img-src` y los de Firebase Auth
+    en `connect-src`, `script-src` y `frame-src` cuando `Settings` los trae.
+
+    Sin orígenes de Firebase la política es la de 02 §12 al pie de la letra (sin `frame-src`:
+    `default-src 'self'` ya lo cubre)."""
     img_src = "'self'" if not origen_imagenes_externas else f"'self' {origen_imagenes_externas}"
-    return "; ".join(
-        (
-            "default-src 'self'",
-            "script-src 'self'",
-            "style-src 'self'",
-            "font-src 'self'",
-            f"img-src {img_src}",
-            "manifest-src 'self'",
-            "connect-src 'self'",
-            # `default-src` no cubre estas tres: sin `frame-ancestors` la pantalla de PIN se
-            # podría embeber en un iframe ajeno (clickjacking).
-            "frame-ancestors 'none'",
-            "base-uri 'self'",
-            "form-action 'self'",
-        )
-    )
+    marcos = tuple(frame_src)
+    directivas = [
+        "default-src 'self'",
+        f"script-src {_fuente(script_src)}",
+        "style-src 'self'",
+        "font-src 'self'",
+        f"img-src {img_src}",
+        "manifest-src 'self'",
+        f"connect-src {_fuente(connect_src)}",
+    ]
+    if marcos:
+        # El SDK de Firebase Auth abre un iframe oculto de `<proyecto>.firebaseapp.com`.
+        directivas.append(f"frame-src {_fuente(marcos)}")
+    directivas += [
+        # `default-src` no cubre estas tres: sin `frame-ancestors` la pantalla de PIN se
+        # podría embeber en un iframe ajeno (clickjacking).
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+    ]
+    return "; ".join(directivas)
 
 
 CSP_SIN_IMAGENES_EXTERNAS = politica_csp(None)
@@ -109,7 +163,14 @@ CSP_SIN_IMAGENES_EXTERNAS = politica_csp(None)
 def cabeceras_seguridad(ajustes: Settings) -> dict[str, str]:
     """Las cabeceras que lleva toda respuesta en este entorno."""
     cabeceras = {
-        "Content-Security-Policy": politica_csp(origen_imagenes(ajustes.R2_URL_PUBLICA)),
+        "Content-Security-Policy": politica_csp(
+            origen_imagenes(ajustes.R2_URL_PUBLICA),
+            connect_src=origenes_https(
+                ajustes.FIREBASE_CSP_CONNECT_SRC, "FIREBASE_CSP_CONNECT_SRC"
+            ),
+            script_src=origenes_https(ajustes.FIREBASE_CSP_SCRIPT_SRC, "FIREBASE_CSP_SCRIPT_SRC"),
+            frame_src=origenes_https(ajustes.FIREBASE_CSP_FRAME_SRC, "FIREBASE_CSP_FRAME_SRC"),
+        ),
         # Navegadores sin `frame-ancestors`; los demás ignoran esta cabecera cuando hay CSP.
         "X-Frame-Options": "DENY",
         "X-Content-Type-Options": "nosniff",
