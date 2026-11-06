@@ -1,4 +1,5 @@
-"""T-0.2: los modelos SQLAlchemy mapean contra el esquema real que crea `0001_base_v1`.
+"""T-0.2 y T-1.1: los modelos SQLAlchemy mapean contra el esquema real que crean `0001_base_v1`
+y `0002_consistencia_inquilino`.
 
 Las pruebas usan la base de pruebas migrada por la CLI de Alembic (fixture `esquema_migrado`
 de `tests/conftest.py`, exactamente como en el despliegue) y comparan `Base.metadata` con lo
@@ -98,13 +99,66 @@ TRIGGERS = {
         "CREATE TRIGGER tr_orden_sesion_inmutable BEFORE UPDATE OF sesion_id "
         "ON public.orden_personal FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable()"
     ),
+    "tr_item_orden_mismo_restaurante": (  # INV-10
+        "CREATE TRIGGER tr_item_orden_mismo_restaurante BEFORE INSERT OR UPDATE OF orden_id, "
+        "platillo_id ON public.item_orden FOR EACH ROW "
+        "EXECUTE FUNCTION fn_item_orden_mismo_restaurante()"
+    ),
+    "tr_platillo_restaurante_inmutable": (  # INV-10
+        "CREATE TRIGGER tr_platillo_restaurante_inmutable BEFORE UPDATE OF restaurante_id "
+        "ON public.platillo FOR EACH ROW EXECUTE FUNCTION fn_restaurante_id_inmutable()"
+    ),
 }
 FUNCIONES_DE_TRIGGER = {
     "fn_item_orden_inmutable",
     "fn_orden_bloqueada_no_se_borra",
     "fn_comanda_orden_misma_sesion",
     "fn_sesion_id_inmutable",
+    "fn_item_orden_mismo_restaurante",
+    "fn_restaurante_id_inmutable",
 }
+
+# INV-10 (0002): definición exacta de cada FK compuesta hacia `(id, restaurante_id)`.
+# `SET NULL (col)` (PostgreSQL 15+) anula sólo la columna del padre, nunca `restaurante_id`.
+FK_INQUILINO = {
+    "fk_sesion_grupal_mesa_id": ("mesa", "mesa_id", "ON DELETE CASCADE"),
+    "fk_sesion_grupal_cerrada_por_personal_id": (
+        "personal_restaurante",
+        "cerrada_por_personal_id",
+        "ON DELETE SET NULL (cerrada_por_personal_id)",
+    ),
+    "fk_platillo_categoria_id": (
+        "categoria_menu",
+        "categoria_id",
+        "ON DELETE SET NULL (categoria_id)",
+    ),
+    "fk_platillo_no_disponible_por": (
+        "personal_restaurante",
+        "no_disponible_por",
+        "ON DELETE SET NULL (no_disponible_por)",
+    ),
+    "fk_comanda_sesion_id": ("sesion_grupal", "sesion_id", "ON DELETE CASCADE"),
+    "fk_comanda_mesa_id": ("mesa", "mesa_id", "ON DELETE CASCADE"),
+    "fk_comanda_atendida_por_personal_id": (
+        "personal_restaurante",
+        "atendida_por_personal_id",
+        "ON DELETE SET NULL (atendida_por_personal_id)",
+    ),
+    "fk_llamada_mesero_sesion_id": ("sesion_grupal", "sesion_id", "ON DELETE CASCADE"),
+    "fk_llamada_mesero_mesa_id": ("mesa", "mesa_id", "ON DELETE CASCADE"),
+    "fk_llamada_mesero_atendida_por_personal_id": (
+        "personal_restaurante",
+        "atendida_por_personal_id",
+        "ON DELETE SET NULL (atendida_por_personal_id)",
+    ),
+}
+PADRES_INQUILINO = (
+    "sesion_grupal",
+    "mesa",
+    "categoria_menu",
+    "personal_restaurante",
+    "platillo",
+)
 
 # Fragmentos que la definición real de cada CHECK de invariante debe contener.
 FRAGMENTOS_CHECK = {
@@ -177,6 +231,26 @@ async def _tipos_enumerados(conexion: AsyncConnection) -> dict[str, list[str]]:
     return tipos
 
 
+async def _definiciones_fk(conexion: AsyncConnection) -> dict[str, str]:
+    filas = await conexion.execute(
+        text(
+            "SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint "
+            "WHERE contype = 'f' AND connamespace = 'public'::regnamespace"
+        )
+    )
+    return {nombre: definicion for nombre, definicion in filas}
+
+
+async def _restricciones_unicas(conexion: AsyncConnection) -> set[str]:
+    filas = await conexion.execute(
+        text(
+            "SELECT conname FROM pg_constraint "
+            "WHERE contype = 'u' AND connamespace = 'public'::regnamespace"
+        )
+    )
+    return {fila[0] for fila in filas}
+
+
 async def _funciones(conexion: AsyncConnection) -> set[str]:
     filas = await conexion.execute(
         text("SELECT proname FROM pg_proc WHERE pronamespace = 'public'::regnamespace")
@@ -211,6 +285,54 @@ async def test_migracion_sube_baja_y_vuelve_a_subir(url_bd: str) -> None:
                 assert TABLAS_V1 <= await _tablas(conexion)
         finally:
             await motor.dispose()
+
+
+async def test_0002_baja_a_0001_y_vuelve_a_subir(url_bd: str) -> None:
+    """`downgrade` real de `0002_consistencia_inquilino`: devuelve las FK simples de 0001 (con
+    su `ON DELETE`), quita los `UNIQUE (id, restaurante_id)` y sus triggers, y vuelve a subir."""
+    async with base_desechable(url_bd, "inq") as url:
+        motor = create_async_engine(url, poolclass=NullPool)
+        try:
+            alembic("upgrade", "head", url=url)
+            alembic("downgrade", "0001_base_v1", url=url)
+            async with motor.connect() as conexion:
+                fks = await _definiciones_fk(conexion)
+                for nombre, (padre, columna, accion) in FK_INQUILINO.items():
+                    simple = accion.split(" (")[0]
+                    assert fks[nombre] == (
+                        f"FOREIGN KEY ({columna}) REFERENCES {padre}(id) {simple}"
+                    ), nombre
+                unicas = await _restricciones_unicas(conexion)
+                assert not {f"uq_{p}_id_restaurante_id" for p in PADRES_INQUILINO} & unicas
+                funciones = await _funciones(conexion)
+                assert "fn_item_orden_mismo_restaurante" not in funciones
+                assert "fn_restaurante_id_inmutable" not in funciones
+                assert "fn_item_orden_inmutable" in funciones  # lo de 0001 sigue ahí
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert await _definiciones_fk(conexion) == await _definiciones_fk_esperadas(
+                    conexion
+                )
+        finally:
+            await motor.dispose()
+
+
+async def _definiciones_fk_esperadas(conexion: AsyncConnection) -> dict[str, str]:
+    """Las de la base con las de INV-10 sustituidas por su texto exacto esperado."""
+    fks = await _definiciones_fk(conexion)
+    for nombre, (padre, columna, accion) in FK_INQUILINO.items():
+        fks[nombre] = (
+            f"FOREIGN KEY ({columna}, restaurante_id) "
+            f"REFERENCES {padre}(id, restaurante_id) {accion}"
+        )
+    return fks
+
+
+async def test_fk_compuestas_de_inv10(conexion: AsyncConnection) -> None:
+    """Texto exacto de cada FK compuesta y de los `UNIQUE (id, restaurante_id)` que la sostienen."""
+    assert await _definiciones_fk(conexion) == await _definiciones_fk_esperadas(conexion)
+    unicas = await _restricciones_unicas(conexion)
+    assert {f"uq_{p}_id_restaurante_id" for p in PADRES_INQUILINO} <= unicas
 
 
 def test_la_url_no_pasa_por_el_ini_de_alembic() -> None:

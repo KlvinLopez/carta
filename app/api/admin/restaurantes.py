@@ -3,6 +3,11 @@
 Sin autenticación ni aislamiento por restaurante todavía: T-1.2 lo pone detrás del token
 del operador y T-1.3 lo reescribe contra 02_Arquitectura_v1 §5.3. Los 404 que lanza salen
 con la envoltura única por el manejador de `app.core.errores`.
+
+Desde T-1.1 sus rutas, métodos y esquemas de respuesta ya son los del contrato v1
+(`{rid}`, `PATCH`, `app.schemas.{restaurante,menu}`), para que `/openapi.json` publique la
+forma final; los cuerpos de entrada siguen siendo los heredados hasta T-1.2 y T-1.3. Las
+demás rutas de la Fase 1 devuelven ejemplos desde `app.api.admin.ejemplos`.
 """
 
 from uuid import UUID
@@ -18,12 +23,12 @@ from app.db import (
 )
 from app.schemas import (
     PlatilloCreate,
-    PlatilloResponse,
     PlatilloUpdate,
     RestauranteCreate,
-    RestauranteResponse,
     RestauranteUpdate,
 )
+from app.schemas.menu import PlatilloRespuesta
+from app.schemas.restaurante import RestauranteRespuesta
 
 router = APIRouter()
 
@@ -33,7 +38,7 @@ router = APIRouter()
 # ============================================================================
 
 
-@router.get("/restaurantes", response_model=list[RestauranteResponse])
+@router.get("/restaurantes", response_model=list[RestauranteRespuesta])
 async def list_restaurantes(
     skip: int = 0,
     limit: int = 100,
@@ -48,7 +53,7 @@ async def list_restaurantes(
 
 
 @router.post(
-    "/restaurantes", response_model=RestauranteResponse, status_code=status.HTTP_201_CREATED
+    "/restaurantes", response_model=RestauranteRespuesta, status_code=status.HTTP_201_CREATED
 )
 async def create_restaurante(
     restaurante: RestauranteCreate,
@@ -62,13 +67,13 @@ async def create_restaurante(
     return db_restaurante
 
 
-@router.get("/restaurantes/{restaurante_id}", response_model=RestauranteResponse)
+@router.get("/restaurantes/{rid}", response_model=RestauranteRespuesta)
 async def get_restaurante(
-    restaurante_id: UUID,
+    rid: UUID,
     session: AsyncSession = Depends(get_db_session),
 ):
     """Get a specific restaurant."""
-    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
+    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
     restaurante = result.scalar_one_or_none()
     if not restaurante:
         raise HTTPException(
@@ -78,14 +83,14 @@ async def get_restaurante(
     return restaurante
 
 
-@router.put("/restaurantes/{restaurante_id}", response_model=RestauranteResponse)
+@router.patch("/restaurantes/{rid}", response_model=RestauranteRespuesta)
 async def update_restaurante(
-    restaurante_id: UUID,
+    rid: UUID,
     restaurante_update: RestauranteUpdate,
     session: AsyncSession = Depends(get_db_session),
 ):
     """Update a restaurant."""
-    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
+    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
     db_restaurante = result.scalar_one_or_none()
     if not db_restaurante:
         raise HTTPException(
@@ -102,35 +107,17 @@ async def update_restaurante(
     return db_restaurante
 
 
-@router.delete("/restaurantes/{restaurante_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_restaurante(
-    restaurante_id: UUID,
-    session: AsyncSession = Depends(get_db_session),
-):
-    """Soft delete a restaurant."""
-    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
-    db_restaurante = result.scalar_one_or_none()
-    if not db_restaurante:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Restaurante no encontrado",
-        )
-
-    db_restaurante.activo = False
-    await session.commit()
-
-
 # ============================================================================
 # PLATILLO ROUTES
 # ============================================================================
 
 
 @router.get(
-    "/restaurantes/{restaurante_id}/platillos",
-    response_model=list[PlatilloResponse],
+    "/restaurantes/{rid}/platillos",
+    response_model=list[PlatilloRespuesta],
 )
 async def list_platillos(
-    restaurante_id: UUID,
+    rid: UUID,
     skip: int = 0,
     limit: int = 100,
     activo: bool = True,
@@ -138,34 +125,32 @@ async def list_platillos(
 ):
     """List all dishes for a restaurant."""
     # Verify restaurant exists
-    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
+    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
     if not result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Restaurante no encontrado",
         )
 
-    query = select(Platillo).where(
-        (Platillo.restaurante_id == restaurante_id) & (Platillo.activo == activo)
-    )
+    query = select(Platillo).where((Platillo.restaurante_id == rid) & (Platillo.activo == activo))
     result = await session.execute(query.offset(skip).limit(limit))
     platillos = result.scalars().all()
     return platillos
 
 
 @router.post(
-    "/restaurantes/{restaurante_id}/platillos",
-    response_model=PlatilloResponse,
+    "/restaurantes/{rid}/platillos",
+    response_model=PlatilloRespuesta,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_platillo(
-    restaurante_id: UUID,
+    rid: UUID,
     platillo: PlatilloCreate,
     session: AsyncSession = Depends(get_db_session),
 ):
     """Create a new dish for a restaurant."""
     # Verify restaurant exists
-    result = await session.execute(select(Restaurante).where(Restaurante.id == restaurante_id))
+    result = await session.execute(select(Restaurante).where(Restaurante.id == rid))
     if not result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -179,23 +164,7 @@ async def create_platillo(
     return db_platillo
 
 
-@router.get("/platillos/{platillo_id}", response_model=PlatilloResponse)
-async def get_platillo(
-    platillo_id: UUID,
-    session: AsyncSession = Depends(get_db_session),
-):
-    """Get a specific dish."""
-    result = await session.execute(select(Platillo).where(Platillo.id == platillo_id))
-    platillo = result.scalar_one_or_none()
-    if not platillo:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Platillo no encontrado",
-        )
-    return platillo
-
-
-@router.put("/platillos/{platillo_id}", response_model=PlatilloResponse)
+@router.patch("/platillos/{platillo_id}", response_model=PlatilloRespuesta)
 async def update_platillo(
     platillo_id: UUID,
     platillo_update: PlatilloUpdate,

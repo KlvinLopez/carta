@@ -2,8 +2,9 @@
 
 Fuente de verdad del esquema: `docs/plan/03_Datos_v1.md` (y el DDL de agosto en
 `docs/mvp/03_Data_Model.md` §3 para comanda, comanda_orden, llamada_mesero,
-operador_restaurante y evento_analitica). La migración `0001_base_v1` crea exactamente
-este esquema; `tests/unit/test_modelos.py` comprueba que ambos coinciden.
+operador_restaurante y evento_analitica). Las migraciones `0001_base_v1` y
+`0002_consistencia_inquilino` (INV-10) crean exactamente este esquema;
+`tests/unit/test_modelos.py` comprueba que ambos coinciden.
 
 Convenciones:
 - Dominio en español (ADR-008). Tipos enumerados de PostgreSQL con el mismo nombre que en el DDL.
@@ -27,6 +28,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     Numeric,
@@ -129,6 +131,28 @@ def _fk_uuid(destino: str, *, ondelete: str, nullable: bool = False) -> Mapped[A
     )
 
 
+def _uuid_nulo() -> Mapped[Any]:
+    """Columna UUID nula cuya llave foránea es compuesta (en `__table_args__`)."""
+    return mapped_column(UUID(as_uuid=True), nullable=True)
+
+
+def _fk_inquilino(columna: str, padre: str, *, ondelete: str) -> ForeignKeyConstraint:
+    """INV-10: `(columna, restaurante_id) → padre(id, restaurante_id)`.
+
+    El nombre es el de la FK simple que sustituye (`fk_<tabla>_<columna>`, por convención).
+    `SET NULL` lleva la lista de columnas de PostgreSQL 15+ para no anular `restaurante_id`.
+    """
+    accion = f"SET NULL ({columna})" if ondelete == "SET NULL" else ondelete
+    return ForeignKeyConstraint(
+        [columna, "restaurante_id"], [f"{padre}.id", f"{padre}.restaurante_id"], ondelete=accion
+    )
+
+
+def _unico_con_restaurante() -> UniqueConstraint:
+    """`UNIQUE (id, restaurante_id)`: destino de las FK compuestas de INV-10."""
+    return UniqueConstraint("id", "restaurante_id")
+
+
 def _marca_tiempo(*, nullable: bool = False, al_actualizar: bool = False) -> Mapped[Any]:
     if nullable:
         return mapped_column(DateTime(timezone=True), nullable=True)
@@ -199,9 +223,13 @@ class CategoriaMenu(Base):
     )
 
     restaurante: Mapped[Restaurante] = relationship(back_populates="categorias")
-    platillos: Mapped[list[Platillo]] = relationship(back_populates="categoria")
+    platillos: Mapped[list[Platillo]] = relationship(
+        back_populates="categoria",
+        primaryjoin="CategoriaMenu.id == foreign(Platillo.categoria_id)",
+    )
 
     __table_args__ = (
+        _unico_con_restaurante(),
         # Regla dura 9: la baja es lógica, así que el nombre sólo es único entre las activas.
         Index(
             "uq_categoria_activa_por_nombre",
@@ -243,6 +271,7 @@ class PersonalRestaurante(Base):
     restaurante: Mapped[Restaurante] = relationship(back_populates="personal")
 
     __table_args__ = (
+        _unico_con_restaurante(),
         CheckConstraint("length(btrim(nombre)) > 0", name="ck_personal_nombre"),
         CheckConstraint("intentos_fallidos >= 0", name="ck_personal_intentos"),
         # INV-7 verificable en la base: sólo entra un hash Argon2id, nunca el PIN.
@@ -264,9 +293,7 @@ class Platillo(Base):
 
     id: Mapped[uuid.UUID] = _id_uuid()
     restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
-    categoria_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "categoria_menu.id", ondelete="SET NULL", nullable=True
-    )
+    categoria_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     nombre: Mapped[str] = mapped_column(String(200), nullable=False)
     descripcion: Mapped[str | None] = mapped_column(Text)
     precio: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
@@ -301,9 +328,7 @@ class Platillo(Base):
         Boolean, nullable=False, default=True, server_default=text("true")
     )
     no_disponible_desde: Mapped[datetime | None] = _marca_tiempo(nullable=True)
-    no_disponible_por: Mapped[uuid.UUID | None] = _fk_uuid(
-        "personal_restaurante.id", ondelete="SET NULL", nullable=True
-    )
+    no_disponible_por: Mapped[uuid.UUID | None] = _uuid_nulo()
     activo: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default=text("true")
     )
@@ -311,9 +336,15 @@ class Platillo(Base):
     actualizado_en: Mapped[datetime] = _marca_tiempo(al_actualizar=True)
 
     restaurante: Mapped[Restaurante] = relationship(back_populates="platillos")
-    categoria: Mapped[CategoriaMenu | None] = relationship(back_populates="platillos")
+    categoria: Mapped[CategoriaMenu | None] = relationship(
+        back_populates="platillos",
+        primaryjoin="foreign(Platillo.categoria_id) == CategoriaMenu.id",
+    )
 
     __table_args__ = (
+        _unico_con_restaurante(),
+        _fk_inquilino("categoria_id", "categoria_menu", ondelete="SET NULL"),
+        _fk_inquilino("no_disponible_por", "personal_restaurante", ondelete="SET NULL"),
         CheckConstraint("precio >= 0", name="ck_platillo_precio"),
         CheckConstraint("nivel_picante BETWEEN 0 AND 5", name="ck_platillo_nivel_picante"),
         CheckConstraint("jsonb_typeof(alergenos) = 'array'", name="ck_platillo_alergenos_lista"),
@@ -348,9 +379,12 @@ class Mesa(Base):
     )
 
     restaurante: Mapped[Restaurante] = relationship(back_populates="mesas")
-    sesiones: Mapped[list[SesionGrupal]] = relationship(back_populates="mesa")
+    sesiones: Mapped[list[SesionGrupal]] = relationship(
+        back_populates="mesa", primaryjoin="Mesa.id == foreign(SesionGrupal.mesa_id)"
+    )
 
     __table_args__ = (
+        _unico_con_restaurante(),
         CheckConstraint("length(codigo_publico) >= 22", name="ck_codigo_largo"),
         CheckConstraint("capacidad > 0", name="ck_mesa_capacidad"),
         # Regla dura 9: el número sólo es único entre las mesas activas.
@@ -392,7 +426,7 @@ class SesionGrupal(Base):
     __tablename__ = "sesion_grupal"
 
     id: Mapped[uuid.UUID] = _id_uuid()
-    mesa_id: Mapped[uuid.UUID] = _fk_uuid("mesa.id", ondelete="CASCADE")
+    mesa_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
     estado: Mapped[str] = mapped_column(
         String(20), nullable=False, default="activa", server_default="activa"
@@ -400,16 +434,21 @@ class SesionGrupal(Base):
     inicio: Mapped[datetime] = _marca_tiempo()
     fin: Mapped[datetime | None] = _marca_tiempo(nullable=True)
     ultima_actividad_en: Mapped[datetime] = _marca_tiempo()
-    cerrada_por_personal_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "personal_restaurante.id", ondelete="SET NULL", nullable=True
-    )
+    cerrada_por_personal_id: Mapped[uuid.UUID | None] = _uuid_nulo()
 
-    mesa: Mapped[Mesa] = relationship(back_populates="sesiones")
+    mesa: Mapped[Mesa] = relationship(
+        back_populates="sesiones", primaryjoin="foreign(SesionGrupal.mesa_id) == Mesa.id"
+    )
     miembros: Mapped[list[MiembroSesion]] = relationship(back_populates="sesion")
     ordenes: Mapped[list[OrdenPersonal]] = relationship(back_populates="sesion")
-    comandas: Mapped[list[Comanda]] = relationship(back_populates="sesion")
+    comandas: Mapped[list[Comanda]] = relationship(
+        back_populates="sesion", primaryjoin="SesionGrupal.id == foreign(Comanda.sesion_id)"
+    )
 
     __table_args__ = (
+        _unico_con_restaurante(),
+        _fk_inquilino("mesa_id", "mesa", ondelete="CASCADE"),
+        _fk_inquilino("cerrada_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
         CheckConstraint(
             f"estado IN ({_lista_sql(ESTADOS_SESION)})", name="ck_sesion_grupal_estado"
         ),
@@ -542,8 +581,8 @@ class Comanda(Base):
 
     id: Mapped[uuid.UUID] = _id_uuid()
     restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
-    mesa_id: Mapped[uuid.UUID] = _fk_uuid("mesa.id", ondelete="CASCADE")
-    sesion_id: Mapped[uuid.UUID] = _fk_uuid("sesion_grupal.id", ondelete="CASCADE")
+    mesa_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    sesion_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     secuencia: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     estado: Mapped[EstadoComanda] = mapped_column(
         _enum_pg(EstadoComanda, "estado_comanda"),
@@ -560,15 +599,18 @@ class Comanda(Base):
     creada_en: Mapped[datetime] = _marca_tiempo()
     atendida_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
     servida_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
-    atendida_por_personal_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "personal_restaurante.id", ondelete="SET NULL", nullable=True
-    )
+    atendida_por_personal_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     nota_cancelacion: Mapped[str | None] = mapped_column(Text)
 
-    sesion: Mapped[SesionGrupal] = relationship(back_populates="comandas")
+    sesion: Mapped[SesionGrupal] = relationship(
+        back_populates="comandas", primaryjoin="foreign(Comanda.sesion_id) == SesionGrupal.id"
+    )
     ordenes: Mapped[list[OrdenPersonal]] = relationship(secondary="comanda_orden", viewonly=True)
 
     __table_args__ = (
+        _fk_inquilino("sesion_id", "sesion_grupal", ondelete="CASCADE"),
+        _fk_inquilino("mesa_id", "mesa", ondelete="CASCADE"),
+        _fk_inquilino("atendida_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
         UniqueConstraint("sesion_id", "secuencia"),
         # INV-6: el estado terminal exige su marca de tiempo.
         CheckConstraint(
@@ -611,8 +653,8 @@ class LlamadaMesero(Base):
 
     id: Mapped[uuid.UUID] = _id_uuid()
     restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
-    mesa_id: Mapped[uuid.UUID] = _fk_uuid("mesa.id", ondelete="CASCADE")
-    sesion_id: Mapped[uuid.UUID] = _fk_uuid("sesion_grupal.id", ondelete="CASCADE")
+    mesa_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    sesion_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
         "miembro_sesion.id", ondelete="SET NULL", nullable=True
     )
@@ -620,12 +662,13 @@ class LlamadaMesero(Base):
         String(40), nullable=False, default="atencion", server_default="atencion"
     )
     atendida_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
-    atendida_por_personal_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "personal_restaurante.id", ondelete="SET NULL", nullable=True
-    )
+    atendida_por_personal_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     creada_en: Mapped[datetime] = _marca_tiempo()
 
     __table_args__ = (
+        _fk_inquilino("sesion_id", "sesion_grupal", ondelete="CASCADE"),
+        _fk_inquilino("mesa_id", "mesa", ondelete="CASCADE"),
+        _fk_inquilino("atendida_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
         Index("idx_llamada_restaurante", "restaurante_id"),
         Index("idx_llamada_mesa", "mesa_id"),
         Index("idx_llamada_sesion", "sesion_id"),
