@@ -8,7 +8,8 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
-  # Imágenes base del Dockerfile y de deploy/respaldo (tags; los digests @sha256 quedan para T-0.7).
+  # Imágenes base del Dockerfile y de deploy/respaldo: tag + digest @sha256 (T-0.7); Dependabot
+  # actualiza los dos juntos.
   - package-ecosystem: docker
     directory: /
     schedule:

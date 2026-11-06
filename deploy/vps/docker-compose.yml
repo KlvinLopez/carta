@@ -14,8 +14,8 @@
 name: carta
 
 x-imagen: &imagen
-  # Si la imagen no está en el registro (nadie publica en GHCR todavía: decisión pendiente en
-  # T-0.7), Compose la construye desde la raíz del repositorio con el mismo Dockerfile.
+  # `.github/workflows/deploy.yml` la publica en GHCR en cada etiqueta `v*` (T-0.7); si no está en
+  # el registro, Compose la construye desde la raíz del repositorio con el mismo Dockerfile.
   image: ${IMAGEN:-ghcr.io/klvinlopez/carta}:${IMAGEN_TAG:-latest}
   build:
     context: ../..

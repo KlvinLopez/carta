@@ -9,7 +9,7 @@
 # upgrade head`, T-0.7) o el servicio `migracion` de deploy/vps/docker-compose.yml.
 
 # ---------- Etapa 1: la PWA (frontend/dist) ----------
-FROM node:22-slim AS frontend
+FROM node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d AS frontend
 WORKDIR /src/frontend
 ENV CI=true
 COPY frontend/package.json frontend/package-lock.json ./
@@ -19,8 +19,8 @@ COPY frontend/ ./
 RUN npm run build
 
 # ---------- Etapa 2: la API ----------
-FROM python:3.12-slim AS api
-COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /uvx /bin/
+FROM python:3.12-slim@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54 AS api
+COPY --from=ghcr.io/astral-sh/uv:0.11.32@sha256:df4cae8f3a96d175e2e5f992e597550000edbe78fdc2594d5cd8de1a217f504c /uv /uvx /bin/
 
 # PYTHONIOENCODING: con stdout no UTF-8 una ruta con acento perdería su línea de acceso.
 ENV PYTHONIOENCODING=utf-8 \
@@ -38,19 +38,19 @@ RUN groupadd --system carta \
 WORKDIR /app
 
 # Dependencias primero: la capa se reutiliza mientras no cambien pyproject.toml ni uv.lock.
-RUN --mount=type=cache,target=/tmp/uv-cache \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-dev --no-install-project
+# Sin `--mount=type=cache` (T-0.7): el builder de Railway rechaza los cache mounts que no llevan
+# `id=s/<id-del-servicio>-<ruta>`, y ese id ataría la imagen a un proveedor. `--no-cache` deja la
+# caché de uv fuera de la capa.
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev --no-install-project --no-cache
 
 # Sólo lo que la imagen necesita (ver .dockerignore para lo que nunca entra).
-COPY pyproject.toml uv.lock README.md alembic.ini ./
+COPY README.md alembic.ini ./
 COPY app/ app/
 COPY migrations/ migrations/
 COPY scripts/ scripts/
 COPY deploy/uvicorn_log.json deploy/uvicorn_log.json
-RUN --mount=type=cache,target=/tmp/uv-cache \
-    uv sync --locked --no-dev
+RUN uv sync --locked --no-dev --no-cache
 
 COPY --from=frontend /src/frontend/dist frontend/dist
 

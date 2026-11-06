@@ -16,8 +16,8 @@ Las de `.env.example` más las que interpola el compose. Cada servicio recibe s�
 |---|---|
 | `POSTGRES_PASSWORD` | Obligatoria; `POSTGRES_USER`/`POSTGRES_DB` por defecto `carta`/`carta_db` |
 | `DATABASE_URL` | `postgresql+asyncpg://carta:<POSTGRES_PASSWORD>@postgres:5432/carta_db` (el host es el servicio `postgres`) |
-| `IMAGEN`, `IMAGEN_TAG` | Imagen de la API: `ghcr.io/klvinlopez/carta` + SHA o etiqueta; rollback = la etiqueta anterior. **Nadie publica en GHCR todavía** (decisión pendiente en T-0.7: publicar en etiquetas `v*` o construir en la VM): si la imagen no existe, `docker compose up --build` la construye desde la raíz del repositorio clonado |
-| `IMAGEN_RESPALDO` | Imagen del respaldo (`ghcr.io/klvinlopez/carta-respaldo`); si no existe, se construye de `deploy/respaldo/` |
+| `IMAGEN`, `IMAGEN_TAG` | Imagen de la API: `ghcr.io/klvinlopez/carta` + SHA o etiqueta; rollback = la etiqueta anterior. La publica `.github/workflows/deploy.yml` (trabajo `publicar`) en cada etiqueta `v*`, con `:<etiqueta>` y `:latest`; el paquete nace privado (ver `deploy/README.md` §5). Si la imagen no existe, `docker compose up --build` la construye desde la raíz del repositorio clonado |
+| `IMAGEN_RESPALDO` | Imagen del respaldo (`ghcr.io/klvinlopez/carta-respaldo`, también la publica `deploy.yml`); si no existe, se construye de `deploy/respaldo/` |
 | `WORKERS`, `PUERTO_API` | Workers de uvicorn (2) y puerto local de la API (8000; 8001 para un segundo stack) |
 | `DOMINIO` | Para Caddy |
 | `ENTORNO`, `SECRET_KEY`, `R2_*`, `ANTHROPIC_API_KEY`, `IMPORTACION_MODELO`, `FIREBASE_PROJECT_ID`, `SENTRY_DSN` | Las de `.env.example` |

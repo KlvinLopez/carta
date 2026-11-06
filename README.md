@@ -14,7 +14,7 @@
 
 **Carta turns the restaurant QR menu into an interactive, social experience.** Diners scan the QR code on their table — no app, no sign-up — and see every dish in 3D on the table with augmented reality. Everyone at the table builds an order together, and the check gets paid without waiting for the bill. For restaurants, Carta is an operating system for the floor: live orders, a waiter app, a captain view and an analytics back-office.
 
-> **Status:** the product definition, design and MVP technical plan are complete, and the MVP is ready to be built. See [Project status](#project-status).
+> **Status (November 2026):** v1 is being built. Phase 0 (foundations) is done except the first live deploy: the API, database schema, test suite, CI and the portable Docker image are in place, and the Railway deployment is ready to switch on ([`deploy/README.md`](deploy/README.md)). v1 drops AR/3D, payments and diner accounts (see [`docs/plan/`](docs/plan/README.md)); the sections below describe the original MVP vision. See [Project status](#project-status).
 
 ## Watch the launch film
 
@@ -63,6 +63,8 @@ Waiters own a **portable professional profile**: their ratings, reviews and expe
 The creative north star is *"The Digital Sommelier"*: the warmth of a fine-dining room with the precision of augmented reality. Cream surfaces, wine-red actions and gold accents, set in DM Serif Display and DM Sans. The full specification is in [`docs/Carta_Design_System.md`](docs/Carta_Design_System.md). The [27 Google Stitch mockups](stitch/README.md) and the [35-screen interactive prototype](prototipo/README.md) both live in this repo, and you can [try the prototype live](https://klvinlopez.github.io/carta/prototipo/).
 
 ## Architecture (MVP)
+
+> **v1 differs from this MVP sketch:** one Docker image (FastAPI serving the PWA) on Railway with PostgreSQL 16, Cloudflare in front and R2 for photos and backups; no Redis, no AR/3D, no payments. See [`docs/plan/02_Arquitectura_v1.md`](docs/plan/02_Arquitectura_v1.md) and ADR-015. The Cloud Run design below is kept for stage 2 in [`deploy/etapa2-gcp/`](deploy/etapa2-gcp/README.md).
 
 The MVP is deliberately simple: one deployable API, a PWA that needs no install, and a 3D pipeline that never publishes without a human in the loop.
 
@@ -136,7 +138,9 @@ The market sizing, personas and competitive landscape are in [`docs/Carta_Market
 - [x] MVP technical design package — August 2026: PRD with 24 user stories and 83 EARS acceptance criteria, technical design, 10 ADRs, data model, OpenAPI spec with 42 operations, 3D pipeline, and an implementation plan with 58 tasks, plus test and security strategies
 - [x] Launch film in 16:9 and 9:16 — September 2026
 - [x] v1 plan for multi-agent execution — November 2026: single-server architecture, PDF-to-menu onboarding, staff role with PIN, no AR/3D in v1 (photos first; 3D generated on-device comes in v2). See [`docs/plan/`](docs/plan/README.md) and ADR-011 to ADR-014
-- [ ] Build v1 in five phases: foundations and first deploy → restaurant and menu → diner → group order, tickets and staff → beta and pilot
+- [x] Phase 0, foundations — November 2026: toolchain and settings, database models and first migration with invariant triggers, routers per audience with a single error envelope and JSON logs, test infrastructure and CI on GitHub Actions, PWA skeleton (Vite + React + TypeScript), and one portable Docker image that serves the API and the PWA with security headers
+- [ ] Phase 0, first deploy (T-0.7): repository side ready (`deploy.yml` deploys `v*` tags to Railway production and publishes the image to GHCR; click-by-click setup guide in [`deploy/railway/`](deploy/railway/README.md)); waiting for the Railway services and Cloudflare DNS to go live
+- [ ] Build the rest of v1: restaurant and menu → diner → group order, tickets and staff → beta and pilot
 
 ## How it was built
 
@@ -164,6 +168,10 @@ uv run uvicorn app.main:app --reload --port 8000
 uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q
 ```
 
+## Deploy
+
+Staging deploys itself from GitHub on every push to the tracked branch; production deploys on every `v*` tag through [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Step-by-step deploy, release and rollback instructions (in Spanish) are in [`deploy/README.md`](deploy/README.md).
+
 The build plan, task by task, is in [`docs/plan/04_Fases_y_Tareas.md`](docs/plan/04_Fases_y_Tareas.md). Claude Code sessions start with `/tarea T-x.y` (see [`CLAUDE.md`](CLAUDE.md)).
 
 ## Repository map
@@ -177,7 +185,7 @@ The build plan, task by task, is in [`docs/plan/04_Fases_y_Tareas.md`](docs/plan
 | [`stitch/`](stitch/README.md) | 27 Google Stitch mockups (HTML + PNG) |
 | [`marketing/video/`](marketing/video/README.md) | Launch films and their HyperFrames source |
 | [`app/`](app/), [`migrations/`](migrations/), [`tests/`](tests/) | FastAPI backend skeleton — see the [backend guide](docs/BACKEND.md) |
-| [`terraform/`](terraform/), [`.github/workflows/`](.github/workflows/) | Google Cloud infrastructure and CI/CD |
+| [`deploy/`](deploy/README.md), [`.github/workflows/`](.github/workflows/) | Deployment (Railway, backups, VM variant, stage-2 Terraform in `deploy/etapa2-gcp/`) and CI/CD |
 | [`docs/archivo/wireframes/`](docs/archivo/wireframes/) | First interactive wireframes (React), superseded by the prototype |
 | [`CLAUDE.md`](CLAUDE.md) | Build guardrails for Claude Code |
 

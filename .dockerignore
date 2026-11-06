@@ -1,4 +1,4 @@
-# Lo que nunca entra en el contexto de construcción de la imagen (T-0.6).
+# Lo que nunca entra en el contexto de construcción de la imagen (T-0.6; T-0.7 movió terraform/).
 # El Dockerfile copia rutas explícitas (app/, migrations/, scripts/, frontend/, deploy/uvicorn_log.json,
 # pyproject.toml, uv.lock, alembic.ini, README.md); esto además mantiene el contexto pequeño y
 # garantiza que un .env o los datos locales no puedan colarse en ninguna capa.
@@ -29,7 +29,7 @@ prototipo/
 marketing/
 wireframes/
 stitch/
-terraform/
+deploy/etapa2-gcp/
 pruebas/
 .github/
 .claude/

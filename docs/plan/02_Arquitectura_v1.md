@@ -74,7 +74,7 @@ flowchart LR
 | Correo | Resend (3,000 correos/mes gratis) | Enlaces de acceso del operador y avisos |
 | Monitoreo | Sentry (gratis) · UptimeRobot (gratis) · logs JSON con `request_id` | Ver 05 |
 | CI/CD | GitHub Actions → imagen en GHCR → `ssh` a la VM → `docker compose pull && up` | Sin agentes ni runners propios |
-| Infraestructura como código | `deploy/` con `docker-compose.prod.yml`, `Caddyfile`, `cloud-init.yml` para crear la VM | Terraform de GCP se archiva en `terraform/` para la Etapa 2 |
+| Infraestructura como código | `deploy/` con `docker-compose.prod.yml`, `Caddyfile`, `cloud-init.yml` para crear la VM | Terraform de GCP se archiva en `deploy/etapa2-gcp/` para la Etapa 2 |
 
 **Qué se retira del TDD de agosto:** Redis/Memorystore (caché e idempotencia van en proceso y en PostgreSQL), Cloud Run y Cloud SQL (Etapa 2), VPC y conector, worker 3D y cola, conversión USDZ, `black`.
 
@@ -329,7 +329,7 @@ Análisis completo, con pros, contras y precios de Vercel, Netlify, Railway, Ren
 
 - **Primer despliegue: Railway.** Misma imagen Docker, PostgreSQL con volumen, respaldo a R2 como servicio con horario, Cloudflare delante. ≈ 5–10 USD/mes al arrancar, 20–25 con 10 restaurantes. Sin servidor que administrar.
 - **Camino de ahorro: la VM con Compose** de esta sección y del ADR-012 (6–12 USD/mes, costo fijo), cuando la factura de Railway pase de ~40 USD sostenidos o se quiera control total. Hetzner es el más barato; Vultr tiene Ciudad de México; DigitalOcean es el más documentado.
-- **Camino de escala: Google Cloud** (Cloud Run + Cloud SQL, región en Querétaro, `terraform/` ya apunta ahí) cuando un disparador de §11.3 lo pida. El equivalente en AWS exige más configuración; si llega un crédito de AWS, la misma imagen corre en App Runner en un día.
+- **Camino de escala: Google Cloud** (Cloud Run + Cloud SQL, región en Querétaro, `deploy/etapa2-gcp/` ya apunta ahí) cuando un disparador de §11.3 lo pida. El equivalente en AWS exige más configuración; si llega un crédito de AWS, la misma imagen corre en App Runner en un día.
 - **Nunca para la API:** Vercel y Netlify (funciones serverless sin proceso de larga duración, cobro por invocación, sin PostgreSQL).
 
 ### 11.3 Disparadores de crecimiento
