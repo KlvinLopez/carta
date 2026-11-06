@@ -46,16 +46,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Restaurantes
-         * @description List all restaurants.
+         * Listar Restaurantes
+         * @description Los restaurantes del operador (AC-15.2). Lista vacía si todavía no tiene ninguno.
          */
-        get: operations["list_restaurantes_api_v1_admin_restaurantes_get"];
+        get: operations["listar_restaurantes_api_v1_admin_restaurantes_get"];
         put?: never;
         /**
-         * Create Restaurante
-         * @description Create a new restaurant.
+         * Crear Restaurante
+         * @description Alta: crea el restaurante y al operador como `propietario`, con `slug` único.
          */
-        post: operations["create_restaurante_api_v1_admin_restaurantes_post"];
+        post: operations["crear_restaurante_api_v1_admin_restaurantes_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -69,21 +69,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get Restaurante
-         * @description Get a specific restaurant.
-         */
-        get: operations["get_restaurante_api_v1_admin_restaurantes__rid__get"];
+        /** Ver Restaurante */
+        get: operations["ver_restaurante_api_v1_admin_restaurantes__rid__get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /**
-         * Update Restaurante
-         * @description Update a restaurant.
+         * Cambiar Restaurante
+         * @description Nombre, logo, slug y datos de contacto; sólo cambian los campos enviados.
          */
-        patch: operations["update_restaurante_api_v1_admin_restaurantes__rid__patch"];
+        patch: operations["cambiar_restaurante_api_v1_admin_restaurantes__rid__patch"];
         trace?: never;
     };
     "/api/v1/admin/restaurantes/{rid}/platillos": {
@@ -632,14 +629,9 @@ export interface components {
         };
         /**
          * PlatilloCreate
-         * @description Schema for creating dishes.
+         * @description Schema for creating dishes. Un campo desconocido (`restaurante_id`) es 422.
          */
         PlatilloCreate: {
-            /**
-             * Restaurante Id
-             * Format: uuid
-             */
-            restaurante_id: string;
             /** Categoria Id */
             categoria_id?: string | null;
             /** Nombre */
@@ -808,14 +800,14 @@ export interface components {
             ids: string[];
         };
         /**
-         * RestauranteCreate
-         * @description Schema for creating restaurants.
+         * RestauranteCambios
+         * @description `PATCH /admin/restaurantes/{rid}`: sólo los campos enviados cambian.
          */
-        RestauranteCreate: {
+        RestauranteCambios: {
             /** Nombre */
-            nombre: string;
+            nombre?: string | null;
             /** Slug */
-            slug: string;
+            slug?: string | null;
             /** Direccion */
             direccion?: string | null;
             /** Telefono */
@@ -824,25 +816,33 @@ export interface components {
             email?: string | null;
             /** Logo Url */
             logo_url?: string | null;
+            /** Tema */
+            tema?: ("vino" | "verde" | "azul" | "ocre" | "cafe") | null;
+        };
+        /**
+         * RestauranteCrear
+         * @description `POST /admin/restaurantes`. Sin `slug`, se deriva del nombre (único, con sufijo).
+         */
+        RestauranteCrear: {
+            /** Nombre */
+            nombre: string;
+            /**
+             * Slug
+             * @description Si ya existe, 409 `CONFLICTO`. Sin él se deriva del nombre.
+             */
+            slug?: string | null;
+            /** Direccion */
+            direccion?: string | null;
+            /** Telefono */
+            telefono?: string | null;
+            /** Email */
+            email?: string | null;
             /**
              * Tema
              * @default vino
+             * @enum {string}
              */
-            tema: string;
-            /**
-             * Plan
-             * @default gratis
-             */
-            plan: string;
-            /** Horarios */
-            horarios?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Activo
-             * @default true
-             */
-            activo: boolean;
+            tema: "vino" | "verde" | "azul" | "ocre" | "cafe";
         };
         /**
          * RestauranteRespuesta
@@ -878,32 +878,6 @@ export interface components {
              * Format: date-time
              */
             creado_en: string;
-        };
-        /**
-         * RestauranteUpdate
-         * @description Schema for updating restaurants.
-         */
-        RestauranteUpdate: {
-            /** Nombre */
-            nombre?: string | null;
-            /** Direccion */
-            direccion?: string | null;
-            /** Telefono */
-            telefono?: string | null;
-            /** Email */
-            email?: string | null;
-            /** Logo Url */
-            logo_url?: string | null;
-            /** Tema */
-            tema?: string | null;
-            /** Plan */
-            plan?: string | null;
-            /** Horarios */
-            horarios?: {
-                [key: string]: unknown;
-            } | null;
-            /** Activo */
-            activo?: boolean | null;
         };
         /** ResultadoImportacion */
         "ResultadoImportacion-Input": {
@@ -1012,13 +986,9 @@ export interface operations {
             };
         };
     };
-    list_restaurantes_api_v1_admin_restaurantes_get: {
+    listar_restaurantes_api_v1_admin_restaurantes_get: {
         parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-                activo?: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1063,7 +1033,7 @@ export interface operations {
             };
         };
     };
-    create_restaurante_api_v1_admin_restaurantes_post: {
+    crear_restaurante_api_v1_admin_restaurantes_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1072,7 +1042,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RestauranteCreate"];
+                "application/json": components["schemas"]["RestauranteCrear"];
             };
         };
         responses: {
@@ -1103,6 +1073,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -1114,7 +1093,7 @@ export interface operations {
             };
         };
     };
-    get_restaurante_api_v1_admin_restaurantes__rid__get: {
+    ver_restaurante_api_v1_admin_restaurantes__rid__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1163,7 +1142,7 @@ export interface operations {
             };
         };
     };
-    update_restaurante_api_v1_admin_restaurantes__rid__patch: {
+    cambiar_restaurante_api_v1_admin_restaurantes__rid__patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -1174,7 +1153,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RestauranteUpdate"];
+                "application/json": components["schemas"]["RestauranteCambios"];
             };
         };
         responses: {
@@ -1198,6 +1177,15 @@ export interface operations {
             };
             /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

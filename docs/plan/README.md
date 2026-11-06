@@ -52,7 +52,7 @@ Los documentos de `docs/mvp/` (PRD, TDD, modelo de datos, API, seguridad, ADR 00
 | Fase | Entregable observable | Estado |
 |---|---|---|
 | 0 · Cimientos y primer despliegue | `https://staging.<dominio>/health` responde desde un teléfono | T-0.1 a T-0.7 integradas (6 de noviembre: 300 pruebas backend, 70 de frontend, CI con `docker build`, comando previo y humo). De T-0.7 falta la parte operativa: servicios y variables en el panel de Railway (Calvin, `deploy/railway/README.md`), DNS y reglas en Cloudflare (maestra) y la primera etiqueta `v0.0.1` tras el merge a `master`. T-0.8 integrada (skills `/desplegar` y `/carga`, hook verificado en shell limpio) |
-| 1 · Restaurante y menú | Un restaurante sube su PDF y ve su menú con fotos y sus QR impresos | En curso: T-1.1 integrada (6 de noviembre: migración 0002 con INV-10 completa, contrato OpenAPI de la fase con la envoltura de error, 472 pruebas). Siguen T-1.2 (carril A), T-1.8 (B) y T-1.10 (C) |
+| 1 · Restaurante y menú | Un restaurante sube su PDF y ve su menú con fotos y sus QR impresos | En curso: T-1.1, T-1.2, T-1.8 y T-1.10 integradas (6 de noviembre: INV-10, acceso del operador con Firebase, extracción del menú con la API de Claude, panel del operador; 790 pruebas backend, 185 de frontend). T-1.3 en revisión; siguen T-1.9 (B) y T-1.11 (C) |
 | 2 · Comensal | Un comensal escanea y ve el menú en su teléfono | Pendiente |
 | 3 · Orden en grupo, comandas y personal | La mesa arma la orden junta y el mesero la recibe | Pendiente |
 | 4 · Beta y piloto | Seguridad, respaldos, carga medida, primer restaurante real | Pendiente |
