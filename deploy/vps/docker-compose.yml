@@ -64,9 +64,11 @@ services:
       retries: 12
 
   migracion:
-    # Corre `alembic upgrade head` con la imagen nueva y termina; `api` arranca sólo si salió bien.
+    # Corre el comando previo al despliegue (scripts/predespliegue.py: `alembic upgrade head`,
+    # salvo que la base vaya por delante del código en un rollback) con la imagen nueva y
+    # termina; `api` arranca sólo si salió bien.
     <<: *imagen
-    command: ["uv", "run", "alembic", "upgrade", "head"]
+    command: ["uv", "run", "python", "scripts/predespliegue.py"]
     restart: "no"
     environment:
       <<: *base_de_datos

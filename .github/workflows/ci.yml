@@ -163,6 +163,9 @@ jobs:
           curl -sf localhost:8000/ready | grep -q '"db":"ok"'
           docker exec carta-test uv run alembic upgrade head
           docker exec carta-test uv run alembic current | grep -q 0001_base_v1
+          # El comando previo de Railway y de la VM (T-0.7) corre desde la imagen y es idempotente.
+          docker exec carta-test uv run python scripts/predespliegue.py
+          docker exec carta-test uv run alembic current | grep -q 0001_base_v1
 
       - name: Cachés, 404 JSON, cabeceras y logs JSON del supervisor
         run: |

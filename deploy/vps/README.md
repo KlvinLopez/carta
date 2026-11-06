@@ -5,7 +5,7 @@
 | Archivo | Qué es |
 |---|---|
 | `cloud-init.yml` | Crea la VM: usuario `carta` con Docker, `ufw`, `fail2ban`, actualizaciones automáticas, clona el repositorio en `/opt/carta` y deja el cron del respaldo (04:00 UTC). Pega tu llave SSH antes de usarlo. |
-| `docker-compose.yml` | `postgres` (volumen) → `migracion` (`alembic upgrade head`, termina) → `api` (la misma imagen que en Railway, 2 workers, sólo en `127.0.0.1:8000`); `caddy` opcional con el perfil `caddy`; `respaldo` con el perfil `respaldo` (lo lanza el cron del host con `docker compose run --rm respaldo`). |
+| `docker-compose.yml` | `postgres` (volumen) → `migracion` (`scripts/predespliegue.py`: `alembic upgrade head` salvo en un rollback con la base por delante; termina) → `api` (la misma imagen que en Railway, 2 workers, sólo en `127.0.0.1:8000`); `caddy` opcional con el perfil `caddy`; `respaldo` con el perfil `respaldo` (lo lanza el cron del host con `docker compose run --rm respaldo`). |
 | `Caddyfile` | HTTPS automático para `$DOMINIO` y proxy a `api:8000`. No toca cabeceras: las pone la aplicación. |
 
 ## Variables (`/opt/carta/deploy/vps/.env`, permisos 600)

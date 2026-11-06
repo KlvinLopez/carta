@@ -1,12 +1,12 @@
-# syntax=docker/dockerfile:1.7
 # Imagen portable de Carta (T-0.6, ADR-015): una sola imagen sirve la API y la PWA, sin proxy
 # delante y sin saber en qué proveedor corre (Railway hoy; VM con Compose en deploy/vps/).
 #
 #   docker build -t carta .
 #   docker run -p 8000:8000 --env-file .env carta
 #
-# La migración NO corre aquí: la corre el comando previo al despliegue (`uv run alembic
-# upgrade head`, T-0.7) o el servicio `migracion` de deploy/vps/docker-compose.yml.
+# La migración NO corre aquí: la corre el comando previo al despliegue
+# (`uv run python scripts/predespliegue.py`, T-0.7) o el servicio `migracion` de
+# deploy/vps/docker-compose.yml.
 
 # ---------- Etapa 1: la PWA (frontend/dist) ----------
 FROM node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d AS frontend

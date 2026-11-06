@@ -10,19 +10,26 @@
 # Source → Branch; `master`, o `claude/gifted-allen-rqjiup` mientras no exista el merge). Ver
 # deploy/railway/README.md.
 #
-# Tres trabajos:
-#   verificar   la etiqueta tiene forma vX.Y.Z y el CI (ci.yml) pasó en ese mismo commit.
+# Cuatro trabajos:
+#   verificar   la etiqueta tiene forma vX.Y.Z, su commit está en `master` y el CI (ci.yml) pasó
+#               en ese mismo commit.
 #   produccion  `railway up` del código de la etiqueta al servicio `api` de `produccion`; Railway
-#               construye el Dockerfile, corre el comando previo (alembic upgrade head), espera a
-#               /health y cambia el tráfico. Después, prueba de humo contra https://carta.cooking.
-#   publicar    la misma etiqueta como imagen en GHCR (`ghcr.io/klvinlopez/carta:<etiqueta>` y
-#               `:latest`, más `carta-respaldo`) para la variante de VM (deploy/vps/). Vive aquí y no
-#               en ci.yml porque sólo corre en etiquetas: ci.yml no se dispara con etiquetas y
+#               construye el Dockerfile, corre el comando previo (scripts/predespliegue.py), espera
+#               a /health y cambia el tráfico.
+#   humo        prueba de humo contra https://carta.cooking. Va aparte: en el primer despliegue el
+#               DNS o el certificado pueden tardar (hasta 72 h) y el rojo aquí no significa que
+#               producción falló; «Re-run failed jobs» repite sólo el humo, sin otro `railway up`.
+#   publicar    tras `produccion`, la misma etiqueta como imagen en GHCR
+#               (`ghcr.io/klvinlopez/carta:<etiqueta>` y `:latest`, más `carta-respaldo`) para la
+#               variante de VM (deploy/vps/): `:latest` sólo se mueve si producción quedó
+#               desplegada. Vive aquí y no en ci.yml porque ci.yml no se dispara con etiquetas y
 #               añadírselas repetiría `calidad` e `imagen` sobre un commit que ya pasó.
 #
-# Único secreto: RAILWAY_TOKEN, un *project token* del environment `produccion` (Railway →
-# proyecto → Settings → Tokens). GITHUB_TOKEN (`github.token`) sólo escribe paquetes, y sólo en
-# `publicar`. Las acciones van fijadas por SHA completo (el tag es comentario), como en ci.yml.
+# Único secreto: RAILWAY_TOKEN, un *project token* del environment `produccion` de Railway,
+# guardado como secreto del Environment `produccion` de GitHub (no del repositorio): sólo lo ve
+# el trabajo `produccion`, y sólo desde etiquetas `v*` o `master` (deploy/railway/README.md,
+# paso F). GITHUB_TOKEN (`github.token`) sólo escribe paquetes, y sólo en `publicar`. Las
+# acciones van fijadas por SHA completo (el tag es comentario), como en ci.yml.
 name: Despliegue a producción
 
 on:
@@ -36,13 +43,21 @@ on:
         required: true
         type: string
 
-# Un despliegue a producción nunca cancela a otro a medias: el siguiente espera su turno.
+# Un despliegue a la vez: nunca se cancela uno a medias. Ojo: GitHub guarda sólo UN pendiente
+# por grupo; si se encolan tres, el del medio se cancela aunque `cancel-in-progress` sea false.
+# Espera a que termine el anterior antes de lanzar otro.
 concurrency:
   group: despliegue-produccion
   cancel-in-progress: false
 
 permissions:
   contents: read
+
+# Con `shell: bash` explícito GitHub corre `bash --noprofile --norc -eo pipefail`: un
+# `curl | grep` roto falla de verdad.
+defaults:
+  run:
+    shell: bash
 
 env:
   # La etiqueta viaja siempre por variable de entorno, nunca interpolada dentro de un `run`.
@@ -70,11 +85,24 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: refs/tags/${{ env.ETIQUETA }}
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Commit de la etiqueta
         id: commit
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: El commit está en master
+        # ci.yml también corre en ramas `agente/**` y `claude/**`: sin esto, una etiqueta sobre
+        # una rama sin integrar tendría CI verde y desplegaría. Se etiqueta después del merge.
+        env:
+          SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          git fetch --no-tags origin master
+          if ! git merge-base --is-ancestor "$SHA" origin/master; then
+            echo "::error::$ETIQUETA ($SHA) no está en master: integra primero y etiqueta después."
+            exit 1
+          fi
 
       - name: El CI pasó en ese commit
         env:
@@ -83,7 +111,7 @@ jobs:
         run: |
           exitos="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$SHA&status=success&per_page=1" --jq '.total_count')"
           if [ "$exitos" = "0" ]; then
-            echo "::error::El CI (ci.yml) no tiene una corrida en verde para $SHA. Empuja ese commit a master (o a la rama de staging), espera el CI y vuelve a etiquetar."
+            echo "::error::No hay corrida en verde de ci.yml para $SHA: espera a que termine el CI de ese commit (o relánzalo si falló o se canceló) y vuelve a lanzar este workflow."
             exit 1
           fi
           echo "CI en verde para $SHA ($ETIQUETA)."
@@ -93,13 +121,15 @@ jobs:
     needs: verificar
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment:
+      name: produccion
+      url: https://carta.cooking
     env:
       # Versión fijada de la CLI y SHA-256 del binario oficial
       # (github.com/railwayapp/cli/releases, v5.71.0 del 19 de octubre de 2026). Para subir de
       # versión: descargar el nuevo .tar.gz, `sha256sum` y cambiar las dos líneas juntas.
       RAILWAY_CLI_VERSION: "5.71.0"
       RAILWAY_CLI_SHA256: "2e682fd2ddf8d6fdf9e46d9d99d99646ff0022a6abb0c2bca93011348a269fb9"
-      URL_PRODUCCION: https://carta.cooking
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -128,24 +158,35 @@ jobs:
         run: |
           railway up --environment produccion --service api --message "$ETIQUETA ($SHA)"
 
-      - name: Prueba de humo contra https://carta.cooking
+  humo:
+    name: Prueba de humo contra https://carta.cooking
+    needs: produccion
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      URL_PRODUCCION: https://carta.cooking
+
+    steps:
+      - name: /health, /ready, la PWA, CSP y HSTS
         run: |
-          # Hasta 5 minutos: el CNAME de Cloudflare apunta al despliegue nuevo en cuanto Railway
-          # cambia el tráfico, pero damos margen.
+          # Hasta 5 minutos: Cloudflare apunta al despliegue nuevo en cuanto Railway cambia el
+          # tráfico, pero damos margen.
           for intento in $(seq 1 30); do
-            curl -sf https://carta.cooking/health > /dev/null && break
+            if curl -sf "$URL_PRODUCCION/health" > /dev/null; then break; fi
             sleep 10
           done
-          curl -sf https://carta.cooking/health
-          curl -sf https://carta.cooking/ready | grep -q '"db":"ok"'
-          curl -sf https://carta.cooking/ | grep -q '<div id="app"'
-          curl -sI https://carta.cooking/ | grep -i content-security-policy
-          curl -sI https://carta.cooking/ | grep -i strict-transport-security
+          curl -sf "$URL_PRODUCCION/health"
+          curl -sf "$URL_PRODUCCION/ready" | grep -q '"db":"ok"'
+          curl -sf "$URL_PRODUCCION/" | grep -q '<div id="app"'
+          curl -sI "$URL_PRODUCCION/" | grep -i content-security-policy
+          curl -sI "$URL_PRODUCCION/" | grep -i strict-transport-security
           echo "### Producción en ${URL_PRODUCCION} con ${ETIQUETA}" >> "$GITHUB_STEP_SUMMARY"
 
   publicar:
     name: Imagen en GHCR (variante de VM)
-    needs: verificar
+    needs: [verificar, produccion]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

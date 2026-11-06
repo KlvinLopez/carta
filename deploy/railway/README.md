@@ -6,7 +6,7 @@ Quién hace qué:
 
 - **Calvin** (esta guía): crea los servicios en Railway y pega las variables.
 - **La sesión maestra**: crea en Cloudflare los registros DNS que Railway te muestre (paso G), la regla de caché del menú, el límite de tasa y *Always Use HTTPS*; etiqueta `v0.0.1` para el primer despliegue a producción.
-- **El repositorio** ya trae el `Dockerfile`, `.railwayignore`, `.github/workflows/deploy.yml` (producción en cada etiqueta `v*`) y `deploy/respaldo/`.
+- **El repositorio** ya trae el `Dockerfile`, `.railwayignore`, `.github/workflows/deploy.yml` (producción en cada etiqueta `v*`), `scripts/predespliegue.py` (las migraciones antes de cada despliegue) y `deploy/respaldo/`.
 
 > **Por qué no hay `railway.toml`.** Railway dejó de leer `railway.toml`/`railway.json` («Config as Code») en servicios nuevos, y el 1 de diciembre de 2026 deja de leerlos en todos ([docs.railway.com/config-as-code/reference](https://docs.railway.com/config-as-code/reference)). Por eso el *healthcheck*, el comando previo y la política de reinicio se ponen en el panel (paso C). Cuando una sesión tenga la CLI de Railway, `railway config pull` puede generar `.railway/railway.ts` con lo que dejes aquí ([Infrastructure as Code](https://docs.railway.com/infrastructure-as-code)); queda anotado en `docs/plan/04_Fases_y_Tareas.md` §11.
 
@@ -67,7 +67,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    | **Source → Root Directory** | vacío (o `/`) | el `Dockerfile` está en la raíz |
    | **Build** | debe decir que usa el **Dockerfile** (en los logs: `Using detected Dockerfile!`) | no hay que elegir nada |
    | **Deploy → Custom Start Command** | vacío | la imagen ya sabe arrancar |
-   | **Deploy → Pre-deploy Command** | `uv run alembic upgrade head` | aplica las migraciones antes de recibir tráfico; si fallan, no se despliega |
+   | **Deploy → Pre-deploy Command** | `uv run python scripts/predespliegue.py` | aplica las migraciones antes de recibir tráfico; si fallan, no se despliega. En un rollback a una versión más vieja que la base, avisa y no toca nada |
    | **Deploy → Pre-deploy Timeout** (aparece después de escribir el comando) | `300` | que una migración colgada falle en 5 min en vez de quedarse esperando |
    | **Deploy → Healthcheck Path** | `/health` | Railway sólo manda tráfico a la versión nueva cuando responde |
    | **Deploy → Healthcheck Timeout** | `120` | segundos de espera para ese `/health` |
@@ -93,7 +93,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    - `${{Postgres.DATABASE_URL}}` se pega **tal cual**: Railway lo cambia por la dirección real de la base de este environment.
    - `PORT=8000` fija el puerto en el que escucha la aplicación (y en el que Railway hace el *healthcheck*).
    - `ANTHROPIC_API_KEY`, `FIREBASE_PROJECT_ID` y `SENTRY_DSN` **no se crean todavía**: sin ellas la aplicación arranca y esas funciones quedan apagadas. Se agregan aquí mismo cuando lleguen sus tareas.
-5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY`. Una variable sellada ya no se puede ver ni sacar del panel (sí cambiar con **⋮ → Edit**). Si la necesitas, está en tu gestor de contraseñas.
+5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
 6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra.
 
 ---
@@ -107,7 +107,8 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    |---|---|
    | **Source → Root Directory** | `/deploy/respaldo` |
    | **Source → Branch** | la misma que `api` (`claude/gifted-allen-rqjiup` por ahora; luego `master`) |
-   | **Build → Watch Paths** | `/deploy/respaldo/**` (sólo se reconstruye cuando cambia el respaldo) |
+   | **Source → Wait for CI** | Activado (no despliega un commit cuyo CI falló) |
+   | **Watch Paths** (en **Source** o en **Build**, según cómo lo muestre el panel) | `/deploy/respaldo/**` (sólo se redespliega cuando cambia esa carpeta, no con cada push) |
    | **Deploy → Cron Schedule** | `0 4 * * *` (todos los días a las 04:00 UTC = 22:00 en Ciudad de México) |
    | **Deploy → Restart Policy** | **Never** (si un respaldo falla, se ve en rojo y no se repite en bucle) |
    | **Deploy → Healthcheck Path** / **Pre-deploy Command** | vacíos |
@@ -126,7 +127,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    RESPALDO_DIAS=30
    ```
 
-   Sella `R2_SECRET_ACCESS_KEY` (**⋮ → Seal**). La llave de age es pública: no hace falta sellarla.
+   Sella `R2_SECRET_ACCESS_KEY` (**⋮ → Seal**; para cambiarla después, **⋮ → Edit**, no el RAW Editor). La llave de age es pública: no hace falta sellarla.
 4. **Deploy**. Al día siguiente, en Cloudflare → **R2 Object Storage** → `carta-privado-staging` → carpeta `respaldos/staging/` debe haber un archivo `.dump.age` con la fecha. Si no está, abre el servicio `respaldo` → **Deployments** → el último → **View Logs** y pásale el error a la maestra (el script dice qué variable falta).
 
 ---
@@ -154,8 +155,8 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    R2_URL_PUBLICA=https://img.carta.cooking
    ```
 
-   Sella `SECRET_KEY` y `R2_SECRET_ACCESS_KEY`.
-3. **D (`respaldo`):** igual que en staging (desde GitHub, Root Directory `/deploy/respaldo`, misma rama, Cron `0 4 * * *`, Restart **Never**), con estas variables:
+   Sella `SECRET_KEY` y `R2_SECRET_ACCESS_KEY` (para cambiarlas después, **⋮ → Edit** una por una).
+3. **D (`respaldo`):** igual que en staging: desde GitHub, Root Directory `/deploy/respaldo`, misma rama, **Wait for CI activado** y **Watch Paths** `/deploy/respaldo/**` (así un push a la rama sólo llega a producción si toca el respaldo y su CI pasó), Cron `0 4 * * *`, Restart **Never**. Con estas variables:
 
    ```text
    ENTORNO=produccion
@@ -169,6 +170,8 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    ```
 
 4. **Deploy** en la franja de cambios pendientes.
+
+> Alternativa futura para `respaldo` de producción: en vez de seguir una rama, **Source → Docker Image** `ghcr.io/klvinlopez/carta-respaldo:<etiqueta>` (la publica `deploy.yml`). Requiere que el paquete de GHCR sea público o credenciales de registro en Railway.
 
 Resumen de lo que cambia entre ambientes:
 
@@ -185,17 +188,21 @@ Resumen de lo que cambia entre ambientes:
 
 ---
 
-## F. El token de GitHub para producción
+## F. El token de producción, guardado en un *Environment* de GitHub
 
-`deploy.yml` usa el secreto `RAILWAY_TOKEN`, que debe ser un **project token del environment `produccion`** (un *project token* sólo sirve para un environment).
+`deploy.yml` usa `RAILWAY_TOKEN`, que debe ser un **project token del environment `produccion`** de Railway (un *project token* sólo sirve para un environment). Hoy está guardado como secreto **del repositorio**, y eso lo puede leer cualquier workflow de cualquier rama. Lo vamos a **mover** a un *Environment* de GitHub llamado `produccion`, que sólo lo entrega a las etiquetas `v*` y a `master`.
 
-1. Railway → proyecto **carta** → **Settings** → **Tokens**. Si ya hay un token cuyo environment es `produccion` (o el `production` que renombraste en A.2) y es el que guardaste en GitHub, ya está.
-2. Si no estás seguro: **Create** → nombre `github-actions-produccion` → environment **produccion** → copia el token (sólo se muestra una vez).
-3. GitHub → repositorio **KlvinLopez/carta** → **Settings** → **Secrets and variables** → **Actions** → `RAILWAY_TOKEN` → **Update** (lápiz) → pega → **Update secret**.
+1. **El token en Railway.** Railway → proyecto **carta** → **Settings** → **Tokens**. Si ya hay un token cuyo environment es `produccion` (o el `production` que renombraste en A.2) y es el que guardaste en GitHub, tenlo a mano (si no lo guardaste en tu gestor de contraseñas, crea otro). Si no: **Create** → nombre `github-actions-produccion` → environment **produccion** → copia el token (sólo se muestra una vez).
+2. **Crear el Environment.** GitHub → repositorio **KlvinLopez/carta** → **Settings** → menú izquierdo **Environments** → **New environment** → nombre `produccion` → **Configure environment**.
+3. **Quién puede usarlo.** En esa página, **Deployment branches and tags** → elige **Selected branches and tags** → **Add deployment branch or tag rule** → **Ref type: Tag**, patrón `v*` → **Add rule**. Otra vez **Add deployment branch or tag rule** → **Ref type: Branch**, patrón `master` → **Add rule** (hace falta para el rollback con **Run workflow**, que corre desde `master`).
+4. **El secreto.** Más abajo, **Environment secrets** → **Add environment secret** → **Name** `RAILWAY_TOKEN`, **Value** el token del paso 1 → **Add secret**.
+5. **Borra el viejo.** **Settings** → **Secrets and variables** → **Actions** → pestaña **Secrets** → sección **Repository secrets** → en `RAILWAY_TOKEN`, el ícono de **papelera** → confirma. Así queda en un solo lugar: el Environment.
 
 ---
 
 ## G. Los dominios: `staging.carta.cooking` y `carta.cooking`
+
+Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api` de **produccion** porque todavía no tiene ningún despliegue (*Empty Service*), haz primero el paso H, vuelve aquí y, cuando el DNS esté listo, relanza el trabajo `humo` (GitHub → **Actions** → la corrida → **Re-run failed jobs**).
 
 1. Selector en **staging** → tarjeta **api** → **Settings** → **Networking** → **Public Networking** → **+ Custom Domain** → escribe `staging.carta.cooking`. Si pregunta el puerto, elige o escribe `8000`.
 2. Railway muestra **dos registros DNS** para crear: uno **CNAME** (su *Value* termina en `.up.railway.app`) y uno **TXT** (verifica que el dominio es tuyo). **Hacen falta los dos**: sin el TXT el dominio responde 404.
@@ -217,7 +224,15 @@ Resumen de lo que cambia entre ambientes:
 
 ## H. El primer despliegue a producción
 
-Lo hace la maestra cuando todo lo anterior esté listo y la rama esté integrada: crea la etiqueta `v0.0.1` y GitHub Actions corre **Despliegue a producción** (pasos exactos en [`deploy/README.md`](../README.md)). Tú sólo miras: GitHub → **Actions** → la corrida en verde, y en Railway → **produccion** → **api** → **Deployments**, el despliegue **Active**.
+Lo hace la maestra. Antes tienen que cumplirse **todas** estas condiciones:
+
+1. El paso G terminado: en Railway, `carta.cooking` con la **palomita verde** (dominio activo) y los cuatro registros DNS ya creados en Cloudflare por la maestra (o, si usas el plan B de G, sabiendo que el `humo` va a fallar hasta que lo estén).
+2. Esta rama integrada en `master`: `deploy.yml` sólo despliega etiquetas cuyo commit está en `master` (y el botón **Run workflow** del rollback sólo aparece cuando `deploy.yml` está en `master`, la rama predeterminada). Hasta el merge no hay despliegue a producción.
+3. El paso F hecho (el token en el Environment `produccion`).
+
+Entonces la maestra crea la etiqueta `v0.0.1` sobre `master` (pasos exactos en [`deploy/README.md`](../README.md)) y GitHub Actions corre **Despliegue a producción**. Tú sólo miras: GitHub → **Actions** → la corrida, y en Railway → **produccion** → **api** → **Deployments**, el despliegue **Active**.
+
+Si sale en rojo **sólo** el trabajo `humo` y `produccion` salió en verde, producción **no** falló: casi siempre es el DNS o el certificado que todavía no están. Abre `https://carta.cooking/health` en el teléfono; cuando responda, en la corrida pulsa **Re-run failed jobs** (repite sólo el humo, no vuelve a desplegar).
 
 ---
 
@@ -239,23 +254,25 @@ Desde el teléfono también puedes, en el panel de Railway: ver logs (**Deployme
 | Qué | Valor |
 |---|---|
 | Dominio y zona de Cloudflare | `carta.cooking` (zona activa, plan Free, SSL/TLS en *Full (strict)*, *Always Use HTTPS* apagado hasta T-0.7) |
-| Proyecto en Railway | `carta` (cuenta con tarjeta; `RAILWAY_TOKEN` ya guardado como secreto del repositorio) |
+| Proyecto en Railway | `carta` (cuenta con tarjeta) |
+| `RAILWAY_TOKEN` en GitHub | *project token* del environment `produccion` de Railway, como secreto del **Environment `produccion`** de GitHub (sólo etiquetas `v*` y `master`); **no** como secreto del repositorio (paso F) |
 | Buckets R2 | `carta-publico-staging`, `carta-privado-staging`, `carta-publico-produccion`, `carta-privado-produccion` |
 | Origen público de imágenes (`R2_URL_PUBLICA`) | staging: `https://img-staging.carta.cooking` · producción: `https://img.carta.cooking` (dominios propios conectados a los buckets públicos, TLS mínimo 1.2; las URL `r2.dev` quedan apagadas: tienen límite de tasa y no pasan por la caché) |
 | Ciclo de vida de los buckets privados | regla `respaldos-90-dias`: borra bajo el prefijo `respaldos/` a los 90 días (red de seguridad de la poda de 30 días de `deploy/respaldo/respaldar.sh`; las fotos originales viven fuera de ese prefijo y no caducan) |
 | Tokens S3 de R2 (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`) | *Account API tokens* con permiso *Object Read & Write*, uno por ambiente, limitados a sus dos buckets; los valores sólo en el panel de Railway |
 | Llave de respaldo (`RESPALDO_CLAVE_AGE`) | `age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk` (pública, la misma en staging y producción); la privada vive fuera de todo servidor |
-| Servicios por environment | `Postgres` (plantilla con volumen), `api` (staging: GitHub; produccion: *Empty Service* desplegado por CI), `respaldo` (GitHub, `/deploy/respaldo`, cron `0 4 * * *`) |
+| Servicios por environment | `Postgres` (plantilla con volumen), `api` (staging: GitHub; produccion: *Empty Service* desplegado por CI), `respaldo` (GitHub, `/deploy/respaldo`, Wait for CI, Watch Paths `/deploy/respaldo/**`, cron `0 4 * * *`) |
 
 ---
 
 ## Para la maestra: Cloudflare (05_Operacion §2 paso 4)
 
 1. **DNS**: los `CNAME` que Railway entregue para `staging` y para el apex `carta.cooking` con **proxy activado** (Cloudflare aplana el CNAME del apex), y los dos **TXT** de verificación tal cual (los TXT no llevan proxy).
-2. **SSL/TLS**: la zona está en *Full (strict)*. La guía de Railway para Cloudflare pide **Full**, «no Full (strict)» ([working-with-domains](https://docs.railway.com/networking/domains/working-with-domains)). Si `staging.carta.cooking` responde **526** con *strict*, baja sólo esos dos nombres a *Full* con una *Configuration Rule* en vez de toda la zona (las imágenes de R2 siguen en *strict*).
+2. **SSL/TLS**: Railway documenta *Full* y no *Full (strict)* detrás de Cloudflare ([working-with-domains](https://docs.railway.com/networking/domains/working-with-domains)). Se intenta primero con *strict* (la zona ya está así); sólo si `staging.carta.cooking` o `carta.cooking` responden **526**, baja a *Full* con una *Configuration Rule* limitada a esos dos nombres, `staging.carta.cooking` y `carta.cooking` (`img.` e `img-staging.` siguen en *strict*). Consecuencia: *Full* acepta en el origen un certificado caducado o de otro nombre, así que deja de validar la identidad de Railway.
 3. **Always Use HTTPS**: activarlo cuando los dos dominios respondan. HSTS lo manda la aplicación (sólo en `staging` y `produccion`). **Decisión consciente:** `includeSubDomains` desde el apex obliga a HTTPS en **todos** los subdominios de la zona durante un año (`img.`, `staging.` y cualquier otro); no pongas en esa zona nada que deba servirse por HTTP.
-4. **Rules**: caché para `/api/v1/p/menu/*` (respeta el `ETag` de la API), límite de tasa (p. ej. 300 peticiones/min por IP), *Bot Fight Mode*.
-5. **Comprobar**:
+4. **Rules**: caché para `/api/v1/p/menu/*` (respeta el `ETag` de la API); límite de tasa (p. ej. 300 peticiones/min por IP); una regla WAF que no cachee ni rete `/health` ni `/ready`. **Sin *Bot Fight Mode***: en el plan Free no admite excepciones y puede retar a los runners de GitHub en la prueba de humo.
+5. **Después de integrar en `master`**: en Railway, **Source → Branch** de `api` y `respaldo` de **staging** (y de `respaldo` de **produccion**) pasa de `claude/gifted-allen-rqjiup` a `master` (lo hace Calvin); `deploy.yml` ya está en la rama predeterminada, así que aparece **Run workflow**; la primera etiqueta `v0.0.1` va sobre `master` (paso H).
+6. **Comprobar**:
 
    ```bash
    curl -sf https://staging.carta.cooking/health            # {"status":"ok"}

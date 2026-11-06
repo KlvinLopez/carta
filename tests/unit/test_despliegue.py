@@ -39,6 +39,10 @@ DOCKERFILE_RESPALDO = RAIZ / "deploy" / "respaldo" / "Dockerfile"
 RAILWAYIGNORE = RAIZ / ".railwayignore"
 GUIA_RAILWAY = RAIZ / "deploy" / "railway" / "README.md"
 GUIA_DESPLIEGUE = RAIZ / "deploy" / "README.md"
+OPERACION = RAIZ / "docs" / "plan" / "05_Operacion.md"
+DEPENDABOT = RAIZ / ".github" / "dependabot.yml"
+PYPROJECT = RAIZ / "pyproject.toml"
+PREDESPLIEGUE = "uv run python scripts/predespliegue.py"
 ETAPA2 = RAIZ / "deploy" / "etapa2-gcp"
 ACCION_POR_SHA = r"[\w.-]+/[\w.-]+@[0-9a-f]{40}"
 DIGEST = r"@sha256:[0-9a-f]{64}"
@@ -118,8 +122,18 @@ def test_log_config_reutiliza_el_formateador_de_la_aplicacion() -> None:
 
 
 def test_dockerfile_multietapa_instruccion_por_instruccion() -> None:
-    instrucciones = instrucciones_dockerfile(DOCKERFILE.read_text(encoding="utf-8"))
+    texto = DOCKERFILE.read_text(encoding="utf-8")
+    # Sin `# syntax=`: no estaba fijado y sin cache mounts no hace falta (T-0.7).
+    assert not texto.lstrip().startswith("# syntax=")
+    instrucciones = instrucciones_dockerfile(texto)
     froms = [arg for ins, arg in instrucciones if ins == "FROM"]
+    # Toda imagen externa, también una etapa intermedia nueva, con digest.
+    for desde in froms:
+        assert re.search(DIGEST + r"( AS \w+)?$", desde), desde
+    for arg in (a for i, a in instrucciones if i == "COPY" and a.startswith("--from=")):
+        origen = arg.split()[0].removeprefix("--from=")
+        if origen not in {"frontend"}:  # las etapas propias no llevan digest
+            assert re.search(DIGEST + "$", origen), origen
     # Tag legible (Dependabot lo sigue) + digest fijo (T-0.7): el build es reproducible.
     assert re.fullmatch(r"node:22-slim" + DIGEST + r" AS frontend", froms[0]), froms[0]
     assert re.fullmatch(r"python:3\.12-slim" + DIGEST + r" AS api", froms[-1]), froms[-1]
@@ -244,7 +258,7 @@ def test_compose_de_la_vm_es_valido_y_tiene_la_forma_acordada() -> None:
         servicios["api"]["depends_on"]["migracion"]["condition"] == "service_completed_successfully"
     )
     assert servicios["migracion"]["depends_on"]["postgres"]["condition"] == "service_healthy"
-    assert "alembic" in " ".join(servicios["migracion"]["command"])
+    assert " ".join(servicios["migracion"]["command"]) == PREDESPLIEGUE
     assert any("postgresql/data" in v for v in servicios["postgres"]["volumes"])
     assert "ports" not in servicios["postgres"], "la base no se expone fuera del stack"
     assert all(str(p).startswith("127.0.0.1:") for p in servicios["api"]["ports"])
@@ -315,6 +329,7 @@ def test_ci_tiene_el_job_imagen_con_el_verificar_del_brief() -> None:
         "content-type: font/woff2",
         "cache-control: no-store",
         "docker build -t carta-respaldo:test deploy/respaldo",
+        "docker exec carta-test uv run python scripts/predespliegue.py",
     ):
         assert fragmento in pasos, fragmento
     for job in ci["jobs"].values():
@@ -368,6 +383,10 @@ def _pasos(job: dict) -> str:
     return "\n".join(paso.get("run", "") for paso in job["steps"])
 
 
+def _checkouts(job: dict) -> list[dict]:
+    return [p for p in job["steps"] if p.get("uses", "").startswith("actions/checkout@")]
+
+
 def test_no_hay_config_as_code_de_railway() -> None:
     """Railway no lee `railway.toml`/`railway.json` en servicios nuevos y deja de leerlos en
     todos el 2026-12-01: un archivo así sería configuración muerta que parece viva."""
@@ -383,71 +402,146 @@ def test_deploy_dispara_en_etiquetas_v_y_a_mano_con_la_etiqueta() -> None:
     assert entrada["required"] is True and entrada["type"] == "string"
 
 
-def test_deploy_solo_usa_railway_token_y_permisos_minimos() -> None:
+def test_deploy_trabajos_permisos_y_secretos_minimos() -> None:
     texto = DEPLOY.read_text(encoding="utf-8")
     assert set(re.findall(r"secrets\.(\w+)", texto)) == {"RAILWAY_TOKEN"}
     flujo = _deploy()
     assert flujo["permissions"] == {"contents": "read"}
-    concurrencia = flujo["concurrency"]
-    assert concurrencia["cancel-in-progress"] is False, "un despliegue nunca cancela otro"
+    assert flujo["concurrency"]["cancel-in-progress"] is False, "un despliegue nunca cancela otro"
+    # Con `shell: bash` explícito GitHub usa `bash -eo pipefail`: un `curl | grep` roto falla.
+    assert flujo["defaults"] == {"run": {"shell": "bash"}}
     trabajos = flujo["jobs"]
-    assert set(trabajos) == {"verificar", "produccion", "publicar"}
+    assert set(trabajos) == {"verificar", "produccion", "humo", "publicar"}
     assert trabajos["verificar"]["permissions"] == {"contents": "read", "actions": "read"}
+    assert trabajos["humo"]["permissions"] == {"contents": "read"}
     assert trabajos["publicar"]["permissions"] == {"contents": "read", "packages": "write"}
     assert "permissions" not in trabajos["produccion"], "hereda contents: read"
+    # RAILWAY_TOKEN es secreto del Environment `produccion` de GitHub, no del repositorio.
+    assert trabajos["produccion"]["environment"] == {
+        "name": "produccion",
+        "url": "https://carta.cooking",
+    }
     for nombre, job in trabajos.items():
         if nombre != "produccion":
+            assert "environment" not in job, nombre
             assert "RAILWAY_TOKEN" not in json.dumps(job), nombre
+
+
+def test_deploy_pasos_sin_interpolar_en_run_y_acciones_por_sha() -> None:
+    for nombre, job in _deploy()["jobs"].items():
         for paso in job["steps"]:
             if "uses" in paso:
                 assert re.fullmatch(ACCION_POR_SHA, paso["uses"]), paso["uses"]
-            # Inyección: ni entradas ni datos del evento interpolados dentro de un `run`.
-            guion = paso.get("run", "")
-            assert "${{ inputs." not in guion and "github.event" not in guion, paso
+            # Inyección: nada se interpola dentro de un `run`; todo viaja por `env`.
+            assert "${{" not in paso.get("run", ""), (nombre, paso.get("name"))
+        for checkout in _checkouts(job):
+            assert checkout["with"]["persist-credentials"] is False, nombre
 
 
-def test_deploy_exige_ci_en_verde_y_valida_la_etiqueta() -> None:
+def test_deploy_cada_trabajo_saca_el_commit_verificado() -> None:
+    trabajos = _deploy()["jobs"]
+    (propio,) = _checkouts(trabajos["verificar"])
+    assert propio["with"]["ref"].startswith("refs/tags/")
+    assert propio["with"]["fetch-depth"] == 0, "merge-base necesita la historia"
+    for nombre in ("produccion", "humo", "publicar"):
+        for checkout in _checkouts(trabajos[nombre]):
+            assert checkout["with"]["ref"] == "${{ needs.verificar.outputs.sha }}", nombre
+    assert _checkouts(trabajos["produccion"]) and _checkouts(trabajos["publicar"])
+
+
+def test_deploy_exige_ci_en_verde_master_y_etiqueta_semver() -> None:
     trabajos = _deploy()["jobs"]
     assert trabajos["produccion"]["needs"] == "verificar"
-    assert trabajos["publicar"]["needs"] == "verificar"
+    assert trabajos["humo"]["needs"] == "produccion"
+    # `:latest` en GHCR sólo se mueve si producción quedó desplegada.
+    assert {"verificar", "produccion"} <= set(trabajos["publicar"]["needs"])
+    pasos = trabajos["verificar"]["steps"]
+    (ci,) = [p for p in pasos if "actions/workflows/ci.yml/runs" in p.get("run", "")]
+    assert "status=success" in ci["run"]
+    assert re.search(r"if \[.*\]; then.*\n.*exit 1", ci["run"], re.S), ci["run"]
     guion = _pasos(trabajos["verificar"])
-    assert "actions/workflows/ci.yml/runs" in guion and "status=success" in guion
-    # La etiqueta se valida como semver antes de usarse en ningún comando.
-    (validar,) = [p for p in trabajos["verificar"]["steps"] if "=~" in p.get("run", "")]
+    assert 'merge-base --is-ancestor "$SHA" origin/master' in guion
+    assert "exit 1" in guion.split("merge-base --is-ancestor", 1)[1]
+    (validar,) = [p for p in pasos if "=~" in p.get("run", "")]
     patron = re.search(r"\[\[ \"\$ETIQUETA\" =~ (\S+) \]\]", validar["run"])
     assert patron, validar["run"]
     # En el `=~` de bash `$` es el final de la cadena; en Python `\Z`.
     expresion = re.compile(patron.group(1).removesuffix("$") + r"\Z")
     for buena in ("v0.0.1", "v1.2.3", "v1.0.0-rc.1"):
-        assert expresion.search(buena), buena
-    for mala in ("v1", "1.0.0", "v1.0.0;rm", "v1.0.0 x", "main", "v1.0.0\n"):
+        assert expresion.match(buena), buena
+    malas = ("v1", "1.0.0", "v1.0.0;rm", "v1.0.0 x", "main", "v1.0.0\n")
+    for mala in (*malas, "xv1.0.0", "a v1.0.0", "v1.0.0-"):
         assert not expresion.search(mala), mala
 
 
-def test_deploy_instala_la_cli_fijada_despliega_y_hace_la_prueba_de_humo() -> None:
-    produccion = _deploy()["jobs"]["produccion"]
+def test_deploy_instala_la_cli_fijada_y_despliega_sin_tragarse_errores() -> None:
+    trabajos = _deploy()["jobs"]
+    produccion = trabajos["produccion"]
     texto = json.dumps(produccion)
     assert re.search(r'"RAILWAY_CLI_VERSION": "\d+\.\d+\.\d+"', texto)
     assert re.search(r'"RAILWAY_CLI_SHA256": "[0-9a-f]{64}"', texto)
     guion = _pasos(produccion)
     assert "sha256sum -c" in guion
     assert "railway up --environment produccion --service api" in guion
-    assert "https://carta.cooking/health" in guion
-    assert "curl -sI https://carta.cooking/ | grep -i content-security-policy" in guion
-    assert "/ready" in guion and "strict-transport-security" in guion
     # Staging no se despliega desde aquí: lo hace Railway desde la rama del panel.
     assert "staging" not in guion
+    for nombre in ("produccion", "humo"):
+        for paso in trabajos[nombre]["steps"]:
+            assert "continue-on-error" not in paso, (nombre, paso.get("name"))
+            guion = paso.get("run", "")
+            assert "|| true" not in guion and "set +e" not in guion, (nombre, paso.get("name"))
+        assert "continue-on-error" not in trabajos[nombre]
+
+
+def test_humo_en_su_propio_trabajo_contra_la_url_de_la_variable() -> None:
+    humo = _deploy()["jobs"]["humo"]
+    assert humo["env"]["URL_PRODUCCION"] == "https://carta.cooking"
+    assert "secrets." not in json.dumps(humo)
+    guion = _pasos(humo)
+    curls = [linea for linea in guion.splitlines() if "curl " in linea]
+    assert curls and all('"$URL_PRODUCCION' in linea for linea in curls), curls
+    assert "https://carta.cooking" not in guion, "la URL sale de la variable"
+    for fragmento in ('/health"', '/ready"', "content-security-policy", "strict-transport"):
+        assert fragmento in guion, fragmento
+    assert 'curl -sI "$URL_PRODUCCION/" | grep -i content-security-policy' in guion
 
 
 def test_publicar_sube_la_imagen_a_ghcr_con_la_etiqueta_y_latest() -> None:
     publicar = _deploy()["jobs"]["publicar"]
     guion = _pasos(publicar)
     assert "docker login ghcr.io" in guion and "--password-stdin" in guion
-    for imagen in ("ghcr.io/klvinlopez/carta", "ghcr.io/klvinlopez/carta-respaldo"):
-        assert imagen in json.dumps(publicar), imagen
-    assert ':latest"' in guion or ":latest" in guion
-    assert "docker push" in guion
+    assert publicar["env"]["IMAGEN"] == "ghcr.io/klvinlopez/carta"
+    assert publicar["env"]["IMAGEN_RESPALDO"] == "ghcr.io/klvinlopez/carta-respaldo"
+    lineas = {linea.strip() for linea in guion.splitlines()}
+    for push in (
+        'docker push "$IMAGEN:$ETIQUETA"',
+        'docker push "$IMAGEN:latest"',
+        'docker push "$IMAGEN_RESPALDO:$ETIQUETA"',
+        'docker push "$IMAGEN_RESPALDO:latest"',
+    ):
+        assert push in lineas, push
     assert "org.opencontainers.image.source" in guion
+    ultimo = publicar["steps"][-1]
+    assert "docker logout" in ultimo["run"] and ultimo["if"] == "always()"
+
+
+def test_dependabot_vigila_actions_y_las_dos_imagenes_docker() -> None:
+    config = yaml.safe_load(DEPENDABOT.read_text(encoding="utf-8"))
+    vigilados = {(u["package-ecosystem"], u["directory"]) for u in config["updates"]}
+    assert {
+        ("github-actions", "/"),
+        ("docker", "/"),
+        ("docker", "/deploy/respaldo"),
+    } <= vigilados
+
+
+def test_build_system_fijado() -> None:
+    """El segundo `uv sync` construye `carta` con el backend de `[build-system]`, que no está
+    en `uv.lock`: sin versión exacta, el build de la imagen no es reproducible."""
+    import tomllib
+
+    requisitos = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))["build-system"]["requires"]
+    assert requisitos and all("==" in r for r in requisitos), requisitos
 
 
 def test_railwayignore_no_deja_fuera_nada_que_copie_el_dockerfile() -> None:
@@ -456,7 +550,16 @@ def test_railwayignore_no_deja_fuera_nada_que_copie_el_dockerfile() -> None:
         for linea in RAILWAYIGNORE.read_text(encoding="utf-8").splitlines()
         if linea.strip() and not linea.startswith("#")
     }
-    for pesado in ("/marketing/", "/docs/", "/prototipo/", "/stitch/", "/tests/", "**/.env*"):
+    for pesado in (
+        "/marketing/",
+        "/docs/",
+        "/prototipo/",
+        "/stitch/",
+        "/tests/",
+        "/datos/",
+        "/.venv/",
+        "**/.env*",
+    ):
         assert pesado in patrones, pesado
     # Sintaxis de .gitignore: una carpeta sin `/` delante coincide a cualquier profundidad
     # (`pruebas/` taparía frontend/src/pruebas/). Todas ancladas salvo las `**/`.
@@ -469,7 +572,7 @@ def test_railwayignore_no_deja_fuera_nada_que_copie_el_dockerfile() -> None:
         if ins == "COPY" and not arg.startswith("--from")
         for origen in arg.split()[:-1]
     }
-    copiados |= {"Dockerfile", "uv.lock", "pyproject.toml"}
+    copiados |= {"Dockerfile", "uv.lock", "pyproject.toml", "scripts/predespliegue.py"}
     for ruta in copiados:
         for patron in patrones:
             limpio = patron.strip("/")
@@ -482,11 +585,20 @@ def test_terraform_vive_en_el_anexo_de_la_etapa_2() -> None:
     assert "no se usa en la v1" in (ETAPA2 / "README.md").read_text(encoding="utf-8")
 
 
-def test_guias_de_despliegue_dicen_que_poner_y_no_traen_secretos() -> None:
+def test_el_comando_previo_es_el_script_de_predespliegue() -> None:
+    """`alembic upgrade head` a secas falla cuando la base va por delante del código (rollback
+    por etiqueta); el comando previo es `scripts/predespliegue.py` en todos los sitios."""
+    assert (RAIZ / "scripts" / "predespliegue.py").is_file()
+    for archivo in (GUIA_RAILWAY, GUIA_DESPLIEGUE, OPERACION):
+        texto = archivo.read_text(encoding="utf-8")
+        assert PREDESPLIEGUE in texto, archivo
+        assert "`uv run alembic upgrade head`" not in texto, archivo
+
+
+def test_guias_de_despliegue_dicen_que_poner() -> None:
     guia = GUIA_RAILWAY.read_text(encoding="utf-8")
     for fragmento in (
         "/health",
-        "uv run alembic upgrade head",
         "0 4 * * *",
         "${{Postgres.DATABASE_URL}}",
         "staging.carta.cooking",
@@ -497,22 +609,39 @@ def test_guias_de_despliegue_dicen_que_poner_y_no_traen_secretos() -> None:
         "https://img.carta.cooking",
         "RESPALDO_DIAS=30",
         "WORKERS=2",
-        "deploy/respaldo",
+        "/deploy/respaldo/**",
+        "Wait for CI",
         "openssl rand -base64 32",
         "RandomNumberGenerator",
         "Account ID",
         "TXT",
+        "Environments",
+        "Environment secrets",
     ):
         assert fragmento in guia, fragmento
     pasos = GUIA_DESPLIEGUE.read_text(encoding="utf-8")
     for fragmento in ("git tag", "git push origin", "Rollback", "deploy.yml", "workflow_dispatch"):
         assert fragmento in pasos, fragmento
-    # La llave PÚBLICA de age de Calvin va escrita (la misma en los dos ambientes); la privada,
-    # nunca, ni otra llave age que no sea ésa.
+    # La llave PÚBLICA de age de Calvin va escrita (la misma en los dos ambientes).
     assert guia.count(f"RESPALDO_CLAVE_AGE={LLAVE_PUBLICA_AGE}") == 2
-    for texto in (guia, pasos):
-        assert "AGE-SECRET-KEY-" not in texto.upper(), "llave age privada"
-        otras = set(re.findall(r"age1[a-z0-9]{50,}", texto)) - {LLAVE_PUBLICA_AGE}
-        assert not otras, otras
-        assert not re.search(r"\b[0-9a-f]{32}\b", texto), "parece un Account ID o una llave real"
-        assert not re.search(r"SECRET_KEY=[A-Za-z0-9+/]{30,}", texto)
+
+
+PALABRA_SECRETA = re.compile(r"TOKEN|SECRET|KEY|PASSWORD|CLAVE", re.I)
+VALOR_LARGO = re.compile(r"[A-Za-z0-9_+/=-]{32,}")
+PERMITIDOS = re.compile(r"<[^>]*>|\$\{\{[^}]*\}\}|" + re.escape(LLAVE_PUBLICA_AGE))
+TOKEN_GITHUB = re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}")
+UUID = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I)
+
+
+def test_guias_de_despliegue_no_traen_secretos() -> None:
+    archivos = [*sorted((RAIZ / "deploy").rglob("*.md")), OPERACION]
+    for archivo in archivos:
+        for numero, linea in enumerate(archivo.read_text(encoding="utf-8").splitlines(), 1):
+            donde = f"{archivo.relative_to(RAIZ)}:{numero}"
+            assert "AGE-SECRET-KEY-" not in linea.upper(), donde
+            assert not TOKEN_GITHUB.search(linea), donde
+            assert not UUID.search(linea), donde
+            if PALABRA_SECRETA.search(linea):
+                assert not VALOR_LARGO.search(PERMITIDOS.sub("", linea)), donde
+            otras = set(re.findall(r"age1[a-z0-9]{50,}", linea)) - {LLAVE_PUBLICA_AGE}
+            assert not otras, donde

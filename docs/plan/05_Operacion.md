@@ -19,10 +19,10 @@ Cada *environment* de Railway tiene sus propios servicios y variables; nada se c
 ## 2. Primer despliegue en Railway (una vez)
 
 1. Cuenta en Railway con 2FA y tarjeta (plan Hobby). Proyecto `carta` con *environments* `staging` y `produccion`.
-2. En cada *environment*: servicio `postgres` (plantilla oficial, con volumen); servicio `api` conectado al repositorio de GitHub (`staging` sigue `master`; `produccion` se despliega desde CI con etiquetas), construido con el `Dockerfile`, con *Healthcheck Path* `/health`, *Pre-deploy Command* `uv run alembic upgrade head` y *Restart Policy* «On Failure» puestos en el panel (Railway ya no lee `railway.toml` en servicios nuevos; ver 04 §11); servicio `respaldo` con horario diario (imagen de `deploy/respaldo/`).
+2. En cada *environment*: servicio `postgres` (plantilla oficial, con volumen); servicio `api` conectado al repositorio de GitHub (`staging` sigue `master`; `produccion` se despliega desde CI con etiquetas), construido con el `Dockerfile`, con *Healthcheck Path* `/health`, *Pre-deploy Command* `uv run python scripts/predespliegue.py` (`alembic upgrade head`, salvo que la base vaya por delante del código en un rollback) y *Restart Policy* «On Failure» puestos en el panel (Railway ya no lee `railway.toml` en servicios nuevos; ver 04 §11); servicio `respaldo` con horario diario (desde `deploy/respaldo/`, con *Wait for CI* y *Watch Paths* `/deploy/respaldo/**`).
 3. Variables del servicio `api` (las de `.env.example`): `ENTORNO`, `DATABASE_URL` (referencia a la variable del servicio `postgres`), `SECRET_KEY` (256 bits, `openssl rand -base64 32`), `DOMINIO`, `R2_*`, `ANTHROPIC_API_KEY`, `FIREBASE_PROJECT_ID`, `SENTRY_DSN`. Las de `respaldo`: `DATABASE_URL`, `R2_*`, `RESPALDO_CLAVE_AGE`.
-4. Dominio: en Railway, *custom domain* `staging.<dominio>` y `<dominio>`; en Cloudflare, los `CNAME` (con proxy) y los `TXT` de verificación que Railway indique, SSL *Full (strict)* (Railway documenta *Full*; si da 526, *Full* sólo para esos nombres), `CNAME img` al bucket R2 público, regla de caché para `/api/v1/p/menu/*`, regla de límite de tasa (p. ej. 300 peticiones/min por IP), *Bot Fight Mode*.
-5. `curl https://staging.<dominio>/health`; en GitHub, el secreto `RAILWAY_TOKEN` para el despliegue a producción.
+4. Dominio: en Railway, *custom domain* `staging.<dominio>` y `<dominio>`; en Cloudflare, los `CNAME` (con proxy) y los `TXT` de verificación que Railway indique, SSL *Full (strict)* (Railway documenta *Full*; si da 526, *Full* sólo para `staging.<dominio>` y `<dominio>`), `CNAME img` al bucket R2 público, regla de caché para `/api/v1/p/menu/*`, regla de límite de tasa (p. ej. 300 peticiones/min por IP) y una regla WAF que no rete `/health` ni `/ready`; sin *Bot Fight Mode* (en el plan Free no admite excepciones y reta a los runners de la prueba de humo).
+5. `curl https://staging.<dominio>/health`; en GitHub, el secreto `RAILWAY_TOKEN` en el *Environment* `produccion` (sólo etiquetas `v*` y `master`), no en el repositorio.
 
 Todo esto queda documentado paso a paso en `deploy/README.md` (T-0.7) para poder recrearlo en menos de una hora. La variante de VM está en el Anexo A.
 
@@ -34,15 +34,15 @@ Todo esto queda documentado paso a paso en `deploy/README.md` (T-0.7) para poder
 flowchart LR
   A["push a master"] --> B["CI: ruff · mypy · pytest (PostgreSQL) · build PWA · presupuesto de bundle"]
   B --> C["Railway construye la imagen (staging)"]
-  C --> D["comando previo: alembic upgrade head"]
+  C --> D["comando previo: scripts/predespliegue.py"]
   D --> E["healthcheck /health → tráfico a la versión nueva"]
   E --> F["prueba de humo: /health /ready /m/<codigo-semilla>"]
   F -->|"git tag vX.Y.Z"| G["GitHub Actions: railway up --environment produccion"]
 ```
 
 - **Migraciones compatibles hacia atrás** (expandir → usar → contraer): primero se agrega la columna o tabla, se despliega el código que la usa, y sólo en una versión posterior se borra lo viejo. Así un *rollback* de la imagen nunca choca con el esquema.
-- **Rollback:** en el panel de Railway, **Deployments → ⋮ → Rollback** del despliegue anterior (restaura imagen y variables), o `deploy.yml` a mano con la etiqueta anterior. Un clic, menos de un minuto. `railway redeploy` **no** sirve: repite el último despliegue. Se documenta en `deploy/README.md`.
-- **Secretos de CI:** sólo `RAILWAY_TOKEN`. Las variables de la aplicación viven en Railway.
+- **Rollback:** en el panel de Railway, **Deployments → ⋮ → Rollback** del despliegue anterior (restaura imagen **y variables**: si se rotó un secreto entre medias, reactiva el viejo; y desaparece pasada la retención de imágenes del plan), o `deploy.yml` a mano con la etiqueta anterior (no toca variables; el comando previo `scripts/predespliegue.py` no migra si la base va por delante). Un clic, menos de un minuto. `railway redeploy` **no** sirve: repite el último despliegue. Producción sólo se despliega desde etiquetas sobre `master`. Se documenta en `deploy/README.md`.
+- **Secretos de CI:** sólo `RAILWAY_TOKEN`, en el *Environment* `produccion` de GitHub (no del repositorio). Las variables de la aplicación viven en Railway.
 - **Desde el teléfono:** el panel de Railway permite ver logs, reiniciar y hacer rollback desde el navegador del teléfono; GitHub Actions permite relanzar el despliegue a producción.
 - **Variante VM (Anexo A):** imagen en GHCR (la publica `deploy.yml` en cada etiqueta `v*`) → `ssh` → `compose pull` + migrador → `compose up -d --wait`; rollback `IMAGEN_TAG=<sha-anterior> docker compose up -d`.
 
