@@ -63,3 +63,12 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 ## Verificación
 
 `npm --prefix frontend run build && node frontend/scripts/presupuesto.mjs` y Lighthouse móvil (rendimiento ≥ 85, accesibilidad ≥ 90) contra staging.
+
+## Lecciones del panel del operador (T-1.10)
+
+- Un `<Navigate replace>` y un `navigate()` propio disparados por el mismo cambio de estado se pisan (carrera: el árbol quedó vacío sólo cuando otra prueba corría antes). Deja que la redirección declarativa haga todo.
+- Un estado de carga dentro de una pantalla que ya es `<main>` no usa `Cargando` (`<main>` anidado): usa el bloque `.centrado` con `role="status"`.
+- Una pantalla que espera el primer estado de sesión no renderiza hasta que el proveedor emite: en pruebas, `await` la suscripción y emite (`iniciar`) antes de buscar elementos.
+- Una sonda de pruebas que pinte la ruta (`useLocation`) no usa `<output>`: tiene rol `status` y rompe `getByRole('status')`; usa un `<span data-testid>`.
+- Si el proveedor simulado completa el enlace y emite la sesión por su cuenta, no llames después a `iniciar(prov, null)`: su `emitir(null)` pisa la sesión recién llegada.
+- Un guardia de presupuesto se prueba contra un `dist/` falso (`PRESUPUESTO_DIST`), no con una mutación manual: que la regex del código no vea una forma de import no basta, lo que vale es lo que acaba en el bundle inicial.
