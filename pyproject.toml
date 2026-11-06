@@ -82,6 +82,8 @@ asyncio_default_test_loop_scope = "session"
 # Ninguna prueba se queda colgada (una espera de candado en PostgreSQL, un sondeo sin fin).
 timeout = 60
 testpaths = ["tests"]
+# Las pruebas `live` llaman a la API real de Claude (cuestan): sólo con `-m live` explícito.
+addopts = ["-m", "not live"]
 markers = [
     "ac(*ids): criterios de aceptación (AC-x.y) que cubre la prueba; los lee scripts/verificar_trazabilidad.py",
     "live: usa la API real de Claude; requiere ANTHROPIC_API_KEY y se corre a mano",
