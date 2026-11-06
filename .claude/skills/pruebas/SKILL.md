@@ -18,6 +18,7 @@ description: Cómo se escribe una prueba en Carta con la infraestructura de test
 | `fabrica_sesion` | `async_sessionmaker` ligado a la conexión de la prueba (`create_savepoint`) | Cuando necesitas una segunda sesión «como otra petición» |
 | `restaurante`, `operador`, `mesa` | Un restaurante, su dueño (`propietario` con `usuario`) y una mesa, coherentes con `app/db/models.py` | Casi todas las pruebas de Fase 1 en adelante |
 | `fabrica_restaurante`, `fabrica_operador`, `fabrica_mesa` | Las mismas fábricas como funciones (`await fabrica_mesa(restaurante, numero=7)`) | Cuando necesitas varios o valores concretos |
+| `cabecera_operador` | `{"Authorization": "Bearer prueba:<uid>:google"}` del dueño de `restaurante` (T-1.2). `cliente` instala `VerificadorDePrueba` (`tests/auth_pruebas.py`); para otro usuario, `cabecera_de(usuario.firebase_uid)` | Toda petición a `/api/v1/admin`: sin ella es 401 |
 | `motor_pruebas` | Motor de la sesión de pruebas (`NullPool`, `lock_timeout=5s`, `statement_timeout=30s`) | Sólo para mirar la base desde **otra** conexión (carreras, aislamiento) |
 | `esquema_migrado`, `url_bd` | Base compartida migrada a `head` con la CLI de Alembic (sólo `upgrade head`) | Pruebas de esquema o que corren Alembic |
 | `tests.bd_pruebas.base_desechable(url_bd, "sufijo")` | Base vacía propia del proceso, borrada al salir | Lo único que puede hacer `downgrade base` o destruir el esquema |
@@ -39,7 +40,9 @@ Las fábricas viven en `tests/fabricas.py` (una función `crear_<entidad>(sesion
 10. **Variables de entorno:** una prueba que dependa de `ENTORNO` o `SECRET_KEY` los fija explícitamente (`monkeypatch` o `Settings(_env_file=None, ENTORNO=...)`); CI corre con `ENTORNO=pruebas`.
 11. **El guard de Bash lee el texto de los comandos:** una prueba que mencione `create_all(`, `downgrade base` o `DROP TABLE` se escribe con Write/Edit, no con `cat <<EOF`.
 12. **Cabeceras, cachés y políticas se comparan con literales** (`"public, max-age=31536000, immutable"`, la CSP de 02 §12), nunca con la constante del módulo: una constante cambiada a `max-age=60` pasaría la prueba que la importa (24 de 56 mutaciones sobrevivieron así en T-0.6).
-13. **Timeouts:** cada prueba tiene 60 s (`pytest-timeout`) y cada sentencia de `motor_pruebas` 30 s, con 5 s de espera de candado. Si una prueba los necesita más largos, el diseño está mal (una espera de candado casi siempre es una fila sin confirmar de otra sesión).
+13. **Recorrer «todas las rutas» se hace sobre `app.openapi()["paths"]`, no sobre `app.routes`:** esta versión de FastAPI registra los routers incluidos de forma perezosa (`_IncludedRouter`) y `app.routes` no trae ningún `APIRoute` de `/api/v1` (una prueba parametrizada sobre él corre cero casos). Ejemplo: `RUTAS_ADMIN` en `tests/integration/test_auth_admin.py`, con un `assert len(...) >= N` que impide que pase vacía.
+14. **Ruta nueva de `/admin` por id de recurso (`/platillos/{id}`, `/mesas/{id}`…):** necesita su dependencia `*_del_operador` (como `platillo_del_operador` en `app/api/admin/dependencias.py`) y su caso en `test_un_recurso_ajeno_es_404_igual_que_uno_inexistente`; el token sólo prueba quién eres, no de qué restaurante es el recurso (AC-15.3).
+15. **Timeouts:** cada prueba tiene 60 s (`pytest-timeout`) y cada sentencia de `motor_pruebas` 30 s, con 5 s de espera de candado. Si una prueba los necesita más largos, el diseño está mal (una espera de candado casi siempre es una fila sin confirmar de otra sesión).
 
 ## 3. Receta de carreras (dos conexiones)
 
