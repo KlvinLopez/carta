@@ -8,6 +8,8 @@ La URL **no** pasa por `alembic.ini`: ConfigParser interpreta `%` y una contrase
 """
 
 import asyncio
+import os
+import re
 from logging.config import fileConfig
 
 from alembic import context
@@ -50,6 +52,15 @@ CANDADO_MIGRACION = 7_245_001
 # al despliegue ni a las pruebas.
 CONEXION_TIMEOUT_SEGUNDOS = 10
 
+# Un `ALTER TABLE` espera un candado fuerte; con tráfico, una consulta larga lo encola y detrás
+# se encola todo lo demás. Mejor que la migración falle pronto y `predespliegue.py` salga ≠ 0
+# (el despliegue se detiene y producción sigue sirviendo). Se fijan tras tomar el candado de
+# migración, que sí puede esperar a otra migración. `MIGRACION_LOCK_TIMEOUT` sólo para pruebas.
+LOCK_TIMEOUT = os.environ.get("MIGRACION_LOCK_TIMEOUT", "10s")
+STATEMENT_TIMEOUT = "5min"
+if not re.fullmatch(r"[0-9]{1,6}(ms|s|min)", LOCK_TIMEOUT):
+    raise SystemExit(f"MIGRACION_LOCK_TIMEOUT inválido: {LOCK_TIMEOUT!r}")
+
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
@@ -57,6 +68,8 @@ def do_run_migrations(connection: Connection) -> None:
         connection.execute(
             text("SELECT pg_advisory_xact_lock(:candado)"), {"candado": CANDADO_MIGRACION}
         )
+        connection.execute(text(f"SET LOCAL lock_timeout = '{LOCK_TIMEOUT}'"))
+        connection.execute(text(f"SET LOCAL statement_timeout = '{STATEMENT_TIMEOUT}'"))
         context.run_migrations()
 
 

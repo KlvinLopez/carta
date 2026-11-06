@@ -1,4 +1,5 @@
-"""T-0.2: los modelos SQLAlchemy mapean contra el esquema real que crea `0001_base_v1`.
+"""T-0.2 y T-1.1: los modelos SQLAlchemy mapean contra el esquema real que crean `0001_base_v1`
+y `0002_consistencia_inquilino`.
 
 Las pruebas usan la base de pruebas migrada por la CLI de Alembic (fixture `esquema_migrado`
 de `tests/conftest.py`, exactamente como en el despliegue) y comparan `Base.metadata` con lo
@@ -10,6 +11,11 @@ método (GIN) ni los triggers: esas partes se comprueban contra el catálogo de 
 
 from __future__ import annotations
 
+import asyncio
+import os
+import subprocess
+import sys
+import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from uuid import UUID
@@ -98,13 +104,78 @@ TRIGGERS = {
         "CREATE TRIGGER tr_orden_sesion_inmutable BEFORE UPDATE OF sesion_id "
         "ON public.orden_personal FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable()"
     ),
+    "tr_item_orden_mismo_restaurante": (  # INV-10
+        "CREATE TRIGGER tr_item_orden_mismo_restaurante BEFORE INSERT OR UPDATE OF orden_id, "
+        "platillo_id ON public.item_orden FOR EACH ROW "
+        "EXECUTE FUNCTION fn_item_orden_mismo_restaurante()"
+    ),
+    "tr_platillo_restaurante_inmutable": (  # INV-10
+        "CREATE TRIGGER tr_platillo_restaurante_inmutable BEFORE UPDATE OF restaurante_id "
+        "ON public.platillo FOR EACH ROW EXECUTE FUNCTION fn_restaurante_id_inmutable()"
+    ),
+    "tr_sesion_restaurante_inmutable": (  # INV-10
+        "CREATE TRIGGER tr_sesion_restaurante_inmutable BEFORE UPDATE OF restaurante_id "
+        "ON public.sesion_grupal FOR EACH ROW EXECUTE FUNCTION fn_restaurante_id_inmutable()"
+    ),
+    "tr_miembro_sesion_inmutable": (  # INV-10: el miembro no cambia de sesión
+        "CREATE TRIGGER tr_miembro_sesion_inmutable BEFORE UPDATE OF sesion_id "
+        "ON public.miembro_sesion FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable()"
+    ),
 }
 FUNCIONES_DE_TRIGGER = {
     "fn_item_orden_inmutable",
     "fn_orden_bloqueada_no_se_borra",
     "fn_comanda_orden_misma_sesion",
     "fn_sesion_id_inmutable",
+    "fn_item_orden_mismo_restaurante",
+    "fn_restaurante_id_inmutable",
 }
+
+# INV-10 (0002): cada FK compuesta `(columna, clave) → padre(id, clave)` y su `ON DELETE`.
+# `SET NULL (col)` (PostgreSQL 15+) anula sólo la columna del padre, nunca la clave compartida.
+R, S = "restaurante_id", "sesion_id"
+_FK_INQUILINO = [
+    ("sesion_grupal", "mesa_id", "mesa", R, "CASCADE"),
+    ("sesion_grupal", "cerrada_por_personal_id", "personal_restaurante", R, "SET NULL"),
+    ("platillo", "categoria_id", "categoria_menu", R, "SET NULL"),
+    ("platillo", "no_disponible_por", "personal_restaurante", R, "SET NULL"),
+    ("orden_personal", "miembro_id", "miembro_sesion", S, "CASCADE"),
+    ("comanda", "sesion_id", "sesion_grupal", R, "CASCADE"),
+    ("comanda", "mesa_id", "mesa", R, "CASCADE"),
+    ("comanda", "atendida_por_personal_id", "personal_restaurante", R, "SET NULL"),
+    ("llamada_mesero", "sesion_id", "sesion_grupal", R, "CASCADE"),
+    ("llamada_mesero", "mesa_id", "mesa", R, "CASCADE"),
+    ("llamada_mesero", "miembro_id", "miembro_sesion", S, "SET NULL"),
+    ("llamada_mesero", "atendida_por_personal_id", "personal_restaurante", R, "SET NULL"),
+    ("evento_analitica", "mesa_id", "mesa", R, "SET NULL"),
+    ("evento_analitica", "sesion_id", "sesion_grupal", R, "SET NULL"),
+    ("evento_analitica", "platillo_id", "platillo", R, "SET NULL"),
+]
+# nombre → (padre, columna, clave, ON DELETE simple)
+FK_INQUILINO = {
+    f"fk_{tabla}_{columna}": (padre, columna, clave, accion)
+    for tabla, columna, padre, clave, accion in _FK_INQUILINO
+}
+PADRES_INQUILINO = (
+    ("sesion_grupal", R),
+    ("mesa", R),
+    ("categoria_menu", R),
+    ("personal_restaurante", R),
+    ("platillo", R),
+    ("miembro_sesion", S),
+)
+TRIGGERS_0002 = {
+    "tr_item_orden_mismo_restaurante",
+    "tr_platillo_restaurante_inmutable",
+    "tr_sesion_restaurante_inmutable",
+    "tr_miembro_sesion_inmutable",
+}
+
+
+def _fk_compuesta_esperada(padre: str, columna: str, clave: str, accion: str) -> str:
+    sufijo = f"SET NULL ({columna})" if accion == "SET NULL" else accion
+    return f"FOREIGN KEY ({columna}, {clave}) REFERENCES {padre}(id, {clave}) ON DELETE {sufijo}"
+
 
 # Fragmentos que la definición real de cada CHECK de invariante debe contener.
 FRAGMENTOS_CHECK = {
@@ -177,6 +248,26 @@ async def _tipos_enumerados(conexion: AsyncConnection) -> dict[str, list[str]]:
     return tipos
 
 
+async def _definiciones_fk(conexion: AsyncConnection) -> dict[str, str]:
+    filas = await conexion.execute(
+        text(
+            "SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint "
+            "WHERE contype = 'f' AND connamespace = 'public'::regnamespace"
+        )
+    )
+    return {nombre: definicion for nombre, definicion in filas}
+
+
+async def _restricciones_unicas(conexion: AsyncConnection) -> set[str]:
+    filas = await conexion.execute(
+        text(
+            "SELECT conname FROM pg_constraint "
+            "WHERE contype = 'u' AND connamespace = 'public'::regnamespace"
+        )
+    )
+    return {fila[0] for fila in filas}
+
+
 async def _funciones(conexion: AsyncConnection) -> set[str]:
     filas = await conexion.execute(
         text("SELECT proname FROM pg_proc WHERE pronamespace = 'public'::regnamespace")
@@ -211,6 +302,109 @@ async def test_migracion_sube_baja_y_vuelve_a_subir(url_bd: str) -> None:
                 assert TABLAS_V1 <= await _tablas(conexion)
         finally:
             await motor.dispose()
+
+
+async def _triggers(conexion: AsyncConnection) -> set[str]:
+    filas = await conexion.execute(text("SELECT tgname FROM pg_trigger WHERE NOT tgisinternal"))
+    return {fila[0] for fila in filas}
+
+
+async def test_0002_baja_a_0001_y_vuelve_a_subir(url_bd: str) -> None:
+    """`downgrade` real de `0002_consistencia_inquilino`: devuelve las FK simples de 0001 (con
+    su `ON DELETE`), quita los `UNIQUE (id, clave)`, sus triggers y sus funciones (no las de
+    0001, que reutiliza) y vuelve a subir."""
+    async with base_desechable(url_bd, "inq") as url:
+        motor = create_async_engine(url, poolclass=NullPool)
+        try:
+            alembic("upgrade", "head", url=url)
+            alembic("downgrade", "0001_base_v1", url=url)
+            async with motor.connect() as conexion:
+                fks = await _definiciones_fk(conexion)
+                for nombre, (padre, columna, _clave, accion) in FK_INQUILINO.items():
+                    assert fks[nombre] == (
+                        f"FOREIGN KEY ({columna}) REFERENCES {padre}(id) ON DELETE {accion}"
+                    ), nombre
+                unicas = await _restricciones_unicas(conexion)
+                assert not {f"uq_{p}_id_{c}" for p, c in PADRES_INQUILINO} & unicas
+                triggers = await _triggers(conexion)
+                assert not TRIGGERS_0002 & triggers
+                assert set(TRIGGERS) - TRIGGERS_0002 == triggers  # los de 0001 siguen
+                funciones = await _funciones(conexion)
+                assert "fn_item_orden_mismo_restaurante" not in funciones
+                assert "fn_restaurante_id_inmutable" not in funciones
+                assert {"fn_item_orden_inmutable", "fn_sesion_id_inmutable"} <= funciones
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert await _fk_compuestas(conexion) == _fk_compuestas_esperadas()
+                assert await _triggers(conexion) == set(TRIGGERS)
+        finally:
+            await motor.dispose()
+
+
+async def _fk_compuestas(conexion: AsyncConnection) -> dict[str, str]:
+    """Las FK de varias columnas de la base (las de 0001 son todas de una columna)."""
+    fks = await _definiciones_fk(conexion)
+    return {n: d for n, d in fks.items() if "," in d.split(")")[0]}
+
+
+def _fk_compuestas_esperadas() -> dict[str, str]:
+    return {n: _fk_compuesta_esperada(*datos) for n, datos in FK_INQUILINO.items()}
+
+
+async def test_fk_compuestas_de_inv10(conexion: AsyncConnection) -> None:
+    """Texto exacto de cada FK compuesta (ni una más ni una menos) y de los `UNIQUE (id, clave)`
+    que las sostienen."""
+    assert await _fk_compuestas(conexion) == _fk_compuestas_esperadas()
+    unicas = await _restricciones_unicas(conexion)
+    assert {f"uq_{p}_id_{c}" for p, c in PADRES_INQUILINO} <= unicas
+
+
+async def test_una_migracion_encolada_falla_en_vez_de_esperar(url_bd: str) -> None:
+    """`migrations/env.py` fija `lock_timeout`: con una transacción que retiene `comanda` (una
+    consulta larga en producción), `upgrade` falla pronto y deja la base en 0001, en vez de
+    encolar detrás de su `ALTER TABLE` todo el tráfico. Aquí con 1 s; en despliegue, 10 s."""
+    async with base_desechable(url_bd, "lock") as url:
+        motor = create_async_engine(url, poolclass=NullPool)
+        try:
+            alembic("upgrade", "0001_base_v1", url=url)
+            async with motor.connect() as retiene:
+                await retiene.begin()
+                await retiene.execute(text("SELECT count(*) FROM comanda"))
+                entorno = {**os.environ, "DATABASE_URL": url, "MIGRACION_LOCK_TIMEOUT": "1s"}
+                entorno.pop("TEST_DATABASE_URL", None)
+                inicio = time.monotonic()
+                resultado = await asyncio.to_thread(
+                    subprocess.run,
+                    [sys.executable, "-m", "alembic", "upgrade", "head"],
+                    cwd=RAIZ,
+                    env=entorno,
+                    capture_output=True,
+                    text=True,
+                    timeout=40,
+                )
+                duracion = time.monotonic() - inicio
+                await retiene.rollback()
+            assert resultado.returncode != 0
+            assert "lock timeout" in resultado.stderr
+            assert duracion < 20, duracion
+            async with motor.connect() as conexion:
+                version = await conexion.execute(text("SELECT version_num FROM alembic_version"))
+                assert version.scalar_one() == "0001_base_v1"
+        finally:
+            await motor.dispose()
+
+
+def test_un_lock_timeout_de_migracion_invalido_no_arranca() -> None:
+    entorno = {**os.environ, "MIGRACION_LOCK_TIMEOUT": "10s'; DROP"}
+    resultado = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head", "--sql"],
+        cwd=RAIZ,
+        env=entorno,
+        capture_output=True,
+        text=True,
+    )
+    assert resultado.returncode != 0
+    assert "MIGRACION_LOCK_TIMEOUT" in resultado.stderr
 
 
 def test_la_url_no_pasa_por_el_ini_de_alembic() -> None:
