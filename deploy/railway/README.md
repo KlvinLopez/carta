@@ -47,6 +47,20 @@ Servicio `respaldo`: `DATABASE_URL` (misma referencia), `R2_ENDPOINT`, `R2_ACCES
 
 Secreto en GitHub (sólo uno): `RAILWAY_TOKEN`, para `.github/workflows/deploy.yml` (T-0.7).
 
+## Valores reales de Carta (6 de noviembre de 2026; nada de esto es secreto)
+
+| Qué | Valor |
+|---|---|
+| Dominio y zona de Cloudflare | `carta.cooking` (zona activa, plan Free, SSL/TLS en *Full (strict)*, *Always Use HTTPS* apagado hasta T-0.7) |
+| Proyecto en Railway | `carta` (cuenta con tarjeta; `RAILWAY_TOKEN` ya guardado como secreto del repositorio) |
+| Buckets R2 | `carta-publico-staging`, `carta-privado-staging`, `carta-publico-produccion`, `carta-privado-produccion` |
+| Origen público de imágenes (`R2_URL_PUBLICA`) | staging: `https://img-staging.carta.cooking` · producción: `https://img.carta.cooking` (dominios propios conectados a los buckets públicos, TLS mínimo 1.2; las URL `r2.dev` quedan apagadas: tienen límite de tasa y no pasan por la caché) |
+| Ciclo de vida de los buckets privados | regla `respaldos-90-dias`: borra bajo el prefijo `respaldos/` a los 90 días (red de seguridad de la poda de 30 días de `deploy/respaldo/respaldar.sh`; las fotos originales viven fuera de ese prefijo y no caducan) |
+| Tokens S3 de R2 (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`) | *Account API tokens* con permiso *Object Read & Write*, uno por ambiente, limitados a sus dos buckets; los valores sólo en el panel de Railway |
+| Llave de respaldo (`RESPALDO_CLAVE_AGE`) | la pública `age1…` generada por Calvin; la privada vive fuera de todo servidor |
+
+Quién hace qué en T-0.7: la sesión maestra opera Cloudflare (DNS, caché, límite de tasa) con el conector oficial; la hija de T-0.7 deja `railway.toml`, `deploy.yml` y este README listos; Calvin pega las variables en el panel de Railway.
+
 ## Dominio y Cloudflare
 
 1. Railway → servicio `api` → *Settings* → *Networking* → *Custom domain*: `staging.<dominio>` en `staging`, `<dominio>` en `produccion`. Railway muestra el `CNAME` a crear.
