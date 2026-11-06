@@ -7,6 +7,7 @@ aquí. El reloj es inyectable para probar la caché por `Cache-Control`.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -16,100 +17,31 @@ import jwt
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 
 from app.core.errores import ErrorCarta
-from app.core.firebase import URL_LLAVES, VerificadorFirebase, vigencia_de
-
-PROYECTO = "carta-staging"
-EMISOR = f"https://securetoken.google.com/{PROYECTO}"
-
-
-def _llave() -> rsa.RSAPrivateKey:
-    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
-
-
-def _certificado(llave: rsa.RSAPrivateKey) -> str:
-    nombre = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "securetoken.system")])
-    ahora = datetime.now(UTC)
-    certificado = (
-        x509.CertificateBuilder()
-        .subject_name(nombre)
-        .issuer_name(nombre)
-        .public_key(llave.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(ahora - timedelta(days=1))
-        .not_valid_after(ahora + timedelta(days=1))
-        .sign(llave, hashes.SHA256())
-    )
-    return certificado.public_bytes(serialization.Encoding.PEM).decode()
-
-
-LLAVE = _llave()
-OTRA_LLAVE = _llave()
-CERTIFICADOS = {"kid-1": _certificado(LLAVE)}
-
-
-class Google:
-    """`MockTransport` que cuenta las descargas y puede fallar a voluntad."""
-
-    def __init__(self, cache_control: str = "public, max-age=3600") -> None:
-        self.descargas = 0
-        self.cache_control = cache_control
-        self.falla: Exception | int | None = None
-        self.certificados: dict[str, str] = dict(CERTIFICADOS)
-
-    def __call__(self, peticion: httpx.Request) -> httpx.Response:
-        assert str(peticion.url) == URL_LLAVES
-        self.descargas += 1
-        if isinstance(self.falla, Exception):
-            raise self.falla
-        if isinstance(self.falla, int):
-            return httpx.Response(self.falla, text="error")
-        return httpx.Response(
-            200, json=self.certificados, headers={"Cache-Control": self.cache_control}
-        )
-
-
-class Reloj:
-    def __init__(self) -> None:
-        self.ahora = time.time()
-
-    def __call__(self) -> float:
-        return self.ahora
+from app.core.firebase import VerificadorFirebase, vigencia_de
+from tests.llaves_pruebas import (
+    CERTIFICADOS,
+    OTRA_LLAVE,
+    PROYECTO,
+    Google,
+    Reloj,
+    certificado,
+    token_firmado,
+    verificador_real,
+)
 
 
 def _verificador(
     google: Google, reloj: Reloj | None = None, proyecto: str | None = PROYECTO
 ) -> VerificadorFirebase:
-    cliente = httpx.AsyncClient(transport=httpx.MockTransport(google))
-    return VerificadorFirebase(proyecto, cliente_http=cliente, reloj=reloj or time.time)
+    return verificador_real(google, reloj, proyecto)
 
 
-def _token(
-    llave: rsa.RSAPrivateKey = LLAVE,
-    kid: str | None = "kid-1",
-    algoritmo: str = "RS256",
-    sin: tuple[str, ...] = (),
-    **reclamos: Any,
-) -> str:
-    ahora = int(time.time())
-    datos: dict[str, Any] = {
-        "iss": EMISOR,
-        "aud": PROYECTO,
-        "sub": "uid-operador-1",
-        "iat": ahora - 10,
-        "exp": ahora + 3600,
-        "auth_time": ahora - 60,
-        "name": "Calvin",
-        "firebase": {"sign_in_provider": "google.com"},
-    }
-    datos.update(reclamos)
-    for clave in sin:
-        datos.pop(clave)
-    cabeceras = {"kid": kid} if kid is not None else {}
-    return jwt.encode(datos, llave, algorithm=algoritmo, headers=cabeceras)
+_token = token_firmado
+_certificado = certificado
 
 
 async def _rechazo(verificador: VerificadorFirebase, token: str) -> ErrorCarta:
@@ -132,6 +64,7 @@ async def test_un_token_valido_da_la_identidad() -> None:
     assert identidad.nombre == "Calvin"
 
 
+@pytest.mark.ac("AC-15.1")
 @pytest.mark.parametrize(
     ("proveedor_token", "proveedor"),
     [("google.com", "google"), ("password", "email_link"), ("emailLink", "email_link")],
@@ -167,6 +100,9 @@ RECHAZOS: dict[str, dict[str, Any]] = {
     "proveedor teléfono": {"firebase": {"sign_in_provider": "phone"}},
     "token propio": {"firebase": {"sign_in_provider": "custom"}},
     "sin bloque firebase": {"firebase": None},
+    # A2 de la revisión: un NUL llegaría a PostgreSQL y daría 500.
+    "sub con NUL": {"sub": "uid\x00x"},
+    "sub con salto de línea": {"sub": "uid\nx"},
 }
 
 
@@ -206,6 +142,8 @@ async def test_un_token_expirado_es_token_expirado() -> None:
             lambda: jwt.encode({"sub": "x"}, None, algorithm="none", headers={"kid": "kid-1"}),
             id="alg none",
         ),
+        pytest.param(lambda: _token(algoritmo="RS384"), id="RS384 con el kid bueno"),
+        pytest.param(lambda: _token(algoritmo="PS256"), id="PS256 con el kid bueno"),
         pytest.param(lambda: "no-es-un-jwt", id="basura"),
         pytest.param(lambda: "", id="vacío"),
         pytest.param(lambda: "a" * 9000, id="demasiado largo"),
@@ -216,6 +154,7 @@ async def test_firma_y_cabecera_invalidas_son_401(token: Any) -> None:
     assert error.codigo == "SIN_CREDENCIAL"
 
 
+@pytest.mark.ac("AC-15.1")
 async def test_un_token_alterado_es_401() -> None:
     cabecera, cuerpo, firma = _token().split(".")
     otro_cuerpo = _token(sub="uid-de-otra-persona").split(".")[1]
@@ -356,9 +295,11 @@ async def test_sin_llaves_y_con_google_caido_se_falla_rapido() -> None:
     ("cabecera", "segundos"),
     [
         ("public, max-age=19830, must-revalidate, no-transform", 19830),
-        ("max-age=0", 0),
-        ("no-store", 0),
-        ("no-cache, max-age=600", 0),
+        # Suelo de 60 s (A6 de la revisión): con vigencia 0 habría una descarga por petición.
+        ("max-age=0", 60),
+        ("max-age=30", 60),
+        ("no-store", 60),
+        ("no-cache, max-age=600", 60),
         ("public", 300),
         (None, 300),
         ("max-age=999999999", 24 * 3600),
@@ -367,3 +308,140 @@ async def test_sin_llaves_y_con_google_caido_se_falla_rapido() -> None:
 )
 def test_vigencia_de_cache_control(cabecera: str | None, segundos: int) -> None:
     assert vigencia_de(cabecera) == segundos
+
+
+# ---------------------------------------------------------------------------
+# Revisión de la maestra (A2, A5, A6, B5)
+# ---------------------------------------------------------------------------
+
+
+async def test_el_nombre_se_limpia_de_caracteres_de_control() -> None:
+    identidad = await _verificador(Google()).verificar(_token(name="Cal\x00vin\n\t Ruiz\x1b"))
+    assert identidad.nombre == "Calvin Ruiz"
+    solo_control = await _verificador(Google()).verificar(_token(name="\x00\x01"))
+    assert solo_control.nombre is None
+
+
+def test_obtener_verificador_usa_el_proyecto_y_conserva_la_instancia(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.core import firebase
+
+    monkeypatch.setattr(firebase, "_verificador", None)
+    monkeypatch.setattr(firebase.settings, "FIREBASE_PROJECT_ID", "carta-uno")
+    primero = firebase.obtener_verificador()
+    assert primero.proyecto == "carta-uno"
+    assert firebase.obtener_verificador() is primero  # la caché de llaves es del proceso
+    monkeypatch.setattr(firebase.settings, "FIREBASE_PROJECT_ID", "carta-dos")
+    segundo = firebase.obtener_verificador()
+    assert segundo is not primero
+    assert segundo.proyecto == "carta-dos"
+    monkeypatch.setattr(firebase.settings, "FIREBASE_PROJECT_ID", None)
+    assert firebase.obtener_verificador().proyecto is None
+
+
+async def test_la_cache_de_llaves_se_reutiliza() -> None:
+    google = Google()
+    verificador = _verificador(google)
+    for uid in ("uid-a", "uid-b", "uid-c"):
+        assert (await verificador.verificar(_token(sub=uid))).uid == uid
+    assert google.descargas == 1
+
+
+@pytest.mark.parametrize("cabecera", ["max-age=0", "no-store", "no-cache"])
+async def test_google_sin_cache_no_provoca_una_descarga_por_peticion(cabecera: str) -> None:
+    google, reloj = Google(cabecera), Reloj()
+    verificador = _verificador(google, reloj)
+    for _ in range(10):
+        await verificador.verificar(_token())
+        reloj.ahora += 5
+    assert google.descargas == 1
+
+
+async def test_cincuenta_verificaciones_a_la_vez_son_una_descarga() -> None:
+    google = Google("max-age=0")
+    verificador = _verificador(google)
+    resultados = await asyncio.gather(*(verificador.verificar(_token()) for _ in range(50)))
+    assert len(resultados) == 50
+    assert google.descargas == 1
+
+
+def _certificado_ec() -> str:
+    llave = ec.generate_private_key(ec.SECP256R1())
+    nombre = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "ec")])
+    ahora = datetime.now(UTC)
+    return (
+        x509.CertificateBuilder()
+        .subject_name(nombre)
+        .issuer_name(nombre)
+        .public_key(llave.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(ahora - timedelta(days=1))
+        .not_valid_after(ahora + timedelta(days=1))
+        .sign(llave, hashes.SHA256())
+        .public_bytes(serialization.Encoding.PEM)
+        .decode()
+    )
+
+
+async def test_un_certificado_que_no_es_rsa_se_descarta_y_no_da_500() -> None:
+    google = Google()
+    google.certificados = {"kid-1": _certificado_ec(), "kid-rsa": CERTIFICADOS["kid-1"]}
+    verificador = _verificador(google)
+    error = await _rechazo(verificador, _token(kid="kid-1"))  # el kid apunta a la llave EC
+    assert error.codigo == "SIN_CREDENCIAL"
+    assert (await verificador.verificar(_token(kid="kid-rsa"))).uid
+
+
+async def test_solo_certificados_no_rsa_es_401() -> None:
+    google = Google()
+    google.certificados = {"kid-1": _certificado_ec()}
+    await _rechazo(_verificador(google), _token())
+
+
+async def test_un_servidor_que_gotea_no_retiene_el_candado(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """El `timeout` de httpx es por fase: un servidor que manda un byte cada poco nunca lo
+    dispara. La descarga entera tiene un tope con `asyncio.timeout`."""
+    from app.core import firebase
+
+    monkeypatch.setattr(firebase, "TIEMPO_ESPERA_LLAVES", 0.2)
+
+    async def lento(peticion: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(5)
+        return httpx.Response(200, json=CERTIFICADOS)
+
+    cliente = httpx.AsyncClient(transport=httpx.MockTransport(lento))
+    verificador = VerificadorFirebase(PROYECTO, cliente_http=cliente)
+    inicio = time.monotonic()
+    error = await _rechazo(verificador, _token())
+    assert error.codigo == "SIN_CREDENCIAL"
+    assert time.monotonic() - inicio < 2
+
+
+async def test_con_la_cache_fria_y_google_caido_es_401_sin_credencial() -> None:
+    """Decisión pendiente (A6 d, 04 §11): 04_API_Spec §1.2 no tiene un 503; hasta que lo
+    tenga, el panel recibe 401 `SIN_CREDENCIAL`."""
+    google = Google()
+    google.falla = httpx.ConnectError("sin red")
+    error = await _rechazo(_verificador(google), _token())
+    assert (error.codigo, error.http) == ("SIN_CREDENCIAL", 401)
+
+
+async def test_tras_una_rotacion_un_kid_nuevo_refresca_una_vez_por_minuto() -> None:
+    """B5: con `max-age` largo, una llave nueva no espera a que venza la caché; pero un `kid`
+    inventado no provoca más de una descarga por minuto."""
+    google, reloj = Google("max-age=21600"), Reloj()
+    verificador = _verificador(google, reloj)
+    await verificador.verificar(_token())
+    google.certificados = {**CERTIFICADOS, "kid-2": _certificado(OTRA_LLAVE)}
+    reloj.ahora += 61
+    assert (await verificador.verificar(_token(llave=OTRA_LLAVE, kid="kid-2"))).uid
+    assert google.descargas == 2
+    for _ in range(5):
+        await _rechazo(verificador, _token(kid="inventado"))
+    assert google.descargas == 2
+    reloj.ahora += 61
+    await _rechazo(verificador, _token(kid="inventado"))
+    assert google.descargas == 3

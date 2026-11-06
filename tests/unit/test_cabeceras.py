@@ -6,11 +6,14 @@ una constante cambiada a `max-age=60` pasaría una prueba que la importa.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from app.core.cabeceras import (
     CSP_SIN_IMAGENES_EXTERNAS,
     HSTS,
+    MiddlewareCabecerasSeguridad,
     cabeceras_seguridad,
     origen_imagenes,
     politica_csp,
@@ -216,3 +219,46 @@ def test_una_entrada_mala_no_tira_las_buenas() -> None:
         _ajustes(FIREBASE_CSP_SCRIPT_SRC="https://*.google.com https://apis.google.com")
     )["Content-Security-Policy"]
     assert "script-src 'self' https://apis.google.com;" in csp
+
+
+# ---------------------------------------------------------------------------
+# Revisión de T-1.2 (B4) · Respuestas autenticadas: `private, no-store`
+# ---------------------------------------------------------------------------
+
+
+async def _respuesta(ruta: str, cabeceras_app: list[tuple[bytes, bytes]]) -> dict[str, str]:
+    async def app(scope: Any, receive: Any, send: Any) -> None:
+        await send({"type": "http.response.start", "status": 200, "headers": cabeceras_app})
+        await send({"type": "http.response.body", "body": b"{}"})
+
+    middleware = MiddlewareCabecerasSeguridad(app, cabeceras={"X-Content-Type-Options": "nosniff"})
+    enviados: list[dict[str, Any]] = []
+
+    async def send(mensaje: dict[str, Any]) -> None:
+        enviados.append(mensaje)
+
+    async def receive() -> dict[str, Any]:
+        return {"type": "http.request", "body": b""}
+
+    await middleware({"type": "http", "path": ruta}, receive, send)
+    return {k.decode().lower(): v.decode() for k, v in enviados[0]["headers"]}
+
+
+@pytest.mark.parametrize(
+    "ruta",
+    ["/api/v1/admin", "/api/v1/admin/restaurantes", "/api/v1/op/mesas", "/api/v1/op"],
+)
+async def test_las_rutas_autenticadas_salen_privadas_y_sin_cache(ruta: str) -> None:
+    assert (await _respuesta(ruta, []))["cache-control"] == "private, no-store"
+
+
+@pytest.mark.parametrize(
+    "ruta", ["/health", "/api/v1/p/menu/la-querencia", "/assets/app.js", "/api/v1/administrador"]
+)
+async def test_las_demas_rutas_no_cambian_su_cache(ruta: str) -> None:
+    assert "cache-control" not in await _respuesta(ruta, [])
+
+
+async def test_una_ruta_privada_que_pone_su_cache_la_conserva() -> None:
+    cabeceras = await _respuesta("/api/v1/admin/x", [(b"cache-control", b"no-store")])
+    assert cabeceras["cache-control"] == "no-store"

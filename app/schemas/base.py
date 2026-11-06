@@ -38,9 +38,9 @@ class PlatilloBase(BaseModel):
 
 
 class PlatilloCreate(PlatilloBase):
-    """Schema for creating dishes."""
+    """Schema for creating dishes. Un campo desconocido (`restaurante_id`) es 422."""
 
-    pass
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
 
 class PlatilloUpdate(BaseModel):
@@ -57,7 +57,7 @@ class PlatilloUpdate(BaseModel):
     destacado: bool | None = None
     activo: bool | None = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
 
 class PlatilloResponse(PlatilloBase, UUIDMixin, TimestampMixin):

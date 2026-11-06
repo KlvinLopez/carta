@@ -27,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errores import ErrorCarta
 from app.db.models import OperadorRestaurante, Platillo, Restaurante, RolOperador, Usuario
+from app.schemas.restaurante import SLUGS_RESERVADOS
 
 # Renovar `ultimo_login` en cada petición sería una escritura por petición.
 INTERVALO_ULTIMO_LOGIN = timedelta(hours=1)
@@ -118,7 +119,7 @@ async def platillo_del_usuario(
 
 
 async def _slug_libre(sesion: AsyncSession, base: str) -> str:
-    ocupados = set(
+    ocupados = set(SLUGS_RESERVADOS) | set(
         await sesion.scalars(
             select(Restaurante.slug).where(
                 or_(Restaurante.slug == base, Restaurante.slug.like(f"{base}-%"))

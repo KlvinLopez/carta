@@ -22,6 +22,8 @@ Decisiones:
 - El 500 de una excepción no controlada lo envía `ServerErrorMiddleware`, **por fuera** de
   todo middleware (ver `app.core.errores`): `registrar_cabeceras_seguridad` envuelve ese
   manejador para que también ese 500 las lleve.
+- Lo que responde `/api/v1/admin` y `/api/v1/op` sin `Cache-Control` propio sale con
+  `private, no-store` (revisión de T-1.2): son datos de una persona autenticada.
 - Toda envoltura de error lleva `Cache-Control: no-store` (`app.core.errores._respuesta`):
   Cloudflare cachea por defecto los 404 de `.js`, `.css` y `.woff2`, y en el solape de un
   despliegue un 404 cacheado en el borde dejaría a todos sin ese trozo.
@@ -194,13 +196,29 @@ def poner_cabeceras(destino: MutableHeaders, cabeceras: Mapping[str, str]) -> No
 RUTAS_DOCS = frozenset({"/docs", "/docs/oauth2-redirect", "/redoc"})
 
 
+# Respuestas autenticadas (operador y personal): nunca en una caché compartida ni en el disco
+# del navegador. Sólo si la ruta no puso su propio `Cache-Control` (las envolturas de error
+# llevan `no-store`; el ETag del sondeo de `/op` pondrá el suyo). Revisión de T-1.2, B4.
+CACHE_PRIVADA = "private, no-store"
+PREFIJOS_PRIVADOS = ("/api/v1/admin", "/api/v1/op")
+
+
+def es_ruta_privada(ruta: str, prefijos: Iterable[str] = PREFIJOS_PRIVADOS) -> bool:
+    return any(ruta == p or ruta.startswith(p + "/") for p in prefijos)
+
+
 class MiddlewareCabecerasSeguridad:
     def __init__(
-        self, app: ASGIApp, cabeceras: Mapping[str, str], sin_csp: Iterable[str] = ()
+        self,
+        app: ASGIApp,
+        cabeceras: Mapping[str, str],
+        sin_csp: Iterable[str] = (),
+        privadas: Iterable[str] = PREFIJOS_PRIVADOS,
     ) -> None:
         self.app = app
         self.cabeceras = dict(cabeceras)
         self.sin_csp = frozenset(sin_csp)
+        self.privadas = tuple(privadas)
         self.cabeceras_sin_csp = {
             k: v for k, v in self.cabeceras.items() if k.lower() != "content-security-policy"
         }
@@ -210,11 +228,14 @@ class MiddlewareCabecerasSeguridad:
             await self.app(scope, receive, send)
             return
         a_poner = self.cabeceras_sin_csp if scope["path"] in self.sin_csp else self.cabeceras
+        privada = es_ruta_privada(scope["path"], self.privadas)
 
         async def enviar(mensaje: Message) -> None:
             if mensaje["type"] == "http.response.start":
                 cabeceras = MutableHeaders(raw=list(mensaje.get("headers", [])))
                 poner_cabeceras(cabeceras, a_poner)
+                if privada and "cache-control" not in cabeceras:
+                    cabeceras["Cache-Control"] = CACHE_PRIVADA
                 mensaje = {**mensaje, "headers": cabeceras.raw}
             await send(mensaje)
 

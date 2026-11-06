@@ -11,15 +11,19 @@ El token lo verifica `VerificadorDePrueba` (`tests/auth_pruebas.py`), instalado 
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Iterator
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
 import pytest
+from fastapi.routing import APIRoute
 from httpx import AsyncClient, Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.admin import ejemplos
 from app.core.config import settings
 from app.core.firebase import obtener_verificador
 from app.db.models import (
@@ -30,24 +34,46 @@ from app.db.models import (
     Usuario,
 )
 from app.main import app
+from app.schemas.comun import ErrorRespuesta
 from tests.auth_pruebas import cabecera_de
 from tests.conftest import Fabrica
+from tests.llaves_pruebas import Google, token_firmado, verificador_real
 
 A = "/api/v1/admin"
 UUID_X = "00000000-0000-4000-8000-0000000000aa"
 
 
-def _rutas_admin() -> list[tuple[str, str]]:
-    """(método, ruta con ids de relleno) de todo lo que `/openapi.json` publica bajo `/admin`.
+def rutas_api(
+    rutas: Iterable[Any] | None = None, prefijo: str = "", deps: tuple[Any, ...] = ()
+) -> Iterator[tuple[str, APIRoute, tuple[Any, ...]]]:
+    """(ruta completa, `APIRoute`, dependencias heredadas de los `include_router`).
 
-    Del contrato y no de `app.routes`: FastAPI registra los routers incluidos de forma
-    perezosa, y el contrato es lo que el frontend llama."""
-    rutas = []
+    FastAPI 0.16x guarda los routers incluidos como `_IncludedRouter` y construye las rutas
+    efectivas de forma perezosa, así que `app.routes` no trae los `APIRoute` de `/api/v1`:
+    aquí se recorren por `original_router` e `include_context`. Si FastAPI cambia esa forma,
+    `test_el_recorrido_cubre_el_contrato` falla en lugar de dejar pruebas vacías."""
+    for ruta in app.routes if rutas is None else rutas:
+        original = getattr(ruta, "original_router", None)
+        if original is not None:
+            contexto = ruta.include_context
+            yield from rutas_api(
+                original.routes, prefijo + contexto.prefix, deps + tuple(contexto.dependencies)
+            )
+        elif isinstance(ruta, APIRoute):
+            yield prefijo + ruta.path, ruta, deps
+
+
+def _rutas_admin() -> list[tuple[str, str]]:
+    """(método, ruta con ids de relleno) bajo `/admin`: lo que publica `/openapi.json` más lo
+    que registra la aplicación (una ruta con `include_in_schema=False` también cuenta)."""
+    vistas: set[tuple[str, str]] = set()
     for ruta, operaciones in app.openapi()["paths"].items():
         if ruta.startswith(A):
-            concreta = re.sub(r"\{[^}]+\}", UUID_X, ruta)
-            rutas += [(metodo.upper(), concreta) for metodo in sorted(operaciones)]
-    return rutas
+            vistas |= {(metodo.upper(), ruta) for metodo in operaciones}
+    for ruta, api, _ in rutas_api():
+        if ruta.startswith(A):
+            vistas |= {(metodo, ruta) for metodo in api.methods}
+    return sorted((m, re.sub(r"\{[^}]+\}", UUID_X, r)) for m, r in vistas)
 
 
 RUTAS_ADMIN = _rutas_admin()
@@ -262,27 +288,35 @@ async def test_alta_valida_el_cuerpo(cliente: AsyncClient, cuerpo: dict[str, Any
 
 
 @pytest.mark.ac("AC-15.2")
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"plan": "enterprise"},
+        {"activo": False},
+        {"horarios": {"lunes": "nunca"}},
+        {"id": UUID_X},
+        {"restaurante_id": UUID_X},
+        {"zzz": 1},
+    ],
+)
 async def test_el_cuerpo_no_decide_plan_activo_ni_restaurante(
-    cliente: AsyncClient, sesion: AsyncSession, restaurante: Restaurante
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    extra: dict[str, Any],
 ) -> None:
-    creado = await cliente.post(
-        f"{A}/restaurantes",
-        json={
-            "nombre": "Pícaro",
-            "plan": "enterprise",
-            "activo": False,
-            "horarios": {"lunes": "nunca"},
-            "id": str(restaurante.id),
-            "restaurante_id": str(restaurante.id),
-        },
-        headers=cabecera_de("uid-picaro"),
+    """B2: un campo que el operador no decide es 422, no un 200 que lo ignora en silencio."""
+    alta = await cliente.post(
+        f"{A}/restaurantes", json={"nombre": "Pícaro", **extra}, headers=cabecera_operador
     )
-    assert creado.status_code == 201, creado.text
-    assert creado.json()["id"] != str(restaurante.id)
-    nuevo = await sesion.get(Restaurante, UUID(creado.json()["id"]))
-    assert nuevo is not None
-    await sesion.refresh(nuevo)
-    assert (nuevo.plan, nuevo.activo, nuevo.horarios) == ("gratis", True, {})
+    assert alta.status_code == 422, alta.text
+    cambio = await cliente.patch(
+        f"{A}/restaurantes/{restaurante.id}", json=extra, headers=cabecera_operador
+    )
+    assert cambio.status_code == 422, cambio.text
+    await sesion.refresh(restaurante)
+    assert (restaurante.plan, restaurante.activo) == ("gratis", True)
 
 
 @pytest.mark.ac("AC-15.2")
@@ -444,13 +478,348 @@ async def test_el_restaurante_del_cuerpo_no_cuenta(
     cabecera_operador: dict[str, str],
     ajeno: Restaurante,
 ) -> None:
-    """Regla dura 5: un `restaurante_id` en el cuerpo se ignora; manda la ruta validada."""
-    creado = await cliente.post(
+    """Regla dura 5: un `restaurante_id` en el cuerpo es 422; manda la ruta validada."""
+    rechazado = await cliente.post(
         f"{A}/restaurantes/{restaurante.id}/platillos",
         json={"restaurante_id": str(ajeno.id), "nombre": "Tlayuda", "precio": 80},
+        headers=cabecera_operador,
+    )
+    assert rechazado.status_code == 422, rechazado.text
+    creado = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos",
+        json={"nombre": "Tlayuda", "precio": 80},
         headers=cabecera_operador,
     )
     assert creado.status_code == 201, creado.text
     platillo = await sesion.get(Platillo, UUID(creado.json()["id"]))
     assert platillo is not None
     assert platillo.restaurante_id == restaurante.id
+
+
+# ---------------------------------------------------------------------------
+# Revisión de la maestra
+# ---------------------------------------------------------------------------
+
+
+def test_el_recorrido_cubre_el_contrato() -> None:
+    contrato = {
+        (m.upper(), r) for r, ops in app.openapi()["paths"].items() if r.startswith(A) for m in ops
+    }
+    recorridas = {(m, r) for r, api, _ in rutas_api() if r.startswith(A) for m in api.methods}
+    assert contrato <= recorridas
+
+
+# --- A1 · Las rutas de ejemplo no salen de desarrollo -------------------------------------
+
+RUTAS_DE_EJEMPLO = [
+    f"/restaurantes/{UUID_X}/personal",
+    f"/restaurantes/{UUID_X}/mesas",
+    f"/restaurantes/{UUID_X}/categorias",
+    f"/restaurantes/{UUID_X}/importaciones/{UUID_X}",
+]
+
+
+@pytest.mark.ac("AC-15.3")
+@pytest.mark.parametrize("entorno", ["staging", "produccion"])
+@pytest.mark.parametrize("ruta", RUTAS_DE_EJEMPLO)
+async def test_las_rutas_de_ejemplo_con_token_son_404_fuera_de_desarrollo(
+    cliente: AsyncClient,
+    cabecera_operador: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    entorno: str,
+    ruta: str,
+) -> None:
+    monkeypatch.setattr(settings, "ENTORNO", entorno)
+    _es_404(await cliente.get(A + ruta, headers=cabecera_operador))
+    _es_401(await cliente.get(A + ruta))  # sin token sigue siendo 401
+    subida = await cliente.post(
+        f"{A}/restaurantes/{UUID_X}/importaciones",
+        files={"archivo": ("x.pdf", b"%PDF-1.4", "application/pdf")},
+        headers=cabecera_operador,
+    )
+    _es_404(subida)
+
+
+async def test_las_rutas_de_ejemplo_responden_en_desarrollo(
+    cliente: AsyncClient, cabecera_operador: dict[str, str]
+) -> None:
+    assert settings.es_desarrollo
+    respuesta = await cliente.get(A + RUTAS_DE_EJEMPLO[0], headers=cabecera_operador)
+    assert respuesta.status_code == 200
+
+
+# --- A2 · Caracteres de control: 422 o 401, nunca 500 ------------------------------------
+
+
+@pytest.mark.ac("AC-15.2")
+@pytest.mark.parametrize("campo", ["nombre", "direccion", "telefono", "email"])
+@pytest.mark.parametrize("valor", ["a\x00b", "a\x1bb", "a\u0085b"])
+async def test_un_caracter_de_control_es_422_y_no_500(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    campo: str,
+    valor: str,
+) -> None:
+    cuerpo = {"nombre": "Ok", campo: valor}
+    alta = await cliente.post(f"{A}/restaurantes", json=cuerpo, headers=cabecera_operador)
+    assert alta.status_code == 422, alta.text
+    cambio = await cliente.patch(
+        f"{A}/restaurantes/{restaurante.id}", json={campo: valor}, headers=cabecera_operador
+    )
+    assert cambio.status_code == 422, cambio.text
+
+
+async def test_la_direccion_admite_saltos_de_linea(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
+) -> None:
+    cambio = await cliente.patch(
+        f"{A}/restaurantes/{restaurante.id}",
+        json={"direccion": "Calle 1\nCol. Centro"},
+        headers=cabecera_operador,
+    )
+    assert cambio.status_code == 200, cambio.text
+    assert cambio.json()["direccion"] == "Calle 1\nCol. Centro"
+
+
+@pytest.fixture
+def con_verificador_real(cliente: AsyncClient) -> Google:
+    """El verificador real (llaves propias, sin red) en lugar de `VerificadorDePrueba`."""
+    google = Google()
+    verificador = verificador_real(google)
+    app.dependency_overrides[obtener_verificador] = lambda: verificador
+    return google
+
+
+def _bearer(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.mark.ac("AC-15.1")
+async def test_con_el_verificador_real_un_sub_con_nul_es_401(
+    cliente: AsyncClient, con_verificador_real: Google
+) -> None:
+    respuesta = await cliente.get(f"{A}/restaurantes", headers=_bearer(token_firmado(sub="a\x00b")))
+    _es_401(respuesta)
+
+
+async def test_con_el_verificador_real_el_nombre_llega_limpio(
+    cliente: AsyncClient, sesion: AsyncSession, con_verificador_real: Google
+) -> None:
+    token = token_firmado(sub="uid-nombre-sucio", name="Ana\x00 María\x07")
+    respuesta = await cliente.get(f"{A}/restaurantes", headers=_bearer(token))
+    assert respuesta.status_code == 200, respuesta.text
+    usuario = await sesion.scalar(select(Usuario).where(Usuario.firebase_uid == "uid-nombre-sucio"))
+    assert usuario is not None
+    assert usuario.nombre_display == "Ana María"
+
+
+# --- A3 · Dos operadores existentes no se confunden -------------------------------------
+
+
+@pytest.mark.ac("AC-15.2")
+@pytest.mark.ac("AC-15.3")
+async def test_dos_operadores_existentes_no_se_confunden(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    fabrica_restaurante: Fabrica,
+    fabrica_operador: Fabrica,
+) -> None:
+    de_a = await fabrica_restaurante()
+    de_b = await fabrica_restaurante()
+    usuario_a = await _usuario_de(sesion, await fabrica_operador(de_a))
+    usuario_b = await _usuario_de(sesion, await fabrica_operador(de_b))
+    for yo, mio, suyo in ((usuario_a, de_a, de_b), (usuario_b, de_b, de_a)):
+        cabecera = cabecera_de(yo.firebase_uid)
+        lista = await cliente.get(f"{A}/restaurantes", headers=cabecera)
+        assert [r["id"] for r in lista.json()] == [str(mio.id)]
+        assert (
+            await cliente.get(f"{A}/restaurantes/{mio.id}", headers=cabecera)
+        ).status_code == 200
+        _es_404(await cliente.get(f"{A}/restaurantes/{suyo.id}", headers=cabecera))
+        _es_404(
+            await cliente.patch(
+                f"{A}/restaurantes/{suyo.id}", json={"nombre": "Mío"}, headers=cabecera
+            )
+        )
+        cambio = await cliente.patch(
+            f"{A}/restaurantes/{mio.id}", json={"nombre": f"De {yo.firebase_uid}"}, headers=cabecera
+        )
+        assert cambio.status_code == 200
+    await sesion.refresh(de_a)
+    await sesion.refresh(de_b)
+    assert (de_a.nombre, de_b.nombre) == (
+        f"De {usuario_a.firebase_uid}",
+        f"De {usuario_b.firebase_uid}",
+    )
+    usuarios = await sesion.scalar(select(func.count()).select_from(Usuario))
+    assert usuarios == 2
+
+
+# --- A4 · Toda ruta real con id depende de una comprobación del operador ----------------
+
+IDS_DE_RECURSO = {"rid", "platillo_id", "categoria_id", "mesa_id", "personal_id", "importacion_id"}
+DEPENDENCIAS_DEL_OPERADOR = {"restaurante_del_operador", "platillo_del_operador"}
+
+
+def _dependencias(dependant: Any) -> set[str]:
+    nombres: set[str] = set()
+    for sub in dependant.dependencies:
+        nombres.add(getattr(sub.call, "__name__", ""))
+        nombres |= _dependencias(sub)
+    return nombres
+
+
+def _rutas_reales_con_id() -> list[tuple[str, APIRoute]]:
+    de_ejemplo = {
+        (r.path, frozenset(r.methods)) for r in ejemplos.router.routes if isinstance(r, APIRoute)
+    }
+    rutas = []
+    for ruta, api, _ in rutas_api():
+        if not ruta.startswith(A) or (api.path, frozenset(api.methods)) in de_ejemplo:
+            continue
+        if set(re.findall(r"\{([^}]+)\}", ruta)) & IDS_DE_RECURSO:
+            rutas.append((ruta, api))
+    return rutas
+
+
+@pytest.mark.ac("AC-15.3")
+def test_toda_ruta_admin_con_id_depende_del_operador() -> None:
+    """Cuando T-1.3 a T-1.9 sustituyan los ejemplos, olvidar `*_del_operador` rompe esto."""
+    rutas = _rutas_reales_con_id()
+    assert len(rutas) >= 6  # GET/PATCH restaurante, GET/POST platillos, PATCH/DELETE platillo
+    for ruta, api in rutas:
+        nombres = _dependencias(api.dependant)
+        assert nombres & DEPENDENCIAS_DEL_OPERADOR, (ruta, sorted(api.methods))
+        assert all(n.endswith("_del_operador") for n in nombres & DEPENDENCIAS_DEL_OPERADOR)
+
+
+# --- B1 · logo_url sólo https -----------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "logo",
+    [
+        "javascript:alert(1)",
+        "data:image/png;base64,AAAA",
+        "http://img.carta.mx/logo.png",
+        "//img.carta.mx/logo.png",
+        "https://",
+        "https://usuario:clave@img.carta.mx/logo.png",
+    ],
+)
+async def test_el_logo_solo_acepta_https(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str], logo: str
+) -> None:
+    respuesta = await cliente.patch(
+        f"{A}/restaurantes/{restaurante.id}", json={"logo_url": logo}, headers=cabecera_operador
+    )
+    assert respuesta.status_code == 422, respuesta.text
+
+
+async def test_un_logo_https_se_guarda(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
+) -> None:
+    logo = "https://img.carta.mx/logos/querencia.webp"
+    respuesta = await cliente.patch(
+        f"{A}/restaurantes/{restaurante.id}", json={"logo_url": logo}, headers=cabecera_operador
+    )
+    assert respuesta.status_code == 200, respuesta.text
+    assert respuesta.json()["logo_url"] == logo
+
+
+# --- B3 · Slugs reservados -------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "slug", ["admin", "api", "staff", "assets", "fonts", "health", "ready", "static", "carta"]
+)
+async def test_un_slug_reservado_es_422(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str], slug: str
+) -> None:
+    alta = await cliente.post(
+        f"{A}/restaurantes", json={"nombre": "Ok", "slug": slug}, headers=cabecera_operador
+    )
+    assert alta.status_code == 422, alta.text
+    cambio = await cliente.patch(
+        f"{A}/restaurantes/{restaurante.id}", json={"slug": slug}, headers=cabecera_operador
+    )
+    assert cambio.status_code == 422, cambio.text
+
+
+async def test_un_nombre_que_da_un_slug_reservado_recibe_sufijo(
+    cliente: AsyncClient, cabecera_operador: dict[str, str]
+) -> None:
+    alta = await cliente.post(
+        f"{A}/restaurantes", json={"nombre": "Admin"}, headers=cabecera_operador
+    )
+    assert alta.status_code == 201, alta.text
+    assert alta.json()["slug"] == "admin-2"
+
+
+# --- B4 · Las respuestas autenticadas no se cachean --------------------------------------
+
+
+async def test_las_respuestas_del_operador_son_privadas_y_sin_cache(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
+) -> None:
+    lista = await cliente.get(f"{A}/restaurantes", headers=cabecera_operador)
+    assert lista.status_code == 200
+    assert lista.headers["cache-control"] == "private, no-store"
+    error = await cliente.get(f"{A}/restaurantes/{UUID_X}", headers=cabecera_operador)
+    assert error.headers["cache-control"] == "no-store"  # la envoltura conserva la suya
+    salud = await cliente.get("/health")
+    assert salud.headers.get("cache-control") != "private, no-store"
+
+
+# --- B7 · Huecos de pruebas -------------------------------------------------------------
+
+
+@pytest.mark.ac("AC-15.2")
+async def test_borrar_mi_platillo_lo_desactiva(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+) -> None:
+    platillo = await _platillo(sesion, restaurante)
+    respuesta = await cliente.delete(f"{A}/platillos/{platillo.id}", headers=cabecera_operador)
+    assert respuesta.status_code == 204
+    await sesion.refresh(platillo)
+    assert platillo.activo is False  # regla dura 9: sin borrado físico
+
+
+@pytest.mark.ac("AC-15.1")
+async def test_los_401_reales_cumplen_el_esquema_publicado(
+    cliente: AsyncClient, con_verificador_real: Google
+) -> None:
+    sin_token = await cliente.get(f"{A}/restaurantes")
+    assert ErrorRespuesta.model_validate(sin_token.json()).error.codigo == "SIN_CREDENCIAL"
+    ahora = int(datetime.now(UTC).timestamp())
+    vencido = token_firmado(exp=ahora - 60, iat=ahora - 3700, auth_time=ahora - 3700)
+    expirado = await cliente.get(f"{A}/restaurantes", headers=_bearer(vencido))
+    _es_401(expirado, "TOKEN_EXPIRADO")
+    assert ErrorRespuesta.model_validate(expirado.json()).error.codigo == "TOKEN_EXPIRADO"
+    valido = await cliente.get(f"{A}/restaurantes", headers=_bearer(token_firmado()))
+    assert valido.status_code == 200, valido.text
+
+
+async def test_ultimo_login_se_renueva_pasada_la_hora(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    operador: OperadorRestaurante,
+    cabecera_operador: dict[str, str],
+) -> None:
+    usuario = await _usuario_de(sesion, operador)
+    reciente = datetime.now(UTC) - timedelta(minutes=10)
+    usuario.ultimo_login = reciente
+    await sesion.commit()
+    await cliente.get(f"{A}/restaurantes", headers=cabecera_operador)
+    await sesion.refresh(usuario)
+    assert usuario.ultimo_login == reciente  # dentro de la hora no se escribe
+    antiguo = datetime.now(UTC) - timedelta(hours=2)
+    usuario.ultimo_login = antiguo
+    await sesion.commit()
+    await cliente.get(f"{A}/restaurantes", headers=cabecera_operador)
+    await sesion.refresh(usuario)
+    assert usuario.ultimo_login > datetime.now(UTC) - timedelta(minutes=1)

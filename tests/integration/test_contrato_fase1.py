@@ -269,7 +269,7 @@ async def test_el_crud_heredado_responde_con_el_esquema_v1(
     }
     creado = await cliente.post(
         f"{A}/restaurantes/{restaurante.id}/platillos",
-        json={"restaurante_id": str(restaurante.id), "nombre": "Tostada", "precio": 55.5},
+        json={"nombre": "Tostada", "precio": 55.5},
     )
     assert creado.status_code == 201, creado.text
     assert creado.json()["precio"] == 55.5
@@ -279,20 +279,22 @@ async def test_el_crud_heredado_responde_con_el_esquema_v1(
 @pytest.mark.parametrize(
     "ruta", [f"/restaurantes/{UUID_X}/importaciones/{UUID_X}", f"/restaurantes/{UUID_X}/mesas"]
 )
-async def test_los_ejemplos_exigen_token_tambien_fuera_de_desarrollo(
+async def test_los_ejemplos_fuera_de_desarrollo_piden_token_y_no_existen(
     cliente: AsyncClient,
     cabecera_operador: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
     ruta: str,
 ) -> None:
-    """T-1.2 quitó `solo_desarrollo`: en staging los ejemplos ya no se esconden, piden token."""
+    """Fuera de desarrollo un ejemplo pide token (401) y, con él, no existe (404): revisión
+    de T-1.2, A1."""
     monkeypatch.setattr(settings, "ENTORNO", "staging")
     del cliente.headers["Authorization"]
     respuesta = await cliente.get(A + ruta)
     assert respuesta.status_code == 401
     assert respuesta.json()["error"]["codigo"] == "SIN_CREDENCIAL"
     con_token = await cliente.get(A + ruta, headers=cabecera_operador)
-    assert con_token.status_code == 200
+    assert con_token.status_code == 404
+    assert con_token.json()["error"]["codigo"] == "RECURSO_NO_ENCONTRADO"
 
 
 # ---------------------------------------------------------------------------
@@ -519,9 +521,14 @@ async def test_el_platillo_heredado_es_del_restaurante_de_la_ruta(
     cliente: AsyncClient, restaurante: Restaurante, fabrica_restaurante: Any
 ) -> None:
     ajeno = await fabrica_restaurante()
-    creado = await cliente.post(
+    # Desde la revisión de T-1.2 un `restaurante_id` en el cuerpo es 422 (`extra="forbid"`).
+    con_restaurante = await cliente.post(
         f"{A}/restaurantes/{restaurante.id}/platillos",
         json={"restaurante_id": str(ajeno.id), "nombre": "Tostada", "precio": 10},
+    )
+    assert con_restaurante.status_code == 422, con_restaurante.text
+    creado = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos", json={"nombre": "Tostada", "precio": 10}
     )
     assert creado.status_code == 201, creado.text
     listado = await cliente.get(f"{A}/restaurantes/{restaurante.id}/platillos")
@@ -542,7 +549,6 @@ async def test_una_categoria_ajena_es_404_y_no_500(
     respuesta = await cliente.post(
         f"{A}/restaurantes/{restaurante.id}/platillos",
         json={
-            "restaurante_id": str(restaurante.id),
             "categoria_id": str(categoria.id),
             "nombre": "Tostada",
             "precio": 10,
@@ -557,7 +563,7 @@ async def test_un_precio_negativo_al_editar_es_422_y_no_500(
 ) -> None:
     creado = await cliente.post(
         f"{A}/restaurantes/{restaurante.id}/platillos",
-        json={"restaurante_id": str(restaurante.id), "nombre": "Tostada", "precio": 10},
+        json={"nombre": "Tostada", "precio": 10},
     )
     respuesta = await cliente.patch(
         f"{A}/platillos/{creado.json()['id']}", json={"precio": -1, "nivel_picante": 9}

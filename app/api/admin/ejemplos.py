@@ -12,7 +12,8 @@ sustituye sus rutas por las reales y las borra de aquí:
 | personal y PIN | T-1.6 |
 | importaciones | T-1.9 |
 
-No leen ni escriben la base. Exigen el token del operador como todo `/admin` (T-1.2).
+No leen ni escriben la base. Exigen el token del operador como todo `/admin` (T-1.2) y
+`solo_desarrollo` las esconde (404) fuera de desarrollo y pruebas.
 """
 
 from __future__ import annotations

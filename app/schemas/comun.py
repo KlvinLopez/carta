@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import unicodedata
 from decimal import Decimal
 from typing import Annotated, Any
 from uuid import UUID
@@ -38,9 +39,33 @@ def _texto(maximo: int) -> StringConstraints:
     return StringConstraints(strip_whitespace=True, min_length=1, max_length=maximo)
 
 
-Nombre60 = Annotated[str, _texto(60)]
-Nombre100 = Annotated[str, _texto(100)]
-Nombre200 = Annotated[str, _texto(200)]
+def sin_caracteres_de_control(permitidos: str = "") -> AfterValidator:
+    """Rechaza los caracteres de control (categoría Unicode `Cc`: `\\x00`–`\\x1f`,
+    `\\x7f`–`\\x9f`) salvo los `permitidos` (p. ej. `"\\n"` en textos largos). Un NUL
+    llega a PostgreSQL como `CharacterNotInRepertoireError` y daría 500; los demás ensucian
+    pantallas y registros. Revisión de T-1.2 (A2)."""
+
+    def validar(texto: str) -> str:
+        if any(c not in permitidos and unicodedata.category(c) == "Cc" for c in texto):
+            raise ValueError("no se permiten caracteres de control")
+        return texto
+
+    return AfterValidator(validar)
+
+
+SIN_CONTROL = sin_caracteres_de_control()
+SIN_CONTROL_SALVO_SALTOS = sin_caracteres_de_control("\n")
+
+Nombre60 = Annotated[str, _texto(60), SIN_CONTROL]
+Nombre100 = Annotated[str, _texto(100), SIN_CONTROL]
+Nombre200 = Annotated[str, _texto(200), SIN_CONTROL]
+
+
+class Entrada(BaseModel):
+    """Base de los cuerpos que manda el operador: un campo desconocido (`plan`, `activo`,
+    `restaurante_id`…) es 422, no un 200 que lo ignora en silencio (revisión de T-1.2, B2)."""
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class Esquema(BaseModel):

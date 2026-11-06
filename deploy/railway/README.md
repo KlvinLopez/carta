@@ -88,11 +88,16 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    R2_BUCKET_PUBLICO=carta-publico-staging
    R2_BUCKET_PRIVADO=carta-privado-staging
    R2_URL_PUBLICA=https://img-staging.carta.cooking
+   FIREBASE_PROJECT_ID=<id del proyecto de Firebase de staging>
+   FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
+   FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
+   FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de staging>.firebaseapp.com
    ```
 
    - `${{Postgres.DATABASE_URL}}` se pega **tal cual**: Railway lo cambia por la dirección real de la base de este environment.
    - `PORT=8000` fija el puerto en el que escucha la aplicación (y en el que Railway hace el *healthcheck*).
-   - `ANTHROPIC_API_KEY`, `FIREBASE_PROJECT_ID` y `SENTRY_DSN` **no se crean todavía**: sin ellas la aplicación arranca y esas funciones quedan apagadas. Se agregan aquí mismo cuando lleguen sus tareas.
+   - `FIREBASE_PROJECT_ID` es el *Project ID* de Firebase (consola de Firebase → ⚙ **Project settings** → **General**), no es secreto. Sin él nadie entra al panel del operador. Las tres `FIREBASE_CSP_*` abren la política de seguridad del navegador a Firebase Auth (inicio de sesión con Google y enlace por correo); vacías, el panel no puede iniciar sesión. Los valores vienen de `docs/plan/04_Fases_y_Tareas.md` §11 (filas T-1.2 y T-1.10).
+   - `ANTHROPIC_API_KEY` y `SENTRY_DSN` **no se crean todavía**: sin ellas la aplicación arranca y esas funciones quedan apagadas. Se agregan aquí mismo cuando lleguen sus tareas.
 5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
 6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra.
 
@@ -153,6 +158,10 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    R2_BUCKET_PUBLICO=carta-publico-produccion
    R2_BUCKET_PRIVADO=carta-privado-produccion
    R2_URL_PUBLICA=https://img.carta.cooking
+   FIREBASE_PROJECT_ID=<id del proyecto de Firebase de producción>
+   FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
+   FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
+   FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de producción>.firebaseapp.com
    ```
 
    Sella `SECRET_KEY` y `R2_SECRET_ACCESS_KEY` (para cambiarlas después, **⋮ → Edit** una por una).
@@ -184,7 +193,8 @@ Resumen de lo que cambia entre ambientes:
 | `R2_BUCKET_PUBLICO` | `carta-publico-staging` | `carta-publico-produccion` |
 | `R2_BUCKET_PRIVADO` | `carta-privado-staging` | `carta-privado-produccion` |
 | `R2_URL_PUBLICA` | `https://img-staging.carta.cooking` | `https://img.carta.cooking` |
-| Igual en los dos | `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=8000`, `WORKERS=2`, `R2_ENDPOINT`, `RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS=30` | |
+| `FIREBASE_PROJECT_ID`, `FIREBASE_CSP_FRAME_SRC` | proyecto de Firebase de staging | proyecto de Firebase de producción |
+| Igual en los dos | `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=8000`, `WORKERS=2`, `FIREBASE_CSP_CONNECT_SRC`, `FIREBASE_CSP_SCRIPT_SRC`, `R2_ENDPOINT`, `RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS=30` | |
 
 ---
 
