@@ -59,7 +59,14 @@ settings.DATABASE_URL = URL_PRUEBAS
 # aplicación, que así nace ya sobre la base de pruebas.
 from app.core.firebase import obtener_verificador  # noqa: E402
 from app.db.database import close_db, get_db_session  # noqa: E402
-from app.db.models import Mesa, OperadorRestaurante, Restaurante, Usuario  # noqa: E402
+from app.db.models import (  # noqa: E402
+    CategoriaMenu,
+    Mesa,
+    OperadorRestaurante,
+    Platillo,
+    Restaurante,
+    Usuario,
+)
 from app.main import app  # noqa: E402
 from tests import fabricas  # noqa: E402
 from tests.auth_pruebas import VERIFICADOR_DE_PRUEBA, cabecera_de  # noqa: E402
@@ -192,6 +199,24 @@ def fabrica_mesa(sesion: AsyncSession) -> Fabrica:
 
 
 @pytest.fixture
+def fabrica_categoria(sesion: AsyncSession) -> Fabrica:
+    async def _crear(restaurante: Restaurante, **valores: Any) -> CategoriaMenu:
+        return await fabricas.crear_categoria(sesion, restaurante, **valores)
+
+    return _crear
+
+
+@pytest.fixture
+def fabrica_platillo(sesion: AsyncSession) -> Fabrica:
+    async def _crear(
+        restaurante: Restaurante, categoria: CategoriaMenu | None = None, **valores: Any
+    ) -> Platillo:
+        return await fabricas.crear_platillo(sesion, restaurante, categoria, **valores)
+
+    return _crear
+
+
+@pytest.fixture
 async def restaurante(fabrica_restaurante: Fabrica) -> Restaurante:
     restaurante: Restaurante = await fabrica_restaurante()
     return restaurante
@@ -216,3 +241,18 @@ async def cabecera_operador(sesion: AsyncSession, operador: OperadorRestaurante)
 async def mesa(fabrica_mesa: Fabrica, restaurante: Restaurante) -> Mesa:
     mesa: Mesa = await fabrica_mesa(restaurante)
     return mesa
+
+
+@pytest.fixture
+async def categoria(fabrica_categoria: Fabrica, restaurante: Restaurante) -> CategoriaMenu:
+    categoria: CategoriaMenu = await fabrica_categoria(restaurante)
+    return categoria
+
+
+@pytest.fixture
+async def platillo(
+    fabrica_platillo: Fabrica, restaurante: Restaurante, categoria: CategoriaMenu
+) -> Platillo:
+    """Platillo activo del `restaurante`, en `categoria`."""
+    platillo: Platillo = await fabrica_platillo(restaurante, categoria)
+    return platillo

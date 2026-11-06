@@ -514,7 +514,6 @@ def test_el_recorrido_cubre_el_contrato() -> None:
 RUTAS_DE_EJEMPLO = [
     f"/restaurantes/{UUID_X}/personal",
     f"/restaurantes/{UUID_X}/mesas",
-    f"/restaurantes/{UUID_X}/categorias",
     f"/restaurantes/{UUID_X}/importaciones/{UUID_X}",
 ]
 
@@ -659,7 +658,11 @@ async def test_dos_operadores_existentes_no_se_confunden(
 # --- A4 · Toda ruta real con id depende de una comprobación del operador ----------------
 
 IDS_DE_RECURSO = {"rid", "platillo_id", "categoria_id", "mesa_id", "personal_id", "importacion_id"}
-DEPENDENCIAS_DEL_OPERADOR = {"restaurante_del_operador", "platillo_del_operador"}
+DEPENDENCIAS_DEL_OPERADOR = {
+    "restaurante_del_operador",
+    "platillo_del_operador",
+    "categoria_del_operador",
+}
 
 
 def _dependencias(dependant: Any) -> set[str]:
@@ -687,7 +690,8 @@ def _rutas_reales_con_id() -> list[tuple[str, APIRoute]]:
 def test_toda_ruta_admin_con_id_depende_del_operador() -> None:
     """Cuando T-1.3 a T-1.9 sustituyan los ejemplos, olvidar `*_del_operador` rompe esto."""
     rutas = _rutas_reales_con_id()
-    assert len(rutas) >= 6  # GET/PATCH restaurante, GET/POST platillos, PATCH/DELETE platillo
+    # GET/PATCH restaurante, categorías y platillos (T-1.3): GET/POST, reordenar, PATCH/DELETE
+    assert len(rutas) >= 12
     for ruta, api in rutas:
         nombres = _dependencias(api.dependant)
         assert nombres & DEPENDENCIAS_DEL_OPERADOR, (ruta, sorted(api.methods))

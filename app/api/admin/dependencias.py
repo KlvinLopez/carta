@@ -7,7 +7,8 @@
 - `restaurante_del_operador(rid)`: el restaurante de la ruta si el operador lo tiene
   asignado; si no existe o es ajeno, 404 idéntico (AC-15.3, regla dura 6). El
   `restaurante_id` sale de aquí, nunca del cuerpo (regla dura 5).
-- `platillo_del_operador(platillo_id)`: lo mismo para las rutas por id de platillo.
+- `platillo_del_operador(platillo_id)` y `categoria_del_operador(categoria_id)`: lo mismo
+  para las rutas por id de recurso (T-1.3).
 """
 
 from __future__ import annotations
@@ -25,8 +26,8 @@ from app.core.firebase import (
     obtener_verificador,
     sin_credencial,
 )
-from app.db import Platillo, Restaurante, Usuario, get_db_session
-from app.services import operadores
+from app.db import CategoriaMenu, Platillo, Restaurante, Usuario, get_db_session
+from app.services import menu, operadores
 
 # `auto_error=False`: el 401 lo da `identidad_firebase` con la envoltura única. Publica el
 # esquema `bearer` en `/openapi.json` para que el frontend sepa cómo autenticarse.
@@ -79,3 +80,14 @@ async def platillo_del_operador(
     if platillo is None:
         raise no_encontrado()
     return platillo
+
+
+async def categoria_del_operador(
+    categoria_id: UUID,
+    usuario: Usuario = Depends(operador_actual),
+    sesion: AsyncSession = Depends(get_db_session),
+) -> CategoriaMenu:
+    categoria = await menu.categoria_del_usuario(sesion, usuario.id, categoria_id)
+    if categoria is None:
+        raise no_encontrado()
+    return categoria

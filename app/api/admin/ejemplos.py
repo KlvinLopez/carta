@@ -2,11 +2,11 @@
 
 Publican en `/openapi.json` la forma final de cada respuesta para que el frontend (carril C)
 genere sus tipos y trabaje con datos simulados mientras el backend se construye. Cada tarea
-sustituye sus rutas por las reales y las borra de aquí:
+sustituye sus rutas por las reales y las borra de aquí (T-1.3 ya puso categorías y
+platillos en `menu.py`):
 
 | Rutas | Tarea |
 |---|---|
-| categorías, `platillos/reordenar` | T-1.3 |
 | `platillos/{id}/foto` | T-1.4 |
 | mesas y `qr.pdf` | T-1.5 |
 | personal y PIN | T-1.6 |
@@ -25,7 +25,7 @@ from uuid import UUID
 from fastapi import APIRouter, File, Response, UploadFile, status
 
 from app.db.models import EstadoImportacion, RolPersonal, TipoImagen
-from app.schemas.comun import Reordenar, errores
+from app.schemas.comun import errores
 from app.schemas.importacion import (
     CategoriaImportada,
     ImportacionRespuesta,
@@ -33,12 +33,7 @@ from app.schemas.importacion import (
     ResultadoImportacion,
     VarianteImportada,
 )
-from app.schemas.menu import (
-    CategoriaCambios,
-    CategoriaCrear,
-    CategoriaRespuesta,
-    PlatilloRespuesta,
-)
+from app.schemas.menu import PlatilloRespuesta
 from app.schemas.mesa import MesaRespuesta, MesasCrear
 from app.schemas.personal import PersonalCambios, PersonalCrear, PersonalRespuesta, PinNuevo
 
@@ -64,17 +59,6 @@ PDF_EJEMPLO = (
     b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 288 432]>>endobj\n"
     b"trailer<</Root 1 0 R>>\n%%EOF\n"
 )
-
-
-def _categoria(categoria_id: UUID = ID_CATEGORIA, **cambios: object) -> CategoriaRespuesta:
-    datos: dict[str, object] = {
-        "id": categoria_id,
-        "nombre": "Entradas",
-        "orden": 1,
-        "activa": True,
-    }
-    datos.update({k: v for k, v in cambios.items() if v is not None})
-    return CategoriaRespuesta.model_validate(datos)
 
 
 def _platillo(platillo_id: UUID = ID_PLATILLO, **cambios: object) -> PlatilloRespuesta:
@@ -168,45 +152,6 @@ def _importacion(
         finalizado_en=MOMENTO if terminada else None,
         confirmado_en=MOMENTO if estado == EstadoImportacion.confirmado else None,
     )
-
-
-# ---------------------------------------------------------------------------
-# Categorías y orden de platillos (T-1.3)
-# ---------------------------------------------------------------------------
-
-
-@router.get("/restaurantes/{rid}/categorias", response_model=list[CategoriaRespuesta])
-async def listar_categorias(rid: UUID) -> list[CategoriaRespuesta]:
-    return [_categoria()]
-
-
-@router.post(
-    "/restaurantes/{rid}/categorias",
-    response_model=CategoriaRespuesta,
-    status_code=status.HTTP_201_CREATED,
-)
-async def crear_categoria(rid: UUID, datos: CategoriaCrear) -> CategoriaRespuesta:
-    return _categoria(nombre=datos.nombre)
-
-
-@router.post("/restaurantes/{rid}/categorias/reordenar", response_model=list[CategoriaRespuesta])
-async def reordenar_categorias(rid: UUID, datos: Reordenar) -> list[CategoriaRespuesta]:
-    return [_categoria(i, orden=n) for n, i in enumerate(datos.ids, start=1)]
-
-
-@router.patch("/categorias/{categoria_id}", response_model=CategoriaRespuesta)
-async def editar_categoria(categoria_id: UUID, datos: CategoriaCambios) -> CategoriaRespuesta:
-    return _categoria(categoria_id, nombre=datos.nombre, activa=datos.activa)
-
-
-@router.delete("/categorias/{categoria_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def desactivar_categoria(categoria_id: UUID) -> None:
-    return None
-
-
-@router.post("/restaurantes/{rid}/platillos/reordenar", response_model=list[PlatilloRespuesta])
-async def reordenar_platillos(rid: UUID, datos: Reordenar) -> list[PlatilloRespuesta]:
-    return [_platillo(i, orden=n) for n, i in enumerate(datos.ids, start=1)]
 
 
 # ---------------------------------------------------------------------------

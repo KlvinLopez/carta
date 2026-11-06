@@ -1,8 +1,8 @@
 """Operador: `/api/v1/admin/*`, `Authorization: Bearer <Firebase ID token>` (T-1.2).
 
 Todo el router depende de `operador_actual` (AC-15.1): sin token válido, 401 con la
-envoltura única antes de validar nada más. `restaurantes.py` tiene las rutas reales de
-restaurantes y el CRUD heredado de platillos, aislados por restaurante
+envoltura única antes de validar nada más. `restaurantes.py` y `menu.py` (T-1.3) tienen las
+rutas reales de restaurantes, categorías y platillos, aisladas por restaurante
 (`app.api.admin.dependencias`); `ejemplos.py` publica el resto del contrato de la Fase 1 con
 datos de ejemplo (T-1.1) hasta que cada tarea ponga sus rutas reales: exigen el token y,
 además, `solo_desarrollo` las esconde (404) fuera de desarrollo y pruebas: con un token
@@ -12,7 +12,7 @@ sin validar (revisión de T-1.2, A1). Siguen en `/openapi.json`.
 
 from fastapi import APIRouter, Depends
 
-from app.api.admin import ejemplos, restaurantes
+from app.api.admin import ejemplos, menu, restaurantes
 from app.api.admin.dependencias import no_encontrado, operador_actual
 from app.core.config import settings
 from app.schemas.comun import errores
@@ -31,6 +31,7 @@ router = APIRouter(
     tags=["operador"], responses=errores(401, 404, 422), dependencies=[Depends(operador_actual)]
 )
 router.include_router(restaurantes.router)
+router.include_router(menu.router)
 router.include_router(ejemplos.router, dependencies=[Depends(solo_desarrollo)])
 
 __all__ = ["router", "solo_desarrollo"]

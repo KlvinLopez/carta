@@ -79,6 +79,12 @@ class Settings(BaseSettings):
     FIREBASE_CSP_SCRIPT_SRC: str = ""
     FIREBASE_CSP_FRAME_SRC: str = ""
 
+    # Purga del menú público en Cloudflare al editarlo (T-1.3, 02 §4). Sin las dos, sólo se
+    # invalida la caché en proceso y el borde sirve lo viejo hasta su `s-maxage` (60 s).
+    # El token sólo necesita el permiso «Zone · Cache Purge» de esa zona.
+    CLOUDFLARE_ZONE_ID: str | None = None
+    CLOUDFLARE_API_TOKEN: SecretStr | None = None
+
     # Observabilidad
     SENTRY_DSN: str | None = None
 
@@ -116,6 +122,10 @@ class Settings(BaseSettings):
     def database_url_sync(self) -> str:
         """URL sin driver asíncrono, para `psql` y herramientas síncronas."""
         return self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://", 1)
+
+    @property
+    def purga_cloudflare(self) -> bool:
+        return bool(self.CLOUDFLARE_ZONE_ID and self.CLOUDFLARE_API_TOKEN)
 
     @property
     def almacen_en_nube(self) -> bool:

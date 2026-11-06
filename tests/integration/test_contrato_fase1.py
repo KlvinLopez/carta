@@ -171,12 +171,6 @@ CONFIRMACION = {
     ],
 }
 EJEMPLOS: list[tuple[str, str, int, dict[str, Any]]] = [
-    ("get", f"/restaurantes/{UUID_X}/categorias", 200, {}),
-    ("post", f"/restaurantes/{UUID_X}/categorias", 201, {"json": {"nombre": "Postres"}}),
-    ("post", f"/restaurantes/{UUID_X}/categorias/reordenar", 200, {"json": {"ids": [UUID_X]}}),
-    ("patch", f"/categorias/{UUID_X}", 200, {"json": {"activa": False}}),
-    ("delete", f"/categorias/{UUID_X}", 204, {}),
-    ("post", f"/restaurantes/{UUID_X}/platillos/reordenar", 200, {"json": {"ids": [UUID_X]}}),
     ("post", f"/platillos/{UUID_X}/foto", 200, {"files": {"archivo": PDF}}),
     ("delete", f"/platillos/{UUID_X}/foto", 200, {}),
     ("get", f"/restaurantes/{UUID_X}/mesas", 200, {}),
@@ -505,9 +499,12 @@ def test_los_nombres_se_recortan() -> None:
     assert CategoriaCrear(nombre=" Postres ").nombre == "Postres"
 
 
-async def test_reordenar_con_ids_repetidos_es_422(cliente: AsyncClient) -> None:
+async def test_reordenar_con_ids_repetidos_es_422(
+    cliente: AsyncClient, restaurante: Restaurante
+) -> None:
+    # Con un `{rid}` ajeno sería 404 antes de mirar el cuerpo (T-1.3: la ruta ya es real).
     respuesta = await cliente.post(
-        f"{A}/restaurantes/{UUID_X}/categorias/reordenar", json={"ids": [UUID_X, UUID_X]}
+        f"{A}/restaurantes/{restaurante.id}/categorias/reordenar", json={"ids": [UUID_X, UUID_X]}
     )
     assert respuesta.status_code == 422
 
