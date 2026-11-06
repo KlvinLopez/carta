@@ -4,6 +4,8 @@
 # - Levanta un PostgreSQL 16 local (sin Docker) y crea las bases de desarrollo y pruebas
 # - Exporta DATABASE_URL, DATABASE_URL_SYNC y TEST_DATABASE_URL para la sesión
 # Idempotente: se puede correr varias veces. Sólo actúa en sesiones remotas.
+# Para probarlo en un shell limpio hay que simular la sesión remota (sin eso sale en silencio con 0):
+#   env -i HOME=$HOME PATH=$PATH CLAUDE_CODE_REMOTE=true CLAUDE_PROJECT_DIR=$PWD CLAUDE_ENV_FILE=/ruta/envfile bash .claude/hooks/session-start.sh
 
 set -uo pipefail
 
