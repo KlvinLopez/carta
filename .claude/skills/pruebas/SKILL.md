@@ -71,6 +71,12 @@ Cada conexión sale de `motor_pruebas.connect()` (dos conexiones asyncpg distint
 
 httpx normaliza la URL antes de enviarla (`/assets/../x` llega como `/x`, `/..` como `/`), así que un *path traversal* o un escape inválido no se pueden probar con `cliente.get(...)`. Llama a la aplicación con un `scope` ASGI escrito a mano (`_llamar_crudo` en `tests/integration/test_estaticos.py`): `asgi.spec_version = "2.4"` y un `receive` que devuelva `http.request` y después `http.disconnect`, o `FileResponse` se queda esperando la desconexión hasta el `timeout`.
 
+## 3c. API de Claude sin llave (importación, T-1.8)
+
+- Cliente falso = **SDK real** sobre `httpx2.MockTransport`: `anthropic.AsyncAnthropic(api_key="sk-ant-prueba", max_retries=0, http_client=anthropic.DefaultAsyncHttpxClient(transport=httpx2.MockTransport(manejador)))`. Así se prueban el cuerpo enviado y el mapeo 429/400/5xx → excepciones del SDK; no simules `messages.create` a mano. Usa `httpx2` (el SDK 1.x+ lo exige), nunca `httpx`.
+- El manejador responde en orden una lista de `httpx2.Response` o excepciones (`httpx2.ConnectError` = red caída) y guarda `json.loads(peticion.content)`. Respuestas en `tests/fixtures/menus/*.respuesta.json`; clase `ApiFalsa` en `tests/unit/test_importacion.py`.
+- Las pausas de reintento se inyectan (`dormir=`): ninguna prueba duerme. Lo que cuesta dinero va en `tests/live/` con `@pytest.mark.live` (excluido por `addopts`, se corre con `-m live`).
+
 ## 4. Esqueleto
 
 ```python

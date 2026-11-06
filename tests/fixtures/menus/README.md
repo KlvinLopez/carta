@@ -26,6 +26,22 @@ Pendientes de encontrar: dos cartas más de restaurantes de servicio completo en
 | `la-ceiba.pdf` | Dos columnas; precios `$145`, `60` (sin símbolo), `M.P.`, `chico 45 / grande 65`; platillo de temporada; nota de alérgenos en el pie; página de bebidas |
 | `taqueria-el-paso.pdf` | Una columna con puntos guía; precios sin símbolo; `45 / 70` (sencilla / con carne); combos; descripciones vacías |
 
+## Respuestas grabadas (pruebas unitarias de T-1.8)
+
+`<nombre>.respuesta.json` es el cuerpo de una respuesta de la API de Mensajes (formato real:
+`content` con un bloque `thinking` vacío y un bloque `text` con el JSON de
+`ResultadoImportacion`, `usage`, `stop_reason`). `tests/unit/test_importacion.py` las sirve con
+el SDK real sobre un transporte HTTP simulado. **Son sintéticas**: se escribieron a partir de
+los datos de `scripts/generar_cartas_prueba.py`, no se grabaron de la API (no había llave).
+Llevan a propósito un precio "M.P." (`null`, `baja`) y uno sin símbolo con confianza `baja`
+(«Cerveza artesanal»). Cuando haya llave, se pueden sustituir por respuestas reales sin cambiar
+las pruebas mientras conserven esos dos casos.
+
+Su reparto de confianzas (La Ceiba: 17 `alta`, 1 `media`, 2 `baja` = 85 % `alta`; taquería:
+16 de 17 `media`) es de quien las escribió, **no del modelo**: no sirve de referencia del umbral
+de 90 % de la prueba `live`. `test_esperado_coincide_con_la_respuesta_grabada` comprueba que
+nombres, precios y variantes de `respuesta.json` y `esperado.json` coinciden.
+
 ## Precisión esperada (T-1.8)
 
-Para cada carta hay (o habrá) un `<nombre>.esperado.json` con los platillos y precios anotados a mano. La prueba `live` exige ≥ 90 % de precios con confianza `alta` y correctos en las cartas con texto; en la escaneada se mide y se registra, sin umbral todavía.
+Para cada carta hay (o habrá) un `<nombre>.esperado.json` con los platillos y precios anotados a mano (`precio: null` = sin precio fijo). Hoy existen los de las dos sintéticas; los de `externas/` faltan (las cartas reales no están en el repositorio). La prueba `live` exige ≥ 90 % de precios con confianza `alta` y correctos en las cartas con texto; en la escaneada se mide y se registra, sin umbral todavía.

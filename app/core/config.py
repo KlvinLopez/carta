@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import Literal
 
-from pydantic import field_validator, model_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 log = logging.getLogger(__name__)
@@ -66,7 +66,8 @@ class Settings(BaseSettings):
     ALMACEN_LOCAL_RUTA: str = "./datos"
 
     # Importación de menús (API de Claude)
-    ANTHROPIC_API_KEY: str | None = None
+    # `SecretStr`: ni `repr(settings)` ni Sentry la muestran; vacía = importación apagada.
+    ANTHROPIC_API_KEY: SecretStr | None = None
     IMPORTACION_MODELO: str = "claude-opus-5-5"
 
     # Operadores (Firebase Auth). Sin proyecto, ningún token de operador es válido.

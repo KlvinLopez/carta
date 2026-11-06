@@ -19,11 +19,11 @@ dependencies = [
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "httpx>=0.27",
-    "anthropic>=1.0",
+    "anthropic>=2.5,<3",
     "pillow>=10.4",
     "qrcode[pil]>=8.0",
     "reportlab>=4.2",
-    "pypdf>=5.0",
+    "pypdf>=6,<7",
     "boto3>=1.35",
     "argon2-cffi>=23.1",
     "pyjwt[crypto]>=2.9",
@@ -82,6 +82,8 @@ asyncio_default_test_loop_scope = "session"
 # Ninguna prueba se queda colgada (una espera de candado en PostgreSQL, un sondeo sin fin).
 timeout = 60
 testpaths = ["tests"]
+# Las pruebas `live` llaman a la API real de Claude (cuestan): sólo con `-m live` explícito.
+addopts = ["-m", "not live"]
 markers = [
     "ac(*ids): criterios de aceptación (AC-x.y) que cubre la prueba; los lee scripts/verificar_trazabilidad.py",
     "live: usa la API real de Claude; requiere ANTHROPIC_API_KEY y se corre a mano",
