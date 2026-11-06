@@ -22,7 +22,8 @@ const sdk = vi.hoisted(() => {
     onIdTokenChanged: vi.fn(),
     GoogleAuthProvider: class {},
     indexedDBLocalPersistence: 'idb',
-    browserLocalPersistence: 'local',
+    inMemoryPersistence: 'memoria',
+    getAuth: vi.fn(() => instancia),
     browserPopupRedirectResolver: 'resolver',
   };
 });
@@ -33,7 +34,7 @@ vi.mock('firebase/app', () => ({
 }));
 vi.mock('firebase/auth', () => sdk);
 
-import { crearProveedorFirebase, ErrorAcceso } from './acceso/proveedor';
+import { crearProveedorFirebase, ErrorAcceso, type CodigoErrorAcceso } from './acceso/proveedor';
 
 const CONFIG = { apiKey: 'k', authDomain: 'p.firebaseapp.com', projectId: 'p', appId: 'a' };
 
@@ -88,6 +89,63 @@ describe('proveedor Firebase (SDK simulado)', () => {
     await expect(p.enviarEnlace('a@b.c')).rejects.toMatchObject({ codigo: 'demasiados-intentos' });
   });
 
+  it('B1: la persistencia es IndexedDB o memoria, nunca localStorage', async () => {
+    await crearProveedorFirebase(CONFIG);
+    const [, opciones] = sdk.initializeAuth.mock.calls[0] as unknown as [unknown, { persistence: unknown[] }];
+    expect(opciones.persistence).toEqual(['idb', 'memoria']);
+    expect(opciones.persistence).not.toContain('local');
+  });
+
+  it('una segunda carga del proveedor (Reintentar) reutiliza el auth ya inicializado', async () => {
+    sdk.initializeAuth.mockImplementationOnce(() => {
+      throw new Error('auth/already-initialized');
+    });
+    const p = await crearProveedorFirebase(CONFIG);
+    expect(sdk.getAuth).toHaveBeenCalledOnce();
+    await p.entrarConGoogle();
+    expect(sdk.signInWithRedirect).toHaveBeenCalledWith(sdk.instancia, expect.anything());
+  });
+
+  it.each([
+    ['auth/invalid-email', 'correo-invalido'],
+    ['auth/popup-closed-by-user', 'cancelado'],
+    ['auth/cancelled-popup-request', 'cancelado'],
+    ['auth/user-disabled', 'cuenta-deshabilitada'],
+    ['auth/network-request-failed', 'sin-red'],
+    ['auth/expired-action-code', 'enlace-invalido'],
+    ['auth/invalid-action-code', 'enlace-invalido'],
+    ['auth/too-many-requests', 'demasiados-intentos'],
+    ['auth/algo-que-no-conocemos', 'otro'],
+  ] satisfies [string, CodigoErrorAcceso][])('%s → ErrorAcceso %s', async (code, codigo) => {
+    const p = await crearProveedorFirebase(CONFIG);
+    sdk.sendSignInLinkToEmail.mockRejectedValueOnce({ code });
+    await expect(p.enviarEnlace('a@b.c')).rejects.toMatchObject({ name: 'ErrorAcceso', codigo });
+  });
+
+  it('al volver de Google consume el resultado del redirect y un fallo llega como ErrorAcceso', async () => {
+    sdk.onIdTokenChanged.mockImplementation(() => () => {});
+    sdk.getRedirectResult.mockRejectedValueOnce({ code: 'auth/user-disabled' });
+    const p = await crearProveedorFirebase(CONFIG);
+    const errores: ErrorAcceso[] = [];
+    p.suscribir(() => {}, (e) => errores.push(e));
+    expect(sdk.getRedirectResult).toHaveBeenCalledWith(sdk.instancia);
+    await vi.waitFor(() => expect(errores).toHaveLength(1));
+    expect(errores[0]).toMatchObject({ codigo: 'cuenta-deshabilitada' });
+  });
+
+  it('renovar: sin red lanza (la sesión se conserva); token revocado devuelve null (ya no hay sesión)', async () => {
+    const p = await crearProveedorFirebase(CONFIG);
+    sdk.instancia.currentUser = {
+      getIdToken: vi.fn().mockRejectedValueOnce({ code: 'auth/network-request-failed' }),
+    };
+    await expect(p.renovar()).rejects.toMatchObject({ codigo: 'sin-red' });
+    sdk.instancia.currentUser = {
+      getIdToken: vi.fn().mockRejectedValueOnce({ code: 'auth/user-token-expired' }),
+    };
+    expect(await p.renovar()).toBeNull();
+    sdk.instancia.currentUser = null;
+  });
+
   it('renovar pide un token nuevo; sin usuario devuelve null', async () => {
     const p = await crearProveedorFirebase(CONFIG);
     expect(await p.renovar()).toBeNull();
@@ -98,6 +156,23 @@ describe('proveedor Firebase (SDK simulado)', () => {
   });
 });
 
+/** Formas de traer `firebase/*` al código; cualquiera fuera de `proveedor.ts` (o no literal) es infracción. */
+export function infraccionesDeFirebase(fuente: string, esProveedor: boolean): string[] {
+  // Los comentarios mencionan `import()` y `firebase/…` sin importar nada.
+  const codigo = fuente.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+  const hallazgos: string[] = [];
+  // import x from 'firebase/…' · import 'firebase/…' (efecto lateral) · export … from 'firebase/…'
+  if (/\b(?:import|export)\b\s*(?:[^'"`;]*?\bfrom\s*)?['"`]firebase/.test(codigo)) {
+    hallazgos.push('import/export estático');
+  }
+  // import('firebase/…') fuera del único archivo permitido
+  if (!esProveedor && /\bimport\(\s*['"`]firebase/.test(codigo)) hallazgos.push('import() fuera de proveedor.ts');
+  // import(variable) · import(`…${x}`) · cualquier especificador que no sea un literal simple
+  if (/\bimport\(\s*(?!['"][^'"`$]*['"]\s*\))/.test(codigo)) hallazgos.push('import() no literal');
+  if (/\brequire\(/.test(codigo)) hallazgos.push('require');
+  return hallazgos;
+}
+
 describe('el SDK sólo vive en el área /admin', () => {
   function archivos(dir: string): string[] {
     return readdirSync(dir).flatMap((n) => {
@@ -106,17 +181,43 @@ describe('el SDK sólo vive en el área /admin', () => {
     });
   }
 
-  it('ningún archivo fuera de admin/acceso/proveedor.ts importa firebase, y siempre con import()', () => {
+  it('ningún archivo fuera de admin/acceso/proveedor.ts importa firebase, y siempre con import() literal', () => {
     const raiz = join(__dirname, '..');
     const infractores: string[] = [];
     for (const ruta of archivos(raiz)) {
       if (!/\.(ts|tsx)$/.test(ruta) || /\.test\.tsx?$/.test(ruta)) continue;
       const rel = relative(raiz, ruta).split(sep).join('/');
-      const codigo = readFileSync(ruta, 'utf8');
-      const estatico = /^\s*import\s[^;]*from\s+['"]firebase/m.test(codigo);
-      const dinamico = /import\(\s*['"]firebase/.test(codigo);
-      if (estatico || (dinamico && rel !== 'admin/acceso/proveedor.ts')) infractores.push(rel);
+      const hallazgos = infraccionesDeFirebase(readFileSync(ruta, 'utf8'), rel === 'admin/acceso/proveedor.ts');
+      if (hallazgos.length > 0) infractores.push(`${rel}: ${hallazgos.join(', ')}`);
     }
     expect(infractores).toEqual([]);
+  });
+
+  it('proveedor.ts sí usa import() dinámico y literal (la guarda no es vacua)', () => {
+    const codigo = readFileSync(join(__dirname, 'acceso/proveedor.ts'), 'utf8');
+    expect(/\bimport\(\s*'firebase\/auth'\s*\)/.test(codigo)).toBe(true);
+    expect(infraccionesDeFirebase(codigo, true)).toEqual([]);
+  });
+
+  it.each([
+    ["import { getAuth } from 'firebase/auth';", true],
+    ["import {\n  getAuth,\n  signOut,\n} from \"firebase/auth\";", true],
+    ["import 'firebase/auth';", true],
+    ["import * as fb from 'firebase/app'", true],
+    ["export * from 'firebase/auth';", true],
+    ["export { getAuth } from 'firebase/auth';", true],
+    ["const m = 'firebase/auth'; await import(m);", true],
+    ["await import(`firebase/${modulo}`);", true],
+    ["const f = require('firebase/auth');", true],
+    ["const x = await import('firebase/auth');", false], // legítimo sólo en proveedor.ts (ver abajo)
+    ["const Area = lazy(() => import('./admin/Area'));", false],
+    ["import { useState } from 'react';", false],
+  ])('la guarda detecta %j → %s', (codigo, infraccion) => {
+    expect(infraccionesDeFirebase(codigo, true).length > 0).toBe(infraccion);
+  });
+
+  it('un import() literal de firebase fuera de proveedor.ts es infracción', () => {
+    expect(infraccionesDeFirebase("await import('firebase/auth')", false)).not.toEqual([]);
+    expect(infraccionesDeFirebase("await import('firebase/auth')", true)).toEqual([]);
   });
 });

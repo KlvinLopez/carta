@@ -36,9 +36,38 @@
 
 .selector {
   max-width: 60%;
+  min-width: 0;
+}
+
+/* El botón envuelve su texto en un `inline-flex`; para que la elipsis funcione hay que dejar
+   que cada nivel se encoja (`min-width: 0`) y recortar sólo el nombre. */
+.selector > span {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nombre {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.nombreFijo {
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--carbon-suave);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-2);
 }
 
 .navegacion {
@@ -50,7 +79,7 @@
   padding: var(--esp-2) var(--esp-2) calc(var(--esp-2) + env(safe-area-inset-bottom, 0px));
   background: var(--superficie);
   border-radius: var(--radio-grande) var(--radio-grande) 0 0;
-  box-shadow: var(--sombra-hoja);
+  box-shadow: var(--sombra-navegacion);
 }
 
 .enlace {

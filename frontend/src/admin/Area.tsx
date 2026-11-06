@@ -17,9 +17,9 @@ import {
 function RutaProtegida() {
   const { estado } = useSesion();
   const ubicacion = useLocation();
-  if (estado.tipo === 'cargando') return <Cargando />;
+  if (estado.tipo === 'cargando') return <Cargando texto="Preparando tu panel…" />;
   if (estado.tipo !== 'con-sesion') {
-    return <Navigate to="/admin/acceso" replace state={{ desde: ubicacion.pathname }} />;
+    return <Navigate to="/admin/acceso" replace state={{ desde: `${ubicacion.pathname}${ubicacion.search}${ubicacion.hash}` }} />;
   }
   return <Outlet />;
 }
@@ -44,7 +44,16 @@ export default function AreaOperador({ fabrica }: { fabrica?: FabricaProveedor }
             <Route path="ajustes" element={<SeccionAjustes />} />
           </Route>
         </Route>
-        <Route path="*" element={<NoEncontrada />} />
+        <Route
+          path="*"
+          element={
+            <NoEncontrada
+              texto="Esta sección no existe en tu panel. Vuelve al menú para seguir."
+              destino="/admin/menu"
+              enlace="Ir a mi panel"
+            />
+          }
+        />
       </Routes>
     </SesionProvider>
   );

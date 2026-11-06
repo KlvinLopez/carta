@@ -56,6 +56,8 @@
   --sombra-tarjeta: 0 4px 16px rgba(79, 23, 40, 0.08);
   --sombra-flotante: 0 12px 32px rgba(79, 23, 40, 0.28);
   --sombra-hoja: 0 -24px 60px rgba(29, 28, 23, 0.3);
+  /* Barra de navegación fija: sombra cálida y corta (la de la hoja es de un velo, no de una barra). */
+  --sombra-navegacion: 0 -6px 24px rgba(79, 23, 40, 0.1);
 
   /* Movimiento: resorte (rigidez 300, amortiguación 20) y scale-fade */
   --resorte: cubic-bezier(0.22, 1.4, 0.36, 1);

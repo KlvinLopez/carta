@@ -1,4 +1,6 @@
+import { Boton } from '../compartido/componentes';
 import { estilosPantalla as e } from '../compartido/pantalla/Pantalla';
+import { useSesion } from './acceso/Sesion';
 import { EstadoVacio } from './armazon/EstadoVacio';
 import { useRestauranteActivo } from './armazon/RestauranteActivo';
 
@@ -48,8 +50,20 @@ export const SeccionPedidos = () => (
     Cuando una mesa envíe su orden la verás aquí.
   </Seccion>
 );
-export const SeccionAjustes = () => (
-  <Seccion titulo="Ajustes" glifo="A" vacio="Ajustes del restaurante">
-    Nombre, logo y enlaces públicos de tu restaurante.
-  </Seccion>
-);
+export function SeccionAjustes() {
+  const { estado, salir } = useSesion();
+  const correo = estado.tipo === 'con-sesion' ? estado.usuario.correo : null;
+  return (
+    <>
+      <Seccion titulo="Ajustes" glifo="A" vacio="Ajustes del restaurante">
+        Nombre, logo y enlaces públicos de tu restaurante.
+      </Seccion>
+      <section className={e.acciones} aria-label="Tu cuenta">
+        {correo && <p className={e.texto}>Entraste como {correo}.</p>}
+        <Boton variante="secundario" ancho onClick={() => void salir()}>
+          Salir
+        </Boton>
+      </section>
+    </>
+  );
+}

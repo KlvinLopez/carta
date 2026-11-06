@@ -11,18 +11,19 @@ export function SelectorRestaurante() {
   if (estado.tipo !== 'listo' || !activo) return null;
 
   const varios = estado.restaurantes.length > 1;
+  // Con uno solo no hay nada que elegir: se muestra como texto, no como un botón apagado.
+  if (!varios) return <p className={estilos.nombreFijo}>{activo.nombre}</p>;
   return (
     <>
       <Boton
         variante="fantasma"
         compacto
         className={estilos.selector}
-        disabled={!varios}
-        aria-haspopup={varios ? 'dialog' : undefined}
+        aria-haspopup="dialog"
         onClick={() => setAbierta(true)}
       >
-        {activo.nombre}
-        {varios && <span aria-hidden="true"> ▾</span>}
+        <span className={estilos.nombre}>{activo.nombre}</span>
+        <span aria-hidden="true">▾</span>
       </Boton>
       <HojaInferior
         abierta={abierta}

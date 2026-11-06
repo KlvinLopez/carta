@@ -15,16 +15,16 @@ describe('App', () => {
   });
 
   it.each([
-    [`/m/${CODIGO}`, `Mesa ${CODIGO}`, 'Bienvenido a la mesa'],
-    ['/staff/la-cocina', 'Personal · la-cocina', '¿Quién eres?'],
-    ['/admin', 'Panel del operador', 'Tu restaurante, listo en minutos'],
+    [`/m/${CODIGO}`, `Mesa ${CODIGO}`, 'Bienvenido a la mesa', 'Preparando la mesa…'],
+    ['/staff/la-cocina', 'Personal · la-cocina', '¿Quién eres?', 'Preparando la mesa…'],
+    ['/admin', 'Panel del operador', 'Tu restaurante, listo en minutos', 'Preparando tu panel…'],
   ])(
-    '%s carga su área por separado: primero "Preparando la mesa…", luego la pantalla',
-    async (ruta, sobretitulo, titulo) => {
+    '%s carga su área por separado: primero su estado de carga, luego la pantalla',
+    async (ruta, sobretitulo, titulo, cargando) => {
       irA(ruta);
       render(<App />);
       // Si el área entrara con un import estático no habría estado de carga: esta es la guarda.
-      expect(screen.getByRole('status')).toHaveTextContent('Preparando la mesa…');
+      expect(screen.getByRole('status')).toHaveTextContent(cargando);
       expect(await screen.findByText(sobretitulo)).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: titulo })).toBeInTheDocument();
     },

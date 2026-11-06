@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 
-import { Boton } from '../../compartido/componentes';
+import { Boton, clasesBoton } from '../../compartido/componentes/Boton';
 import { estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
 import { useSesion } from '../acceso/Sesion';
 import estilos from './Armazon.module.css';
@@ -35,7 +35,14 @@ function Contenido() {
       <EstadoVacio
         glifo="!"
         titulo="No pudimos cargar tu panel"
-        accion={<Boton onClick={reintentar}>Reintentar</Boton>}
+        accion={
+          <div className={estilos.acciones}>
+            <Boton onClick={reintentar}>Reintentar</Boton>
+            <Boton variante="fantasma" onClick={() => void salir()}>
+              Salir
+            </Boton>
+          </div>
+        }
       >
         {estado.mensaje}
       </EstadoVacio>
@@ -47,12 +54,17 @@ function Contenido() {
         glifo="C"
         titulo="Todavía no tienes un restaurante"
         accion={
-          <Boton variante="fantasma" onClick={() => void salir()}>
-            Salir
-          </Boton>
+          <div className={estilos.acciones}>
+            <Link to="/admin/alta" className={clasesBoton()}>
+              Crear mi restaurante
+            </Link>
+            <Boton variante="fantasma" onClick={() => void salir()}>
+              Salir
+            </Boton>
+          </div>
         }
       >
-        Cuando se cree tu restaurante verás aquí tu menú, tus mesas y tus pedidos.
+        Sube tu carta y en minutos tendrás tu menú, tus mesas y tus pedidos aquí.
       </EstadoVacio>
     );
   }

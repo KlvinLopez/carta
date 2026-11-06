@@ -57,7 +57,10 @@ export interface ProveedorAcceso {
   enviarEnlace(correo: string): Promise<void>;
   esEnlace(url: string): Promise<boolean>;
   completarEnlace(url: string, correo: string): Promise<void>;
-  /** Token fresco para reintentar tras un 401. */
+  /**
+   * Token fresco para reintentar tras un 401. `null` = la sesión ya no existe. Lanza `ErrorAcceso`
+   * (`sin-red`) si no pudo preguntar: la sesión se conserva.
+   */
   renovar(): Promise<string | null>;
   salir(): Promise<void>;
 }
@@ -118,10 +121,18 @@ export async function crearProveedorFirebase(
   ]);
   const app = getApps().length ? getApp() : initializeApp(config);
   // `initializeAuth` con lo mínimo (en vez de `getAuth`) para que el trozo sea lo más chico posible.
-  const instancia = auth.initializeAuth(app, {
-    persistence: [auth.indexedDBLocalPersistence, auth.browserLocalPersistence],
-    popupRedirectResolver: auth.browserPopupRedirectResolver,
-  });
+  // Persistencia: IndexedDB o, si no existe, memoria; NUNCA `localStorage` (el SDK guardaría ahí
+  // el access y el refresh token en claro: `firebase:authUser:…`).
+  let instancia: ReturnType<typeof auth.initializeAuth>;
+  try {
+    instancia = auth.initializeAuth(app, {
+      persistence: [auth.indexedDBLocalPersistence, auth.inMemoryPersistence],
+      popupRedirectResolver: auth.browserPopupRedirectResolver,
+    });
+  } catch {
+    // Reintento tras «Reintentar» (otra carga del proveedor sobre la misma app): ya está inicializado.
+    instancia = auth.getAuth(app);
+  }
 
   return {
     suscribir(alCambiar, alError) {
@@ -171,7 +182,15 @@ export async function crearProveedorFirebase(
       }
     },
     async renovar() {
-      return (await instancia.currentUser?.getIdToken(true)) ?? null;
+      try {
+        return (await instancia.currentUser?.getIdToken(true)) ?? null;
+      } catch (e) {
+        const error = aErrorAcceso(e);
+        // Sin red o con límite de intentos el token puede seguir valiendo: se avisa, no se cierra.
+        if (error.codigo === 'sin-red' || error.codigo === 'demasiados-intentos') throw error;
+        // Refresh token revocado, usuario borrado o deshabilitado: la sesión ya no existe.
+        return null;
+      }
     },
     async salir() {
       await auth.signOut(instancia);

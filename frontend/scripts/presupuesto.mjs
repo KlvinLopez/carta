@@ -20,7 +20,8 @@ import { fileURLToPath } from 'node:url';
 const LIMITE_BYTES = 250 * 1024;
 const MINIMO_TROZOS_AREA = 3;
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const dist = resolve(raiz, 'dist');
+// `PRESUPUESTO_DIST` sólo lo usa la prueba de este script (src/presupuesto.test.ts) para apuntar a un dist falso.
+const dist = resolve(process.env.PRESUPUESTO_DIST ?? join(raiz, 'dist'));
 const indice = join(dist, 'index.html');
 
 const fallar = (mensaje, codigo = 1) => {
@@ -98,6 +99,22 @@ for (const fila of filas) console.log(fila);
 console.log('-'.repeat(72));
 console.log(`${kb(totalCrudo)}  ${kb(totalGzip)}  ${kb(totalBrotli)}  total`);
 console.log(`Límite (gzip): ${kb(LIMITE_BYTES)}  ·  usado: ${((totalGzip / LIMITE_BYTES) * 100).toFixed(0)} %`);
+
+// Guarda del SDK de Firebase (T-1.10): pesa ~47 KB gzip y sólo lo necesita `/admin`. Si alguna forma
+// de import (estático, `import 'firebase/auth'` con efecto lateral, `export … from`, `require`) lo
+// arrastra a la carga inicial, sus URLs (`identitytoolkit`, `firebaseapp`) aparecen en el grafo
+// inicial. Se mira el contenido, no el código fuente: no hay sintaxis que lo esquive.
+const MARCAS_SDK = ['identitytoolkit', 'firebaseapp'];
+const conSdk = [...rutas]
+  .map((ruta) => [ruta, readFileSync(archivoDe(ruta), 'utf8')])
+  .concat([['/index.html', html]])
+  .filter(([, contenido]) => MARCAS_SDK.some((marca) => contenido.includes(marca)))
+  .map(([ruta]) => ruta);
+if (conSdk.length > 0) {
+  fallar(
+    `\nEl SDK de Firebase está en la carga inicial (${conSdk.join(', ')}): debe entrar sólo con import() desde admin/acceso/proveedor.ts.`,
+  );
+}
 
 // Guarda del code splitting: un trozo por área, y ninguno en la carga inicial.
 const carpetaAssets = join(dist, 'assets');

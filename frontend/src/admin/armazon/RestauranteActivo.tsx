@@ -11,6 +11,7 @@ import {
 import type { components } from '../../compartido/api';
 import { ErrorApi } from '../../compartido/http';
 import { useSesion } from '../acceso/Sesion';
+import { guardarRestauranteElegido, leerRestauranteElegido } from '../almacen';
 
 export type Restaurante = components['schemas']['RestauranteRespuesta'];
 
@@ -26,7 +27,6 @@ interface Contexto {
   reintentar(): void;
 }
 
-const CLAVE = 'carta.admin.restaurante';
 const Ctx = createContext<Contexto | null>(null);
 
 export function useRestauranteActivo(): Contexto {
@@ -35,27 +35,10 @@ export function useRestauranteActivo(): Contexto {
   return ctx;
 }
 
-// Comodidad por dispositivo: el servidor decide a qué restaurantes se tiene acceso (AC-15.2),
-// esto sólo recuerda cuál se miraba. Nunca se manda como autoridad (`restaurante_id` sale del token).
-function leerElegido(): string | null {
-  try {
-    return window.localStorage.getItem(CLAVE);
-  } catch {
-    return null;
-  }
-}
-function guardarElegido(id: string) {
-  try {
-    window.localStorage.setItem(CLAVE, id);
-  } catch {
-    // sin almacenamiento: se vuelve al primero al recargar
-  }
-}
-
 export function RestauranteProvider({ children }: { children: ReactNode }) {
   const { api } = useSesion();
   const [estado, setEstado] = useState<EstadoRestaurantes>({ tipo: 'cargando' });
-  const [elegido, setElegido] = useState<string | null>(leerElegido);
+  const [elegido, setElegido] = useState<string | null>(leerRestauranteElegido);
   const [intento, setIntento] = useState(0);
 
   useEffect(() => {
@@ -81,7 +64,7 @@ export function RestauranteProvider({ children }: { children: ReactNode }) {
   }, [estado, elegido]);
 
   const elegir = useCallback((id: string) => {
-    guardarElegido(id);
+    guardarRestauranteElegido(id);
     setElegido(id);
   }, []);
 
