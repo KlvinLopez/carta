@@ -20,7 +20,8 @@ tiene tope, y los enteros caben en `INTEGER` (un valor mayor daría 500 al guard
 | `moneda` | `^[A-Z]{3}$` | ISO 4217 |
 
 Los textos propios (descripción, avisos, claves) quitan antes de validar los caracteres de
-control (categoría Unicode `Cc`; la descripción conserva `\n`) y las marcas bidi: PostgreSQL
+control (categoría Unicode `Cc`; la descripción conserva `\n`) y el formato invisible
+(`Cf`: marcas bidi, ancho cero; `limpiar_texto` de `comun.py`, única para toda la API): PostgreSQL
 rechaza `\u0000` en JSONB y en TEXT (500 al guardar) y las marcas bidi invierten lo que ve el
 operador. Sólo se rechaza el texto que queda vacío. Los nombres usan `Nombre100/200` de
 `comun.py` (carril de T-1.2, misma regla); hasta entonces el servicio de extracción limpia
@@ -29,7 +30,6 @@ todos los textos con `limpiar_texto` antes de validar.
 
 from __future__ import annotations
 
-import unicodedata
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
@@ -37,7 +37,7 @@ from uuid import UUID
 from pydantic import BaseModel, BeforeValidator, Field, StringConstraints
 
 from app.db.models import EstadoImportacion
-from app.schemas.comun import Esquema, Nombre100, Nombre200, Precio
+from app.schemas.comun import Esquema, Nombre100, Nombre200, Precio, limpiar_texto
 
 Confianza = Literal["alta", "media", "baja"]
 MAX_CATEGORIAS = 100
@@ -46,34 +46,6 @@ MAX_VARIANTES = 20
 MAX_SUGERIDOS = 30
 MAX_AVISOS = 50
 MAX_POSICION = 10_000
-
-# Marcas de dirección (LRM/RLM/ALM, incrustaciones, sobrescrituras y aislamientos).
-MARCAS_BIDI = (
-    frozenset("\u200e\u200f\u061c")
-    | frozenset(map(chr, range(0x202A, 0x202F)))
-    | (frozenset(map(chr, range(0x2066, 0x206A))))
-)
-
-
-def limpiar_texto(valor: object, *, saltos: bool = False) -> object:
-    """Quita caracteres de control y marcas bidi; el espacio en blanco de control (`\\t`,
-    `\\n`, `\\r`…) pasa a espacio, salvo `\\n` si `saltos`. Lo que no es `str` pasa igual."""
-    if not isinstance(valor, str):
-        return valor
-    if saltos:
-        valor = valor.replace("\r\n", "\n")
-    partes: list[str] = []
-    for caracter in valor:
-        if caracter in MARCAS_BIDI:
-            continue
-        if unicodedata.category(caracter) == "Cc":
-            if saltos and caracter == "\n":
-                partes.append(caracter)
-            elif caracter.isspace():
-                partes.append(" ")
-            continue
-        partes.append(caracter)
-    return "".join(partes)
 
 
 def _limpiar_con_saltos(valor: object) -> object:

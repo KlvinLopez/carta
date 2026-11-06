@@ -17,6 +17,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.peticion import request_id_valido
@@ -217,8 +218,75 @@ async def manejar_no_controlada(request: Request, exc: Exception) -> JSONRespons
     return _respuesta(request, 500, "ERROR_INTERNO", MENSAJE_ERROR_INTERNO)
 
 
+# SQLSTATE de una restricción violada → (HTTP, código). Los esquemas de entrada espejan los
+# CHECK y los NOT NULL, así que esto cubre lo que la validación no ve: un nombre repetido
+# entre las categorías activas, una carrera, una FK compuesta de INV-10 (un recurso de otro
+# restaurante «no existe» para quien pregunta: 404, nunca 403, regla dura 6).
+RESPUESTA_POR_SQLSTATE: dict[str, tuple[int, str]] = {
+    "23505": (409, "CONFLICTO"),  # unique_violation
+    "23514": (422, "PAYLOAD_INVALIDO"),  # check_violation
+    "23502": (422, "PAYLOAD_INVALIDO"),  # not_null_violation
+    "23503": (404, "RECURSO_NO_ENCONTRADO"),  # foreign_key_violation
+}
+# Mensaje propio para las restricciones que el operador puede tocar con un dato legítimo.
+MENSAJES_POR_RESTRICCION: dict[str, str] = {
+    "uq_categoria_activa_por_nombre": "Ya tienes una categoría activa con ese nombre.",
+}
+
+
+def _causa_db(error: IntegrityError) -> Any:
+    """La excepción del driver (asyncpg) detrás de la de SQLAlchemy, o la de DBAPI."""
+    origen = error.orig
+    return getattr(origen, "__cause__", None) or origen
+
+
+def sqlstate_de(error: IntegrityError) -> str | None:
+    for candidato in (error.orig, _causa_db(error)):
+        valor = getattr(candidato, "sqlstate", None) or getattr(candidato, "pgcode", None)
+        if isinstance(valor, str):
+            return valor
+    return None
+
+
+def restriccion_de(error: IntegrityError) -> str | None:
+    valor = getattr(_causa_db(error), "constraint_name", None)
+    return valor if isinstance(valor, str) else None
+
+
+async def manejar_integridad(request: Request, exc: Exception) -> JSONResponse:
+    """`IntegrityError` que llegó hasta aquí → 409/422/404 con la envoltura única.
+
+    Se registra sólo el SQLSTATE y el nombre de la restricción: el texto de la excepción
+    repite los parámetros de la sentencia (lo que mandó el cliente) y nunca va al log ni al
+    cuerpo. Un SQLSTATE desconocido es un 500 como cualquier excepción no controlada.
+    """
+    assert isinstance(exc, IntegrityError)
+    sqlstate = sqlstate_de(exc)
+    respuesta = RESPUESTA_POR_SQLSTATE.get(sqlstate or "")
+    restriccion = restriccion_de(exc)
+    if respuesta is None:
+        log.error(
+            "IntegrityError sin traducir: sqlstate=%s restriccion=%s",
+            sqlstate,
+            restriccion,
+            extra={"request_id": request_id_de(request), "codigo": "ERROR_INTERNO", "http": 500},
+        )
+        return _respuesta(request, 500, "ERROR_INTERNO", MENSAJE_ERROR_INTERNO)
+    http, codigo = respuesta
+    log.info(
+        "restricción violada: sqlstate=%s restriccion=%s",
+        sqlstate,
+        restriccion,
+        extra={"request_id": request_id_de(request), "codigo": codigo, "http": http},
+    )
+    mensaje = MENSAJES_POR_RESTRICCION.get(restriccion or "", mensaje_por_http(http))
+    detalles: dict[str, Any] | None = {"errores": []} if codigo == "PAYLOAD_INVALIDO" else None
+    return _respuesta(request, http, codigo, mensaje, detalles)
+
+
 def registrar_manejadores(app: FastAPI) -> None:
     app.add_exception_handler(ErrorCarta, manejar_error_carta)
     app.add_exception_handler(StarletteHTTPException, manejar_http_exception)
     app.add_exception_handler(RequestValidationError, manejar_validacion)
+    app.add_exception_handler(IntegrityError, manejar_integridad)
     app.add_exception_handler(Exception, manejar_no_controlada)

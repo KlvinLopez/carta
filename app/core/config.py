@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import Literal
 
-from pydantic import SecretStr, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 log = logging.getLogger(__name__)
@@ -79,6 +79,13 @@ class Settings(BaseSettings):
     FIREBASE_CSP_SCRIPT_SRC: str = ""
     FIREBASE_CSP_FRAME_SRC: str = ""
 
+    # Purga del menú público en Cloudflare al editarlo (T-1.3, 02 §4). Sin las dos, sólo se
+    # invalida la caché en proceso y el borde sirve lo viejo hasta su `s-maxage` (60 s).
+    # El token sólo necesita el permiso «Zone · Cache Purge» de esa zona.
+    # El id de zona va dentro de la URL de la API: 32 hex, nada más (revisión de T-1.3, B2).
+    CLOUDFLARE_ZONE_ID: str | None = Field(None, pattern=r"^[0-9a-f]{32}$")
+    CLOUDFLARE_API_TOKEN: SecretStr | None = None
+
     # Observabilidad
     SENTRY_DSN: str | None = None
 
@@ -95,6 +102,12 @@ class Settings(BaseSettings):
                 log.warning("DATABASE_URL sin driver asíncrono; se usa postgresql+asyncpg://")
                 return "postgresql+asyncpg://" + url[len(prefijo) :]
         return url
+
+    @field_validator("CLOUDFLARE_ZONE_ID", "CLOUDFLARE_API_TOKEN", mode="before")
+    @classmethod
+    def _vacio_es_ninguno(cls, valor: object) -> object:
+        """`CLOUDFLARE_ZONE_ID=` vacío (como en `.env.example`) es «sin purga», no un error."""
+        return None if isinstance(valor, str) and not valor.strip() else valor
 
     @model_validator(mode="after")
     def _secreto_seguro_fuera_de_desarrollo(self) -> Settings:
@@ -116,6 +129,10 @@ class Settings(BaseSettings):
     def database_url_sync(self) -> str:
         """URL sin driver asíncrono, para `psql` y herramientas síncronas."""
         return self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://", 1)
+
+    @property
+    def purga_cloudflare(self) -> bool:
+        return bool(self.CLOUDFLARE_ZONE_ID and self.CLOUDFLARE_API_TOKEN)
 
     @property
     def almacen_en_nube(self) -> bool:

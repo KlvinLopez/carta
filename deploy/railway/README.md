@@ -73,7 +73,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    | **Deploy → Healthcheck Timeout** | `120` | segundos de espera para ese `/health` |
    | **Deploy → Restart Policy** | **On Failure**, máximo `5` reintentos | si se cae, se levanta sola |
 
-4. Pestaña **Variables** → botón **RAW Editor** → borra lo que haya y pega este bloque. Luego cambia los cuatro `<…>` por tus valores (sin los `< >`) y pulsa **Update Variables**:
+4. Pestaña **Variables** → botón **RAW Editor** → borra lo que haya y pega este bloque. Luego cambia cada `<…>` por tus valores (sin los `< >`) y pulsa **Update Variables**:
 
    ```text
    ENTORNO=staging
@@ -92,13 +92,16 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
    FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
    FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de staging>.firebaseapp.com
+   CLOUDFLARE_ZONE_ID=<Zone ID de carta.cooking>
+   CLOUDFLARE_API_TOKEN=<token de Cloudflare con permiso Zone · Cache Purge>
    ```
 
    - `${{Postgres.DATABASE_URL}}` se pega **tal cual**: Railway lo cambia por la dirección real de la base de este environment.
    - `PORT=8000` fija el puerto en el que escucha la aplicación (y en el que Railway hace el *healthcheck*).
    - `FIREBASE_PROJECT_ID` es el *Project ID* de Firebase (consola de Firebase → ⚙ **Project settings** → **General**), no es secreto. Sin él nadie entra al panel del operador. Las tres `FIREBASE_CSP_*` abren la política de seguridad del navegador a Firebase Auth (inicio de sesión con Google y enlace por correo); vacías, el panel no puede iniciar sesión. Los valores vienen de `docs/plan/04_Fases_y_Tareas.md` §11 (filas T-1.2 y T-1.10).
+   - `CLOUDFLARE_ZONE_ID` (32 caracteres hexadecimales: Cloudflare → `carta.cooking` → **Overview**, columna derecha, **Zone ID**; no es secreto) y `CLOUDFLARE_API_TOKEN` (Cloudflare → **My Profile → API Tokens → Create Token → Custom token**, permiso **Zone · Cache Purge · Purge** sólo para la zona `carta.cooking`; **es secreto**) dejan que la API purgue el menú público del borde al editarlo. Sin ellas el menú editado tarda hasta 60 s en verse.
    - `ANTHROPIC_API_KEY` y `SENTRY_DSN` **no se crean todavía**: sin ellas la aplicación arranca y esas funciones quedan apagadas. Se agregan aquí mismo cuando lleguen sus tareas.
-5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
+5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY` y `CLOUDFLARE_API_TOKEN`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
 6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra.
 
 ---
@@ -162,9 +165,11 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
    FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
    FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de producción>.firebaseapp.com
+   CLOUDFLARE_ZONE_ID=<Zone ID de carta.cooking>
+   CLOUDFLARE_API_TOKEN=<token de Cloudflare con permiso Zone · Cache Purge>
    ```
 
-   Sella `SECRET_KEY` y `R2_SECRET_ACCESS_KEY` (para cambiarlas después, **⋮ → Edit** una por una).
+   Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY` y `CLOUDFLARE_API_TOKEN` (para cambiarlas después, **⋮ → Edit** una por una).
 3. **D (`respaldo`):** igual que en staging: desde GitHub, Root Directory `/deploy/respaldo`, misma rama, **Wait for CI activado** y **Watch Paths** `/deploy/respaldo/**` (así un push a la rama sólo llega a producción si toca el respaldo y su CI pasó), Cron `0 4 * * *`, Restart **Never**. Con estas variables:
 
    ```text
@@ -194,7 +199,8 @@ Resumen de lo que cambia entre ambientes:
 | `R2_BUCKET_PRIVADO` | `carta-privado-staging` | `carta-privado-produccion` |
 | `R2_URL_PUBLICA` | `https://img-staging.carta.cooking` | `https://img.carta.cooking` |
 | `FIREBASE_PROJECT_ID`, `FIREBASE_CSP_FRAME_SRC` | proyecto de Firebase de staging | proyecto de Firebase de producción |
-| Igual en los dos | `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=8000`, `WORKERS=2`, `FIREBASE_CSP_CONNECT_SRC`, `FIREBASE_CSP_SCRIPT_SRC`, `R2_ENDPOINT`, `RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS=30` | |
+| `CLOUDFLARE_API_TOKEN` | token de purga (sellado; puede ser el mismo: la zona es la misma) | token de purga (sellado) |
+| Igual en los dos | `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=8000`, `WORKERS=2`, `FIREBASE_CSP_CONNECT_SRC`, `FIREBASE_CSP_SCRIPT_SRC`, `CLOUDFLARE_ZONE_ID`, `R2_ENDPOINT`, `RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS=30` | |
 
 ---
 

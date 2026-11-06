@@ -12,12 +12,21 @@ misma prueba (slug, `codigo_publico`, `firebase_uid`).
 from __future__ import annotations
 
 import secrets
+from decimal import Decimal
 from itertools import count
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Mesa, OperadorRestaurante, Restaurante, RolOperador, Usuario
+from app.db.models import (
+    CategoriaMenu,
+    Mesa,
+    OperadorRestaurante,
+    Platillo,
+    Restaurante,
+    RolOperador,
+    Usuario,
+)
 
 _contador = count(1)
 
@@ -79,3 +88,41 @@ async def crear_mesa(sesion: AsyncSession, restaurante: Restaurante, **valores: 
     sesion.add(mesa)
     await sesion.commit()
     return mesa
+
+
+async def crear_categoria(
+    sesion: AsyncSession, restaurante: Restaurante, **valores: Any
+) -> CategoriaMenu:
+    n = next(_contador)
+    datos: dict[str, Any] = {
+        "restaurante_id": restaurante.id,
+        "nombre": f"Categoría {n}",
+        "orden": n,
+    }
+    datos.update(valores)
+    categoria = CategoriaMenu(**datos)
+    sesion.add(categoria)
+    await sesion.commit()
+    return categoria
+
+
+async def crear_platillo(
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    categoria: CategoriaMenu | None = None,
+    **valores: Any,
+) -> Platillo:
+    n = next(_contador)
+    datos: dict[str, Any] = {
+        "restaurante_id": restaurante.id,
+        "categoria_id": categoria.id if categoria is not None else None,
+        "nombre": f"Platillo {n}",
+        "precio": Decimal("100.00"),
+        "orden": n,
+    }
+    datos.update(valores)
+    platillo = Platillo(**datos)
+    sesion.add(platillo)
+    await sesion.commit()
+    await sesion.refresh(platillo)
+    return platillo
