@@ -37,6 +37,11 @@ Llevan a propósito un precio "M.P." (`null`, `baja`) y uno sin símbolo con con
 («Cerveza artesanal»). Cuando haya llave, se pueden sustituir por respuestas reales sin cambiar
 las pruebas mientras conserven esos dos casos.
 
+Su reparto de confianzas (La Ceiba: 17 `alta`, 1 `media`, 2 `baja` = 85 % `alta`; taquería:
+16 de 17 `media`) es de quien las escribió, **no del modelo**: no sirve de referencia del umbral
+de 90 % de la prueba `live`. `test_esperado_coincide_con_la_respuesta_grabada` comprueba que
+nombres, precios y variantes de `respuesta.json` y `esperado.json` coinciden.
+
 ## Precisión esperada (T-1.8)
 
 Para cada carta hay (o habrá) un `<nombre>.esperado.json` con los platillos y precios anotados a mano (`precio: null` = sin precio fijo). Hoy existen los de las dos sintéticas; los de `externas/` faltan (las cartas reales no están en el repositorio). La prueba `live` exige ≥ 90 % de precios con confianza `alta` y correctos en las cartas con texto; en la escaneada se mide y se registra, sin umbral todavía.
