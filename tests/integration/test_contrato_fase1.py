@@ -171,8 +171,6 @@ CONFIRMACION = {
     ],
 }
 EJEMPLOS: list[tuple[str, str, int, dict[str, Any]]] = [
-    ("post", f"/platillos/{UUID_X}/foto", 200, {"files": {"archivo": PDF}}),
-    ("delete", f"/platillos/{UUID_X}/foto", 200, {}),
     ("get", f"/restaurantes/{UUID_X}/mesas", 200, {}),
     ("post", f"/restaurantes/{UUID_X}/mesas", 201, {"json": {"cantidad": 3}}),
     ("post", f"/mesas/{UUID_X}/regenerar", 200, {}),

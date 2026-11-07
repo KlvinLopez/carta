@@ -3,11 +3,10 @@
 Publican en `/openapi.json` la forma final de cada respuesta para que el frontend (carril C)
 genere sus tipos y trabaje con datos simulados mientras el backend se construye. Cada tarea
 sustituye sus rutas por las reales y las borra de aquí (T-1.3 ya puso categorías y
-platillos en `menu.py`):
+platillos en `menu.py` y T-1.4 la foto en `fotos.py`):
 
 | Rutas | Tarea |
 |---|---|
-| `platillos/{id}/foto` | T-1.4 |
 | mesas y `qr.pdf` | T-1.5 |
 | personal y PIN | T-1.6 |
 | importaciones | T-1.9 |
@@ -152,29 +151,6 @@ def _importacion(
         finalizado_en=MOMENTO if terminada else None,
         confirmado_en=MOMENTO if estado == EstadoImportacion.confirmado else None,
     )
-
-
-# ---------------------------------------------------------------------------
-# Fotos (T-1.4)
-# ---------------------------------------------------------------------------
-
-
-@router.post(
-    "/platillos/{platillo_id}/foto", response_model=PlatilloRespuesta, responses=errores(413, 415)
-)
-async def subir_foto(platillo_id: UUID, archivo: UploadFile = File(...)) -> PlatilloRespuesta:
-    base = f"{URL_EJEMPLO}/img/platillos/{platillo_id}"
-    return _platillo(
-        platillo_id,
-        imagen_tipo=TipoImagen.foto,
-        foto_thumb_url=f"{base}-400.webp",
-        foto_detalle_url=f"{base}-1200.webp",
-    )
-
-
-@router.delete("/platillos/{platillo_id}/foto", response_model=PlatilloRespuesta)
-async def quitar_foto(platillo_id: UUID) -> PlatilloRespuesta:
-    return _platillo(platillo_id)
 
 
 # ---------------------------------------------------------------------------

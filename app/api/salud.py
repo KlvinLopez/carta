@@ -1,7 +1,9 @@
 """Rutas de infraestructura, fuera de `/api/v1` y sin autenticación (04_API_Spec §1.1).
 
 - `GET /health`: el proceso vive. Lo usan el `HEALTHCHECK` de la imagen y UptimeRobot.
-- `GET /ready`: la base responde a `SELECT 1`. Lo usa el despliegue antes de enviar tráfico.
+- `GET /ready`: la base responde a `SELECT 1` y, cuando el almacén es R2 (T-1.4), los dos
+  buckets responden a un `HEAD` en ≤ 3 s. Lo usa el despliegue antes de enviar tráfico.
+  Responde `{"db":"ok"}` (y `"almacen":"ok"` con R2): la prueba de humo busca `"db":"ok"`.
 
 Ambas aceptan `HEAD` (muchas sondas lo usan). `/ready` cuesta cuatro viajes a la base
 (pre-ping del pool, `BEGIN`, `SELECT 1`, `ROLLBACK`): se acepta, es una sonda cada pocos
@@ -20,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errores import ErrorCarta
 from app.db import get_db_session
+from app.services.assets import Almacen, ErrorAlmacen, obtener_almacen
 
 log = logging.getLogger("carta.salud")
 
@@ -34,7 +37,10 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-async def ready(sesion: AsyncSession = Depends(get_db_session)) -> dict[str, str]:
+async def ready(
+    sesion: AsyncSession = Depends(get_db_session),
+    almacen: Almacen = Depends(obtener_almacen),
+) -> dict[str, str]:
     try:
         await asyncio.wait_for(sesion.execute(text("SELECT 1")), timeout=READY_TIMEOUT_SEGUNDOS)
     except Exception as error:
@@ -42,7 +48,15 @@ async def ready(sesion: AsyncSession = Depends(get_db_session)) -> dict[str, str
         # el mensaje de asyncpg puede traer host, puerto y usuario.
         log.error("la base de datos no responde: %s", type(error).__name__)
         raise ErrorCarta("BASE_NO_DISPONIBLE", "La base de datos no responde.", 503) from error
-    return {"db": "ok"}
+    estado = {"db": "ok"}
+    if almacen.en_nube:  # el almacén local no se sondea (sólo desarrollo y pruebas)
+        try:
+            await asyncio.wait_for(almacen.comprobar(), timeout=READY_TIMEOUT_SEGUNDOS)
+        except (ErrorAlmacen, TimeoutError) as error:
+            log.error("el almacén no responde: %s", error.args[0] if error.args else "plazo")
+            raise ErrorCarta("ALMACEN_NO_DISPONIBLE", "El almacén no responde.", 503) from error
+        estado["almacen"] = "ok"
+    return estado
 
 
 def _publicar(ruta: str, endpoint: Any) -> None:
