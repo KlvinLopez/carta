@@ -250,7 +250,7 @@ Todos exigen Firebase ID token y una fila activa en `operador_restaurante`. El `
 ### 4.2 Fotos
 
 #### `POST /admin/platillos/{id}/foto`
-`multipart/form-data`, un solo campo `archivo`. Acepta JPG, PNG y HEIC hasta 15 MB, validados por contenido (firma y decodificación), nunca por extensión ni por el `Content-Type` del cliente; el 401/404 sale antes de leer el cuerpo y el 413 corta la lectura al pasar el límite. Corrige la orientación EXIF y genera miniatura 400 px (`foto_url`) y detalle 1200 px (`foto_detalle_url`) en WebP sin metadatos; conserva el original en el bucket privado (`foto_original_url` es la clave del objeto, no una URL pública). Responde `PlatilloRespuesta` con `imagen_tipo = foto`.
+`multipart/form-data`, un solo campo `archivo`. Acepta JPG, PNG y HEIC hasta 15 MB, validados por contenido (firma y decodificación), nunca por extensión ni por el `Content-Type` del cliente; el 401/404 sale antes de leer el cuerpo y el 413 corta la lectura al pasar el límite. Corrige la orientación EXIF y genera miniatura 400 px (`foto_thumb_url`) y detalle 1200 px (`foto_detalle_url`) en WebP sin metadatos; conserva el original en el bucket privado (la columna `foto_original_url` guarda la clave del objeto, no una URL, y no sale en la respuesta). Responde `PlatilloRespuesta` con `imagen_tipo = foto`.
 **Errores:** 413 `ARCHIVO_EXCEDE_LIMITE` (bytes o píxeles), 415 `TIPO_NO_SOPORTADO` (el contenido no es JPG, PNG ni HEIC), 422 `IMAGEN_NO_VALIDA` (firma correcta, imagen que no decodifica), 503 `ALMACEN_NO_DISPONIBLE`. **Cubre:** AC-17.1, AC-17.2, AC-17.3.
 
 #### `DELETE /admin/platillos/{id}/foto`
