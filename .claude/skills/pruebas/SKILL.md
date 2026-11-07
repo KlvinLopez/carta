@@ -48,6 +48,8 @@ Las fábricas viven en `tests/fabricas.py` (una función `crear_<entidad>(sesion
 16. **Un `{rid}` o id inventado da 404 antes de validar el cuerpo:** FastAPI resuelve `restaurante_del_operador` (y los `*_del_operador`) antes de mirar el JSON. Una prueba de 422 por cuerpo usa el `restaurante` propio, no `UUID_X` (T-1.3).
 17. **Si sustituyes `httpx.AsyncClient` con `monkeypatch`, guarda antes la clase real** (`ClienteReal = httpx.AsyncClient`) y construye con ella: la lambda que llama a `httpx.AsyncClient(...)` se llama a sí misma, y un `except Exception` del código lo esconde como «purga fallida» (T-1.3).
 18. **Un `max(...)`/`count(...)` después de asignar en el ORM ve el cambio** (autoflush): calcula antes de `setattr`. Lo protege `test_mover_un_platillo_de_categoria_lo_pone_al_final` (T-1.3).
+19. **Nada de peticiones simultáneas con `cliente`** (`asyncio.gather(cliente.get(...), ...)`): todas las sesiones por petición viven sobre la **única** conexión de la prueba y asyncpg no admite dos operaciones a la vez (sale 503/500 de la base, no del código). Para probar concurrencia, llama al servicio directo con `gather` (ejemplos: `test_el_semaforo_nunca_deja_pasar_mas_procesos_de_los_debidos`, `test_ready_no_sondea_r2_en_cada_llamada`) o usa `motor_pruebas` con conexiones propias (§3) (T-1.4).
+20. **Memoria pico en un subproceso: `VmHWM` de `/proc/self/status`, nunca `ru_maxrss`**: en Linux `ru_maxrss` sobrevive a `fork` + `exec` y el hijo hereda el pico de pytest (~500 MB). Genera el archivo en otro subproceso para que no cuente (`tests/unit/test_assets.py`, T-1.4).
 
 ## 3. Receta de carreras (dos conexiones)
 
