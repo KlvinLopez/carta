@@ -5,6 +5,16 @@ import { Boton, clasesBoton } from '../../compartido/componentes/Boton';
 import c from './Alta.module.css';
 import type { Mesa, Restaurante } from './tipos';
 
+/** Sólo http(s) se vuelve enlace: nada que venga de la API puede ser un `javascript:` o `data:`. */
+export function esUrlWeb(url: string): boolean {
+  try {
+    const { protocol } = new URL(url, window.location.origin);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function EnlaceCopiable({ etiqueta, url }: { etiqueta: string; url: string }) {
   const [copiado, setCopiado] = useState(false);
   async function copiar() {
@@ -19,9 +29,13 @@ function EnlaceCopiable({ etiqueta, url }: { etiqueta: string; url: string }) {
   return (
     <li className={c.enlace}>
       <span className={c.etiqueta}>{etiqueta}</span>
-      <a className={c.url} href={url} target="_blank" rel="noopener noreferrer">
-        {url}
-      </a>
+      {esUrlWeb(url) ? (
+        <a className={c.url} href={url} target="_blank" rel="noopener noreferrer">
+          {url}
+        </a>
+      ) : (
+        <span className={c.urlTexto}>{url}</span>
+      )}
       <Boton variante="secundario" compacto onClick={() => void copiar()}>
         {copiado ? 'Copiado' : 'Copiar enlace'}
       </Boton>
@@ -35,11 +49,14 @@ export default function PasoListo({
   menuCreado,
   mesas,
   hayPersonal,
+  alTerminar,
 }: {
   restaurante: Restaurante;
   menuCreado: boolean;
   mesas: Mesa[];
   hayPersonal: boolean;
+  /** El operador salió del asistente: ya no hay nada que reanudar. */
+  alTerminar: () => void;
 }) {
   const origen = window.location.origin;
   const primeraMesa = mesas[0];
@@ -61,11 +78,11 @@ export default function PasoListo({
         )}
         <EnlaceCopiable
           etiqueta={hayPersonal ? 'Acceso de tu personal' : 'Acceso del personal (aún sin personal)'}
-          url={`${origen}/staff/${restaurante.slug}`}
+          url={`${origen}/staff/${encodeURIComponent(restaurante.slug)}`}
         />
       </ul>
       <div className={c.acciones}>
-        <Link to="/admin/menu" className={clasesBoton({ ancho: true })}>
+        <Link to="/admin/menu" className={clasesBoton({ ancho: true })} onClick={alTerminar}>
           Ir a mi panel
         </Link>
       </div>

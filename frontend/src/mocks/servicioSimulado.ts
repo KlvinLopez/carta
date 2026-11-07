@@ -7,7 +7,7 @@ export interface OpcionesSimulado {
   /** Cuántas consultas devuelven `procesando` antes del estado final. 0 = ya sale `listo`. */
   consultasAntesDeTerminar?: number;
   /** Estado final de la importación. */
-  final?: 'listo' | 'fallido';
+  final?: 'listo' | 'fallido' | 'listo-sin-resultado' | 'cancelado' | 'confirmado';
   /** Mensaje de `error_mensaje` cuando termina en `fallido`. */
   errorMensaje?: string;
   /** Si es `true`, la importación nunca termina (para el aviso de 3 minutos). */
@@ -94,10 +94,18 @@ export function crearServicioSimulado(opciones: OpcionesSimulado = {}) {
         importacion = { ...importacion, estado: consultas === 1 ? 'pendiente' : 'procesando', iniciado_en: AHORA };
         return importacion;
       }
-      importacion =
-        final === 'listo'
-          ? { ...importacion, estado: 'listo', resultado, finalizado_en: AHORA }
-          : { ...importacion, estado: 'fallido', error_mensaje: errorMensaje, finalizado_en: AHORA };
+      if (final === 'listo') {
+        importacion = { ...importacion, estado: 'listo', resultado, finalizado_en: AHORA };
+      } else if (final === 'listo-sin-resultado') {
+        importacion = { ...importacion, estado: 'listo', resultado: null, finalizado_en: AHORA };
+      } else if (final === 'confirmado') {
+        importacion = { ...importacion, estado: 'confirmado', confirmado_en: AHORA };
+      } else if (final === 'cancelado') {
+        // Un estado que el contrato de hoy no conoce: el cliente no debe quedarse esperando.
+        importacion = { ...importacion, estado: 'cancelado' as Importacion['estado'], finalizado_en: AHORA };
+      } else {
+        importacion = { ...importacion, estado: 'fallido', error_mensaje: errorMensaje, finalizado_en: AHORA };
+      }
       return importacion;
     },
     async reintentarImportacion(_rid, id) {
@@ -156,6 +164,10 @@ export function crearServicioSimulado(opciones: OpcionesSimulado = {}) {
   return {
     servicio,
     llamadas,
+    /** Otra pestaña confirmó la importación: la siguiente lectura la devuelve `confirmado`. */
+    marcarConfirmada() {
+      if (importacion) importacion = { ...importacion, estado: 'confirmado', confirmado_en: AHORA };
+    },
     /** Encola un fallo para la próxima llamada a `metodo` (después vuelve a funcionar). */
     fallarUnaVez(metodo: keyof ServicioAlta, error: ErrorApi) {
       fallosPendientes = { ...fallosPendientes, [metodo]: [...(fallosPendientes[metodo] ?? []), error] };

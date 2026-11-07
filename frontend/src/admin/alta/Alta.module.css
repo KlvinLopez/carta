@@ -339,7 +339,7 @@ div.mensajeError {
   display: inline-flex;
   align-items: center;
   gap: var(--esp-1);
-  padding: 4px 4px 4px 12px;
+  padding: 4px 4px 4px 14px;
   border-radius: var(--radio-pildora);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -358,8 +358,8 @@ div.mensajeError {
 /* La × mide 28 px visibles y su ::after extiende el área táctil a 44 px (regla 11 del skill). */
 .quitarChip {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: var(--radio-pildora);
   background: transparent;
@@ -372,7 +372,7 @@ div.mensajeError {
 .quitarChip::after {
   content: '';
   position: absolute;
-  inset: -8px;
+  inset: -4px;
 }
 
 .agregarChip {
@@ -618,4 +618,43 @@ div.mensajeError {
   .zona {
     transition: none;
   }
+}
+
+/* Áreas táctiles ≥ 44 px (el selector doble gana a Chip.module.css sin importar el orden del bundle). */
+.chipRol.chipRol {
+  min-height: 44px;
+}
+
+.url {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.urlTexto {
+  overflow-wrap: anywhere;
+  color: var(--carbon);
+  font-weight: 500;
+}
+
+.variantesLista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.varianteFila {
+  display: grid;
+  grid-template-columns: 1fr 108px;
+  gap: var(--esp-3);
+  align-items: start;
+}
+
+.alternar {
+  align-self: flex-start;
+}
+
+.problemasCategoria {
+  font-size: 0.8125rem;
+  color: var(--error);
 }

@@ -4,11 +4,11 @@ import { Boton } from '../../compartido/componentes';
 import { ErrorApi } from '../../compartido/http';
 import { estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
 import c from './Alta.module.css';
-import { ACEPTAR, pesoLegible, validarArchivo } from './archivo';
+import { ACEPTAR, pesoLegible, validarArchivo, validarFirma } from './archivo';
 import { contarPlatillos, aBorrador, type Borrador } from './borrador';
 import type { ServicioAlta } from './servicio';
 import type { Importacion, Restaurante } from './tipos';
-import { useSondeoImportacion } from './useSondeo';
+import { enCurso, useSondeoImportacion } from './useSondeo';
 
 const MENSAJES_LECTURA = [
   'Estamos leyendo tu carta…',
@@ -39,6 +39,7 @@ export default function PasoCarta({
   alCapturarAMano,
   importacionInicial,
   alCambiarImportacion,
+  alYaConfirmada,
 }: {
   servicio: ServicioAlta;
   restaurante: Restaurante;
@@ -46,6 +47,8 @@ export default function PasoCarta({
   alCapturarAMano: () => void;
   importacionInicial: Importacion | null;
   alCambiarImportacion: (importacion: Importacion | null) => void;
+  /** La importación ya estaba confirmada (otra pestaña, una recarga): se sigue con las mesas. */
+  alYaConfirmada: () => void;
 }) {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [errorArchivo, setErrorArchivo] = useState<string | null>(null);
@@ -56,45 +59,67 @@ export default function PasoCarta({
   const [arrastrando, setArrastrando] = useState(false);
   const [subida, setSubida] = useState<Importacion | null>(importacionInicial);
   const entrada = useRef<HTMLInputElement>(null);
+  const subidaEnCurso = useRef<AbortController | null>(null);
+  // Si el paso se desmonta con la subida en vuelo, se cancela: no deja una importación huérfana.
+  useEffect(() => () => subidaEnCurso.current?.abort(), []);
 
   const sondeo = useSondeoImportacion(servicio, restaurante.id, subida?.id ?? null, subida);
   const estado = sondeo.importacion?.estado ?? subida?.estado;
   const leyendo = !!subida && (estado === 'pendiente' || estado === 'procesando') && !sondeo.agotado && !sondeo.error;
   const mensaje = useMensajeRotativo(leyendo);
+  const yaConfirmada = estado === 'confirmado';
+  // Un estado terminal sin borrador (`listo` sin resultado, uno desconocido) no puede dejar la pantalla leyendo para siempre.
+  const incompleto =
+    !!subida &&
+    !!sondeo.importacion &&
+    !enCurso(estado) &&
+    estado !== 'fallido' &&
+    estado !== 'confirmado' &&
+    !(estado === 'listo' && sondeo.importacion.resultado);
+  useEffect(() => {
+    if (yaConfirmada) alYaConfirmada();
+    // sólo reacciona al cambio de estado
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [yaConfirmada]);
 
-  function elegir(nuevo: File | undefined) {
+  async function elegir(nuevo: File | undefined) {
     if (!nuevo) return;
-    const problema = validarArchivo(nuevo);
+    // Tipo y tamaño primero (sin leer nada); la firma de los primeros bytes después.
+    const problema = validarArchivo(nuevo) ?? (await validarFirma(nuevo));
     setErrorArchivo(problema);
     setArchivo(problema ? null : nuevo);
     setErrorSubida(null);
   }
 
   function alElegir(evento: ChangeEvent<HTMLInputElement>) {
-    elegir(evento.target.files?.[0]);
+    void elegir(evento.target.files?.[0]);
     evento.target.value = '';
   }
 
   function alSoltar(evento: DragEvent) {
     evento.preventDefault();
     setArrastrando(false);
-    elegir(evento.dataTransfer.files[0]);
+    void elegir(evento.dataTransfer.files[0]);
   }
 
   async function subir() {
-    if (!archivo) return;
+    if (!archivo || subiendo) return;
     setSubiendo(true);
     setErrorSubida(null);
+    const control = new AbortController();
+    subidaEnCurso.current = control;
     try {
-      const nueva = await servicio.subirCarta(restaurante.id, archivo);
+      const nueva = await servicio.subirCarta(restaurante.id, archivo, control.signal);
       setSubida(nueva);
       alCambiarImportacion(nueva);
     } catch (error) {
+      if (control.signal.aborted) return;
       setErrorSubida(
         error instanceof ErrorApi ? error.message : 'No pudimos subir tu carta. Inténtalo de nuevo.',
       );
     } finally {
-      setSubiendo(false);
+      subidaEnCurso.current = null;
+      if (!control.signal.aborted) setSubiendo(false);
     }
   }
 
@@ -149,10 +174,21 @@ export default function PasoCarta({
     );
   }
 
-  // ── Fallida: se explica la causa y se puede reintentar o capturar a mano (AC-25.4) ───────
-  if (subida && (sondeo.importacion?.estado === 'fallido' || sondeo.error)) {
+  if (subida && yaConfirmada) {
+    return (
+      <div className={e.centrado} role="status">
+        <div className={e.espera} aria-hidden="true" />
+        <p className={e.texto}>Tu carta ya estaba confirmada. Seguimos con las mesas…</p>
+      </div>
+    );
+  }
+
+  // ── Fallida o sin borrador: se explica la causa y se puede reintentar o capturar a mano (AC-25.4) ──
+  if (subida && (sondeo.importacion?.estado === 'fallido' || sondeo.error || incompleto)) {
     const causa =
-      sondeo.importacion?.error_mensaje ?? sondeo.error ?? 'No pudimos leer tu carta.';
+      sondeo.importacion?.error_mensaje ??
+      sondeo.error ??
+      'No recibimos el borrador de tu carta. Sube el archivo otra vez o captura tus platillos a mano.';
     return (
       <section className={c.paso} aria-labelledby="titulo-carta">
         <header className={c.encabezadoPaso}>
@@ -205,6 +241,11 @@ export default function PasoCarta({
         {sondeo.sinRed && (
           <p className={c.aviso} role="status">
             Perdimos la conexión un momento. Seguimos intentando; tu carta no se pierde.
+          </p>
+        )}
+        {sondeo.fallaServidor && !sondeo.sinRed && (
+          <p className={c.aviso} role="status">
+            El servidor no respondió. Seguimos intentando; tu carta no se pierde.
           </p>
         )}
         {sondeo.lento && !sondeo.agotado && (
@@ -285,7 +326,7 @@ export default function PasoCarta({
         <Boton ancho disabled={!archivo} cargando={subiendo} onClick={() => void subir()}>
           Subir y leer mi carta
         </Boton>
-        <Boton ancho variante="fantasma" onClick={alCapturarAMano}>
+        <Boton ancho variante="fantasma" disabled={subiendo} onClick={alCapturarAMano}>
           Prefiero capturarla a mano
         </Boton>
       </div>

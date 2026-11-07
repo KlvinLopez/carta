@@ -8,6 +8,12 @@ export function guardarComoArchivo(blob: Blob, nombre: string): void {
   document.body.appendChild(ancla);
   ancla.click();
   ancla.remove();
-  // Margen para que el navegador termine de leer el blob antes de soltarlo.
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  // iOS Safari suele abrir el PDF en una pestaña en lugar de descargarlo: revocar enseguida rompería esa
+  // vista. Se suelta al salir de la página o, a más tardar, a los 60 s.
+  const soltar = () => URL.revokeObjectURL(url);
+  window.addEventListener('pagehide', soltar, { once: true });
+  setTimeout(() => {
+    window.removeEventListener('pagehide', soltar);
+    soltar();
+  }, 60_000);
 }

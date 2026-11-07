@@ -10,10 +10,14 @@ export const INTERVALO_MS = 3000;
 export const AVISO_LENTO_MS = 180_000;
 /** Tope: pasado este tiempo se deja de preguntar y se ofrece seguir esperando. */
 export const TOPE_MS = 600_000;
-/** Fallos de red seguidos antes de decirlo en pantalla. */
+/** Fallos seguidos antes de decirlo en pantalla. */
 export const FALLOS_PARA_AVISAR = 3;
+/** Un 404 puede ser una réplica atrasada: se reintenta antes de darlo por definitivo. */
+export const NO_ENCONTRADA_PARA_RENDIRSE = 3;
 
-const TERMINALES = new Set<Importacion['estado']>(['listo', 'fallido', 'confirmado']);
+/** Mientras esté en uno de estos estados se sigue preguntando; cualquier otro (incluso uno desconocido) cierra el sondeo. */
+const EN_CURSO = new Set<string>(['pendiente', 'procesando']);
+export const enCurso = (estado: string | undefined): boolean => !!estado && EN_CURSO.has(estado);
 
 export interface EstadoSondeo {
   importacion: Importacion | null;
@@ -23,6 +27,8 @@ export interface EstadoSondeo {
   agotado: boolean;
   /** Varias consultas seguidas sin respuesta (red caída): se sigue intentando. */
   sinRed: boolean;
+  /** Varias consultas seguidas con 5xx: el servidor no responde bien; se sigue intentando. */
+  fallaServidor: boolean;
   /** Error que no se arregla esperando (la importación no existe, sesión inválida…). */
   error: string | null;
   reanudar(): void;
@@ -33,7 +39,8 @@ export interface EstadoSondeo {
 /**
  * Sondeo del estado de la importación cada 3 s. El contrato no declara ETag en `GET …/importaciones/{id}`,
  * así que cada vuelta trae el JSON completo (es una fila). Se pausa con la pestaña oculta y vuelve a
- * preguntar al instante al regresar. Termina en `listo`, `fallido` o `confirmado`.
+ * preguntar al instante al regresar, sin solaparse con una consulta en vuelo. Al terminar, agotarse o
+ * fallar de forma definitiva deja de escuchar `visibilitychange`.
  */
 export function useSondeoImportacion(
   servicio: ServicioAlta,
@@ -45,6 +52,7 @@ export function useSondeoImportacion(
   const [lento, setLento] = useState(false);
   const [agotado, setAgotado] = useState(false);
   const [sinRed, setSinRed] = useState(false);
+  const [fallaServidor, setFallaServidor] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [vuelta, setVuelta] = useState(0);
   const servicioRef = useRef(servicio);
@@ -55,6 +63,7 @@ export function useSondeoImportacion(
     setLento(false);
     setAgotado(false);
     setSinRed(false);
+    setFallaServidor(false);
     setError(null);
     // `inicial` sólo siembra el estado; cambiar de importación (id) reinicia todo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,12 +71,20 @@ export function useSondeoImportacion(
 
   useEffect(() => {
     if (!rid || !id) return;
-    if (inicial && TERMINALES.has(inicial.estado)) return;
+    if (inicial && !enCurso(inicial.estado)) return;
     let vivo = true;
+    let enVuelo = false;
     let temporizador: ReturnType<typeof setTimeout> | undefined;
-    let fallos = 0;
+    let fallosRed = 0;
+    let fallosServidor = 0;
+    let noEncontradas = 0;
     const inicio = Date.now();
     const control = new AbortController();
+
+    const detener = () => {
+      clearTimeout(temporizador);
+      document.removeEventListener('visibilitychange', alVolver);
+    };
 
     const programar = () => {
       if (!vivo) return;
@@ -75,47 +92,68 @@ export function useSondeoImportacion(
       if (transcurrido >= AVISO_LENTO_MS) setLento(true);
       if (transcurrido >= TOPE_MS) {
         setAgotado(true);
+        detener();
         return;
       }
       temporizador = setTimeout(() => void consultar(), INTERVALO_MS);
     };
 
     const consultar = async () => {
-      if (!vivo) return;
+      if (!vivo || enVuelo) return;
       // En segundo plano no se pregunta: `alVolver` retoma al instante.
       if (document.visibilityState === 'hidden') return;
+      enVuelo = true;
       try {
         const actual = await servicioRef.current.consultarImportacion(rid, id, control.signal);
         if (!vivo) return;
-        fallos = 0;
+        fallosRed = 0;
+        fallosServidor = 0;
+        noEncontradas = 0;
         setSinRed(false);
+        setFallaServidor(false);
         setImportacion(actual);
-        if (TERMINALES.has(actual.estado)) return;
-      } catch (e) {
-        if (!vivo || control.signal.aborted) return;
-        if (e instanceof ErrorApi && e.estado >= 400 && e.estado < 500 && e.estado !== 429) {
-          setError(e.message);
+        if (!enCurso(actual.estado)) {
+          detener();
           return;
         }
-        fallos += 1;
-        if (fallos >= FALLOS_PARA_AVISAR) setSinRed(true);
+      } catch (e) {
+        if (!vivo || control.signal.aborted) return;
+        if (e instanceof ErrorApi && e.estado === 404) {
+          noEncontradas += 1;
+          if (noEncontradas >= NO_ENCONTRADA_PARA_RENDIRSE) {
+            setError(e.message);
+            detener();
+            return;
+          }
+        } else if (e instanceof ErrorApi && e.estado >= 400 && e.estado < 500 && e.estado !== 429) {
+          setError(e.message);
+          detener();
+          return;
+        } else if (e instanceof ErrorApi && e.estado >= 500) {
+          fallosServidor += 1;
+          if (fallosServidor >= FALLOS_PARA_AVISAR) setFallaServidor(true);
+        } else {
+          fallosRed += 1;
+          if (fallosRed >= FALLOS_PARA_AVISAR) setSinRed(true);
+        }
+      } finally {
+        enVuelo = false;
       }
       programar();
     };
 
-    const alVolver = () => {
-      if (document.visibilityState !== 'visible' || !vivo) return;
+    function alVolver() {
+      if (document.visibilityState !== 'visible' || !vivo || enVuelo) return;
       clearTimeout(temporizador);
       void consultar();
-    };
+    }
     document.addEventListener('visibilitychange', alVolver);
     temporizador = setTimeout(() => void consultar(), INTERVALO_MS);
 
     return () => {
       vivo = false;
-      clearTimeout(temporizador);
       control.abort();
-      document.removeEventListener('visibilitychange', alVolver);
+      detener();
     };
     // `inicial` no es una dependencia: sólo decide si ya había terminado al montar.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,9 +171,10 @@ export function useSondeoImportacion(
     setAgotado(false);
     setLento(false);
     setSinRed(false);
+    setFallaServidor(false);
     setError(null);
     setVuelta((n) => n + 1);
   }, []);
 
-  return { importacion, lento, agotado, sinRed, error, reanudar, reiniciar };
+  return { importacion, lento, agotado, sinRed, fallaServidor, error, reanudar, reiniciar };
 }

@@ -21,7 +21,8 @@ export default function PasoConfirmar({
   importacion: Importacion;
   borrador: Borrador;
   alVolver: () => void;
-  alConfirmar: () => void;
+  /** `yaConfirmada`: el 409 se resolvió porque otra pestaña (o un toque anterior) ya la había confirmado. */
+  alConfirmar: (yaConfirmada: boolean) => void;
 }) {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,14 +35,14 @@ export default function PasoConfirmar({
     setError(null);
     try {
       await servicio.confirmarImportacion(restaurante.id, importacion.id, aResultado(borrador));
-      alConfirmar();
+      alConfirmar(false);
     } catch (e) {
       if (e instanceof ErrorApi && e.estado === 409) {
         // Un toque doble o una respuesta perdida: si ya quedó confirmada, seguimos.
         try {
           const actual = await servicio.consultarImportacion(restaurante.id, importacion.id);
           if (actual.estado === 'confirmado') {
-            alConfirmar();
+            alConfirmar(true);
             return;
           }
         } catch {

@@ -6,6 +6,8 @@
 
 export const CLAVE_CORREO = 'carta.acceso.correo';
 export const CLAVE_RESTAURANTE = 'carta.admin.restaurante';
+/** Avance del asistente de alta (T-1.11): ids y paso, nunca el PIN ni el borrador. */
+export const CLAVE_ALTA = 'carta.alta.progreso';
 
 /** El correo a medio camino «envié el enlace» → «abrí el enlace» caduca a los 15 minutos. */
 export const VIGENCIA_CORREO_MS = 15 * 60 * 1000;
@@ -60,6 +62,7 @@ export function guardarRestauranteElegido(id: string): void {
 export function borrarAlmacenDelPanel(): void {
   try {
     window.sessionStorage.removeItem(CLAVE_CORREO);
+    window.sessionStorage.removeItem(CLAVE_ALTA);
     window.localStorage.removeItem(CLAVE_CORREO); // versión anterior guardaba aquí
     window.localStorage.removeItem(CLAVE_RESTAURANTE);
   } catch {

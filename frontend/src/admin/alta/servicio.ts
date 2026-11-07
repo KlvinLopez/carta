@@ -1,4 +1,5 @@
 import { ErrorApi, type ClienteHttp } from '../../compartido/http';
+import { empiezaConPdf } from './archivo';
 import type { Importacion, Mesa, Personal, Resultado, Restaurante, RolPersonal } from './tipos';
 
 /**
@@ -49,6 +50,10 @@ export function crearServicioAlta(api: ClienteHttp): ServicioAlta {
     crearMesas: (rid, datos, signal) => api.solicitar<Mesa[]>('POST', `${base(rid)}/mesas`, { cuerpo: datos, signal }),
     async descargarQr(rid, signal) {
       const pdf = await api.descargar(`${base(rid)}/mesas/qr.pdf`, { signal });
+      if (pdf.type.includes('octet-stream') && (await empiezaConPdf(pdf))) {
+        // Algunos bordes sirven el PDF como octet-stream: si los bytes son de PDF, se acepta.
+        return new Blob([pdf], { type: 'application/pdf' });
+      }
       if (!pdf.type.includes('pdf')) {
         throw new ErrorApi(200, 'RESPUESTA_INVALIDA', 'No pudimos preparar el PDF de tus QR. Inténtalo de nuevo.');
       }

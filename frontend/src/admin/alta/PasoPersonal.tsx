@@ -4,16 +4,29 @@ import { Boton, Chip } from '../../compartido/componentes';
 import { ErrorApi } from '../../compartido/http';
 import c from './Alta.module.css';
 import { Campo } from './Campo';
+import type { MiembroEquipo } from './progreso';
 import type { ServicioAlta } from './servicio';
 import { TOPES, type Restaurante, type RolPersonal } from './tipos';
 
-export interface MiembroEquipo {
-  id: string;
-  nombre: string;
-  rol: RolPersonal;
-}
+export type { MiembroEquipo } from './progreso';
 
 const PIN_VALIDO = /^[0-9]{4,6}$/;
+
+/** Dígitos de cualquier escritura (１２３４, ١٢٣٤) → ASCII; todo lo demás se descarta. */
+export function soloDigitosAscii(texto: string): string {
+  let salida = '';
+  for (const caracter of texto.normalize('NFKC')) {
+    if (/[0-9]/.test(caracter)) {
+      salida += caracter;
+    } else if (/\p{Nd}/u.test(caracter)) {
+      // Los dígitos Unicode vienen en tandas contiguas de diez que empiezan en el cero.
+      let cero = caracter.codePointAt(0)!;
+      while (/\p{Nd}/u.test(String.fromCodePoint(cero - 1))) cero -= 1;
+      salida += String((caracter.codePointAt(0)! - cero) % 10);
+    }
+  }
+  return salida;
+}
 
 /**
  * Paso 6 · Personal: nombre, rol y PIN de 4 a 6 dígitos. El PIN viaja una vez a la API y se
@@ -35,6 +48,7 @@ export default function PasoPersonal({
   const [nombre, setNombre] = useState('');
   const [rol, setRol] = useState<RolPersonal>('mesero');
   const [pin, setPin] = useState('');
+  const [pinFiltrado, setPinFiltrado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [errorNombre, setErrorNombre] = useState<string | null>(null);
   const [errorPin, setErrorPin] = useState<string | null>(null);
@@ -53,6 +67,7 @@ export default function PasoPersonal({
     const pinEnviado = pin;
     // El PIN sale del estado antes de la llamada: nada lo conserva si la petición tarda o falla.
     setPin('');
+    setPinFiltrado(false);
     setEnviando(true);
     try {
       const creado = await servicio.crearPersonal(restaurante.id, { nombre: nombreLimpio, rol, pin: pinEnviado });
@@ -102,10 +117,10 @@ export default function PasoPersonal({
         <fieldset className={c.rol}>
           <legend className={c.etiqueta}>Rol</legend>
           <div className={c.fila}>
-            <Chip activo={rol === 'mesero'} onClick={() => setRol('mesero')}>
+            <Chip className={c.chipRol} activo={rol === 'mesero'} onClick={() => setRol('mesero')}>
               Mesero
             </Chip>
-            <Chip activo={rol === 'capitan'} onClick={() => setRol('capitan')}>
+            <Chip className={c.chipRol} activo={rol === 'capitan'} onClick={() => setRol('capitan')}>
               Capitán
             </Chip>
           </div>
@@ -114,11 +129,19 @@ export default function PasoPersonal({
           etiqueta="PIN (4 a 6 números)"
           type="password"
           inputMode="numeric"
-          autoComplete="off"
-          maxLength={6}
+          // `off` lo ignoran los gestores de contraseñas y ofrecerían guardar el PIN del equipo.
+          autoComplete="new-password"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          maxLength={12}
           value={pin}
-          onChange={(ev) => setPin(ev.target.value.replace(/\D/g, ''))}
+          onChange={(ev) => {
+            const digitos = soloDigitosAscii(ev.target.value).slice(0, 6);
+            setPinFiltrado(digitos.length < ev.target.value.length && ev.target.value.length <= 6);
+            setPin(digitos);
+          }}
           error={errorPin}
+          ayuda={pinFiltrado ? 'El PIN sólo lleva números.' : undefined}
           data-pin
         />
         {errorEnvio && (

@@ -99,8 +99,11 @@ describe('borrador de la revisión', () => {
   });
 
   it('sin categorías o sin platillos no hay nada que confirmar', () => {
-    expect(validar({ moneda: 'MXN', avisos: [], categorias: [] }).length).toBe(1);
-    const vacio = operaciones.agregarCategoria({ moneda: 'MXN', avisos: [], categorias: [] });
-    expect(validar(vacio).map((p) => p.campo)).toEqual(expect.arrayContaining(['nombre', 'categoria']));
+    expect(validar({ moneda: 'MXN', avisos: [], notas: [], categorias: [] }).length).toBe(1);
+    const vacio = operaciones.agregarCategoria({ moneda: 'MXN', avisos: [], notas: [], categorias: [] });
+    // Una categoría sin nombre ni platillos se descarta al confirmar: no estorba, pero sin nada más no hay carta.
+    expect(validar(vacio).map((p) => p.campo)).toEqual(['categoria']);
+    const conNombre = operaciones.renombrarCategoria(vacio, vacio.categorias[0]!.clave, 'Postres');
+    expect(validar(conNombre).map((p) => p.mensaje)).toEqual(['Agrega al menos un platillo.']);
   });
 });

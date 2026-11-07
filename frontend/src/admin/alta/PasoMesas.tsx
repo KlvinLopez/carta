@@ -22,7 +22,14 @@ function Contador({
   alCambiar: (valor: number) => void;
   deshabilitado?: boolean;
 }) {
-  const poner = (n: number) => alCambiar(Math.min(maximo, Math.max(minimo, Math.round(n) || minimo)));
+  // Mientras se teclea se conserva el texto crudo (vaciar el campo para escribir 12 es legítimo);
+  // el rango se aplica al salir del campo o con los botones.
+  const [texto, setTexto] = useState<string | null>(null);
+  const acotar = (n: number) => Math.min(maximo, Math.max(minimo, Math.round(n) || minimo));
+  const poner = (n: number) => {
+    setTexto(null);
+    alCambiar(acotar(n));
+  };
   return (
     <div className={c.campo}>
       <span className={c.etiqueta} id={`et-${etiqueta}`}>
@@ -44,10 +51,16 @@ function Contador({
           inputMode="numeric"
           min={minimo}
           max={maximo}
-          value={valor}
+          value={texto ?? valor}
           aria-label={etiqueta}
           disabled={deshabilitado}
-          onChange={(ev) => poner(Number(ev.target.value))}
+          onChange={(ev) => {
+            setTexto(ev.target.value);
+            const n = Number(ev.target.value);
+            // Mientras el número sea válido, el valor real sigue lo que se teclea.
+            if (ev.target.value !== '' && Number.isInteger(n) && n >= minimo && n <= maximo) alCambiar(n);
+          }}
+          onBlur={() => poner(Number(texto ?? valor))}
         />
         <button
           type="button"

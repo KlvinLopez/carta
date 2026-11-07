@@ -1,7 +1,7 @@
 import { useId, useState, type KeyboardEvent } from 'react';
 
 import c from './Alta.module.css';
-import { etiquetaLegible, normalizarClave } from './borrador';
+import { etiquetaLegible, largo, normalizarClave } from './borrador';
 import { TOPES } from './tipos';
 
 /** Alérgenos y etiquetas como chips: se quitan con la × y se agregan con Enter o «Agregar». */
@@ -22,16 +22,30 @@ export function EditorChips({
   const [texto, setTexto] = useState('');
   // Las sugerencias sólo aparecen al trabajar en este campo: repetidas en cada platillo alargarían la tabla.
   const [enfocado, setEnfocado] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
   const lleno = valores.length >= TOPES.sugeridos;
   const faltantes = sugerencias.filter((s) => !valores.includes(s));
 
   function agregar(crudo: string) {
-    const clave = normalizarClave(crudo);
-    if (!clave || valores.includes(clave) || lleno) {
-      setTexto('');
-      return;
+    // «Lácteos, huevo» pegado de una vez se parte en dos chips.
+    const partes = crudo.split(/[,;\n]/).map((x) => x.trim()).filter(Boolean);
+    const nuevos = [...valores];
+    const avisos: string[] = [];
+    for (const parte of partes) {
+      const clave = normalizarClave(parte);
+      if (!clave) {
+        avisos.push(`No pudimos usar «${parte}»: escribe con letras (a–z) o números.`);
+      } else if (nuevos.includes(clave)) {
+        // repetida: se ignora en silencio
+      } else if (nuevos.length >= TOPES.sugeridos) {
+        avisos.push(`Máximo ${TOPES.sugeridos} por platillo: «${parte}» no se agregó.`);
+      } else {
+        if (largo(parte) > TOPES.claveLargo) avisos.push(`«${parte.slice(0, 20)}…» se acortó a ${TOPES.claveLargo} letras.`);
+        nuevos.push(clave);
+      }
     }
-    alCambiar([...valores, clave]);
+    if (nuevos.length !== valores.length) alCambiar(nuevos);
+    setAviso(avisos.join(' ') || null);
     setTexto('');
   }
 
@@ -75,7 +89,6 @@ export function EditorChips({
           value={texto}
           onChange={(ev) => setTexto(ev.target.value)}
           onKeyDown={alTeclear}
-          maxLength={TOPES.claveLargo}
           placeholder="Escribe y presiona Enter"
           disabled={lleno}
           autoComplete="off"
@@ -89,6 +102,11 @@ export function EditorChips({
           Agregar
         </button>
       </div>
+      {aviso && (
+        <p className={c.ayuda} role="status">
+          {aviso}
+        </p>
+      )}
       {enfocado && faltantes.length > 0 && !lleno && (
         <ul className={c.sugerencias} aria-label={`Sugerencias de ${etiqueta.toLowerCase()}`}>
           {faltantes.map((s) => (

@@ -25,6 +25,13 @@ const MENSAJE_SIN_RED = 'No pudimos conectar con Carta. Revisa tu conexión e in
 const MENSAJE_GENERICO = 'Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento.';
 const PREFIJO_API = '/api/v1/';
 
+/** Mensajes para respuestas sin la envoltura del contrato (el HTML de un borde o de un proxy). */
+const MENSAJE_POR_ESTADO: Record<number, string> = {
+  413: 'El archivo es demasiado grande. Prueba con uno de menos de 20 MB.',
+  415: 'No podemos leer ese tipo de archivo. Usa un PDF, JPG o PNG.',
+  503: 'El servicio no está disponible en este momento. Inténtalo de nuevo en un momento.',
+};
+
 export interface OpcionesCliente {
   /** Token en memoria (nunca `localStorage`); `null` si no hay sesión. */
   token: () => string | null;
@@ -91,7 +98,7 @@ async function aErrorApi(respuesta: Response): Promise<ErrorApi> {
   return new ErrorApi(
     respuesta.status,
     'ERROR_INTERNO',
-    MENSAJE_GENERICO,
+    MENSAJE_POR_ESTADO[respuesta.status] ?? MENSAJE_GENERICO,
     {},
     respuesta.headers.get('X-Request-ID'),
     espera,

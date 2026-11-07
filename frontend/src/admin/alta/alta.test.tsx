@@ -7,7 +7,10 @@ import { crearServicioSimulado, type OpcionesSimulado } from '../../mocks/servic
 import { ErrorApi } from '../../compartido/http';
 import { AsistenteConServicio } from './Asistente';
 import * as descarga from './descarga';
-import { INTERVALO_MS, AVISO_LENTO_MS, TOPE_MS } from './useSondeo';
+// Los tiempos son literales a propósito: el sondeo se prueba a fondo en alta-sondeo.test.tsx.
+const INTERVALO_MS = 3000;
+const AVISO_LENTO_MS = 180_000;
+const TOPE_MS = 600_000;
 
 const PDF = () => new File(['%PDF-1.4 carta'], 'carta.pdf', { type: 'application/pdf' });
 
@@ -388,10 +391,36 @@ describe('pasos 5 a 7 · mesas, personal y listo', () => {
     await hastaMesas(u);
     const campo = screen.getByRole('spinbutton', { name: 'Mesas' });
     fireEvent.change(campo, { target: { value: '500' } });
+    fireEvent.blur(campo);
     expect(campo).toHaveValue(100);
     expect(screen.getByRole('button', { name: 'Más mesas' })).toBeDisabled();
     fireEvent.change(campo, { target: { value: '0' } });
+    fireEvent.blur(campo);
     expect(campo).toHaveValue(1);
+  });
+
+  it('A3: se puede borrar y teclear el número de mesas; el rango se aplica al salir del campo', async () => {
+    const { sim, u } = montar();
+    await hastaMesas(u);
+    const campo = screen.getByRole('spinbutton', { name: 'Mesas' });
+    expect(campo).toHaveValue(8);
+    await u.click(campo);
+    await u.keyboard('{Backspace}');
+    expect(campo).toHaveValue(null); // vacío, no «1»
+    await u.keyboard('12');
+    expect(campo).toHaveValue(12);
+    await u.clear(campo);
+    await u.type(campo, '5');
+    expect(campo).toHaveValue(5); // no 15
+    await u.clear(campo);
+    await u.tab(); // vacío al salir → mínimo
+    expect(campo).toHaveValue(1);
+    await u.clear(campo);
+    await u.type(campo, '250');
+    expect(campo).toHaveValue(250); // mientras se teclea no se corta
+    await u.click(screen.getByRole('button', { name: 'Crear mesas' })); // el clic saca el foco: 250 → 100
+    expect(await screen.findByText(/Creamos 100 mesas/)).toBeInTheDocument();
+    expect(sim.ultima('crearMesas')!.argumentos[0]).toEqual({ cantidad: 100, capacidad: 4 });
   });
 
   it('un fallo al crear o descargar se explica y no pierde el paso', async () => {
@@ -439,6 +468,33 @@ describe('pasos 5 a 7 · mesas, personal y listo', () => {
     expect(document.body.textContent).not.toContain('482913');
     expect(JSON.stringify([...Object.entries(window.localStorage), ...Object.entries(window.sessionStorage)])).not.toContain('482913');
     expect(JSON.stringify(sim.llamadas)).not.toContain('482913');
+  });
+
+  it('B2: el PIN usa new-password, convierte dígitos de ancho completo y árabes y avisa si se filtró algo', async () => {
+    const { sim, u } = montar();
+    await hastaMesas(u);
+    await u.click(screen.getByRole('button', { name: 'Omitir por ahora' }));
+    const pin = screen.getByLabelText('PIN (4 a 6 números)');
+    expect(pin).toHaveAttribute('autocomplete', 'new-password');
+    expect(pin).toHaveAttribute('data-1p-ignore', 'true');
+    expect(pin).toHaveAttribute('data-lpignore', 'true');
+    await u.type(pin, '１２３４');
+    expect(pin).toHaveValue('1234');
+    await u.clear(pin);
+    await u.type(pin, '٤٥٦٧');
+    expect(pin).toHaveValue('4567');
+    await u.clear(pin);
+    await u.type(pin, '12ab');
+    expect(pin).toHaveValue('12');
+    expect(screen.getByText('El PIN sólo lleva números.')).toBeInTheDocument();
+    // Siete dígitos: se queda con seis.
+    await u.clear(pin);
+    await u.type(pin, '1234567');
+    expect(pin).toHaveValue('123456');
+    await u.type(screen.getByLabelText('Nombre'), 'Luis');
+    await u.click(screen.getByRole('button', { name: 'Agregar persona' }));
+    await screen.findByRole('list', { name: 'Personal agregado' });
+    expect(JSON.stringify(sim.llamadas)).not.toContain('123456');
   });
 
   it('personal: si falla, vacía el PIN, explica y pide volver a escribirlo', async () => {

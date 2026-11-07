@@ -19,6 +19,7 @@ export const TOPES = {
   claveLargo: 40,
   nombreCategoria: 100,
   nombrePlatillo: 200,
+  nombreVariante: 100,
   descripcion: 1000,
   precioMaximo: 99_999_999.99,
   nombreRestaurante: 200,
