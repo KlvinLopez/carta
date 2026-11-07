@@ -20,6 +20,7 @@ description: Cómo se escribe una prueba en Carta con la infraestructura de test
 | `fabrica_restaurante`, `fabrica_operador`, `fabrica_mesa` | Las mismas fábricas como funciones (`await fabrica_mesa(restaurante, numero=7)`) | Cuando necesitas varios o valores concretos |
 | `categoria`, `platillo`, `fabrica_categoria`, `fabrica_platillo` | Una categoría y un platillo activos del `restaurante` (T-1.3); `await fabrica_platillo(restaurante, categoria, orden=3)` | Pruebas del menú. Para mirar purgas de Cloudflare, sustituye `cache_menu.purgador` por un `PurgadorCloudflare(..., cliente=httpx.AsyncClient(transport=MockTransport(...)))` y vacía la caché antes y después (fixture `cloudflare` en `tests/integration/test_admin_menu.py`) |
 | `cabecera_operador` | `{"Authorization": "Bearer prueba:<uid>:google"}` del dueño de `restaurante` (T-1.2). `cliente` instala `VerificadorDePrueba` (`tests/auth_pruebas.py`); para otro usuario, `cabecera_de(usuario.firebase_uid)` | Toda petición a `/api/v1/admin`: sin ella es 401 |
+| `almacen` | `AlmacenLocal` en una carpeta temporal que `cliente` instala en lugar de `obtener_almacen` (T-1.4): una subida nunca escribe en `./datos`. Mira lo subido en `almacen.raiz / "publico"` y `"privado"`; para R2, `app.dependency_overrides[obtener_almacen] = lambda: AlmacenS3(...)` contra moto (`s3_falso` en `tests/integration/test_fotos.py`) | Pruebas de fotos o de `/ready` con almacén |
 | `motor_pruebas` | Motor de la sesión de pruebas (`NullPool`, `lock_timeout=5s`, `statement_timeout=30s`) | Sólo para mirar la base desde **otra** conexión (carreras, aislamiento) |
 | `esquema_migrado`, `url_bd` | Base compartida migrada a `head` con la CLI de Alembic (sólo `upgrade head`) | Pruebas de esquema o que corren Alembic |
 | `tests.bd_pruebas.base_desechable(url_bd, "sufijo")` | Base vacía propia del proceso, borrada al salir | Lo único que puede hacer `downgrade base` o destruir el esquema |
@@ -74,6 +75,14 @@ Cada conexión sale de `motor_pruebas.connect()` (dos conexiones asyncpg distint
 ## 3b. Rutas crudas (`..`, `%ZZ`, `%2F`)
 
 httpx normaliza la URL antes de enviarla (`/assets/../x` llega como `/x`, `/..` como `/`), así que un *path traversal* o un escape inválido no se pueden probar con `cliente.get(...)`. Llama a la aplicación con un `scope` ASGI escrito a mano (`_llamar_crudo` en `tests/integration/test_estaticos.py`): `asgi.spec_version = "2.4"` y un `receive` que devuelva `http.request` y después `http.disconnect`, o `FileResponse` se queda esperando la desconexión hasta el `timeout`.
+
+## 3b'. Subidas: «no se leyó el cuerpo» y `Content-Length` mentiroso (T-1.4)
+
+httpx siempre manda el `Content-Length` real. Para probar un 413/401/404 **sin leer el cuerpo** o un `Content-Length` que miente, llama a `app` con un `scope` a mano y un `receive` que cuente cuántos trozos le pidieron (`Cuerpo` y `_crudo` en `tests/integration/test_fotos.py`); con el fixture `cliente` activo, las sustituciones de base, token y almacén ya están puestas. Imágenes de prueba generadas al vuelo en `tests/imagenes_pruebas.py` (JPEG con EXIF, PNG, HEIC con `pillow-heif`, PDF, bomba de píxeles, AVIF disfrazado); nada binario en el repo.
+
+## 3b''. R2 sin red
+
+S3 falso = `moto.server.ThreadedMotoServer(ip_address="127.0.0.1", port=0)` (dependencia de desarrollo). Crea los buckets con un cliente `region_name="us-east-1"`: moto rechaza `CreateBucket` con la región `auto` que usa la aplicación (para R2), aunque acepta `auto` en `PutObject`/`HeadBucket`. Un `Settings(ENTORNO="staging"|"produccion")` válido exige las seis `R2_*` desde T-1.4: pásalas (`R2_COMPLETO` en `tests/unit/test_config.py`) o, si la prueba no es de configuración, `Settings.model_construct(...)`.
 
 ## 3c. API de Claude sin llave (importación, T-1.8)
 
