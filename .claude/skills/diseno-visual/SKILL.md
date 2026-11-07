@@ -79,3 +79,11 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 - Un hook de sondeo que conserva el último estado terminal (`fallido`) debe poder reiniciarse con la fila nueva (`reiniciar(nueva)`): sólo repetir el efecto dejaba la pantalla de error tras «Reintentar».
 - Un `label` + `aria-label` con el mismo texto vuelve ambiguo `getByLabelText`: consulta por `getByRole('textbox' | 'spinbutton', { name })`.
 - Capturas del asistente: página temporal de Vite fuera del repo (`captura.html` + `captura.tsx` con el servicio simulado), Playwright a 2x, y borrar el arnés antes del commit.
+
+## Lecciones de la pantalla Menú (T-1.12)
+
+- `npm run contrato` redirige stdout: si la app registra una línea de log al importarse (falta `frontend/dist`), `openapi.json` queda con basura y vitest dice «Failed to parse JSON». Déjalo con `tail -n 1` o corre el contrato tras `npm run build`. Y `tsc --noEmit -p .` no ve las pruebas: la puerta es `npm run build` (`tsc -b`).
+- Los tipos de `openapi-typescript` marcan como obligatorios los campos con valor por defecto (`PlatilloCrear.disponible`…): define el tipo de entrada con `Omit` + `Partial`.
+- `userEvent.upload` (v14) filtra por `accept` y el tercer argumento no son opciones: para un archivo «prohibido» usa `fireEvent.change` con `files`.
+- Un encabezado de categoría con contador dentro tiene el nombre «Tacos3»: consulta con `name: /^Tacos/`. Reordenar mueve nodos del DOM y quita el foco: devuélvelo en un `useLayoutEffect`.
+- Un fetch de prueba que responde lo mismo a cualquier ruta rompe al aparecer una pantalla que pide otras listas: enruta por `url.pathname`.
