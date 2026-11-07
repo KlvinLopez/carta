@@ -15,7 +15,10 @@
   inexistente es 404 y uno de otra categoría es 422; en ambos casos no se mueve nada (una
   sola transacción, filas bloqueadas con `FOR UPDATE` en orden de id para que dos
   reordenamientos a la vez no se intercalen).
-- Toda escritura invalida la caché del menú después del `commit()` (`_confirmar`).
+- Toda escritura invalida la caché del menú después del `commit()` (`confirmar`; también la foto, `app.services.assets`).
+- `ilustracion_clave` (la imagen de respaldo, 02 §8) sale del nombre de la categoría
+  (`app.services.ilustraciones`): se fija al crear el platillo, al cambiarlo de categoría y,
+  para todos sus platillos, al renombrar la categoría. Sin categoría, `general`.
 - Los `IntegrityError` que queden (nombre de categoría repetido entre las activas, carreras)
   los traduce `app.core.errores` (409/422/404).
 """
@@ -27,13 +30,14 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errores import ErrorCarta, mensaje_por_http
 from app.db.models import CategoriaMenu, Platillo, Restaurante
 from app.services import operadores
 from app.services.cache_menu import CacheMenu, cache_menu
+from app.services.ilustraciones import clave_para_categoria
 
 MENSAJE_CATEGORIA_INACTIVA = "Esa categoría está dada de baja; reactívala o elige otra."
 
@@ -51,7 +55,7 @@ def _invalido(campo: str, mensaje: str, tipo: str) -> ErrorCarta:
     )
 
 
-async def _confirmar(
+async def confirmar(
     sesion: AsyncSession, restaurante_id: UUID, cache: CacheMenu | None = None
 ) -> None:
     """`commit()` y después invalidar el menú del restaurante.
@@ -82,17 +86,27 @@ async def categoria_del_usuario(
     return None
 
 
-async def _exigir_categoria(sesion: AsyncSession, restaurante_id: UUID, categoria_id: UUID) -> None:
-    """404 si no es del restaurante; 422 si está dada de baja (A5)."""
-    activa = await sesion.scalar(
-        select(CategoriaMenu.activa).where(
-            CategoriaMenu.id == categoria_id, CategoriaMenu.restaurante_id == restaurante_id
+async def _exigir_categoria(sesion: AsyncSession, restaurante_id: UUID, categoria_id: UUID) -> str:
+    """El nombre de la categoría; 404 si no es del restaurante, 422 si está dada de baja (A5)."""
+    fila = (
+        await sesion.execute(
+            select(CategoriaMenu.activa, CategoriaMenu.nombre).where(
+                CategoriaMenu.id == categoria_id, CategoriaMenu.restaurante_id == restaurante_id
+            )
         )
-    )
-    if activa is None:
+    ).first()
+    if fila is None:
         raise _no_encontrado()
-    if not activa:
+    if not fila.activa:
         raise _invalido("body.categoria_id", MENSAJE_CATEGORIA_INACTIVA, "categoria_inactiva")
+    return str(fila.nombre)
+
+
+async def nombre_de_categoria(sesion: AsyncSession, categoria_id: UUID | None) -> str | None:
+    """Para la ilustración de un platillo ya guardado (activa o no: su nombre sirve igual)."""
+    if categoria_id is None:
+        return None
+    return await sesion.scalar(select(CategoriaMenu.nombre).where(CategoriaMenu.id == categoria_id))
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +142,7 @@ async def crear_categoria(
     )
     categoria = CategoriaMenu(restaurante_id=restaurante_id, nombre=nombre, orden=(ultimo or 0) + 1)
     sesion.add(categoria)
-    await _confirmar(sesion, restaurante_id, cache)
+    await confirmar(sesion, restaurante_id, cache)
     await sesion.refresh(categoria)
     return categoria
 
@@ -139,9 +153,18 @@ async def cambiar_categoria(
     cambios: dict[str, Any],
     cache: CacheMenu | None = None,
 ) -> CategoriaMenu:
+    if "nombre" in cambios and cambios["nombre"] != categoria.nombre:
+        # Antes de `setattr` (autoflush, regla 18 de /pruebas); sólo la clave, sin tocar
+        # `actualizado_en` de cada platillo.
+        await sesion.execute(
+            update(Platillo)
+            .where(Platillo.categoria_id == categoria.id)
+            .values(ilustracion_clave=clave_para_categoria(cambios["nombre"]))
+            .execution_options(synchronize_session=False)
+        )
     for campo, valor in cambios.items():
         setattr(categoria, campo, valor)
-    await _confirmar(sesion, categoria.restaurante_id, cache)
+    await confirmar(sesion, categoria.restaurante_id, cache)
     await sesion.refresh(categoria)
     return categoria
 
@@ -181,7 +204,7 @@ async def reordenar_categorias(
         await sesion.rollback()
         raise _no_encontrado()
     nuevo = _ordenar(ids, filas)
-    await _confirmar(sesion, restaurante_id, cache)
+    await confirmar(sesion, restaurante_id, cache)
     return nuevo
 
 
@@ -252,18 +275,20 @@ async def crear_platillo(
     cache: CacheMenu | None = None,
 ) -> Platillo:
     categoria_id: UUID | None = datos.get("categoria_id")
+    nombre_categoria = None
     if categoria_id is not None:
-        await _exigir_categoria(sesion, restaurante_id, categoria_id)
+        nombre_categoria = await _exigir_categoria(sesion, restaurante_id, categoria_id)
     disponible = datos.pop("disponible", True)
     platillo = Platillo(
         **datos,
         restaurante_id=restaurante_id,
+        ilustracion_clave=clave_para_categoria(nombre_categoria),
         orden=await _siguiente_orden(sesion, restaurante_id, categoria_id),
     )
     if not disponible:
         _disponibilidad(platillo, False)
     sesion.add(platillo)
-    await _confirmar(sesion, restaurante_id, cache)
+    await confirmar(sesion, restaurante_id, cache)
     await sesion.refresh(platillo)
     return platillo
 
@@ -276,18 +301,20 @@ async def cambiar_platillo(
 ) -> Platillo:
     if "categoria_id" in cambios and cambios["categoria_id"] != platillo.categoria_id:
         nueva = cambios["categoria_id"]
+        nombre_categoria = None
         if nueva is not None:
-            await _exigir_categoria(sesion, platillo.restaurante_id, nueva)
+            nombre_categoria = await _exigir_categoria(sesion, platillo.restaurante_id, nueva)
         # Antes de asignar: el autoflush de la consulta contaría al propio platillo.
         orden = await _siguiente_orden(sesion, platillo.restaurante_id, nueva)
         platillo.categoria_id = nueva
         platillo.orden = orden
+        platillo.ilustracion_clave = clave_para_categoria(nombre_categoria)
     cambios.pop("categoria_id", None)
     if "disponible" in cambios:
         _disponibilidad(platillo, cambios.pop("disponible"))
     for campo, valor in cambios.items():
         setattr(platillo, campo, valor)
-    await _confirmar(sesion, platillo.restaurante_id, cache)
+    await confirmar(sesion, platillo.restaurante_id, cache)
     await sesion.refresh(platillo)
     return platillo
 
@@ -339,7 +366,7 @@ async def reordenar_platillos(
         await sesion.rollback()
         raise ErrorCarta("CONFLICTO", mensaje_por_http(409), 409)
     _ordenar(ids, filas)
-    await _confirmar(sesion, restaurante_id, cache)
+    await confirmar(sesion, restaurante_id, cache)
     # Una sola lectura recarga `actualizado_en` (expirado por el `commit`) de todas las filas.
     return list(
         await sesion.scalars(

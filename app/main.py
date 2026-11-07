@@ -17,7 +17,7 @@ from app.api.salud import router as router_salud
 from app.core.cabeceras import RUTAS_DOCS, cabeceras_seguridad, registrar_cabeceras_seguridad
 from app.core.config import settings
 from app.core.errores import registrar_manejadores
-from app.core.estaticos import montar_frontend
+from app.core.estaticos import EstaticosInmutables, montar_frontend
 from app.core.peticion import MiddlewareRequestId
 from app.core.registro import configurar_registro
 from app.db import close_db
@@ -56,6 +56,11 @@ def create_app() -> FastAPI:
 
     app.include_router(router_salud)
     app.include_router(router_api_v1, prefix="/api/v1")
+    # Sólo en desarrollo con el almacén local: sus fotos (`AlmacenLocal`, URL `/almacen/…`)
+    # se ven en el navegador. Fuera de desarrollo las sirve R2 y esta ruta no existe (404).
+    if settings.ENTORNO == "desarrollo" and not settings.almacen_en_nube:
+        publico = Path(settings.ALMACEN_LOCAL_RUTA) / "publico"
+        app.mount("/almacen", EstaticosInmutables(directory=publico, check_dir=False), "almacen")
     # Al final: la SPA y los estáticos atienden sólo lo que ninguna ruta anterior reclamó.
     montar_frontend(app, Path(settings.FRONTEND_DIST))
 

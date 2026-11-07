@@ -414,6 +414,7 @@ RUTAS_POR_RESTAURANTE = [
 RUTAS_POR_PLATILLO = [
     ("PATCH", "/platillos/{pid}", {"nombre": "Robado"}),
     ("DELETE", "/platillos/{pid}", None),
+    ("DELETE", "/platillos/{pid}/foto", None),  # T-1.4; el POST multipart, en test_fotos.py
 ]
 
 
