@@ -1,0 +1,634 @@
+/* Pantalla Menú del operador · teléfono primero (390 px); en escritorio la lista se centra en una columna.
+   Regla «no-line»: nada se separa con bordes de 1 px; se usa tono, espacio y sombra cálida. */
+.srSolo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  width: 100%;
+  max-width: 760px;
+}
+
+/* ── Barra: búsqueda y alta ───────────────────────────────────────────────────────────── */
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.campoBusqueda {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.busqueda {
+  width: 100%;
+  min-height: var(--tactil);
+  padding: var(--esp-3) var(--esp-5);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.busqueda:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+}
+
+.vistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--error-tenue);
+  color: var(--error);
+  font-size: 0.9375rem;
+}
+
+.cerrarAviso {
+  flex: none;
+  width: var(--tactil);
+  height: var(--tactil);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.ayudaLista {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+.sinResultados {
+  padding: var(--esp-8) var(--esp-4);
+  text-align: center;
+  color: var(--carbon-suave);
+}
+
+.accionesVacio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  width: 100%;
+  max-width: 320px;
+}
+
+/* ── Categoría ────────────────────────────────────────────────────────────────────────── */
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.tituloGrupo {
+  margin: 0;
+  font: inherit;
+}
+
+.alternar {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  width: 100%;
+  min-height: var(--tactil);
+  padding: var(--esp-2) var(--esp-4);
+  border: 0;
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  text-align: left;
+  cursor: pointer;
+}
+
+.alternar:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+}
+
+.nombreGrupo {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--fuente-titulo);
+  font-size: 1.375rem;
+}
+
+.cuenta {
+  min-width: 28px;
+  padding: 2px var(--esp-2);
+  border-radius: var(--radio-pildora);
+  background: var(--vino-tenue);
+  color: var(--vino);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.chevron {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: var(--vino);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--duracion) var(--resorte);
+}
+
+.chevron[data-abierto='true'] {
+  transform: rotate(180deg);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista[hidden] {
+  display: none;
+}
+
+/* ── Fila de platillo ─────────────────────────────────────────────────────────────────── */
+.fila {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-suave);
+  transition:
+    box-shadow var(--duracion) var(--resorte),
+    transform var(--duracion) var(--resorte);
+}
+
+.apagada .cuerpo {
+  opacity: 0.62;
+}
+
+.arrastrando {
+  position: relative;
+  z-index: 1;
+  transform: scale(1.02);
+  box-shadow: var(--sombra-flotante);
+}
+
+.principal {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+
+.asa {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tactil);
+  height: var(--tactil);
+  margin-left: calc(var(--esp-2) * -1);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: transparent;
+  color: var(--carbon-suave);
+  cursor: grab;
+  touch-action: none; /* el dedo arrastra la fila, no desplaza la página */
+}
+
+.asa:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+}
+
+.arrastrando .asa {
+  cursor: grabbing;
+  background: var(--vino-tenue);
+}
+
+.iconoAsa {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.cuerpo {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--esp-1) var(--esp-3);
+  min-width: 0;
+  min-height: var(--tactil);
+  padding: var(--esp-1) 0;
+  border: 0;
+  background: transparent;
+  color: var(--carbon);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cuerpo:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+  border-radius: var(--radio);
+}
+
+.nombre {
+  flex: 1 1 100%;
+  overflow-wrap: anywhere;
+  font-family: var(--fuente-titulo);
+  font-size: 1.1875rem;
+  line-height: 1.2;
+}
+
+.precio {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--vino);
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1);
+}
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-5);
+}
+
+/* ── Miniatura ────────────────────────────────────────────────────────────────────────── */
+.miniatura {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+}
+
+.miniaturaGrande {
+  width: 88px;
+  height: 88px;
+}
+
+.fotoMiniatura {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ilustracion {
+  width: 70%;
+  height: 70%;
+}
+
+.trazoSuave {
+  fill: var(--superficie);
+  stroke: var(--vino-claro);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.trazoFuerte {
+  fill: var(--vino-tenue);
+  stroke: var(--vino);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.linea {
+  fill: none;
+  stroke: var(--vino);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* ── Interruptor ──────────────────────────────────────────────────────────────────────── */
+.interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-height: var(--tactil);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--carbon);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.interruptor:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.interruptor:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+  border-radius: var(--radio-pildora);
+}
+
+.pista {
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-alta);
+  transition: background-color var(--duracion) var(--resorte);
+}
+
+.pista[data-encendido='true'] {
+  background: var(--vino-claro);
+}
+
+.perilla {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radio-pildora);
+  background: var(--superficie);
+  box-shadow: var(--sombra-suave);
+  transition: transform var(--duracion) var(--resorte);
+}
+
+.pista[data-encendido='true'] .perilla {
+  transform: translateX(20px);
+}
+
+.textoInterruptor {
+  color: var(--carbon-suave);
+}
+
+/* ── Editor y foto ────────────────────────────────────────────────────────────────────── */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding-bottom: var(--esp-2);
+}
+
+.selector {
+  appearance: none;
+  padding-right: var(--esp-8);
+  background-image: linear-gradient(45deg, transparent 50%, var(--vino) 50%),
+    linear-gradient(135deg, var(--vino) 50%, transparent 50%);
+  background-position:
+    calc(100% - 24px) 50%,
+    calc(100% - 18px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.bloqueFoto {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+}
+
+.marcadorFoto {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  color: var(--vino);
+  font-family: var(--fuente-titulo);
+  font-size: 2rem;
+}
+
+.textoFoto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
+.accionesFormulario,
+.accionesFoto,
+.confirmacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.pasoFoto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding-bottom: var(--esp-2);
+}
+
+.subtitulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.guia {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--esp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guiaPaso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-1);
+  padding: var(--esp-3) var(--esp-2);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  text-align: center;
+}
+
+.guiaDibujo {
+  width: 72px;
+  height: 72px;
+}
+
+.guiaTitulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.0625rem;
+  color: var(--vino);
+}
+
+.guiaTexto {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--carbon-suave);
+}
+
+.guiaMarco {
+  fill: var(--superficie);
+  stroke: var(--vino-claro);
+  stroke-width: 2.5;
+}
+
+.guiaEsquinas {
+  fill: none;
+  stroke: var(--dorado);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.guiaPlato {
+  fill: var(--crema-alta);
+  stroke: var(--vino-claro);
+  stroke-width: 2.5;
+}
+
+.guiaComida {
+  fill: var(--vino-tenue);
+  stroke: var(--vino);
+  stroke-width: 2;
+}
+
+.guiaRayo {
+  fill: none;
+  stroke: var(--dorado);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.guiaMesa {
+  fill: var(--crema-alta);
+  stroke: none;
+}
+
+.guiaTacha {
+  fill: none;
+  stroke: var(--error);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.recorte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.vistaRecorte {
+  width: min(100%, 280px);
+  aspect-ratio: 1;
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.campoRango {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  width: 100%;
+}
+
+.etiquetaRango {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--carbon-suave);
+}
+
+.rango {
+  width: 100%;
+  min-height: var(--tactil);
+  accent-color: var(--vino);
+}
+
+.ayudaFoto {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+  text-align: center;
+}
+
+.mensajeError {
+  font-size: 0.875rem;
+  color: var(--error);
+}
+
+.entradaArchivo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .principal {
+    flex: 1;
+  }
+
+  .fila {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .controles {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fila,
+  .perilla,
+  .pista,
+  .chevron {
+    transition: none;
+  }
+}
