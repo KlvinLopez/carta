@@ -47,6 +47,10 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
+        # Un `ValidationError` al arrancar no imprime `input_value`: llevaría la cola de un
+        # secreto (`R2_SECRET_ACCESS_KEY`, `ANTHROPIC_API_KEY`…) al log del despliegue
+        # (revisión de T-1.4, A4).
+        hide_input_in_errors=True,
     )
 
     ENTORNO: Entorno = "desarrollo"

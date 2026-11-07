@@ -129,3 +129,30 @@ def test_la_llave_secreta_de_r2_no_sale_en_repr() -> None:
     assert "secreta" not in repr(s)
     assert s.R2_SECRET_ACCESS_KEY is not None
     assert s.R2_SECRET_ACCESS_KEY.get_secret_value() == "secreta"
+
+
+def test_un_error_de_arranque_no_vuelca_secretos() -> None:
+    """Revisión A4: el `ValidationError` imprimía `input_value={…}` con la cola de los
+    secretos en el log del despliegue."""
+    centinelas = {
+        "R2_SECRET_ACCESS_KEY": "CENTINELA-R2-SECRETO",
+        "ANTHROPIC_API_KEY": "sk-ant-CENTINELA-ANTHROPIC",
+        "CLOUDFLARE_API_TOKEN": "CENTINELA-CLOUDFLARE",
+    }
+    casos = [
+        {"ENTORNO": "staging", "SECRET_KEY": SECRETO_FUERTE, "R2_ENDPOINT": "https://x"},
+        {
+            "ENTORNO": "produccion",
+            "SECRET_KEY": SECRETO_FUERTE,
+            **R2_COMPLETO,
+            "R2_URL_PUBLICA": "http://img.carta.cooking",
+        },
+        {"ENTORNO": "staging", "SECRET_KEY": "corto", **R2_COMPLETO},
+    ]
+    for caso in casos:
+        with pytest.raises(ValidationError) as error:
+            crear(**{**caso, **centinelas})
+        texto = str(error.value) + repr(error.value)
+        for valor in centinelas.values():
+            assert valor not in texto
+            assert valor[-8:] not in texto

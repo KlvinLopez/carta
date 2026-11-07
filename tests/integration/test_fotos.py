@@ -446,8 +446,9 @@ ROTOS = {
     "firma_png_y_basura": b"\x89PNG\r\n\x1a\n" + b"\x00" * 200,
     "png_truncado": img.png(300, 200)[:120],
     "heic_sin_contenido": b"\x00\x00\x00\x18ftypheic\x00\x00\x00\x00mif1heic",
-    # La firma dice HEIF: sólo se intenta con el decodificador HEIF (`formats=`), que no
-    # lo reconoce; sin esa restricción Pillow lo abriría como AVIF y entraría como «HEIC».
+    # Firma buena (`ftyp` + `mif1`), contenido que el decodificador HEIF no sabe leer (es
+    # AV1). pillow-heif lo intenta primero y falla igual con o sin `formats=`, así que esto
+    # no prueba la restricción de decodificador: es otro caso de «firma buena, contenido roto».
     "avif_disfrazado_de_heic": img.avif_como_heif(),
 }
 
@@ -488,7 +489,9 @@ async def test_una_bomba_de_descompresion_es_413_nunca_500(
     ancho: int,
     alto: int,
 ) -> None:
-    """56 MP (sobre el tope) y 144 MP (sobre el doble: Pillow ya lanza al abrir), en pocos KB."""
+    """56 MP y 144 MP en pocos KB: los corta la comprobación propia (`MAX_PIXELES`) antes de
+    decodificar; las otras dos capas (`Image.MAX_IMAGE_PIXELS` y el aviso como error) se
+    prueban por separado en `tests/unit/test_assets.py`."""
     bomba = img.bomba_png(ancho, alto)
     assert len(bomba) < 200_000
     respuesta = await _subir(cliente, platillo.id, bomba, cabecera_operador, "b.png", "image/png")
@@ -557,6 +560,7 @@ async def test_sin_el_archivo_en_su_campo_es_422(
     assert _error(respuesta)["codigo"] == "PAYLOAD_INVALIDO"
 
 
+@pytest.mark.ac("AC-17.3")
 async def test_un_multipart_mal_formado_es_400(
     cliente: AsyncClient, platillo: Platillo, cabecera_operador: dict[str, str]
 ) -> None:
@@ -683,6 +687,7 @@ async def test_un_content_length_mentiroso_no_sirve_para_colar_mas(
 
 
 @pytest.mark.parametrize("valor", ["-1", "abc", "1e9", " "])
+@pytest.mark.ac("AC-17.3")
 async def test_un_content_length_invalido_es_400(
     cliente: AsyncClient, platillo: Platillo, cabecera_operador: dict[str, str], valor: str
 ) -> None:
@@ -697,6 +702,7 @@ async def test_un_content_length_invalido_es_400(
     assert cuerpo.pedidos == 0
 
 
+@pytest.mark.ac("AC-17.3")
 async def test_sin_token_es_401_sin_leer_el_cuerpo(
     cliente: AsyncClient, platillo: Platillo
 ) -> None:
@@ -738,6 +744,7 @@ async def test_el_platillo_ajeno_es_404_igual_que_uno_inexistente(
     assert suyo.imagen_tipo is TipoImagen.ilustracion_categoria
 
 
+@pytest.mark.ac("AC-17.3")
 async def test_el_ajeno_es_404_antes_de_leer_el_cuerpo(
     cliente: AsyncClient,
     ajeno: Restaurante,
@@ -753,6 +760,7 @@ async def test_el_ajeno_es_404_antes_de_leer_el_cuerpo(
     assert cuerpo.pedidos == 0
 
 
+@pytest.mark.ac("AC-17.3")
 async def test_el_dueno_del_otro_restaurante_si_puede(
     cliente: AsyncClient,
     sesion: AsyncSession,
@@ -787,6 +795,7 @@ class AlmacenCaido(AlmacenLocal):
         raise ErrorAlmacen("ConnectTimeout")
 
 
+@pytest.mark.ac("AC-17.3")
 async def test_si_el_almacen_falla_es_503_y_el_platillo_no_cambia(
     cliente: AsyncClient,
     sesion: AsyncSession,
@@ -902,6 +911,7 @@ async def test_ready_comprueba_r2_cuando_lo_hay(cliente: AsyncClient, s3_falso: 
     assert '"db":"ok"' in respuesta.text  # lo que busca la prueba de humo (ci.yml, deploy.yml)
 
 
+@pytest.mark.ac("AC-17.3")
 async def test_ready_sin_r2_no_sondea_el_almacen_local(cliente: AsyncClient) -> None:
     respuesta = await cliente.get("/ready")
     assert respuesta.status_code == 200
@@ -915,6 +925,7 @@ def _puerto_cerrado() -> int:
 
 
 @pytest.mark.parametrize("caso", ["bucket_inexistente", "servidor_apagado"])
+@pytest.mark.ac("AC-17.3")
 async def test_ready_es_503_si_r2_no_responde(
     cliente: AsyncClient, s3_falso: str, caso: str
 ) -> None:
@@ -929,6 +940,7 @@ async def test_ready_es_503_si_r2_no_responde(
     assert _error(respuesta)["codigo"] == "ALMACEN_NO_DISPONIBLE"
 
 
+@pytest.mark.ac("AC-17.3")
 async def test_ready_no_espera_mas_que_su_plazo_a_un_r2_colgado(
     cliente: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1013,7 +1025,10 @@ def test_el_contrato_publica_el_multipart_y_sus_errores() -> None:
         "description": "JPG, PNG o HEIC de hasta 15 MB (se valida el contenido).",
     }
     assert esquema["additionalProperties"] is False
-    assert {"401", "404", "413", "415", "422", "503"} <= set(operacion["responses"])
+    assert {"400", "401", "404", "408", "413", "415", "422", "503"} <= set(operacion["responses"])
+    for codigo in ("400", "408", "503"):
+        esquema = operacion["responses"][codigo]["content"]["application/json"]["schema"]
+        assert esquema["$ref"].endswith("/ErrorRespuesta")
     assert operacion["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith(
         "/PlatilloRespuesta"
     )
@@ -1090,3 +1105,292 @@ async def test_la_foto_manda_sobre_la_ilustracion_y_la_clave_se_conserva(
     assert respuesta.json()["imagen_tipo"] == "foto"
     quitada = await cliente.delete(f"{A}/platillos/{platillo.id}/foto", headers=cabecera_operador)
     assert quitada.json()["ilustracion_clave"] is not None
+
+
+# ===========================================================================
+# Revisión de la maestra: conexión, plazos, almacén colgado, sonda, cola, desarrollo
+# ===========================================================================
+
+
+def _multipart_completo(datos: bytes) -> bytes:
+    return _inicio_multipart() + datos + b"\r\n--limite--\r\n"
+
+
+class CuerpoQueMira(Cuerpo):
+    """Antes de entregar el primer byte, anota si alguna sesión de la petición sigue en una
+    transacción (es decir, retiene una conexión del pool)."""
+
+    def __init__(self, trozos: list[bytes], sesiones: list[AsyncSession]) -> None:
+        super().__init__(trozos)
+        self.sesiones = sesiones
+        self.en_transaccion: list[bool] | None = None
+
+    async def __call__(self) -> dict[str, Any]:
+        if self.en_transaccion is None:
+            self.en_transaccion = [s.in_transaction() for s in self.sesiones]
+        return await super().__call__()
+
+
+@pytest.mark.ac("AC-17.1")
+async def test_la_conexion_se_suelta_antes_de_leer_el_cuerpo(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    fabrica_sesion: Any,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+) -> None:
+    """Revisión A2: con la sesión abierta mientras llega el cuerpo, 20 subidas lentas
+    agotaban el pool y toda la API caía."""
+    from app.db.database import get_db_session
+
+    sesiones: list[AsyncSession] = []
+
+    async def espia() -> Any:
+        async with fabrica_sesion() as s:
+            sesiones.append(s)
+            yield s
+
+    app.dependency_overrides[get_db_session] = espia
+    cuerpo = CuerpoQueMira([_multipart_completo(img.jpeg(500, 400))], sesiones)
+    estado, respuesta = await _crudo(
+        f"{A}/platillos/{platillo.id}/foto",
+        {**cabecera_operador, "content-type": MULTIPART},
+        cuerpo,
+    )
+    assert estado == 200, respuesta
+    assert sesiones, "la ruta no usó la sesión"
+    assert cuerpo.en_transaccion == [False] * len(sesiones)
+    await sesion.refresh(platillo)
+    assert platillo.imagen_tipo is TipoImagen.foto
+
+
+class CuerpoQueSeCalla(Cuerpo):
+    """Manda el inicio del multipart y después no manda nada más (un 4G que se cae)."""
+
+    async def __call__(self) -> dict[str, Any]:
+        self.pedidos += 1
+        if self.pedidos == 1:
+            return {"type": "http.request", "body": _inicio_multipart(), "more_body": True}
+        await asyncio.Event().wait()
+        raise AssertionError("inalcanzable")
+
+
+@pytest.mark.ac("AC-17.3")
+async def test_una_subida_que_no_termina_es_408(
+    cliente: AsyncClient,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.api.admin import fotos
+
+    monkeypatch.setattr(fotos, "PLAZO_SUBIDA_SEGUNDOS", 0.2)
+    estado, respuesta = await _crudo(
+        f"{A}/platillos/{platillo.id}/foto",
+        {**cabecera_operador, "content-type": MULTIPART},
+        CuerpoQueSeCalla([]),
+    )
+    assert estado == 408
+    error = ErrorRespuesta.model_validate(respuesta).error
+    assert (error.codigo, error.mensaje) == (
+        "SUBIDA_INCOMPLETA",
+        "La subida tardó demasiado; inténtalo de nuevo.",
+    )
+
+
+class CuerpoQueSeCorta(Cuerpo):
+    """Un trozo y después la desconexión del cliente (`http.disconnect` a media subida)."""
+
+    async def __call__(self) -> dict[str, Any]:
+        self.pedidos += 1
+        if self.pedidos == 1:
+            return {"type": "http.request", "body": _inicio_multipart(), "more_body": True}
+        return {"type": "http.disconnect"}
+
+
+@pytest.mark.ac("AC-17.3")
+async def test_una_subida_cortada_por_el_cliente_es_400_y_no_500(
+    cliente: AsyncClient, platillo: Platillo, cabecera_operador: dict[str, str]
+) -> None:
+    estado, respuesta = await _crudo(
+        f"{A}/platillos/{platillo.id}/foto",
+        {**cabecera_operador, "content-type": MULTIPART},
+        CuerpoQueSeCorta([]),
+    )
+    assert estado == 400
+    assert respuesta["error"]["mensaje"] == "La subida se interrumpió."
+
+
+@pytest.mark.ac("AC-17.3")
+async def test_con_la_cola_llena_es_503_servicio_ocupado(
+    cliente: AsyncClient,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(assets, "PLAZO_COLA_SEGUNDOS", 0.1)
+    semaforo = asyncio.Semaphore(1)
+    monkeypatch.setattr(assets, "_semaforo", semaforo)
+    await semaforo.acquire()  # otra foto ocupa el único proceso
+    try:
+        respuesta = await _subir(cliente, platillo.id, img.jpeg(400, 300), cabecera_operador)
+    finally:
+        semaforo.release()
+    assert respuesta.status_code == 503
+    assert _error(respuesta)["codigo"] == "SERVICIO_OCUPADO"
+    assert _error(respuesta)["mensaje"] == "Hay muchas fotos en cola; inténtalo en un momento."
+
+
+@pytest.mark.ac("AC-17.2")
+async def test_el_semaforo_nunca_deja_pasar_mas_procesos_de_los_debidos(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(assets, "_semaforo", asyncio.Semaphore(2))
+    candado = threading.Lock()
+    estado = {"ahora": 0, "maximo": 0}
+    real = assets.procesar_foto
+
+    def espia(datos: bytes) -> assets.FotoProcesada:
+        with candado:
+            estado["ahora"] += 1
+            estado["maximo"] = max(estado["maximo"], estado["ahora"])
+        try:
+            threading.Event().wait(0.05)
+            return real(datos)
+        finally:
+            with candado:
+                estado["ahora"] -= 1
+
+    monkeypatch.setattr(assets, "procesar_foto", espia)
+    datos = img.jpeg(300, 200)
+    await asyncio.gather(*(assets._procesar_en_cola(datos) for _ in range(6)))
+    assert estado["maximo"] == 2
+
+
+@pytest.fixture
+def socket_mudo() -> Iterator[str]:
+    """Un servidor que acepta conexiones y nunca contesta (un R2 colgado)."""
+    abiertas: list[socket.socket] = []
+    oyente = socket.socket()
+    oyente.bind(("127.0.0.1", 0))
+    oyente.listen()
+    oyente.settimeout(0.1)
+    parar = threading.Event()
+
+    def aceptar() -> None:
+        while not parar.is_set():
+            try:
+                conexion, _ = oyente.accept()
+                abiertas.append(conexion)
+            except TimeoutError:
+                continue
+
+    hilo = threading.Thread(target=aceptar, daemon=True)
+    hilo.start()
+    try:
+        yield f"http://127.0.0.1:{oyente.getsockname()[1]}"
+    finally:
+        parar.set()
+        hilo.join()
+        for conexion in abiertas:
+            conexion.close()
+        oyente.close()
+
+
+@pytest.mark.ac("AC-17.3")
+async def test_con_r2_colgado_la_subida_es_503_dentro_de_su_plazo(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    socket_mudo: str,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Revisión A3: antes, 45–115 s (plazos de 10 s × 3 intentos en el executor común)."""
+    monkeypatch.setattr(assets, "PLAZO_ALMACEN_SEGUNDOS", 0.5)
+    almacen = _s3(socket_mudo, plazo_conexion=0.2, plazo_lectura=0.3, intentos=1)
+    app.dependency_overrides[obtener_almacen] = lambda: almacen
+    bucle = asyncio.get_running_loop()
+    inicio = bucle.time()
+    respuesta = await _subir(cliente, platillo.id, img.jpeg(400, 300), cabecera_operador)
+    assert respuesta.status_code == 503
+    assert bucle.time() - inicio < 1.5
+    assert _error(respuesta)["codigo"] == "ALMACEN_NO_DISPONIBLE"
+    await sesion.refresh(platillo)
+    assert platillo.imagen_tipo is TipoImagen.ilustracion_categoria
+
+
+@pytest.mark.ac("AC-17.3")
+@pytest.mark.parametrize("caso", ["servidor_apagado", "bucket_inexistente"])
+async def test_con_r2_caido_la_subida_es_503_y_el_platillo_no_cambia(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    s3_falso: str,
+    restaurante: Restaurante,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    caso: str,
+) -> None:
+    """Revisión A5: con una subclase de `AlmacenLocal` no se veía que un error de boto3 sin
+    traducir en `AlmacenS3._poner` daba 500."""
+    almacen = (
+        _s3(f"http://127.0.0.1:{_puerto_cerrado()}", intentos=1)
+        if caso == "servidor_apagado"
+        else _s3(s3_falso, bucket_publico="no-existe", intentos=1)
+    )
+    app.dependency_overrides[obtener_almacen] = lambda: almacen
+    generacion = cache_menu.generacion(restaurante.slug)
+    respuesta = await _subir(cliente, platillo.id, img.jpeg(400, 300), cabecera_operador)
+    assert respuesta.status_code == 503
+    error = ErrorRespuesta.model_validate(respuesta.json()).error
+    assert error.codigo == "ALMACEN_NO_DISPONIBLE"
+    assert error.detalles == {}
+    await sesion.refresh(platillo)
+    assert platillo.imagen_tipo is TipoImagen.ilustracion_categoria
+    assert platillo.foto_detalle_url is None
+    assert cache_menu.generacion(restaurante.slug) == generacion
+
+
+@pytest.mark.ac("AC-17.3")
+async def test_ready_no_sondea_r2_en_cada_llamada(cliente: AsyncClient, s3_falso: str) -> None:
+    """Revisión B2: `/ready` es anónimo y cada `HEAD` a R2 se factura."""
+    almacen = _s3(s3_falso)
+    cabezas: list[str] = []
+    real = almacen._sonda.head_bucket
+
+    def contar(**argumentos: Any) -> Any:
+        cabezas.append(argumentos["Bucket"])
+        return real(**argumentos)
+
+    almacen._sonda.head_bucket = contar  # type: ignore[method-assign]
+    app.dependency_overrides[obtener_almacen] = lambda: almacen
+    # Tres a la vez esperan la misma sonda (directo al almacén: peticiones simultáneas
+    # compartirían la única conexión de la prueba); después, dos `/ready` reales.
+    await asyncio.gather(*(almacen.comprobar() for _ in range(3)))
+    respuestas = [await cliente.get("/ready") for _ in range(2)]
+    assert [r.status_code for r in respuestas] == [200, 200], [r.text for r in respuestas]
+    assert sorted(cabezas) == sorted([PUBLICO, PRIVADO])  # una sola sonda para las cinco
+
+
+async def test_en_desarrollo_el_almacen_local_se_sirve_en_almacen(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """C1: en desarrollo las URL `/almacen/…` de `AlmacenLocal` cargan; fuera, no existen."""
+    from app.core.config import settings
+    from app.main import create_app
+
+    clave = "platillos/r/abc-400x300.webp"
+    destino = tmp_path / "publico" / clave
+    destino.parent.mkdir(parents=True)
+    destino.write_bytes(img.en_formato("WEBP"))
+    monkeypatch.setattr(settings, "ALMACEN_LOCAL_RUTA", str(tmp_path))
+    for entorno, esperado in (("desarrollo", 200), ("pruebas", 404), ("staging", 404)):
+        monkeypatch.setattr(settings, "ENTORNO", entorno)
+        aplicacion = create_app()
+        transporte = httpx.ASGITransport(app=aplicacion, raise_app_exceptions=False)
+        async with AsyncClient(transport=transporte, base_url="http://pruebas") as c:
+            respuesta = await c.get(f"/almacen/{clave}")
+        assert respuesta.status_code == esperado, entorno
+        if esperado == 200:
+            assert respuesta.headers["content-type"] == "image/webp"
+            assert "content-security-policy" in respuesta.headers

@@ -9,7 +9,9 @@ cambiarlo de categoría y al renombrar su categoría (`app.services.menu`).
 Cómo se elige: el nombre se normaliza (minúsculas, sin acentos, sin signos), se parte en
 palabras y gana **la primera palabra** que pertenece a alguna clave (singular o plural:
 «sopas» y «sopa», «postres» y «postre»). «Tacos y quesadillas» → `tacos`; «Café y postres»
-→ `cafe`; nada reconocible o sin categoría → `general`. Es determinista y no consulta nada.
+→ `cafe`; «Sin carne» salta «carne» (negación); nada reconocible o sin categoría →
+`general` («Platos fuertes» y «Menú ejecutivo» también: no dicen qué hay en el plato).
+Es determinista y no consulta nada.
 """
 
 from __future__ import annotations
@@ -42,7 +44,7 @@ PALABRAS_POR_CLAVE: dict[str, tuple[str, ...]] = {
         "empanada",
     ),
     "tortas": ("torta", "sandwich", "sandwiche", "baguette", "cemita", "panini", "wrap"),
-    "hamburguesas": ("hamburguesa", "burger", "hotdog", "dogo"),
+    "hamburguesas": ("hamburguesa", "burger", "hotdog", "dogo", "dog"),
     "pizzas": ("pizza", "calzone", "pizzeta"),
     "pastas": ("pasta", "spaghetti", "espagueti", "lasana", "ravioli", "fettuccine", "risotto"),
     "carnes": (
@@ -54,9 +56,6 @@ PALABRAS_POR_CLAVE: dict[str, tuple[str, ...]] = {
         "cerdo",
         "steak",
         "grill",
-        "fuerte",
-        "plato",
-        "principal",
     ),
     "aves": ("ave", "pollo", "pechuga", "pavo", "pato", "alita", "wing", "chicken"),
     "mariscos": (
@@ -69,6 +68,7 @@ PALABRAS_POR_CLAVE: dict[str, tuple[str, ...]] = {
         "sushi",
         "seafood",
         "fish",
+        "mar",
     ),
     "vegetariano": ("vegetariano", "vegetariana", "vegano", "vegana", "veggie", "vegetal"),
     "desayunos": ("desayuno", "almuerzo", "huevo", "brunch", "breakfast"),
@@ -122,11 +122,19 @@ def _clave_de(palabra: str) -> str | None:
     return None
 
 
+NEGACIONES = frozenset({"sin", "no", "without"})
+
+
 def clave_para_categoria(nombre: str | None) -> str:
-    """La clave de ilustración para una categoría (o `general` si no hay o no se reconoce)."""
+    """La clave de ilustración para una categoría (o `general` si no hay o no se reconoce).
+
+    La palabra que sigue a «sin»/«no» no cuenta: «Sin carne» no es `carnes` (revisión C2)."""
     if not nombre:
         return GENERAL
-    for palabra in _normalizar(nombre):
+    palabras = _normalizar(nombre)
+    for posicion, palabra in enumerate(palabras):
+        if posicion > 0 and palabras[posicion - 1] in NEGACIONES:
+            continue
         clave = _clave_de(palabra)
         if clave is not None:
             return clave
