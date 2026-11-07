@@ -1,0 +1,660 @@
+/* Asistente de alta · teléfono primero (390 px); en escritorio los pasos se centran en una columna ancha. */
+.asistente {
+  gap: var(--esp-5);
+}
+
+.srSolo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Indicador de pasos ───────────────────────────────────────────────────────────────── */
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.pasoActual {
+  font-size: 0.875rem;
+  color: var(--carbon-suave);
+}
+
+.pasoActual strong {
+  color: var(--carbon);
+}
+
+.pildoras {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--esp-2);
+  list-style: none;
+}
+
+.pildora {
+  height: 6px;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-alta);
+  transition: background-color var(--duracion) var(--resorte);
+}
+
+.hecha {
+  background: var(--vino-claro);
+}
+
+.actual {
+  background: var(--vino);
+}
+
+/* ── Paso ─────────────────────────────────────────────────────────────────────────────── */
+.paso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.encabezadoPaso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.tituloPaso {
+  font-size: 1.875rem;
+  line-height: 1.15;
+  color: var(--carbon);
+}
+
+.textoPaso {
+  color: var(--carbon-suave);
+  font-size: 0.9375rem;
+}
+
+.acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  margin-top: var(--esp-2);
+}
+
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+/* ── Campos ───────────────────────────────────────────────────────────────────────────── */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  width: 100%;
+  min-width: 0;
+}
+
+.etiqueta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--carbon-suave);
+}
+
+/* Regla no-line: el campo se distingue por tono, no por borde; el foco dibuja un halo vino. */
+.entrada {
+  width: 100%;
+  min-height: var(--tactil);
+  padding: var(--esp-3) var(--esp-5);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.entrada:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+}
+
+.areaTexto {
+  border-radius: var(--radio);
+  resize: vertical;
+  min-height: 72px;
+}
+
+.conError {
+  background: var(--error-tenue);
+}
+
+.ayuda {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+.mensajeError {
+  font-size: 0.875rem;
+  color: var(--error);
+}
+
+div.mensajeError {
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--error-tenue);
+}
+
+.aviso {
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--aviso-tenue);
+  color: var(--carbon);
+  font-size: 0.9375rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  align-items: flex-start;
+}
+
+.exito {
+  padding: var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--exito-tenue);
+  color: var(--carbon);
+}
+
+/* ── Subir la carta ───────────────────────────────────────────────────────────────────── */
+.zona {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-8) var(--esp-5);
+  border-radius: var(--radio-grande);
+  background: var(--crema-baja);
+  text-align: center;
+  transition: background-color var(--duracion) var(--resorte);
+}
+
+.zonaActiva {
+  background: var(--vino-tenue);
+}
+
+/* El selector de archivo es un `label` con aspecto de botón píldora (≥ 44 px). */
+.botonArchivo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tactil);
+  padding: 0 var(--esp-6);
+  border-radius: var(--radio-pildora);
+  background: var(--gradiente-vino);
+  color: var(--sobre-vino);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.srSolo:focus-visible + .botonArchivo {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 3px;
+}
+
+.archivoElegido {
+  overflow-wrap: anywhere;
+  font-size: 0.9375rem;
+}
+
+.progreso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-8) var(--esp-5);
+  border-radius: var(--radio-grande);
+  background: var(--crema-baja);
+  text-align: center;
+}
+
+.mensajeProgreso {
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  color: var(--vino);
+}
+
+/* ── Revisión ─────────────────────────────────────────────────────────────────────────── */
+.avisos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  padding: var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  font-size: 0.875rem;
+  color: var(--carbon-suave);
+}
+
+.categoria {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding: var(--esp-5);
+  border-radius: var(--radio-grande);
+  background: var(--crema-baja);
+}
+
+.categoriaCabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.platillos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  list-style: none;
+}
+
+.platillo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding: var(--esp-5);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-suave);
+}
+
+/* Precio de confianza baja: el resalte es un halo ámbar y un aviso, no un borde de 1 px. */
+.platilloDudoso {
+  box-shadow:
+    0 0 0 3px var(--aviso-tenue),
+    var(--sombra-suave);
+}
+
+.platilloCabecera {
+  display: grid;
+  grid-template-columns: 1fr 108px;
+  gap: var(--esp-3);
+  align-items: start;
+}
+
+.precioBloque {
+  min-width: 0;
+}
+
+.avisoPrecio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--aviso-tenue);
+  color: var(--aviso);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.variantes {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+.chipsPar {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.chipsBloque {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-1);
+  padding: 4px 4px 4px 14px;
+  border-radius: var(--radio-pildora);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.chipAlergeno {
+  background: var(--dorado-tenue);
+  color: var(--dorado-oscuro);
+}
+
+.chipEtiqueta {
+  background: var(--vino-tenue);
+  color: var(--vino);
+}
+
+/* La × mide 28 px visibles y su ::after extiende el área táctil a 44 px (regla 11 del skill). */
+.quitarChip {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.quitarChip::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.agregarChip {
+  display: flex;
+  gap: var(--esp-2);
+}
+
+.sugerencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  list-style: none;
+}
+
+.sugerencia {
+  position: relative;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-alta);
+  color: var(--carbon-suave);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.sugerencia::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+.botonSecundarioChico {
+  min-height: var(--tactil);
+  padding: 0 var(--esp-4);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: var(--vino-tenue);
+  color: var(--vino);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.botonSecundarioChico:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.herramientas {
+  display: flex;
+  gap: var(--esp-2);
+}
+
+.herramienta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tactil);
+  height: var(--tactil);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font: inherit;
+  font-size: 1.125rem;
+  cursor: pointer;
+}
+
+.platillo .herramienta {
+  background: var(--crema-baja);
+}
+
+.herramienta:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.peligro {
+  color: var(--error);
+}
+
+/* ── Resumen, mesas, personal, listo ──────────────────────────────────────────────────── */
+.resumen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--esp-3);
+}
+
+.resumen div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  padding: var(--esp-5);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+}
+
+.resumen dt {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+.resumen dd {
+  font-family: var(--fuente-titulo);
+  font-size: 2.25rem;
+  color: var(--vino);
+}
+
+.contadores {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.contador {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.numero {
+  text-align: center;
+  font-weight: 600;
+  max-width: 120px;
+  appearance: textfield;
+}
+
+.rol {
+  border: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.equipo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  list-style: none;
+}
+
+.miembro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-5);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+}
+
+.nombreMiembro {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.enlaces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  list-style: none;
+}
+
+.enlace {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  padding: var(--esp-5);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+}
+
+.url {
+  overflow-wrap: anywhere;
+  color: var(--vino);
+  font-weight: 500;
+}
+
+/* ── Escritorio: la revisión usa el ancho para poner nombre, precio y descripción en una fila ── */
+@media (min-width: 900px) {
+  .paso {
+    max-width: 880px;
+  }
+
+  .acciones {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .categoriaCabecera {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .categoriaCabecera > :first-child {
+    flex: 1;
+  }
+
+  .platillo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--esp-5);
+  }
+
+  .platilloCabecera,
+  .avisoPrecio,
+  .variantes {
+    grid-column: 1 / -1;
+  }
+
+  .chipsPar {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .platillo > .herramientas {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .platilloCabecera {
+    grid-template-columns: 1fr 160px;
+  }
+
+  .contadores {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .enlace {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pildora,
+  .zona {
+    transition: none;
+  }
+}
+
+/* Áreas táctiles ≥ 44 px (el selector doble gana a Chip.module.css sin importar el orden del bundle). */
+.chipRol.chipRol {
+  min-height: 44px;
+}
+
+.url {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.urlTexto {
+  overflow-wrap: anywhere;
+  color: var(--carbon);
+  font-weight: 500;
+}
+
+.variantesLista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.varianteFila {
+  display: grid;
+  grid-template-columns: 1fr 108px;
+  gap: var(--esp-3);
+  align-items: start;
+}
+
+.alternar {
+  align-self: flex-start;
+}
+
+.problemasCategoria {
+  font-size: 0.8125rem;
+  color: var(--error);
+}

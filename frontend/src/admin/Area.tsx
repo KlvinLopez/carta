@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import { Cargando } from '../compartido/pantalla/Cargando';
@@ -12,6 +13,9 @@ import {
   SeccionPedidos,
   SeccionPersonal,
 } from './secciones';
+
+// El asistente de alta (T-1.11) es un trozo aparte: sólo se descarga al entrar en /admin/alta.
+const AsistenteAlta = lazy(() => import('./alta/Asistente'));
 
 /** Todo lo que no es `/admin/acceso` exige sesión; sin ella se vuelve al acceso recordando adónde iba. */
 function RutaProtegida() {
@@ -35,6 +39,14 @@ export default function AreaOperador({ fabrica }: { fabrica?: FabricaProveedor }
       <Routes>
         <Route path="acceso" element={<PantallaAcceso />} />
         <Route element={<RutaProtegida />}>
+          <Route
+            path="alta"
+            element={
+              <Suspense fallback={<Cargando texto="Preparando el asistente…" />}>
+                <AsistenteAlta />
+              </Suspense>
+            }
+          />
           <Route element={<Armazon />}>
             <Route index element={<Navigate to="menu" replace />} />
             <Route path="menu" element={<SeccionMenu />} />

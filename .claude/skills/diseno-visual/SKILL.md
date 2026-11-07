@@ -72,3 +72,10 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 - Una sonda de pruebas que pinte la ruta (`useLocation`) no usa `<output>`: tiene rol `status` y rompe `getByRole('status')`; usa un `<span data-testid>`.
 - Si el proveedor simulado completa el enlace y emite la sesión por su cuenta, no llames después a `iniciar(prov, null)`: su `emitir(null)` pisa la sesión recién llegada.
 - Un guardia de presupuesto se prueba contra un `dist/` falso (`PRESUPUESTO_DIST`), no con una mutación manual: que la regex del código no vea una forma de import no basta, lo que vale es lo que acaba en el bundle inicial.
+
+## Lecciones del asistente de alta (T-1.11)
+
+- Pruebas de sondeo en vitest: `vi.useFakeTimers({ shouldAdvanceTime: true })` y `userEvent.setup({ advanceTimers: vi.advanceTimersByTime })`; sin `shouldAdvanceTime` los `findBy*` de Testing Library se cuelgan (no detecta los temporizadores falsos de vitest). Deja ±500 ms de margen en los límites de 3 s.
+- Un hook de sondeo que conserva el último estado terminal (`fallido`) debe poder reiniciarse con la fila nueva (`reiniciar(nueva)`): sólo repetir el efecto dejaba la pantalla de error tras «Reintentar».
+- Un `label` + `aria-label` con el mismo texto vuelve ambiguo `getByLabelText`: consulta por `getByRole('textbox' | 'spinbutton', { name })`.
+- Capturas del asistente: página temporal de Vite fuera del repo (`captura.html` + `captura.tsx` con el servicio simulado), Playwright a 2x, y borrar el arnés antes del commit.
