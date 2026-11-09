@@ -225,9 +225,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Subir Foto */
+        /**
+         * Subir Foto
+         * @description Valida por contenido, genera miniatura (400 px) y detalle (1200 px) en WebP, guarda
+         *     el original en el bucket privado y deja `imagen_tipo = 'foto'` (AC-17.1, AC-17.2).
+         */
         post: operations["subir_foto_api_v1_admin_platillos__platillo_id__foto_post"];
-        /** Quitar Foto */
+        /**
+         * Quitar Foto
+         * @description Vuelve a la ilustración de la categoría; los archivos se conservan.
+         */
         delete: operations["quitar_foto_api_v1_admin_platillos__platillo_id__foto_delete"];
         options?: never;
         head?: never;
@@ -412,11 +419,6 @@ export interface components {
     schemas: {
         /** Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post */
         Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post: {
-            /** Archivo */
-            archivo: string;
-        };
-        /** Body_subir_foto_api_v1_admin_platillos__platillo_id__foto_post */
-        Body_subir_foto_api_v1_admin_platillos__platillo_id__foto_post: {
             /** Archivo */
             archivo: string;
         };
@@ -1783,7 +1785,13 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_subir_foto_api_v1_admin_platillos__platillo_id__foto_post"];
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description JPG, PNG o HEIC de hasta 15 MB (se valida el contenido).
+                     */
+                    archivo: string;
+                };
             };
         };
         responses: {
@@ -1794,6 +1802,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlatilloRespuesta"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
             /** @description Falta la credencial o expiró */
@@ -1807,6 +1824,15 @@ export interface operations {
             };
             /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1834,6 +1860,15 @@ export interface operations {
             };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import AsyncIterator, Awaitable, Callable
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -68,11 +69,14 @@ from app.db.models import (  # noqa: E402
     Usuario,
 )
 from app.main import app  # noqa: E402
+from app.services.assets import AlmacenLocal, obtener_almacen  # noqa: E402
 from tests import fabricas  # noqa: E402
 from tests.auth_pruebas import VERIFICADOR_DE_PRUEBA, cabecera_de  # noqa: E402
 
 # Una segunda conexión que choque con una fila sin confirmar de la prueba no debe esperar
 # hasta el final de la transacción (cuelgue sin diagnóstico): mejor un error pronto.
+URL_FOTOS_PRUEBAS = "https://img.pruebas.carta"
+
 AJUSTES_DE_SESION_PG = {"lock_timeout": "5s", "statement_timeout": "30s"}
 
 # ---------------------------------------------------------------------------
@@ -143,12 +147,19 @@ async def sesion(fabrica_sesion: async_sessionmaker[AsyncSession]) -> AsyncItera
 
 
 @pytest.fixture
+def almacen(tmp_path: Path) -> AlmacenLocal:
+    """Almacén de fotos de la prueba (T-1.4): una carpeta temporal, nunca `./datos`.
+    `cliente` lo instala; mira lo subido en `almacen.raiz / "publico" | "privado"`."""
+    return AlmacenLocal(tmp_path / "almacen", URL_FOTOS_PRUEBAS)
+
+
+@pytest.fixture
 async def cliente(
-    fabrica_sesion: async_sessionmaker[AsyncSession], sesion: AsyncSession
+    fabrica_sesion: async_sessionmaker[AsyncSession], sesion: AsyncSession, almacen: AlmacenLocal
 ) -> AsyncIterator[AsyncClient]:
     """Cliente httpx sobre la aplicación real. Cada petición recibe su propia sesión sobre la
     transacción de la prueba: una petición que falla en la base no contamina a la siguiente,
-    y comparte con `sesion` todo lo que las fábricas crearon."""
+    y comparte con `sesion` todo lo que las fábricas crearon. Las fotos van a `almacen`."""
 
     async def sesion_por_peticion() -> AsyncIterator[AsyncSession]:
         async with fabrica_sesion() as sesion_peticion:
@@ -158,6 +169,7 @@ async def cliente(
     # El token del operador lo verifica `VerificadorDePrueba` (`tests/auth_pruebas.py`):
     # `cabecera_operador` o `cabecera_de(uid)` dan la cabecera `Authorization`.
     app.dependency_overrides[obtener_verificador] = lambda: VERIFICADOR_DE_PRUEBA
+    app.dependency_overrides[obtener_almacen] = lambda: almacen
     transporte = ASGITransport(app=app, raise_app_exceptions=False)
     try:
         async with AsyncClient(transport=transporte, base_url="http://pruebas") as c:
@@ -165,6 +177,7 @@ async def cliente(
     finally:
         app.dependency_overrides.pop(get_db_session, None)
         app.dependency_overrides.pop(obtener_verificador, None)
+        app.dependency_overrides.pop(obtener_almacen, None)
 
 
 # ---------------------------------------------------------------------------

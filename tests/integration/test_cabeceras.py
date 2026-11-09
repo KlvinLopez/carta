@@ -180,7 +180,8 @@ async def test_csp_incluye_el_dominio_publico_de_r2_cuando_settings_lo_tiene(
 async def test_hsts_en_staging_y_produccion() -> None:
     """Fuera de desarrollo y pruebas la aplicación va por HTTPS (Railway o Caddy): HSTS."""
     for entorno in ("staging", "produccion"):
-        ajustes = Settings(_env_file=None, ENTORNO=entorno, SECRET_KEY="x" * 43)  # type: ignore[call-arg]
+        # Sin validar: un `Settings` de staging válido exige R2 desde T-1.4 (no es lo probado).
+        ajustes = Settings.model_construct(ENTORNO=entorno, SECRET_KEY="x" * 43)
         cabeceras = cabeceras_seguridad(ajustes)
         assert cabeceras["Strict-Transport-Security"] == HSTS
 

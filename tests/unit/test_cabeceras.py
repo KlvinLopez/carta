@@ -30,9 +30,11 @@ HSTS_02_12 = "max-age=31536000; includeSubDomains"
 
 
 def _ajustes(**valores: object) -> Settings:
+    """Sin validar: la política sólo lee los campos, y desde T-1.4 un `Settings` de staging
+    o producción válido exige R2 (con su origen en `img-src`), que no es lo que se prueba."""
     base: dict[str, object] = {"ENTORNO": "pruebas", "SECRET_KEY": "x" * 43}
     base.update(valores)
-    return Settings(_env_file=None, **base)  # type: ignore[arg-type]
+    return Settings.model_construct(**base)
 
 
 def test_la_csp_es_la_de_02_12_sin_nonces() -> None:

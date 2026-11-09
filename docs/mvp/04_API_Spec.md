@@ -37,11 +37,14 @@ Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas
 | 401 | Falta credencial o expiró | `TOKEN_EXPIRADO`, `SIN_CREDENCIAL` |
 | 403 | Credencial válida, acción no permitida | `ORDEN_AJENA`, `ORDEN_BLOQUEADA` |
 | 404 | No existe **o** no es visible para quien pregunta | `MESA_NO_ENCONTRADA`, `RECURSO_NO_ENCONTRADO` |
+| 408 | El cliente no terminó de enviar el cuerpo dentro del plazo (subidas) | `SUBIDA_INCOMPLETA` |
 | 409 | Conflicto de estado | `SESION_YA_ENVIADA`, `ORDEN_VACIA` |
 | 413 | Archivo demasiado grande | `ARCHIVO_EXCEDE_LIMITE` |
+| 415 | Tipo de contenido no soportado (por contenido, no por extensión ni `Content-Type`) | `TIPO_NO_SOPORTADO` |
 | 422 | Validación del payload (Pydantic) o de negocio | `PAYLOAD_INVALIDO`, `PRECIO_INVALIDO`, `ALIAS_NO_PERMITIDO` |
 | 429 | Límite de tasa | `DEMASIADAS_PETICIONES` |
 | 500 | Error interno | `ERROR_INTERNO` |
+| 503 | Una dependencia no responde (base, almacén de fotos, API de extracción); el cliente reintenta más tarde. `Retry-After` es opcional y el cliente no depende de ella | `BASE_NO_DISPONIBLE`, `ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO` (cola de procesado llena) |
 
 **Regla de fuga de información:** cualquier recurso de otro restaurante devuelve **404**, jamás 403 (AC-15.3).
 
@@ -248,8 +251,11 @@ Todos exigen Firebase ID token y una fila activa en `operador_restaurante`. El `
 ### 4.2 Fotos
 
 #### `POST /admin/platillos/{id}/foto`
-`multipart/form-data`, campo `archivo`. Acepta JPG, PNG, HEIC hasta 15 MB. Genera miniatura 400 px y detalle 1200 px en WebP; conserva el original en el bucket privado.
-**Errores:** 413 `ARCHIVO_EXCEDE_LIMITE`, 422 `FORMATO_NO_SOPORTADO`. **Cubre:** AC-17.1, AC-17.2, AC-17.3.
+`multipart/form-data`, un solo campo `archivo`. Acepta JPG, PNG y HEIC hasta 15 MB, validados por contenido (firma y decodificación), nunca por extensión ni por el `Content-Type` del cliente; el 401/404 sale antes de leer el cuerpo y el 413 corta la lectura al pasar el límite. Corrige la orientación EXIF y genera miniatura 400 px (`foto_thumb_url`) y detalle 1200 px (`foto_detalle_url`) en WebP sin metadatos; conserva el original en el bucket privado (la columna `foto_original_url` guarda la clave del objeto, no una URL, y no sale en la respuesta). Responde `PlatilloRespuesta` con `imagen_tipo = foto`.
+**Errores:** 400 `PAYLOAD_INVALIDO` (multipart o `Content-Length` malformados), 408 `SUBIDA_INCOMPLETA` (el cuerpo no llegó entero en 60 s), 413 `ARCHIVO_EXCEDE_LIMITE` (bytes o píxeles), 415 `TIPO_NO_SOPORTADO` (el contenido no es JPG, PNG ni HEIC), 422 `IMAGEN_NO_VALIDA` (firma correcta, imagen que no decodifica), 503 `ALMACEN_NO_DISPONIBLE` o `SERVICIO_OCUPADO` (reintentar). La conexión con la base no se retiene mientras llega el cuerpo ni mientras se procesa la imagen. **Cubre:** AC-17.1, AC-17.2, AC-17.3.
+
+#### `DELETE /admin/platillos/{id}/foto`
+Quita la foto del platillo y vuelve a la ilustración de su categoría (`imagen_tipo = ilustracion_categoria`); los objetos del bucket no se borran (regla 9). `200` con `PlatilloRespuesta`; `404` si el platillo es de otro restaurante.
 
 ### 4.3 Modelos 3D
 

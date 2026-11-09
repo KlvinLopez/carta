@@ -28,6 +28,16 @@ SECRETOS_DE_EJEMPLO = frozenset(
 )
 SECRET_KEY_LONGITUD_MINIMA = 32
 
+# Las seis variables de R2: todas o ninguna (T-1.4).
+VARIABLES_R2 = (
+    "R2_ENDPOINT",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "R2_BUCKET_PUBLICO",
+    "R2_BUCKET_PRIVADO",
+    "R2_URL_PUBLICA",
+)
+
 
 class Settings(BaseSettings):
     """Variables de entorno de Carta. Ver `.env.example` para la lista comentada."""
@@ -37,6 +47,10 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
+        # Un `ValidationError` al arrancar no imprime `input_value`: llevaría la cola de un
+        # secreto (`R2_SECRET_ACCESS_KEY`, `ANTHROPIC_API_KEY`…) al log del despliegue
+        # (revisión de T-1.4, A4).
+        hide_input_in_errors=True,
     )
 
     ENTORNO: Entorno = "desarrollo"
@@ -56,10 +70,14 @@ class Settings(BaseSettings):
     INVITADO_VIGENCIA_HORAS: int = 6
     PERSONAL_VIGENCIA_HORAS: int = 12
 
-    # Almacenamiento de archivos (S3 compatible: Cloudflare R2). Sin endpoint = carpeta local.
+    # Almacenamiento de archivos (S3 compatible: Cloudflare R2, ADR-012; T-1.4). Sin endpoint
+    # = carpeta local (`ALMACEN_LOCAL_RUTA`), sólo en desarrollo y pruebas: dentro de la imagen
+    # `/app` es de root y de sólo lectura, así que en staging y producción las seis `R2_*`
+    # son obligatorias y el arranque falla sin ellas. Vacías (como en `.env.example`) = sin R2.
+    # `R2_URL_PUBLICA` es el origen del bucket público (`https://img.<dominio>`, 02 §4).
     R2_ENDPOINT: str | None = None
     R2_ACCESS_KEY_ID: str | None = None
-    R2_SECRET_ACCESS_KEY: str | None = None
+    R2_SECRET_ACCESS_KEY: SecretStr | None = None  # ni `repr(settings)` ni Sentry la muestran
     R2_BUCKET_PUBLICO: str | None = None
     R2_BUCKET_PRIVADO: str | None = None
     R2_URL_PUBLICA: str | None = None
@@ -103,11 +121,44 @@ class Settings(BaseSettings):
                 return "postgresql+asyncpg://" + url[len(prefijo) :]
         return url
 
-    @field_validator("CLOUDFLARE_ZONE_ID", "CLOUDFLARE_API_TOKEN", mode="before")
+    @field_validator("CLOUDFLARE_ZONE_ID", "CLOUDFLARE_API_TOKEN", *VARIABLES_R2, mode="before")
     @classmethod
     def _vacio_es_ninguno(cls, valor: object) -> object:
-        """`CLOUDFLARE_ZONE_ID=` vacío (como en `.env.example`) es «sin purga», no un error."""
-        return None if isinstance(valor, str) and not valor.strip() else valor
+        """`CLOUDFLARE_ZONE_ID=` o `R2_ENDPOINT=` vacíos (como en `.env.example`) son «sin
+        purga» y «sin R2», no un error."""
+        if isinstance(valor, str):
+            valor = valor.strip()
+            return valor or None
+        return valor
+
+    @field_validator("R2_URL_PUBLICA")
+    @classmethod
+    def _sin_barra_final(cls, valor: str | None) -> str | None:
+        """Las URL de las fotos se arman como `R2_URL_PUBLICA + "/" + clave`."""
+        return valor.rstrip("/") if valor else valor
+
+    @model_validator(mode="after")
+    def _almacen_completo(self) -> Settings:
+        """Fuera de desarrollo/pruebas, R2 entero; en cualquier entorno, R2 entero o nada.
+
+        Sin esto la API arrancaría en staging con el almacén local en `/app/datos` (sólo
+        lectura) y cada foto daría 500; o con medio R2 y fallaría en la primera subida. En
+        desarrollo `R2_URL_PUBLICA` sola vale: es la base de las URL del almacén local."""
+        presentes = [n for n in VARIABLES_R2 if getattr(self, n) and n != "R2_URL_PUBLICA"]
+        faltan = [nombre for nombre in VARIABLES_R2 if not getattr(self, nombre)]
+        if faltan and (presentes or self.ENTORNO in ("staging", "produccion")):
+            raise ValueError(
+                f"Faltan {', '.join(faltan)} para ENTORNO={self.ENTORNO}: fuera de desarrollo "
+                "las fotos van a R2 (la imagen no puede escribir en ALMACEN_LOCAL_RUTA) y R2 "
+                "necesita las seis variables R2_* (ver .env.example)."
+            )
+        if (
+            self.R2_URL_PUBLICA
+            and self.ENTORNO in ("staging", "produccion")
+            and not self.R2_URL_PUBLICA.startswith("https://")
+        ):
+            raise ValueError("R2_URL_PUBLICA debe empezar con https:// fuera de desarrollo.")
+        return self
 
     @model_validator(mode="after")
     def _secreto_seguro_fuera_de_desarrollo(self) -> Settings:
@@ -136,7 +187,8 @@ class Settings(BaseSettings):
 
     @property
     def almacen_en_nube(self) -> bool:
-        return bool(self.R2_ENDPOINT and self.R2_ACCESS_KEY_ID and self.R2_SECRET_ACCESS_KEY)
+        """R2 configurado (el validador garantiza que entonces están las seis variables)."""
+        return all(getattr(self, nombre) for nombre in VARIABLES_R2)
 
 
 settings = Settings()
