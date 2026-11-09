@@ -38,7 +38,7 @@ Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas
 | 403 | Credencial válida, acción no permitida | `ORDEN_AJENA`, `ORDEN_BLOQUEADA` |
 | 404 | No existe **o** no es visible para quien pregunta | `MESA_NO_ENCONTRADA`, `RECURSO_NO_ENCONTRADO` |
 | 408 | El cliente no terminó de enviar el cuerpo dentro del plazo (subidas) | `SUBIDA_INCOMPLETA` |
-| 409 | Conflicto de estado | `SESION_YA_ENVIADA`, `ORDEN_VACIA` |
+| 409 | Conflicto de estado | `SESION_YA_ENVIADA`, `ORDEN_VACIA`, `CODIGOS_CAMBIADOS` (un código de mesa cambió mientras se preparaba el PDF), `MESA_INACTIVA` |
 | 413 | Archivo demasiado grande | `ARCHIVO_EXCEDE_LIMITE` |
 | 415 | Tipo de contenido no soportado (por contenido, no por extensión ni `Content-Type`) | `TIPO_NO_SOPORTADO` |
 | 422 | Validación del payload (Pydantic) o de negocio | `PAYLOAD_INVALIDO`, `PRECIO_INVALIDO`, `ALIAS_NO_PERMITIDO` |
