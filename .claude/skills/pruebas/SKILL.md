@@ -50,6 +50,7 @@ Las fábricas viven en `tests/fabricas.py` (una función `crear_<entidad>(sesion
 18. **Un `max(...)`/`count(...)` después de asignar en el ORM ve el cambio** (autoflush): calcula antes de `setattr`. Lo protege `test_mover_un_platillo_de_categoria_lo_pone_al_final` (T-1.3).
 19. **Nada de peticiones simultáneas con `cliente`** (`asyncio.gather(cliente.get(...), ...)`): todas las sesiones por petición viven sobre la **única** conexión de la prueba y asyncpg no admite dos operaciones a la vez (sale 503/500 de la base, no del código). Para probar concurrencia, llama al servicio directo con `gather` (ejemplos: `test_el_semaforo_nunca_deja_pasar_mas_procesos_de_los_debidos`, `test_ready_no_sondea_r2_en_cada_llamada`) o usa `motor_pruebas` con conexiones propias (§3) (T-1.4).
 20. **Memoria pico en un subproceso: `VmHWM` de `/proc/self/status`, nunca `ru_maxrss`**: en Linux `ru_maxrss` sobrevive a `fork` + `exec` y el hijo hereda el pico de pytest (~500 MB). Genera el archivo en otro subproceso para que no cuente (`tests/unit/test_assets.py`, T-1.4).
+21. **Un atributo ORM leído después de `rollback()` está expirado**: recargarlo es I/O implícita y en async sale `MissingGreenlet` → 500. Guarda en una variable lo que necesites (p. ej. `estado` para `detalles`) **antes** del `rollback()` y luego lanza el `ErrorCarta`. Lo protege `test_solo_se_confirma_una_importacion_lista` (T-1.9).
 
 ## 3. Receta de carreras (dos conexiones)
 
@@ -90,7 +91,8 @@ S3 falso = `moto.server.ThreadedMotoServer(ip_address="127.0.0.1", port=0)` (dep
 
 - Cliente falso = **SDK real** sobre `httpx2.MockTransport`: `anthropic.AsyncAnthropic(api_key="sk-ant-prueba", max_retries=0, http_client=anthropic.DefaultAsyncHttpxClient(transport=httpx2.MockTransport(manejador)))`. Así se prueban el cuerpo enviado y el mapeo 429/400/5xx → excepciones del SDK; no simules `messages.create` a mano. Usa `httpx2` (el SDK 1.x+ lo exige), nunca `httpx`.
 - El manejador responde en orden una lista de `httpx2.Response` o excepciones (`httpx2.ConnectError` = red caída) y guarda `json.loads(peticion.content)`. Respuestas en `tests/fixtures/menus/*.respuesta.json`; clase `ApiFalsa` en `tests/unit/test_importacion.py`.
-- Las pausas de reintento se inyectan (`dormir=`): ninguna prueba duerme. Lo que cuesta dinero va en `tests/live/` con `@pytest.mark.live` (excluido por `addopts`, se corre con `-m live`).
+- Las pausas de reintento se inyectan (`dormir=`): ninguna prueba duerme.
+- **Procesador en segundo plano (T-1.9):** nunca se arranca solo en pruebas (httpx no corre el *lifespan*). Construye `Procesador(fabrica_sesion, almacen, cliente=api.cliente, extraer=functools.partial(extraer_menu_detallado, dormir=api.dormir, reloj=api.reloj))` y llama a `ciclo()`/`procesar_una()`/`tomar()` a mano. Concurrencia con `asyncio.Event` (dos extractores que se esperan), nunca `sleep`; «sin conexión durante la llamada» se prueba con una fábrica que cuenta sesiones abiertas (`FabricaQueCuenta`); el *lifespan* con `app.router.lifespan_context(app)` y `Procesador.correr` sustituido. Ejemplos en `tests/integration/test_importaciones.py`. Lo que cuesta dinero va en `tests/live/` con `@pytest.mark.live` (excluido por `addopts`, se corre con `-m live`).
 
 ## 4. Esqueleto
 
