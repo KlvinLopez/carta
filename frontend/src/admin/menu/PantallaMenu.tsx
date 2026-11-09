@@ -9,10 +9,11 @@ import { EstadoVacio } from '../armazon/EstadoVacio';
 import { useRestauranteActivo, type Restaurante } from '../armazon/RestauranteActivo';
 import { CLAVE_SIN_CATEGORIA, GrupoCategoria } from './GrupoCategoria';
 import { HojaBaja } from './HojaBaja';
+import { LimiteMenu } from './LimiteMenu';
 import { EditorPlatillo } from './EditorPlatillo';
 import c from './Menu.module.css';
 import { crearServicioMenu, type ServicioMenu } from './servicio';
-import { claveBusqueda, type Categoria, type Platillo } from './tipos';
+import { claveBusqueda, TOPES_MENU, type Categoria, type Platillo } from './tipos';
 import { useMenu } from './useMenu';
 
 /** Con más platillos que esto, la pantalla arranca con las categorías cerradas salvo la primera. */
@@ -92,11 +93,11 @@ export function PantallaMenuConServicio({ servicio, restaurante }: { servicio: S
     [poner],
   );
   const reordenarGrupo = useMemo(() => {
-    const porCategoria = new Map<string, (ids: string[]) => void>();
-    return (clave: string) => {
+    const porCategoria = new Map<string, (ids: string[], agrupar: boolean) => void>();
+    return (clave: string, categoriaId: string | null) => {
       let fn = porCategoria.get(clave);
       if (!fn) {
-        fn = (ids: string[]) => void reordenar(ids);
+        fn = (ids: string[], agrupar: boolean) => reordenar(categoriaId, ids, agrupar);
         porCategoria.set(clave, fn);
       }
       return fn;
@@ -193,6 +194,12 @@ export function PantallaMenuConServicio({ servicio, restaurante }: { servicio: S
             </Chip>
           </div>
 
+          {menu.truncado && (
+            <p className={c.ayudaLista} role="status">
+              Mostrando los primeros {TOPES_MENU.pagina * TOPES_MENU.paginasMaximas} platillos de cada lista; usa la búsqueda para encontrar el resto.
+            </p>
+          )}
+
           {menu.aviso && (
             <div className={c.aviso} role="alert">
               <span>{menu.aviso}</span>
@@ -208,7 +215,11 @@ export function PantallaMenuConServicio({ servicio, restaurante }: { servicio: S
 
           {grupos.length === 0 ? (
             <p className={c.sinResultados} role="status">
-              {q ? `No encontramos «${busqueda.trim()}» en tu carta.` : 'No hay platillos dados de baja.'}
+              {q
+                ? `No encontramos «${busqueda.trim()}» en tu carta.`
+                : vista === 'bajas'
+                  ? 'No hay platillos dados de baja.'
+                  : 'No hay platillos activos. Reactívalos desde «Dados de baja» o agrega uno nuevo.'}
             </p>
           ) : (
             grupos.map((g) => {
@@ -223,7 +234,7 @@ export function PantallaMenuConServicio({ servicio, restaurante }: { servicio: S
                   pendientes={menu.pendientes}
                   reordenable={vista === 'activos' && !q}
                   alAlternar={alternar}
-                  alReordenar={reordenarGrupo(clave)}
+                  alReordenar={reordenarGrupo(clave, g.categoriaId)}
                   acciones={acciones}
                 />
               );
@@ -270,5 +281,9 @@ export default function PantallaMenu() {
   const { activo } = useRestauranteActivo();
   const servicio = useMemo(() => crearServicioMenu(api), [api]);
   if (!activo) return null;
-  return <PantallaMenuConServicio key={activo.id} servicio={servicio} restaurante={activo} />;
+  return (
+    <LimiteMenu key={activo.id}>
+      <PantallaMenuConServicio servicio={servicio} restaurante={activo} />
+    </LimiteMenu>
+  );
 }

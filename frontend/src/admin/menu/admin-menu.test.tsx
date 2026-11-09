@@ -196,3 +196,46 @@ describe('búsqueda por nombre (en el cliente, sobre lo cargado)', () => {
     expect(platillosSemilla.find((p) => p.nombre === 'Tripa')?.activo).toBe(false);
   });
 });
+
+describe('revisión de maestra: búsqueda, vistas y topes', () => {
+  it('busqueda_con_varias_coincidencias_no_ofrece_asa: con búsqueda no se reordena aunque queden 2 o más', async () => {
+    const { sim, u } = await cargada();
+    expect(screen.getAllByRole('button', { name: /^Reordenar / }).length).toBeGreaterThan(0);
+    await u.type(screen.getByRole('searchbox', { name: 'Buscar platillo' }), 'a');
+    // «a» deja varias filas en Tacos (Pastor, Suadero, Cecina enchilada…) y en Bebidas.
+    expect(screen.getAllByRole('button', { name: /^Editar / }).length).toBeGreaterThan(2);
+    expect(screen.queryByRole('button', { name: /^Reordenar / })).not.toBeInTheDocument();
+    expect(sim.llamadasDe('reordenarPlatillos')).toHaveLength(0);
+  });
+
+  it('un mensaje por vista: sin activos no dice que no hay bajas, y al revés', async () => {
+    const soloBajas = [platilloDe(1, { nombre: 'Tripa', activo: false })];
+    const { u } = montarMenu({ platillos: soloBajas });
+    await u.click(await screen.findByRole('button', { name: /Activos \(0\)/ }));
+    expect(screen.getByText(/No hay platillos activos/)).toBeInTheDocument();
+    expect(screen.queryByText('No hay platillos dados de baja.')).not.toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: /Dados de baja \(1\)/ }));
+    expect(screen.queryByText(/No hay platillos activos/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Editar Tripa' })).toBeInTheDocument();
+  });
+
+  it('un nombre larguísimo se recorta en la lista (title con el completo) y va entero al editor', async () => {
+    const largo = 'Súper '.repeat(30).trim();
+    const { u } = montarMenu({ platillos: [platilloDe(1, { nombre: largo })] });
+    const boton = await screen.findByRole('button', { name: `Editar ${largo}` });
+    expect(boton).toHaveAttribute('title', largo);
+    await u.click(boton);
+    expect(within(await screen.findByRole('dialog')).getByRole('textbox', { name: 'Nombre' })).toHaveValue(largo);
+  });
+
+  it('al llegar al tope de páginas avisa que hay más y manda a la búsqueda', async () => {
+    const enormes = Array.from({ length: 2100 }, (_, i) => platilloDe(i + 1, { nombre: `P ${i + 1}`, orden: i + 1 }));
+    montarMenu({ platillos: enormes });
+    expect(await screen.findByText(/Mostrando los primeros 2000 platillos/)).toBeInTheDocument();
+  });
+
+  it('sin tope alcanzado no hay aviso', async () => {
+    await cargada();
+    expect(screen.queryByText(/Mostrando los primeros/)).not.toBeInTheDocument();
+  });
+});

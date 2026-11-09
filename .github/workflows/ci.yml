@@ -213,3 +213,32 @@ jobs:
       - name: Logs del contenedor
         if: always()
         run: docker logs carta-test || true
+
+  frontend:
+    # La puerta del frontend (CLAUDE.md «Comandos»): pruebas, build y presupuesto. Antes ningún paso
+    # corría vitest, y un «Unhandled Error» de T-1.12 pasó sin que nadie lo viera. No depende de `calidad`.
+    name: Frontend (vitest, build y presupuesto)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Node 22 (el de la imagen Docker)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Dependencias
+        run: npm --prefix frontend ci
+
+      - name: Pruebas (vitest; el código de salida decide, aunque todas pasen)
+        run: npm --prefix frontend test -- --run
+
+      - name: Build (tsc -b + vite)
+        run: npm --prefix frontend run build
+
+      - name: Presupuesto del bundle
+        run: node frontend/scripts/presupuesto.mjs

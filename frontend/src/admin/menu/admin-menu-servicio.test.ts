@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { crearCliente } from '../../compartido/http';
 import api from '../../mocks/openapi.json';
-import { listarTodosLosPlatillos, crearServicioMenu } from './servicio';
-import { TOPES_MENU } from './tipos';
+import { ErrorApi } from '../../compartido/http';
+import { categoriasSemilla, crearServicioMenuSimulado, platillosSemilla } from '../../mocks/servicioMenuSimulado';
+import { cargarPlatillos, crearServicioMenu } from './servicio';
 
 const esquemas = (api as { components: { schemas: Record<string, unknown> } }).components.schemas;
 const RID = '11111111-1111-4111-8111-111111111111';
@@ -23,8 +24,12 @@ const ultima = (f: ReturnType<typeof montar>['fetchFalso']) => {
   const [url, init] = f.mock.calls.at(-1)!;
   return { url: new URL(String(url)), init: init as RequestInit };
 };
+/** Ajv con los formatos del contrato activados (uuid, fecha-hora); `binary` es sólo el campo del archivo. */
 const validador = (nombre: string) => {
-  const ajv = new Ajv2020({ strict: false, validateFormats: false });
+  const ajv = new Ajv2020({ strict: false, validateFormats: true });
+  ajv.addFormat('uuid', /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  ajv.addFormat('date-time', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/);
+  ajv.addFormat('binary', true);
   return ajv.compile({ $ref: `#/components/schemas/${nombre}`, components: { schemas: esquemas } });
 };
 
@@ -41,9 +46,10 @@ describe('contrato de categorías y platillos (T-1.3) y fotos (T-1.4)', () => {
   it('los topes del cliente coinciden con los del esquema publicado', () => {
     const paginas = (api as unknown as { paths: Record<string, Record<string, { parameters: { name: string; schema: { maximum?: number } }[] }>> })
       .paths['/api/v1/admin/restaurantes/{rid}/platillos']!.get!.parameters;
-    expect(paginas.find((p) => p.name === 'limit')!.schema.maximum).toBe(TOPES_MENU.pagina);
+    // Literales a propósito: si el contrato cambia el tope, esta prueba avisa antes que la pantalla.
+    expect(paginas.find((p) => p.name === 'limit')!.schema.maximum).toBe(100);
     const crear = esquemas.PlatilloCrear as { properties: { nombre: { maxLength: number } } };
-    expect(crear.properties.nombre.maxLength).toBe(TOPES_MENU.nombre);
+    expect(crear.properties.nombre.maxLength).toBe(200);
   });
 
   it('GET de platillos: restaurante en la ruta, activo/skip/limit en la consulta', async () => {
@@ -110,8 +116,10 @@ describe('contrato de categorías y platillos (T-1.3) y fotos (T-1.4)', () => {
     expect([...formulario.keys()]).toEqual(['archivo']);
     expect((formulario.get('archivo') as File).name).toBe('pastor.jpg');
     expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
-    const campos = Object.keys((esquemas['Body_subir_foto_api_v1_admin_platillos__platillo_id__foto_post'] as { properties: object }).properties);
-    expect(campos).toEqual(['archivo']);
+    // El cuerpo publicado (esquema inline `FotoPlatillo`) tiene un solo campo: `archivo`.
+    const rutas = (api as unknown as { paths: Record<string, { post: { requestBody: { content: Record<string, { schema: { properties: object } }> } } }> }).paths;
+    const esquema = rutas['/api/v1/admin/platillos/{platillo_id}/foto']!.post.requestBody.content['multipart/form-data']!.schema;
+    expect(Object.keys(esquema.properties)).toEqual(['archivo']);
   });
 
   it('quitar la foto es DELETE …/foto', async () => {
@@ -127,13 +135,59 @@ describe('contrato de categorías y platillos (T-1.3) y fotos (T-1.4)', () => {
     expect(ultima(fetchFalso).url.pathname).toBe('/api/v1/admin/platillos/..%2Frestaurantes');
   });
 
-  it('listarTodosLosPlatillos corta en la primera página corta y tiene un tope de páginas', async () => {
+  it('cargarPlatillos corta en la primera página corta y marca `truncado` al llegar al tope de páginas', async () => {
     const pagina = (n: number) => Array.from({ length: n }, (_, i) => ({ id: String(i) }));
     const { servicio, fetchFalso } = montar((url) => json(pagina(url.searchParams.get('skip') === '100' ? 7 : 100)));
-    expect(await listarTodosLosPlatillos(servicio, RID, true)).toHaveLength(107);
+    const corta = await cargarPlatillos(servicio, RID, true);
+    expect(corta.lista).toHaveLength(107);
+    expect(corta.truncado).toBe(false);
     expect(fetchFalso).toHaveBeenCalledTimes(2);
     const siempreLlena = montar(() => json(pagina(100)));
-    await listarTodosLosPlatillos(siempreLlena.servicio, RID, true);
-    expect(siempreLlena.fetchFalso).toHaveBeenCalledTimes(TOPES_MENU.paginasMaximas);
+    const tope = await cargarPlatillos(siempreLlena.servicio, RID, true);
+    expect(siempreLlena.fetchFalso).toHaveBeenCalledTimes(20);
+    expect(tope.truncado).toBe(true);
+    expect(tope.lista).toHaveLength(2000);
+  });
+
+  it('cargarPlatillos filtra por categoría con `categoria_id` en la consulta y rechaza una respuesta que no es lista', async () => {
+    const { servicio, fetchFalso } = montar();
+    await cargarPlatillos(servicio, RID, true, undefined, PID);
+    expect(ultima(fetchFalso).url.searchParams.get('categoria_id')).toBe(PID);
+    const roto = montar(() => json({ error: 'no soy una lista' }));
+    await expect(cargarPlatillos(roto.servicio, RID, true)).rejects.toMatchObject({ codigo: 'RESPUESTA_INVALIDA' });
+  });
+
+  it('servicio_traduce_envoltura_409_a_ErrorApi: estado, mensaje y detalles de la envoltura real', async () => {
+    const envoltura = {
+      error: { codigo: 'CONFLICTO', mensaje: 'Ya tienes un platillo con ese nombre.', detalles: { constraint: 'uq_platillo_nombre' }, request_id: 'req-1' },
+    };
+    const { servicio } = montar(() => json(envoltura, 409));
+    const error = await servicio.crearPlatillo(RID, { nombre: 'Pastor', precio: 22 }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(ErrorApi);
+    expect(error).toMatchObject({ estado: 409, codigo: 'CONFLICTO', message: 'Ya tienes un platillo con ese nombre.', requestId: 'req-1' });
+    expect((error as ErrorApi).detalles).toEqual({ constraint: 'uq_platillo_nombre' });
+    const e422 = { error: { codigo: 'PAYLOAD_INVALIDO', mensaje: 'Revisa los datos.', detalles: { errores: [{ campo: 'body.precio', mensaje: 'Muy caro', tipo: 'x' }] }, request_id: null } };
+    const { servicio: otro } = montar(() => json(e422, 422));
+    const error2 = await otro.cambiarPlatillo(PID, { precio: 1e12 }).catch((e: unknown) => e);
+    expect((error2 as ErrorApi).detalles).toEqual(e422.error.detalles);
+  });
+
+  it('mock_cumple_PlatilloRespuesta: todo lo que devuelve el servicio simulado valida contra el OpenAPI real (con formatos)', async () => {
+    const platillo = validador('PlatilloRespuesta');
+    const categoria = validador('CategoriaRespuesta');
+    for (const p of platillosSemilla) expect(platillo(p), JSON.stringify([p.nombre, platillo.errors])).toBe(true);
+    for (const c of categoriasSemilla) expect(categoria(c), JSON.stringify(categoria.errors)).toBe(true);
+    const sim = crearServicioMenuSimulado();
+    const id = platillosSemilla[0]!.id;
+    const resultados = [
+      await sim.servicio.crearPlatillo(RID, { nombre: 'Nuevo', precio: 10 }),
+      await sim.servicio.cambiarPlatillo(id, { disponible: false, precio: 30 }),
+      await sim.servicio.subirFoto(id, new Blob(['x']), 'a.jpg'),
+      await sim.servicio.quitarFoto(id),
+    ];
+    for (const r of resultados) expect(platillo(r), JSON.stringify([r.nombre, platillo.errors])).toBe(true);
+    // La prueba no es una tautología: un campo mal puesto sí se detecta.
+    expect(platillo({ ...platillosSemilla[0], id: 'no-uuid' })).toBe(false);
+    expect(platillo({ ...platillosSemilla[0], imagen_tipo: 'otra' })).toBe(false);
   });
 });

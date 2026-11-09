@@ -69,7 +69,7 @@ export function EditorPlatillo({
   alCerrar: () => void;
 }) {
   const idCategoria = useId();
-  const [vista, setVista] = useState<'datos' | 'foto'>('datos');
+  const [vista, setVista] = useState<'datos' | 'foto' | 'descartar'>('datos');
   const [nombre, setNombre] = useState(platillo?.nombre ?? '');
   const [descripcion, setDescripcion] = useState(platillo?.descripcion ?? '');
   const [precio, setPrecio] = useState(platillo ? String(platillo.precio).replace('.', ',') : '');
@@ -80,6 +80,19 @@ export function EditorPlatillo({
   const [guardando, setGuardando] = useState(false);
 
   const nuevo = platillo === null;
+  // ¿Hay algo escrito que se perdería? Se compara con lo que se abrió (o con el formulario vacío).
+  const sucio =
+    nombre !== (platillo?.nombre ?? '') ||
+    descripcion !== (platillo?.descripcion ?? '') ||
+    precio !== (platillo ? String(platillo.precio).replace('.', ',') : '') ||
+    categoria !== (platillo ? (platillo.categoria_id ?? '') : (categoriaInicial ?? '')) ||
+    !mismos(alergenos, platillo?.alergenos ?? []) ||
+    !mismos(etiquetas, platillo?.etiquetas ?? []);
+  /** Escape, el fondo y «Cancelar»: con cambios sin guardar se pregunta antes de descartarlos. */
+  function intentarCerrar() {
+    if (sucio && vista !== 'descartar') setVista('descartar');
+    else alCerrar();
+  }
   const activas = categorias.filter((x) => x.activa || x.id === platillo?.categoria_id);
 
   async function enviar(evento: FormEvent) {
@@ -132,11 +145,28 @@ export function EditorPlatillo({
   return (
     <HojaInferior
       abierta
-      onCerrar={alCerrar}
-      titulo={vista === 'foto' ? 'Foto del platillo' : nuevo ? 'Nuevo platillo' : 'Editar platillo'}
-      descripcion={vista === 'foto' ? undefined : nuevo ? 'Se agrega al final de su categoría.' : platillo.nombre}
+      onCerrar={intentarCerrar}
+      titulo={vista === 'descartar' ? '¿Descartar los cambios?' : vista === 'foto' ? 'Foto del platillo' : nuevo ? 'Nuevo platillo' : 'Editar platillo'}
+      descripcion={
+        vista === 'descartar'
+          ? 'Lo que escribiste no se ha guardado.'
+          : vista === 'foto'
+            ? undefined
+            : nuevo
+              ? 'Se agrega al final de su categoría.'
+              : platillo.nombre
+      }
     >
-      {vista === 'foto' && platillo ? (
+      {vista === 'descartar' ? (
+        <div className={c.accionesFormulario}>
+          <Boton ancho onClick={alCerrar}>
+            Descartar
+          </Boton>
+          <Boton variante="fantasma" ancho onClick={() => setVista('datos')}>
+            Seguir editando
+          </Boton>
+        </div>
+      ) : vista === 'foto' && platillo ? (
         <Suspense fallback={<p className={c.ayudaFoto} role="status">Preparando la cámara…</p>}>
           <PasoFoto
             nombre={platillo.nombre}
@@ -230,7 +260,7 @@ export function EditorPlatillo({
             <Boton type="submit" ancho cargando={guardando}>
               {nuevo ? 'Agregar platillo' : 'Guardar cambios'}
             </Boton>
-            <Boton type="button" variante="fantasma" ancho onClick={alCerrar} disabled={guardando}>
+            <Boton type="button" variante="fantasma" ancho onClick={intentarCerrar} disabled={guardando}>
               Cancelar
             </Boton>
           </div>

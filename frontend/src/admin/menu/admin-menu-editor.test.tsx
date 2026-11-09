@@ -157,3 +157,73 @@ describe('editor de platillo en hoja inferior (AC-16.1, AC-16.2)', () => {
     expect(sim.llamadasDe('crearPlatillo')).toHaveLength(0);
   });
 });
+
+describe('revisión de maestra: descartar cambios y errores al guardar', () => {
+  it('Escape con cambios pide confirmar y conserva el borrador; «Seguir editando» vuelve al formulario', async () => {
+    const { sim, u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Editar Pastor' }));
+    const h = await screen.findByRole('dialog', { name: 'Editar platillo' });
+    await u.type(within(h).getByRole('textbox', { name: 'Nombre' }), ' especial');
+    await u.keyboard('{Escape}');
+    const confirmacion = await screen.findByRole('dialog', { name: '¿Descartar los cambios?' });
+    expect(within(confirmacion).getByText('Lo que escribiste no se ha guardado.')).toBeInTheDocument();
+    await u.click(within(confirmacion).getByRole('button', { name: 'Seguir editando' }));
+    expect(screen.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Pastor especial');
+    expect(sim.llamadasDe('cambiarPlatillo')).toHaveLength(0);
+  });
+
+  it('el fondo y «Cancelar» también preguntan; «Descartar» cierra sin guardar nada', async () => {
+    const { sim, u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Editar Pastor' }));
+    await screen.findByRole('dialog');
+    await u.type(screen.getByRole('textbox', { name: 'Precio' }), '0');
+    await u.click(screen.getByTestId('fondo-hoja'));
+    await screen.findByRole('dialog', { name: '¿Descartar los cambios?' });
+    await u.click(screen.getByRole('button', { name: 'Seguir editando' }));
+    await u.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await u.click(await screen.findByRole('button', { name: 'Descartar' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(sim.llamadasDe('cambiarPlatillo')).toHaveLength(0);
+  });
+
+  it('sin cambios, Escape cierra directo', async () => {
+    const { u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Editar Pastor' }));
+    await screen.findByRole('dialog');
+    await u.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('volver a dejar el formulario como estaba tampoco cuenta como cambio', async () => {
+    const { u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Agregar platillo' }));
+    await screen.findByRole('dialog');
+    await u.type(screen.getByRole('textbox', { name: 'Nombre' }), 'x');
+    await u.clear(screen.getByRole('textbox', { name: 'Nombre' }));
+    await u.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('un precio negativo da error en el campo y no llama al servidor', async () => {
+    const { sim, u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Agregar platillo' }));
+    const h = await screen.findByRole('dialog');
+    await u.type(within(h).getByRole('textbox', { name: 'Nombre' }), 'Gratis');
+    await u.type(within(h).getByRole('textbox', { name: 'Precio' }), '-5');
+    await u.click(within(h).getByRole('button', { name: 'Agregar platillo' }));
+    expect(within(h).getByRole('textbox', { name: 'Precio' })).toHaveAccessibleDescription(/Escribe un precio válido/);
+    expect(sim.llamadasDe('crearPlatillo')).toHaveLength(0);
+  });
+
+  it('un 404 al guardar (el platillo ya no existe) dice el mensaje del servidor y deja la hoja abierta', async () => {
+    const { sim, u } = await cargada();
+    sim.fallar('cambiarPlatillo', new ErrorApi(404, 'NO_ENCONTRADO', 'No encontramos ese platillo.'));
+    await u.click(screen.getByRole('button', { name: 'Editar Pastor' }));
+    const h = await screen.findByRole('dialog');
+    await u.clear(within(h).getByRole('textbox', { name: 'Precio' }));
+    await u.type(within(h).getByRole('textbox', { name: 'Precio' }), '30');
+    await u.click(within(h).getByRole('button', { name: 'Guardar cambios' }));
+    expect(await within(h).findByRole('alert')).toHaveTextContent('No encontramos ese platillo.');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+});

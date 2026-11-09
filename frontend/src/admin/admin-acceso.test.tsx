@@ -364,6 +364,18 @@ describe('armazón del panel', () => {
     expect(await screen.findByRole('button', { name: /Bar Norte/ })).toBeInTheDocument();
     expect(window.localStorage.getItem(CLAVE_RESTAURANTE)).toBe(REST_B.id);
   });
+
+  it('B7 (T-1.12): un restaurante recordado que el servidor no devuelve se descarta y se usa el primero', async () => {
+    // El `rid` de localStorage es sólo una comodidad: la lista que manda el servidor decide (AC-15.2).
+    window.localStorage.setItem(CLAVE_RESTAURANTE, '00000000-0000-4000-8000-0000000000ff');
+    await entrar('/admin/menu', [REST_A, REST_B]);
+    expect(await screen.findByRole('button', { name: /La Cocina de Ana/ })).toBeInTheDocument();
+    await waitFor(() => expect(pedir.mock.calls.some(([url]) => /\/categorias$/.test((url as URL).pathname))).toBe(true));
+    // Las peticiones del menú usan el restaurante que devolvió el servidor, nunca el id ajeno guardado.
+    const rutas = pedir.mock.calls.map(([url]) => (url as URL).pathname);
+    expect(rutas.some((r) => r.includes('0000000000ff'))).toBe(false);
+    expect(rutas).toContain('/api/v1/admin/restaurantes/' + REST_A.id + '/categorias');
+  });
 });
 
 describe('enlace por correo: casos de la revisión (A1, B2, B7)', () => {
@@ -762,7 +774,7 @@ describe('copy y estados del panel (B10)', () => {
   it('un nombre de 200 caracteres cabe en el selector con elipsis (el texto va en su propio span)', async () => {
     const largo = { ...REST_A, nombre: 'Restaurante '.repeat(17).slice(0, 200) };
     const prov = crearProveedor();
-    pedir.mockImplementation(async () => respuesta([largo, REST_B]));
+    pedir.mockImplementation(async (url?: URL) => deRuta(url, [largo, REST_B]));
     montar('/admin/menu', prov.fabrica);
     await iniciar(prov, 't');
     const boton = await screen.findByRole('button', { name: new RegExp(largo.nombre.slice(0, 20)) });

@@ -1,15 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ErrorApi } from '../../compartido/http';
-import { listarTodosLosPlatillos, type ServicioMenu } from './servicio';
+import { cargarPlatillos, type ServicioMenu } from './servicio';
 import type { CambiosPlatillo, Categoria, Platillo, PlatilloNuevo } from './tipos';
 
 export type EstadoMenu = { tipo: 'cargando' } | { tipo: 'error'; mensaje: string } | { tipo: 'listo' };
+
+/** Pausa de las flechas antes de mandar el orden final (varias pulsaciones = un solo POST). */
+export const ESPERA_FLECHAS_MS = 400;
+const CLAVE_SIN_CATEGORIA_COLA = '__sin_categoria__';
+
+interface ColaReordenado {
+  pendiente: string[] | null;
+  activa: boolean;
+  fallo: string | null;
+  temporizador: ReturnType<typeof setTimeout> | null;
+  categoriaId: string | null;
+}
 
 export const MENSAJE_GENERICO = 'No pudimos completar la acción. Inténtalo de nuevo.';
 
 export function mensajeDe(error: unknown): string {
   return error instanceof ErrorApi ? error.message : MENSAJE_GENERICO;
+}
+
+/** Listas siempre presentes: una respuesta a medias no debe tumbar la pantalla. */
+function normalizar(p: Platillo): Platillo {
+  return { ...p, alergenos: p.alergenos ?? [], etiquetas: p.etiquetas ?? [] };
 }
 
 function ordenar(lista: Platillo[]): Platillo[] {
@@ -29,12 +46,13 @@ export function useMenu(servicio: ServicioMenu, rid: string) {
   const [pendientes, setPendientes] = useState<ReadonlySet<string>>(new Set());
   const [aviso, setAviso] = useState<string | null>(null);
   const [intento, setIntento] = useState(0);
+  const [truncado, setTruncado] = useState(false);
 
   // Siempre lo último, para leer el valor previo sin volver inestables los callbacks.
   const refPlatillos = useRef<Platillo[]>([]);
   refPlatillos.current = platillos;
   const enVuelo = useRef(new Set<string>());
-  const cola = useRef<Promise<void>>(Promise.resolve());
+  const colas = useRef(new Map<string, ColaReordenado>());
 
   useEffect(() => {
     const control = new AbortController();
@@ -42,13 +60,17 @@ export function useMenu(servicio: ServicioMenu, rid: string) {
     setAviso(null);
     Promise.all([
       servicio.listarCategorias(rid, control.signal),
-      listarTodosLosPlatillos(servicio, rid, true, control.signal),
-      listarTodosLosPlatillos(servicio, rid, false, control.signal),
+      cargarPlatillos(servicio, rid, true, control.signal),
+      cargarPlatillos(servicio, rid, false, control.signal),
     ])
       .then(([cats, activos, bajas]) => {
         if (control.signal.aborted) return;
+        if (!Array.isArray(cats)) {
+          throw new ErrorApi(200, 'RESPUESTA_INVALIDA', 'No pudimos leer tu carta. Inténtalo de nuevo.');
+        }
         setCategorias([...cats].sort((a, b) => a.orden - b.orden));
-        setPlatillos([...activos, ...bajas]);
+        setPlatillos([...activos.lista, ...bajas.lista].map(normalizar));
+        setTruncado(activos.truncado || bajas.truncado);
         setEstado({ tipo: 'listo' });
       })
       .catch((error: unknown) => {
@@ -126,26 +148,90 @@ export function useMenu(servicio: ServicioMenu, rid: string) {
     [marcar, reemplazar, rid, servicio],
   );
 
-  /** `ids` = los platillos activos de **una** categoría en el orden nuevo. */
+  /**
+   * `ids` = los platillos activos de **una** categoría en el orden nuevo. La pantalla cambia al instante;
+   * el POST sale por una cola **por categoría**: nunca hay dos en vuelo y, si llegan más cambios mientras
+   * uno viaja, sólo se manda el último orden. Con `agrupar` (flechas del teclado) se espera ~400 ms sin
+   * pulsar antes de mandar. Si alguno falla, al vaciarse la cola se vuelve a pedir esa categoría y se
+   * pinta lo que diga el servidor (nunca una instantánea vieja que pise un cambio posterior).
+   */
   const reordenar = useCallback(
-    (ids: string[]) => {
-      const antes = new Map(refPlatillos.current.filter((p) => ids.includes(p.id)).map((p) => [p.id, p.orden]));
+    (categoriaId: string | null, ids: string[], agrupar = false) => {
+      const clave = categoriaId ?? CLAVE_SIN_CATEGORIA_COLA;
       const posiciones = new Map(ids.map((id, i) => [id, i + 1]));
       setPlatillos((ps) => ps.map((p) => (posiciones.has(p.id) ? { ...p, orden: posiciones.get(p.id)! } : p)));
       setAviso(null);
-      // En cola: dos arrastres seguidos llegan al servidor en el orden en que ocurrieron.
-      cola.current = cola.current.then(async () => {
-        try {
-          await servicio.reordenarPlatillos(rid, ids);
-        } catch (error) {
-          setPlatillos((ps) => ps.map((p) => (antes.has(p.id) ? { ...p, orden: antes.get(p.id)! } : p)));
-          setAviso(mensajeDe(error));
-        }
-      });
-      return cola.current;
+      let estado = colas.current.get(clave);
+      if (!estado) {
+        estado = { pendiente: null, activa: false, fallo: null, temporizador: null, categoriaId };
+        colas.current.set(clave, estado);
+      }
+      estado.pendiente = ids;
+      if (estado.temporizador) clearTimeout(estado.temporizador);
+      estado.temporizador = null;
+      if (agrupar) {
+        estado.temporizador = setTimeout(() => void drenar.current(clave), ESPERA_FLECHAS_MS);
+      } else {
+        void drenar.current(clave);
+      }
+    },
+    [],
+  );
+
+  const recargarCategoria = useCallback(
+    async (categoriaId: string | null) => {
+      const { lista } = await cargarPlatillos(servicio, rid, true, undefined, categoriaId ?? undefined);
+      setPlatillos((ps) => [
+        ...ps.filter((p) => !(p.activo && (categoriaId === null || p.categoria_id === categoriaId))),
+        ...lista.map(normalizar),
+      ]);
     },
     [rid, servicio],
   );
+
+  const drenar = useRef<(clave: string) => Promise<void>>(async () => undefined);
+  drenar.current = async (clave: string) => {
+    const estado = colas.current.get(clave);
+    if (!estado || estado.activa) return;
+    estado.activa = true;
+    try {
+      while (estado.pendiente) {
+        const ids = estado.pendiente;
+        estado.pendiente = null;
+        try {
+          await servicio.reordenarPlatillos(rid, ids);
+        } catch (error) {
+          estado.fallo = mensajeDe(error);
+        }
+      }
+      if (estado.fallo !== null) {
+        const mensaje = estado.fallo;
+        estado.fallo = null;
+        try {
+          await recargarCategoria(estado.categoriaId);
+        } catch {
+          // Sin red para releer: la pantalla queda como estaba y el aviso lo dice.
+        }
+        setAviso(mensaje);
+      }
+    } finally {
+      estado.activa = false;
+    }
+  };
+
+  // Al salir de la pantalla no se pierde un orden que sólo esperaba su pausa.
+  useEffect(() => {
+    const todas = colas.current;
+    return () => {
+      for (const [clave, estado] of todas) {
+        if (estado.temporizador) {
+          clearTimeout(estado.temporizador);
+          estado.temporizador = null;
+          void drenar.current(clave);
+        }
+      }
+    };
+  }, []);
 
   const subirFoto = useCallback(
     async (id: string, archivo: Blob, nombre: string) => {
@@ -183,6 +269,7 @@ export function useMenu(servicio: ServicioMenu, rid: string) {
     platillos: ordenados,
     pendientes,
     aviso,
+    truncado,
     descartarAviso: useCallback(() => setAviso(null), []),
     reintentar: useCallback(() => setIntento((n) => n + 1), []),
     poner,

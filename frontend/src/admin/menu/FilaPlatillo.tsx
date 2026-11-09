@@ -35,8 +35,10 @@ export const FilaPlatillo = memo(function FilaPlatillo({
   acciones: AccionesFila;
 }) {
   const { id, nombre } = platillo;
-  const alergenos = platillo.alergenos.slice(0, MAX_ALERGENOS);
-  const restantes = platillo.alergenos.length - alergenos.length;
+  // Tolerante: un campo de lista ausente en la respuesta no tumba la pantalla.
+  const todos = platillo.alergenos ?? [];
+  const alergenos = todos.slice(0, MAX_ALERGENOS);
+  const restantes = todos.length - alergenos.length;
   const clases = [c.fila, arrastrando ? c.arrastrando : '', !platillo.disponible || !platillo.activo ? c.apagada : '']
     .filter(Boolean)
     .join(' ');
@@ -64,7 +66,7 @@ export const FilaPlatillo = memo(function FilaPlatillo({
           </button>
         )}
         <Miniatura platillo={platillo} />
-        <button type="button" className={c.cuerpo} aria-label={`Editar ${nombre}`} onClick={() => acciones.alEditar(id)}>
+        <button type="button" className={c.cuerpo} aria-label={`Editar ${nombre}`} title={nombre} onClick={() => acciones.alEditar(id)}>
           <span className={c.nombre}>{nombre}</span>
           <span className={c.precio}>{formatearPrecio(platillo.precio)}</span>
           {(alergenos.length > 0 || !platillo.disponible) && (

@@ -102,11 +102,11 @@ export function crearServicioMenuSimulado(opciones: OpcionesMenuSimulado = {}) {
       registrar('listarCategorias', rid);
       return categorias.map((c) => ({ ...c }));
     },
-    async listarPlatillos(rid, { activo, skip, limit }) {
-      registrar('listarPlatillos', rid, { activo, skip, limit });
+    async listarPlatillos(rid, { activo, skip, limit, categoriaId }) {
+      registrar('listarPlatillos', rid, { activo, skip, limit, ...(categoriaId ? { categoriaId } : {}) });
       const orden = new Map(categorias.map((c, i) => [c.id, i]));
       return platillos
-        .filter((p) => p.activo === activo)
+        .filter((p) => p.activo === activo && (!categoriaId || p.categoria_id === categoriaId))
         .sort(
           (a, b) =>
             (orden.get(a.categoria_id ?? '') ?? 999) - (orden.get(b.categoria_id ?? '') ?? 999) || a.orden - b.orden,

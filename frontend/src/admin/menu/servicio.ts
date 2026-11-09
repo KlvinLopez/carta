@@ -1,4 +1,4 @@
-import type { ClienteHttp } from '../../compartido/http';
+import { ErrorApi, type ClienteHttp } from '../../compartido/http';
 import { TOPES_MENU, type CambiosPlatillo, type Categoria, type Platillo, type PlatilloNuevo } from './tipos';
 
 /**
@@ -12,7 +12,7 @@ export interface ServicioMenu {
   /** Una página (`skip`/`limit` ≤ 100). `activo` = `false` lista las bajas. */
   listarPlatillos(
     rid: string,
-    opciones: { activo: boolean; skip: number; limit: number },
+    opciones: { activo: boolean; skip: number; limit: number; categoriaId?: string },
     signal?: AbortSignal,
   ): Promise<Platillo[]>;
   crearPlatillo(rid: string, datos: PlatilloNuevo, signal?: AbortSignal): Promise<Platillo>;
@@ -32,8 +32,11 @@ export function crearServicioMenu(api: ClienteHttp): ServicioMenu {
   return {
     listarCategorias: (rid, signal) =>
       api.obtener<Categoria[]>(`${base(rid)}/categorias`, { consulta: { limit: TOPES_MENU.pagina }, signal }),
-    listarPlatillos: (rid, { activo, skip, limit }, signal) =>
-      api.obtener<Platillo[]>(`${base(rid)}/platillos`, { consulta: { activo, skip, limit }, signal }),
+    listarPlatillos: (rid, { activo, skip, limit, categoriaId }, signal) =>
+      api.obtener<Platillo[]>(`${base(rid)}/platillos`, {
+        consulta: { activo, skip, limit, categoria_id: categoriaId },
+        signal,
+      }),
     crearPlatillo: (rid, datos, signal) =>
       api.solicitar<Platillo>('POST', `${base(rid)}/platillos`, { cuerpo: datos, signal }),
     cambiarPlatillo: (id, cambios, signal) =>
@@ -53,22 +56,27 @@ export function crearServicioMenu(api: ClienteHttp): ServicioMenu {
   };
 }
 
-/** Todas las páginas de una lista de platillos (`skip`/`limit` de 100 en 100) hasta que una venga corta. */
-export async function listarTodosLosPlatillos(
+/**
+ * Todas las páginas de una lista de platillos (`skip`/`limit` de 100 en 100) hasta que una venga corta.
+ * Con `truncado` la lista llegó al tope de páginas y puede haber más: la pantalla lo dice.
+ */
+export async function cargarPlatillos(
   servicio: ServicioMenu,
   rid: string,
   activo: boolean,
   signal?: AbortSignal,
-): Promise<Platillo[]> {
-  const todos: Platillo[] = [];
+  categoriaId?: string,
+): Promise<{ lista: Platillo[]; truncado: boolean }> {
+  const lista: Platillo[] = [];
   for (let pagina = 0; pagina < TOPES_MENU.paginasMaximas; pagina += 1) {
     const lote = await servicio.listarPlatillos(
       rid,
-      { activo, skip: pagina * TOPES_MENU.pagina, limit: TOPES_MENU.pagina },
+      { activo, skip: pagina * TOPES_MENU.pagina, limit: TOPES_MENU.pagina, categoriaId },
       signal,
     );
-    todos.push(...lote);
-    if (lote.length < TOPES_MENU.pagina) break;
+    if (!Array.isArray(lote)) throw new ErrorApi(200, 'RESPUESTA_INVALIDA', 'No pudimos leer tu carta. Inténtalo de nuevo.');
+    lista.push(...lote);
+    if (lote.length < TOPES_MENU.pagina) return { lista, truncado: false };
   }
-  return todos;
+  return { lista, truncado: true };
 }

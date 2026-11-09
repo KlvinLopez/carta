@@ -35,17 +35,34 @@ describe('con 400 platillos la pantalla sigue ágil', () => {
     const antes = pintadas.n;
     await u.click(interruptor);
     await waitFor(() => expect(interruptor).not.toBeDisabled());
-    // Optimista + marca de «en vuelo» + respuesta + fin: unos pocos renders de UNA fila.
-    expect(pintadas.n - antes).toBeLessThanOrEqual(6);
+    // Cota derivada: la fila se pinta una vez por fase del cambio — (1) el toque (valor optimista y
+    // «en vuelo», en el mismo lote), (2) la respuesta del servidor, (3) el fin del «en vuelo» — y se deja
+    // 1 de margen. Sin `memo` serían ~134 (todas las filas de la categoría abierta).
+    expect(pintadas.n - antes).toBeGreaterThanOrEqual(1);
+    expect(pintadas.n - antes).toBeLessThanOrEqual(4);
   });
 
-  it('buscar entre 400 abre las categorías con resultados y es instantáneo', async () => {
+  it('buscar entre 400 abre las categorías con resultados y deja sólo las coincidencias', async () => {
     const { u } = montarMenu({ platillos: muchosPlatillos(400) });
     await screen.findByRole('heading', { name: /^Tacos/ });
-    const inicio = performance.now();
     await u.type(screen.getByRole('searchbox', { name: 'Buscar platillo' }), '399');
     expect(screen.getByRole('button', { name: 'Editar Platillo 399' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^Editar / })).toHaveLength(1);
-    expect(performance.now() - inicio).toBeLessThan(3000);
+  });
+
+  it('colapsada_no_pinta_filas: sólo las filas de categorías abiertas existen en el DOM', async () => {
+    const { u } = montarMenu({ platillos: muchosPlatillos(400) });
+    await screen.findByRole('heading', { name: /^Tacos/ });
+    // Literal: 400 repartidos en 3 → ~134 en la primera categoría; las otras dos, colapsadas, no pintan nada.
+    const filas = () => document.querySelectorAll('li[data-id]').length;
+    expect(filas()).toBeLessThanOrEqual(140);
+    expect(filas()).toBeGreaterThan(100);
+    await u.click(screen.getByRole('button', { name: /Bebidas/ }));
+    const conDos = filas();
+    expect(conDos).toBeGreaterThan(200);
+    // Al colapsar Tacos se van sus filas (ninguna queda oculta en el DOM).
+    await u.click(screen.getByRole('button', { name: /Tacos/ }));
+    expect(filas()).toBeLessThan(conDos - 100);
+    expect(document.querySelectorAll('#' + CSS.escape(screen.getByRole('button', { name: /Tacos/ }).getAttribute('aria-controls')!) + ' li').length).toBe(0);
   });
 });

@@ -24,7 +24,8 @@ export interface PropsGrupo {
   /** Con búsqueda o en «Dados de baja» no se reordena: el orden se envía completo o no se envía. */
   reordenable: boolean;
   alAlternar: (clave: string) => void;
-  alReordenar: (ids: string[]) => void;
+  /** `agrupar` = vino de las flechas: el envío espera a que la persona deje de pulsar. */
+  alReordenar: (ids: string[], agrupar: boolean) => void;
   acciones: Pick<AccionesFila, 'alEditar' | 'alDisponible' | 'alActivo'>;
 }
 
@@ -119,7 +120,7 @@ export const GrupoCategoria = memo(function GrupoCategoria({
       if (guardar && actual.actual.join() !== actual.inicial.join()) {
         const posicion = actual.actual.indexOf(id) + 1;
         setAnuncio(`${refNombres.current.get(id) ?? 'Platillo'} quedó en la posición ${posicion} de ${actual.actual.length}.`);
-        refAlReordenar.current(actual.actual);
+        refAlReordenar.current(actual.actual, false);
       }
     };
     const alSoltar = () => terminar(true);
@@ -149,7 +150,7 @@ export const GrupoCategoria = memo(function GrupoCategoria({
     if (desde < 0 || hasta < 0 || hasta >= ids.length) return;
     devolverFoco.current = id;
     setAnuncio(`${refNombres.current.get(id) ?? 'Platillo'} pasó a la posición ${hasta + 1} de ${ids.length}.`);
-    refAlReordenar.current(mover(ids, id, hasta));
+    refAlReordenar.current(mover(ids, id, hasta), true);
   }, []);
 
   const accionesFila = useMemo<AccionesFila>(

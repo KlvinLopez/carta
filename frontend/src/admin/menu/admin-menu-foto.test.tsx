@@ -176,3 +176,70 @@ describe('subida de foto desde el editor (US-17)', () => {
     expect(within(h).getByRole('button', { name: 'Agregar foto' })).toBeInTheDocument();
   });
 });
+
+describe('errores del servidor al subir la foto (T-1.4)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.spyOn(foto, 'dibujarRecorte').mockReturnValue(true);
+    vi.spyOn(foto, 'leerImagen').mockResolvedValue(imagenFalsa());
+    vi.spyOn(foto, 'exportarRecorte').mockResolvedValue(new Blob(['x'], { type: 'image/jpeg' }));
+  });
+
+  it.each([
+    [400, 'PAYLOAD_INVALIDO', 'La subida llegó incompleta. Inténtalo de nuevo.'],
+    [408, 'SUBIDA_INCOMPLETA', 'La subida tardó demasiado. Revisa tu conexión e inténtalo de nuevo.'],
+    [413, 'ARCHIVO_EXCEDE_LIMITE', 'La foto es demasiado grande.'],
+    [422, 'IMAGEN_NO_VALIDA', 'No pudimos leer esa imagen.'],
+    [503, 'SERVICIO_OCUPADO', 'Estamos recibiendo muchas fotos. Inténtalo en un momento.'],
+    [503, 'ALMACEN_NO_DISPONIBLE', 'No pudimos guardar la foto ahora. Inténtalo más tarde.'],
+  ])('un %i (%s) muestra el mensaje de la envoltura y se reintenta con el mismo recorte', async (estado, codigo, mensaje) => {
+    const { sim, u } = await abrirFoto();
+    sim.fallar('subirFoto', new ErrorApi(estado, codigo, mensaje));
+    await u.upload(screen.getByLabelText('Elegir foto'), JPEG());
+    await u.click(await screen.findByRole('button', { name: 'Usar esta foto' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(mensaje);
+    // Sigue en el recorte (no perdió la foto elegida) y el reintento sube el mismo archivo.
+    const primero = sim.llamadasDe('subirFoto')[0]!.argumentos[1];
+    await u.click(screen.getByRole('button', { name: 'Usar esta foto' }));
+    await waitFor(() => expect(sim.llamadasDe('subirFoto')).toHaveLength(2));
+    expect(sim.llamadasDe('subirFoto')[1]!.argumentos[1]).toBe(primero);
+    await screen.findByRole('dialog', { name: 'Editar platillo' });
+  });
+});
+
+describe('el lienzo del recorte (exportarRecorte)', () => {
+  it('dibuja el cuadrado calculado en un lienzo de lado ≤ 2048 y lo exporta como JPEG 0.9', async () => {
+    vi.restoreAllMocks();
+    const dibujos: unknown[][] = [];
+    const lienzo = {
+      width: 0,
+      height: 0,
+      getContext: () => ({ drawImage: (...args: unknown[]) => dibujos.push(args) }),
+      toBlob: vi.fn((cb: (b: Blob | null) => void) => cb(new Blob(['j'], { type: 'image/jpeg' }))),
+    };
+    vi.spyOn(document, 'createElement').mockReturnValue(lienzo as unknown as HTMLElement);
+    const imagen = imagenFalsa(4000, 3000);
+    const blob = await foto.exportarRecorte(imagen, 1);
+    expect(blob).toBeInstanceOf(Blob);
+    const esperado = calcularRecorte(4000, 3000, 1);
+    expect(esperado.salida).toBe(2048);
+    expect([lienzo.width, lienzo.height]).toEqual([2048, 2048]);
+    // drawImage(fuente, sx, sy, lado, lado, 0, 0, salida, salida): el origen y el lado salen del recorte.
+    expect(dibujos[0]!.slice(1)).toEqual([esperado.x, esperado.y, esperado.lado, esperado.lado, 0, 0, 2048, 2048]);
+    expect(lienzo.toBlob).toHaveBeenCalledWith(expect.any(Function), 'image/jpeg', 0.9);
+  });
+
+  it('una foto chica no se agranda: sale al lado del recorte', async () => {
+    vi.restoreAllMocks();
+    const lienzo = { width: 0, height: 0, getContext: () => ({ drawImage: vi.fn() }), toBlob: (cb: (b: Blob | null) => void) => cb(new Blob(['j'])) };
+    vi.spyOn(document, 'createElement').mockReturnValue(lienzo as unknown as HTMLElement);
+    await foto.exportarRecorte(imagenFalsa(800, 600), 0.5);
+    expect([lienzo.width, lienzo.height]).toEqual([600, 600]);
+  });
+
+  it('sin contexto 2D devuelve null (el editor lo dice en vez de subir nada)', async () => {
+    vi.restoreAllMocks();
+    vi.spyOn(document, 'createElement').mockReturnValue({ getContext: () => null } as unknown as HTMLElement);
+    expect(await foto.exportarRecorte(imagenFalsa(), 0.5)).toBeNull();
+  });
+});
