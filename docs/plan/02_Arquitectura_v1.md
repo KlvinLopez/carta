@@ -140,7 +140,7 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 | `GET/POST /restaurantes/{rid}/categorias` · `PATCH/DELETE /categorias/{id}` · `POST .../categorias/reordenar` | Categorías | US-16 |
 | `GET/POST /restaurantes/{rid}/platillos` · `PATCH/DELETE /platillos/{id}` · `POST .../platillos/reordenar` | Platillos (`DELETE` = desactivar) | US-16 |
 | `POST /platillos/{id}/foto` · `DELETE /platillos/{id}/foto` | Foto con variantes | US-17 |
-| `GET/POST /restaurantes/{rid}/mesas` · `POST /mesas/{id}/regenerar` · `GET /restaurantes/{rid}/mesas/qr.pdf` | Mesas y QR | US-21 |
+| `GET/POST /restaurantes/{rid}/mesas` · `POST /mesas/{id}/regenerar-codigo` · `GET /restaurantes/{rid}/mesas/qr.pdf` | Mesas y QR | US-21 |
 | `GET/POST /restaurantes/{rid}/personal` · `PATCH /personal/{id}` · `POST /personal/{id}/pin` | Personal y PIN | US-26 |
 | `GET /restaurantes/{rid}/resumen` | Escaneos y órdenes de hoy y de la semana | US-24 |
 | `GET /restaurantes/{rid}/mesas-vivo` | Misma vista que `/op/mesas`, con permisos de operador | US-13 |
