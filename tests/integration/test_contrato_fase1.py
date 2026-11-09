@@ -14,14 +14,16 @@ from typing import Any
 import pytest
 from httpx import ASGITransport, AsyncClient
 from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models import Restaurante
+from app.db.models import EstadoImportacion, OperadorRestaurante, Restaurante, Usuario
 from app.main import app
 from app.schemas.comun import ErrorRespuesta, Reordenar
 from app.schemas.importacion import ResultadoImportacion
 from app.schemas.menu import CategoriaCambios, CategoriaCrear
 from app.schemas.personal import PersonalCambios, PersonalCrear
+from tests.conftest import Fabrica
 
 A = "/api/v1/admin"
 
@@ -157,7 +159,6 @@ def test_el_precio_sale_como_numero(openapi: dict[str, Any]) -> None:
 # Las rutas de ejemplo responden con su esquema
 # ---------------------------------------------------------------------------
 
-PDF = ("menu.pdf", b"%PDF-1.4\n%%EOF\n", "application/pdf")
 CONFIRMACION = {
     "moneda": "MXN",
     "categorias": [
@@ -184,16 +185,7 @@ EJEMPLOS: list[tuple[str, str, int, dict[str, Any]]] = [
     ),
     ("patch", f"/personal/{UUID_X}", 200, {"json": {"activo": False}}),
     ("post", f"/personal/{UUID_X}/pin", 204, {"json": {"pin": "4321"}}),
-    ("post", f"/restaurantes/{UUID_X}/importaciones", 202, {"files": {"archivo": PDF}}),
-    ("get", f"/restaurantes/{UUID_X}/importaciones/{UUID_X}", 200, {}),
-    (
-        "post",
-        f"/restaurantes/{UUID_X}/importaciones/{UUID_X}/confirmar",
-        200,
-        {"json": CONFIRMACION},
-    ),
-    ("post", f"/restaurantes/{UUID_X}/importaciones/{UUID_X}/reintentar", 202, {}),
-]
+]  # las importaciones ya son reales (T-1.9): tests/integration/test_importaciones.py
 
 
 def _claves(valor: Any) -> set[str]:
@@ -230,16 +222,6 @@ async def test_el_pin_mal_formado_es_422(cliente: AsyncClient) -> None:
             f"{A}/restaurantes/{UUID_X}/personal", json={"nombre": "Eva", "pin": pin}
         )
         assert respuesta.status_code == 422, pin
-
-
-async def test_la_confirmacion_devuelve_el_borrador_revisado(cliente: AsyncClient) -> None:
-    respuesta = await cliente.post(
-        f"{A}/restaurantes/{UUID_X}/importaciones/{UUID_X}/confirmar", json=CONFIRMACION
-    )
-    cuerpo = respuesta.json()
-    assert cuerpo["estado"] == "confirmado"
-    assert cuerpo["confirmado_en"] is not None
-    assert cuerpo["resultado"]["categorias"][0]["platillos"][0]["precio"] == 90.0
 
 
 async def test_el_crud_heredado_responde_con_el_esquema_v1(
@@ -455,10 +437,23 @@ def test_el_borrador_en_el_limite_pasa() -> None:
     )
 
 
-async def test_confirmar_un_borrador_sin_topes_es_422(cliente: AsyncClient) -> None:
+async def test_confirmar_un_borrador_sin_topes_es_422(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    operador: OperadorRestaurante,
+    cabecera_operador: dict[str, str],
+    fabrica_importacion: Fabrica,
+) -> None:
+    """Con una importación `listo` real (T-1.9): un `{rid}` inventado sería 404 antes del cuerpo."""
+    usuario = await sesion.get(Usuario, operador.usuario_id)
+    importacion = await fabrica_importacion(
+        restaurante, usuario, estado=EstadoImportacion.listo, resultado=CONFIRMACION
+    )
     respuesta = await cliente.post(
-        f"{A}/restaurantes/{UUID_X}/importaciones/{UUID_X}/confirmar",
+        f"{A}/restaurantes/{restaurante.id}/importaciones/{importacion.id}/confirmar",
         json=TOPES_IMPORTACION["orden > int4"],
+        headers=cabecera_operador,
     )
     assert respuesta.status_code == 422
 

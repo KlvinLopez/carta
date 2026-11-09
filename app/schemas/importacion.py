@@ -31,13 +31,22 @@ todos los textos con `limpiar_texto` antes de validar.
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, BeforeValidator, Field, StringConstraints
+from pydantic import BeforeValidator, Field, PlainSerializer, StringConstraints, WithJsonSchema
 
 from app.db.models import EstadoImportacion
-from app.schemas.comun import Esquema, Nombre100, Nombre200, Precio, limpiar_texto
+from app.schemas.comun import (
+    PRECIO_MAXIMO,
+    Entrada,
+    Esquema,
+    Nombre100,
+    Nombre200,
+    limpiar_texto,
+)
+from app.schemas.menu import _cuantizar_precio
 
 Confianza = Literal["alta", "media", "baja"]
 MAX_CATEGORIAS = 100
@@ -64,6 +73,19 @@ Aviso = Annotated[
     # Al final: envuelve las restricciones y corre antes que ellas.
     BeforeValidator(limpiar_texto),
 ]
+# El precio se valida como en el alta de platillos (T-1.3): ≥ 0, ≤ `NUMERIC(10,2)`, sin
+# notación científica en texto (`"1e3"` es 422) y cuantizado a centavos con `ROUND_HALF_UP`
+# (la base redondearía en silencio). Sale como número en JSON, como `Precio` de `comun.py`.
+PrecioImportado = Annotated[
+    Decimal,
+    PlainSerializer(float, return_type=float, when_used="json"),
+    Field(ge=0, le=PRECIO_MAXIMO, examples=[145.0]),
+    BeforeValidator(_cuantizar_precio),
+    WithJsonSchema(
+        {"type": "number", "minimum": 0, "maximum": float(PRECIO_MAXIMO), "examples": [145.0]},
+        mode="serialization",
+    ),
+]
 Descripcion = Annotated[
     str,
     StringConstraints(strip_whitespace=True, max_length=1000),
@@ -72,16 +94,21 @@ Descripcion = Annotated[
 ]
 
 
-class VarianteImportada(BaseModel):
+# Los cuatro modelos heredan de `Entrada` (`extra="forbid"`): son también el cuerpo de
+# `confirmar` y un campo desconocido es 422 (revisión de T-1.2, B2). La salida estructurada
+# del modelo ya pide `additionalProperties: false`.
+
+
+class VarianteImportada(Entrada):
     nombre: Nombre100
-    precio: Precio
+    precio: PrecioImportado
 
 
-class PlatilloImportado(BaseModel):
+class PlatilloImportado(Entrada):
     nombre: Nombre200
     descripcion: Descripcion | None = None
     # `None` si la carta no muestra precio: el operador lo pone al revisar.
-    precio: Precio | None = None
+    precio: PrecioImportado | None = None
     precio_confianza: Confianza
     variantes: list[VarianteImportada] = Field(default_factory=list, max_length=MAX_VARIANTES)
     alergenos_sugeridos: list[Clave] = Field(default_factory=list, max_length=MAX_SUGERIDOS)
@@ -89,13 +116,13 @@ class PlatilloImportado(BaseModel):
     pagina: int | None = Field(default=None, ge=1, le=MAX_POSICION)
 
 
-class CategoriaImportada(BaseModel):
+class CategoriaImportada(Entrada):
     nombre: Nombre100
     orden: int = Field(ge=0, le=MAX_POSICION)
     platillos: list[PlatilloImportado] = Field(max_length=MAX_PLATILLOS)
 
 
-class ResultadoImportacion(BaseModel):
+class ResultadoImportacion(Entrada):
     moneda: str = Field(default="MXN", pattern=r"^[A-Z]{3}$")
     categorias: list[CategoriaImportada] = Field(max_length=MAX_CATEGORIAS)
     avisos: list[Aviso] = Field(default_factory=list, max_length=MAX_AVISOS)

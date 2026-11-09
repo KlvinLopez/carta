@@ -61,6 +61,7 @@ from app.schemas.importacion import MAX_AVISOS, ResultadoImportacion, limpiar_te
 log = logging.getLogger(__name__)
 
 TipoBloque = Literal["document", "image"]
+MotivoArchivo = Literal["tamano", "paginas", "contenido"]
 Bloque = DocumentBlockParam | ImageBlockParam
 
 # Tipo normalizado → bloque de contenido de la API y firmas (magic bytes) aceptadas.
@@ -145,7 +146,14 @@ class TipoArchivoNoPermitido(ValueError):
 
 class ArchivoNoValido(ValueError):
     """Vacío, contenido que no es del tipo declarado, demasiado grande, con más de 30 páginas,
-    cifrado o ilegible. `mensaje` es legible para el operador."""
+    cifrado o ilegible. El texto es legible para el operador.
+
+    `motivo` separa lo que T-1.9 responde con 413 (`"tamano"`, `"paginas"`) de lo que es
+    contenido inválido, 422 (`"contenido"`: vacío, firma, cifrado, ilegible)."""
+
+    def __init__(self, mensaje: str, motivo: MotivoArchivo = "contenido") -> None:
+        super().__init__(mensaje)
+        self.motivo: MotivoArchivo = motivo
 
 
 class ErrorExtraccion(Exception):
@@ -237,7 +245,8 @@ def contar_paginas(archivo: bytes) -> int:
     if paginas > MAXIMO_PAGINAS:
         raise ArchivoNoValido(
             f"El PDF tiene {paginas} páginas; el máximo es {MAXIMO_PAGINAS}. "
-            "Súbelo en partes o sólo las páginas del menú."
+            "Súbelo en partes o sólo las páginas del menú.",
+            "paginas",
         )
     return paginas
 
@@ -258,7 +267,7 @@ def preparar_documento(archivo: bytes, tipo: str) -> tuple[Bloque, int]:
     maximo = TAMANO_MAXIMO_PDF if clase == "document" else TAMANO_MAXIMO_IMAGEN
     if len(archivo) > maximo:
         raise ArchivoNoValido(
-            f"El archivo pesa más de {maximo // (1024 * 1024)} MB; súbelo más ligero."
+            f"El archivo pesa más de {maximo // (1024 * 1024)} MB; súbelo más ligero.", "tamano"
         )
     paginas = contar_paginas(archivo) if clase == "document" else 1
     datos = base64.standard_b64encode(archivo).decode("ascii")

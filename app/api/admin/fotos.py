@@ -24,137 +24,44 @@ entero en `idle in transaction` y toda la API caía. Además la lectura entera t
 `MAX_CUERPO` = 15 MB del archivo + 64 KB para el marco del multipart; después, el archivo en
 sí se mide contra los 15 MB exactos (`assets.MAX_BYTES`). Un campo que no sea `archivo` es
 422 (como `extra="forbid"` en los cuerpos JSON, revisión de T-1.2, B2); un multipart roto,
-400 (04_API_Spec §1.2).
+400 (04_API_Spec §1.2). La lectura vive en `app.api.admin.subidas`, que comparte con la
+importación de la carta (T-1.9).
 """
 
 from __future__ import annotations
 
-import asyncio
-import logging
-from collections.abc import AsyncGenerator
-from typing import Any
-
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.datastructures import UploadFile
-from starlette.formparsers import MultiPartException, MultiPartParser
-from starlette.requests import ClientDisconnect
 
+from app.api.admin import subidas
 from app.api.admin.dependencias import operador_actual, platillo_del_operador
-from app.core.errores import ErrorCarta
 from app.db import Platillo, Usuario, get_db_session
 from app.schemas.comun import errores
 from app.schemas.menu import PlatilloRespuesta
 from app.services import assets
 from app.services.assets import Almacen, obtener_almacen
 
-log = logging.getLogger("carta.fotos")
-
 router = APIRouter()
 
-CAMPO = "archivo"
-MARGEN_MULTIPART = 64 * 1024
-MAX_CUERPO = assets.MAX_BYTES + MARGEN_MULTIPART
 PLAZO_SUBIDA_SEGUNDOS = 60.0  # 15 MB en 60 s = 2 Mbit/s; un 4G malo que tarde más, reintenta
 
-MENSAJE_TAMANO = "La foto pasa de 15 MB; súbela más pequeña."
-MENSAJE_CAMPO = "Envía la foto como multipart/form-data en el campo `archivo`."
-
-
-def _demasiado_grande() -> ErrorCarta:
-    return ErrorCarta("ARCHIVO_EXCEDE_LIMITE", MENSAJE_TAMANO, 413, {"max_bytes": assets.MAX_BYTES})
-
-
-def _campo_invalido(mensaje: str = MENSAJE_CAMPO, tipo: str = "archivo_requerido") -> ErrorCarta:
-    return ErrorCarta(
-        "PAYLOAD_INVALIDO",
-        mensaje,
-        422,
-        {"errores": [{"campo": f"body.{CAMPO}", "mensaje": mensaje, "tipo": tipo}]},
-    )
-
-
-async def limite_por_cabecera(request: Request) -> None:
-    """413 por `Content-Length` antes de leer un solo byte del cuerpo."""
-    declarado = request.headers.get("content-length")
-    if declarado is None:
-        return  # *chunked*: lo corta la lectura (`_con_tope`)
-    if not declarado.strip().isdigit():
-        raise ErrorCarta("PAYLOAD_INVALIDO", "Content-Length inválido.", 400)
-    if int(declarado) > MAX_CUERPO:
-        raise _demasiado_grande()
-
-
-async def _con_tope(request: Request) -> AsyncGenerator[bytes, None]:
-    leidos = 0
-    async for trozo in request.stream():
-        leidos += len(trozo)
-        if leidos > MAX_CUERPO:
-            raise _demasiado_grande()
-        yield trozo
+LIMITES = subidas.Limites(
+    max_archivo=assets.MAX_BYTES,
+    mensaje_tamano="La foto pasa de 15 MB; súbela más pequeña.",
+    mensaje_campo="Envía la foto como multipart/form-data en el campo `archivo`.",
+)
+MAX_CUERPO = LIMITES.max_cuerpo
+limite_por_cabecera = subidas.limite_por_cabecera(LIMITES)
 
 
 async def leer_archivo(request: Request) -> bytes:
-    """Los bytes del único campo `archivo` del multipart, con los topes del docstring."""
-    tipo = request.headers.get("content-type", "")
-    if not tipo.lower().startswith("multipart/form-data"):
-        raise _campo_invalido()
-    parser = MultiPartParser(request.headers, _con_tope(request), max_files=1, max_fields=0)
-    try:
-        async with asyncio.timeout(PLAZO_SUBIDA_SEGUNDOS):
-            formulario = await parser.parse()
-    except TimeoutError as error:
-        raise ErrorCarta(
-            "SUBIDA_INCOMPLETA", "La subida tardó demasiado; inténtalo de nuevo.", 408
-        ) from error
-    except ClientDisconnect as error:
-        log.info("el cliente cortó la subida")
-        raise ErrorCarta("PAYLOAD_INVALIDO", "La subida se interrumpió.", 400) from error
-    except MultiPartException as error:
-        if "Too many" in error.message:  # otro campo además de `archivo`
-            raise _campo_invalido(
-                "Sólo se acepta el campo `archivo`.", "campo_no_permitido"
-            ) from error
-        raise ErrorCarta("PAYLOAD_INVALIDO", "El multipart está mal formado.", 400) from error
-    try:
-        claves = list(formulario.keys())
-        archivo = formulario.get(CAMPO)
-        if any(clave != CAMPO for clave in claves):
-            raise _campo_invalido("Sólo se acepta el campo `archivo`.", "campo_no_permitido")
-        if not isinstance(archivo, UploadFile):
-            raise _campo_invalido()
-        datos = await archivo.read(assets.MAX_BYTES + 1)
-    finally:
-        await formulario.close()
-    if len(datos) > assets.MAX_BYTES:
-        raise _demasiado_grande()
-    if not datos:
-        raise _campo_invalido("El archivo está vacío.", "archivo_vacio")
-    return datos
+    """Los bytes del único campo `archivo` del multipart (`app.api.admin.subidas`)."""
+    return await subidas.leer_archivo(request, LIMITES, PLAZO_SUBIDA_SEGUNDOS)
 
 
-CUERPO_MULTIPART: dict[str, Any] = {
-    "requestBody": {
-        "required": True,
-        "content": {
-            "multipart/form-data": {
-                "schema": {
-                    "type": "object",
-                    "title": "FotoPlatillo",
-                    "required": [CAMPO],
-                    "properties": {
-                        CAMPO: {
-                            "type": "string",
-                            "format": "binary",
-                            "description": "JPG, PNG o HEIC de hasta 15 MB (se valida el contenido).",
-                        }
-                    },
-                    "additionalProperties": False,
-                }
-            }
-        },
-    }
-}
+CUERPO_MULTIPART = subidas.cuerpo_multipart(
+    "FotoPlatillo", "JPG, PNG o HEIC de hasta 15 MB (se valida el contenido)."
+)
 
 
 @router.post(

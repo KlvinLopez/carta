@@ -388,6 +388,11 @@ class Almacen(ABC):
         """Sube al bucket privado. Lanza `ErrorAlmacen`."""
 
     @abstractmethod
+    async def leer_privado(self, clave: str) -> bytes:
+        """Lee del bucket privado (el procesador de importaciones, T-1.9). Lanza `ErrorAlmacen`
+        si no responde o la clave no existe."""
+
+    @abstractmethod
     async def comprobar(self) -> None:
         """`/ready`: los buckets responden. Lanza `ErrorAlmacen`."""
 
@@ -429,6 +434,12 @@ class AlmacenLocal(Almacen):
 
     async def guardar_privado(self, clave: str, datos: bytes, tipo_mime: str) -> None:
         await self._guardar("privado", clave, datos)
+
+    async def leer_privado(self, clave: str) -> bytes:
+        try:
+            return await asyncio.to_thread(self.ruta("privado", clave).read_bytes)
+        except OSError as error:
+            raise ErrorAlmacen(type(error).__name__) from error
 
     async def comprobar(self) -> None:
         return None  # `/ready` sólo sondea el almacén en la nube
@@ -534,6 +545,25 @@ class AlmacenS3(Almacen):
 
     async def guardar_privado(self, clave: str, datos: bytes, tipo_mime: str) -> None:
         await self._poner(self.bucket_privado, clave, datos, ContentType=tipo_mime)
+
+    async def leer_privado(self, clave: str) -> bytes:
+        def leer() -> bytes:
+            respuesta = self._cliente.get_object(
+                Bucket=self.bucket_privado, Key=_validar_clave(clave)
+            )
+            cuerpo = respuesta["Body"]
+            try:
+                datos: bytes = cuerpo.read()
+            finally:
+                cuerpo.close()
+            return datos
+
+        try:
+            resultado: bytes = await _en_hilo_almacen(leer)
+        except Exception as error:  # red, credenciales, clave inexistente: el motivo al log
+            log.error("el almacén no entregó %s: %s", self.bucket_privado, type(error).__name__)
+            raise ErrorAlmacen(type(error).__name__) from error
+        return resultado
 
     async def comprobar(self) -> None:
         """`HEAD` a los dos buckets, como mucho una vez cada `VIGENCIA_SONDA_SEGUNDOS`:

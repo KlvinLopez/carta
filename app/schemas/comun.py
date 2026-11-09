@@ -200,7 +200,10 @@ def errores(*codigos: int) -> dict[int | str, dict[str, Any]]:
         413: "El archivo es demasiado grande",
         415: "Tipo de archivo no permitido",
         422: "Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`)",
-        503: "Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `SERVICIO_OCUPADO`)",
+        503: (
+            "Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, "
+            "`IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO`)"
+        ),
     }
     return {
         codigo: {"model": ErrorRespuesta, "description": descripciones[codigo]}
