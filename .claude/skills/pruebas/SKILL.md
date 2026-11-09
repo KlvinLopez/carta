@@ -121,3 +121,7 @@ uv run python scripts/verificar_trazabilidad.py --tarea T-x.y --estricto
 ```
 
 El CI (`.github/workflows/ci.yml`) corre lo mismo sobre PostgreSQL 16 en cada push a `master`, `agente/**` y `claude/**` y en cada PR.
+
+## Probar un PDF con QR (T-1.5)
+
+No hay rasterizador en el entorno: el QR se extrae como imagen incrustada (`PdfReader(...).pages[i].images`) y se decodifica con `zxingcpp.read_barcodes(imagen.image)`; se compara la URL **exacta**. Para buscar texto que no debe estar en el PDF, `qr_pdf.generar_pdf(..., comprimir=False)` deja los flujos legibles (comprimidos, un `not in` no prueba nada). Todo lo que descarga la red (`qr_pdf.descargar_logo`) se prueba con un `httpx.AsyncBaseTransport` falso; la fixture `sin_red` de `test_qr_pdf.py` anula la resolución DNS.
