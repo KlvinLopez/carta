@@ -1394,3 +1394,51 @@ async def test_en_desarrollo_el_almacen_local_se_sirve_en_almacen(
         if esperado == 200:
             assert respuesta.headers["content-type"] == "image/webp"
             assert "content-security-policy" in respuesta.headers
+
+
+# ===========================================================================
+# Borrar del almacén (T-1.7: la semilla no deja huérfanos)
+# ===========================================================================
+
+
+async def test_local_borra_y_un_objeto_ausente_no_es_error(almacen: AlmacenLocal) -> None:
+    await almacen.guardar_publico("platillos/a/uno.webp", b"x", "image/webp", "public")
+    await almacen.guardar_privado("originales/a/uno.jpg", b"y", "image/jpeg")
+    await almacen.borrar_publico("platillos/a/uno.webp")
+    await almacen.borrar_privado("originales/a/uno.jpg")
+    assert not almacen.ruta("publico", "platillos/a/uno.webp").exists()
+    assert not almacen.ruta("privado", "originales/a/uno.jpg").exists()
+    await almacen.borrar_publico("platillos/a/uno.webp")  # ya no está: sin error
+
+
+async def test_local_no_borra_fuera_de_su_raiz(almacen: AlmacenLocal, tmp_path: Path) -> None:
+    afuera = almacen.raiz / "secreto.txt"
+    afuera.parent.mkdir(parents=True, exist_ok=True)
+    afuera.write_text("no tocar")
+    for clave in ("../secreto.txt", "/secreto.txt", "a/../../secreto.txt"):
+        with pytest.raises(ValueError):
+            await almacen.borrar_publico(clave)
+        with pytest.raises(ValueError):
+            await almacen.borrar_privado(clave)
+    assert afuera.read_text() == "no tocar"
+
+
+async def test_s3_borra_de_su_bucket_y_lo_ausente_no_es_error(s3_falso: str) -> None:
+    almacen = _s3(s3_falso)
+    s3 = _cliente_s3(s3_falso)
+    await almacen.guardar_publico("platillos/b/dos.webp", b"x", "image/webp", "public")
+    await almacen.guardar_privado("originales/b/dos.jpg", b"y", "image/jpeg")
+    await almacen.borrar_publico("platillos/b/dos.webp")
+    await almacen.borrar_privado("originales/b/dos.jpg")
+    await almacen.borrar_privado("originales/b/dos.jpg")  # ausente: sin error
+    for bucket in (PUBLICO, PRIVADO):
+        claves = {o["Key"] for o in s3.list_objects_v2(Bucket=bucket).get("Contents", [])}
+        assert not {k for k in claves if k.endswith(("dos.webp", "dos.jpg"))}
+    with pytest.raises(ValueError):
+        await almacen.borrar_publico("../x")
+
+
+async def test_s3_caido_al_borrar_lanza_error_de_almacen() -> None:
+    almacen = _s3("http://127.0.0.1:9", plazo_conexion=0.2, plazo_lectura=0.2, intentos=1)
+    with pytest.raises(ErrorAlmacen):
+        await almacen.borrar_publico("platillos/c/tres.webp")
