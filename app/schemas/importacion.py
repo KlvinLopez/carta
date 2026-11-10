@@ -17,7 +17,7 @@ tiene tope, y los enteros caben en `INTEGER` (un valor mayor daría 500 al guard
 | nombres | 100 (categoría y variante), 200 (platillo) | los `VARCHAR` de la base |
 | descripción | 1000 | párrafo largo de carta |
 | `orden`, `pagina` | 0–10 000 y 1–10 000 | ≤ 30 páginas por importación |
-| `moneda` | `^[A-Z]{3}$` | ISO 4217 |
+| `moneda` | `MXN` o `USD` | ISO 4217, las que la v1 muestra |
 
 Los textos propios (descripción, avisos, claves) quitan antes de validar los caracteres de
 control (categoría Unicode `Cc`; la descripción conserva `\n`) y el formato invisible
@@ -31,13 +31,30 @@ todos los textos con `limpiar_texto` antes de validar.
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, BeforeValidator, Field, StringConstraints
+from pydantic import (
+    BeforeValidator,
+    Field,
+    PlainSerializer,
+    StringConstraints,
+    WithJsonSchema,
+    model_validator,
+)
+from pydantic_core import PydanticCustomError
 
 from app.db.models import EstadoImportacion
-from app.schemas.comun import Esquema, Nombre100, Nombre200, Precio, limpiar_texto
+from app.schemas.comun import (
+    PRECIO_MAXIMO,
+    Entrada,
+    Esquema,
+    Nombre100,
+    Nombre200,
+    limpiar_texto,
+)
+from app.schemas.menu import _cuantizar_precio
 
 Confianza = Literal["alta", "media", "baja"]
 MAX_CATEGORIAS = 100
@@ -46,6 +63,28 @@ MAX_VARIANTES = 20
 MAX_SUGERIDOS = 30
 MAX_AVISOS = 50
 MAX_POSICION = 10_000
+MONEDAS = ("MXN", "USD")
+# Total de platillos de un borrador. Se cuenta antes de validar cada platillo (revisión de
+# T-1.9, A2): 100 × 500 = 50 000 platillos al máximo tardaban 8 s en validarse en el bucle de
+# eventos. Los topes por lista (100 categorías, 500 por categoría) siguen como estaban para no
+# cambiar el contrato del asistente; el total es lo que acota el trabajo.
+MAX_PLATILLOS_TOTAL = 1000
+
+
+def _tope_crudo(maximo: int) -> BeforeValidator:
+    """Antes de `limpiar_texto`: una cadena que ni quitando invisibles cabría (más del doble del
+    tope) es 422 sin recorrerla carácter por carácter (revisión de T-1.9, A2)."""
+
+    def validar(valor: object) -> object:
+        if isinstance(valor, str) and len(valor) > 2 * maximo:
+            raise PydanticCustomError(
+                "string_too_long",
+                "El texto debe tener a lo sumo {max_length} caracteres",
+                {"max_length": maximo},
+            )
+        return valor
+
+    return BeforeValidator(validar)
 
 
 def _limpiar_con_saltos(valor: object) -> object:
@@ -55,33 +94,54 @@ def _limpiar_con_saltos(valor: object) -> object:
 Clave = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=40),
-    # Al final: envuelve las restricciones y corre antes que ellas.
+    # Al final: envuelven las restricciones y corren antes que ellas, de abajo arriba.
     BeforeValidator(limpiar_texto),
+    _tope_crudo(40),
 ]
 Aviso = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=500),
-    # Al final: envuelve las restricciones y corre antes que ellas.
+    # Al final: envuelven las restricciones y corren antes que ellas, de abajo arriba.
     BeforeValidator(limpiar_texto),
+    _tope_crudo(500),
+]
+# El precio se valida como en el alta de platillos (T-1.3): ≥ 0, ≤ `NUMERIC(10,2)`, sin
+# notación científica en texto (`"1e3"` es 422) y cuantizado a centavos con `ROUND_HALF_UP`
+# (la base redondearía en silencio). Sale como número en JSON, como `Precio` de `comun.py`.
+PrecioImportado = Annotated[
+    Decimal,
+    PlainSerializer(float, return_type=float, when_used="json"),
+    Field(ge=0, le=PRECIO_MAXIMO, examples=[145.0]),
+    BeforeValidator(_cuantizar_precio),
+    WithJsonSchema(
+        {"type": "number", "minimum": 0, "maximum": float(PRECIO_MAXIMO), "examples": [145.0]},
+        mode="serialization",
+    ),
 ]
 Descripcion = Annotated[
     str,
     StringConstraints(strip_whitespace=True, max_length=1000),
-    # Al final: envuelve las restricciones y corre antes que ellas.
+    # Al final: envuelven las restricciones y corren antes que ellas, de abajo arriba.
     BeforeValidator(_limpiar_con_saltos),
+    _tope_crudo(1000),
 ]
 
 
-class VarianteImportada(BaseModel):
+# Los cuatro modelos heredan de `Entrada` (`extra="forbid"`): son también el cuerpo de
+# `confirmar` y un campo desconocido es 422 (revisión de T-1.2, B2). La salida estructurada
+# del modelo ya pide `additionalProperties: false`.
+
+
+class VarianteImportada(Entrada):
     nombre: Nombre100
-    precio: Precio
+    precio: PrecioImportado
 
 
-class PlatilloImportado(BaseModel):
+class PlatilloImportado(Entrada):
     nombre: Nombre200
     descripcion: Descripcion | None = None
     # `None` si la carta no muestra precio: el operador lo pone al revisar.
-    precio: Precio | None = None
+    precio: PrecioImportado | None = None
     precio_confianza: Confianza
     variantes: list[VarianteImportada] = Field(default_factory=list, max_length=MAX_VARIANTES)
     alergenos_sugeridos: list[Clave] = Field(default_factory=list, max_length=MAX_SUGERIDOS)
@@ -89,16 +149,39 @@ class PlatilloImportado(BaseModel):
     pagina: int | None = Field(default=None, ge=1, le=MAX_POSICION)
 
 
-class CategoriaImportada(BaseModel):
+class CategoriaImportada(Entrada):
     nombre: Nombre100
     orden: int = Field(ge=0, le=MAX_POSICION)
     platillos: list[PlatilloImportado] = Field(max_length=MAX_PLATILLOS)
 
 
-class ResultadoImportacion(BaseModel):
-    moneda: str = Field(default="MXN", pattern=r"^[A-Z]{3}$")
+class ResultadoImportacion(Entrada):
+    # Las monedas que la v1 sabe mostrar (revisión B7; antes, cualquier tres mayúsculas).
+    moneda: str = Field(default="MXN", pattern=r"^(MXN|USD)$")
     categorias: list[CategoriaImportada] = Field(max_length=MAX_CATEGORIAS)
     avisos: list[Aviso] = Field(default_factory=list, max_length=MAX_AVISOS)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _tope_total(cls, datos: object) -> object:
+        """Cuenta categorías y platillos **antes** de validar cada uno (revisión A2)."""
+        if not isinstance(datos, dict):
+            return datos
+        categorias = datos.get("categorias")
+        if not isinstance(categorias, list) or len(categorias) > MAX_CATEGORIAS:
+            return datos  # lo rechaza el campo, sin recorrer nada
+        total = sum(
+            len(c["platillos"])
+            for c in categorias
+            if isinstance(c, dict) and isinstance(c.get("platillos"), list)
+        )
+        if total > MAX_PLATILLOS_TOTAL:
+            raise PydanticCustomError(
+                "demasiados_platillos",
+                "Caben hasta {maximo} platillos; reduce la carta a {maximo} platillos.",
+                {"maximo": MAX_PLATILLOS_TOTAL},
+            )
+        return datos
 
 
 class ImportacionRespuesta(Esquema):

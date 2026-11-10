@@ -3,12 +3,12 @@
 Publican en `/openapi.json` la forma final de cada respuesta para que el frontend (carril C)
 genere sus tipos y trabaje con datos simulados mientras el backend se construye. Cada tarea
 sustituye sus rutas por las reales y las borra de aquí (T-1.3 ya puso categorías y
-platillos en `menu.py`, T-1.4 la foto en `fotos.py` y T-1.5 las mesas en `mesas.py`):
+platillos en `menu.py`, T-1.4 la foto en `fotos.py`, T-1.5 las mesas en `mesas.py` y T-1.9
+las importaciones en `importaciones.py`):
 
 | Rutas | Tarea |
 |---|---|
 | personal y PIN | T-1.6 |
-| importaciones | T-1.9 |
 
 No leen ni escriben la base. Exigen el token del operador como todo `/admin` (T-1.2) y
 `solo_desarrollo` las esconde (404) fuera de desarrollo y pruebas.
@@ -20,17 +20,9 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from fastapi import APIRouter, File, UploadFile, status
+from fastapi import APIRouter, status
 
-from app.db.models import EstadoImportacion, RolPersonal, TipoImagen
-from app.schemas.comun import errores
-from app.schemas.importacion import (
-    CategoriaImportada,
-    ImportacionRespuesta,
-    PlatilloImportado,
-    ResultadoImportacion,
-    VarianteImportada,
-)
+from app.db.models import RolPersonal, TipoImagen
 from app.schemas.menu import PlatilloRespuesta
 from app.schemas.personal import PersonalCambios, PersonalCrear, PersonalRespuesta, PinNuevo
 
@@ -44,7 +36,6 @@ MOMENTO = datetime(2026, 11, 6, 12, 0, tzinfo=UTC)
 ID_CATEGORIA = UUID("00000000-0000-4000-8000-000000000101")
 ID_PLATILLO = UUID("00000000-0000-4000-8000-000000000201")
 ID_PERSONAL = UUID("00000000-0000-4000-8000-000000000401")
-ID_IMPORTACION = UUID("00000000-0000-4000-8000-000000000501")
 
 
 def _platillo(platillo_id: UUID = ID_PLATILLO, **cambios: object) -> PlatilloRespuesta:
@@ -83,52 +74,6 @@ def _personal(personal_id: UUID = ID_PERSONAL, **cambios: object) -> PersonalRes
     return PersonalRespuesta.model_validate(datos)
 
 
-RESULTADO_EJEMPLO = ResultadoImportacion(
-    moneda="MXN",
-    categorias=[
-        CategoriaImportada(
-            nombre="Entradas",
-            orden=1,
-            platillos=[
-                PlatilloImportado(
-                    nombre="Guacamole de la casa",
-                    descripcion="Con totopos y queso fresco",
-                    precio=Decimal("145.00"),
-                    precio_confianza="alta",
-                    variantes=[
-                        VarianteImportada(nombre="Para compartir", precio=Decimal("220.00"))
-                    ],
-                    alergenos_sugeridos=["lacteos"],
-                    etiquetas_sugeridas=["vegetariano"],
-                    pagina=1,
-                )
-            ],
-        )
-    ],
-    avisos=["La página 3 parece ser la carta de vinos y se omitió."],
-)
-
-
-def _importacion(
-    importacion_id: UUID = ID_IMPORTACION,
-    estado: EstadoImportacion = EstadoImportacion.listo,
-    resultado: ResultadoImportacion | None = RESULTADO_EJEMPLO,
-) -> ImportacionRespuesta:
-    terminada = estado in (EstadoImportacion.listo, EstadoImportacion.confirmado)
-    return ImportacionRespuesta(
-        id=importacion_id,
-        estado=estado,
-        archivo_tipo="application/pdf",
-        paginas=3,
-        intentos=1 if estado != EstadoImportacion.pendiente else 0,
-        resultado=resultado if terminada else None,
-        creado_en=MOMENTO,
-        iniciado_en=MOMENTO if estado != EstadoImportacion.pendiente else None,
-        finalizado_en=MOMENTO if terminada else None,
-        confirmado_en=MOMENTO if estado == EstadoImportacion.confirmado else None,
-    )
-
-
 # ---------------------------------------------------------------------------
 # Personal y PIN (T-1.6)
 # ---------------------------------------------------------------------------
@@ -156,46 +101,3 @@ async def editar_personal(personal_id: UUID, datos: PersonalCambios) -> Personal
 @router.post("/personal/{personal_id}/pin", status_code=status.HTTP_204_NO_CONTENT)
 async def cambiar_pin(personal_id: UUID, datos: PinNuevo) -> None:
     return None
-
-
-# ---------------------------------------------------------------------------
-# Importación de PDF (T-1.9)
-# ---------------------------------------------------------------------------
-
-
-@router.post(
-    "/restaurantes/{rid}/importaciones",
-    response_model=ImportacionRespuesta,
-    status_code=status.HTTP_202_ACCEPTED,
-    responses=errores(413, 415),
-)
-async def crear_importacion(rid: UUID, archivo: UploadFile = File(...)) -> ImportacionRespuesta:
-    return _importacion(estado=EstadoImportacion.pendiente)
-
-
-@router.get(
-    "/restaurantes/{rid}/importaciones/{importacion_id}", response_model=ImportacionRespuesta
-)
-async def consultar_importacion(rid: UUID, importacion_id: UUID) -> ImportacionRespuesta:
-    return _importacion(importacion_id)
-
-
-@router.post(
-    "/restaurantes/{rid}/importaciones/{importacion_id}/confirmar",
-    response_model=ImportacionRespuesta,
-    responses=errores(409),  # ya confirmada (T-1.9: confirmar dos veces → 409)
-)
-async def confirmar_importacion(
-    rid: UUID, importacion_id: UUID, revisado: ResultadoImportacion
-) -> ImportacionRespuesta:
-    return _importacion(importacion_id, EstadoImportacion.confirmado, revisado)
-
-
-@router.post(
-    "/restaurantes/{rid}/importaciones/{importacion_id}/reintentar",
-    response_model=ImportacionRespuesta,
-    status_code=status.HTTP_202_ACCEPTED,
-    responses=errores(409),  # sólo una importación `fallido` se reintenta
-)
-async def reintentar_importacion(rid: UUID, importacion_id: UUID) -> ImportacionRespuesta:
-    return _importacion(importacion_id, EstadoImportacion.pendiente)

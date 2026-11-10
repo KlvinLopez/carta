@@ -269,3 +269,13 @@ async def platillo(
     """Platillo activo del `restaurante`, en `categoria`."""
     platillo: Platillo = await fabrica_platillo(restaurante, categoria)
     return platillo
+
+
+@pytest.fixture
+def fabrica_importacion(sesion: AsyncSession) -> Fabrica:
+    """`await fabrica_importacion(restaurante, usuario, estado=..., resultado=...)` (T-1.9)."""
+
+    async def _crear(restaurante: Restaurante, solicitado_por: Usuario, **valores: Any) -> Any:
+        return await fabricas.crear_importacion(sesion, restaurante, solicitado_por, **valores)
+
+    return _crear

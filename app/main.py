@@ -20,14 +20,28 @@ from app.core.errores import registrar_manejadores
 from app.core.estaticos import EstaticosInmutables, montar_frontend
 from app.core.peticion import MiddlewareRequestId
 from app.core.registro import configurar_registro
-from app.db import close_db
+from app.db import async_session, close_db
+from app.services import procesador
+from app.services.assets import obtener_almacen
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Arranque y apagado. El esquema lo crean las migraciones, no la aplicación."""
-    yield
-    await close_db()
+    """Arranque y apagado. El esquema lo crean las migraciones, no la aplicación.
+
+    Arranca el procesador de importaciones de este worker (`app.services.procesador`, T-1.9):
+    al arrancar y cada 10 s toma la cola con `SKIP LOCKED`, así que N workers son seguros. Si
+    la tarea muere sola se relanza; al apagar se detiene y la importación en curso vuelve a
+    `pendiente`."""
+    trabajador = procesador.Procesador(async_session, obtener_almacen)
+    procesador.instalar(trabajador)
+    trabajador.iniciar()
+    try:
+        yield
+    finally:
+        procesador.instalar(None)
+        await trabajador.detener()
+        await close_db()
 
 
 def create_app() -> FastAPI:

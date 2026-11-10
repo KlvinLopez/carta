@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
     CategoriaMenu,
+    ImportacionMenu,
     Mesa,
     OperadorRestaurante,
     Platillo,
@@ -126,3 +127,26 @@ async def crear_platillo(
     await sesion.commit()
     await sesion.refresh(platillo)
     return platillo
+
+
+async def crear_importacion(
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    solicitado_por: Usuario,
+    **valores: Any,
+) -> ImportacionMenu:
+    """Importación (T-1.9); `pendiente` y sin archivo en el almacén salvo que se pase. Para
+    una `listo`, `estado=EstadoImportacion.listo, resultado={...}` (un borrador válido)."""
+    datos: dict[str, Any] = {
+        "restaurante_id": restaurante.id,
+        "solicitado_por": solicitado_por.id,
+        "archivo_url": f"importaciones/{restaurante.id}/{next(_contador)}.pdf",
+        "archivo_tipo": "application/pdf",
+        "paginas": 1,
+    }
+    datos.update(valores)
+    importacion = ImportacionMenu(**datos)
+    sesion.add(importacion)
+    await sesion.commit()
+    await sesion.refresh(importacion)
+    return importacion

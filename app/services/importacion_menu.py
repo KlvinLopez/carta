@@ -56,11 +56,19 @@ from anthropic.types import (
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.schemas.importacion import MAX_AVISOS, ResultadoImportacion, limpiar_texto
+from app.schemas.importacion import (
+    MAX_AVISOS,
+    MAX_SUGERIDOS,
+    MAX_VARIANTES,
+    MONEDAS,
+    ResultadoImportacion,
+    limpiar_texto,
+)
 
 log = logging.getLogger(__name__)
 
 TipoBloque = Literal["document", "image"]
+MotivoArchivo = Literal["tamano", "paginas", "contenido"]
 Bloque = DocumentBlockParam | ImageBlockParam
 
 # Tipo normalizado → bloque de contenido de la API y firmas (magic bytes) aceptadas.
@@ -75,6 +83,21 @@ ALIAS_TIPOS = {"image/jpg": "image/jpeg", "image/pjpeg": "image/jpeg"}
 TAMANO_MAXIMO_PDF = 20 * 1024 * 1024
 TAMANO_MAXIMO_IMAGEN = 5 * 1024 * 1024
 MAXIMO_PAGINAS = 30
+# Contar páginas sólo necesita la tabla de referencias y el árbol de páginas: ningún flujo
+# descomprimido legítimo de una carta se acerca a 8 MB. Con los 75 MB por flujo de pypdf, un
+# PDF de 1 MB cuyo *xref stream* son 1 GiB de ceros comprimidos llevaba el proceso a ~120 MB
+# por archivo (~480 MB con cuatro a la vez; revisión de T-1.9, A1). Se aplica sólo dentro de
+# `contar_paginas` (`pypdf.apply_configuration` es por contexto, no global).
+TOPE_FLUJO_PDF = 8 * 1024 * 1024
+LIMITES_PYPDF: dict[str, int] = {
+    "maximum_declared_stream_length": TOPE_FLUJO_PDF,
+    "array_based_stream_maximum_output_length": TOPE_FLUJO_PDF,
+    "lzw_maximum_output_length": TOPE_FLUJO_PDF,
+    "run_length_maximum_output_length": TOPE_FLUJO_PDF,
+    "zlib_maximum_output_length": TOPE_FLUJO_PDF,
+    "brotli_maximum_output_length": TOPE_FLUJO_PDF,
+    "jbig2_maximum_output_length": TOPE_FLUJO_PDF,
+}
 
 TIEMPO_ESPERA_S = 120.0
 # AC-25.2 pide el borrador en ≤ 3 min; 10 s quedan para guardar y para el sondeo.
@@ -130,7 +153,7 @@ en minúsculas sin acentos ni espacios (alérgenos: gluten, lacteos, huevo, pesc
 cacahuate, nueces, soya, ajonjoli, mostaza, apio, sulfitos; etiquetas: vegetariano, vegano, \
 sin_gluten, picante, temporada). Sugiere sólo lo que se deduzca de la carta.
 - `pagina` es la página del documento donde aparece el platillo (1 para una foto).
-- `moneda` en ISO 4217 (MXN si la carta no dice otra cosa).
+- `moneda`: MXN o USD (MXN si la carta no dice otra cosa).
 - Usa `avisos` para lo que el dueño debe saber: páginas sin platillos que omitiste, texto \
 ilegible, precios dudosos, notas generales (por ejemplo, de alérgenos).
 - Si el documento no es una carta, regresa `categorias` vacía y explica en `avisos` qué es.
@@ -145,7 +168,14 @@ class TipoArchivoNoPermitido(ValueError):
 
 class ArchivoNoValido(ValueError):
     """Vacío, contenido que no es del tipo declarado, demasiado grande, con más de 30 páginas,
-    cifrado o ilegible. `mensaje` es legible para el operador."""
+    cifrado o ilegible. El texto es legible para el operador.
+
+    `motivo` separa lo que T-1.9 responde con 413 (`"tamano"`, `"paginas"`) de lo que es
+    contenido inválido, 422 (`"contenido"`: vacío, firma, cifrado, ilegible)."""
+
+    def __init__(self, mensaje: str, motivo: MotivoArchivo = "contenido") -> None:
+        super().__init__(mensaje)
+        self.motivo: MotivoArchivo = motivo
 
 
 class ErrorExtraccion(Exception):
@@ -223,10 +253,13 @@ def normalizar_tipo(tipo: str) -> str:
 def contar_paginas(archivo: bytes) -> int:
     """Páginas de un PDF legible y sin cifrar; `ArchivoNoValido` si no lo es."""
     try:
-        lector = pypdf.PdfReader(io.BytesIO(archivo))
-        if lector.is_encrypted:
-            raise ArchivoNoValido("El PDF está protegido con contraseña; súbelo sin protección.")
-        paginas = len(lector.pages)
+        with pypdf.apply_configuration(None, **LIMITES_PYPDF):
+            lector = pypdf.PdfReader(io.BytesIO(archivo))
+            if lector.is_encrypted:
+                raise ArchivoNoValido(
+                    "El PDF está protegido con contraseña; súbelo sin protección."
+                )
+            paginas = len(lector.pages)
     except ArchivoNoValido:
         raise
     except Exception as error:
@@ -237,7 +270,8 @@ def contar_paginas(archivo: bytes) -> int:
     if paginas > MAXIMO_PAGINAS:
         raise ArchivoNoValido(
             f"El PDF tiene {paginas} páginas; el máximo es {MAXIMO_PAGINAS}. "
-            "Súbelo en partes o sólo las páginas del menú."
+            "Súbelo en partes o sólo las páginas del menú.",
+            "paginas",
         )
     return paginas
 
@@ -258,7 +292,7 @@ def preparar_documento(archivo: bytes, tipo: str) -> tuple[Bloque, int]:
     maximo = TAMANO_MAXIMO_PDF if clase == "document" else TAMANO_MAXIMO_IMAGEN
     if len(archivo) > maximo:
         raise ArchivoNoValido(
-            f"El archivo pesa más de {maximo // (1024 * 1024)} MB; súbelo más ligero."
+            f"El archivo pesa más de {maximo // (1024 * 1024)} MB; súbelo más ligero.", "tamano"
         )
     paginas = contar_paginas(archivo) if clase == "document" else 1
     datos = base64.standard_b64encode(archivo).decode("ascii")
@@ -323,6 +357,77 @@ def _recortar(objeto: dict[str, Any], campo: str, maximo: int, que: str, avisos:
         avisos.append(f"Se recortó {que} «{texto[:60].rstrip()}…»: era demasiado largo.")
 
 
+def _llave_nombre(nombre: Any) -> Any:
+    """«Bebidas», « bebidas » y «BEBIDAS» son la misma sección (como `confirmar`)."""
+    return " ".join(nombre.split()).casefold() if isinstance(nombre, str) else nombre
+
+
+def _unir_listas(primera: Any, segunda: Any, tope: int) -> Any:
+    if not isinstance(primera, list) or not isinstance(segunda, list):
+        return primera
+    return list(dict.fromkeys([*primera, *segunda]))[:tope]
+
+
+def _fusionar_platillo(destino: dict[str, Any], otro: dict[str, Any]) -> None:
+    """El primero manda; del repetido se toman el precio si faltaba, sus variantes (sin repetir
+    nombre) y sus alérgenos y etiquetas."""
+    if destino.get("precio") is None and otro.get("precio") is not None:
+        destino["precio"] = otro["precio"]
+        destino["precio_confianza"] = otro.get("precio_confianza", destino["precio_confianza"])
+    variantes = destino.get("variantes") or []
+    if isinstance(variantes, list) and isinstance(otro.get("variantes"), list):
+        nombres = {_llave_nombre(v.get("nombre")) for v in variantes if isinstance(v, dict)}
+        for variante in otro["variantes"]:
+            if isinstance(variante, dict) and _llave_nombre(variante.get("nombre")) not in nombres:
+                variantes.append(variante)
+                nombres.add(_llave_nombre(variante.get("nombre")))
+        destino["variantes"] = variantes[:MAX_VARIANTES]
+    for campo in ("alergenos_sugeridos", "etiquetas_sugeridas"):
+        if campo in otro:
+            destino[campo] = _unir_listas(destino.get(campo, []), otro[campo], MAX_SUGERIDOS)
+
+
+def _fusionar_repetidos(categorias: list[Any], avisos: list[Any]) -> list[Any]:
+    """Una carta de varias páginas repite secciones («Bebidas» en la 2 y en la 5) y a veces
+    platillos: el modelo las devuelve dos veces y `confirmar` rechazaría el borrador
+    (`nombre_repetido`). Se unen aquí, con aviso (revisión de T-1.9, B2)."""
+    unidas: list[Any] = []
+    por_llave: dict[Any, dict[str, Any]] = {}
+    for categoria in categorias:
+        if not isinstance(categoria, dict) or not isinstance(categoria.get("platillos"), list):
+            unidas.append(categoria)
+            continue
+        llave = _llave_nombre(categoria.get("nombre"))
+        existente = por_llave.get(llave)
+        if existente is None:
+            por_llave[llave] = categoria
+            unidas.append(categoria)
+        else:
+            existente["platillos"].extend(categoria["platillos"])
+            avisos.append(f"La sección «{existente['nombre']}» aparecía dos veces; se unió.")
+    for categoria in unidas:
+        if not isinstance(categoria, dict) or not isinstance(categoria.get("platillos"), list):
+            continue
+        vistos: dict[Any, dict[str, Any]] = {}
+        conservados = []
+        for platillo in categoria["platillos"]:
+            if not isinstance(platillo, dict):
+                conservados.append(platillo)
+                continue
+            llave = _llave_nombre(platillo.get("nombre"))
+            if llave in vistos:
+                _fusionar_platillo(vistos[llave], platillo)
+                avisos.append(
+                    f"«{vistos[llave]['nombre']}» aparecía dos veces en «{categoria['nombre']}»; "
+                    "se unió."
+                )
+                continue
+            vistos[llave] = platillo
+            conservados.append(platillo)
+        categoria["platillos"] = conservados
+    return unidas
+
+
 def _normalizar(datos: Any) -> Any:
     """Arregla lo que tiene una forma obvia antes de validar; lo demás lo decide el esquema."""
     if not isinstance(datos, dict):
@@ -332,7 +437,11 @@ def _normalizar(datos: Any) -> Any:
     if not isinstance(avisos, list):
         avisos = []
     moneda = datos.get("moneda")
-    datos["moneda"] = moneda.upper() if isinstance(moneda, str) and moneda else "MXN"
+    moneda = moneda.upper() if isinstance(moneda, str) and moneda else "MXN"
+    if moneda not in MONEDAS:
+        avisos.append(f"La carta parece estar en {moneda[:3]}; los precios quedaron en MXN.")
+        moneda = "MXN"
+    datos["moneda"] = moneda
     categorias = datos.get("categorias")
     for categoria in categorias if isinstance(categorias, list) else []:
         if not isinstance(categoria, dict):
@@ -363,6 +472,8 @@ def _normalizar(datos: Any) -> Any:
                 platillo["precio_confianza"] = "media"
                 avisos.append(f"«{platillo['nombre']}» tiene precio 0; revísalo.")
         categoria["platillos"] = conservados
+    if isinstance(categorias, list):
+        datos["categorias"] = _fusionar_repetidos(categorias, avisos)
     avisos = [a[:MAXIMO_AVISO] if isinstance(a, str) else a for a in avisos]
     if len(avisos) > MAX_AVISOS:
         avisos = [
