@@ -387,10 +387,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar Personal */
+        /**
+         * Listar Personal
+         * @description Activos primero, por nombre; `activo` filtra (sin él, todos).
+         */
         get: operations["listar_personal_api_v1_admin_restaurantes__rid__personal_get"];
         put?: never;
-        /** Crear Personal */
+        /**
+         * Crear Personal
+         * @description Alta con el PIN que elige el operador (4–6 dígitos); la respuesta no lo repite.
+         */
         post: operations["crear_personal_api_v1_admin_restaurantes__rid__personal_post"];
         delete?: never;
         options?: never;
@@ -411,7 +417,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Editar Personal */
+        /**
+         * Editar Personal
+         * @description Nombre, rol y alta/baja. Dar de baja, reactivar o cambiar el rol revoca de inmediato
+         *     la sesión vigente de la persona (AC-26.3).
+         */
         patch: operations["editar_personal_api_v1_admin_personal__personal_id__patch"];
         trace?: never;
     };
@@ -424,7 +434,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Cambiar Pin */
+        /**
+         * Cambiar Pin
+         * @description Reasigna el PIN y revoca la sesión vigente. Sin cuerpo de respuesta.
+         */
         post: operations["cambiar_pin_api_v1_admin_personal__personal_id__pin_post"];
         delete?: never;
         options?: never;
@@ -610,7 +623,9 @@ export interface components {
         };
         /**
          * PersonalCambios
-         * @description `PATCH /personal/{id}`. `activo = false` revoca su sesión (AC-26.3).
+         * @description `PATCH /personal/{id}`. `activo = false` da de baja a la persona y revoca su sesión
+         *     (AC-26.3); `activo = true` la reactiva (sus sesiones anteriores siguen sin valer).
+         *     Cambiar el rol también revoca la sesión vigente: su cookie lleva el rol anterior.
          */
         PersonalCambios: {
             /** Nombre */
@@ -619,7 +634,11 @@ export interface components {
             /** Activo */
             activo?: boolean | null;
         };
-        /** PersonalCrear */
+        /**
+         * PersonalCrear
+         * @description `POST /restaurantes/{rid}/personal`: el operador elige el PIN y se lo dice a la persona;
+         *     la respuesta no lo repite.
+         */
         PersonalCrear: {
             /** Nombre */
             nombre: string;
@@ -627,7 +646,7 @@ export interface components {
             rol: components["schemas"]["RolPersonal"];
             /**
              * Pin
-             * @description 4 a 6 dígitos (AC-26.1)
+             * @description Sólo dígitos, de 4 a 6 (AC-26.1); `0123` vale. No se devuelve nunca.
              */
             pin: string;
         };
@@ -651,11 +670,14 @@ export interface components {
              */
             creado_en: string;
         };
-        /** PinNuevo */
+        /**
+         * PinNuevo
+         * @description `POST /personal/{id}/pin`: reasigna el PIN, revoca su sesión y limpia el bloqueo.
+         */
         PinNuevo: {
             /**
              * Pin
-             * @description 4 a 6 dígitos (AC-26.1)
+             * @description Sólo dígitos, de 4 a 6 (AC-26.1); `0123` vale. No se devuelve nunca.
              */
             pin: string;
         };
@@ -2496,7 +2518,9 @@ export interface operations {
     };
     listar_personal_api_v1_admin_restaurantes__rid__personal_get: {
         parameters: {
-            query?: never;
+            query?: {
+                activo?: boolean | null;
+            };
             header?: never;
             path: {
                 rid: string;
@@ -2585,6 +2609,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -2631,6 +2664,15 @@ export interface operations {
             };
             /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
