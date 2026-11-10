@@ -48,7 +48,7 @@ Quién hace qué:
 2. **Renómbralo a `produccion`**: abre **Settings** del proyecto (arriba a la derecha) → pestaña **Environments** → en la fila de `production`, el menú **⋮** → **Rename** → escribe `produccion` → confirma. Así el `RAILWAY_TOKEN` que ya guardaste sigue valiendo si lo creaste para ese environment. Si no te ofrece renombrar, crea `produccion` como en el paso 3 y en el paso F rehaces el token.
 3. Crea staging: en el selector de *environment* → **+ New Environment** → **Empty Environment** → nombre `staging` → **Create**.
 
-Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas vale sólo para el environment que esté seleccionado. Empieza por **staging** (B a D) y luego repite en **produccion** (E).
+Desde aquí, **mira siempre el selector antes de tocar algo**: los ajustes y las variables valen sólo para el environment seleccionado, pero los servicios son del proyecto: los que crees en staging aparecen también en produccion. Empieza por **staging** (B a D) y en **produccion** (E) sólo configuras esas mismas tarjetas.
 
 ---
 
@@ -69,7 +69,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
 
    | Ajuste en pantalla | Valor | Por qué |
    |---|---|---|
-   | **Source → Branch** (rama que dispara despliegues) | `master` | staging se despliega solo con cada push a `master` cuya CI pasó |
+   | **Source → Branch** (rama que dispara despliegues) | `master` (si lo habías dejado en la rama de trabajo, cámbialo) | staging se despliega solo con cada push a `master` cuya CI pasó |
    | **Source → Wait for CI** | Activado | no despliega un commit cuyo CI falló |
    | **Source → Root Directory** | vacío (o `/`) | el `Dockerfile` está en la raíz |
    | **Build** | debe decir que usa el **Dockerfile** (en los logs: `Using detected Dockerfile!`) | no hay que elegir nada |
@@ -115,7 +115,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    - `ANTHROPIC_API_KEY` (paso 6 de «Antes de empezar»; **es secreto**) activa la importación de cartas en PDF; sin ella la aplicación arranca y esa función responde 503 «no disponible». `SENTRY_DSN` **no se crea todavía**: se agrega aquí mismo cuando llegue su tarea.
    - `CLOUDFLARE_ZONE_ID` (32 caracteres hexadecimales: Cloudflare → `carta.cooking` → **Overview**, columna derecha, **Zone ID**; no es secreto) y `CLOUDFLARE_API_TOKEN` (Cloudflare → **My Profile → API Tokens → Create Token → Custom token**, permiso **Zone · Cache Purge · Purge** sólo para la zona `carta.cooking`; **es secreto**) dejan que la API purgue el menú público del borde al editarlo. Sin ellas el menú editado tarda hasta 60 s en verse.
 5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
-6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra.
+6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra. Si el panel del operador dice «acceso sin configurar», la imagen se construyó con un `master` anterior al `Dockerfile` que recibe las `VITE_FIREBASE_*`: tras fusionar ese PR, **Deployments → ⋮ → Redeploy**.
 
 ---
 
@@ -288,7 +288,7 @@ Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api`
 Lo hace la maestra. Antes tienen que cumplirse **todas** estas condiciones:
 
 1. El paso G terminado: en Railway, `carta.cooking` con la **palomita verde** (dominio activo) y los cuatro registros DNS ya creados en Cloudflare por la maestra (o, si usas el plan B de G, sabiendo que el `humo` va a fallar hasta que lo estén).
-2. Esta rama integrada en `master`: `deploy.yml` sólo despliega etiquetas cuyo commit está en `master` (y el botón **Run workflow** del rollback sólo aparece cuando `deploy.yml` está en `master`, la rama predeterminada). Hasta el merge no hay despliegue a producción.
+2. Todo en `master`: el PR #1 (Fases 0 y 1) ya está fusionado; también debe estarlo el PR de esta guía, que trae el `Dockerfile` con la configuración de Firebase. `deploy.yml` sólo despliega etiquetas cuyo commit está en `master` (y el botón **Run workflow** del rollback sólo aparece cuando `deploy.yml` está en `master`, la rama predeterminada).
 3. El paso F hecho (el token en el Environment `produccion`).
 
 Entonces la maestra crea la etiqueta `v0.0.1` sobre `master` (pasos exactos en [`deploy/README.md`](../README.md)) y GitHub Actions corre **Despliegue a producción**. Tú sólo miras: GitHub → **Actions** → la corrida, y en Railway → **produccion** → **api** → **Deployments**, el despliegue **Active**.
