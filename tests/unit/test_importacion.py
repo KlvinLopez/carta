@@ -463,7 +463,6 @@ def test_esquema_limpia_textos_propios_y_rechaza_el_que_queda_vacio() -> None:
     [
         "esto no es JSON",
         json.dumps(resultado_minimo(precio_confianza="segura")),
-        json.dumps(resultado_minimo() | {"moneda": "pesos"}),
         json.dumps(resultado_minimo(precio=-5)),
         json.dumps(resultado_minimo(precio=float("nan"))),
         json.dumps(resultado_minimo(precio=1e30)),
@@ -1010,3 +1009,89 @@ async def test_registro_de_respuesta_invalida_no_lleva_valores(
     assert "categorias.0.platillos" in texto_registro
     assert "Mole de la abuela" not in texto_registro
     assert "Secreto" not in texto_registro
+
+
+# --- Revisión de T-1.9 (B2, B7) ----------------------------------------------------------
+
+
+@pytest.mark.ac("AC-25.2")
+@pytest.mark.parametrize("moneda", ["EUR", "pesos", "zzz"])
+async def test_una_moneda_que_no_es_mxn_ni_usd_queda_en_mxn_con_aviso(
+    moneda: str, pdf_la_ceiba: bytes
+) -> None:
+    api = ApiFalsa(ok(con_resultado(resultado_minimo() | {"moneda": moneda})))
+    resultado = await api.extraer(pdf_la_ceiba)
+    assert resultado.moneda == "MXN"
+    assert any("los precios quedaron en MXN" in aviso for aviso in resultado.avisos)
+    assert len(api.peticiones) == 1
+
+
+def test_el_esquema_solo_acepta_mxn_y_usd() -> None:
+    for moneda in ("MXN", "USD"):
+        ResultadoImportacion.model_validate(resultado_minimo() | {"moneda": moneda})
+    with pytest.raises(ValidationError):
+        ResultadoImportacion.model_validate(resultado_minimo() | {"moneda": "ZZZ"})
+
+
+@pytest.mark.ac("AC-25.2")
+async def test_secciones_y_platillos_repetidos_se_unen_con_aviso(pdf_la_ceiba: bytes) -> None:
+    """Una carta de varias páginas repite «Bebidas»; `confirmar` rechazaría el borrador."""
+    repetida = {
+        "moneda": "MXN",
+        "categorias": [
+            {
+                "nombre": "Bebidas",
+                "orden": 1,
+                "platillos": [
+                    {
+                        "nombre": "Agua del día",
+                        "precio": None,
+                        "precio_confianza": "baja",
+                        "variantes": [{"nombre": "Chica", "precio": 30}],
+                        "alergenos_sugeridos": [],
+                    },
+                    {"nombre": "Limonada", "precio": 40, "precio_confianza": "alta"},
+                ],
+            },
+            {
+                "nombre": "Postres",
+                "orden": 2,
+                "platillos": [{"nombre": "Flan", "precio": 60, "precio_confianza": "alta"}],
+            },
+            {
+                "nombre": " bebidas ",
+                "orden": 3,
+                "platillos": [
+                    {
+                        "nombre": "agua del  día",
+                        "precio": 35,
+                        "precio_confianza": "alta",
+                        "variantes": [
+                            {"nombre": "Chica", "precio": 30},
+                            {"nombre": "Grande", "precio": 50},
+                        ],
+                        "alergenos_sugeridos": ["lacteos"],
+                    },
+                    {"nombre": "Café", "precio": 45, "precio_confianza": "alta"},
+                ],
+            },
+        ],
+        "avisos": [],
+    }
+    api = ApiFalsa(ok(con_resultado(repetida)))
+    resultado = await api.extraer(pdf_la_ceiba)
+
+    assert [c.nombre for c in resultado.categorias] == ["Bebidas", "Postres"]
+    bebidas = resultado.categorias[0]
+    assert [p.nombre for p in bebidas.platillos] == ["Agua del día", "Limonada", "Café"]
+    agua = bebidas.platillos[0]
+    assert agua.precio == Decimal("35")
+    assert agua.precio_confianza == "alta"
+    assert [(v.nombre, v.precio) for v in agua.variantes] == [
+        ("Chica", Decimal("30")),
+        ("Grande", Decimal("50")),
+    ]
+    assert agua.alergenos_sugeridos == ["lacteos"]
+    assert "La sección «Bebidas» aparecía dos veces; se unió." in resultado.avisos
+    assert "«Agua del día» aparecía dos veces en «Bebidas»; se unió." in resultado.avisos
+    assert len(api.peticiones) == 1

@@ -20,14 +20,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import AsyncGenerator, Awaitable, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
 
 from fastapi import Request
+from fastapi.routing import APIRoute
 from starlette.datastructures import UploadFile
 from starlette.formparsers import MultiPartException, MultiPartParser
 from starlette.requests import ClientDisconnect
+from starlette.responses import Response
 
 from app.core.errores import ErrorCarta
 
@@ -155,3 +157,58 @@ def cuerpo_multipart(titulo: str, descripcion: str) -> dict[str, Any]:
             },
         }
     }
+
+
+# ---------------------------------------------------------------------------
+# Cuerpos JSON con tope (revisión de T-1.9, A2)
+# ---------------------------------------------------------------------------
+
+
+def ruta_con_tope(maximo: int, plazo: float) -> type[APIRoute]:
+    """Clase de ruta que lee el cuerpo **antes** que FastAPI con un tope de `maximo` bytes:
+    `Content-Length` mayor → 413 sin leer nada; *chunked* que pasa del tope → 413 al pasarlo;
+    más de `plazo` segundos → 408. FastAPI lee y valida el cuerpo JSON antes de cualquier
+    dependencia, así que una dependencia llegaría tarde. Lo leído queda en la petición y la
+    validación de Pydantic sigue igual (y el contrato publica el mismo esquema)."""
+
+    limites = Limites(
+        max_archivo=maximo,
+        mensaje_tamano=f"El cuerpo pasa de {maximo // (1024 * 1024)} MB.",
+        mensaje_campo="",
+    )
+
+    async def leer(request: Request) -> None:
+        declarado = request.headers.get("content-length")
+        if declarado is not None:
+            if not declarado.strip().isdigit():
+                raise ErrorCarta("PAYLOAD_INVALIDO", "Content-Length inválido.", 400)
+            if int(declarado) > maximo:  # sin el margen del multipart: es el cuerpo entero
+                raise demasiado_grande(limites)
+        partes: list[bytes] = []
+        leidos = 0
+        try:
+            async with asyncio.timeout(plazo):
+                async for trozo in request.stream():
+                    leidos += len(trozo)
+                    if leidos > maximo:
+                        raise demasiado_grande(limites)
+                    partes.append(trozo)
+        except TimeoutError as error:
+            raise ErrorCarta(
+                "SUBIDA_INCOMPLETA", "La petición tardó demasiado; inténtalo de nuevo.", 408
+            ) from error
+        except ClientDisconnect as error:
+            raise ErrorCarta("PAYLOAD_INVALIDO", "La petición se interrumpió.", 400) from error
+        request._body = b"".join(partes)  # `Request.body()` lo devuelve sin volver a leer
+
+    class RutaConTope(APIRoute):
+        def get_route_handler(self) -> Callable[[Request], Coroutine[Any, Any, Response]]:
+            original = super().get_route_handler()
+
+            async def manejador(request: Request) -> Response:
+                await leer(request)
+                return await original(request)
+
+            return manejador
+
+    return RutaConTope

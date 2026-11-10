@@ -12,17 +12,20 @@ from __future__ import annotations
 import asyncio
 import functools
 import io
+import subprocess
+import sys
 import time
 from collections.abc import AsyncIterator, Iterator
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
 from httpx import AsyncClient
 from PIL import Image
-from pydantic import SecretStr
+from pydantic import SecretStr, ValidationError
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
@@ -40,14 +43,15 @@ from app.db.models import (
     Usuario,
 )
 from app.main import app
-from app.schemas.importacion import ResultadoImportacion
-from app.services import importacion_menu, importaciones, procesador
-from app.services.assets import AlmacenLocal
+from app.schemas.importacion import PlatilloImportado, ResultadoImportacion
+from app.services import assets, importacion_menu, importaciones, procesador
+from app.services.assets import AlmacenLocal, ErrorAlmacen
 from app.services.importacion_menu import Extraccion, extraer_menu_detallado
-from app.services.procesador import PLAZO_RECUPERACION, Procesador
+from app.services.procesador import PLAZO_CORRIDA_SEGUNDOS, PLAZO_RECUPERACION, Procesador
 from tests import imagenes_pruebas as img
 from tests.conftest import Fabrica
 from tests.integration.test_fotos import Cuerpo, CuerpoQueMira, _crudo
+from tests.pdf_pruebas import pdf_con_xref_gigante
 from tests.unit.test_importacion import (
     LLAVE_DE_PRUEBA,
     MENUS,
@@ -56,6 +60,7 @@ from tests.unit.test_importacion import (
     grabada,
     ok,
     pdf,
+    pdf_de_tamano,
 )
 
 A = "/api/v1/admin"
@@ -189,7 +194,8 @@ async def test_flujo_completo_subir_procesar_y_confirmar(
 ) -> None:
     inicio = time.perf_counter()
     subida = await _subir(cliente, restaurante, cabecera_operador)
-    assert time.perf_counter() - inicio < 1.0  # AC-25.1: responde en ≤ 1 s
+    # AC-25.1 pide ≤ 1 s; aquí con holgura para CI (revisión B8), la cifra la mide la carga.
+    assert time.perf_counter() - inicio < 3.0
     assert subida.status_code == 202, subida.text
     cuerpo = subida.json()
     assert cuerpo["estado"] == "pendiente"
@@ -482,7 +488,8 @@ async def test_sin_content_length_se_corta_al_pasar_de_20_mb(
         cuerpo,
     )
     assert estado == 413, respuesta
-    assert cuerpo.pedidos < 25
+    # Trozos de 1 MB tras el inicio del multipart: el tope (20 MB + 64 KB) cae en el 22.º.
+    assert cuerpo.pedidos <= 20 + 2
 
 
 @pytest.mark.ac("AC-25.1")
@@ -665,7 +672,7 @@ def _demasiados(b: dict[str, Any]) -> None:
             "precio_requerido",
         ),
         (_con(lambda b: b.update(categorias=[])), "body.categorias", "vacio"),
-        (_con(_demasiados), "body.categorias", "demasiados_platillos"),
+        (_con(_demasiados), "body", "demasiados_platillos"),
     ],
     ids=["categoria-repetida", "platillo-repetido", "sin-precio", "vacio", "mas-de-1000"],
 )
@@ -1029,7 +1036,7 @@ async def test_reintentar_sin_llave_es_503(
 
 
 @pytest.mark.ac("AC-25.4")
-@pytest.mark.parametrize(("minutos", "se_toma"), [(11, True), (9, False)])
+@pytest.mark.parametrize(("minutos", "se_toma"), [(5, True), (3, False)])
 async def test_una_importacion_atascada_en_procesando_se_recupera_pasado_el_plazo(
     sesion: AsyncSession,
     fabrica_sesion: async_sessionmaker[AsyncSession],
@@ -1040,7 +1047,9 @@ async def test_una_importacion_atascada_en_procesando_se_recupera_pasado_el_plaz
     minutos: int,
     se_toma: bool,
 ) -> None:
-    assert timedelta(minutes=10) == PLAZO_RECUPERACION
+    assert PLAZO_CORRIDA_SEGUNDOS == 180.0
+    assert timedelta(seconds=240) == PLAZO_RECUPERACION
+    assert timedelta(seconds=PLAZO_CORRIDA_SEGUNDOS + 60) == PLAZO_RECUPERACION
     importacion = await fabrica_importacion(
         restaurante,
         usuario,
@@ -1275,6 +1284,7 @@ async def real(motor_pruebas: AsyncEngine) -> AsyncIterator[dict[str, Any]]:
         usuario = Usuario(firebase_uid=f"uid-carrera-{uuid4().hex[:8]}", provider="google")
         s.add_all([restaurante, usuario])
         await s.flush()
+        s.add(OperadorRestaurante(usuario_id=usuario.id, restaurante_id=restaurante.id))
         filas = [
             ImportacionMenu(
                 restaurante_id=restaurante.id,
@@ -1292,7 +1302,12 @@ async def real(motor_pruebas: AsyncEngine) -> AsyncIterator[dict[str, Any]]:
     finally:
         async with fabrica() as s:
             parametros = {"r": restaurante.id}
-            for tabla in ("importacion_menu", "platillo", "categoria_menu"):
+            for tabla in (
+                "importacion_menu",
+                "platillo",
+                "categoria_menu",
+                "operador_restaurante",
+            ):
                 await s.execute(text(f"DELETE FROM {tabla} WHERE restaurante_id = :r"), parametros)
             await s.execute(text("DELETE FROM restaurante WHERE id = :r"), parametros)
             await s.execute(text("DELETE FROM usuario WHERE id = :u"), {"u": usuario.id})
@@ -1386,3 +1401,702 @@ async def test_dos_confirmaciones_a_la_vez_crean_un_solo_menu(real: dict[str, An
             .where(Platillo.restaurante_id == restaurante.id)
         )
     assert cuantos == 3
+
+
+# ===========================================================================
+# Revisión de la maestra (A1–A5, B1, B4, B6)
+# ===========================================================================
+
+RAIZ = Path(__file__).resolve().parents[2]
+
+# Pico de memoria con `VmHWM` en un subproceso aislado (regla 20 de /pruebas).
+MEDIR_PDF = """
+import sys, threading
+sys.path.insert(0, {raiz!r})
+from app.services.importacion_menu import ArchivoNoValido, contar_paginas
+datos = open(sys.argv[1], "rb").read()
+motivos = []
+def contar():
+    try:
+        contar_paginas(datos)
+        motivos.append("ok")
+    except ArchivoNoValido as error:
+        motivos.append(error.motivo)
+hilos = [threading.Thread(target=contar) for _ in range(4)]
+for h in hilos: h.start()
+for h in hilos: h.join()
+print(",".join(motivos))
+pico = [l for l in open("/proc/self/status") if l.startswith("VmHWM:")][0]
+print(int(pico.split()[1]) // 1024)
+"""
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_un_pdf_con_xref_de_1_gib_es_422_y_no_se_lleva_la_memoria(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    tmp_path: Path,
+) -> None:
+    """A1: 1 MB en disco que pypdf descomprimía a 1 GiB (480 MB con cuatro a la vez)."""
+    hostil = pdf_con_xref_gigante()
+    assert len(hostil) < 2 * MB
+    respuesta = await _subir(cliente, restaurante, cabecera_operador, hostil)
+    assert respuesta.status_code == 422, respuesta.text
+    assert respuesta.json()["error"]["codigo"] == "ARCHIVO_NO_VALIDO"
+
+    ruta = tmp_path / "xref.pdf"
+    ruta.write_bytes(hostil)
+    salida = subprocess.run(
+        [sys.executable, "-I", "-c", MEDIR_PDF.format(raiz=str(RAIZ)), str(ruta)],
+        capture_output=True,
+        text=True,
+        timeout=50,
+        check=True,
+    )
+    motivos, pico = salida.stdout.strip().splitlines()[-2:]
+    assert motivos == "contenido,contenido,contenido,contenido"
+    assert int(pico) < 200, f"pico de {pico} MB"
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_con_la_cola_de_pillow_y_pypdf_llena_es_503(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A1: el PDF también pasa por el semáforo de `assets` (antes iba directo a un hilo)."""
+    monkeypatch.setattr(assets, "PLAZO_COLA_SEGUNDOS", 0.05)
+    await assets._semaforo.acquire()
+    try:
+        respuesta = await _subir(cliente, restaurante, cabecera_operador)
+    finally:
+        assets._semaforo.release()
+    assert respuesta.status_code == 503
+    assert _error_de(respuesta) == (
+        "SERVICIO_OCUPADO",
+        "Hay muchas fotos en cola; inténtalo en un momento.",
+    )
+    assert await sesion.scalar(select(func.count()).select_from(ImportacionMenu)) == 0
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_con_tres_en_curso_la_cuarta_es_409_sin_leer_el_cuerpo(
+    cliente: AsyncClient,
+    fabrica_importacion: Fabrica,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    cabecera_operador: dict[str, str],
+) -> None:
+    await fabrica_importacion(restaurante, usuario)
+    await fabrica_importacion(restaurante, usuario)
+    # Las terminadas no cuentan.
+    await fabrica_importacion(restaurante, usuario, estado=EstadoImportacion.fallido, intentos=1)
+    await _lista(fabrica_importacion, restaurante, usuario)
+    cuerpo = Cuerpo([_multipart(PDF_LA_CEIBA)])
+    ruta = f"{A}/restaurantes/{restaurante.id}/importaciones"
+    cabeceras = {**cabecera_operador, "content-type": MULTIPART}
+    estado, respuesta = await _crudo(ruta, cabeceras, cuerpo)
+    assert estado == 202, respuesta  # dos en curso: cabe la tercera
+
+    cuerpo = Cuerpo([_multipart(PDF_LA_CEIBA)])
+    estado, respuesta = await _crudo(ruta, cabeceras, cuerpo)
+    assert estado == 409
+    assert respuesta["error"]["codigo"] == "IMPORTACION_EN_CURSO"
+    assert respuesta["error"]["detalles"] == {"max_en_curso": 3}
+    assert cuerpo.pedidos == 0
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_dos_subidas_a_la_vez_con_dos_en_curso_una_entra_y_otra_409(
+    real: dict[str, Any], tmp_path: Path
+) -> None:
+    """A1: el cupo se vuelve a contar con la fila del restaurante bloqueada."""
+    fabrica = real["fabrica"]
+    almacen = AlmacenLocal(tmp_path / "a")
+
+    async def subir() -> Any:
+        async with fabrica() as s:
+            return await importaciones.crear_importacion(
+                s, real["usuario"].id, real["restaurante"].id, PDF_LA_CEIBA, almacen
+            )
+
+    resultados = await asyncio.gather(subir(), subir(), return_exceptions=True)
+    creadas = [r for r in resultados if isinstance(r, ImportacionMenu)]
+    errores = [r for r in resultados if isinstance(r, ErrorCarta)]
+    assert len(creadas) == 1 and len(errores) == 1, resultados
+    assert (errores[0].http, errores[0].codigo) == (409, "IMPORTACION_EN_CURSO")
+
+
+# --- A2 · Cuerpo de confirmar -------------------------------------------------------------
+
+
+async def _crudo_json(ruta: str, cabeceras: dict[str, str], cuerpo: Cuerpo) -> Any:
+    return await _crudo(ruta, {**cabeceras, "content-type": "application/json"}, cuerpo)
+
+
+@pytest.mark.ac("AC-25.3")
+async def test_confirmar_con_content_length_de_mas_es_413_sin_leer(
+    cliente: AsyncClient,
+    fabrica_importacion: Fabrica,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    cabecera_operador: dict[str, str],
+) -> None:
+    importacion = await _lista(fabrica_importacion, restaurante, usuario)
+    cuerpo = Cuerpo([b"x" * MB] * 3)
+    estado, respuesta = await _crudo_json(
+        _ruta(restaurante, importacion.id, "confirmar"),
+        {**cabecera_operador, "content-length": str(2 * MB + 1)},
+        cuerpo,
+    )
+    assert estado == 413
+    assert respuesta["error"]["codigo"] == "ARCHIVO_EXCEDE_LIMITE"
+    assert cuerpo.pedidos == 0
+
+
+@pytest.mark.ac("AC-25.3")
+async def test_confirmar_sin_content_length_se_corta_al_pasar_de_2_mb(
+    cliente: AsyncClient,
+    fabrica_importacion: Fabrica,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    cabecera_operador: dict[str, str],
+) -> None:
+    importacion = await _lista(fabrica_importacion, restaurante, usuario)
+    cuerpo = Cuerpo([b"x" * MB] * 10)
+    estado, _ = await _crudo_json(
+        _ruta(restaurante, importacion.id, "confirmar"), cabecera_operador, cuerpo
+    )
+    assert estado == 413
+    assert cuerpo.pedidos == 3  # 1 MB, 2 MB, y el tercero pasa del tope
+
+
+@pytest.mark.ac("AC-25.3")
+async def test_un_aviso_enorme_es_422_rapido(
+    cliente: AsyncClient,
+    fabrica_importacion: Fabrica,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    cabecera_operador: dict[str, str],
+) -> None:
+    importacion = await _lista(fabrica_importacion, restaurante, usuario)
+    borrador = _borrador_valido() | {"avisos": ["x" * int(1.9 * MB)]}
+    inicio = time.perf_counter()
+    respuesta = await cliente.post(
+        _ruta(restaurante, importacion.id, "confirmar"), json=borrador, headers=cabecera_operador
+    )
+    assert time.perf_counter() - inicio < 0.5
+    assert respuesta.status_code == 422
+    (error,) = respuesta.json()["error"]["detalles"]["errores"]
+    assert (error["campo"], error["tipo"]) == ("body.avisos.0", "string_too_long")
+
+
+def test_el_tope_total_se_cuenta_antes_de_validar_cada_platillo() -> None:
+    def borrador(platillos: int) -> dict[str, Any]:
+        por_categoria = [143] * 7 if platillos == 1001 else [100] * 10
+        return {
+            "categorias": [
+                {
+                    "nombre": f"C{n}",
+                    "orden": n,
+                    # Platillos inválidos a propósito: si se validaran, el error sería otro.
+                    "platillos": [{"nombre": ""}] * cuantos,
+                }
+                for n, cuantos in enumerate(por_categoria)
+            ]
+        }
+
+    with pytest.raises(ValidationError) as error:
+        ResultadoImportacion.model_validate(borrador(1001))
+    (detalle,) = error.value.errors()
+    assert detalle["type"] == "demasiados_platillos"
+    assert detalle["msg"] == "Caben hasta 1000 platillos; reduce la carta a 1000 platillos."
+    # 1000 justos no llegan al tope: fallan los platillos, no el total.
+    with pytest.raises(ValidationError) as error:
+        ResultadoImportacion.model_validate(borrador(1000))
+    assert {d["type"] for d in error.value.errors()} != {"demasiados_platillos"}
+
+
+# --- A4 · El procesador no muere en silencio y /ready lo dice ---------------------------
+
+
+@pytest.mark.ac("AC-25.4")
+async def test_una_cancelacion_espuria_no_mata_el_bucle(
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    almacen: AlmacenLocal,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    trabajador = Procesador(fabrica_sesion, almacen)
+    llamadas: list[int] = []
+    segunda = asyncio.Event()
+
+    async def tomar() -> None:
+        llamadas.append(1)
+        if len(llamadas) == 1:
+            trabajador.despertar()  # para no esperar los 10 s del intervalo
+            raise asyncio.CancelledError  # un futuro interno cancelado, no la tarea
+        segunda.set()
+        return None
+
+    trabajador.tomar = tomar  # type: ignore[assignment,method-assign]
+    tarea = trabajador.iniciar()
+    async with asyncio.timeout(2):
+        await segunda.wait()
+    assert not tarea.done()
+    assert "cancelación espuria" in caplog.text
+    await trabajador.detener()
+    assert tarea.done()
+
+
+@pytest.mark.ac("AC-25.4")
+async def test_la_tarea_que_muere_sin_apagado_se_relanza(
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    almacen: AlmacenLocal,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    monkeypatch.setattr(procesador, "PAUSA_REINICIO_SEGUNDOS", 0.0)
+    trabajador = Procesador(fabrica_sesion, almacen)
+    arranques: list[int] = []
+    arranco, relanzada = asyncio.Event(), asyncio.Event()
+
+    async def correr() -> None:
+        arranques.append(1)
+        (arranco if len(arranques) == 1 else relanzada).set()
+        await asyncio.Event().wait()
+
+    trabajador.correr = correr  # type: ignore[method-assign]
+    primera = trabajador.iniciar()
+    await arranco.wait()
+    primera.cancel()  # alguien la cancela sin que sea el apagado
+    await relanzada.wait()
+    assert "se relanza" in caplog.text
+    assert trabajador._tarea is not None and trabajador._tarea is not primera
+    await trabajador.detener()
+    assert arranques == [1, 1]
+
+
+def test_el_intervalo_y_el_latido_son_los_del_brief() -> None:
+    assert procesador.INTERVALO_SEGUNDOS == 10.0
+    assert procesador.LATIDO_MAXIMO_SEGUNDOS == 30.0
+    assert procesador.PAUSA_REINICIO_SEGUNDOS == 5.0
+
+
+@pytest.mark.ac("AC-25.4")
+async def test_ready_dice_si_el_procesador_esta_detenido(
+    cliente: AsyncClient,
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    almacen: AlmacenLocal,
+) -> None:
+    trabajador = Procesador(fabrica_sesion, almacen)
+    procesador.instalar(trabajador)
+    try:
+        trabajador._latido -= 31  # el bucle no da señales hace 31 s
+        detenido = await cliente.get("/ready")
+        assert detenido.status_code == 503
+        assert detenido.json()["error"]["codigo"] == "PROCESADOR_DETENIDO"
+
+        trabajador._corrida_desde = trabajador._latido  # una corrida larga en marcha: vivo
+        assert (await cliente.get("/ready")).status_code == 200
+        trabajador._corrida_desde = None
+
+        await trabajador.ciclo()
+        vivo = await cliente.get("/ready")
+        assert vivo.status_code == 200
+        assert vivo.json() == {"db": "ok", "procesador": {"ultimo_ciclo_hace_s": 0}}
+    finally:
+        procesador.instalar(None)
+    sin_procesador = await cliente.get("/ready")
+    assert sin_procesador.json() == {"db": "ok"}
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_un_aviso_durante_el_ciclo_no_se_pierde(
+    fabrica_sesion: async_sessionmaker[AsyncSession], almacen: AlmacenLocal
+) -> None:
+    """B5: antes el aviso se limpiaba después del ciclo y una subida a media corrida
+    esperaba los 10 s."""
+    trabajador = Procesador(fabrica_sesion, almacen)
+    ciclos: list[int] = []
+    segundo = asyncio.Event()
+
+    async def ciclo() -> int:
+        ciclos.append(1)
+        if len(ciclos) == 1:
+            trabajador.despertar()  # llega una subida mientras el ciclo trabaja
+        else:
+            segundo.set()
+        return 0
+
+    trabajador.ciclo = ciclo  # type: ignore[method-assign]
+    trabajador.iniciar()
+    async with asyncio.timeout(2):  # no espera los 10 s del intervalo
+        await segundo.wait()
+    await trabajador.detener()
+
+
+# --- A5 · Pruebas que dejaban pasar mutaciones --------------------------------------------
+
+
+@pytest.mark.ac("AC-25.3")
+async def test_una_categoria_de_otro_restaurante_con_el_mismo_nombre_no_se_reutiliza(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    fabrica_restaurante: Fabrica,
+    fabrica_categoria: Fabrica,
+    fabrica_importacion: Fabrica,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    cabecera_operador: dict[str, str],
+) -> None:
+    otro = await fabrica_restaurante()
+    ajena = await fabrica_categoria(otro, nombre="Tacos", orden=1)
+    importacion = await _lista(fabrica_importacion, restaurante, usuario)
+    respuesta = await cliente.post(
+        _ruta(restaurante, importacion.id, "confirmar"),
+        json=_borrador_valido(),
+        headers=cabecera_operador,
+    )
+    assert respuesta.status_code == 200, respuesta.text
+    propios = await _platillos(sesion, restaurante)
+    assert len(propios) == 3
+    assert ajena.id not in {p.categoria_id for p in propios}
+    cruzados = await sesion.scalar(
+        select(func.count()).select_from(Platillo).where(Platillo.categoria_id == ajena.id)
+    )
+    assert cruzados == 0
+
+
+@pytest.mark.ac("AC-25.1", "AC-25.4")
+async def test_subir_y_reintentar_despiertan_al_procesador(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    almacen: AlmacenLocal,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+) -> None:
+    trabajador = Procesador(fabrica_sesion, almacen)
+    procesador.instalar(trabajador)
+    try:
+        assert not trabajador._aviso.is_set()
+        subida = await _subir(cliente, restaurante, cabecera_operador)
+        assert subida.status_code == 202
+        assert trabajador._aviso.is_set()
+
+        trabajador._aviso.clear()
+        await sesion.execute(
+            text("UPDATE importacion_menu SET estado = 'fallido', intentos = 1 WHERE id = :i"),
+            {"i": UUID(subida.json()["id"])},
+        )
+        await sesion.commit()
+        otra = await cliente.post(
+            _ruta(restaurante, subida.json()["id"], "reintentar"), headers=cabecera_operador
+        )
+        assert otra.status_code == 202
+        assert trabajador._aviso.is_set()
+    finally:
+        procesador.instalar(None)
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_20_mb_exactos_entran_y_un_byte_mas_es_413(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+) -> None:
+    justo = pdf_de_tamano(20 * MB)
+    entra = await _subir(cliente, restaurante, cabecera_operador, justo)
+    assert entra.status_code == 202, entra.text
+    sobra = await _subir(cliente, restaurante, cabecera_operador, justo + b"\n")
+    assert sobra.status_code == 413
+    assert sobra.json()["error"]["detalles"] == {"max_bytes": 20 * MB}
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_una_foto_llega_al_modelo_como_bloque_image_jpeg(
+    cliente: AsyncClient,
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    almacen: AlmacenLocal,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+) -> None:
+    subida = await _subir(
+        cliente, restaurante, cabecera_operador, img.jpeg(800, 600), "c.jpg", "image/jpeg"
+    )
+    assert subida.status_code == 202
+    api = ApiFalsa(ok(grabada("la-ceiba")))
+    assert await _procesador(fabrica_sesion, almacen, api).ciclo() == 1
+    (bloque, _) = api.peticiones[0]["messages"][0]["content"]
+    assert bloque["type"] == "image"
+    assert bloque["source"]["media_type"] == "image/jpeg"
+    estado = await cliente.get(_ruta(restaurante, subida.json()["id"]), headers=cabecera_operador)
+    assert estado.json()["estado"] == "listo"
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_un_png_transparente_grande_queda_sobre_blanco(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    almacen: AlmacenLocal,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+) -> None:
+    salida = io.BytesIO()
+    Image.new("RGBA", (3000, 2000), (0, 0, 0, 0)).save(salida, "PNG")
+    subida = await _subir(
+        cliente, restaurante, cabecera_operador, salida.getvalue(), "c.png", "image/png"
+    )
+    assert subida.status_code == 202, subida.text
+    fila = await sesion.get(ImportacionMenu, UUID(subida.json()["id"]))
+    assert fila is not None
+    with Image.open(io.BytesIO((almacen.raiz / "privado" / fila.archivo_url).read_bytes())) as i:
+        assert i.mode == "RGB"
+        r, g, b = i.getpixel((10, 10))  # type: ignore[misc]
+        assert min(r, g, b) >= 250  # blanco (JPEG puede mover un punto)
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_la_cola_es_fifo(
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    fabrica_importacion: Fabrica,
+    almacen: AlmacenLocal,
+    restaurante: Restaurante,
+    usuario: Usuario,
+) -> None:
+    ahora = datetime.now(UTC)
+    nueva = await fabrica_importacion(restaurante, usuario, creado_en=ahora)
+    vieja = await fabrica_importacion(restaurante, usuario, creado_en=ahora - timedelta(minutes=1))
+    trabajador = Procesador(fabrica_sesion, almacen)
+    primera, segunda = await trabajador.tomar(), await trabajador.tomar()
+    assert primera is not None and segunda is not None
+    assert (primera.id, segunda.id) == (vieja.id, nueva.id)
+
+
+def test_la_descripcion_con_variantes_se_recorta_a_1000() -> None:
+    platillo = PlatilloImportado.model_validate(
+        {
+            "nombre": "Agua",
+            "descripcion": "d" * 990,
+            "precio": 30,
+            "precio_confianza": "alta",
+            "variantes": [{"nombre": "Grande", "precio": 50}],
+        }
+    )
+    texto = importaciones.descripcion_con_variantes(platillo)
+    assert texto is not None
+    assert len(texto) == 1000
+    assert texto.endswith("…")
+
+
+@pytest.mark.ac("AC-25.1")
+async def test_si_le_quitan_el_restaurante_mientras_sube_es_404_sin_fila(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    operador: OperadorRestaurante,
+    cabecera_operador: dict[str, str],
+) -> None:
+    class CuerpoQueRevoca(Cuerpo):
+        async def __call__(self) -> dict[str, Any]:
+            if self.pedidos == 0:
+                await sesion.execute(
+                    text("DELETE FROM operador_restaurante WHERE id = :o"), {"o": operador.id}
+                )
+                await sesion.commit()
+            return await super().__call__()
+
+    estado, respuesta = await _crudo(
+        f"{A}/restaurantes/{restaurante.id}/importaciones",
+        {**cabecera_operador, "content-type": MULTIPART},
+        CuerpoQueRevoca([_multipart(PDF_LA_CEIBA)]),
+    )
+    assert estado == 404, respuesta
+    assert await sesion.scalar(select(func.count()).select_from(ImportacionMenu)) == 0
+
+
+@pytest.mark.ac("AC-25.4")
+async def test_una_corrida_que_pasa_su_plazo_queda_fallido(
+    sesion: AsyncSession,
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    fabrica_importacion: Fabrica,
+    almacen: AlmacenLocal,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    importacion = await fabrica_importacion(restaurante, usuario)
+    await almacen.guardar_privado(importacion.archivo_url, PDF_LA_CEIBA, "application/pdf")
+    monkeypatch.setattr(procesador, "PLAZO_CORRIDA_SEGUNDOS", 0.05)
+
+    async def extraer(datos: bytes, tipo: str, **_: Any) -> Extraccion:
+        await asyncio.Event().wait()  # la API nunca contesta
+        raise AssertionError("inalcanzable")
+
+    assert await Procesador(fabrica_sesion, almacen, extraer=extraer).ciclo() == 1
+    await sesion.refresh(importacion)
+    assert importacion.estado is EstadoImportacion.fallido
+    assert importacion.intentos == 1
+
+
+@pytest.mark.ac("AC-25.3")
+async def test_un_fallo_a_media_confirmacion_no_deja_nada(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    fabrica_importacion: Fabrica,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    cabecera_operador: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original = importaciones.descripcion_con_variantes
+    llamadas: list[int] = []
+
+    def falla_en_el_segundo(platillo: Any) -> str | None:
+        llamadas.append(1)
+        if len(llamadas) == 2:
+            raise RuntimeError("se cayó a media transacción")
+        return original(platillo)
+
+    monkeypatch.setattr(importaciones, "descripcion_con_variantes", falla_en_el_segundo)
+    importacion = await _lista(fabrica_importacion, restaurante, usuario)
+    respuesta = await cliente.post(
+        _ruta(restaurante, importacion.id, "confirmar"),
+        json=_borrador_valido(),
+        headers=cabecera_operador,
+    )
+    assert respuesta.status_code == 500
+    assert await _platillos(sesion, restaurante) == []
+    assert await sesion.scalar(select(func.count()).select_from(CategoriaMenu)) == 0
+    await sesion.refresh(importacion)
+    assert importacion.estado is EstadoImportacion.listo
+
+
+@pytest.mark.ac("AC-25.4")
+async def test_dos_reintentos_a_la_vez_uno_202_y_otro_409(real: dict[str, Any]) -> None:
+    fabrica = real["fabrica"]
+    fila = real["filas"][0]
+    async with fabrica() as s:
+        await s.execute(
+            text("UPDATE importacion_menu SET estado = 'fallido', intentos = 1 WHERE id = :i"),
+            {"i": fila.id},
+        )
+        await s.commit()
+
+    async def reintentar() -> Any:
+        async with fabrica() as s:
+            return await importaciones.reintentar(s, real["restaurante"].id, fila.id)
+
+    resultados = await asyncio.gather(reintentar(), reintentar(), return_exceptions=True)
+    errores = [r for r in resultados if isinstance(r, ErrorCarta)]
+    assert len(errores) == 1, resultados
+    assert (errores[0].http, errores[0].codigo) == (409, "IMPORTACION_NO_REINTENTABLE")
+
+
+@pytest.mark.ac("AC-25.3")
+async def test_dos_confirmaciones_de_importaciones_distintas_no_chocan(
+    real: dict[str, Any],
+) -> None:
+    """B1: misma categoría nueva y `orden` consecutivos con dos confirmaciones a la vez."""
+    fabrica = real["fabrica"]
+    restaurante = real["restaurante"]
+    async with fabrica() as s:
+        await s.execute(
+            text(
+                "UPDATE importacion_menu SET estado = 'listo', resultado = '{}'::jsonb "
+                "WHERE restaurante_id = :r"
+            ),
+            {"r": restaurante.id},
+        )
+        await s.commit()
+    una = ResultadoImportacion.model_validate(_borrador_valido())
+    otra = ResultadoImportacion.model_validate(
+        {
+            "categorias": [
+                {
+                    "nombre": "Tacos",
+                    "orden": 1,
+                    "platillos": [
+                        {"nombre": "Campechano", "precio": 30, "precio_confianza": "alta"}
+                    ],
+                },
+                {
+                    "nombre": "Postres",
+                    "orden": 2,
+                    "platillos": [{"nombre": "Flan", "precio": 50, "precio_confianza": "alta"}],
+                },
+            ]
+        }
+    )
+
+    async def confirmar(fila: ImportacionMenu, revisado: ResultadoImportacion) -> Any:
+        async with fabrica() as s:
+            return await importaciones.confirmar(s, restaurante.id, fila.id, revisado)
+
+    resultados = await asyncio.gather(
+        confirmar(real["filas"][0], una), confirmar(real["filas"][1], otra), return_exceptions=True
+    )
+    assert all(isinstance(r, ImportacionMenu) for r in resultados), resultados
+    async with fabrica() as s:
+        categorias = list(
+            await s.scalars(
+                select(CategoriaMenu)
+                .where(CategoriaMenu.restaurante_id == restaurante.id)
+                .order_by(CategoriaMenu.orden)
+            )
+        )
+        tacos = next(c for c in categorias if c.nombre == "Tacos")
+        en_tacos = await s.scalar(
+            select(func.count()).select_from(Platillo).where(Platillo.categoria_id == tacos.id)
+        )
+    assert sorted(c.nombre for c in categorias) == ["Bebidas", "Postres", "Tacos"]
+    assert [c.orden for c in categorias] == [1, 2, 3]
+    assert en_tacos == 3
+
+
+# --- B4 · Lo que no es culpa del archivo no gasta corridas ---------------------------------
+
+
+@pytest.mark.ac("AC-25.4")
+@pytest.mark.parametrize(
+    ("respuesta", "con_archivo", "intentos"),
+    [
+        (error_api(401, "authentication_error"), True, 0),
+        (error_api(529, "overloaded_error"), True, 0),
+        (None, False, 0),  # el almacén no tiene el archivo
+        (error_api(400, "invalid_request_error"), True, 1),  # rechazo: sí cuenta
+    ],
+    ids=["llave", "api-caida", "sin-archivo", "rechazo"],
+)
+async def test_una_falla_ajena_al_archivo_no_cuenta_como_corrida(
+    sesion: AsyncSession,
+    fabrica_sesion: async_sessionmaker[AsyncSession],
+    fabrica_importacion: Fabrica,
+    almacen: AlmacenLocal,
+    restaurante: Restaurante,
+    usuario: Usuario,
+    respuesta: Any,
+    con_archivo: bool,
+    intentos: int,
+) -> None:
+    importacion = await fabrica_importacion(restaurante, usuario)
+    if con_archivo:
+        await almacen.guardar_privado(importacion.archivo_url, PDF_LA_CEIBA, "application/pdf")
+    pasos = [respuesta] * 3 if respuesta is not None else []
+    await _procesador(fabrica_sesion, almacen, ApiFalsa(*pasos)).ciclo()
+    await sesion.refresh(importacion)
+    assert importacion.estado is EstadoImportacion.fallido
+    assert importacion.intentos == intentos
+
+
+# --- B6 · Leer del bucket privado tiene tope ----------------------------------------------
+
+
+async def test_leer_privado_no_lee_mas_del_tope(almacen: AlmacenLocal) -> None:
+    await almacen.guardar_privado("importaciones/x/a.pdf", b"x" * 11, "application/pdf")
+    assert await almacen.leer_privado("importaciones/x/a.pdf", 11) == b"x" * 11
+    with pytest.raises(ErrorAlmacen):
+        await almacen.leer_privado("importaciones/x/a.pdf", 10)

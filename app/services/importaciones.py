@@ -17,6 +17,11 @@ leerá el modelo; `archivo_url` lleva esa **clave**, no una URL. Primero el alma
 la fila: si la base fallara queda un archivo huérfano (inofensivo); al revés, el procesador
 encontraría una importación sin archivo.
 
+**Cupo**: a lo sumo `MAX_EN_CURSO` importaciones `pendiente`/`procesando` por restaurante
+(409 `IMPORTACION_EN_CURSO`), comprobado antes de leer el cuerpo y otra vez con la fila del
+restaurante bloqueada al crear la importación. pypdf y Pillow comparten el semáforo de las
+fotos (revisión A1).
+
 **Reintentar** sólo una importación `fallido` y con menos de `MAX_CORRIDAS` corridas
 (`intentos`, `ck_importacion_intentos`): vuelve a `pendiente`. Si no, 409.
 
@@ -58,9 +63,10 @@ from app.db.models import (
     EstadoImportacion,
     ImportacionMenu,
     Platillo,
+    Restaurante,
     TipoImagen,
 )
-from app.schemas.importacion import PlatilloImportado, ResultadoImportacion
+from app.schemas.importacion import MAX_PLATILLOS_TOTAL, PlatilloImportado, ResultadoImportacion
 from app.schemas.menu import _sin_claves_repetidas
 from app.services import assets, menu, operadores
 from app.services.assets import Almacen, ErrorAlmacen
@@ -82,7 +88,8 @@ MAX_BYTES = TAMANO_MAXIMO_PDF
 LADO_MAXIMO = 2576  # px de lado largo: la resolución que aprovecha el modelo
 CALIDAD_JPEG = 85
 MAX_CORRIDAS = 3  # `ck_importacion_intentos` (0–3): veces que el procesador la toma
-MAX_PLATILLOS_POR_CONFIRMACION = 1000  # 30 páginas × ~30 platillos; el borrador admite más
+MAX_EN_CURSO = 3  # `pendiente` + `procesando` por restaurante (cada una cuesta y ocupa memoria)
+MAX_PLATILLOS_POR_CONFIRMACION = MAX_PLATILLOS_TOTAL  # 1000; el esquema ya lo comprueba antes
 MAX_DESCRIPCION = 1000  # como `Descripcion` del alta de platillos (T-1.3)
 ORIENTACION_EXIF = 0x0112
 
@@ -93,6 +100,7 @@ MENSAJE_ALMACEN = "No pudimos guardar tu carta en este momento. Inténtalo de nu
 MENSAJE_YA_CONFIRMADA = "Esta carta ya se confirmó; sus platillos ya están en tu menú."
 MENSAJE_NO_LISTA = "Esta carta todavía no está lista para confirmar."
 MENSAJE_NO_REINTENTABLE = "Sólo se puede reintentar una lectura que falló."
+MENSAJE_EN_CURSO = "Ya tienes cartas leyéndose. Espera a que terminen antes de subir otra."
 MENSAJE_SIN_CORRIDAS = (
     "Ya intentamos leer esta carta 3 veces. Sube otro archivo o captura el menú a mano."
 )
@@ -201,10 +209,9 @@ def preparar_archivo(datos: bytes) -> ArchivoPreparado:
 
 
 async def _preparar_en_cola(datos: bytes) -> ArchivoPreparado:
-    """En un hilo. Las imágenes comparten el semáforo de las fotos (`assets`): el presupuesto
-    de memoria de Pillow es por proceso; quien espera más de `PLAZO_COLA_SEGUNDOS`, 503."""
-    if datos.startswith(b"%PDF-"):
-        return await asyncio.to_thread(preparar_archivo, datos)
+    """En un hilo, con el semáforo de las fotos (`assets`): el presupuesto de memoria de Pillow
+    y de pypdf es por proceso (revisión A1: ocho PDF hostiles a la vez fuera del semáforo
+    subían el proceso a 1,3 GB). Quien espera más de `PLAZO_COLA_SEGUNDOS`, 503."""
     try:
         async with asyncio.timeout(assets.PLAZO_COLA_SEGUNDOS):
             await assets._semaforo.acquire()
@@ -223,6 +230,29 @@ async def _preparar_en_cola(datos: bytes) -> ArchivoPreparado:
 
 def _no_encontrada() -> ErrorCarta:
     return ErrorCarta("RECURSO_NO_ENCONTRADO", mensaje_por_http(404), 404)
+
+
+def _en_curso_error() -> ErrorCarta:
+    return ErrorCarta("IMPORTACION_EN_CURSO", MENSAJE_EN_CURSO, 409, {"max_en_curso": MAX_EN_CURSO})
+
+
+async def contar_en_curso(sesion: AsyncSession, restaurante_id: UUID) -> int:
+    cuantas = await sesion.scalar(
+        select(func.count())
+        .select_from(ImportacionMenu)
+        .where(
+            ImportacionMenu.restaurante_id == restaurante_id,
+            ImportacionMenu.estado.in_([EstadoImportacion.pendiente, EstadoImportacion.procesando]),
+        )
+    )
+    return int(cuantas or 0)
+
+
+async def exigir_cupo(sesion: AsyncSession, restaurante_id: UUID) -> None:
+    """409 `IMPORTACION_EN_CURSO` si el restaurante ya tiene `MAX_EN_CURSO` en la cola. La ruta
+    lo llama **antes** de leer el cuerpo; `crear_importacion` lo repite bajo candado."""
+    if await contar_en_curso(sesion, restaurante_id) >= MAX_EN_CURSO:
+        raise _en_curso_error()
 
 
 def clave_del_archivo(restaurante_id: UUID, importacion_id: UUID, extension: str) -> str:
@@ -252,6 +282,14 @@ async def crear_importacion(
         raise ErrorCarta("ALMACEN_NO_DISPONIBLE", MENSAJE_ALMACEN, 503) from error
     if await operadores.restaurante_del_usuario(sesion, usuario_id, restaurante_id) is None:
         raise _no_encontrada()
+    # Candado del restaurante: dos subidas a la vez no saltan el cupo (la segunda espera y
+    # cuenta la fila de la primera).
+    await sesion.execute(
+        select(Restaurante.id).where(Restaurante.id == restaurante_id).with_for_update()
+    )
+    if await contar_en_curso(sesion, restaurante_id) >= MAX_EN_CURSO:
+        await sesion.rollback()
+        raise _en_curso_error()
     importacion = ImportacionMenu(
         id=importacion_id,
         restaurante_id=restaurante_id,
@@ -342,8 +380,8 @@ def validar_revisado(revisado: ResultadoImportacion) -> None:
     if total > MAX_PLATILLOS_POR_CONFIRMACION:
         raise _invalido(
             "body.categorias",
-            f"Se pueden confirmar hasta {MAX_PLATILLOS_POR_CONFIRMACION} platillos a la vez; "
-            "confirma la carta en partes.",
+            f"Caben hasta {MAX_PLATILLOS_POR_CONFIRMACION} platillos; reduce la carta a "
+            f"{MAX_PLATILLOS_POR_CONFIRMACION} platillos.",
             "demasiados_platillos",
         )
     categorias_vistas: set[str] = set()
@@ -419,7 +457,15 @@ async def confirmar(
     cache: CacheMenu | None = None,
     ahora: datetime | None = None,
 ) -> ImportacionMenu:
-    """Crea categorías y platillos del borrador revisado en una transacción (AC-25.3)."""
+    """Crea categorías y platillos del borrador revisado en una transacción (AC-25.3).
+
+    Bloquea primero la fila del restaurante (revisión B1): dos confirmaciones de importaciones
+    distintas no repiten `orden` ni chocan al crear la misma categoría nueva; la segunda
+    espera y ve la categoría de la primera (y la reutiliza). Orden de candados: restaurante y
+    después importación, el mismo que al crear una (`crear_importacion`)."""
+    await sesion.execute(
+        select(Restaurante.id).where(Restaurante.id == restaurante_id).with_for_update()
+    )
     importacion = await obtener(sesion, restaurante_id, importacion_id, bloquear=True)
     if importacion.estado is EstadoImportacion.confirmado:
         await sesion.rollback()

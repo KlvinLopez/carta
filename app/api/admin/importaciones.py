@@ -31,6 +31,15 @@ from app.services.importacion_menu import MENSAJE_NO_DISPONIBLE, importacion_dis
 
 router = APIRouter()
 
+# `confirmar`: el borrador revisado de una carta real ronda 100–400 KB; 2 MB es holgado y
+# acota lo que se lee y valida en el bucle de eventos (revisión A2: 60 MB tardaban 8 s en
+# Pydantic con el worker congelado).
+MAX_CUERPO_CONFIRMAR = 2 * 1024 * 1024
+PLAZO_CUERPO_SEGUNDOS = 30.0
+router_confirmar = APIRouter(
+    route_class=subidas.ruta_con_tope(MAX_CUERPO_CONFIRMAR, PLAZO_CUERPO_SEGUNDOS)
+)
+
 PLAZO_SUBIDA_SEGUNDOS = 60.0  # 20 MB en 60 s ≈ 2,8 Mbit/s
 
 LIMITES = subidas.Limites(
@@ -60,7 +69,7 @@ async def importacion_del_operador(
     response_model=ImportacionRespuesta,
     status_code=status.HTTP_202_ACCEPTED,
     dependencies=[Depends(limite_por_cabecera)],
-    responses=errores(400, 408, 413, 415, 503),
+    responses=errores(400, 408, 409, 413, 415, 503),
     openapi_extra=subidas.cuerpo_multipart(
         "CartaImportada", "PDF (hasta 30 páginas), JPG o PNG de hasta 20 MB."
     ),
@@ -76,6 +85,7 @@ async def crear_importacion(
     importación `pendiente` (AC-25.1). La lectura corre en segundo plano."""
     _exigir_disponible()
     usuario_id, restaurante_id = usuario.id, restaurante.id
+    await importaciones.exigir_cupo(sesion, restaurante_id)  # 409 antes de leer el cuerpo
     await sesion.close()  # la conexión vuelve al pool mientras llega el cuerpo
     datos = await subidas.leer_archivo(request, LIMITES, PLAZO_SUBIDA_SEGUNDOS)
     importacion = await importaciones.crear_importacion(
@@ -94,10 +104,10 @@ async def consultar_importacion(
     return importacion
 
 
-@router.post(
+@router_confirmar.post(
     "/restaurantes/{rid}/importaciones/{importacion_id}/confirmar",
     response_model=ImportacionRespuesta,
-    responses=errores(409),
+    responses=errores(400, 408, 409, 413),
 )
 async def confirmar_importacion(
     revisado: ResultadoImportacion,
@@ -124,3 +134,6 @@ async def reintentar_importacion(
     resultado = await importaciones.reintentar(sesion, importacion.restaurante_id, importacion.id)
     procesador.despertar()
     return resultado
+
+
+router.include_router(router_confirmar)
