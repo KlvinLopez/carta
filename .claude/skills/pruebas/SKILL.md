@@ -83,6 +83,10 @@ httpx normaliza la URL antes de enviarla (`/assets/../x` llega como `/x`, `/..` 
 
 httpx siempre manda el `Content-Length` real. Para probar un 413/401/404 **sin leer el cuerpo** o un `Content-Length` que miente, llama a `app` con un `scope` a mano y un `receive` que cuente cuántos trozos le pidieron (`Cuerpo` y `_crudo` en `tests/integration/test_fotos.py`); con el fixture `cliente` activo, las sustituciones de base, token y almacén ya están puestas. Imágenes de prueba generadas al vuelo en `tests/imagenes_pruebas.py` (JPEG con EXIF, PNG, HEIC con `pillow-heif`, PDF, bomba de píxeles, AVIF disfrazado); nada binario en el repo.
 
+**Cuerpos JSON grandes (T-1.9, A2):** FastAPI lee y valida el cuerpo JSON **antes** de cualquier dependencia, así que una dependencia de `Content-Length` llega tarde; para acotar un `POST` JSON usa la clase de ruta `subidas.ruta_con_tope(maximo, plazo)` (corta por cabecera sin leer y el *chunked* al pasar el tope, sin el margen de 64 KB del multipart) y pruébalo con `_crudo` + `Cuerpo` (`pedidos == 0`). Una lista que se valida hijo por hijo se acota con un `model_validator(mode="before")` que cuente primero.
+
+**Tareas asyncio en pruebas (T-1.9):** una tarea cancelada antes de su primer `await` **nunca ejecuta su cuerpo**: espera un `Event` que la tarea pone al arrancar antes de cancelarla, o la prueba se cuelga hasta el *timeout* de 60 s. Si un bucle espera un intervalo (10 s), despiértalo desde dentro del primer ciclo en lugar de esperarlo.
+
 ## 3b''. R2 sin red
 
 S3 falso = `moto.server.ThreadedMotoServer(ip_address="127.0.0.1", port=0)` (dependencia de desarrollo). Crea los buckets con un cliente `region_name="us-east-1"`: moto rechaza `CreateBucket` con la región `auto` que usa la aplicación (para R2), aunque acepta `auto` en `PutObject`/`HeadBucket`. Un `Settings(ENTORNO="staging"|"produccion")` válido exige las seis `R2_*` desde T-1.4: pásalas (`R2_COMPLETO` en `tests/unit/test_config.py`) o, si la prueba no es de configuración, `Settings.model_construct(...)`.
