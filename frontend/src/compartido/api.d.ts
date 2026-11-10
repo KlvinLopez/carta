@@ -248,10 +248,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar Mesas */
+        /**
+         * Listar Mesas
+         * @description Por número; `activa` filtra (sin él, todas).
+         */
         get: operations["listar_mesas_api_v1_admin_restaurantes__rid__mesas_get"];
         put?: never;
-        /** Crear Mesas */
+        /**
+         * Crear Mesas
+         * @description Crea `cantidad` mesas numeradas a continuación, con un código de 128 bits cada una.
+         */
         post: operations["crear_mesas_api_v1_admin_restaurantes__rid__mesas_post"];
         delete?: never;
         options?: never;
@@ -259,7 +265,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/mesas/{mesa_id}/regenerar": {
+    "/api/v1/admin/mesas/{mesa_id}/regenerar-codigo": {
         parameters: {
             query?: never;
             header?: never;
@@ -268,8 +274,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Regenerar Codigo */
-        post: operations["regenerar_codigo_api_v1_admin_mesas__mesa_id__regenerar_post"];
+        /**
+         * Regenerar Codigo
+         * @description Código nuevo; el anterior deja de funcionar de inmediato (AC-21.3).
+         */
+        post: operations["regenerar_codigo_api_v1_admin_mesas__mesa_id__regenerar_codigo_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -283,7 +292,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Descargar Qr */
+        /**
+         * Descargar Qr
+         * @description Una tarjeta por mesa activa, cuatro por hoja A4 (AC-21.2).
+         */
         get: operations["descargar_qr_api_v1_admin_restaurantes__rid__mesas_qr_pdf_get"];
         put?: never;
         post?: never;
@@ -570,15 +582,16 @@ export interface components {
             numero: number;
             /** Codigo Publico */
             codigo_publico: string;
-            /**
-             * Url Publica
-             * @example https://carta.cooking/m/Jx3k9QwLmN2pR7sT4vY8zA
-             */
-            url_publica: string;
             /** Capacidad */
             capacidad: number;
             /** Activa */
             activa: boolean;
+            /**
+             * Url Publica
+             * @description `https://{DOMINIO}/m/{codigo_publico}`: la dirección que lleva el QR.
+             * @example https://carta.cooking/m/Jx3k9QwLmN2pR7sT4vY8zA
+             */
+            readonly url_publica: string;
         };
         /**
          * MesasCrear
@@ -1929,7 +1942,11 @@ export interface operations {
     };
     listar_mesas_api_v1_admin_restaurantes__rid__mesas_get: {
         parameters: {
-            query?: never;
+            query?: {
+                activa?: boolean | null;
+                skip?: number;
+                limit?: number;
+            };
             header?: never;
             path: {
                 rid: string;
@@ -2029,7 +2046,7 @@ export interface operations {
             };
         };
     };
-    regenerar_codigo_api_v1_admin_mesas__mesa_id__regenerar_post: {
+    regenerar_codigo_api_v1_admin_mesas__mesa_id__regenerar_codigo_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2060,6 +2077,15 @@ export interface operations {
             };
             /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2116,8 +2142,26 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
