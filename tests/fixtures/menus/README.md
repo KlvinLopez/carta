@@ -45,3 +45,7 @@ nombres, precios y variantes de `respuesta.json` y `esperado.json` coinciden.
 ## Precisión esperada (T-1.8)
 
 Para cada carta hay (o habrá) un `<nombre>.esperado.json` con los platillos y precios anotados a mano (`precio: null` = sin precio fijo). Hoy existen los de las dos sintéticas; los de `externas/` faltan (las cartas reales no están en el repositorio). La prueba `live` exige ≥ 90 % de precios con confianza `alta` y correctos en las cartas con texto; en la escaneada se mide y se registra, sin umbral todavía.
+
+## Fotos de la semilla
+
+`tests/fixtures/fotos/*.jpg` (18, unos 20 KB cada una) son composiciones sintéticas, no fotografías de comida: las genera `scripts/generar_fotos_semilla.py` (deterministas) para que la semilla de desarrollo (`scripts/seed.py`) muestre un menú con foto sin depender de derechos de imagen. `iphone-48mp.heic` es de T-1.4 y no se usa en la semilla.

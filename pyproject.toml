@@ -71,7 +71,7 @@ extend-immutable-calls = [
 
 [tool.mypy]
 python_version = "3.12"
-files = ["app"]
+files = ["app", "scripts"]
 check_untyped_defs = true
 ignore_missing_imports = true
 plugins = ["pydantic.mypy"]

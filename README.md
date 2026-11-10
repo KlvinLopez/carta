@@ -171,6 +171,17 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run
 npm --prefix frontend ci && npm --prefix frontend test && npm --prefix frontend run build
 ```
 
+### Development seed (`scripts/seed.py`)
+
+```bash
+uv run python scripts/seed.py   # La Ceiba: 4 categories, 22 dishes (18 with photo), 8 tables, 3 staff, 1 import ready to review
+```
+
+It goes through the real services (so hashes and invariants match production), is idempotent (deletes and recreates **only** the `la-ceiba` restaurant, the one physical delete allowed) and **refuses to run unless `ENTORNO=desarrollo`** (exit code 2, nothing touched). Photos come from `tests/fixtures/fotos/` into the local store (`ALMACEN_LOCAL_RUTA`, served at `/almacen` in development); the sample import uses `tests/fixtures/menus/la-ceiba.pdf` and the recorded model answer, without calling the API. It prints each table's QR URL and, once, the staff PIN.
+
+- **Staff PIN (development only): `1234`** — the same for the 2 waiters and the captain, stored as an Argon2id hash like any other. Never use it anywhere else.
+- **Operator:** the seed creates `usuario` + `operador_restaurante` for the fixed `firebase_uid` `dev-operador-la-ceiba`. To sign in as them you need an ID token for that uid: with your own Firebase project (`FIREBASE_PROJECT_ID`), sign in once and replace the uid of the seeded `usuario` with yours (`update usuario set firebase_uid = '<your uid>' where firebase_uid = 'dev-operador-la-ceiba'`); in tests, the test verifier accepts the token `prueba:dev-operador-la-ceiba`.
+
 In a Claude Code cloud session there is nothing to do by hand: the `SessionStart` hook ([`.claude/hooks/session-start.sh`](.claude/hooks/session-start.sh)) runs `uv sync --frozen`, starts a local PostgreSQL 16 without Docker and exports `DATABASE_URL`, `DATABASE_URL_SYNC` and `TEST_DATABASE_URL`, so `uv run pytest -q` works from the first command.
 
 ## Deploy
