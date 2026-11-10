@@ -88,3 +88,12 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 - Un encabezado de categoría con contador dentro tiene el nombre «Tacos3»: consulta con `name: /^Tacos/`. Reordenar mueve nodos del DOM y quita el foco: devuélvelo en un `useLayoutEffect`.
 - Un fetch de prueba que responde lo mismo a cualquier ruta rompe al aparecer una pantalla que pide otras listas: enruta por `url.pathname`.
 - **La puerta se lee por código de salida, no por el resumen.** `vitest` puede mostrar «342 passed» y salir con 1 por un «Unhandled Error» (una excepción fuera de toda prueba, p. ej. un `fetch` simulado que responde lo mismo a cualquier ruta). Corre `npx vitest run; echo $?` sin tubería ni `grep`; la CI (job `frontend`) hace lo mismo. Una prueba que sobreescribe el mock (`entrar()` pisa `pedir.mockImplementation`) puede volverse vacía: comprueba que falla quitando la corrección.
+
+## Lecciones de Mesas, Personal y Ajustes (T-1.13)
+
+- `userEvent.setup()` instala su propio `navigator.clipboard`: el stub de la prueba (`Object.defineProperty(navigator, 'clipboard', …)`) va **después** de `setup()`, o «Copiar» nunca falla en la prueba.
+- Corre vitest siempre desde `frontend/` (desde `src/` no encuentra `vite.config.ts` y da «window is not defined»), y no dejes un `node_modules` en `src/`.
+- Escritura optimista con reversión (activo del personal): el elemento cambia de lista al instante, así que una prueba de «doble envío» debe buscarlo en la vista nueva, con sus botones apagados (`ocupada`), no en la de origen.
+- Regeneraciones concurrentes: turno por mesa (`useMesas`); la respuesta de un turno viejo se descarta aunque llegue después, y mientras haya una en curso no se muestra ningún QR ni se permite el PDF.
+- Un formulario en hoja inferior necesita `padding` de ≥ 4 px: el halo de foco se recorta contra el borde de la hoja.
+- Las pantallas de gestión comparten `admin/gestion/` (`useLista`, `mensajes`, `LimiteGestion`, `CopiarEnlace`, `utilesContrato` sólo para pruebas): úsalo en la siguiente (categorías, pedidos) en vez de copiar.
