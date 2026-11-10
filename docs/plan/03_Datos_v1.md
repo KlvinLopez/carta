@@ -47,6 +47,7 @@ CREATE TABLE personal_restaurante (
     intentos_fallidos SMALLINT NOT NULL DEFAULT 0,
     bloqueado_hasta  TIMESTAMPTZ,
     ultimo_acceso_en TIMESTAMPTZ,
+    sesiones_desde   TIMESTAMPTZ NOT NULL DEFAULT NOW(),    -- 0003: sello de revocación (AC-26.3)
     creado_en        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     actualizado_en   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT ck_personal_nombre   CHECK (length(btrim(nombre)) > 0),
@@ -60,7 +61,7 @@ CREATE UNIQUE INDEX uq_personal_activo_por_nombre
 CREATE INDEX idx_personal_restaurante ON personal_restaurante (restaurante_id);
 ```
 
-La sesión del personal es un JWT firmado (`sub = personal_id`, `restaurante_id`, `rol`, 12 h) en cookie `carta_personal`; al desactivar a la persona, la verificación en cada petición consulta `activo` (una lectura por índice) y la rechaza.
+La sesión del personal es un JWT firmado (`sub = personal_id`, `restaurante_id`, `rol`, 12 h) en cookie `carta_personal`; al desactivar a la persona, la verificación en cada petición consulta `activo` (una lectura por índice) y la rechaza. **`sesiones_desde` (0003):** además la cookie vale sólo si `iat >= sesiones_desde`; el operador adelanta el sello al desactivar, reasignar el PIN o cambiar el rol, de modo que reactivar a alguien no resucita sus cookies viejas y un cambio de rol no deja vivo el rol anterior.
 
 ### 2.2 `importacion_menu`
 

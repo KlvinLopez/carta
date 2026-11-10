@@ -64,6 +64,7 @@ from app.db.models import (  # noqa: E402
     CategoriaMenu,
     Mesa,
     OperadorRestaurante,
+    PersonalRestaurante,
     Platillo,
     Restaurante,
     Usuario,
@@ -225,6 +226,14 @@ def fabrica_platillo(sesion: AsyncSession) -> Fabrica:
         restaurante: Restaurante, categoria: CategoriaMenu | None = None, **valores: Any
     ) -> Platillo:
         return await fabricas.crear_platillo(sesion, restaurante, categoria, **valores)
+
+    return _crear
+
+
+@pytest.fixture
+def fabrica_personal(sesion: AsyncSession) -> Fabrica:
+    async def _crear(restaurante: Restaurante, **valores: Any) -> PersonalRestaurante:
+        return await fabricas.crear_personal(sesion, restaurante, **valores)
 
     return _crear
 

@@ -341,6 +341,37 @@ async def test_0002_baja_a_0001_y_vuelve_a_subir(url_bd: str) -> None:
             await motor.dispose()
 
 
+async def _columna_sesiones_desde(conexion: AsyncConnection) -> tuple[str, str | None] | None:
+    fila = (
+        await conexion.execute(
+            text(
+                "SELECT is_nullable, column_default FROM information_schema.columns "
+                "WHERE table_name = 'personal_restaurante' AND column_name = 'sesiones_desde'"
+            )
+        )
+    ).first()
+    return None if fila is None else (fila[0], fila[1])
+
+
+async def test_0003_baja_a_0002_y_vuelve_a_subir(url_bd: str) -> None:
+    """`0003_personal_sesiones_desde`: baja quitando la columna del sello de revocación y
+    vuelve a subir como `NOT NULL DEFAULT now()` (las filas existentes quedan selladas)."""
+    async with base_desechable(url_bd, "sello") as url:
+        motor = create_async_engine(url, poolclass=NullPool)
+        try:
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert await _columna_sesiones_desde(conexion) == ("NO", "now()")
+            alembic("downgrade", "0002_consistencia_inquilino", url=url)
+            async with motor.connect() as conexion:
+                assert await _columna_sesiones_desde(conexion) is None
+            alembic("upgrade", "head", url=url)
+            async with motor.connect() as conexion:
+                assert await _columna_sesiones_desde(conexion) == ("NO", "now()")
+        finally:
+            await motor.dispose()
+
+
 async def _fk_compuestas(conexion: AsyncConnection) -> dict[str, str]:
     """Las FK de varias columnas de la base (las de 0001 son todas de una columna)."""
     fks = await _definiciones_fk(conexion)
