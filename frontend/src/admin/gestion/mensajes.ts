@@ -32,3 +32,11 @@ export function tipoDeError(error: unknown): string | null {
   const tipo = typeof primero === 'object' && primero !== null ? (primero as { tipo?: unknown }).tipo : null;
   return typeof tipo === 'string' ? tipo : null;
 }
+
+/** Largo en puntos de código (como `max_length` de Pydantic), no en unidades UTF-16 como `maxLength` del DOM. */
+export const largoEnPuntos = (texto: string): number => [...texto].length;
+
+/** El servidor no aplicó nada (503, 408 o la red cayó): el PIN tecleado sigue valiendo para reintentar. */
+export function noSeAplico(error: unknown): boolean {
+  return error instanceof ErrorApi && (error.estado === 0 || error.estado === 503 || error.estado === 408);
+}

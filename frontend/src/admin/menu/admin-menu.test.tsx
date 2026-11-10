@@ -231,7 +231,8 @@ describe('revisión de maestra: búsqueda, vistas y topes', () => {
   it('al llegar al tope de páginas avisa que hay más y manda a la búsqueda', async () => {
     const enormes = Array.from({ length: 2100 }, (_, i) => platilloDe(i + 1, { nombre: `P ${i + 1}`, orden: i + 1 }));
     montarMenu({ platillos: enormes });
-    expect(await screen.findByText(/Mostrando los primeros 2000 platillos/)).toBeInTheDocument();
+    // 21 páginas de 100: bajo carga tardan más que el plazo por defecto de `findBy`.
+    expect(await screen.findByText(/Mostrando los primeros 2000 platillos/, undefined, { timeout: 15_000 })).toBeInTheDocument();
   });
 
   it('sin tope alcanzado no hay aviso', async () => {

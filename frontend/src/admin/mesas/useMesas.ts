@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 
+import { ErrorApi } from '../../compartido/http';
+import { tipoDeError } from '../gestion/mensajes';
 import { useLista } from '../gestion/useLista';
 import type { Mesa, ServicioMesas } from './servicio';
 
@@ -17,8 +19,18 @@ export interface CodigoNuevo {
  * respuesta de una anterior se descarta, de modo que nunca se muestra un QR que ya dejó de servir.
  */
 export function useMesas(servicio: ServicioMesas, rid: string) {
+  // Dos listas (activas y bajas) para que las bajas nunca desplacen a las activas del tope de 500.
   const lista = useLista<Mesa>(
-    (signal) => servicio.listar(rid, {}, signal),
+    async (signal) => {
+      const [activas, bajas] = await Promise.all([
+        servicio.listar(rid, { activa: true }, signal),
+        servicio.listar(rid, { activa: false }, signal),
+      ]);
+      if (!Array.isArray(activas) || !Array.isArray(bajas)) {
+        throw new ErrorApi(200, 'RESPUESTA_INVALIDA', 'No pudimos cargar tus mesas. Inténtalo de nuevo.');
+      }
+      return [...activas, ...bajas].sort(porNumero);
+    },
     rid,
     'No pudimos cargar tus mesas. Inténtalo de nuevo.',
   );
@@ -27,13 +39,32 @@ export function useMesas(servicio: ServicioMesas, rid: string) {
   const [regenerando, setRegenerando] = useState<ReadonlySet<string>>(new Set());
   const [codigoNuevo, setCodigoNuevo] = useState<CodigoNuevo | null>(null);
 
+  /** Tras un 409 `MESA_INACTIVA`, un 409 o el 422 de tope la lista cambió en otro lado: se vuelve a leer sin tapar la pantalla. */
+  const recargar = useCallback(async () => {
+    try {
+      const [activas, bajas] = await Promise.all([
+        servicio.listar(rid, { activa: true }),
+        servicio.listar(rid, { activa: false }),
+      ]);
+      if (Array.isArray(activas) && Array.isArray(bajas)) setDatos([...activas, ...bajas].sort(porNumero));
+    } catch {
+      // Sin red: la lista que ya se ve sigue ahí y el mensaje del error ya se mostró.
+    }
+  }, [servicio, rid, setDatos]);
+
   const crear = useCallback(
     async (datos: { cantidad: number; capacidad: number }) => {
-      const creadas = await servicio.crear(rid, datos);
-      setDatos((previas) => [...previas, ...(Array.isArray(creadas) ? creadas : [])].sort(porNumero));
-      return creadas;
+      try {
+        const creadas = await servicio.crear(rid, datos);
+        setDatos((previas) => [...previas, ...(Array.isArray(creadas) ? creadas : [])].sort(porNumero));
+        return creadas;
+      } catch (error) {
+        // El tope lo cuenta el servidor: si dice que no caben, la lista que se ve estaba vieja.
+        if (error instanceof ErrorApi && (error.estado === 409 || tipoDeError(error) === 'limite_de_mesas')) void recargar();
+        throw error;
+      }
     },
-    [servicio, rid, setDatos],
+    [servicio, rid, setDatos, recargar],
   );
 
   const regenerar = useCallback(
@@ -61,16 +92,6 @@ export function useMesas(servicio: ServicioMesas, rid: string) {
     },
     [servicio, setDatos],
   );
-
-  /** Tras un 409 `MESA_INACTIVA` la lista cambió en otro lado: se vuelve a leer sin tapar la pantalla. */
-  const recargar = useCallback(async () => {
-    try {
-      const mesas = await servicio.listar(rid, {});
-      if (Array.isArray(mesas)) setDatos(mesas);
-    } catch {
-      // Sin red: la lista que ya se ve sigue ahí y el mensaje del error ya se mostró.
-    }
-  }, [servicio, rid, setDatos]);
 
   return {
     estado: lista.estado,

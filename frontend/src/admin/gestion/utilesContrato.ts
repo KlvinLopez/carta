@@ -22,3 +22,21 @@ export const esquema = (nombre: string) => esquemas[nombre] as Record<string, un
 export const metodosDe = (ruta: string) => Object.keys(rutas[`/api/v1${ruta}`] ?? {});
 export const operacion = (ruta: string, metodo: string) =>
   (rutas[`/api/v1${ruta}`] as Record<string, { parameters?: { name: string; schema: Record<string, unknown> }[]; responses: Record<string, unknown> }>)[metodo]!;
+
+/**
+ * Para los servicios simulados: valida lo que reciben contra el esquema de la petición y devuelve los
+ * errores con la forma del 422 del servidor (`detalles.errores[]`), o `null` si cumple. Nunca incluye el
+ * valor recibido (un PIN no debe acabar en un mensaje).
+ */
+export function erroresDePeticion(nombre: string, valor: unknown): { campo: string; mensaje: string; tipo: string }[] | null {
+  const ajv = new Ajv2020({ strict: false, validateFormats: true, allErrors: true });
+  ajv.addFormat('uuid', true);
+  ajv.addFormat('date-time', true);
+  const comprobar = ajv.compile({ $ref: `#/components/schemas/${nombre}`, components: { schemas: esquemas } });
+  if (comprobar(valor)) return null;
+  return (comprobar.errors ?? []).map((e) => ({
+    campo: ['body', ...e.instancePath.split('/').filter(Boolean)].join('.') || 'body',
+    mensaje: 'Dato inválido.',
+    tipo: e.keyword,
+  }));
+}

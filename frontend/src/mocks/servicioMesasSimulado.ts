@@ -1,4 +1,5 @@
 import type { Mesa, ServicioMesas } from '../admin/mesas/servicio';
+import { erroresDePeticion } from '../admin/gestion/utilesContrato';
 import { ErrorApi } from '../compartido/http';
 
 export function uuidMesa(n: number): string {
@@ -63,6 +64,8 @@ export function crearServicioMesasSimulado(opciones: OpcionesMesasSimulado = {})
     },
     async crear(_rid, datos) {
       registrar('crear', datos);
+      const malos = erroresDePeticion('MesasCrear', datos);
+      if (malos) throw new ErrorApi(422, 'PAYLOAD_INVALIDO', 'Dato inválido.', { errores: malos });
       const activas = mesas.filter((m) => m.activa).length;
       if (activas + datos.cantidad > 500) {
         const mensaje = 'Cada restaurante puede tener hasta 500 mesas activas.';
@@ -96,7 +99,7 @@ export function crearServicioMesasSimulado(opciones: OpcionesMesasSimulado = {})
       if (!mesas.some((m) => m.activa)) {
         throw new ErrorApi(409, 'CONFLICTO', 'No tienes mesas activas: crea al menos una para generar los QR.');
       }
-      return new Blob(['%PDF-1.4\n%simulado\n'], { type: 'application/pdf' });
+      return { blob: new Blob(['%PDF-1.4\n%simulado\n'], { type: 'application/pdf' }), nombre: 'qr-mesas-taqueria-el-paso.pdf' };
     },
   };
 

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { crearCliente, ErrorApi } from '../../compartido/http';
+import { crearCliente, ErrorApi, nombreDeDisposicion } from '../../compartido/http';
 import { crearServicioMesasSimulado } from '../../mocks/servicioMesasSimulado';
-import { metodosDe, operacion, validador } from '../gestion/utilesContrato';
+import { esquema, metodosDe, operacion, validador } from '../gestion/utilesContrato';
 import { crearServicioMesas, TOPES_MESAS } from './servicio';
 
 const RID = '11111111-1111-4111-8111-111111111111';
@@ -40,16 +40,16 @@ describe('contrato de mesas (T-1.5)', () => {
     expect(limit.schema['maximum']).toBe(TOPES_MESAS.activas);
   });
 
-  it('GET de mesas: restaurante en la ruta, todas por defecto y activa/limit en la consulta', async () => {
+  it('GET de mesas: restaurante en la ruta, activa y limit en la consulta (500 por defecto)', async () => {
     const { servicio, fetchFalso } = montar();
-    await servicio.listar(RID);
+    await servicio.listar(RID, { activa: true });
     let { url, init } = ultima(fetchFalso);
     expect(url.pathname).toBe(`/api/v1/admin/restaurantes/${RID}/mesas`);
-    expect(Object.fromEntries(url.searchParams)).toEqual({ limit: '500' });
+    expect(Object.fromEntries(url.searchParams)).toEqual({ activa: 'true', limit: '500' });
     expect(init.method).toBe('GET');
-    await servicio.listar(RID, { activa: true, limite: 1 });
+    await servicio.listar(RID, { activa: false, limite: 1 });
     ({ url } = ultima(fetchFalso));
-    expect(Object.fromEntries(url.searchParams)).toEqual({ activa: 'true', limit: '1' });
+    expect(Object.fromEntries(url.searchParams)).toEqual({ activa: 'false', limit: '1' });
   });
 
   it('POST de mesas: el cuerpo cumple MesasCrear y el restaurante va sólo en la ruta', async () => {
@@ -74,10 +74,14 @@ describe('contrato de mesas (T-1.5)', () => {
   });
 
   it('descargarQr: acepta application/pdf y un octet-stream que empieza con %PDF, rechaza lo demás', async () => {
-    const pdf = (tipo: string, cuerpo = '%PDF-1.4 x') =>
-      new Response(cuerpo, { status: 200, headers: { 'Content-Type': tipo } });
-    expect((await montar(() => pdf('application/pdf')).servicio.descargarQr(RID)).type).toBe('application/pdf');
-    expect((await montar(() => pdf('application/octet-stream')).servicio.descargarQr(RID)).type).toBe('application/pdf');
+    const pdf = (tipo: string, cuerpo = '%PDF-1.4 x', extra: Record<string, string> = {}) =>
+      new Response(cuerpo, { status: 200, headers: { 'Content-Type': tipo, ...extra } });
+    expect((await montar(() => pdf('application/pdf')).servicio.descargarQr(RID)).blob.type).toBe('application/pdf');
+    expect((await montar(() => pdf('application/octet-stream')).servicio.descargarQr(RID)).blob.type).toBe('application/pdf');
+    // El nombre sugerido por el servidor viaja con el archivo; sin cabecera es `null`.
+    const conNombre = pdf('application/pdf', '%PDF', { 'Content-Disposition': 'attachment; filename="qr-mesas-taqueria.pdf"' });
+    expect((await montar(() => conNombre).servicio.descargarQr(RID)).nombre).toBe('qr-mesas-taqueria.pdf');
+    expect((await montar(() => pdf('application/pdf')).servicio.descargarQr(RID)).nombre).toBeNull();
     await expect(montar(() => pdf('text/html', '<html>')).servicio.descargarQr(RID)).rejects.toMatchObject({
       codigo: 'RESPUESTA_INVALIDA',
     });
@@ -102,7 +106,32 @@ describe('contrato de mesas (T-1.5)', () => {
   });
 });
 
+describe('nombre del PDF según Content-Disposition', () => {
+  it.each([
+    ['attachment; filename="qr-mesas-taqueria.pdf"', 'qr-mesas-taqueria.pdf'],
+    ['attachment; filename=qr.pdf', 'qr.pdf'],
+    ["attachment; filename*=UTF-8''qr%20caf%C3%A9.pdf", 'qr café.pdf'],
+    ['attachment; filename="../../etc/passwd"', 'passwd'],
+    ['attachment; filename="..\\..\\x.pdf"', 'x.pdf'],
+    ['attachment; filename="a\u0000b\n.pdf"', 'ab.pdf'],
+    ['attachment; filename=".."', null],
+    ['attachment', null],
+    [null, null],
+  ])('%s → %s', (cabecera, esperado) => {
+    expect(nombreDeDisposicion(cabecera)).toBe(esperado);
+  });
+});
+
 describe('el servicio simulado respeta el contrato (peticiones y respuestas)', () => {
+  it('rechaza con 422 lo que el esquema MesasCrear no admite y sus respuestas no traen campos de más', async () => {
+    const sim = crearServicioMesasSimulado();
+    for (const malo of [{ cantidad: 0, capacidad: 4 }, { cantidad: 101, capacidad: 4 }, { cantidad: 1, capacidad: 51 }, { cantidad: 1, capacidad: 4, extra: 1 }]) {
+      await expect(sim.servicio.crear(RID, malo as never)).rejects.toMatchObject({ estado: 422 });
+    }
+    const claves = Object.keys(esquema('MesaRespuesta').properties);
+    for (const m of await sim.servicio.listar(RID)) expect(Object.keys(m).sort()).toEqual([...claves].sort());
+  });
+
   it('cada mesa que devuelve cumple MesaRespuesta, con url_publica y código distinto al regenerar', async () => {
     const sim = crearServicioMesasSimulado();
     const mesa = validador('MesaRespuesta');

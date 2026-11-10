@@ -61,6 +61,27 @@ export interface ClienteHttp {
    * `Blob`. Un enlace `<a href>` no llevaría la credencial.
    */
   descargar(ruta: string, opciones?: OpcionesSolicitud): Promise<Blob>;
+  /** Como `descargar`, y además el nombre que sugiere el servidor en `Content-Disposition` (o `null`). */
+  descargarArchivo(ruta: string, opciones?: OpcionesSolicitud): Promise<{ blob: Blob; nombre: string | null }>;
+}
+
+/** Nombre de archivo de un `Content-Disposition`; sin separadores de ruta ni caracteres de control. */
+export function nombreDeDisposicion(cabecera: string | null): string | null {
+  if (!cabecera) return null;
+  const codificado = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(cabecera)?.[1];
+  const simple = /filename\s*=\s*"([^"]*)"/i.exec(cabecera)?.[1] ?? /filename\s*=\s*([^;\s]+)/i.exec(cabecera)?.[1];
+  let nombre = simple ?? null;
+  if (codificado) {
+    try {
+      nombre = decodeURIComponent(codificado);
+    } catch {
+      nombre = simple ?? null;
+    }
+  }
+  if (!nombre) return null;
+  // Sólo el último tramo, sin controles ni comillas: el nombre llega al atributo `download` de un enlace.
+  const limpio = nombre.split(/[\\/]/).pop()!.replace(/[\u0000-\u001f\u007f"<>:*?|]/g, '').trim();
+  return limpio && limpio !== '.' && limpio !== '..' ? limpio.slice(0, 120) : null;
 }
 
 function esDetalle(valor: unknown): valor is { error: Partial<DetalleError> } {
@@ -210,5 +231,14 @@ export function crearCliente(opciones: OpcionesCliente): ClienteHttp {
     }
   }
 
-  return { solicitar, obtener: (ruta, op) => solicitar('GET', ruta, op), descargar };
+  async function descargarArchivo(ruta: string, op: OpcionesSolicitud = {}) {
+    const respuesta = await responder('GET', ruta, op, true);
+    try {
+      return { blob: await respuesta.blob(), nombre: nombreDeDisposicion(respuesta.headers.get('Content-Disposition')) };
+    } catch {
+      throw new ErrorApi(respuesta.status, 'RESPUESTA_INVALIDA', MENSAJE_GENERICO, {}, respuesta.headers.get('X-Request-ID'));
+    }
+  }
+
+  return { solicitar, obtener: (ruta, op) => solicitar('GET', ruta, op), descargar, descargarArchivo };
 }

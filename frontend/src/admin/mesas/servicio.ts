@@ -16,7 +16,8 @@ export interface ServicioMesas {
   crear(rid: string, datos: { cantidad: number; capacidad: number }, signal?: AbortSignal): Promise<Mesa[]>;
   /** Código nuevo: el QR impreso anterior deja de servir al instante (AC-21.3). */
   regenerar(id: string, signal?: AbortSignal): Promise<Mesa>;
-  descargarQr(rid: string, signal?: AbortSignal): Promise<Blob>;
+  /** El PDF de tarjetas con QR y el nombre que sugiere el servidor (`qr-mesas-<slug>.pdf`). */
+  descargarQr(rid: string, signal?: AbortSignal): Promise<{ blob: Blob; nombre: string | null }>;
 }
 
 export function crearServicioMesas(api: ClienteHttp): ServicioMesas {
@@ -28,15 +29,15 @@ export function crearServicioMesas(api: ClienteHttp): ServicioMesas {
     regenerar: (id, signal) =>
       api.solicitar<Mesa>('POST', `/admin/mesas/${encodeURIComponent(id)}/regenerar-codigo`, { signal }),
     async descargarQr(rid, signal) {
-      const pdf = await api.descargar(`${base(rid)}/mesas/qr.pdf`, { signal });
+      const { blob: pdf, nombre } = await api.descargarArchivo(`${base(rid)}/mesas/qr.pdf`, { signal });
       if (pdf.type.includes('octet-stream') && (await empiezaConPdf(pdf))) {
         // Algunos bordes sirven el PDF como octet-stream: si los bytes son de PDF, se acepta.
-        return new Blob([pdf], { type: 'application/pdf' });
+        return { blob: new Blob([pdf], { type: 'application/pdf' }), nombre };
       }
       if (!pdf.type.includes('pdf')) {
         throw new ErrorApi(200, 'RESPUESTA_INVALIDA', 'No pudimos preparar el PDF de tus QR. Inténtalo de nuevo.');
       }
-      return pdf;
+      return { blob: pdf, nombre };
     },
   };
 }

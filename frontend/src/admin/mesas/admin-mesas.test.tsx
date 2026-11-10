@@ -175,14 +175,16 @@ describe('regenerar código (AC-21.3)', () => {
     expect(aviso).not.toHaveTextContent(antes.url_publica);
   });
 
-  it('409 MESA_INACTIVA: dice el mensaje del servidor en la hoja y relee la lista', async () => {
+  it('409 MESA_INACTIVA: cierra la hoja, relee la lista y deja el mensaje del servidor en la lista', async () => {
     const { sim, u } = await cargada();
     await u.click(screen.getByRole('button', { name: 'Regenerar código de la mesa 3' }));
     const hoja = await screen.findByRole('dialog');
     sim.fallarUnaVez('regenerar', new ErrorApi(409, 'MESA_INACTIVA', 'Esa mesa está dada de baja; no tiene código que regenerar.'));
+    const antes = sim.llamadas.filter((l) => l.metodo === 'listar').length;
     await u.click(within(hoja).getByRole('button', { name: 'Regenerar código' }));
-    expect(await within(hoja).findByRole('alert')).toHaveTextContent('Esa mesa está dada de baja');
-    await waitFor(() => expect(sim.veces('listar')).toBe(2));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(await screen.findByRole('alert')).toHaveTextContent('Esa mesa está dada de baja');
+    await waitFor(() => expect(sim.llamadas.filter((l) => l.metodo === 'listar').length).toBe(antes + 2));
   });
 
   it('«el último gana»: la respuesta de una regeneración anterior no pinta su QR', async () => {
@@ -274,9 +276,9 @@ describe('regenerar código (AC-21.3)', () => {
 describe('descargar el PDF de QR', () => {
   it('muestra el estado de carga y entrega el archivo qr-mesas.pdf', async () => {
     const guardar = vi.spyOn(descarga, 'guardarComoArchivo').mockImplementation(() => {});
-    let soltar!: (b: Blob) => void;
+    let soltar!: (r: { blob: Blob; nombre: string | null }) => void;
     const base = crearServicioMesasSimulado();
-    const servicio: ServicioMesas = { ...base.servicio, descargarQr: () => new Promise<Blob>((r) => (soltar = r)) };
+    const servicio: ServicioMesas = { ...base.servicio, descargarQr: () => new Promise<{ blob: Blob; nombre: string | null }>((r) => (soltar = r)) };
     const u = userEvent.setup();
     render(<PantallaMesasConServicio servicio={servicio} restaurante={RESTAURANTE} />);
     await screen.findByRole('heading', { name: 'Mesa 1' });
@@ -285,9 +287,10 @@ describe('descargar el PDF de QR', () => {
     expect(boton).toBeDisabled();
     expect(boton).toHaveAttribute('aria-busy', 'true');
     expect(guardar).not.toHaveBeenCalled();
-    await act(async () => soltar(new Blob(['%PDF'], { type: 'application/pdf' })));
+    await act(async () => soltar({ blob: new Blob(['%PDF'], { type: 'application/pdf' }), nombre: 'qr-mesas-taqueria-el-paso.pdf' }));
     await waitFor(() => expect(guardar).toHaveBeenCalledOnce());
-    expect(guardar.mock.calls[0]![1]).toBe('qr-mesas.pdf');
+    // El nombre lo pone el servidor (`Content-Disposition`), no el cliente.
+    expect(guardar.mock.calls[0]![1]).toBe('qr-mesas-taqueria-el-paso.pdf');
     expect(screen.getByRole('button', { name: 'Descargar QR (PDF)' })).toBeEnabled();
     expect(screen.queryByRole('alert')).toBeNull();
   });
@@ -315,5 +318,113 @@ describe('descargar el PDF de QR', () => {
     await cargada({ mesas: [mesaDe(1, { activa: false })] });
     expect(screen.getByRole('button', { name: 'Descargar QR (PDF)' })).toBeDisabled();
     expect(screen.getByText('No tienes mesas activas. Agrega algunas para generar sus QR.')).toBeInTheDocument();
+  });
+});
+
+describe('ronda de revisión (A5, B1, B2, B8)', () => {
+  it('sin nombre del servidor el archivo se llama qr-mesas.pdf', async () => {
+    const guardar = vi.spyOn(descarga, 'guardarComoArchivo').mockImplementation(() => {});
+    const base = crearServicioMesasSimulado();
+    const servicio: ServicioMesas = { ...base.servicio, descargarQr: async () => ({ blob: new Blob(['%PDF']), nombre: null }) };
+    const u = userEvent.setup();
+    render(<PantallaMesasConServicio servicio={servicio} restaurante={RESTAURANTE} />);
+    await screen.findByRole('heading', { name: 'Mesa 1' });
+    await u.click(screen.getByRole('button', { name: 'Descargar QR (PDF)' }));
+    await waitFor(() => expect(guardar.mock.calls[0]![1]).toBe('qr-mesas.pdf'));
+  });
+
+  it('503 con Retry-After apaga «Descargar» con cuenta regresiva y lo enciende al terminar', async () => {
+    vi.spyOn(descarga, 'guardarComoArchivo').mockImplementation(() => {});
+    const { sim } = await cargada();
+    sim.fallarUnaVez('descargarQr', new ErrorApi(503, 'SERVICIO_OCUPADO', 'Ocupado', {}, null, 3));
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const u = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      await u.click(screen.getByRole('button', { name: 'Descargar QR (PDF)' }));
+      const boton = await screen.findByRole('button', { name: /Descargar QR \(PDF\) · 3 s/ });
+      expect(boton).toBeDisabled();
+      await act(async () => vi.advanceTimersByTime(1000));
+      expect(screen.getByRole('button', { name: /· 2 s/ })).toBeDisabled();
+      // Un segundo por vez: cada tic se programa al repintar.
+      await act(async () => vi.advanceTimersByTime(1000));
+      await act(async () => vi.advanceTimersByTime(1000));
+      expect(screen.getByRole('button', { name: 'Descargar QR (PDF)' })).toBeEnabled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('un Retry-After enorme se acota a 2 minutos', async () => {
+    const { sim, u } = await cargada();
+    sim.fallarUnaVez('descargarQr', new ErrorApi(503, 'SERVICIO_OCUPADO', 'Ocupado', {}, null, 99999));
+    await u.click(screen.getByRole('button', { name: 'Descargar QR (PDF)' }));
+    expect(await screen.findByRole('button', { name: /· 120 s/ })).toBeDisabled();
+  });
+
+  it('descargar bien borra el aviso del código nuevo (ya viaja en el PDF)', async () => {
+    vi.spyOn(descarga, 'guardarComoArchivo').mockImplementation(() => {});
+    const { u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Regenerar código de la mesa 2' }));
+    await u.click(await screen.findByRole('button', { name: 'Regenerar código' }));
+    expect(await screen.findByText(/Código nuevo para la mesa 2/)).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Descargar QR (PDF)' }));
+    await waitFor(() => expect(screen.queryByText(/Código nuevo para la mesa 2/)).toBeNull());
+  });
+
+  it('el 422 de tope relee la lista (estaba vieja) y el 409 también', async () => {
+    const { sim, u } = await cargada();
+    const mensaje = 'Cada restaurante puede tener hasta 500 mesas activas.';
+    sim.fallarUnaVez('crear', new ErrorApi(422, 'PAYLOAD_INVALIDO', mensaje, { errores: [{ campo: 'body.cantidad', mensaje, tipo: 'limite_de_mesas' }] }));
+    const antes = sim.veces('listar');
+    await u.click(screen.getByRole('button', { name: 'Agregar mesas' }));
+    await u.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Crear mesas' }));
+    await waitFor(() => expect(sim.veces('listar')).toBe(antes + 2));
+    sim.fallarUnaVez('crear', new ErrorApi(409, 'CONFLICTO', 'Choca con el estado actual'));
+    await u.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Crear mesas' }));
+    await waitFor(() => expect(sim.veces('listar')).toBe(antes + 4));
+  });
+
+  it('lista activas y bajas con dos consultas (activa=true y activa=false), nunca una sola sin filtro', async () => {
+    const { sim } = await cargada();
+    const filtros = sim.llamadas.filter((l) => l.metodo === 'listar').map((l) => (l.argumentos[0] as { activa: boolean }).activa);
+    expect(filtros.sort()).toEqual([false, true]);
+  });
+
+  it.each([
+    [100, 50, 400, true],
+    [5, 4, 495, true],
+    [1, 4, 500, false],
+    [6, 4, 495, false],
+  ])('frontera: %i mesas de %i lugares con %i activas → %s', async (cantidad, capacidad, activas, seEnvia) => {
+    const muchas = Array.from({ length: activas }, (_, i) => mesaDe(i + 1));
+    const { sim, u } = montarMesas({ mesas: muchas });
+    await screen.findByRole('heading', { name: 'Mesa 1' });
+    await u.click(screen.getByRole('button', { name: 'Agregar mesas' }));
+    const hoja = await screen.findByRole('dialog');
+    await u.clear(within(hoja).getByLabelText('Cuántas mesas'));
+    await u.type(within(hoja).getByLabelText('Cuántas mesas'), String(cantidad));
+    await u.clear(within(hoja).getByLabelText('Lugares por mesa'));
+    await u.type(within(hoja).getByLabelText('Lugares por mesa'), String(capacidad));
+    await u.click(within(hoja).getByRole('button', { name: 'Crear mesas' }));
+    if (seEnvia) {
+      await waitFor(() => expect(sim.llamadas.find((l) => l.metodo === 'crear')!.argumentos).toEqual([{ cantidad, capacidad }]));
+    } else {
+      const caben = 500 - activas;
+      expect(await within(hoja).findByText(`Puedes tener hasta 500 mesas activas; te caben ${caben} más.`)).toBeInTheDocument();
+      expect(sim.veces('crear')).toBe(0);
+    }
+  });
+
+  it('con más de 50 activas se agrupan en tramos colapsables y sólo el abierto se pinta', async () => {
+    const muchas = Array.from({ length: 130 }, (_, i) => mesaDe(i + 1));
+    const { u } = montarMesas({ mesas: muchas });
+    await screen.findByRole('heading', { name: 'Mesa 1' });
+    expect(screen.getByRole('button', { name: 'Mesas 1 a 50' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: 'Mesas 51 a 100' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Mesas 101 a 130' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^Regenerar código de la mesa/ })).toHaveLength(50);
+    await u.click(screen.getByRole('button', { name: 'Mesas 101 a 130' }));
+    expect(screen.getAllByRole('button', { name: /^Regenerar código de la mesa/ })).toHaveLength(80);
+    expect(screen.getByRole('heading', { name: 'Mesa 130' })).toBeInTheDocument();
   });
 });

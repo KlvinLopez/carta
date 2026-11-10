@@ -27,7 +27,7 @@
 }
 
 .resumen {
-  flex: 1 1 160px;
+  flex: 1 1 100%;
   margin: 0;
   color: var(--carbon-suave);
   font-size: 0.9375rem;
@@ -98,6 +98,45 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* Botones de la barra: dos píldoras en una sola fila a 390 px. */
+.botonera {
+  display: flex;
+  flex: 1 1 100%;
+  gap: var(--esp-2);
+}
+
+.botonera > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.tramo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.alternar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--tactil);
+  padding: var(--esp-2) var(--esp-4);
+  border: 0;
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font-family: var(--fuente-titulo);
+  font-size: 1.125rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.alternar:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
 }
 
 /* Mesas: una columna en el teléfono, rejilla en escritorio. */
@@ -172,6 +211,12 @@
   flex-direction: column;
   gap: var(--esp-3);
   margin-top: var(--esp-4);
+}
+
+/* Regla no-line: la sombra flotante de los botones se recortaba contra el borde de la hoja y dejaba una
+   banda con borde lateral; en las hojas los botones van sin sombra. */
+.accionesHoja > button {
+  box-shadow: none !important;
 }
 
 .formulario {
@@ -263,4 +308,13 @@
   .principal {
     gap: var(--esp-4);
   }
+}
+
+/* Áreas táctiles ≥ 44 px (regla 11 de /diseno-visual) también en los enlaces de texto. */
+.enlaceTocable,
+a.url {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tactil);
+  color: var(--vino);
 }

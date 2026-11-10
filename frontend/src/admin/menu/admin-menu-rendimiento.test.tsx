@@ -19,10 +19,14 @@ vi.mock('./Miniatura', async (original) => {
 describe('con 400 platillos la pantalla sigue ágil', () => {
   it('arranca con la primera categoría abierta y las demás colapsadas; abrir una pinta sólo la suya', async () => {
     const { u } = montarMenu({ platillos: muchosPlatillos(400) });
-    await screen.findByRole('heading', { name: /^Tacos/ });
+    await screen.findByRole('heading', { name: /^Tacos/ }, { timeout: 15_000 });
+    // Estado final primero (las demás categorías ya colapsaron) y sólo entonces se cuentan las filas: bajo
+    // carga, pintar 400 filas tarda y contar antes de que termine la carga daba 400.
+    await waitFor(() => expect(screen.getByRole('button', { name: /Bebidas/ })).toHaveAttribute('aria-expanded', 'false'), {
+      timeout: 15_000,
+    });
     // 400 repartidos en tres categorías: sólo ~134 filas en pantalla, no 400.
-    await waitFor(() => expect(screen.getAllByRole('button', { name: /^Editar / }).length).toBeLessThan(140));
-    expect(screen.getByRole('button', { name: /Bebidas/ })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getAllByRole('button', { name: /^Editar / }).length).toBeLessThan(140);
     expect(screen.getByRole('button', { name: /Tacos/ })).toHaveAttribute('aria-expanded', 'true');
     await u.click(screen.getByRole('button', { name: /Bebidas/ }));
     expect(screen.getAllByRole('button', { name: /^Editar / }).length).toBeGreaterThan(200);

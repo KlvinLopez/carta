@@ -4,9 +4,9 @@ import { Boton, Chip } from '../../compartido/componentes';
 import { HojaInferior } from '../../compartido/componentes/HojaInferior';
 import { Campo } from '../alta/Campo';
 import c from '../gestion/Gestion.module.css';
-import { errorDeCampo, mensajeDe } from '../gestion/mensajes';
+import { errorDeCampo, largoEnPuntos, mensajeDe, noSeAplico } from '../gestion/mensajes';
 import { ErrorApi } from '../../compartido/http';
-import { PIN_VALIDO, soloDigitosAscii } from './pin';
+import { errorDePin } from './pin';
 import { TOPES_PERSONAL, type Personal, type RolPersonal } from './servicio';
 
 function SelectorRol({ rol, alCambiar }: { rol: RolPersonal; alCambiar: (rol: RolPersonal) => void }) {
@@ -25,21 +25,21 @@ function SelectorRol({ rol, alCambiar }: { rol: RolPersonal; alCambiar: (rol: Ro
   );
 }
 
-/** Campo de PIN: sólo dígitos ASCII (los de otras escrituras se convierten), 6 como máximo, sin autocompletar. */
+const MENSAJE_SOLO_NUMEROS = 'El PIN sólo lleva números del 0 al 9.';
+const errorNombreLargo = `El nombre admite hasta ${TOPES_PERSONAL.nombre} caracteres.`;
+
+/** Campo de PIN: no normaliza nada; lo que no sea un dígito ASCII se avisa al instante y se rechaza al enviar. */
 function CampoPin({
   etiqueta,
   valor,
   alCambiar,
   error,
-  ayuda,
 }: {
   etiqueta: string;
   valor: string;
   alCambiar: (valor: string) => void;
   error?: string | null;
-  ayuda?: string;
 }) {
-  const [filtrado, setFiltrado] = useState(false);
   return (
     <Campo
       etiqueta={etiqueta}
@@ -49,15 +49,10 @@ function CampoPin({
       autoComplete="new-password"
       data-lpignore="true"
       data-1p-ignore="true"
-      maxLength={12}
       value={valor}
-      onChange={(ev) => {
-        const digitos = soloDigitosAscii(ev.target.value).slice(0, 6);
-        setFiltrado(digitos.length < ev.target.value.length && ev.target.value.length <= 6);
-        alCambiar(digitos);
-      }}
+      onChange={(ev) => alCambiar(ev.target.value)}
       error={error}
-      ayuda={filtrado ? 'El PIN sólo lleva números.' : ayuda}
+      ayuda={/[^0-9]/.test(valor) ? MENSAJE_SOLO_NUMEROS : undefined}
     />
   );
 }
@@ -80,29 +75,45 @@ export function HojaAlta({
   const [errorPin, setErrorPin] = useState<string | null>(null);
   const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // Un intento anterior cayó por la red: quizá el alta sí se guardó y el 409 de ahora es de ella misma.
+  const [huboRed, setHuboRed] = useState(false);
 
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
     const limpio = nombre.trim();
-    const malNombre = limpio ? null : 'Escribe el nombre de la persona.';
-    const malPin = PIN_VALIDO.test(pin) ? null : 'El PIN lleva de 4 a 6 números.';
+    const malNombre = !limpio
+      ? 'Escribe el nombre de la persona.'
+      : largoEnPuntos(limpio) > TOPES_PERSONAL.nombre
+        ? errorNombreLargo
+        : null;
+    const malPin = errorDePin(pin);
     setErrorNombre(malNombre);
     setErrorPin(malPin);
     setErrorEnvio(null);
     if (malNombre || malPin) return;
     const enviado = pin;
+    // El PIN sale del estado antes de la llamada; sólo vuelve si el servidor no llegó a aplicar nada.
     setPin('');
     setEnviando(true);
     try {
       await alCrear({ nombre: limpio, rol, pin: enviado });
       alCerrar();
     } catch (e) {
-      if (e instanceof ErrorApi && e.estado === 409) setErrorNombre(e.message);
-      else if (errorDeCampo(e, 'nombre')) setErrorNombre(errorDeCampo(e, 'nombre'));
-      else if (errorDeCampo(e, 'pin')) setErrorPin(errorDeCampo(e, 'pin'));
-      else setErrorEnvio(mensajeDe(e, 'No pudimos dar de alta a esta persona. Inténtalo de nuevo.'));
-      // El PIN se borró al enviarlo: se pide escribirlo otra vez donde se escribe.
-      setErrorPin((previo) => previo ?? 'Vuelve a escribir el PIN.');
+      const conservar = noSeAplico(e);
+      if (conservar) setPin(enviado);
+      if (e instanceof ErrorApi && e.estado === 0) setHuboRed(true);
+      let deshecho = conservar ? null : 'Vuelve a escribir el PIN.';
+      if (e instanceof ErrorApi && e.estado === 409) {
+        setErrorNombre(`${e.message}${huboRed ? ' Puede que el alta ya se haya guardado: revisa la lista.' : ''}`);
+      } else if (errorDeCampo(e, 'nombre')) {
+        setErrorNombre(errorDeCampo(e, 'nombre'));
+      } else if (errorDeCampo(e, 'pin')) {
+        deshecho = errorDeCampo(e, 'pin');
+      } else {
+        // Incluye el tope de 50 activos (`campo: "body"`): es un mensaje de la hoja, no de un campo.
+        setErrorEnvio(mensajeDe(e, 'No pudimos dar de alta a esta persona. Inténtalo de nuevo.'));
+      }
+      setErrorPin(deshecho);
     } finally {
       setEnviando(false);
     }
@@ -119,7 +130,6 @@ export function HojaAlta({
         <Campo
           etiqueta="Nombre"
           value={nombre}
-          maxLength={TOPES_PERSONAL.nombre}
           onChange={(ev) => setNombre(ev.target.value)}
           autoComplete="off"
           error={errorNombre}
@@ -167,8 +177,8 @@ export function HojaEditar({
 
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
-    if (!limpio) {
-      setErrorNombre('Escribe el nombre de la persona.');
+    if (!limpio || largoEnPuntos(limpio) > TOPES_PERSONAL.nombre) {
+      setErrorNombre(limpio ? errorNombreLargo : 'Escribe el nombre de la persona.');
       return;
     }
     if (!hayCambios) return;
@@ -192,7 +202,6 @@ export function HojaEditar({
         <Campo
           etiqueta="Nombre"
           value={nombre}
-          maxLength={TOPES_PERSONAL.nombre}
           onChange={(ev) => setNombre(ev.target.value)}
           autoComplete="off"
           error={errorNombre}
@@ -238,7 +247,7 @@ export function HojaPin({
 
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
-    const malPin = PIN_VALIDO.test(pin) ? null : 'El PIN lleva de 4 a 6 números.';
+    const malPin = errorDePin(pin);
     const malRepetido = !malPin && repetido !== pin ? 'Los dos PIN deben ser iguales.' : null;
     setErrorPin(malPin);
     setErrorRepetido(malRepetido);
@@ -252,7 +261,15 @@ export function HojaPin({
       await alReasignar(enviado);
       alCerrar();
     } catch (e) {
-      setErrorEnvio(`${mensajeDe(e, 'No pudimos cambiar el PIN. Inténtalo de nuevo.')} Vuelve a escribir el PIN.`);
+      // Si el servidor no aplicó nada (503, 408, red) el PIN vuelve a los campos; en los demás errores se pide otra vez.
+      const mensaje = mensajeDe(e, 'No pudimos cambiar el PIN. Inténtalo de nuevo.');
+      if (noSeAplico(e)) {
+        setPin(enviado);
+        setRepetido(enviado);
+        setErrorEnvio(mensaje);
+      } else {
+        setErrorEnvio(`${mensaje} Vuelve a escribir el PIN.`);
+      }
     } finally {
       setEnviando(false);
     }

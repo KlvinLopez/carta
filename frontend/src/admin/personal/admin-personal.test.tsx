@@ -97,21 +97,31 @@ describe('alta (AC-26.1)', () => {
     await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
     expect(await within(hoja).findByText('El PIN lleva de 4 a 6 números.')).toBeInTheDocument();
     expect(sim.veces('crear')).toBe(0);
+    // Y un nombre de más de 60 puntos de código (12 emojis de familia = 12 × 7 unidades UTF-16 pero 12 × 5 puntos).
+    await u.clear(within(hoja).getByLabelText('Nombre'));
+    await u.type(within(hoja).getByLabelText('Nombre'), 'x'.repeat(61));
+    await u.type(within(hoja).getByLabelText(PIN), '4');
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    expect(await within(hoja).findByText('El nombre admite hasta 60 caracteres.')).toBeInTheDocument();
+    expect(sim.veces('crear')).toBe(0);
   });
 
-  it('convierte dígitos de otras escrituras, descarta lo demás, avisa y topa en 6', async () => {
-    const { u } = await cargada();
-    const pin = within(await abrirAlta(u)).getByLabelText(PIN);
-    await u.type(pin, '12ab');
-    expect(pin).toHaveValue('12');
-    expect(screen.getByText('El PIN sólo lleva números.')).toBeInTheDocument();
-    await u.clear(pin);
-    await u.type(pin, '１２３４');
-    expect(pin).toHaveValue('1234');
-    await u.clear(pin);
-    await u.type(pin, '12345678');
-    expect(pin).toHaveValue('123456');
-  });
+  it.each([['١٢٣٤'], ['１２３４'], ['12 34'], ['abcd'], ['12ab']])(
+    'rechaza el PIN «%s» sin normalizarlo y sin llamar a la API',
+    async (pinMalo) => {
+      const { sim, u } = await cargada();
+      const hoja = await abrirAlta(u);
+      await u.type(within(hoja).getByLabelText('Nombre'), 'Rosa');
+      const pin = within(hoja).getByLabelText(PIN);
+      await u.type(pin, pinMalo);
+      // Nada se «arregla» en silencio: el campo conserva lo tecleado y avisa al instante.
+      expect(pin).toHaveValue(pinMalo);
+      expect(within(hoja).getByText('El PIN sólo lleva números del 0 al 9.')).toBeInTheDocument();
+      await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+      expect(await within(hoja).findAllByText('El PIN sólo lleva números del 0 al 9.')).not.toHaveLength(0);
+      expect(sim.veces('crear')).toBe(0);
+    },
+  );
 
   it('0000 y 1234 se aceptan (el servidor no los rechaza)', async () => {
     const { sim, u } = await cargada();
@@ -152,6 +162,11 @@ describe('alta (AC-26.1)', () => {
     await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
     expect(await within(hoja).findByText('Cada restaurante puede tener hasta 50 personas activas.')).toBeInTheDocument();
     expect(hoja.textContent).not.toMatch(/detail|PAYLOAD_INVALIDO|limite_de_personal/);
+    // El tope no es del nombre (el servidor manda `campo: "body"`), así que ese campo no se marca; el PIN
+    // sí se vació (un 422 es un «no» definitivo) y el aviso sale junto a ese campo, no en la banda.
+    expect(within(hoja).getByLabelText('Nombre')).not.toHaveAttribute('aria-invalid', 'true');
+    expect(within(hoja).getByLabelText(PIN)).toHaveValue('');
+    expect(within(hoja).getByLabelText(PIN)).toHaveAccessibleDescription('Vuelve a escribir el PIN.');
   });
 
   it('un 422 que apunta al PIN lo muestra junto al campo del PIN', async () => {
@@ -341,14 +356,14 @@ describe('reasignar el PIN (AC-26.2)', () => {
     expect(JSON.stringify({ ...window.localStorage, ...window.sessionStorage })).not.toContain('482913');
   });
 
-  it('si falla, vacía los dos campos y pide volver a escribirlo', async () => {
+  it('si falla de verdad (4xx), vacía los dos campos y pide volver a escribirlo', async () => {
     const { sim, u } = await cargada();
-    sim.fallarUnaVez('reasignarPin', new ErrorApi(0, 'SIN_RED', 'No pudimos conectar con Carta.'));
+    sim.fallarUnaVez('reasignarPin', new ErrorApi(404, 'RECURSO_NO_ENCONTRADO', 'No encontramos este recurso.'));
     const hoja = await abrirPin(u);
     await u.type(within(hoja).getByLabelText('PIN nuevo (4 a 6 números)'), '4829');
     await u.type(within(hoja).getByLabelText('Repite el PIN nuevo'), '4829');
     await u.click(within(hoja).getByRole('button', { name: 'Cambiar PIN' }));
-    expect(await within(hoja).findByRole('alert')).toHaveTextContent('No pudimos conectar con Carta. Vuelve a escribir el PIN.');
+    expect(await within(hoja).findByRole('alert')).toHaveTextContent('No encontramos este recurso. Vuelve a escribir el PIN.');
     expect(within(hoja).getByLabelText('PIN nuevo (4 a 6 números)')).toHaveValue('');
     expect(within(hoja).getByLabelText('Repite el PIN nuevo')).toHaveValue('');
   });
@@ -361,5 +376,128 @@ describe('reasignar el PIN (AC-26.2)', () => {
     await u.type(within(hoja).getByLabelText('Repite el PIN nuevo'), '0000');
     await u.click(within(hoja).getByRole('button', { name: 'Cambiar PIN' }));
     await waitFor(() => expect(sim.pinesReasignados()).toBe(1));
+  });
+});
+
+describe('el PIN se conserva sólo si el servidor no aplicó nada (A3)', () => {
+  async function abrirAlta(u: ReturnType<typeof userEvent.setup>) {
+    await u.click(screen.getByRole('button', { name: 'Agregar persona' }));
+    return screen.findByRole('dialog', { name: 'Agregar persona' });
+  }
+  const rellenar = async (u: ReturnType<typeof userEvent.setup>, hoja: HTMLElement) => {
+    await u.type(within(hoja).getByLabelText('Nombre'), 'Rosa Gil');
+    await u.type(within(hoja).getByLabelText(PIN), '482913');
+  };
+
+  it.each([
+    [503, 'SERVICIO_OCUPADO', 'Ocupado.'],
+    [408, 'SUBIDA_INCOMPLETA', 'Tardó demasiado.'],
+    [0, 'SIN_RED', 'No pudimos conectar con Carta.'],
+  ])('%i %s: el PIN sigue en el campo y el segundo envío manda el mismo cuerpo', async (estado, codigo, mensaje) => {
+    const { sim, u } = await cargada();
+    const crear = vi.spyOn(sim.servicio, 'crear');
+    sim.fallarUnaVez('crear', new ErrorApi(estado, codigo, mensaje));
+    const hoja = await abrirAlta(u);
+    await rellenar(u, hoja);
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    expect(await within(hoja).findByRole('alert')).toHaveTextContent(mensaje);
+    expect(within(hoja).getByLabelText(PIN)).toHaveValue('482913');
+    expect(within(hoja).queryByText('Vuelve a escribir el PIN.')).toBeNull();
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(crear).toHaveBeenCalledTimes(2);
+    expect(crear.mock.calls[1]![1]).toEqual(crear.mock.calls[0]![1]);
+    expect(crear.mock.calls[1]![1]).toEqual({ nombre: 'Rosa Gil', rol: 'mesero', pin: '482913' });
+  });
+
+  it('un 500 (o cualquier otro error): el PIN se pide otra vez', async () => {
+    const { sim, u } = await cargada();
+    sim.fallarUnaVez('crear', new ErrorApi(500, 'ERROR_INTERNO', 'Algo salió mal.'));
+    const hoja = await abrirAlta(u);
+    await rellenar(u, hoja);
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    await within(hoja).findByText('Algo salió mal.');
+    expect(within(hoja).getByLabelText(PIN)).toHaveValue('');
+    expect(within(hoja).getByLabelText(PIN)).toHaveAccessibleDescription('Vuelve a escribir el PIN.');
+  });
+
+  it('tras una caída de red, un 409 de nombre repetido avisa que el alta quizá ya se guardó', async () => {
+    const { sim, u } = await cargada();
+    sim.fallarUnaVez('crear', new ErrorApi(0, 'SIN_RED', 'No pudimos conectar con Carta.'));
+    const hoja = await abrirAlta(u);
+    await rellenar(u, hoja);
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    await within(hoja).findByRole('alert');
+    sim.fallarUnaVez('crear', new ErrorApi(409, 'CONFLICTO', 'Ya hay una persona activa con ese nombre.'));
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    await waitFor(() => expect(within(hoja).getByLabelText('Nombre')).toHaveAttribute('aria-invalid', 'true'));
+    expect(within(hoja).getByLabelText('Nombre')).toHaveAccessibleDescription(
+      'Ya hay una persona activa con ese nombre. Puede que el alta ya se haya guardado: revisa la lista.',
+    );
+  });
+
+  it('un 409 sin caída de red previa no lleva ese aviso', async () => {
+    const { u } = await cargada();
+    const hoja = await abrirAlta(u);
+    await u.type(within(hoja).getByLabelText('Nombre'), 'Luis Ortega');
+    await u.type(within(hoja).getByLabelText(PIN), '4829');
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    await waitFor(() => expect(within(hoja).getByLabelText('Nombre')).toHaveAttribute('aria-invalid', 'true'));
+    expect(within(hoja).getByLabelText('Nombre')).not.toHaveAccessibleDescription(/ya se haya guardado/);
+  });
+
+  it('reasignar: con 503 conserva el PIN y la confirmación; el reintento manda el mismo PIN', async () => {
+    const { sim, u } = await cargada();
+    const reasignar = vi.spyOn(sim.servicio, 'reasignarPin');
+    sim.fallarUnaVez('reasignarPin', new ErrorApi(503, 'SERVICIO_OCUPADO', 'Ocupado.'));
+    await u.click(screen.getByRole('button', { name: 'Cambiar el PIN de Luis Ortega' }));
+    const hoja = await screen.findByRole('dialog');
+    await u.type(within(hoja).getByLabelText('PIN nuevo (4 a 6 números)'), '4829');
+    await u.type(within(hoja).getByLabelText('Repite el PIN nuevo'), '4829');
+    await u.click(within(hoja).getByRole('button', { name: 'Cambiar PIN' }));
+    expect(await within(hoja).findByRole('alert')).toHaveTextContent('Ocupado.');
+    expect(within(hoja).getByLabelText('PIN nuevo (4 a 6 números)')).toHaveValue('4829');
+    expect(within(hoja).getByLabelText('Repite el PIN nuevo')).toHaveValue('4829');
+    await u.click(within(hoja).getByRole('button', { name: 'Cambiar PIN' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(reasignar.mock.calls.map((c) => c[1])).toEqual(['4829', '4829']);
+  });
+
+  it.each([['١٢٣٤'], ['12 34'], ['abcd'], ['123']])('reasignar rechaza «%s» en el cliente, sin llamar a la API', async (malo) => {
+    const { sim, u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Cambiar el PIN de Luis Ortega' }));
+    const hoja = await screen.findByRole('dialog');
+    await u.type(within(hoja).getByLabelText('PIN nuevo (4 a 6 números)'), malo);
+    await u.type(within(hoja).getByLabelText('Repite el PIN nuevo'), malo);
+    await u.click(within(hoja).getByRole('button', { name: 'Cambiar PIN' }));
+    expect(await within(hoja).findAllByText(/El PIN (sólo lleva números del 0 al 9|lleva de 4 a 6 números)\./)).not.toHaveLength(0);
+    expect(sim.veces('reasignarPin')).toBe(0);
+  });
+});
+
+describe('nombres (B5, A5-5)', () => {
+  it('el alta recorta el nombre: «  Rosa Gil  » viaja como «Rosa Gil»', async () => {
+    const { sim, u } = await cargada();
+    const crear = vi.spyOn(sim.servicio, 'crear');
+    await u.click(screen.getByRole('button', { name: 'Agregar persona' }));
+    const hoja = await screen.findByRole('dialog');
+    await u.type(within(hoja).getByLabelText('Nombre'), '  Rosa Gil  ');
+    await u.type(within(hoja).getByLabelText(PIN), '4829');
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    await waitFor(() => expect(crear).toHaveBeenCalledOnce());
+    expect(crear.mock.calls[0]![1].nombre).toBe('Rosa Gil');
+  });
+
+  it('el campo no recorta por unidades UTF-16: 40 emojis (80 unidades, 40 puntos) caben; 61 no', async () => {
+    const { sim, u } = await cargada();
+    await u.click(screen.getByRole('button', { name: 'Agregar persona' }));
+    const hoja = await screen.findByRole('dialog');
+    const nombre = within(hoja).getByLabelText('Nombre');
+    expect(nombre).not.toHaveAttribute('maxlength');
+    await u.type(nombre, '😀'.repeat(40));
+    expect(nombre).toHaveValue('😀'.repeat(40));
+    await u.type(within(hoja).getByLabelText(PIN), '4829');
+    await u.click(within(hoja).getByRole('button', { name: 'Agregar persona' }));
+    await waitFor(() => expect(sim.veces('crear')).toBe(1));
   });
 });

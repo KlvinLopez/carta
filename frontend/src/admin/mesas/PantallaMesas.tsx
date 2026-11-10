@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Boton, Chip } from '../../compartido/componentes';
 import { estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
@@ -68,11 +68,78 @@ function TarjetaMesa({
   );
 }
 
+/** Con más de 50 mesas se agrupan en tramos colapsables (como las categorías del Menú): sólo se pinta el abierto. */
+const TAMANO_TRAMO = 50;
+
+function ListaMesas({
+  mesas,
+  regenerando,
+  alRegenerar,
+}: {
+  mesas: Mesa[];
+  regenerando: ReadonlySet<string>;
+  alRegenerar: (mesa: Mesa) => void;
+}) {
+  const [abiertos, setAbiertos] = useState<ReadonlySet<number>>(new Set([0]));
+  const tarjetas = (lista: Mesa[]) => (
+    <ul className={c.rejilla} aria-label="Mesas activas">
+      {lista.map((mesa) => (
+        <TarjetaMesa
+          key={mesa.id}
+          mesa={mesa}
+          regenerando={regenerando.has(mesa.id)}
+          bloqueada={regenerando.has(mesa.id)}
+          alRegenerar={alRegenerar}
+        />
+      ))}
+    </ul>
+  );
+  if (mesas.length <= TAMANO_TRAMO) return tarjetas(mesas);
+  const tramos = Array.from({ length: Math.ceil(mesas.length / TAMANO_TRAMO) }, (_, i) =>
+    mesas.slice(i * TAMANO_TRAMO, (i + 1) * TAMANO_TRAMO),
+  );
+  return (
+    <>
+      {tramos.map((tramo, i) => {
+        const abierto = abiertos.has(i);
+        return (
+          <section key={i} className={c.tramo}>
+            <button
+              type="button"
+              className={c.alternar}
+              aria-expanded={abierto}
+              onClick={() =>
+                setAbiertos((previos) => {
+                  const siguientes = new Set(previos);
+                  if (siguientes.has(i)) siguientes.delete(i);
+                  else siguientes.add(i);
+                  return siguientes;
+                })
+              }
+            >
+              Mesas {tramo[0]!.numero} a {tramo[tramo.length - 1]!.numero}
+            </button>
+            {abierto && tarjetas(tramo)}
+          </section>
+        );
+      })}
+    </>
+  );
+}
+
 export function PantallaMesasConServicio({ servicio, restaurante }: { servicio: ServicioMesas; restaurante: Restaurante }) {
   const m = useMesas(servicio, restaurante.id);
   const [hoja, setHoja] = useState<{ tipo: 'agregar' } | { tipo: 'regenerar'; id: string } | null>(null);
   const [descargando, setDescargando] = useState(false);
   const [errorDescarga, setErrorDescarga] = useState<string | null>(null);
+  const [avisoLista, setAvisoLista] = useState<string | null>(null);
+  /** Segundos que pide esperar el servidor (`Retry-After` del 503): «Descargar» queda apagado ese tiempo. */
+  const [espera, setEspera] = useState(0);
+  useEffect(() => {
+    if (espera <= 0) return;
+    const reloj = setTimeout(() => setEspera((n) => n - 1), 1000);
+    return () => clearTimeout(reloj);
+  }, [espera]);
 
   const activas = useMemo(() => m.mesas.filter((x) => x.activa), [m.mesas]);
   const bajas = useMemo(() => m.mesas.filter((x) => !x.activa), [m.mesas]);
@@ -112,9 +179,15 @@ export function PantallaMesasConServicio({ servicio, restaurante }: { servicio: 
     setDescargando(true);
     setErrorDescarga(null);
     try {
-      guardarComoArchivo(await servicio.descargarQr(restaurante.id), 'qr-mesas.pdf');
+      const { blob, nombre } = await servicio.descargarQr(restaurante.id);
+      guardarComoArchivo(blob, nombre ?? 'qr-mesas.pdf');
+      // El código nuevo ya viaja en el PDF: no hace falta seguir enseñándolo.
+      m.descartarCodigoNuevo();
     } catch (error) {
       setErrorDescarga(mensajeDeDescarga(error));
+      if (error instanceof ErrorApi && error.estado === 503 && error.reintentarEn) {
+        setEspera(Math.min(Math.ceil(error.reintentarEn), 120));
+      }
     } finally {
       setDescargando(false);
     }
@@ -138,19 +211,30 @@ export function PantallaMesasConServicio({ servicio, restaurante }: { servicio: 
             <p className={c.resumen}>
               {activas.length} {activas.length === 1 ? 'mesa activa' : 'mesas activas'}
             </p>
-            <Boton compacto onClick={() => setHoja({ tipo: 'agregar' })}>
-              Agregar mesas
-            </Boton>
-            <Boton
-              compacto
-              variante="secundario"
-              cargando={descargando}
-              disabled={activas.length === 0 || hayRegeneracion}
-              onClick={() => void descargar()}
-            >
-              Descargar QR (PDF)
-            </Boton>
+            <div className={c.botonera}>
+              <Boton compacto onClick={() => setHoja({ tipo: 'agregar' })}>
+                Agregar mesas
+              </Boton>
+              <Boton
+                compacto
+                variante="secundario"
+                cargando={descargando}
+                disabled={activas.length === 0 || hayRegeneracion || espera > 0}
+                onClick={() => void descargar()}
+              >
+                {espera > 0 ? `Descargar QR (PDF) · ${espera} s` : 'Descargar QR (PDF)'}
+              </Boton>
+            </div>
           </div>
+
+          {avisoLista && (
+            <div className={c.aviso} role="alert">
+              <span>{avisoLista}</span>
+              <button type="button" className={c.cerrarAviso} onClick={() => setAvisoLista(null)} aria-label="Cerrar aviso">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+          )}
 
           {errorDescarga && (
             <div className={c.aviso} role="alert">
@@ -174,17 +258,7 @@ export function PantallaMesasConServicio({ servicio, restaurante }: { servicio: 
             </div>
           )}
 
-          <ul className={c.rejilla} aria-label="Mesas activas">
-            {activas.map((mesa) => (
-              <TarjetaMesa
-                key={mesa.id}
-                mesa={mesa}
-                regenerando={m.regenerando.has(mesa.id)}
-                bloqueada={m.regenerando.has(mesa.id)}
-                alRegenerar={(x) => setHoja({ tipo: 'regenerar', id: x.id })}
-              />
-            ))}
-          </ul>
+          <ListaMesas mesas={activas} regenerando={m.regenerando} alRegenerar={(x) => setHoja({ tipo: 'regenerar', id: x.id })} />
           {activas.length === 0 && <p className={c.vacio}>No tienes mesas activas. Agrega algunas para generar sus QR.</p>}
 
           {bajas.length > 0 && (
@@ -210,7 +284,13 @@ export function PantallaMesasConServicio({ servicio, restaurante }: { servicio: 
             try {
               await m.regenerar(aRegenerar.id);
             } catch (error) {
-              if (error instanceof ErrorApi && error.codigo === 'MESA_INACTIVA') void m.recargar();
+              if (error instanceof ErrorApi && error.codigo === 'MESA_INACTIVA') {
+                // Ya no hay nada que regenerar: se cierra la hoja, se relee la lista y el mensaje queda en ella.
+                void m.recargar();
+                setAvisoLista(error.message);
+                setHoja(null);
+                return;
+              }
               throw error;
             }
           }}

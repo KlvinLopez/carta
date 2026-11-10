@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Boton } from '../../compartido/componentes';
 import c from './Gestion.module.css';
 
-/** Sólo http(s) se vuelve enlace: nada que venga de la API puede ser un `javascript:` o `data:`. */
+/** Sólo https se vuelve enlace (http sólo en desarrollo): nada que venga de la API puede ser un `javascript:`, `data:` o `http:`. */
 export function esUrlWeb(url: string): boolean {
   try {
     const { protocol } = new URL(url, window.location.origin);
-    return protocol === 'http:' || protocol === 'https:';
+    return protocol === 'https:' || (import.meta.env.DEV && protocol === 'http:');
   } catch {
     return false;
   }

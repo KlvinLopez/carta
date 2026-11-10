@@ -45,15 +45,6 @@ describe('contrato de ajustes (T-1.2)', () => {
     expect(validador('RestauranteCambios')(cuerpo).valido).toBe(true);
     expect(JSON.stringify(cuerpo)).not.toContain(RID);
   });
-
-  it('primeraMesa: GET de mesas activas con limit=1; vacío y respuestas raras dan null', async () => {
-    const { servicio, fetchFalso } = montar(() => json([]));
-    await expect(servicio.primeraMesa(RID)).resolves.toBeNull();
-    const { url } = ultima(fetchFalso);
-    expect(url.pathname).toBe(`/api/v1/admin/restaurantes/${RID}/mesas`);
-    expect(Object.fromEntries(url.searchParams)).toEqual({ activa: 'true', limit: '1' });
-    await expect(montar(() => json({ mesas: [] })).servicio.primeraMesa(RID)).resolves.toBeNull();
-  });
 });
 
 describe('validaciones del cliente = las del servidor', () => {
@@ -97,7 +88,9 @@ describe('el servicio simulado respeta el contrato', () => {
       estado: 422,
       detalles: { errores: [{ campo: 'body.logo_url' }] },
     });
-    const mesa = await sim.servicio.primeraMesa(RID);
-    expect(validador('MesaRespuesta')(mesa).valido).toBe(true);
+    // El simulado rechaza lo que RestauranteCambios no admite y no devuelve campos que el esquema no declara.
+    await expect(sim.servicio.cambiar(RID, { tema: 'rosa' } as never)).rejects.toMatchObject({ estado: 422 });
+    await expect(sim.servicio.cambiar(RID, { activo: false } as never)).rejects.toMatchObject({ estado: 422 });
+    expect(Object.keys(nuevo).sort()).toEqual(Object.keys(esquema('RestauranteRespuesta').properties).sort());
   });
 });

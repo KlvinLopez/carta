@@ -1,6 +1,6 @@
 import type { components } from '../../compartido/api';
 import type { ClienteHttp } from '../../compartido/http';
-import type { Mesa, Restaurante } from '../alta/tipos';
+import type { Restaurante } from '../alta/tipos';
 
 export type CambiosRestaurante = Partial<
   Pick<components['schemas']['RestauranteCambios'], 'nombre' | 'direccion' | 'telefono' | 'email' | 'logo_url'>
@@ -13,18 +13,12 @@ export const TOPES_AJUSTES = { nombre: 200, direccion: 500, telefono: 20, email:
 export interface ServicioAjustes {
   /** `PATCH /admin/restaurantes/{rid}`: sólo los campos enviados cambian; `null` borra los opcionales. */
   cambiar(rid: string, cambios: CambiosRestaurante, signal?: AbortSignal): Promise<Restaurante>;
-  /** La primera mesa activa, de donde sale el enlace de ejemplo del menú; `null` si aún no hay mesas. */
-  primeraMesa(rid: string, signal?: AbortSignal): Promise<Mesa | null>;
 }
 
 export function crearServicioAjustes(api: ClienteHttp): ServicioAjustes {
   const base = (rid: string) => `/admin/restaurantes/${encodeURIComponent(rid)}`;
   return {
     cambiar: (rid, cambios, signal) => api.solicitar<Restaurante>('PATCH', base(rid), { cuerpo: cambios, signal }),
-    async primeraMesa(rid, signal) {
-      const mesas = await api.obtener<Mesa[]>(`${base(rid)}/mesas`, { consulta: { activa: true, limit: 1 }, signal });
-      return Array.isArray(mesas) ? (mesas[0] ?? null) : null;
-    },
   };
 }
 

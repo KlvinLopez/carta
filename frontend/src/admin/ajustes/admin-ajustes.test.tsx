@@ -1,5 +1,6 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -10,8 +11,8 @@ import {
   type AjustesSimulado,
   type OpcionesAjustesSimulado,
 } from '../../mocks/servicioAjustesSimulado';
-import { mesaDe } from '../../mocks/servicioMesasSimulado';
 import type { Restaurante } from '../armazon/RestauranteActivo';
+import { CopiarEnlace, esUrlWeb } from '../gestion/CopiarEnlace';
 import { cambiosDe, PantallaAjustesConServicio } from './PantallaAjustes';
 
 /** Como el panel: lo guardado vuelve como la nueva versión del restaurante activo. */
@@ -36,7 +37,11 @@ function montar(opciones: OpcionesAjustesSimulado = {}) {
   const u = userEvent.setup();
   // `userEvent.setup()` instala su propio portapapeles: el de la prueba se pone después.
   Object.defineProperty(navigator, 'clipboard', { value: { writeText: escribir }, configurable: true });
-  const vista = render(<Anfitrion sim={sim} inicial={opciones.restaurante ?? restauranteSemilla} guardados={guardados} />);
+  const vista = render(
+    <MemoryRouter>
+      <Anfitrion sim={sim} inicial={opciones.restaurante ?? restauranteSemilla} guardados={guardados} />
+    </MemoryRouter>,
+  );
   return { sim, u, guardados, ...vista };
 }
 const campo = (nombre: string | RegExp) => screen.getByLabelText(nombre);
@@ -150,21 +155,39 @@ describe('datos del restaurante (US-21)', () => {
 });
 
 describe('enlaces públicos', () => {
-  it('muestra el enlace de la mesa 1 como ejemplo del menú y la entrada del personal, cada uno con «Copiar»', async () => {
-    const { u } = montar({ mesa: mesaDe(1, { url_publica: 'https://carta.cooking/m/Jx3k9QwLmN2pR7sT4vY8zA' }) });
-    const enlaces = await screen.findByRole('list');
-    expect(await within(enlaces).findByRole('link', { name: 'https://carta.cooking/m/Jx3k9QwLmN2pR7sT4vY8zA' })).toBeInTheDocument();
-    expect(within(enlaces).getByText('Menú (ejemplo: la mesa 1)')).toBeInTheDocument();
-    expect(within(enlaces).getByRole('link', { name: 'https://carta.cooking/staff/taqueria-el-paso' })).toBeInTheDocument();
-    await u.click(within(enlaces).getByRole('button', { name: 'Copiar menú (ejemplo: la mesa 1)' }));
-    expect(escribir).toHaveBeenCalledWith('https://carta.cooking/m/Jx3k9QwLmN2pR7sT4vY8zA');
-    expect(within(enlaces).getByRole('button', { name: /Copiar menú/ })).toHaveTextContent('Copiado');
+  it('no publica ninguna URL de mesa: el código de la mesa es su credencial (A1)', async () => {
+    const { container } = montar();
+    await screen.findByRole('button', { name: 'Copiar entrada del personal' });
+    expect(container.innerHTML).not.toContain('/m/');
+    expect(container.innerHTML).not.toContain('codigo_publico');
+    expect(screen.queryByText(/ejemplo: la mesa 1/)).toBeNull();
+    expect(screen.queryByRole('button', { name: /Copiar menú/ })).toBeNull();
+    // Y lo dice: el enlace del menú llega con la Fase 2.
+    expect(screen.getByText(/El enlace público de tu menú llega con la Fase 2/)).toBeInTheDocument();
   });
 
-  it('copiar el enlace del personal copia ese enlace', async () => {
+  it('no pide mesas al servidor: Ajustes ya no depende de ellas', async () => {
+    const { sim } = montar();
+    await screen.findByRole('button', { name: 'Copiar entrada del personal' });
+    expect(sim.llamadas.map((l) => l.metodo)).toEqual([]);
+  });
+
+  it('«Mesas» es un enlace del router (no recarga la página ni tira el token) y mide ≥ 44 px por CSS', async () => {
+    montar();
+    const enlace = screen.getByRole('link', { name: 'Ir a Mesas' });
+    expect(enlace).toHaveAttribute('href', '/admin/mesas');
+    expect(enlace.className).toContain('enlaceTocable');
+    const fuente = await import('node:fs').then((fs) => fs.readFileSync('src/admin/gestion/Gestion.module.css', 'utf8'));
+    expect(fuente).toMatch(/\.enlaceTocable,\s*a\.url \{[^}]*min-height: var\(--tactil\)/);
+  });
+
+  it('la entrada del personal lleva «Copiar» y copia ese enlace', async () => {
     const { u } = montar();
+    const origen = window.location.origin;
+    expect(screen.getByText('Entrada del personal')).toBeInTheDocument();
     await u.click(await screen.findByRole('button', { name: 'Copiar entrada del personal' }));
-    expect(escribir).toHaveBeenCalledWith('https://carta.cooking/staff/taqueria-el-paso');
+    expect(escribir).toHaveBeenCalledWith(`${origen}/staff/taqueria-el-paso`);
+    expect(screen.getByRole('button', { name: 'Copiar entrada del personal' })).toHaveTextContent('Copiado');
   });
 
   it('si el navegador no deja copiar lo dice y el enlace sigue a la vista', async () => {
@@ -172,19 +195,77 @@ describe('enlaces públicos', () => {
     const { u } = montar();
     await u.click(await screen.findByRole('button', { name: 'Copiar entrada del personal' }));
     expect(await screen.findByText(/No pudimos copiar/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /staff\/taqueria-el-paso/ })).toBeInTheDocument();
+    expect(screen.getByText(/staff\/taqueria-el-paso/)).toBeInTheDocument();
+  });
+});
+
+describe('CopiarEnlace', () => {
+  it('vuelve a «Copiar» a los 2,5 s y no deja el temporizador al desmontar', async () => {
+    vi.useFakeTimers();
+    try {
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText: escribir }, configurable: true });
+      const vista = render(
+        <ul>
+          <CopiarEnlace etiqueta="Entrada" url="https://carta.cooking/staff/x" />
+        </ul>,
+      );
+      await act(async () => screen.getByRole('button', { name: 'Copiar entrada' }).click());
+      expect(screen.getByRole('button', { name: 'Copiar entrada' })).toHaveTextContent('Copiado');
+      await act(async () => vi.advanceTimersByTime(2400));
+      expect(screen.getByRole('button', { name: 'Copiar entrada' })).toHaveTextContent('Copiado');
+      await act(async () => vi.advanceTimersByTime(200));
+      expect(screen.getByRole('button', { name: 'Copiar entrada' })).toHaveTextContent('Copiar');
+      expect(screen.getByRole('button', { name: 'Copiar entrada' })).not.toHaveTextContent('Copiado');
+      await act(async () => screen.getByRole('button', { name: 'Copiar entrada' }).click());
+      vista.unmount();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
-  it('sin mesas explica cómo conseguir el enlace del menú', async () => {
-    montar({ mesa: null });
-    expect(await screen.findByText(/Aún no tienes mesas/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Copiar menú/ })).toBeNull();
+  it.each([
+    ['https://carta.cooking/staff/x', true],
+    ['javascript:alert(1)', false],
+    ['data:text/html,<b>x</b>', false],
+    ['ftp://x.mx/a', false],
+  ])('esUrlWeb(%s) = %s', (url, esperado) => {
+    expect(esUrlWeb(url)).toBe(esperado);
   });
 
-  it('un enlace que no es http(s) no se vuelve vínculo', async () => {
-    montar({ mesa: mesaDe(1, { url_publica: 'javascript:alert(1)' }) });
-    // `new URL('javascript:…').origin` es «null»: la entrada del personal cae al origen de la página.
-    await screen.findByRole('button', { name: 'Copiar entrada del personal' });
-    expect(screen.queryByRole('link', { name: /javascript/ })).toBeNull();
+  it('http sólo se vuelve vínculo en desarrollo', () => {
+    vi.stubEnv('DEV', true);
+    expect(esUrlWeb('http://localhost:8000/staff/x')).toBe(true);
+    vi.stubEnv('DEV', false);
+    expect(esUrlWeb('http://carta.cooking/staff/x')).toBe(false);
+    vi.unstubAllEnvs();
+  });
+});
+
+describe('largos por puntos de código (B5)', () => {
+  it('los campos no llevan maxLength del DOM y un nombre de 200 emojis cabe, 201 no', async () => {
+    const { sim, u } = montar();
+    for (const nombre of ['Nombre', 'Dirección', 'Teléfono', 'Correo', /Logo/]) expect(campo(nombre)).not.toHaveAttribute('maxlength');
+    await u.clear(campo('Nombre'));
+    await u.click(campo('Nombre'));
+    await u.paste('😀'.repeat(201));
+    await u.click(guardar());
+    expect(await screen.findByText('Admite hasta 200 caracteres.')).toBeInTheDocument();
+    expect(sim.veces('cambiar')).toBe(0);
+    await u.clear(campo('Nombre'));
+    await u.click(campo('Nombre'));
+    await u.paste('😀'.repeat(200));
+    await u.click(guardar());
+    await screen.findByText('Cambios guardados.');
+    expect(sim.ultima('cambiar')!.argumentos[0]).toStrictEqual({ nombre: '😀'.repeat(200) });
+  });
+
+  it('teléfono de 21 puntos de código no se envía', async () => {
+    const { sim, u } = montar();
+    await u.clear(campo('Teléfono'));
+    await u.type(campo('Teléfono'), '1'.repeat(21));
+    await u.click(guardar());
+    expect(await screen.findByText('Admite hasta 20 caracteres.')).toBeInTheDocument();
+    expect(sim.veces('cambiar')).toBe(0);
   });
 });

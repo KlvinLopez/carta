@@ -1,4 +1,5 @@
 import type { CambiosPersonal, Personal, RolPersonal, ServicioPersonal } from '../admin/personal/servicio';
+import { erroresDePeticion } from '../admin/gestion/utilesContrato';
 import { ErrorApi } from '../compartido/http';
 
 const AHORA = '2026-11-10T12:00:00Z';
@@ -28,6 +29,11 @@ export interface OpcionesPersonalSimulado {
 }
 
 const clave = (nombre: string) => nombre.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es');
+
+function contrato(nombre: string, valor: unknown) {
+  const malos = erroresDePeticion(nombre, valor);
+  if (malos) throw new ErrorApi(422, 'PAYLOAD_INVALIDO', 'Dato inválido.', { errores: malos });
+}
 
 function invalido(campo: string, mensaje: string, tipo: string): ErrorApi {
   return new ErrorApi(422, 'PAYLOAD_INVALIDO', mensaje, { errores: [{ campo, mensaje, tipo }] });
@@ -69,6 +75,7 @@ export function crearServicioPersonalSimulado(opciones: OpcionesPersonalSimulado
       // Se registra el nombre y el rol; el PIN NO queda en el registro de llamadas.
       registrar('crear', { nombre: datos.nombre, rol: datos.rol });
       comprobarPin(datos.pin);
+      contrato('PersonalCrear', datos);
       if (activos().length >= MAX_ACTIVOS) throw tope();
       if (activos().some((p) => clave(p.nombre) === clave(datos.nombre))) {
         throw new ErrorApi(409, 'CONFLICTO', MENSAJE_NOMBRE_REPETIDO);
@@ -79,6 +86,7 @@ export function crearServicioPersonalSimulado(opciones: OpcionesPersonalSimulado
     },
     async cambiar(id, cambios: CambiosPersonal) {
       registrar('cambiar', id, cambios);
+      contrato('PersonalCambios', cambios);
       const actual = personal.find((p) => p.id === id);
       if (!actual) throw new ErrorApi(404, 'RECURSO_NO_ENCONTRADO', 'No encontramos este recurso.');
       const nueva: Personal = {
@@ -99,6 +107,7 @@ export function crearServicioPersonalSimulado(opciones: OpcionesPersonalSimulado
     async reasignarPin(id, pin) {
       registrar('reasignarPin', id);
       comprobarPin(pin);
+      contrato('PinNuevo', { pin });
       if (!personal.some((p) => p.id === id)) throw new ErrorApi(404, 'RECURSO_NO_ENCONTRADO', 'No encontramos este recurso.');
       pinesReasignados += 1;
     },

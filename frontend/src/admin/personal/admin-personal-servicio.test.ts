@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { crearCliente } from '../../compartido/http';
 import { crearServicioPersonalSimulado, personaDe } from '../../mocks/servicioPersonalSimulado';
-import { metodosDe, operacion, validador } from '../gestion/utilesContrato';
-import { PIN_VALIDO, soloDigitosAscii } from './pin';
+import { esquema, metodosDe, operacion, validador } from '../gestion/utilesContrato';
+import { errorDePin, PIN_VALIDO } from './pin';
 import { crearServicioPersonal, TOPES_PERSONAL } from './servicio';
 
 const RID = '11111111-1111-4111-8111-111111111111';
@@ -96,19 +96,25 @@ describe('contrato de personal (T-1.6)', () => {
   });
 });
 
-describe('PIN: sólo dígitos ASCII', () => {
+describe('PIN: sólo dígitos ASCII, sin normalizar (A4)', () => {
   it.each([
-    ['4829', '4829'],
-    ['48 29', '4829'],
-    ['48-2a9', '4829'],
-    ['１２３４', '1234'], // ancho completo
-    ['١٢٣٤', '1234'], // árabe-índicos
-    ['۱۲۳۴', '1234'], // persas
-    ['१२३४', '1234'], // devanagari
-    ['😀12', '12'],
-    ['', ''],
-  ])('«%s» → «%s»', (entrada, salida) => {
-    expect(soloDigitosAscii(entrada)).toBe(salida);
+    ['4829', null],
+    ['0000', null],
+    ['123456', null],
+    ['123', 'El PIN lleva de 4 a 6 números.'],
+    ['', 'El PIN lleva de 4 a 6 números.'],
+    ['1234567', 'El PIN lleva de 4 a 6 números.'],
+    ['12 34', 'El PIN sólo lleva números del 0 al 9.'],
+    ['abcd', 'El PIN sólo lleva números del 0 al 9.'],
+    ['１２３４', 'El PIN sólo lleva números del 0 al 9.'], // ancho completo
+    ['١٢٣٤', 'El PIN sólo lleva números del 0 al 9.'], // árabe-índicos
+    ['۱۲۳۴', 'El PIN sólo lleva números del 0 al 9.'], // persas
+    ['१२३४', 'El PIN sólo lleva números del 0 al 9.'], // devanagari
+    ['12\n34', 'El PIN sólo lleva números del 0 al 9.'],
+  ])('«%s» → %s', (entrada, error) => {
+    expect(errorDePin(entrada)).toBe(error);
+    // Coincide con lo que acepta el servidor.
+    expect(PIN_VALIDO.test(entrada)).toBe(error === null);
   });
 });
 
@@ -121,6 +127,25 @@ describe('el servicio simulado respeta el contrato', () => {
     expect(respuesta(creada).valido).toBe(true);
     expect(JSON.stringify(creada)).not.toContain('pin');
     expect(JSON.stringify(sim.llamadas)).not.toContain('0000');
+  });
+
+  it('rechaza con 422 lo que PersonalCrear, PersonalCambios y PinNuevo no admiten, sin repetir el PIN', async () => {
+    const sim = crearServicioPersonalSimulado();
+    await expect(sim.servicio.crear(RID, { nombre: 'Ana', rol: 'cocinero' as never, pin: '4829' })).rejects.toMatchObject({ estado: 422 });
+    await expect(sim.servicio.crear(RID, { nombre: 'x'.repeat(61), rol: 'mesero', pin: '4829' })).rejects.toMatchObject({ estado: 422 });
+    await expect(sim.servicio.cambiar(PID, { activo: 'false' as never })).rejects.toMatchObject({ estado: 422 });
+    await expect(sim.servicio.cambiar(PID, { pin: '1234' } as never)).rejects.toMatchObject({ estado: 422 });
+    const error = await sim.servicio.reasignarPin(PID, '12').catch((e: unknown) => e);
+    expect(JSON.stringify(error)).not.toContain('"12"');
+    await expect(sim.servicio.reasignarPin(PID, '4829')).resolves.toBeUndefined();
+  });
+
+  it('las personas que devuelve no traen campos que el esquema no declara', async () => {
+    const sim = crearServicioPersonalSimulado();
+    const claves = Object.keys(esquema('PersonalRespuesta').properties).sort();
+    for (const p of await sim.servicio.listar(RID)) expect(Object.keys(p).sort()).toEqual(claves);
+    const creada = await sim.servicio.crear(RID, { nombre: 'Rosa', rol: 'mesero', pin: '4829' });
+    expect(Object.keys(creada).sort()).toEqual(claves);
   });
 
   it('acepta 0000 y 1234 (el servidor no los rechaza) y rechaza lo que no es de 4 a 6 dígitos', async () => {
