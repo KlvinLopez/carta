@@ -44,7 +44,7 @@ Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas
 | 422 | Validación del payload (Pydantic) o de negocio | `PAYLOAD_INVALIDO`, `PRECIO_INVALIDO`, `ALIAS_NO_PERMITIDO` |
 | 429 | Límite de tasa | `DEMASIADAS_PETICIONES` |
 | 500 | Error interno | `ERROR_INTERNO` |
-| 503 | Una dependencia no responde (base, almacén de fotos, API de extracción); el cliente reintenta más tarde. `Retry-After` es opcional y el cliente no depende de ella | `BASE_NO_DISPONIBLE`, `ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO` (cola de procesado llena) |
+| 503 | Una dependencia no responde (base, almacén de fotos, API de extracción); el cliente reintenta más tarde. `Retry-After` es opcional y el cliente no depende de ella | `BASE_NO_DISPONIBLE`, `ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO` (cola de procesado llena), `PROCESADOR_DETENIDO` (en `/ready`: el procesador de importaciones no completa ciclos) |
 
 **Regla de fuga de información:** cualquier recurso de otro restaurante devuelve **404**, jamás 403 (AC-15.3).
 
