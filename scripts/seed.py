@@ -45,6 +45,7 @@ from app.db.models import (
     Platillo,
     Restaurante,
     RolPersonal,
+    SesionGrupal,
 )
 from app.schemas.importacion import ResultadoImportacion
 from app.services import assets, importaciones, menu, mesas, operadores, personal
@@ -274,11 +275,99 @@ class Resumen:
     firebase_uid: str
 
 
-async def borrar_semilla(sesion: AsyncSession) -> bool:
-    """Borra **sólo** el restaurante `SLUG` (la base arrastra todo lo suyo por `ON DELETE
-    CASCADE`). Es el único borrado físico del proyecto; `main` lo exige en desarrollo."""
+class EntornoNoPermitido(Exception):
+    """La semilla borra filas: sólo en desarrollo (y en la base de pruebas)."""
+
+
+class ArchivosFaltantes(Exception):
+    """Falta un archivo de `tests/fixtures/` (la imagen Docker no los lleva): no se borra nada."""
+
+
+ENTORNOS_PERMITIDOS = ("desarrollo", "pruebas")
+
+
+def exigir_entorno() -> None:
+    if settings.ENTORNO not in ENTORNOS_PERMITIDOS:
+        raise EntornoNoPermitido(settings.ENTORNO)
+
+
+def exigir_archivos() -> None:
+    """Todo lo que `sembrar` lee, comprobado **antes** de borrar: si falta algo, la semilla
+    anterior se queda en vez de borrarla y morir sin recrearla."""
+    necesarios = [
+        MENUS / "la-ceiba.pdf",
+        MENUS / "la-ceiba.respuesta.json",
+        *(FOTOS / f"{p.slug_foto}.jpg" for p in PLATILLOS if p.slug_foto),
+    ]
+    faltan = [f"{r.parent.name}/{r.name}" for r in necesarios if not r.is_file()]
+    if faltan:
+        raise ArchivosFaltantes(", ".join(faltan))
+
+
+async def _claves_del_almacen(
+    sesion: AsyncSession, almacen: assets.Almacen
+) -> tuple[list[str], list[str]]:
+    """(públicas, privadas) del restaurante semilla actual, leídas antes de borrar sus filas."""
+    rid = select(Restaurante.id).where(Restaurante.slug == SLUG).scalar_subquery()
+    prefijo = almacen.url_base + "/"
+    publicas: list[str] = []
+    privadas: list[str] = []
+    filas = await sesion.execute(
+        select(
+            Platillo.foto_thumb_url, Platillo.foto_detalle_url, Platillo.foto_original_url
+        ).where(Platillo.restaurante_id == rid)
+    )
+    for miniatura, detalle, original in filas:
+        publicas += [u.removeprefix(prefijo) for u in (miniatura, detalle) if u]
+        if original:
+            privadas.append(original)
+    privadas += list(
+        await sesion.scalars(
+            select(ImportacionMenu.archivo_url).where(ImportacionMenu.restaurante_id == rid)
+        )
+    )
+    return sorted(set(publicas)), sorted(set(privadas))
+
+
+async def _borrar_del_almacen(
+    almacen: assets.Almacen, publicas: list[str], privadas: list[str]
+) -> int:
+    """Sin huérfanos entre corridas. Si el almacén falla, avisa y sigue: no bloquea la semilla.
+    Devuelve cuántas claves no se pudieron borrar."""
+    fallidas = 0
+    for clave in publicas:
+        try:
+            await almacen.borrar_publico(clave)
+        except (assets.ErrorAlmacen, ValueError):
+            fallidas += 1
+    for clave in privadas:
+        try:
+            await almacen.borrar_privado(clave)
+        except (assets.ErrorAlmacen, ValueError):
+            fallidas += 1
+    if fallidas:
+        print(
+            f"Aviso: {fallidas} archivos del almacén anterior no se pudieron borrar.",
+            file=sys.stderr,
+        )
+    return fallidas
+
+
+async def borrar_semilla(sesion: AsyncSession, almacen: assets.Almacen) -> bool:
+    """Borra **sólo** el restaurante `SLUG` y sus archivos del almacén. Es el único borrado
+    físico del proyecto: `exigir_entorno` lo limita a desarrollo.
+
+    Primero sus `sesion_grupal` (arrastran miembros, órdenes, ítems y comandas por cascada):
+    `item_orden.platillo_id` es `ON DELETE RESTRICT`, así que con una sesión de la Fase 2 el
+    `DELETE` del restaurante chocaría con sus propios ítems. Todo en una transacción; los
+    archivos se borran después de confirmarla."""
+    exigir_entorno()
+    publicas, privadas = await _claves_del_almacen(sesion, almacen)
+    rid = select(Restaurante.id).where(Restaurante.slug == SLUG).scalar_subquery()
+    await sesion.execute(delete(SesionGrupal).where(SesionGrupal.restaurante_id == rid))
     resultado = await sesion.execute(delete(Restaurante).where(Restaurante.slug == SLUG))
     await sesion.commit()
+    await _borrar_del_almacen(almacen, publicas, privadas)
     return bool(resultado.rowcount)  # type: ignore[attr-defined]
 
 
@@ -291,7 +380,9 @@ def borrador_de_ejemplo() -> ResultadoImportacion:
 
 async def sembrar(sesion: AsyncSession, almacen: assets.Almacen) -> Resumen:
     """Borra y recrea el restaurante semilla con los servicios reales."""
-    await borrar_semilla(sesion)
+    exigir_entorno()
+    exigir_archivos()
+    await borrar_semilla(sesion, almacen)
 
     usuario = await operadores.usuario_de_identidad(
         sesion, FIREBASE_UID_OPERADOR, PROVEEDOR_OPERADOR, NOMBRE_OPERADOR
@@ -399,11 +490,16 @@ def main() -> int:
         )
         return CODIGO_SALIDA_ENTORNO
     try:
+        exigir_archivos()
+    except ArchivosFaltantes as error:
+        print(f"Faltan archivos de la semilla ({error}). No se tocó nada.", file=sys.stderr)
+        return 1
+    try:
         resumen = asyncio.run(_correr())
     except IntegrityError as error:
         print(
-            "No se pudo borrar el restaurante semilla porque tiene datos que lo referencian "
-            f"({type(error.orig).__name__}). Bórralo a mano o recrea la base de desarrollo.",
+            "No se pudo recrear el restaurante semilla: la base tiene datos que lo referencian "
+            f"({type(error.orig).__name__}). Recrea la base de desarrollo.",
             file=sys.stderr,
         )
         return 1

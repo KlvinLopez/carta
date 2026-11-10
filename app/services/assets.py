@@ -388,6 +388,14 @@ class Almacen(ABC):
         """Sube al bucket privado. Lanza `ErrorAlmacen`."""
 
     @abstractmethod
+    async def borrar_publico(self, clave: str) -> None:
+        """Borra del bucket público. Un objeto ausente no es error. Lanza `ErrorAlmacen`."""
+
+    @abstractmethod
+    async def borrar_privado(self, clave: str) -> None:
+        """Borra del bucket privado. Un objeto ausente no es error. Lanza `ErrorAlmacen`."""
+
+    @abstractmethod
     async def leer_privado(self, clave: str, maximo: int) -> bytes:
         """Lee del bucket privado (el procesador de importaciones, T-1.9). Lanza `ErrorAlmacen`
         si no responde, la clave no existe o el objeto pasa de `maximo` bytes (se lee a lo
@@ -435,6 +443,19 @@ class AlmacenLocal(Almacen):
 
     async def guardar_privado(self, clave: str, datos: bytes, tipo_mime: str) -> None:
         await self._guardar("privado", clave, datos)
+
+    async def _borrar(self, bucket: str, clave: str) -> None:
+        try:
+            # `ruta` valida la clave (sin `..` ni `/` inicial): no sale de la raíz del bucket.
+            await asyncio.to_thread(self.ruta(bucket, clave).unlink, missing_ok=True)
+        except OSError as error:
+            raise ErrorAlmacen(type(error).__name__) from error
+
+    async def borrar_publico(self, clave: str) -> None:
+        await self._borrar("publico", clave)
+
+    async def borrar_privado(self, clave: str) -> None:
+        await self._borrar("privado", clave)
 
     async def leer_privado(self, clave: str, maximo: int) -> bytes:
         def leer() -> bytes:
@@ -553,6 +574,24 @@ class AlmacenS3(Almacen):
 
     async def guardar_privado(self, clave: str, datos: bytes, tipo_mime: str) -> None:
         await self._poner(self.bucket_privado, clave, datos, ContentType=tipo_mime)
+
+    async def _quitar(self, bucket: str, clave: str) -> None:
+        try:
+            async with asyncio.timeout(PLAZO_ALMACEN_SEGUNDOS):
+                await _en_hilo_almacen(
+                    self._cliente.delete_object, Bucket=bucket, Key=_validar_clave(clave)
+                )
+        except ValueError:
+            raise
+        except Exception as error:  # red, credenciales, bucket (S3 no falla si el objeto falta)
+            log.error("el almacén no borró en %s: %s", bucket, type(error).__name__)
+            raise ErrorAlmacen(type(error).__name__) from error
+
+    async def borrar_publico(self, clave: str) -> None:
+        await self._quitar(self.bucket_publico, clave)
+
+    async def borrar_privado(self, clave: str) -> None:
+        await self._quitar(self.bucket_privado, clave)
 
     async def leer_privado(self, clave: str, maximo: int) -> bytes:
         def leer() -> bytes:
