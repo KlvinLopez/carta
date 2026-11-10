@@ -42,21 +42,14 @@ PUBLICA = "93.184.216.34"
 
 
 def resolver_a(monkeypatch: pytest.MonkeyPatch, *ips: str) -> None:
-    """Todo nombre resuelve a `ips` (`socket.getaddrinfo`, que usa `loop.getaddrinfo`)."""
+    """Todo nombre resuelve a `ips`. Se sustituye `qr_pdf.resolver_host`, nunca
+    `socket.getaddrinfo`: asyncpg lo usa para conectar a la base por nombre (en la CI,
+    `localhost`) y un parche global la deja colgada."""
 
-    def falso(host: Any, puerto: Any, *args: Any, **kwargs: Any) -> list[Any]:
-        return [
-            (
-                socket.AF_INET6 if ":" in ip else socket.AF_INET,
-                socket.SOCK_STREAM,
-                6,
-                "",
-                (ip, 443, 0, 0) if ":" in ip else (ip, 443),
-            )
-            for ip in ips
-        ]
+    async def falso(host: str) -> list[str]:
+        return list(ips)
 
-    monkeypatch.setattr(socket, "getaddrinfo", falso)
+    monkeypatch.setattr(qr_pdf, "resolver_host", falso)
 
 
 @pytest.fixture(autouse=True)
@@ -286,10 +279,10 @@ async def test_un_logo_http_no_se_descarga_ni_aparece_en_el_pdf(
     restaurante.logo_url = "http://interno.local/logo-secreto.png"
     await sesion.commit()
 
-    def no_debe_resolver(*args: Any, **kwargs: Any) -> None:
-        raise AssertionError("no debía resolver nada")
+    async def no_debe_resolver(host: str) -> list[str]:
+        raise AssertionError(f"no debía resolver {host}")
 
-    monkeypatch.setattr(socket, "getaddrinfo", no_debe_resolver)
+    monkeypatch.setattr(qr_pdf, "resolver_host", no_debe_resolver)
     respuesta = await _descargar(cliente, restaurante, cabecera_operador)
     assert respuesta.status_code == 200
     assert b"interno.local" not in respuesta.content
@@ -556,10 +549,10 @@ async def test_un_host_que_resuelve_a_ip_no_publica_no_se_pide(
 
 @pytest.mark.ac("AC-21.2")
 async def test_un_fallo_de_dns_es_sin_logo(monkeypatch: pytest.MonkeyPatch) -> None:
-    def no_existe(*args: Any, **kwargs: Any) -> None:
+    async def no_existe(host: str) -> list[str]:
         raise socket.gaierror("sin DNS")
 
-    monkeypatch.setattr(socket, "getaddrinfo", no_existe)
+    monkeypatch.setattr(qr_pdf, "resolver_host", no_existe)
     assert await qr_pdf._ip_validada("img.carta.mx") is None
     assert await qr_pdf.descargar_logo(URL_LOGO) is None
 

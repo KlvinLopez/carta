@@ -128,6 +128,14 @@ def _host_de_logo(url: str) -> str | None:
     return host
 
 
+async def resolver_host(host: str) -> list[str]:
+    """Las direcciones de `host` según el DNS. Punto de inyección de las pruebas: se sustituye
+    **esta** función, nunca `socket.getaddrinfo` (lo usa también asyncpg para conectar a la
+    base por nombre)."""
+    informacion = await asyncio.get_running_loop().getaddrinfo(host, 443, type=socket.SOCK_STREAM)
+    return [str(i[4][0]) for i in informacion]
+
+
 async def _ip_validada(host: str) -> str | None:
     """La IP a la que conectar: `host` si ya es una IP pública; si es un nombre, la primera
     de sus direcciones, siempre que **todas** sean públicas. `None` si no."""
@@ -136,10 +144,7 @@ async def _ip_validada(host: str) -> str | None:
     except ValueError:
         pass  # un nombre
     try:
-        informacion = await asyncio.get_running_loop().getaddrinfo(
-            host, 443, type=socket.SOCK_STREAM
-        )
-        ips = [ipaddress.ip_address(i[4][0]) for i in informacion]
+        ips = [ipaddress.ip_address(direccion) for direccion in await resolver_host(host)]
     except (OSError, ValueError):
         return None
     if not ips or not all(_ip_publica(ip) for ip in ips):
