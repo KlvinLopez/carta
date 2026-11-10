@@ -520,7 +520,6 @@ def test_el_recorrido_cubre_el_contrato() -> None:
 
 RUTAS_DE_EJEMPLO = [
     f"/restaurantes/{UUID_X}/personal",
-    f"/restaurantes/{UUID_X}/mesas",
     f"/restaurantes/{UUID_X}/importaciones/{UUID_X}",
 ]
 
@@ -669,6 +668,7 @@ DEPENDENCIAS_DEL_OPERADOR = {
     "restaurante_del_operador",
     "platillo_del_operador",
     "categoria_del_operador",
+    "mesa_del_operador",
 }
 
 

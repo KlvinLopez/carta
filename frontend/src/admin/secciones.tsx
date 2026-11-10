@@ -4,7 +4,7 @@ import { useSesion } from './acceso/Sesion';
 import { EstadoVacio } from './armazon/EstadoVacio';
 import { useRestauranteActivo } from './armazon/RestauranteActivo';
 
-/** Las pantallas reales llegan en T-1.11 (alta), T-1.12 (menú) y T-1.13 (mesas, personal, ajustes). */
+/** Las pantallas reales llegan en T-1.11 (alta) y T-1.13 (mesas, personal, ajustes). */
 function Seccion({
   titulo,
   glifo,
@@ -30,11 +30,6 @@ function Seccion({
   );
 }
 
-export const SeccionMenu = () => (
-  <Seccion titulo="Menú" glifo="M" vacio="Tu carta aparecerá aquí">
-    Sube tu carta en PDF y la convertimos en un menú visual. Nada entra sin que lo confirmes.
-  </Seccion>
-);
 export const SeccionMesas = () => (
   <Seccion titulo="Mesas" glifo="Q" vacio="Aún no hay mesas">
     Crea tus mesas y descarga los QR listos para imprimir.

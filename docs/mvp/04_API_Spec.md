@@ -38,13 +38,13 @@ Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas
 | 403 | Credencial válida, acción no permitida | `ORDEN_AJENA`, `ORDEN_BLOQUEADA` |
 | 404 | No existe **o** no es visible para quien pregunta | `MESA_NO_ENCONTRADA`, `RECURSO_NO_ENCONTRADO` |
 | 408 | El cliente no terminó de enviar el cuerpo dentro del plazo (subidas) | `SUBIDA_INCOMPLETA` |
-| 409 | Conflicto de estado | `SESION_YA_ENVIADA`, `ORDEN_VACIA` |
+| 409 | Conflicto de estado | `SESION_YA_ENVIADA`, `ORDEN_VACIA`, `CODIGOS_CAMBIADOS` (un código de mesa cambió mientras se preparaba el PDF), `MESA_INACTIVA`, `IMPORTACION_EN_CURSO` (ya hay importaciones pendientes o procesándose para el restaurante) |
 | 413 | Archivo demasiado grande | `ARCHIVO_EXCEDE_LIMITE` |
 | 415 | Tipo de contenido no soportado (por contenido, no por extensión ni `Content-Type`) | `TIPO_NO_SOPORTADO` |
 | 422 | Validación del payload (Pydantic) o de negocio | `PAYLOAD_INVALIDO`, `PRECIO_INVALIDO`, `ALIAS_NO_PERMITIDO` |
 | 429 | Límite de tasa | `DEMASIADAS_PETICIONES` |
 | 500 | Error interno | `ERROR_INTERNO` |
-| 503 | Una dependencia no responde (base, almacén de fotos, API de extracción); el cliente reintenta más tarde. `Retry-After` es opcional y el cliente no depende de ella | `BASE_NO_DISPONIBLE`, `ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO` (cola de procesado llena) |
+| 503 | Una dependencia no responde (base, almacén de fotos, API de extracción); el cliente reintenta más tarde. `Retry-After` es opcional y el cliente no depende de ella | `BASE_NO_DISPONIBLE`, `ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO` (cola de procesado llena), `PROCESADOR_DETENIDO` (en `/ready`: el procesador de importaciones no completa ciclos) |
 
 **Regla de fuga de información:** cualquier recurso de otro restaurante devuelve **404**, jamás 403 (AC-15.3).
 

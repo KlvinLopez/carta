@@ -104,6 +104,10 @@ function montarSesion(fabrica: FabricaProveedor) {
   return caja as { ctx: ContextoSesion };
 }
 
+/** Las listas de la pantalla Menú (T-1.12) salen vacías; sólo `/admin/restaurantes` trae datos. */
+const deRuta = (url: URL | undefined, restaurantes: unknown[]) =>
+  /\/(categorias|platillos)$/.test(url?.pathname ?? '') ? respuesta([]) : respuesta(restaurantes);
+
 const NO_AUTENTICADO = { error: { codigo: 'NO_AUTENTICADO', mensaje: 'x', detalles: {}, request_id: null } };
 
 /** Espera a que el proveedor se suscriba y le entrega el primer estado de sesión. */
@@ -119,7 +123,7 @@ let pedir: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   window.localStorage.clear();
   window.sessionStorage.clear();
-  pedir = vi.fn(async () => respuesta([REST_A]));
+  pedir = vi.fn(async (url?: URL) => deRuta(url, [REST_A]));
   vi.stubGlobal('fetch', pedir);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -241,7 +245,7 @@ describe('token y cliente HTTP', () => {
     const { fabrica, emitir } = crearProveedor();
     pedir
       .mockImplementationOnce(async () => respuesta({ error: { codigo: 'ERROR_INTERNO', mensaje: 'Falló.', detalles: {}, request_id: null } }, 500))
-      .mockImplementation(async () => respuesta([REST_A]));
+      .mockImplementation(async (url?: URL) => deRuta(url, [REST_A]));
     montar('/admin/menu', fabrica);
     await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
     emitir('token-viejo');
@@ -257,7 +261,7 @@ describe('token y cliente HTTP', () => {
     const { fabrica, proveedor, emitir } = crearProveedor();
     pedir
       .mockImplementationOnce(async () => respuesta({ error: { codigo: 'NO_AUTENTICADO', mensaje: 'x', detalles: {}, request_id: null } }, 401))
-      .mockImplementationOnce(async () => respuesta([REST_A]));
+      .mockImplementationOnce(async (url?: URL) => deRuta(url, [REST_A]));
     montar('/admin/menu', fabrica);
     await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
     emitir('token-vencido');
@@ -286,7 +290,7 @@ describe('token y cliente HTTP', () => {
       .mockImplementationOnce(async () =>
         respuesta({ error: { codigo: 'ERROR_INTERNO', mensaje: 'Algo falló de nuestro lado.', detalles: {}, request_id: 'r1' } }, 500),
       )
-      .mockImplementation(async () => respuesta([REST_A]));
+      .mockImplementation(async (url?: URL) => deRuta(url, [REST_A]));
     montar('/admin/menu', fabrica);
     await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
     emitir('t');
@@ -308,7 +312,7 @@ describe('token y cliente HTTP', () => {
 describe('armazón del panel', () => {
   async function entrar(ruta = '/admin/menu', restaurantes: unknown[] = [REST_A]) {
     const prov = crearProveedor();
-    pedir.mockImplementation(async () => respuesta(restaurantes));
+    pedir.mockImplementation(async (url?: URL) => deRuta(url, restaurantes));
     montar(ruta, prov.fabrica);
     await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
     prov.emitir('token');
@@ -359,6 +363,18 @@ describe('armazón del panel', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Bar Norte/ }));
     expect(await screen.findByRole('button', { name: /Bar Norte/ })).toBeInTheDocument();
     expect(window.localStorage.getItem(CLAVE_RESTAURANTE)).toBe(REST_B.id);
+  });
+
+  it('B7 (T-1.12): un restaurante recordado que el servidor no devuelve se descarta y se usa el primero', async () => {
+    // El `rid` de localStorage es sólo una comodidad: la lista que manda el servidor decide (AC-15.2).
+    window.localStorage.setItem(CLAVE_RESTAURANTE, '00000000-0000-4000-8000-0000000000ff');
+    await entrar('/admin/menu', [REST_A, REST_B]);
+    expect(await screen.findByRole('button', { name: /La Cocina de Ana/ })).toBeInTheDocument();
+    await waitFor(() => expect(pedir.mock.calls.some(([url]) => /\/categorias$/.test((url as URL).pathname))).toBe(true));
+    // Las peticiones del menú usan el restaurante que devolvió el servidor, nunca el id ajeno guardado.
+    const rutas = pedir.mock.calls.map(([url]) => (url as URL).pathname);
+    expect(rutas.some((r) => r.includes('0000000000ff'))).toBe(false);
+    expect(rutas).toContain('/api/v1/admin/restaurantes/' + REST_A.id + '/categorias');
   });
 });
 
@@ -588,7 +604,7 @@ describe('redirecciones y cierre de sesión (B3, B5, B8, B9)', () => {
 
   it('B2/B3: «Salir» borra el correo pendiente y el restaurante elegido, y vuelve al acceso', async () => {
     const prov = crearProveedor();
-    pedir.mockImplementation(async () => respuesta([REST_A, REST_B]));
+    pedir.mockImplementation(async (url?: URL) => deRuta(url, [REST_A, REST_B]));
     montar('/admin/ajustes', prov.fabrica);
     await iniciar(prov, 't');
     await screen.findByRole('heading', { name: 'Ajustes' });
@@ -646,7 +662,7 @@ describe('redirecciones y cierre de sesión (B3, B5, B8, B9)', () => {
     montar('/admin/menu', prov.fabrica);
     await iniciar(prov, 't');
     expect(await screen.findByText(/Tu sesión terminó/)).toBeInTheDocument();
-    pedir.mockImplementation(async () => respuesta([REST_A]));
+    pedir.mockImplementation(async (url?: URL) => deRuta(url, [REST_A]));
     act(() => prov.emitir('t2'));
     await screen.findByRole('navigation', { name: 'Secciones del panel' });
     expect(screen.queryByText(/Tu sesión terminó/)).toBeNull();
@@ -658,7 +674,7 @@ describe('red y errores de la API en el panel (A3, A4, B9)', () => {
     const prov = crearProveedor();
     prov.proveedor.renovar.mockRejectedValue(new ErrorAcceso('sin-red', 'sin red'));
     pedir.mockImplementationOnce(async () => respuesta(NO_AUTENTICADO, 401));
-    pedir.mockImplementation(async () => respuesta([REST_A]));
+    pedir.mockImplementation(async (url?: URL) => deRuta(url, [REST_A]));
     montar('/admin/menu', prov.fabrica);
     await iniciar(prov, 't');
     expect(await screen.findByText(/No pudimos conectar con Carta/)).toBeInTheDocument();
@@ -758,7 +774,7 @@ describe('copy y estados del panel (B10)', () => {
   it('un nombre de 200 caracteres cabe en el selector con elipsis (el texto va en su propio span)', async () => {
     const largo = { ...REST_A, nombre: 'Restaurante '.repeat(17).slice(0, 200) };
     const prov = crearProveedor();
-    pedir.mockImplementation(async () => respuesta([largo, REST_B]));
+    pedir.mockImplementation(async (url?: URL) => deRuta(url, [largo, REST_B]));
     montar('/admin/menu', prov.fabrica);
     await iniciar(prov, 't');
     const boton = await screen.findByRole('button', { name: new RegExp(largo.nombre.slice(0, 20)) });

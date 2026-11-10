@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 const SCRIPT = resolve(__dirname, '..', 'scripts', 'presupuesto.mjs');
 const creados: string[] = [];
 
-function dist(js: string): string {
+function dist(js: string, trozosExtra: string[] = ['PantallaMenu-1.js']): string {
   const raiz = mkdtempSync(join(tmpdir(), 'presupuesto-'));
   creados.push(raiz);
   mkdirSync(join(raiz, 'assets'));
@@ -19,7 +19,7 @@ function dist(js: string): string {
     '<!doctype html><html><head><script type="module" src="/assets/index-a.js"></script></head><body></body></html>',
   );
   writeFileSync(join(raiz, 'assets', 'index-a.js'), js);
-  for (const n of ['Area-1.js', 'Area-2.js', 'Area-3.js']) writeFileSync(join(raiz, 'assets', n), '//');
+  for (const n of ['Area-1.js', 'Area-2.js', 'Area-3.js', ...trozosExtra]) writeFileSync(join(raiz, 'assets', n), '//');
   return raiz;
 }
 
@@ -50,5 +50,24 @@ describe('presupuesto.mjs: el SDK de Firebase no entra a la carga inicial', () =
     expect(codigo).toBe(1);
     expect(salida).toContain('El SDK de Firebase está en la carga inicial');
     expect(salida).toContain('/assets/index-a.js');
+  });
+});
+
+describe('presupuesto.mjs: la pantalla Menú es su propio trozo (T-1.12)', () => {
+  it('sin dist/assets/PantallaMenu-*.js falla (alguien quitó el React.lazy)', () => {
+    const { codigo, salida } = correr(dist('console.log("hola");', []));
+    expect(codigo).toBe(1);
+    expect(salida).toContain('falta dist/assets/PantallaMenu-*.js');
+  });
+
+  it('si index.html lo carga de inicio falla', () => {
+    const carpeta = dist('console.log("hola");');
+    writeFileSync(
+      join(carpeta, 'index.html'),
+      '<!doctype html><html><head><script type="module" src="/assets/index-a.js"></script><link rel="modulepreload" href="/assets/PantallaMenu-1.js"></head><body></body></html>',
+    );
+    const { codigo, salida } = correr(carpeta);
+    expect(codigo).toBe(1);
+    expect(salida).toContain('index.html carga de inicio PantallaMenu-1.js');
   });
 });
