@@ -32,7 +32,7 @@ Pide a cada uno hallazgos en este formato: `severidad (bloqueante | importante |
 1. Junta los hallazgos, quita duplicados, ordena por severidad.
 2. **Verifica cada bloqueante** antes de aceptarlo: reprodúcelo con una prueba o un comando. Un hallazgo que no se puede reproducir baja a "importante" con la nota "no reproducido".
 3. Arregla los bloqueantes y los importantes que estén en alcance de la tarea. Los menores se anotan en el PR.
-4. Vuelve a correr la calidad: `uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q`.
+4. Vuelve a correr la calidad: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q`.
 
 ## 4. Reportar
 

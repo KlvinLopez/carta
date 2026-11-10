@@ -9,7 +9,7 @@
 ## Compuerta de especificación
 
 - [ ] El comando de **Verificar** del brief pasa: `<comando>`
-- [ ] Puerta de calidad en verde: `uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q` (+ `npm --prefix frontend test` si toca frontend)
+- [ ] Puerta de calidad en verde: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q` (+ `npm --prefix frontend test` si toca frontend)
 - [ ] Cada criterio del brief tiene prueba con `@pytest.mark.ac(...)` o paso manual: `uv run python scripts/verificar_trazabilidad.py --tarea T-x.y --estricto`
 - [ ] `/revisar` hecho; hallazgos bloqueantes resueltos (los menores, abajo)
 - [ ] `/analizar T-x.y` hecho: nada fuera de la spec, contrato al día

@@ -83,8 +83,8 @@ jobs:
       - name: ruff format --check
         run: uv run ruff format --check .
 
-      - name: mypy app
-        run: uv run mypy app
+      - name: mypy (app y scripts)
+        run: uv run mypy
 
       - name: app/services no importa FastAPI ni Starlette (regla dura 2)
         run: |

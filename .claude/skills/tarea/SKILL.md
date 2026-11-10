@@ -31,7 +31,7 @@ Entra en plan mode. Escribe el plan con: archivos que se crean o cambian, prueba
 ## 4. Verificar
 
 1. El comando **Verificar** del brief en verde.
-2. `uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q` en verde (y `npm --prefix frontend test` si tocaste frontend).
+2. `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q` en verde (y `npm --prefix frontend test` si tocaste frontend).
 3. Lee tu diff como si fueras otra persona: ¿qué haría que CI lo rechazara? Arréglalo antes.
 
 ## 5. Cerrar (obligatorio, según el resultado)

@@ -22,7 +22,7 @@ delante del código: entonces avisa y no migra) y sólo cambia el tráfico cuand
 
 ## Antes de desplegar (siempre)
 
-1. Puerta de calidad en verde y CI verde sobre el commit (`uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q`).
+1. Puerta de calidad en verde y CI verde sobre el commit (`uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q`).
 2. Para producción: el commit **ya está en `master`** (se etiqueta *después* del merge; `deploy.yml` rechaza otra cosa) y staging funciona con él.
 3. Si hay migración nueva, debe ser compatible hacia atrás (expandir → usar → contraer, 05 §3): el código anterior tiene que seguir funcionando con el esquema nuevo.
 

@@ -13,7 +13,7 @@ Reglas:
 2. Toca sólo los archivos del carril indicado. Si necesitas otro, detente y repórtalo.
 3. Primero la prueba que falla, después la implementación.
 4. Reglas duras que más se rompen: español en el dominio; `app/services/` sin FastAPI; precio desde la base; `restaurante_id` del token; recurso ajeno → 404; sin `create_all`; sin secretos.
-5. Corre el comando de verificación y `uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q`. No regreses con algo en rojo sin explicar por qué.
+5. Corre el comando de verificación y `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q`. No regreses con algo en rojo sin explicar por qué.
 6. No hagas commit ni push: regresa el diff.
 
 Responde con: archivos cambiados, pruebas agregadas, salida resumida de la verificación, y cualquier decisión que tomaste que el brief no cubría.

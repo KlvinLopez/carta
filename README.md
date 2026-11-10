@@ -165,7 +165,7 @@ uv run alembic upgrade head     # schema: migrations/versions/0001_base_v1.py
 uv run uvicorn app.main:app --reload --port 8000
 
 # Quality gate — must pass before every commit
-uv run ruff check . && uv run ruff format --check . && uv run mypy app && uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q
 
 # Frontend (PWA)
 npm --prefix frontend ci && npm --prefix frontend test && npm --prefix frontend run build
