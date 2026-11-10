@@ -24,7 +24,6 @@ from httpx import AsyncClient, Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.admin import ejemplos
 from app.core.config import settings
 from app.core.firebase import obtener_verificador
 from app.db.models import (
@@ -516,43 +515,6 @@ def test_el_recorrido_cubre_el_contrato() -> None:
     assert contrato <= recorridas
 
 
-# --- A1 · Las rutas de ejemplo no salen de desarrollo -------------------------------------
-
-RUTAS_DE_EJEMPLO = [
-    f"/restaurantes/{UUID_X}/personal",
-    f"/restaurantes/{UUID_X}/importaciones/{UUID_X}",
-]
-
-
-@pytest.mark.ac("AC-15.3")
-@pytest.mark.parametrize("entorno", ["staging", "produccion"])
-@pytest.mark.parametrize("ruta", RUTAS_DE_EJEMPLO)
-async def test_las_rutas_de_ejemplo_con_token_son_404_fuera_de_desarrollo(
-    cliente: AsyncClient,
-    cabecera_operador: dict[str, str],
-    monkeypatch: pytest.MonkeyPatch,
-    entorno: str,
-    ruta: str,
-) -> None:
-    monkeypatch.setattr(settings, "ENTORNO", entorno)
-    _es_404(await cliente.get(A + ruta, headers=cabecera_operador))
-    _es_401(await cliente.get(A + ruta))  # sin token sigue siendo 401
-    subida = await cliente.post(
-        f"{A}/restaurantes/{UUID_X}/importaciones",
-        files={"archivo": ("x.pdf", b"%PDF-1.4", "application/pdf")},
-        headers=cabecera_operador,
-    )
-    _es_404(subida)
-
-
-async def test_las_rutas_de_ejemplo_responden_en_desarrollo(
-    cliente: AsyncClient, cabecera_operador: dict[str, str]
-) -> None:
-    assert settings.es_desarrollo
-    respuesta = await cliente.get(A + RUTAS_DE_EJEMPLO[0], headers=cabecera_operador)
-    assert respuesta.status_code == 200
-
-
 # --- A2 · Caracteres de control: 422 o 401, nunca 500 ------------------------------------
 
 
@@ -669,6 +631,7 @@ DEPENDENCIAS_DEL_OPERADOR = {
     "platillo_del_operador",
     "categoria_del_operador",
     "mesa_del_operador",
+    "personal_del_operador",
 }
 
 
@@ -681,12 +644,9 @@ def _dependencias(dependant: Any) -> set[str]:
 
 
 def _rutas_reales_con_id() -> list[tuple[str, APIRoute]]:
-    de_ejemplo = {
-        (r.path, frozenset(r.methods)) for r in ejemplos.router.routes if isinstance(r, APIRoute)
-    }
     rutas = []
     for ruta, api, _ in rutas_api():
-        if not ruta.startswith(A) or (api.path, frozenset(api.methods)) in de_ejemplo:
+        if not ruta.startswith(A):
             continue
         if set(re.findall(r"\{([^}]+)\}", ruta)) & IDS_DE_RECURSO:
             rutas.append((ruta, api))
@@ -695,7 +655,7 @@ def _rutas_reales_con_id() -> list[tuple[str, APIRoute]]:
 
 @pytest.mark.ac("AC-15.3")
 def test_toda_ruta_admin_con_id_depende_del_operador() -> None:
-    """Cuando T-1.3 a T-1.9 sustituyan los ejemplos, olvidar `*_del_operador` rompe esto."""
+    """Olvidar `*_del_operador` en una ruta con id de recurso rompe esto."""
     rutas = _rutas_reales_con_id()
     # GET/PATCH restaurante, categorías y platillos (T-1.3): GET/POST, reordenar, PATCH/DELETE
     assert len(rutas) >= 12

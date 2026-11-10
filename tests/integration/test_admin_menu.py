@@ -1461,3 +1461,44 @@ def test_un_null_en_un_campo_obligatorio_del_patch_es_error_de_validacion() -> N
         with pytest.raises(ValidationError, match=f"no pueden ser null: {campo}"):
             esquema.model_validate({campo: None})
     assert PlatilloCambios.model_validate({"descripcion": None}).descripcion is None
+
+
+# ===========================================================================
+# Revisión de T-1.6 (A3, A5): booleanos estrictos y formato invisible en los nombres
+# ===========================================================================
+
+
+@pytest.mark.ac("AC-16.1")
+@pytest.mark.parametrize("valor", ["yes", "false", 0, 1, "0"])
+async def test_los_interruptores_exigen_un_booleano_json(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    categoria: CategoriaMenu,
+    platillo: Platillo,
+    cabecera_operador: dict[str, str],
+    valor: object,
+) -> None:
+    for ruta, campos in (
+        (f"{A}/categorias/{categoria.id}", ("activa",)),
+        (f"{A}/platillos/{platillo.id}", ("activo", "disponible", "destacado")),
+    ):
+        for campo in campos:
+            respuesta = await cliente.patch(ruta, json={campo: valor}, headers=cabecera_operador)
+            assert respuesta.status_code == 422, (campo, valor)
+    alta = await cliente.post(
+        f"{A}/restaurantes/{restaurante.id}/platillos",
+        json={"nombre": "X", "precio": 10, "disponible": valor},
+        headers=cabecera_operador,
+    )
+    assert alta.status_code == 422
+
+
+@pytest.mark.ac("AC-16.1")
+async def test_el_formato_invisible_de_una_categoria_se_quita_y_choca_con_la_limpia(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
+) -> None:
+    ruta = f"{A}/restaurantes/{restaurante.id}/categorias"
+    uno = await cliente.post(ruta, json={"nombre": "Pos\u202etres"}, headers=cabecera_operador)
+    assert uno.status_code == 201 and uno.json()["nombre"] == "Postres"
+    dos = await cliente.post(ruta, json={"nombre": "Postres\u200d"}, headers=cabecera_operador)
+    assert dos.status_code == 409

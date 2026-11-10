@@ -20,7 +20,7 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Annotated, Any, ClassVar
 from uuid import UUID
 
-from pydantic import BeforeValidator, Field, StringConstraints, model_validator
+from pydantic import BeforeValidator, Field, StrictBool, StringConstraints, model_validator
 
 from app.db.models import TipoImagen
 from app.schemas.comun import (
@@ -185,7 +185,7 @@ class CategoriaCambios(SinNulosEnCambios):
     no_nulos = frozenset({"nombre", "activa"})
 
     nombre: Nombre100 | None = None
-    activa: bool | None = None
+    activa: StrictBool | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -205,8 +205,8 @@ class PlatilloCrear(Entrada):
     etiquetas: Claves = Field(default_factory=list)
     calorias: Calorias | None = None
     nivel_picante: NivelPicante = 0
-    destacado: bool = False
-    disponible: bool = True
+    destacado: StrictBool = False
+    disponible: StrictBool = True
 
     @model_validator(mode="after")
     def _deduplicar(self) -> PlatilloCrear:
@@ -241,9 +241,9 @@ class PlatilloCambios(SinNulosEnCambios):
     etiquetas: Claves | None = None
     calorias: Calorias | None = None
     nivel_picante: NivelPicante | None = None
-    destacado: bool | None = None
-    disponible: bool | None = None
-    activo: bool | None = None
+    destacado: StrictBool | None = None
+    disponible: StrictBool | None = None
+    activo: StrictBool | None = None
 
     @model_validator(mode="after")
     def _deduplicar(self) -> PlatilloCambios:

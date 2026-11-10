@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import secrets
 from decimal import Decimal
+from functools import cache
 from itertools import count
 from typing import Any
 
+from argon2 import PasswordHasher, Type
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
@@ -23,6 +25,7 @@ from app.db.models import (
     ImportacionMenu,
     Mesa,
     OperadorRestaurante,
+    PersonalRestaurante,
     Platillo,
     Restaurante,
     RolOperador,
@@ -150,3 +153,28 @@ async def crear_importacion(
     await sesion.commit()
     await sesion.refresh(importacion)
     return importacion
+
+
+@cache
+def hash_de_pin_de_prueba() -> str:
+    """Hash Argon2id de `"1234"` con parámetros mínimos (t=1, m=8 KiB): válido para
+    `ck_personal_pin_hash` sin pagar los 64 MiB del servicio en cada fábrica."""
+    return PasswordHasher(type=Type.ID, time_cost=1, memory_cost=8, parallelism=1).hash("1234")
+
+
+async def crear_personal(
+    sesion: AsyncSession, restaurante: Restaurante, **valores: Any
+) -> PersonalRestaurante:
+    """Mesero activo con el PIN `1234` (T-1.6). Pasa `pin_hash=` para otro hash."""
+    n = next(_contador)
+    datos: dict[str, Any] = {
+        "restaurante_id": restaurante.id,
+        "nombre": f"Persona {n}",
+        "pin_hash": hash_de_pin_de_prueba(),
+    }
+    datos.update(valores)
+    persona = PersonalRestaurante(**datos)
+    sesion.add(persona)
+    await sesion.commit()
+    await sesion.refresh(persona)
+    return persona

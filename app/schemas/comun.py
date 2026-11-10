@@ -89,6 +89,12 @@ def sin_caracteres_de_control(permitidos: str = "") -> AfterValidator:
         if any(c not in permitidos and unicodedata.category(c) == "Cc" for c in texto):
             raise ValueError("no se permiten caracteres de control")
         limpio = "".join(c for c in texto if not es_invisible(c)).strip()
+        # ZWJ/ZWNJ sólo dan forma entre dos caracteres; al borde serían un nombre «distinto»
+        # que se ve igual (y que el UNIQUE `lower(btrim)` no distingue).
+        anterior = None
+        while anterior != limpio:
+            anterior = limpio
+            limpio = limpio.strip().strip("\u200c\u200d")
         if texto and not any(_visible(c) for c in limpio):
             raise ValueError("el texto no tiene ningún carácter visible")
         return limpio

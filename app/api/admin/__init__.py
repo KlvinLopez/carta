@@ -2,29 +2,18 @@
 
 Todo el router depende de `operador_actual` (AC-15.1): sin token válido, 401 con la
 envoltura única antes de validar nada más. `restaurantes.py` y `menu.py` (T-1.3) tienen las
-rutas reales de restaurantes, categorías y platillos, `fotos.py` (T-1.4) la foto del platillo,
-`mesas.py` (T-1.5) las mesas y su PDF de QR e `importaciones.py` (T-1.9) la importación de la
-carta, aisladas por restaurante
-(`app.api.admin.dependencias`); `ejemplos.py` publica el resto del contrato de la Fase 1 con
-datos de ejemplo (T-1.1) hasta que cada tarea ponga sus rutas reales: exigen el token y,
-además, `solo_desarrollo` las esconde (404) fuera de desarrollo y pruebas: con un token
-válido cualquiera recibiría datos inventados para un `{rid}` ajeno y podría subir archivos
-sin validar (revisión de T-1.2, A1). Siguen en `/openapi.json`.
+rutas de restaurantes, categorías y platillos, `fotos.py` (T-1.4) la foto del platillo,
+`mesas.py` (T-1.5) las mesas y su PDF de QR, `importaciones.py` (T-1.9) la importación de la
+carta y `personal.py` (T-1.6) el personal y su PIN, todas aisladas por restaurante
+(`app.api.admin.dependencias`). Ya no quedan rutas de ejemplo (`ejemplos.py` y
+`solo_desarrollo` se quitaron con T-1.6).
 """
 
 from fastapi import APIRouter, Depends
 
-from app.api.admin import ejemplos, fotos, importaciones, menu, mesas, restaurantes
-from app.api.admin.dependencias import no_encontrado, operador_actual
-from app.core.config import settings
+from app.api.admin import fotos, importaciones, menu, mesas, personal, restaurantes
+from app.api.admin.dependencias import operador_actual
 from app.schemas.comun import errores
-
-
-async def solo_desarrollo() -> None:
-    """404 fuera de desarrollo/pruebas para las rutas que todavía devuelven ejemplos."""
-    if not settings.es_desarrollo:
-        raise no_encontrado()
-
 
 # Toda ruta del operador puede responder 401 (sin token), 404 (no existe o es de otro
 # restaurante) y 422 con la envoltura de 04_API_Spec §1.2; declararlo aquí sustituye el
@@ -37,6 +26,6 @@ router.include_router(menu.router)
 router.include_router(fotos.router)
 router.include_router(mesas.router)
 router.include_router(importaciones.router)
-router.include_router(ejemplos.router, dependencies=[Depends(solo_desarrollo)])
+router.include_router(personal.router)
 
-__all__ = ["router", "solo_desarrollo"]
+__all__ = ["router"]

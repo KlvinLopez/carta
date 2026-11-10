@@ -268,6 +268,9 @@ class PersonalRestaurante(Base):
     )
     bloqueado_hasta: Mapped[datetime | None] = _marca_tiempo(nullable=True)
     ultimo_acceso_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    # Sello de revocación (AC-26.3, 0003): la cookie del personal vale sólo si se emitió
+    # en o después de esta marca. Se adelanta al desactivar, cambiar el PIN o el rol.
+    sesiones_desde: Mapped[datetime] = _marca_tiempo()
     creado_en: Mapped[datetime] = _marca_tiempo()
     actualizado_en: Mapped[datetime] = _marca_tiempo(al_actualizar=True)
 

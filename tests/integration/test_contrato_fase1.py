@@ -156,7 +156,7 @@ def test_el_precio_sale_como_numero(openapi: dict[str, Any]) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Las rutas de ejemplo responden con su esquema
+# Las rutas heredadas siguen respondiendo con el esquema v1
 # ---------------------------------------------------------------------------
 
 CONFIRMACION = {
@@ -171,53 +171,6 @@ CONFIRMACION = {
         }
     ],
 }
-EJEMPLOS: list[tuple[str, str, int, dict[str, Any]]] = [
-    ("get", f"/restaurantes/{UUID_X}/personal", 200, {}),
-    (
-        "post",
-        f"/restaurantes/{UUID_X}/personal",
-        201,
-        {"json": {"nombre": "Eva", "rol": "capitan", "pin": "123456"}},
-    ),
-    ("patch", f"/personal/{UUID_X}", 200, {"json": {"activo": False}}),
-    ("post", f"/personal/{UUID_X}/pin", 204, {"json": {"pin": "4321"}}),
-]  # las importaciones ya son reales (T-1.9): tests/integration/test_importaciones.py
-
-
-def _claves(valor: Any) -> set[str]:
-    """Todas las claves de un JSON, a cualquier profundidad."""
-    if isinstance(valor, dict):
-        return set(valor) | {c for v in valor.values() for c in _claves(v)}
-    if isinstance(valor, list):
-        return {c for v in valor for c in _claves(v)}
-    return set()
-
-
-@pytest.mark.parametrize(
-    ("metodo", "ruta", "estado", "cuerpo"),
-    EJEMPLOS,
-    ids=[f"{m.upper()} {r.replace(UUID_X, 'x')}" for m, r, _, _ in EJEMPLOS],
-)
-async def test_las_rutas_de_ejemplo_responden(
-    cliente: AsyncClient, metodo: str, ruta: str, estado: int, cuerpo: dict[str, Any]
-) -> None:
-    respuesta = await cliente.request(metodo.upper(), A + ruta, **cuerpo)
-    assert respuesta.status_code == estado, respuesta.text
-    if estado == 204:
-        assert respuesta.content == b""
-    elif ruta.endswith("qr.pdf"):
-        assert respuesta.headers["content-type"] == "application/pdf"
-        assert respuesta.content.startswith(b"%PDF-")
-    else:
-        assert not _claves(respuesta.json()) & {"pin", "pin_hash", "archivo_url"}
-
-
-async def test_el_pin_mal_formado_es_422(cliente: AsyncClient) -> None:
-    for pin in ("123", "1234567", "12a4"):
-        respuesta = await cliente.post(
-            f"{A}/restaurantes/{UUID_X}/personal", json={"nombre": "Eva", "pin": pin}
-        )
-        assert respuesta.status_code == 422, pin
 
 
 async def test_el_crud_heredado_responde_con_el_esquema_v1(
@@ -247,14 +200,13 @@ async def test_el_crud_heredado_responde_con_el_esquema_v1(
 
 
 @pytest.mark.parametrize("ruta", [f"/restaurantes/{UUID_X}/importaciones/{UUID_X}"])
-async def test_los_ejemplos_fuera_de_desarrollo_piden_token_y_no_existen(
+async def test_fuera_de_desarrollo_una_importacion_inexistente_pide_token_y_es_404(
     cliente: AsyncClient,
     cabecera_operador: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
     ruta: str,
 ) -> None:
-    """Fuera de desarrollo un ejemplo pide token (401) y, con él, no existe (404): revisión
-    de T-1.2, A1."""
+    """Fuera de desarrollo la ruta pide token (401) y, con él, un id inexistente es 404."""
     monkeypatch.setattr(settings, "ENTORNO", "staging")
     del cliente.headers["Authorization"]
     respuesta = await cliente.get(A + ruta)
