@@ -155,11 +155,22 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
 
 ## E. Lo mismo en `produccion`
 
-Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
+En Railway un servicio pertenece al **proyecto** y existe en todos los environments: `api`, `respaldo` y normalmente `Postgres` ya aparecen en **produccion** desde que los creaste en staging, sin despliegues ni variables propias. Por eso, si intentas crear otro `api`, sale «A service named "api" already exists in this project». **No crees servicios nuevos: configura los que ya están.** Los ajustes y las variables son por environment, así que todo lo de abajo hay que ponerlo aunque en staging ya esté. Cambia el selector a **produccion** y sigue en orden:
 
-1. **B (Postgres):** igual.
-2. **C (`api`):** **no** lo conectes a GitHub. Usa **+ New** → **Empty Service** → nombre `api`. Producción no sigue ninguna rama: la despliega GitHub Actions con cada etiqueta `v*` (`.github/workflows/deploy.yml`). Los ajustes de **Deploy** (Pre-deploy Command, Pre-deploy Timeout, Healthcheck Path, Healthcheck Timeout, Restart Policy) son **los mismos** que en staging. No hay **Source → Branch** ni **Wait for CI**. Hasta el primer despliegue (paso H) la tarjeta queda vacía: es normal.
-   Variables (**RAW Editor**):
+1. **Postgres.** Abre la tarjeta **Postgres**. Si debajo tiene un disco y su pestaña **Deployments** muestra un despliegue, ya está. Si está vacía, pulsa **Deploy** en la franja de cambios pendientes y espera **Active**; si después no aparece un disco bajo la tarjeta, clic derecho sobre ella → **Attach Volume** → *mount path* `/var/lib/postgresql/data` → **Deploy** otra vez. Si en produccion no hay ninguna tarjeta **Postgres**, créala como en B (**+ New → Database → Add PostgreSQL**). La base de producción es otra, con su propio volumen: `${{Postgres.DATABASE_URL}}` apunta siempre a la del environment seleccionado.
+2. **`api` → Settings.** Abre la tarjeta **api** → **Settings** y deja exactamente esto:
+
+   | Ajuste en pantalla | Valor |
+   |---|---|
+   | **Source** | Si muestra el repositorio **KlvinLopez/carta** con una rama, pulsa **Disconnect** (junto al repositorio) y confirma. Producción no sigue ninguna rama: la despliega GitHub Actions con cada etiqueta `v*` (`.github/workflows/deploy.yml`, `railway up`). Sin fuente, **Branch** y **Wait for CI** desaparecen: es lo esperado |
+   | **Deploy → Custom Start Command** | vacío |
+   | **Deploy → Pre-deploy Command** | `uv run python scripts/predespliegue.py` |
+   | **Deploy → Pre-deploy Timeout** | `300` |
+   | **Deploy → Healthcheck Path** | `/health` |
+   | **Deploy → Healthcheck Timeout** | `120` |
+   | **Deploy → Restart Policy** | **On Failure**, máximo `5` reintentos |
+
+3. **`api` → Variables.** Pestaña **Variables** → **RAW Editor**. Si ya hay variables (las de staging no se copian solas, pero revisa), bórralas: son otro juego. Pega este bloque, cambia los `<…>` y pulsa **Update Variables**:
 
    ```text
    ENTORNO=produccion
@@ -187,8 +198,21 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    CLOUDFLARE_API_TOKEN=<token de Cloudflare con permiso Zone · Cache Purge>
    ```
 
-   Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY` (para cambiarlas después, **⋮ → Edit** una por una). Las `VITE_FIREBASE_*` se hornean en la imagen al construirla, igual que en staging.
-3. **D (`respaldo`):** igual que en staging: desde GitHub, Root Directory `/deploy/respaldo`, misma rama, **Wait for CI activado** y **Watch Paths** `/deploy/respaldo/**` (así un push a la rama sólo llega a producción si toca el respaldo y su CI pasó), Cron `0 4 * * *`, Restart **Never**. Con estas variables:
+   Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY` (**⋮ → Seal**; para cambiarlas después, **⋮ → Edit** una por una). Las `VITE_FIREBASE_*` se hornean en la imagen al construirla, igual que en staging. La tarjeta **api** queda **sin despliegue hasta el paso H**: es normal, no la despliegues a mano.
+4. **`respaldo` → Settings.** Abre la tarjeta **respaldo** → **Settings** y deja exactamente esto:
+
+   | Ajuste en pantalla | Valor |
+   |---|---|
+   | **Source** | el repositorio **KlvinLopez/carta** conectado (si ves **Disconnect** junto al repositorio, está conectado; si ves **Connect Repo**, conéctalo) |
+   | **Source → Branch** | `master` |
+   | **Source → Root Directory** | `/deploy/respaldo` |
+   | **Source → Wait for CI** | Activado |
+   | **Watch Paths** | `/deploy/respaldo/**` (así un push a `master` sólo llega a producción si toca el respaldo y su CI pasó) |
+   | **Deploy → Cron Schedule** | `0 4 * * *` |
+   | **Deploy → Restart Policy** | **Never** |
+   | **Deploy → Healthcheck Path** / **Pre-deploy Command** | vacíos |
+
+5. **`respaldo` → Variables.** **RAW Editor** → pega, cambia los `<…>` y **Update Variables**:
 
    ```text
    ENTORNO=produccion
@@ -201,7 +225,8 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    RESPALDO_DIAS=30
    ```
 
-4. **Deploy** en la franja de cambios pendientes.
+   Sella `R2_SECRET_ACCESS_KEY`.
+6. **Deploy** en la franja de cambios pendientes. `respaldo` se despliega y correrá a las 04:00 UTC; `api` sigue sin despliegue hasta el paso H.
 
 > Alternativa futura para `respaldo` de producción: en vez de seguir una rama, **Source → Docker Image** `ghcr.io/klvinlopez/carta-respaldo:<etiqueta>` (la publica `deploy.yml`). Requiere que el paquete de GHCR sea público o credenciales de registro en Railway.
 
@@ -238,7 +263,7 @@ Resumen de lo que cambia entre ambientes:
 
 ## G. Los dominios: `staging.carta.cooking` y `carta.cooking`
 
-Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api` de **produccion** porque todavía no tiene ningún despliegue (*Empty Service*), haz primero el paso H, vuelve aquí y, cuando el DNS esté listo, relanza el trabajo `humo` (GitHub → **Actions** → la corrida → **Re-run failed jobs**).
+Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api` de **produccion** porque todavía no tiene ningún despliegue, haz primero el paso H, vuelve aquí y, cuando el DNS esté listo, relanza el trabajo `humo` (GitHub → **Actions** → la corrida → **Re-run failed jobs**).
 
 1. Selector en **staging** → tarjeta **api** → **Settings** → **Networking** → **Public Networking** → **+ Custom Domain** → escribe `staging.carta.cooking`. Si pregunta el puerto, elige o escribe `8000`.
 2. Railway muestra **dos registros DNS** para crear: uno **CNAME** (su *Value* termina en `.up.railway.app`) y uno **TXT** (verifica que el dominio es tuyo). **Hacen falta los dos**: sin el TXT el dominio responde 404.
@@ -297,7 +322,7 @@ Desde el teléfono también puedes, en el panel de Railway: ver logs (**Deployme
 | Ciclo de vida de los buckets privados | regla `respaldos-90-dias`: borra bajo el prefijo `respaldos/` a los 90 días (red de seguridad de la poda de 30 días de `deploy/respaldo/respaldar.sh`; las fotos originales viven fuera de ese prefijo y no caducan) |
 | Tokens S3 de R2 (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`) | *Account API tokens* con permiso *Object Read & Write*, uno por ambiente, limitados a sus dos buckets; los valores sólo en el panel de Railway |
 | Llave de respaldo (`RESPALDO_CLAVE_AGE`) | `age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk` (pública, la misma en staging y producción); la privada vive fuera de todo servidor |
-| Servicios por environment | `Postgres` (plantilla con volumen), `api` (staging: GitHub; produccion: *Empty Service* desplegado por CI), `respaldo` (GitHub, `/deploy/respaldo`, Wait for CI, Watch Paths `/deploy/respaldo/**`, cron `0 4 * * *`) |
+| Servicios por environment | Los tres servicios son del proyecto y existen en los dos environments, cada uno con sus ajustes y variables: `Postgres` (plantilla con volumen propio por environment), `api` (staging sigue `master`; produccion sin fuente, la despliega CI con `railway up`), `respaldo` (GitHub, `/deploy/respaldo`, Wait for CI, Watch Paths `/deploy/respaldo/**`, cron `0 4 * * *`) |
 
 ---
 
