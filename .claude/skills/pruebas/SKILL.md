@@ -137,3 +137,4 @@ No hay rasterizador en el entorno: el QR se extrae como imagen incrustada (`PdfR
 ## Probar un script de `scripts/`
 
 `scripts/__init__.py` existe (T-1.7): impórtalo como `from scripts import seed` y llama a sus funciones `async` con la fixture `sesion` y el `almacen` temporal; el `main()` de un script con guarda de entorno se prueba con `monkeypatch.setattr(settings, "ENTORNO", ...)`, nunca por subproceso (con `staging` o `produccion` `Settings` ni siquiera carga sin R2). `uv run mypy` (sin `app`) revisa también `scripts/`.
+La CI corre con `ENTORNO=pruebas` y la sesión de agente con `desarrollo`: una prueba que dependa del entorno (p. ej. `seed.main()`) lo fija con `monkeypatch.setattr(settings, "ENTORNO", ...)`; si no, pasa local y falla en la CI. Compruébalo con `ENTORNO=pruebas uv run pytest <archivo>`.
