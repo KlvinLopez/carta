@@ -3,11 +3,10 @@
 Publican en `/openapi.json` la forma final de cada respuesta para que el frontend (carril C)
 genere sus tipos y trabaje con datos simulados mientras el backend se construye. Cada tarea
 sustituye sus rutas por las reales y las borra de aquí (T-1.3 ya puso categorías y
-platillos en `menu.py` y T-1.4 la foto en `fotos.py`):
+platillos en `menu.py`, T-1.4 la foto en `fotos.py` y T-1.5 las mesas en `mesas.py`):
 
 | Rutas | Tarea |
 |---|---|
-| mesas y `qr.pdf` | T-1.5 |
 | personal y PIN | T-1.6 |
 | importaciones | T-1.9 |
 
@@ -21,7 +20,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from fastapi import APIRouter, File, Response, UploadFile, status
+from fastapi import APIRouter, File, UploadFile, status
 
 from app.db.models import EstadoImportacion, RolPersonal, TipoImagen
 from app.schemas.comun import errores
@@ -33,7 +32,6 @@ from app.schemas.importacion import (
     VarianteImportada,
 )
 from app.schemas.menu import PlatilloRespuesta
-from app.schemas.mesa import MesaRespuesta, MesasCrear
 from app.schemas.personal import PersonalCambios, PersonalCrear, PersonalRespuesta, PinNuevo
 
 router = APIRouter()
@@ -45,19 +43,8 @@ router = APIRouter()
 MOMENTO = datetime(2026, 11, 6, 12, 0, tzinfo=UTC)
 ID_CATEGORIA = UUID("00000000-0000-4000-8000-000000000101")
 ID_PLATILLO = UUID("00000000-0000-4000-8000-000000000201")
-ID_MESA = UUID("00000000-0000-4000-8000-000000000301")
 ID_PERSONAL = UUID("00000000-0000-4000-8000-000000000401")
 ID_IMPORTACION = UUID("00000000-0000-4000-8000-000000000501")
-CODIGO_MESA = "Jx3k9QwLmN2pR7sT4vY8zA"
-URL_EJEMPLO = "https://carta.cooking"
-
-# Un PDF de una página en blanco: lo justo para que el navegador lo abra.
-PDF_EJEMPLO = (
-    b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
-    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
-    b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 288 432]>>endobj\n"
-    b"trailer<</Root 1 0 R>>\n%%EOF\n"
-)
 
 
 def _platillo(platillo_id: UUID = ID_PLATILLO, **cambios: object) -> PlatilloRespuesta:
@@ -81,17 +68,6 @@ def _platillo(platillo_id: UUID = ID_PLATILLO, **cambios: object) -> PlatilloRes
     }
     datos.update(cambios)
     return PlatilloRespuesta.model_validate(datos)
-
-
-def _mesa(mesa_id: UUID = ID_MESA, numero: int = 1, capacidad: int = 4) -> MesaRespuesta:
-    return MesaRespuesta(
-        id=mesa_id,
-        numero=numero,
-        codigo_publico=CODIGO_MESA,
-        url_publica=f"{URL_EJEMPLO}/m/{CODIGO_MESA}",
-        capacidad=capacidad,
-        activa=True,
-    )
 
 
 def _personal(personal_id: UUID = ID_PERSONAL, **cambios: object) -> PersonalRespuesta:
@@ -151,42 +127,6 @@ def _importacion(
         finalizado_en=MOMENTO if terminada else None,
         confirmado_en=MOMENTO if estado == EstadoImportacion.confirmado else None,
     )
-
-
-# ---------------------------------------------------------------------------
-# Mesas y QR (T-1.5)
-# ---------------------------------------------------------------------------
-
-
-@router.get("/restaurantes/{rid}/mesas", response_model=list[MesaRespuesta])
-async def listar_mesas(rid: UUID) -> list[MesaRespuesta]:
-    return [_mesa()]
-
-
-@router.post(
-    "/restaurantes/{rid}/mesas",
-    response_model=list[MesaRespuesta],
-    status_code=status.HTTP_201_CREATED,
-)
-async def crear_mesas(rid: UUID, datos: MesasCrear) -> list[MesaRespuesta]:
-    return [
-        _mesa(UUID(int=ID_MESA.int + n), numero=n, capacidad=datos.capacidad)
-        for n in range(1, datos.cantidad + 1)
-    ]
-
-
-@router.post("/mesas/{mesa_id}/regenerar", response_model=MesaRespuesta)
-async def regenerar_codigo(mesa_id: UUID) -> MesaRespuesta:
-    return _mesa(mesa_id)
-
-
-@router.get(
-    "/restaurantes/{rid}/mesas/qr.pdf",
-    response_class=Response,
-    responses={200: {"content": {"application/pdf": {}}, "description": "Tarjetas con QR"}},
-)
-async def descargar_qr(rid: UUID) -> Response:
-    return Response(content=PDF_EJEMPLO, media_type="application/pdf")
 
 
 # ---------------------------------------------------------------------------

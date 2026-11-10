@@ -192,7 +192,7 @@ Resumen de lo que cambia entre ambientes:
 | Variable | staging | produccion |
 |---|---|---|
 | `ENTORNO` | `staging` | `produccion` |
-| `DOMINIO` | `staging.carta.cooking` | `carta.cooking` |
+| `DOMINIO` | `staging.carta.cooking` | `carta.cooking` (sólo el host, sin `https://` ni `/`: se imprime en los QR de las mesas y la API no arranca con `localhost` o una IP privada) |
 | `SECRET_KEY` | la de staging | la de producción (otra) |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | token de staging | token de producción |
 | `R2_BUCKET_PUBLICO` | `carta-publico-staging` | `carta-publico-produccion` |

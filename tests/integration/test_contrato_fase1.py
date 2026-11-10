@@ -49,7 +49,7 @@ CONTRATO_FASE_1 = [
     # T-1.5 · mesas y QR (US-21)
     ("get", "/restaurantes/{rid}/mesas", "MesaRespuesta[]"),
     ("post", "/restaurantes/{rid}/mesas", "MesaRespuesta[]"),
-    ("post", "/mesas/{mesa_id}/regenerar", "MesaRespuesta"),
+    ("post", "/mesas/{mesa_id}/regenerar-codigo", "MesaRespuesta"),
     ("get", "/restaurantes/{rid}/mesas/qr.pdf", None),
     # T-1.6 · personal y PIN (US-26)
     ("get", "/restaurantes/{rid}/personal", "PersonalRespuesta[]"),
@@ -171,10 +171,6 @@ CONFIRMACION = {
     ],
 }
 EJEMPLOS: list[tuple[str, str, int, dict[str, Any]]] = [
-    ("get", f"/restaurantes/{UUID_X}/mesas", 200, {}),
-    ("post", f"/restaurantes/{UUID_X}/mesas", 201, {"json": {"cantidad": 3}}),
-    ("post", f"/mesas/{UUID_X}/regenerar", 200, {}),
-    ("get", f"/restaurantes/{UUID_X}/mesas/qr.pdf", 200, {}),
     ("get", f"/restaurantes/{UUID_X}/personal", 200, {}),
     (
         "post",
@@ -268,9 +264,7 @@ async def test_el_crud_heredado_responde_con_el_esquema_v1(
     assert creado.json()["imagen_tipo"] == "ilustracion_categoria"
 
 
-@pytest.mark.parametrize(
-    "ruta", [f"/restaurantes/{UUID_X}/importaciones/{UUID_X}", f"/restaurantes/{UUID_X}/mesas"]
-)
+@pytest.mark.parametrize("ruta", [f"/restaurantes/{UUID_X}/importaciones/{UUID_X}"])
 async def test_los_ejemplos_fuera_de_desarrollo_piden_token_y_no_existen(
     cliente: AsyncClient,
     cabecera_operador: dict[str, str],

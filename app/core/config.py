@@ -5,7 +5,9 @@
 
 from __future__ import annotations
 
+import ipaddress
 import logging
+import re
 from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator, model_validator
@@ -37,6 +39,10 @@ VARIABLES_R2 = (
     "R2_BUCKET_PRIVADO",
     "R2_URL_PUBLICA",
 )
+
+
+# Host con puerto opcional: sin esquema, sin `/`, sin espacios.
+DOMINIO_VALIDO = re.compile(r"[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?")
 
 
 class Settings(BaseSettings):
@@ -131,6 +137,21 @@ class Settings(BaseSettings):
             return valor or None
         return valor
 
+    @field_validator("DOMINIO", mode="before")
+    @classmethod
+    def _dominio_sin_esquema(cls, valor: object) -> object:
+        """`DOMINIO` es sólo el host (`carta.cooking`, o `localhost:8000` en desarrollo): va en
+        el QR impreso como `https://{DOMINIO}/m/…`. Con esquema, barra o espacios el QR saldría
+        roto y en papel (revisión de T-1.5, A4). Se normaliza a minúsculas."""
+        if not isinstance(valor, str):
+            return valor
+        host = valor.strip().lower()
+        if not DOMINIO_VALIDO.fullmatch(host):
+            raise ValueError(
+                "DOMINIO debe ser sólo el host, sin esquema ni barras (p. ej. carta.cooking)."
+            )
+        return host
+
     @field_validator("R2_URL_PUBLICA")
     @classmethod
     def _sin_barra_final(cls, valor: str | None) -> str | None:
@@ -158,6 +179,23 @@ class Settings(BaseSettings):
             and not self.R2_URL_PUBLICA.startswith("https://")
         ):
             raise ValueError("R2_URL_PUBLICA debe empezar con https:// fuera de desarrollo.")
+        return self
+
+    @model_validator(mode="after")
+    def _dominio_publico_fuera_de_desarrollo(self) -> Settings:
+        """Fuera de desarrollo el QR se imprime: `localhost` o una IP privada lo dejarían muerto
+        sin que nadie lo note (revisión de T-1.5, A4)."""
+        if self.ENTORNO in ("staging", "produccion"):
+            host = self.DOMINIO.rsplit(":", 1)[0] if ":" in self.DOMINIO else self.DOMINIO
+            try:
+                publico = ipaddress.ip_address(host).is_global
+            except ValueError:
+                publico = "." in host and not host.endswith((".localhost", ".local", ".internal"))
+            if not publico:
+                raise ValueError(
+                    f"DOMINIO={self.DOMINIO!r} no es un dominio público: con ENTORNO="
+                    f"{self.ENTORNO} los QR impresos apuntarían a https://{self.DOMINIO}/m/…"
+                )
         return self
 
     @model_validator(mode="after")
