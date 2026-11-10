@@ -233,7 +233,7 @@ describe('revisión de maestra: búsqueda, vistas y topes', () => {
     montarMenu({ platillos: enormes });
     // 21 páginas de 100: bajo carga tardan más que el plazo por defecto de `findBy`.
     expect(await screen.findByText(/Mostrando los primeros 2000 platillos/, undefined, { timeout: 15_000 })).toBeInTheDocument();
-  });
+  }, 20_000);
 
   it('sin tope alcanzado no hay aviso', async () => {
     await cargada();

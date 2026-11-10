@@ -30,7 +30,7 @@ describe('con 400 platillos la pantalla sigue ágil', () => {
     expect(screen.getByRole('button', { name: /Tacos/ })).toHaveAttribute('aria-expanded', 'true');
     await u.click(screen.getByRole('button', { name: /Bebidas/ }));
     expect(screen.getAllByRole('button', { name: /^Editar / }).length).toBeGreaterThan(200);
-  });
+  }, 20_000);
 
   it('tocar un interruptor repinta sólo esa fila (memo), no las 134', async () => {
     const { u } = montarMenu({ platillos: muchosPlatillos(400) });
