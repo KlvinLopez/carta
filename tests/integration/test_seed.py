@@ -213,6 +213,7 @@ async def test_sin_archivos_no_borra_la_semilla_anterior(
 ) -> None:
     await seed.sembrar(sesion, almacen)
     monkeypatch.setattr(seed, "MENUS", tmp_path)  # sin PDF ni respuesta grabada
+    monkeypatch.setattr(settings, "ENTORNO", "desarrollo")  # la CI corre con otro
     with pytest.raises(seed.ArchivosFaltantes):
         await seed.sembrar(sesion, almacen)
     assert await seed.conteos(sesion) == ESPERADO  # la semilla anterior sigue ahí
@@ -223,6 +224,8 @@ async def test_sin_archivos_no_borra_la_semilla_anterior(
 def test_main_traduce_un_error_de_integridad_y_el_exito(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    monkeypatch.setattr(settings, "ENTORNO", "desarrollo")  # la CI corre con otro
+
     async def choca() -> seed.Resumen:
         raise IntegrityError("DELETE", {}, Exception("fk"))
 
