@@ -24,6 +24,8 @@ interface Contexto {
   estado: EstadoRestaurantes;
   activo: Restaurante | null;
   elegir(id: string): void;
+  /** Sustituye un restaurante por su versión nueva (tras un `PATCH`) sin volver a pedir la lista. */
+  reemplazar(restaurante: Restaurante): void;
   reintentar(): void;
 }
 
@@ -68,9 +70,17 @@ export function RestauranteProvider({ children }: { children: ReactNode }) {
     setElegido(id);
   }, []);
 
+  const reemplazar = useCallback((nuevo: Restaurante) => {
+    setEstado((previo) =>
+      previo.tipo === 'listo'
+        ? { tipo: 'listo', restaurantes: previo.restaurantes.map((r) => (r.id === nuevo.id ? nuevo : r)) }
+        : previo,
+    );
+  }, []);
+
   const valor = useMemo(
-    () => ({ estado, activo, elegir, reintentar: () => setIntento((n) => n + 1) }),
-    [estado, activo, elegir],
+    () => ({ estado, activo, elegir, reemplazar, reintentar: () => setIntento((n) => n + 1) }),
+    [estado, activo, elegir, reemplazar],
   );
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
 }

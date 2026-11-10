@@ -501,11 +501,12 @@ describe('pasos 5 a 7 · mesas, personal y listo', () => {
     const { sim, u } = montar();
     await hastaMesas(u);
     await u.click(screen.getByRole('button', { name: 'Omitir por ahora' }));
-    sim.fallarUnaVez('crearPersonal', new ErrorApi(422, 'PAYLOAD_INVALIDO', 'Ese PIN es muy fácil de adivinar.'));
+    // El servidor no rechaza PIN «fáciles» (0000 y 1234 valen, por decisión de T-1.6): el fallo real es el 409.
+    sim.fallarUnaVez('crearPersonal', new ErrorApi(409, 'CONFLICTO', 'Ya hay una persona activa con ese nombre.'));
     await u.type(screen.getByLabelText('Nombre'), 'Luis');
     await u.type(screen.getByLabelText('PIN (4 a 6 números)'), '1234');
     await u.click(screen.getByRole('button', { name: 'Agregar persona' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Ese PIN es muy fácil de adivinar. Vuelve a escribir el PIN.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ya hay una persona activa con ese nombre. Vuelve a escribir el PIN.');
     expect(screen.getByLabelText('PIN (4 a 6 números)')).toHaveValue('');
   });
 

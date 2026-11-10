@@ -132,15 +132,24 @@ if (referenciados.length > 0) {
   fallar(`\nCode splitting roto: index.html carga de inicio ${referenciados.join(', ')}.`);
 }
 
-// La pantalla Menú (T-1.12) debe ser su propio trozo: quitar su `React.lazy` la metería en `Area-*.js`
-// (el panel entero cargaría lista, editor y recorte de foto aunque la persona no abra el menú).
-const trozosMenu = existsSync(carpetaAssets) ? readdirSync(carpetaAssets).filter((n) => /^PantallaMenu-.*\.js$/.test(n)) : [];
-console.log(`Trozo de la pantalla Menú (React.lazy): ${trozosMenu.join(', ') || 'ninguno'}`);
-if (trozosMenu.length === 0) {
-  fallar('\nCode splitting roto: falta dist/assets/PantallaMenu-*.js (la pantalla Menú debe cargarse con React.lazy).');
-}
-if (trozosMenu.some((n) => [...rutas].some((r) => r.endsWith('/' + n)))) {
-  fallar(`\nCode splitting roto: index.html carga de inicio ${trozosMenu.join(', ')}.`);
+// Cada pantalla del panel (Menú en T-1.12; Mesas, Personal y Ajustes en T-1.13) debe ser su propio trozo:
+// quitar su `React.lazy` la metería en `Area-*.js` y el panel entero cargaría sus listas, editores y
+// formularios aunque la persona no abra esa sección.
+for (const [pantalla, prefijo] of [
+  ['Menú', 'PantallaMenu'],
+  ['Mesas', 'PantallaMesas'],
+  ['Personal', 'PantallaPersonal'],
+  ['Ajustes', 'PantallaAjustes'],
+]) {
+  const patron = new RegExp(`^${prefijo}-.*\\.js$`);
+  const trozos = existsSync(carpetaAssets) ? readdirSync(carpetaAssets).filter((n) => patron.test(n)) : [];
+  console.log(`Trozo de la pantalla ${pantalla} (React.lazy): ${trozos.join(', ') || 'ninguno'}`);
+  if (trozos.length === 0) {
+    fallar(`\nCode splitting roto: falta dist/assets/${prefijo}-*.js (la pantalla ${pantalla} debe cargarse con React.lazy).`);
+  }
+  if (trozos.some((n) => [...rutas].some((r) => r.endsWith('/' + n)))) {
+    fallar(`\nCode splitting roto: index.html carga de inicio ${trozos.join(', ')}.`);
+  }
 }
 
 if (totalGzip > LIMITE_BYTES) {

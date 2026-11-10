@@ -9,8 +9,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 // script real contra un `dist/` falso (PRESUPUESTO_DIST), sin construir nada.
 const SCRIPT = resolve(__dirname, '..', 'scripts', 'presupuesto.mjs');
 const creados: string[] = [];
+const TROZOS_DE_PANTALLA = ['PantallaMenu-1.js', 'PantallaMesas-1.js', 'PantallaPersonal-1.js', 'PantallaAjustes-1.js'];
 
-function dist(js: string, trozosExtra: string[] = ['PantallaMenu-1.js']): string {
+function dist(js: string, trozosExtra: string[] = TROZOS_DE_PANTALLA): string {
   const raiz = mkdtempSync(join(tmpdir(), 'presupuesto-'));
   creados.push(raiz);
   mkdirSync(join(raiz, 'assets'));
@@ -69,5 +70,25 @@ describe('presupuesto.mjs: la pantalla Menú es su propio trozo (T-1.12)', () =>
     const { codigo, salida } = correr(carpeta);
     expect(codigo).toBe(1);
     expect(salida).toContain('index.html carga de inicio PantallaMenu-1.js');
+  });
+});
+
+describe('presupuesto.mjs: Mesas, Personal y Ajustes son sus propios trozos (T-1.13)', () => {
+  it.each(['PantallaMesas', 'PantallaPersonal', 'PantallaAjustes'])('sin dist/assets/%s-*.js falla', (nombre) => {
+    const trozos = TROZOS_DE_PANTALLA.filter((n) => !n.startsWith(nombre));
+    const { codigo, salida } = correr(dist('console.log("hola");', trozos));
+    expect(codigo).toBe(1);
+    expect(salida).toContain(`falta dist/assets/${nombre}-*.js`);
+  });
+
+  it.each(['PantallaMesas', 'PantallaPersonal', 'PantallaAjustes'])('si index.html carga %s de inicio falla', (nombre) => {
+    const carpeta = dist('console.log("hola");');
+    writeFileSync(
+      join(carpeta, 'index.html'),
+      `<!doctype html><html><head><script type="module" src="/assets/index-a.js"></script><link rel="modulepreload" href="/assets/${nombre}-1.js"></head><body></body></html>`,
+    );
+    const { codigo, salida } = correr(carpeta);
+    expect(codigo).toBe(1);
+    expect(salida).toContain(`index.html carga de inicio ${nombre}-1.js`);
   });
 });
