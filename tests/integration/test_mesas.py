@@ -16,6 +16,7 @@ import httpx
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -349,3 +350,55 @@ async def test_mesa_por_codigo_solo_resuelve_mesas_activas_de_restaurantes_activ
     assert await mesas.mesa_por_codigo(sesion, "") is None
     assert await mesas.mesa_por_codigo(sesion, "x" * 5000) is None
     assert await mesas.mesa_por_codigo(sesion, viva.codigo_publico.upper()) is None
+
+
+# ===========================================================================
+# Revisión de maestra · A3 (atomicidad, lote) y B1 (mesa inactiva)
+# ===========================================================================
+
+
+@pytest.mark.ac("AC-21.1")
+async def test_si_falla_la_insercion_no_queda_ninguna_mesa(
+    sesion: AsyncSession, restaurante: Restaurante, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def repetidos(sesion: AsyncSession, cuantos: int) -> list[str]:
+        return ["repetido-repetido-repetido-0"] * cuantos  # viola el UNIQUE a la tercera
+
+    monkeypatch.setattr(mesas, "_codigos_libres", repetidos)
+    rid = restaurante.id  # `rollback()` expira los objetos
+    with pytest.raises(IntegrityError):
+        await mesas.crear_mesas(sesion, rid, 3, 4)
+    await sesion.rollback()
+    total = await sesion.scalar(
+        select(func.count()).select_from(Mesa).where(Mesa.restaurante_id == rid)
+    )
+    assert total == 0
+
+
+@pytest.mark.ac("AC-21.1")
+async def test_codigos_repetidos_dentro_del_lote_se_regeneran(
+    sesion: AsyncSession, restaurante: Restaurante, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    secuencia = iter(["a" * 22, "a" * 22, "b" * 22, "c" * 22])  # 1.er intento repite, 2.º no
+    monkeypatch.setattr(mesas, "nuevo_codigo", lambda: next(secuencia))
+    creadas = await mesas.crear_mesas(sesion, restaurante.id, 2, 4)
+    assert sorted(m.codigo_publico for m in creadas) == ["b" * 22, "c" * 22]
+
+
+@pytest.mark.ac("AC-21.3")
+async def test_regenerar_una_mesa_inactiva_es_409_y_no_cambia_el_codigo(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    fabrica_mesa: Fabrica,
+    sesion: AsyncSession,
+) -> None:
+    baja = await fabrica_mesa(restaurante, activa=False)
+    codigo = baja.codigo_publico
+    respuesta = await cliente.post(
+        f"{A}/mesas/{baja.id}/regenerar-codigo", headers=cabecera_operador
+    )
+    assert respuesta.status_code == 409, respuesta.text
+    assert _codigo(respuesta) == "MESA_INACTIVA"
+    await sesion.refresh(baja)
+    assert baja.codigo_publico == codigo and baja.codigo_revocado_en is None

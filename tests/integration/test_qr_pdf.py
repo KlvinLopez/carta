@@ -7,9 +7,13 @@ prueba con un transporte falso de httpx; nada de estas pruebas sale a la red.
 
 from __future__ import annotations
 
+import asyncio
 import io
+import ipaddress
 import math
 import re
+import socket
+import threading
 from typing import Any
 from uuid import UUID
 
@@ -21,25 +25,45 @@ from PIL import Image
 from pypdf import PdfReader
 
 from app.core.config import settings
-from app.db.models import Mesa, Restaurante
+from app.core.errores import ErrorCarta
+from app.db.models import Mesa, Restaurante, Usuario
 from app.schemas.comun import ErrorRespuesta
 from app.schemas.mesa import MAX_MESAS_ACTIVAS
-from app.services import qr_pdf
+from app.services import mesas, qr_pdf
 from app.services.qr_pdf import TarjetaQR
+from tests.auth_pruebas import cabecera_de
 from tests.conftest import Fabrica
 
 A = "/api/v1/admin"
 UUID_X = "00000000-0000-4000-8000-0000000000aa"
 
 
+PUBLICA = "93.184.216.34"
+
+
+def resolver_a(monkeypatch: pytest.MonkeyPatch, *ips: str) -> None:
+    """Todo nombre resuelve a `ips` (`socket.getaddrinfo`, que usa `loop.getaddrinfo`)."""
+
+    def falso(host: Any, puerto: Any, *args: Any, **kwargs: Any) -> list[Any]:
+        return [
+            (
+                socket.AF_INET6 if ":" in ip else socket.AF_INET,
+                socket.SOCK_STREAM,
+                6,
+                "",
+                (ip, 443, 0, 0) if ":" in ip else (ip, 443),
+            )
+            for ip in ips
+        ]
+
+    monkeypatch.setattr(socket, "getaddrinfo", falso)
+
+
 @pytest.fixture(autouse=True)
-def sin_red(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Ningún logo se descarga de verdad: sin DNS, `descargar_logo` devuelve `None`."""
-
-    async def no_resuelve(host: str) -> bool:
-        return False
-
-    monkeypatch.setattr(qr_pdf, "_resuelve_a_publico", no_resuelve)
+def sin_dns(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Nada sale a la red: todo nombre resuelve a una IP pública y la red real es un
+    `transporte` falso. Las pruebas de la defensa SSRF cambian la respuesta con `resolver_a`."""
+    resolver_a(monkeypatch, PUBLICA)
 
 
 def _png(ancho: int = 120, alto: int = 40, color: str = "#4F1728") -> bytes:
@@ -60,6 +84,12 @@ def _decodificar(pdf: bytes) -> list[str]:
 
 def _texto(pdf: bytes) -> str:
     return "\n".join(p.extract_text() for p in PdfReader(io.BytesIO(pdf)).pages)
+
+
+def _sin_id(respuesta: httpx.Response) -> dict[str, Any]:
+    cuerpo: dict[str, Any] = respuesta.json()
+    cuerpo["error"].pop("request_id", None)
+    return cuerpo
 
 
 def _url(codigo: str) -> str:
@@ -177,10 +207,7 @@ async def test_el_pdf_de_un_restaurante_ajeno_es_404_igual_que_uno_inexistente(
     ajeno = await _descargar(cliente, otro, cabecera_operador)
     nada = await _descargar(cliente, UUID_X, cabecera_operador)
     assert ajeno.status_code == nada.status_code == 404
-    for r in (ajeno, nada):
-        r.json()["error"].pop("request_id", None)
-    assert ajeno.json()["error"]["codigo"] == nada.json()["error"]["codigo"]
-    assert ajeno.json()["error"]["mensaje"] == nada.json()["error"]["mensaje"]
+    assert _sin_id(ajeno) == _sin_id(nada)
     assert (await cliente.get(f"{A}/restaurantes/{otro.id}/mesas/qr.pdf")).status_code == 401
 
 
@@ -196,9 +223,6 @@ async def test_el_nombre_del_archivo_sale_del_slug_nunca_del_nombre_del_restaura
     restaurante = await fabrica_restaurante(nombre=malo, slug="tacos-el-guero")
     operador = await fabrica_operador(restaurante)
     await fabrica_mesa(restaurante)
-    from app.db.models import Usuario
-    from tests.auth_pruebas import cabecera_de
-
     usuario = await sesion.get(Usuario, operador.usuario_id)
     respuesta = await _descargar(cliente, restaurante, cabecera_de(usuario.firebase_uid))
     assert respuesta.status_code == 200, respuesta.text
@@ -214,7 +238,7 @@ async def test_el_nombre_del_archivo_sale_del_slug_nunca_del_nombre_del_restaura
     ("slug", "esperado"),
     [
         ("la-ceiba", "qr-mesas-la-ceiba.pdf"),
-        ('a"b/../c d\r\n', "qr-mesas-abc-d.pdf"[:0] + "qr-mesas-abcd.pdf"),
+        ('a"b/../c d\r\n', "qr-mesas-abcd.pdf"),
         ("ñ", "qr-mesas.pdf"),
         ("", "qr-mesas.pdf"),
         ("x" * 200, f"qr-mesas-{'x' * 60}.pdf"),
@@ -262,10 +286,10 @@ async def test_un_logo_http_no_se_descarga_ni_aparece_en_el_pdf(
     restaurante.logo_url = "http://interno.local/logo-secreto.png"
     await sesion.commit()
 
-    async def no_debe_resolver(host: str) -> bool:
-        raise AssertionError(f"no debía resolver {host}")
+    def no_debe_resolver(*args: Any, **kwargs: Any) -> None:
+        raise AssertionError("no debía resolver nada")
 
-    monkeypatch.setattr(qr_pdf, "_resuelve_a_publico", no_debe_resolver)
+    monkeypatch.setattr(socket, "getaddrinfo", no_debe_resolver)
     respuesta = await _descargar(cliente, restaurante, cabecera_operador)
     assert respuesta.status_code == 200
     assert b"interno.local" not in respuesta.content
@@ -318,8 +342,6 @@ def test_los_topes_del_pdf() -> None:
     assert MAX_MESAS_ACTIVAS == 500
     pdf = qr_pdf.generar_pdf("Casa", None, _tarjetas(MAX_MESAS_ACTIVAS))
     assert len(PdfReader(io.BytesIO(pdf)).pages) == 125
-    from app.core.errores import ErrorCarta
-
     with pytest.raises(ErrorCarta) as excedido:
         qr_pdf.generar_pdf("Casa", None, _tarjetas(MAX_MESAS_ACTIVAS + 1))
     assert excedido.value.http == 422
@@ -418,3 +440,334 @@ def test_preparar_logo_rechaza_lo_que_no_es_imagen_o_es_enorme() -> None:
     assert grande is not None
     with Image.open(io.BytesIO(grande)) as imagen:
         assert max(imagen.size) == qr_pdf.LADO_LOGO_PX
+
+
+# ===========================================================================
+# Revisión de maestra · A1: hilo propio y un PDF a la vez
+# ===========================================================================
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_la_generacion_corre_en_su_propio_hilo(monkeypatch: pytest.MonkeyPatch) -> None:
+    hilos: dict[str, str] = {}
+    original = qr_pdf.generar_pdf
+    preparar = qr_pdf.preparar_logo
+
+    def generar(*args: Any, **kwargs: Any) -> bytes:
+        hilos["generar"] = threading.current_thread().name
+        return original(*args, **kwargs)
+
+    def logo(datos: bytes | None) -> bytes | None:
+        hilos["logo"] = threading.current_thread().name
+        return preparar(datos)
+
+    monkeypatch.setattr(qr_pdf, "generar_pdf", generar)
+    monkeypatch.setattr(qr_pdf, "preparar_logo", logo)
+    pdf = await qr_pdf.pdf_de_mesas(
+        "Casa", URL_LOGO, _tarjetas(1), transporte=Transporte(httpx.Response(200, content=_png()))
+    )
+    assert pdf.startswith(b"%PDF-")
+    principal = threading.current_thread().name
+    assert hilos["generar"].startswith("qr_pdf") and hilos["logo"].startswith("qr_pdf")
+    assert hilos["generar"] != principal and hilos["logo"] != principal
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_dos_pdf_a_la_vez_el_segundo_espera_o_503(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    mesa: Mesa,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(qr_pdf, "ESPERA_TURNO_SEG", 0.2)
+    turno = qr_pdf._semaforo()
+    await turno.acquire()  # «otro PDF en curso» que no termina
+    try:
+        ocupado = await _descargar(cliente, restaurante, cabecera_operador)
+    finally:
+        turno.release()
+    assert ocupado.status_code == 503, ocupado.text
+    assert ErrorRespuesta.model_validate(ocupado.json()).error.codigo == "SERVICIO_OCUPADO"
+    libre = await _descargar(cliente, restaurante, cabecera_operador)
+    assert libre.status_code == 200
+    assert _decodificar(libre.content) == [_url(mesa.codigo_publico)]
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_el_turno_se_libera_aunque_falle_la_generacion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def falla(*args: Any, **kwargs: Any) -> bytes:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(qr_pdf, "generar_pdf", falla)
+    with pytest.raises(RuntimeError):
+        await qr_pdf.pdf_de_mesas("Casa", None, _tarjetas(1))
+    assert not qr_pdf._semaforo().locked()
+
+
+# ===========================================================================
+# Revisión de maestra · A2: la defensa SSRF por DNS
+# ===========================================================================
+
+
+@pytest.mark.ac("AC-21.2")
+@pytest.mark.parametrize(
+    "ips",
+    [
+        ["10.0.0.5"],
+        ["127.0.0.1"],
+        ["169.254.169.254"],
+        ["100.64.0.1"],
+        ["192.168.0.10"],
+        ["fd00::1"],
+        ["fe80::1"],
+        ["::1"],
+        ["64:ff9b::7f00:1"],  # NAT64 de 127.0.0.1
+        ["64:ff9b::a00:5"],  # NAT64 de 10.0.0.5
+        ["::7f00:1"],  # IPv4-compatible de 127.0.0.1
+        ["::ffff:10.0.0.1"],  # IPv4 mapeada
+        ["2002:7f00:1::"],  # 6to4 de 127.0.0.1
+        ["2001:0:4136:e378:8000:63bf:3fff:fdd2"],  # Teredo con cliente 192.0.2.45
+        [PUBLICA, "10.0.0.5"],  # mezcla: basta una interna
+        ["10.0.0.5", PUBLICA],
+        [],
+    ],
+)
+async def test_un_host_que_resuelve_a_ip_no_publica_no_se_pide(
+    monkeypatch: pytest.MonkeyPatch, ips: list[str]
+) -> None:
+    resolver_a(monkeypatch, *ips)
+
+    class Espia:
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            raise AssertionError("no debía abrir ninguna conexión")
+
+    monkeypatch.setattr(qr_pdf.httpx, "AsyncClient", Espia)
+    assert await qr_pdf._ip_validada("img.carta.mx") is None
+    assert await qr_pdf.descargar_logo(URL_LOGO) is None
+    transporte = Transporte(httpx.Response(200, content=_png()))
+    assert (
+        await qr_pdf.descargar_logo(URL_LOGO, transporte=transporte) is None
+    )  # también con transporte
+    assert transporte.pedidos == []
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_un_fallo_de_dns_es_sin_logo(monkeypatch: pytest.MonkeyPatch) -> None:
+    def no_existe(*args: Any, **kwargs: Any) -> None:
+        raise socket.gaierror("sin DNS")
+
+    monkeypatch.setattr(socket, "getaddrinfo", no_existe)
+    assert await qr_pdf._ip_validada("img.carta.mx") is None
+    assert await qr_pdf.descargar_logo(URL_LOGO) is None
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_todas_globales_conecta_a_la_ip_validada_con_el_nombre_en_host_y_sni(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    v6 = "2606:2800:220:1:248:1893:25c8:1946"
+    resolver_a(monkeypatch, PUBLICA, v6)
+    assert await qr_pdf._ip_validada("img.carta.mx") == PUBLICA
+    transporte = Transporte(httpx.Response(200, content=_png()))
+    assert await qr_pdf.descargar_logo(URL_LOGO + "?v=2", transporte=transporte) == _png()
+    (pedido,) = transporte.pedidos
+    # Sin segunda resolución (anti *rebinding*): se conecta a la IP; el nombre viaja aparte.
+    assert pedido.url.host == PUBLICA and pedido.url.path == "/logos/ceiba.png"
+    assert pedido.url.query == b"v=2"
+    assert pedido.headers["host"] == "img.carta.mx"
+    assert pedido.extensions["sni_hostname"] == "img.carta.mx"
+    resolver_a(monkeypatch, v6)
+    transporte = Transporte(httpx.Response(200, content=_png()))
+    assert await qr_pdf.descargar_logo(URL_LOGO, transporte=transporte) == _png()
+    assert transporte.pedidos[0].url.host == v6
+
+
+@pytest.mark.ac("AC-21.2")
+@pytest.mark.parametrize(
+    ("ip", "publica"),
+    [
+        ("8.8.8.8", True),
+        ("2606:4700:4700::1111", True),
+        ("64:ff9b::808:808", True),  # NAT64 de 8.8.8.8
+        ("::ffff:8.8.8.8", True),
+        ("0.0.0.0", False),
+        ("::", False),
+        ("::1", False),
+        ("224.0.0.1", False),
+        ("64:ff9b::7f00:1", False),
+        ("::7f00:1", False),
+        ("::ffff:127.0.0.1", False),
+        ("2002:c0a8:101::", False),  # 6to4 de 192.168.1.1
+    ],
+)
+def test_ip_publica(ip: str, publica: bool) -> None:
+    assert qr_pdf._ip_publica(ipaddress.ip_address(ip)) is publica
+
+
+@pytest.mark.ac("AC-21.2")
+def test_el_logo_solo_se_decodifica_como_png_jpeg_o_webp() -> None:
+    def en(formato: str) -> bytes:
+        salida = io.BytesIO()
+        Image.new("RGB", (30, 30), "#4F1728").save(salida, format=formato)
+        return salida.getvalue()
+
+    for aceptado in ("PNG", "JPEG", "WEBP"):
+        assert qr_pdf.preparar_logo(en(aceptado)) is not None, aceptado
+    for rechazado in ("GIF", "BMP", "TIFF", "PDF", "ICO", "PPM"):
+        assert qr_pdf.preparar_logo(en(rechazado)) is None, rechazado
+
+
+# ===========================================================================
+# Revisión de maestra · A3, B2, B3: huecos de pruebas
+# ===========================================================================
+
+
+class Trozos(httpx.AsyncByteStream):
+    def __init__(self, trozos: list[bytes]) -> None:
+        self.trozos = trozos
+
+    async def __aiter__(self) -> Any:
+        for trozo in self.trozos:
+            yield trozo
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_un_logo_sin_content_length_que_pasa_de_1_mb_se_descarta() -> None:
+    assert qr_pdf.MAX_BYTES_LOGO == 1_000_000
+    pasado = httpx.Response(200, stream=Trozos([b"x" * 100_000] * 11))  # 1 100 000 B
+    assert "content-length" not in pasado.headers
+    assert await qr_pdf.descargar_logo(URL_LOGO, transporte=Transporte(pasado)) is None
+    justo = httpx.Response(200, stream=Trozos([b"x" * 99_999] * 10 + [b"x" * 9]))
+    assert await qr_pdf.descargar_logo(URL_LOGO, transporte=Transporte(justo)) == b"x" * 999_999
+    exacto = httpx.Response(200, stream=Trozos([b"x" * 100_000] * 10))
+    assert (
+        len(await qr_pdf.descargar_logo(URL_LOGO, transporte=Transporte(exacto)) or b"")
+        == 1_000_000
+    )
+
+
+class Colgado(httpx.AsyncBaseTransport):
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        await asyncio.Event().wait()  # nunca responde
+        raise AssertionError
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_el_plazo_total_del_logo_corta_un_servidor_colgado(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert qr_pdf.PLAZO_LOGO_SEG == 3.0
+    assert (qr_pdf.PLAZOS_HTTP.connect, qr_pdf.PLAZOS_HTTP.read) == (1.0, 2.0)
+    monkeypatch.setattr(qr_pdf, "PLAZO_LOGO_SEG", 0.2)
+    assert await qr_pdf.descargar_logo(URL_LOGO, transporte=Colgado()) is None
+
+
+@pytest.mark.ac("AC-21.2")
+def test_el_nombre_con_n_y_acentos_se_imprime() -> None:
+    pdf = qr_pdf.generar_pdf("Café Piñata Güero", None, _tarjetas(1))
+    assert "Café Piñata Güero" in _texto(pdf)
+
+
+@pytest.mark.ac("AC-21.2")
+def test_cien_mesas_dan_cien_qr_distintos_con_su_url() -> None:
+    tarjetas = _tarjetas(100)
+    textos = _decodificar(qr_pdf.generar_pdf("Casa", None, tarjetas))
+    assert len(set(textos)) == 100
+    assert sorted(textos) == sorted(_url(t.codigo_publico) for t in tarjetas)
+
+
+@pytest.mark.ac("AC-21.2")
+def test_el_logo_sale_en_todas_las_tarjetas() -> None:
+    pdf = qr_pdf.generar_pdf("Casa", _png(), _tarjetas(8), comprimir=False)
+    usos = re.findall(rb"/(FormXob\.\w+) Do", pdf)
+    repetidos = {nombre: usos.count(nombre) for nombre in set(usos)}
+    assert len(repetidos) == 9  # 8 QR distintos y un logo
+    assert sorted(repetidos.values()) == [1] * 8 + [8]  # el logo, una vez por tarjeta
+
+
+@pytest.mark.ac("AC-21.2")
+async def test_por_la_ruta_real_el_pdf_sin_comprimir_no_trae_logo_url_ni_slug(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    mesa: Mesa,
+    sesion: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    restaurante.logo_url = "https://img.carta.mx/logo-secreto.png"
+    restaurante.slug = "slug-distintivo-xyz"
+    await sesion.commit()
+
+    async def logo(url: str | None, **_: Any) -> bytes | None:
+        return _png()
+
+    original = qr_pdf.generar_pdf
+    monkeypatch.setattr(qr_pdf, "descargar_logo", logo)
+    monkeypatch.setattr(qr_pdf, "generar_pdf", lambda *a, **k: original(*a, comprimir=False))
+    respuesta = await _descargar(cliente, restaurante, cabecera_operador)
+    assert respuesta.status_code == 200
+    pdf = respuesta.content
+    assert restaurante.nombre.encode() in pdf  # el PDF sí quedó legible
+    for prohibido in (b"logo-secreto", b"img.carta.mx", b"slug-distintivo", b"https://"):
+        assert prohibido not in pdf, prohibido
+    assert "slug-distintivo-xyz" in respuesta.headers["content-disposition"]  # sólo en el nombre
+
+
+# ===========================================================================
+# Revisión de maestra · A5: el PDF no imprime un código ya revocado
+# ===========================================================================
+
+
+@pytest.mark.ac("AC-21.3")
+async def test_si_se_regenera_un_codigo_mientras_se_genera_el_pdf_sale_con_el_nuevo(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    mesa: Mesa,
+    sesion: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    viejo = mesa.codigo_publico
+    original = qr_pdf.pdf_de_mesas
+    llamadas: list[int] = []
+
+    async def con_carrera(*args: Any, **kwargs: Any) -> bytes:
+        pdf = await original(*args, **kwargs)
+        llamadas.append(1)
+        if len(llamadas) == 1:  # alguien regenera justo cuando termina la primera vuelta
+            await mesas.regenerar_codigo(sesion, mesa.id, restaurante.id)
+        return pdf
+
+    monkeypatch.setattr(qr_pdf, "pdf_de_mesas", con_carrera)
+    respuesta = await _descargar(cliente, restaurante, cabecera_operador)
+    assert respuesta.status_code == 200, respuesta.text
+    assert len(llamadas) == 2
+    await sesion.refresh(mesa)
+    assert mesa.codigo_publico != viejo
+    assert _decodificar(respuesta.content) == [_url(mesa.codigo_publico)]
+    assert _url(viejo) not in _decodificar(respuesta.content)
+
+
+@pytest.mark.ac("AC-21.3")
+async def test_si_el_codigo_sigue_cambiando_es_409_codigos_cambiados(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    mesa: Mesa,
+    sesion: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original = qr_pdf.pdf_de_mesas
+
+    async def siempre(*args: Any, **kwargs: Any) -> bytes:
+        pdf = await original(*args, **kwargs)
+        await mesas.regenerar_codigo(sesion, mesa.id, restaurante.id)
+        return pdf
+
+    monkeypatch.setattr(qr_pdf, "pdf_de_mesas", siempre)
+    respuesta = await _descargar(cliente, restaurante, cabecera_operador)
+    assert respuesta.status_code == 409
+    assert ErrorRespuesta.model_validate(respuesta.json()).error.codigo == "CODIGOS_CAMBIADOS"

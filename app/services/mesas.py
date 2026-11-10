@@ -31,7 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errores import ErrorCarta, mensaje_por_http
 from app.db.models import Mesa, Restaurante
 from app.schemas.mesa import MAX_MESAS_ACTIVAS
-from app.services import operadores
+from app.services import operadores, qr_pdf
 
 INTENTOS_DE_CODIGO = 3
 
@@ -150,10 +150,46 @@ async def regenerar_codigo(sesion: AsyncSession, mesa_id: UUID, restaurante_id: 
     )
     if mesa is None:
         raise _no_encontrado()
+    if not mesa.activa:
+        raise ErrorCarta(
+            "MESA_INACTIVA", "Esa mesa está dada de baja; no tiene código que regenerar.", 409
+        )
     mesa.codigo_publico = (await _codigos_libres(sesion, 1))[0]
     mesa.codigo_revocado_en = datetime.now(UTC)
     await sesion.commit()
     return mesa
+
+
+async def pdf_de_qr(
+    sesion: AsyncSession, restaurante_id: UUID, nombre: str, logo_url: str | None
+) -> bytes:
+    """El PDF de las mesas activas con los códigos **vigentes al terminar** (AC-21.3).
+
+    Generar tarda segundos; si alguien regenera un código (o da de alta/baja una mesa) a
+    mitad, la tarjeta saldría con un código ya revocado. Al terminar se vuelven a leer las
+    mesas: si algo cambió se genera otra vez, una sola, y si cambia de nuevo, 409
+    `CODIGOS_CAMBIADOS`. La sesión se suelta (`rollback`) antes de cada generación: no
+    retiene la conexión mientras se baja el logo y se maqueta. `nombre` y `logo_url` se leen
+    antes porque el `rollback` expira los objetos."""
+
+    async def foto() -> list[qr_pdf.TarjetaQR]:
+        activas = await mesas_activas(sesion, restaurante_id)
+        tarjetas = [qr_pdf.TarjetaQR(m.numero, m.codigo_publico) for m in activas]
+        await sesion.rollback()
+        return tarjetas
+
+    tarjetas = await foto()
+    for _ in range(2):
+        pdf = await qr_pdf.pdf_de_mesas(nombre, logo_url, tarjetas)
+        despues = await foto()
+        if despues == tarjetas:
+            return pdf
+        tarjetas = despues
+    raise ErrorCarta(
+        "CODIGOS_CAMBIADOS",
+        "Se regeneró un código mientras se preparaba el PDF; vuelve a pedirlo.",
+        409,
+    )
 
 
 async def mesa_por_codigo(sesion: AsyncSession, codigo: str) -> Mesa | None:

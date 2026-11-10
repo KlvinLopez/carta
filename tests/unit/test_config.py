@@ -18,6 +18,8 @@ R2_COMPLETO = {
 
 def crear(**valores: object) -> Settings:
     """Settings sin leer `.env`, para que las pruebas no dependan de la máquina."""
+    if valores.get("ENTORNO") in ("staging", "produccion"):
+        valores.setdefault("DOMINIO", "carta.cooking")  # fuera de desarrollo no vale localhost
     return Settings(_env_file=None, **valores)  # type: ignore[call-arg]
 
 
@@ -156,3 +158,74 @@ def test_un_error_de_arranque_no_vuelca_secretos() -> None:
         for valor in centinelas.values():
             assert valor not in texto
             assert valor[-8:] not in texto
+
+
+# --- DOMINIO: va en el QR impreso (revisión de T-1.5, A4) -------------------------------
+
+
+@pytest.mark.parametrize(
+    ("escrito", "guardado"),
+    [
+        ("carta.cooking", "carta.cooking"),
+        ("  Carta.Cooking ", "carta.cooking"),
+        ("staging.carta.cooking", "staging.carta.cooking"),
+        ("localhost:8000", "localhost:8000"),
+        ("192.168.1.5:8000", "192.168.1.5:8000"),
+    ],
+)
+def test_dominio_valido_se_normaliza(escrito: str, guardado: str) -> None:
+    assert crear(ENTORNO="desarrollo", DOMINIO=escrito).DOMINIO == guardado
+
+
+@pytest.mark.parametrize(
+    "dominio",
+    [
+        "https://carta.cooking",
+        "http://carta.cooking",
+        "carta.cooking/",
+        "carta.cooking/m",
+        "carta cooking",
+        "",
+        "-carta.cooking",
+        "carta.cooking.",
+        "user@carta.cooking",
+        "carta.cooking:abc",
+    ],
+)
+def test_dominio_con_esquema_barras_o_espacios_se_rechaza(dominio: str) -> None:
+    with pytest.raises(ValidationError, match="DOMINIO"):
+        crear(ENTORNO="desarrollo", DOMINIO=dominio)
+
+
+@pytest.mark.parametrize("entorno", ["staging", "produccion"])
+@pytest.mark.parametrize(
+    "dominio",
+    [
+        "localhost",
+        "localhost:8000",
+        "carta",
+        "127.0.0.1",
+        "10.0.0.5",
+        "192.168.1.5",
+        "api.localhost",
+        "carta.internal",
+        "[::1]",
+    ],
+)
+def test_fuera_de_desarrollo_el_dominio_debe_ser_publico(entorno: str, dominio: str) -> None:
+    with pytest.raises(ValidationError, match="DOMINIO"):
+        crear(ENTORNO=entorno, SECRET_KEY=SECRETO_FUERTE, DOMINIO=dominio, **R2_COMPLETO)
+
+
+def test_un_dominio_publico_arranca_en_produccion() -> None:
+    s = crear(
+        ENTORNO="produccion", SECRET_KEY=SECRETO_FUERTE, DOMINIO="carta.cooking", **R2_COMPLETO
+    )
+    assert s.DOMINIO == "carta.cooking"
+
+
+def test_la_url_del_qr_se_arma_con_el_dominio(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.core import enlaces
+
+    monkeypatch.setattr(enlaces.settings, "DOMINIO", "carta.cooking")
+    assert enlaces.url_de_mesa("abc_DEF-123") == "https://carta.cooking/m/abc_DEF-123"

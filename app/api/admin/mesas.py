@@ -58,7 +58,11 @@ async def crear_mesas(
     return await mesas.crear_mesas(sesion, restaurante.id, datos.cantidad, datos.capacidad)
 
 
-@router.post("/mesas/{mesa_id}/regenerar-codigo", response_model=MesaRespuesta)
+@router.post(
+    "/mesas/{mesa_id}/regenerar-codigo",
+    response_model=MesaRespuesta,
+    responses=errores(409),  # MESA_INACTIVA
+)
 async def regenerar_codigo(
     mesa: Mesa = Depends(mesa_del_operador),
     sesion: AsyncSession = Depends(get_db_session),
@@ -72,7 +76,9 @@ async def regenerar_codigo(
     response_class=Response,
     responses={
         200: {"content": {"application/pdf": {}}, "description": "Tarjetas con QR"},
-        **errores(409),  # sin mesas activas
+        # 409: sin mesas activas, o se regeneró un código mientras se preparaba (CODIGOS_CAMBIADOS);
+        # 503: otro PDF en curso (SERVICIO_OCUPADO).
+        **errores(409, 503),
     },
 )
 async def descargar_qr(
@@ -80,12 +86,8 @@ async def descargar_qr(
     sesion: AsyncSession = Depends(get_db_session),
 ) -> Response:
     """Una tarjeta por mesa activa, cuatro por hoja A4 (AC-21.2)."""
-    activas = await mesas.mesas_activas(sesion, restaurante.id)
-    tarjetas = [qr_pdf.TarjetaQR(m.numero, m.codigo_publico) for m in activas]
-    nombre, logo, slug = restaurante.nombre, restaurante.logo_url, restaurante.slug
-    # La sesión se suelta antes de descargar el logo y maquetar: no retiene la conexión.
-    await sesion.rollback()
-    pdf = await qr_pdf.pdf_de_mesas(nombre, logo, tarjetas)
+    slug = restaurante.slug
+    pdf = await mesas.pdf_de_qr(sesion, restaurante.id, restaurante.nombre, restaurante.logo_url)
     return Response(
         content=pdf,
         media_type="application/pdf",
