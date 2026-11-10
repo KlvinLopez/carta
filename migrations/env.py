@@ -1,73 +1,89 @@
-"""Alembic environment configuration."""
+"""Entorno de Alembic en modo asíncrono (asyncpg).
 
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
+La URL sale de `app.core.config.settings` (variable `DATABASE_URL`; las pruebas la fijan en el
+entorno del subproceso para no dejar la contraseña en `argv`), salvo que se pase `-x url=...`
+por línea de comandos.
+La URL **no** pasa por `alembic.ini`: ConfigParser interpreta `%` y una contraseña con
+`%40` rompería `upgrade head` antes de conectar.
+"""
+
+import asyncio
 import os
-import sys
+import re
+from logging.config import fileConfig
 
-# Add the app to the path
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from alembic import context
+from sqlalchemy import Connection, text
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import NullPool
 
-from app.db import Base
-from app.db.database import settings
+from app.core.config import settings
+from app.db import models  # noqa: F401  (registra los modelos en Base.metadata)
+from app.db.database import Base
 
-# this is the Alembic Config object
 config = context.config
 
-# Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set the sqlalchemy.url from environment
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+URL = context.get_x_argument(as_dictionary=True).get("url") or settings.DATABASE_URL
 
-# Model's MetaData object for 'autogenerate' support
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
-    """
-    url = config.get_main_option("sqlalchemy.url")
+    """Modo sin conexión: emite el SQL en lugar de ejecutarlo."""
     context.configure(
-        url=url,
+        url=URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
+# Dos `upgrade head` a la vez sobre la misma base (varias corridas de pruebas, dos réplicas
+# arrancando) chocan en `CREATE TYPE`: el candado de la transacción serializa a quien migre.
+CANDADO_MIGRACION = 7_245_001
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
+# Un host inalcanzable no debe retener 60 s (timeout por defecto de asyncpg) al paso previo
+# al despliegue ni a las pruebas.
+CONEXION_TIMEOUT_SEGUNDOS = 10
 
-    """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+# Un `ALTER TABLE` espera un candado fuerte; con tráfico, una consulta larga lo encola y detrás
+# se encola todo lo demás. Mejor que la migración falle pronto y `predespliegue.py` salga ≠ 0
+# (el despliegue se detiene y producción sigue sirviendo). Se fijan tras tomar el candado de
+# migración, que sí puede esperar a otra migración. `MIGRACION_LOCK_TIMEOUT` sólo para pruebas.
+LOCK_TIMEOUT = os.environ.get("MIGRACION_LOCK_TIMEOUT", "10s")
+STATEMENT_TIMEOUT = "5min"
+if not re.fullmatch(r"[0-9]{1,6}(ms|s|min)", LOCK_TIMEOUT):
+    raise SystemExit(f"MIGRACION_LOCK_TIMEOUT inválido: {LOCK_TIMEOUT!r}")
+
+
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+    with context.begin_transaction():
+        connection.execute(
+            text("SELECT pg_advisory_xact_lock(:candado)"), {"candado": CANDADO_MIGRACION}
+        )
+        connection.execute(text(f"SET LOCAL lock_timeout = '{LOCK_TIMEOUT}'"))
+        connection.execute(text(f"SET LOCAL statement_timeout = '{STATEMENT_TIMEOUT}'"))
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    motor = create_async_engine(
+        URL, poolclass=NullPool, connect_args={"timeout": CONEXION_TIMEOUT_SEGUNDOS}
     )
+    async with motor.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+    await motor.dispose()
 
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
 
-        with context.begin_transaction():
-            context.run_migrations()
+def run_migrations_online() -> None:
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

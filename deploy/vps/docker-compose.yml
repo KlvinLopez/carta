@@ -1,0 +1,129 @@
+# Variante de VM con Docker Compose (ADR-012, 05_Operacion Anexo A). Lista, no ejecutada:
+# el primer destino es Railway (ADR-015). Se adopta cuando la factura de Railway supere
+# ~40 USD/mes sostenidos o se quiera control total.
+#
+#   cp ../../.env.example .env   # y rellenar (permisos 600); DATABASE_URL apunta al host `postgres`
+#   docker compose up -d                       # api (+ migracion + postgres)
+#   docker compose --profile caddy up -d       # además Caddy con HTTPS (sin otro proxy en la VM)
+#   docker compose run --rm respaldo           # un respaldo a mano; el horario lo pone el cron del host
+#
+# La misma imagen que en Railway: nada de app/ sabe dónde corre. Las variables se leen del .env
+# de esta carpeta (interpolación de Compose) y cada servicio recibe SÓLO las suyas: `respaldo` no
+# ve SECRET_KEY ni ANTHROPIC_API_KEY, `api` no ve POSTGRES_PASSWORD ni RESPALDO_CLAVE_AGE.
+# Dos stacks en la misma VM (`-p carta-staging`, `-p carta-prod`) usan dos .env y dos puertos.
+name: carta
+
+x-imagen: &imagen
+  # `.github/workflows/deploy.yml` la publica en GHCR en cada etiqueta `v*` (T-0.7); si no está en
+  # el registro, Compose la construye desde la raíz del repositorio con el mismo Dockerfile.
+  image: ${IMAGEN:-ghcr.io/klvinlopez/carta}:${IMAGEN_TAG:-latest}
+  build:
+    context: ../..
+    dockerfile: Dockerfile
+
+x-base-de-datos: &base_de_datos
+  DATABASE_URL: ${DATABASE_URL:-}
+  ENTORNO: ${ENTORNO:-produccion}
+
+services:
+  caddy:
+    # Opcional (perfil `caddy`): HTTPS automático y proxy a la API. Las cabeceras de seguridad
+    # las pone la aplicación; Caddy no añade ninguna.
+    image: caddy:2-alpine
+    profiles: ["caddy"]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMINIO: ${DOMINIO:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+  postgres:
+    # Sin `ports`: sólo la red interna del stack llega a la base.
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-carta}
+      # Obligatoria en .env: la imagen de PostgreSQL se niega a arrancar si va vacía.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-carta_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-carta} -d ${POSTGRES_DB:-carta_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  migracion:
+    # Corre el comando previo al despliegue (scripts/predespliegue.py: `alembic upgrade head`,
+    # salvo que la base vaya por delante del código en un rollback) con la imagen nueva y
+    # termina; `api` arranca sólo si salió bien.
+    <<: *imagen
+    command: ["uv", "run", "python", "scripts/predespliegue.py"]
+    restart: "no"
+    environment:
+      <<: *base_de_datos
+      SECRET_KEY: ${SECRET_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *imagen
+    restart: unless-stopped
+    environment:
+      <<: *base_de_datos
+      DOMINIO: ${DOMINIO:-localhost}
+      SECRET_KEY: ${SECRET_KEY:-}
+      WORKERS: ${WORKERS:-2}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_PUBLICO: ${R2_BUCKET_PUBLICO:-}
+      R2_BUCKET_PRIVADO: ${R2_BUCKET_PRIVADO:-}
+      R2_URL_PUBLICA: ${R2_URL_PUBLICA:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      IMPORTACION_MODELO: ${IMPORTACION_MODELO:-claude-opus-5-5}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports:
+      # Sólo la propia máquina: Caddy (o Cloudflare Tunnel) es quien expone 443.
+      - "127.0.0.1:${PUERTO_API:-8000}:8000"
+    depends_on:
+      migracion:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  respaldo:
+    # Una ejecución = un respaldo (deploy/respaldo/). No arranca con `up`: lo lanza el cron
+    # del host (`docker compose run --rm respaldo`, instalado por cloud-init.yml a las 04:00).
+    build: ../respaldo
+    image: ${IMAGEN_RESPALDO:-ghcr.io/klvinlopez/carta-respaldo}:${IMAGEN_TAG:-latest}
+    profiles: ["respaldo"]
+    restart: "no"
+    environment:
+      <<: *base_de_datos
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_PRIVADO: ${R2_BUCKET_PRIVADO:-}
+      RESPALDO_CLAVE_AGE: ${RESPALDO_CLAVE_AGE:-}
+      RESPALDO_DIAS: ${RESPALDO_DIAS:-30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

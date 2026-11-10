@@ -1,0 +1,36 @@
+# Lo que nunca entra en el contexto de construcción de la imagen (T-0.6; T-0.7 movió terraform/).
+# El Dockerfile copia rutas explícitas (app/, migrations/, scripts/, frontend/, deploy/uvicorn_log.json,
+# pyproject.toml, uv.lock, alembic.ini, README.md); esto además mantiene el contexto pequeño y
+# garantiza que un .env o los datos locales no puedan colarse en ninguna capa.
+# Los patrones van anclados a la raíz del contexto: `**/` cubre también las subcarpetas
+# (frontend/.env.production, app/**/__pycache__). Ninguna línea empieza por `!`.
+
+# Secretos y datos locales
+**/.env*
+datos/
+
+# Entornos y cachés locales
+.venv/
+frontend/node_modules/
+frontend/dist/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.vite/
+.coverage
+htmlcov/
+
+# No forma parte de la imagen
+tests/
+docs/
+prototipo/
+marketing/
+wireframes/
+stitch/
+deploy/etapa2-gcp/
+pruebas/
+.github/
+.claude/
+.git/

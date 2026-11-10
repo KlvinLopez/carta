@@ -1,0 +1,113 @@
+[
+  {
+    "categoria": "Tacos",
+    "nombre": "Pastor",
+    "precio": 22,
+    "variantes": []
+  },
+  {
+    "categoria": "Tacos",
+    "nombre": "Suadero",
+    "precio": 25,
+    "variantes": []
+  },
+  {
+    "categoria": "Tacos",
+    "nombre": "Bistec",
+    "precio": 28,
+    "variantes": []
+  },
+  {
+    "categoria": "Tacos",
+    "nombre": "Campechano",
+    "precio": 30,
+    "variantes": []
+  },
+  {
+    "categoria": "Tacos",
+    "nombre": "Costilla",
+    "precio": 32,
+    "variantes": []
+  },
+  {
+    "categoria": "Tacos",
+    "nombre": "Tripa",
+    "precio": 30,
+    "variantes": []
+  },
+  {
+    "categoria": "Tacos",
+    "nombre": "Cecina enchilada",
+    "precio": 35,
+    "variantes": []
+  },
+  {
+    "categoria": "Especialidades",
+    "nombre": "Gringa",
+    "precio": 65,
+    "variantes": []
+  },
+  {
+    "categoria": "Especialidades",
+    "nombre": "Alambre",
+    "precio": 140,
+    "variantes": []
+  },
+  {
+    "categoria": "Especialidades",
+    "nombre": "Volcán",
+    "precio": 55,
+    "variantes": []
+  },
+  {
+    "categoria": "Especialidades",
+    "nombre": "Quesadilla",
+    "precio": 45,
+    "variantes": [
+      {
+        "nombre": "Sencilla",
+        "precio": 45
+      },
+      {
+        "nombre": "Con carne",
+        "precio": 70
+      }
+    ]
+  },
+  {
+    "categoria": "Especialidades",
+    "nombre": "Torta",
+    "precio": 80,
+    "variantes": []
+  },
+  {
+    "categoria": "Combos",
+    "nombre": "Combo 1",
+    "precio": 120,
+    "variantes": []
+  },
+  {
+    "categoria": "Combos",
+    "nombre": "Combo 2",
+    "precio": 220,
+    "variantes": []
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Refresco",
+    "precio": 35,
+    "variantes": []
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Agua fresca",
+    "precio": 30,
+    "variantes": []
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Cerveza",
+    "precio": 45,
+    "variantes": []
+  }
+]

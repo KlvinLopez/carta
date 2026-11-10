@@ -1,195 +1,230 @@
-name: Deploy to Cloud Run
+# Despliegue a PRODUCCIÓN en Railway (T-0.7, ADR-015, 05_Operacion §3).
+#
+#   git tag v0.0.1 && git push origin v0.0.1        → despliega esa etiqueta a producción
+#   Actions → «Despliegue a producción» → Run workflow con `etiqueta: v0.0.1`
+#                                                     → vuelve a desplegar una etiqueta (rollback
+#                                                       por código, también desde el teléfono)
+#
+# STAGING NO PASA POR AQUÍ: el servicio `api` del environment `staging` de Railway está conectado
+# al repositorio y se despliega solo con cada push a la rama que se elija en el panel (Settings →
+# Source → Branch; `master`, o `claude/gifted-allen-rqjiup` mientras no exista el merge). Ver
+# deploy/railway/README.md.
+#
+# Cuatro trabajos:
+#   verificar   la etiqueta tiene forma vX.Y.Z, su commit está en `master` y el CI (ci.yml) pasó
+#               en ese mismo commit.
+#   produccion  `railway up` del código de la etiqueta al servicio `api` de `produccion`; Railway
+#               construye el Dockerfile, corre el comando previo (scripts/predespliegue.py), espera
+#               a /health y cambia el tráfico.
+#   humo        prueba de humo contra https://carta.cooking. Va aparte: en el primer despliegue el
+#               DNS o el certificado pueden tardar (hasta 72 h) y el rojo aquí no significa que
+#               producción falló; «Re-run failed jobs» repite sólo el humo, sin otro `railway up`.
+#   publicar    tras `produccion`, la misma etiqueta como imagen en GHCR
+#               (`ghcr.io/klvinlopez/carta:<etiqueta>` y `:latest`, más `carta-respaldo`) para la
+#               variante de VM (deploy/vps/): `:latest` sólo se mueve si producción quedó
+#               desplegada. Vive aquí y no en ci.yml porque ci.yml no se dispara con etiquetas y
+#               añadírselas repetiría `calidad` e `imagen` sobre un commit que ya pasó.
+#
+# Único secreto: RAILWAY_TOKEN, un *project token* del environment `produccion` de Railway,
+# guardado como secreto del Environment `produccion` de GitHub (no del repositorio): sólo lo ve
+# el trabajo `produccion`, y sólo desde etiquetas `v*` o `master` (deploy/railway/README.md,
+# paso F). GITHUB_TOKEN (`github.token`) sólo escribe paquetes, y sólo en `publicar`. Las
+# acciones van fijadas por SHA completo (el tag es comentario), como en ci.yml.
+name: Despliegue a producción
 
 on:
   push:
-    branches: [main]
-    tags: ["v*"]
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
-      environment:
-        description: "Target environment"
+      etiqueta:
+        description: "Etiqueta a desplegar (p. ej. v0.0.1). Para un rollback, la anterior."
         required: true
-        default: "dev"
-        type: choice
-        options:
-          - dev
-          - staging
-          - prod
+        type: string
+
+# Un despliegue a la vez: nunca se cancela uno a medias. Ojo: GitHub guarda sólo UN pendiente
+# por grupo; si se encolan tres, el del medio se cancela aunque `cancel-in-progress` sea false.
+# Espera a que termine el anterior antes de lanzar otro.
+concurrency:
+  group: despliegue-produccion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Con `shell: bash` explícito GitHub corre `bash --noprofile --norc -eo pipefail`: un
+# `curl | grep` roto falla de verdad.
+defaults:
+  run:
+    shell: bash
 
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: us-central1
-  SERVICE_NAME: carta-api
+  # La etiqueta viaja siempre por variable de entorno, nunca interpolada dentro de un `run`.
+  ETIQUETA: ${{ github.event_name == 'workflow_dispatch' && inputs.etiqueta || github.ref_name }}
 
 jobs:
-  # =========================================================================
-  # Step 1: Run Tests
-  # =========================================================================
-  test:
+  verificar:
+    name: Etiqueta válida y CI en verde
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: carta
-          POSTGRES_PASSWORD: carta_test
-          POSTGRES_DB: carta_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
-
-      - name: Lint
-        run: ruff check app tests
-
-      - name: Type check
-        run: mypy app
-
-      - name: Run tests
-        env:
-          DATABASE_URL: postgresql+asyncpg://carta:carta_test@localhost:5432/carta_test
-        run: pytest --cov=app --cov-report=xml
-
-  # =========================================================================
-  # Step 2: Build & Push Docker Image
-  # =========================================================================
-  build:
-    needs: test
-    runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
-      id-token: write
-
+      actions: read
     outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
+      sha: ${{ steps.commit.outputs.sha }}
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Determine environment
-        id: env
+      - name: La etiqueta tiene forma vX.Y.Z
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "environment=prod" >> $GITHUB_OUTPUT
-          else
-            echo "environment=dev" >> $GITHUB_OUTPUT
+          if ! [[ "$ETIQUETA" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::La etiqueta '$ETIQUETA' no tiene la forma vX.Y.Z (p. ej. v0.0.1)."
+            exit 1
           fi
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          ref: refs/tags/${{ env.ETIQUETA }}
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Commit de la etiqueta
+        id: commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/carta-${{ steps.env.outputs.environment }}/carta-api
-          tags: |
-            type=sha,prefix=
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=raw,value=latest
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  # =========================================================================
-  # Step 3: Deploy to Cloud Run
-  # =========================================================================
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Determine environment
-        id: env
+      - name: El commit está en master
+        # ci.yml también corre en ramas `agente/**` y `claude/**`: sin esto, una etiqueta sobre
+        # una rama sin integrar tendría CI verde y desplegaría. Se etiqueta después del merge.
+        env:
+          SHA: ${{ steps.commit.outputs.sha }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "environment=prod" >> $GITHUB_OUTPUT
-          else
-            echo "environment=dev" >> $GITHUB_OUTPUT
+          git fetch --no-tags origin master
+          if ! git merge-base --is-ancestor "$SHA" origin/master; then
+            echo "::error::$ETIQUETA ($SHA) no está en master: integra primero y etiqueta después."
+            exit 1
           fi
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
-
-      - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: ${{ env.SERVICE_NAME }}-${{ steps.env.outputs.environment }}
-          region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/carta-${{ steps.env.outputs.environment }}/carta-api:latest
-
-      - name: Show deployed URL
+      - name: El CI pasó en ese commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.commit.outputs.sha }}
         run: |
-          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-${{ steps.env.outputs.environment }} \
-            --region=${{ env.REGION }} \
-            --format='value(status.url)')
-          echo "### 🚀 Deployed to Cloud Run" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** ${URL}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** ${{ steps.env.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Docs:** ${URL}/docs" >> $GITHUB_STEP_SUMMARY
+          exitos="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$SHA&status=success&per_page=1" --jq '.total_count')"
+          if [ "$exitos" = "0" ]; then
+            echo "::error::No hay corrida en verde de ci.yml para $SHA: espera a que termine el CI de ese commit (o relánzalo si falló o se canceló) y vuelve a lanzar este workflow."
+            exit 1
+          fi
+          echo "CI en verde para $SHA ($ETIQUETA)."
 
-  # =========================================================================
-  # Step 4: Run Database Migrations
-  # =========================================================================
-  migrate:
-    needs: deploy
+  produccion:
+    name: Railway (produccion) + prueba de humo
+    needs: verificar
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    timeout-minutes: 30
+    environment:
+      name: produccion
+      url: https://carta.cooking
+    env:
+      # Versión fijada de la CLI y SHA-256 del binario oficial
+      # (github.com/railwayapp/cli/releases, v5.71.0 del 19 de octubre de 2026). Para subir de
+      # versión: descargar el nuevo .tar.gz, `sha256sum` y cambiar las dos líneas juntas.
+      RAILWAY_CLI_VERSION: "5.71.0"
+      RAILWAY_CLI_SHA256: "2e682fd2ddf8d6fdf9e46d9d99d99646ff0022a6abb0c2bca93011348a269fb9"
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          ref: ${{ needs.verificar.outputs.sha }}
+          persist-credentials: false
 
-      - name: Run migrations via Cloud Run Job
+      - name: CLI de Railway (versión fijada, descarga verificada)
         run: |
-          gcloud run jobs execute carta-migrate \
-            --region=${{ env.REGION }} \
-            --wait
+          archivo="railway-v${RAILWAY_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/$archivo" \
+            "https://github.com/railwayapp/cli/releases/download/v${RAILWAY_CLI_VERSION}/$archivo"
+          echo "${RAILWAY_CLI_SHA256}  $RUNNER_TEMP/$archivo" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$RUNNER_TEMP/$archivo" -C "$RUNNER_TEMP/bin" railway
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/bin/railway" --version
+
+      - name: railway up (sube el código de la etiqueta y espera a que el despliegue quede activo)
+        # Sin --detach ni --ci la CLI espera al final del despliegue: sale con 0 si llega a
+        # SUCCESS (build + comando previo + /health) y con 1 si falla o se cae. .railwayignore
+        # deja fuera docs/, marketing/ y lo demás que la imagen no usa.
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          SHA: ${{ needs.verificar.outputs.sha }}
+        run: |
+          railway up --environment produccion --service api --message "$ETIQUETA ($SHA)"
+
+  humo:
+    name: Prueba de humo contra https://carta.cooking
+    needs: produccion
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      URL_PRODUCCION: https://carta.cooking
+
+    steps:
+      - name: /health, /ready, la PWA, CSP y HSTS
+        run: |
+          # Hasta 5 minutos: Cloudflare apunta al despliegue nuevo en cuanto Railway cambia el
+          # tráfico, pero damos margen.
+          for intento in $(seq 1 30); do
+            if curl -sf "$URL_PRODUCCION/health" > /dev/null; then break; fi
+            sleep 10
+          done
+          curl -sf "$URL_PRODUCCION/health"
+          curl -sf "$URL_PRODUCCION/ready" | grep -q '"db":"ok"'
+          curl -sf "$URL_PRODUCCION/" | grep -q '<div id="app"'
+          curl -sI "$URL_PRODUCCION/" | grep -i content-security-policy
+          curl -sI "$URL_PRODUCCION/" | grep -i strict-transport-security
+          echo "### Producción en ${URL_PRODUCCION} con ${ETIQUETA}" >> "$GITHUB_STEP_SUMMARY"
+
+  publicar:
+    name: Imagen en GHCR (variante de VM)
+    needs: [verificar, produccion]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGEN: ghcr.io/klvinlopez/carta
+      IMAGEN_RESPALDO: ghcr.io/klvinlopez/carta-respaldo
+      FUENTE: https://github.com/KlvinLopez/carta
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verificar.outputs.sha }}
+          persist-credentials: false
+
+      - name: docker login ghcr.io (GITHUB_TOKEN)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Construir y publicar (etiqueta y latest)
+        # La etiqueta OCI `source` liga el paquete al repositorio en GitHub. Un rollback con
+        # workflow_dispatch sobre una etiqueta vieja mueve también `latest` a esa versión.
+        run: |
+          docker build \
+            --label "org.opencontainers.image.source=$FUENTE" \
+            --label "org.opencontainers.image.version=$ETIQUETA" \
+            -t "$IMAGEN:$ETIQUETA" -t "$IMAGEN:latest" .
+          docker build \
+            --label "org.opencontainers.image.source=$FUENTE" \
+            --label "org.opencontainers.image.version=$ETIQUETA" \
+            -t "$IMAGEN_RESPALDO:$ETIQUETA" -t "$IMAGEN_RESPALDO:latest" deploy/respaldo
+          docker push "$IMAGEN:$ETIQUETA"
+          docker push "$IMAGEN:latest"
+          docker push "$IMAGEN_RESPALDO:$ETIQUETA"
+          docker push "$IMAGEN_RESPALDO:latest"
+
+      - name: docker logout
+        if: always()
+        run: docker logout ghcr.io

@@ -1,0 +1,67 @@
+#cloud-config
+# VM Ubuntu LTS (2 vCPU / 4 GB) para la variante de Compose (05_Operacion Anexo A, ADR-012).
+# Lista, no ejecutada. Antes de usarlo: pega tu llave SSH pública donde dice REEMPLAZA.
+# Qué hace: usuario `carta` con Docker (sudo sin contraseña + grupo docker: es root sin fricción,
+# decisión consciente para operar desde el teléfono), ufw (22, 80, 443), fail2ban, actualizaciones automáticas,
+# clona el repositorio en /opt/carta y deja el cron del respaldo diario (04:00 UTC).
+# Después, a mano: /opt/carta/deploy/vps/.env (permisos 600) y `docker compose --profile caddy up -d`.
+
+# Sin contraseñas por SSH ni root: lo nativo de cloud-init gana a cualquier sshd_config.d/*.conf.
+ssh_pwauth: false
+disable_root: true
+
+users:
+  - name: carta
+    groups: [docker, sudo]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "ssh-ed25519 REEMPLAZA-CON-TU-LLAVE-PUBLICA carta"
+
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - git
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+
+write_files:
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      maxretry = 5
+      bantime = 1h
+  - path: /etc/cron.d/carta-respaldo
+    permissions: "0644"
+    content: |
+      # Respaldo diario de la base a R2 (deploy/respaldo/); variables en /opt/carta/deploy/vps/.env
+      0 4 * * * carta cd /opt/carta/deploy/vps && /usr/bin/docker compose run --rm respaldo >> /var/log/carta-respaldo.log 2>&1
+
+runcmd:
+  - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow 443/udp
+  - ufw --force enable
+  - systemctl enable --now docker fail2ban
+  - git clone --depth 1 --branch master https://github.com/KlvinLopez/carta.git /opt/carta
+  - chown -R carta:carta /opt/carta
+  - touch /var/log/carta-respaldo.log && chown carta:carta /var/log/carta-respaldo.log
+  - install -o carta -g carta -m 600 /dev/null /opt/carta/deploy/vps/.env
+  - echo "Listo: rellena /opt/carta/deploy/vps/.env y corre 'docker compose --profile caddy up -d' como carta" > /etc/motd
+
+final_message: "Carta VM lista tras $UPTIME s"

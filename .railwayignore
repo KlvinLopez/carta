@@ -1,0 +1,30 @@
+# Lo que `railway up` NO sube a Railway (T-0.7). Además de esto, la CLI ya respeta .gitignore
+# e ignora .git/ y node_modules/. Sólo lo usa el despliegue a producción desde CI
+# (.github/workflows/deploy.yml); staging lo construye Railway desde GitHub.
+#
+# Sin esto la subida pesaría ~70 MB (los videos de marketing/). Nada de lo que copia el
+# Dockerfile puede aparecer aquí: lo comprueba tests/unit/test_despliegue.py.
+# Sintaxis de .gitignore: sin `/` delante, `pruebas/` también taparía frontend/src/pruebas/;
+# por eso cada carpeta va anclada a la raíz.
+
+# Secretos y datos locales
+**/.env*
+/datos/
+
+# Dependencias y builds locales (la imagen los genera)
+/.venv/
+/frontend/node_modules/
+/frontend/dist/
+**/__pycache__/
+
+# No forma parte de la imagen
+/tests/
+/docs/
+/prototipo/
+/marketing/
+/wireframes/
+/stitch/
+/pruebas/
+/deploy/etapa2-gcp/
+/.claude/
+/.github/

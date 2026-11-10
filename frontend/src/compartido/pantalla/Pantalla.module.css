@@ -1,0 +1,125 @@
+/* Armazón de pantalla: teléfono primero (390 px), centrado en pantallas anchas. */
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  max-width: var(--ancho-telefono);
+  margin: 0 auto;
+  padding: calc(var(--esp-8) + env(safe-area-inset-top, 0px)) var(--esp-5)
+    calc(var(--esp-8) + env(safe-area-inset-bottom, 0px));
+  gap: var(--esp-5);
+}
+
+.escritorio {
+  max-width: var(--ancho-escritorio);
+}
+
+.marca {
+  font-family: var(--fuente-titulo);
+  font-size: 1.125rem;
+  color: var(--vino);
+  letter-spacing: -0.01em;
+}
+
+.encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.sobretitulo {
+  overflow-wrap: anywhere; /* un código largo no debe desbordar a 320 px */
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--carbon-suave);
+}
+
+.titulo {
+  font-size: 2.125rem;
+  color: var(--carbon);
+}
+
+.texto {
+  color: var(--carbon-suave);
+  font-size: 0.9375rem;
+}
+
+.centrado {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--esp-4);
+}
+
+.ilustracion {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-baja);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-titulo);
+  font-size: 2.5rem;
+  color: var(--vino);
+}
+
+.espera {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radio-pildora);
+  border: 3px solid var(--crema-alta);
+  border-top-color: var(--vino);
+  animation: gira 800ms linear infinite;
+}
+
+@keyframes gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+}
+
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.precio {
+  font-weight: 600; /* precios en DM Sans SemiBold */
+  font-size: 1.125rem;
+}
+
+.pie {
+  margin-top: auto;
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .espera {
+    animation: none;
+    border-color: var(--vino);
+    opacity: 0.5;
+  }
+}

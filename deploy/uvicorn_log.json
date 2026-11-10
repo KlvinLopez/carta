@@ -1,0 +1,45 @@
+{
+  "_comentario": "Registro del supervisor de uvicorn (--workers N): el proceso padre no importa la aplicación, así que sin esto escribiría texto plano. Reutiliza el formateador y el filtro de app/core/registro.py; el manejador se llama carta_json para que configurar_registro() (que corre al importar la aplicación en cada worker) no añada otro.",
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "json": {
+      "()": "app.core.registro.FormateadorJson"
+    }
+  },
+  "filters": {
+    "sin_traza_duplicada": {
+      "()": "app.core.registro.FiltroTrazaDuplicada",
+      "name": "carta_sin_traza_duplicada"
+    }
+  },
+  "handlers": {
+    "carta_json": {
+      "class": "logging.StreamHandler",
+      "formatter": "json",
+      "stream": "ext://sys.stdout"
+    }
+  },
+  "loggers": {
+    "uvicorn": {
+      "handlers": [],
+      "level": "INFO",
+      "propagate": true
+    },
+    "uvicorn.error": {
+      "handlers": [],
+      "level": "INFO",
+      "propagate": true,
+      "filters": ["sin_traza_duplicada"]
+    },
+    "uvicorn.access": {
+      "handlers": [],
+      "level": "INFO",
+      "propagate": false
+    }
+  },
+  "root": {
+    "handlers": ["carta_json"],
+    "level": "INFO"
+  }
+}

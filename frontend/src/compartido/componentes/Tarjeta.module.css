@@ -1,0 +1,39 @@
+/* Regla "no-line": la tarjeta se separa del fondo por tono y sombra, nunca por un borde de 1 px. */
+.tarjeta {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-radius: var(--radio-grande);
+  padding: var(--esp-4);
+  background: var(--superficie);
+  box-shadow: var(--sombra-tarjeta);
+  color: var(--carbon);
+  transition:
+    transform var(--duracion-corta) var(--resorte),
+    box-shadow 150ms ease;
+}
+
+.cremaBaja {
+  background: var(--crema-baja);
+  box-shadow: none;
+}
+
+.flotante {
+  box-shadow: var(--sombra);
+}
+
+.interactiva {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.interactiva:hover {
+  box-shadow: var(--sombra);
+}
+.interactiva:active {
+  transform: scale(0.98);
+}
+
+.ajustada {
+  padding: 0;
+  overflow: hidden;
+}

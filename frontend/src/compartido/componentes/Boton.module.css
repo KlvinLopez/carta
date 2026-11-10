@@ -1,0 +1,112 @@
+.boton {
+  display: inline-flex;
+  text-decoration: none; /* también se aplica a enlaces con clasesBoton() */
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  min-height: 48px; /* ≥ 44 px táctiles */
+  padding: 12px 26px;
+  border-radius: var(--radio-pildora);
+  font-family: var(--fuente-cuerpo);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition:
+    transform var(--duracion-corta) var(--resorte),
+    opacity 150ms ease,
+    box-shadow 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.boton:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.boton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.primario {
+  background: var(--gradiente-vino);
+  color: var(--sobre-vino);
+  box-shadow: 0 10px 26px rgba(79, 23, 40, 0.28);
+}
+.primario:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.secundario {
+  background: var(--crema-alta);
+  color: var(--carbon);
+}
+.secundario:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.fantasma {
+  background: transparent;
+  color: var(--vino);
+}
+.fantasma:hover:not(:disabled) {
+  background: var(--vino-tenue);
+}
+
+.dorado {
+  background: var(--gradiente-dorado);
+  color: var(--carbon); /* blanco sobre dorado no llega a 4.5:1; carbón da ≥ 5.3:1 */
+  box-shadow: 0 10px 26px rgba(184, 134, 11, 0.3);
+}
+
+.compacto {
+  min-height: var(--tactil);
+  padding: 10px 18px;
+  font-size: 0.9375rem;
+}
+
+.ancho {
+  width: 100%;
+}
+
+.cargando {
+  pointer-events: none;
+}
+
+.contenido {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.cargando .contenido {
+  visibility: hidden;
+}
+
+.espera {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radio-pildora);
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  animation: gira 700ms linear infinite;
+}
+
+.conEspera {
+  position: relative;
+}
+
+@keyframes gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .espera {
+    animation: none;
+    border-right-color: currentColor;
+    opacity: 0.5;
+  }
+}

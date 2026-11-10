@@ -1,0 +1,23 @@
+{
+  "id": "msg_sintetico_taqueria_el_paso",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-opus-5-5",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "",
+      "signature": "sig-sintetica"
+    },
+    {
+      "type": "text",
+      "text": "{\"moneda\": \"MXN\", \"categorias\": [{\"nombre\": \"Tacos\", \"orden\": 1, \"platillos\": [{\"nombre\": \"Pastor\", \"descripcion\": \"con piña, cebolla y cilantro\", \"precio\": 22, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Suadero\", \"descripcion\": null, \"precio\": 25, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Bistec\", \"descripcion\": null, \"precio\": 28, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Campechano\", \"descripcion\": \"pastor + bistec\", \"precio\": 30, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Costilla\", \"descripcion\": null, \"precio\": 32, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Tripa\", \"descripcion\": \"doradita\", \"precio\": 30, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Cecina enchilada\", \"descripcion\": null, \"precio\": 35, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}]}, {\"nombre\": \"Especialidades\", \"orden\": 2, \"platillos\": [{\"nombre\": \"Gringa\", \"descripcion\": \"tortilla de harina, queso, pastor\", \"precio\": 65, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [\"gluten\", \"lacteos\"], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Alambre\", \"descripcion\": \"bistec, tocino, pimiento, cebolla, queso\", \"precio\": 140, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Volcán\", \"descripcion\": \"tostada con queso gratinado y carne a elegir\", \"precio\": 55, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Quesadilla\", \"descripcion\": \"maíz o harina; sencilla / con carne\", \"precio\": 45, \"precio_confianza\": \"alta\", \"variantes\": [{\"nombre\": \"Sencilla\", \"precio\": 45}, {\"nombre\": \"Con carne\", \"precio\": 70}], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Torta\", \"descripcion\": \"cualquier carne, frijol, aguacate, jitomate\", \"precio\": 80, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}]}, {\"nombre\": \"Combos\", \"orden\": 3, \"platillos\": [{\"nombre\": \"Combo 1\", \"descripcion\": \"5 tacos de pastor + refresco\", \"precio\": 120, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Combo 2\", \"descripcion\": \"alambre para 2 + 2 refrescos\", \"precio\": 220, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}]}, {\"nombre\": \"Bebidas\", \"orden\": 4, \"platillos\": [{\"nombre\": \"Refresco\", \"descripcion\": \"600 ml\", \"precio\": 35, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Agua fresca\", \"descripcion\": \"horchata, jamaica\", \"precio\": 30, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}, {\"nombre\": \"Cerveza\", \"descripcion\": \"Victoria, Corona, Modelo\", \"precio\": 45, \"precio_confianza\": \"media\", \"variantes\": [], \"alergenos_sugeridos\": [], \"etiquetas_sugeridas\": [], \"pagina\": 1}]}], \"avisos\": [\"Nota del pie: «Precios sujetos a cambio sin previo aviso».\"]}"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 2650,
+    "output_tokens": 2120
+  }
+}

@@ -39,7 +39,7 @@ Visit: http://localhost:8000/docs
 
 ```bash
 # Create a restaurant
-curl -X POST http://localhost:8000/api/v1/restaurantes \
+curl -X POST http://localhost:8000/api/v1/admin/restaurantes \
   -H "Content-Type: application/json" \
   -d '{
     "nombre": "Mi Restaurante",
@@ -49,7 +49,7 @@ curl -X POST http://localhost:8000/api/v1/restaurantes \
   }'
 
 # Get ID from response, then create a dish
-curl -X POST http://localhost:8000/api/v1/restaurantes/{id}/platillos \
+curl -X POST http://localhost:8000/api/v1/admin/restaurantes/{id}/platillos \
   -H "Content-Type: application/json" \
   -d '{
     "nombre": "Pasta Carbonara",
@@ -119,12 +119,13 @@ alembic downgrade -1
 carta/
 ├── app/
 │   ├── main.py              # FastAPI entry point
-│   ├── api/routes.py        # API endpoints
+│   ├── api/                 # Routers: publico (/p), operacion (/op), admin (/admin), salud
+│   ├── core/                # Settings, errores, request_id, logs JSON
 │   ├── db/models.py         # SQLAlchemy models
 │   ├── schemas/             # Pydantic validation
 │   ├── services/            # Business logic (add here)
 │   └── utils/               # Utilities (add here)
-├── tests/test_api.py        # Test suite
+├── tests/{unit,integration}/ # Test suite (PostgreSQL real)
 ├── migrations/              # Database migrations (Alembic)
 ├── pyproject.toml           # Dependencies
 ├── docker-compose.yml       # Local dev infrastructure
@@ -135,7 +136,7 @@ carta/
 
 ## 🔧 Next Steps
 
-1. **Add more endpoints**: Create new routes in `app/api/routes.py`
+1. **Add more endpoints**: Create new routes in `app/api/{publico,operacion,admin}/`
 2. **Add business logic**: Create services in `app/services/`
 3. **Add models**: Extend `app/db/models.py` with more tables
 4. **Test**: Add tests in `tests/`

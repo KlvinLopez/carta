@@ -1,0 +1,140 @@
+[
+  {
+    "categoria": "Para empezar",
+    "nombre": "Guacamole de la casa",
+    "precio": 145,
+    "variantes": []
+  },
+  {
+    "categoria": "Para empezar",
+    "nombre": "Tostadas de atún",
+    "precio": 185,
+    "variantes": []
+  },
+  {
+    "categoria": "Para empezar",
+    "nombre": "Esquites con tuétano",
+    "precio": 120,
+    "variantes": []
+  },
+  {
+    "categoria": "Para empezar",
+    "nombre": "Sopa de tortilla",
+    "precio": 110,
+    "variantes": []
+  },
+  {
+    "categoria": "Para empezar",
+    "nombre": "Tuétanos a la leña",
+    "precio": 210,
+    "variantes": []
+  },
+  {
+    "categoria": "Platos fuertes",
+    "nombre": "Mole negro de Oaxaca",
+    "precio": 385,
+    "variantes": []
+  },
+  {
+    "categoria": "Platos fuertes",
+    "nombre": "Pescado zarandeado",
+    "precio": null,
+    "variantes": []
+  },
+  {
+    "categoria": "Platos fuertes",
+    "nombre": "Costilla braseada",
+    "precio": 420,
+    "variantes": []
+  },
+  {
+    "categoria": "Platos fuertes",
+    "nombre": "Chile en nogada",
+    "precio": 360,
+    "variantes": []
+  },
+  {
+    "categoria": "Platos fuertes",
+    "nombre": "Enchiladas suizas",
+    "precio": 215,
+    "variantes": []
+  },
+  {
+    "categoria": "Platos fuertes",
+    "nombre": "Pulpo a las brasas",
+    "precio": 395,
+    "variantes": []
+  },
+  {
+    "categoria": "Platos fuertes",
+    "nombre": "Milanesa de res",
+    "precio": 245,
+    "variantes": []
+  },
+  {
+    "categoria": "Postres",
+    "nombre": "Flan de cajeta",
+    "precio": 95,
+    "variantes": []
+  },
+  {
+    "categoria": "Postres",
+    "nombre": "Pastel de elote",
+    "precio": 105,
+    "variantes": []
+  },
+  {
+    "categoria": "Postres",
+    "nombre": "Churros",
+    "precio": 90,
+    "variantes": []
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Agua del día",
+    "precio": 45,
+    "variantes": [
+      {
+        "nombre": "Chico",
+        "precio": 45
+      },
+      {
+        "nombre": "Grande",
+        "precio": 65
+      }
+    ]
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Limonada",
+    "precio": 55,
+    "variantes": [
+      {
+        "nombre": "Chico",
+        "precio": 55
+      },
+      {
+        "nombre": "Grande",
+        "precio": 75
+      }
+    ]
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Café de olla",
+    "precio": 60,
+    "variantes": []
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Mezcal de la casa",
+    "precio": 140,
+    "variantes": []
+  },
+  {
+    "categoria": "Bebidas",
+    "nombre": "Cerveza artesanal",
+    "precio": 95,
+    "variantes": []
+  }
+]

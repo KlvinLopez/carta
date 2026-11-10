@@ -1,90 +1,81 @@
 # CLAUDE.md — Reglas de trabajo en el repositorio Carta
 
-Este archivo se carga automáticamente al abrir el proyecto con Claude Code. Es la primera lectura obligatoria.
+Se carga en cada sesión. Es la primera lectura obligatoria. El detalle vive en skills (`.claude/skills/`) para que este archivo se mantenga corto. `AGENTS.md` apunta aquí para otras herramientas.
 
 ---
 
-## Qué es Carta
+## Qué es Carta v1
 
-Plataforma de menú con realidad aumentada para restaurantes en México. El comensal escanea el QR de su mesa, ve los platillos en 3D sobre la mesa, arma su orden y, cuando todos en la mesa confirman, se avisa al personal.
-
-**El MVP responde una sola pregunta:** ¿ver el platillo en 3D antes de pedirlo cambia el comportamiento del comensal, y el restaurante lo nota?
+Un restaurante sube su carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo. **Sin pagos, sin 3D ni realidad aumentada, sin cuenta para el comensal.** Tres roles: comensal (anónimo), personal (mesero y capitán con PIN) y operador (dueño o gerente con cuenta).
 
 ---
 
 ## Antes de escribir código
 
-**Lee, en este orden:**
+Lee, en este orden: `docs/plan/README.md` (plan vigente y decisiones) → `docs/plan/04_Fases_y_Tareas.md` (**tu tarea** `T-x.y`, su carril y su comando de verificación) → `docs/plan/02_Arquitectura_v1.md` y `03_Datos_v1.md` (contratos) → `docs/mvp/04_API_Spec.md` §1 (convenciones y errores), `docs/mvp/01_PRD.md` §7 (criterios EARS) y el ADR que toque (`docs/mvp/adr/`).
 
-1. `docs/mvp/README.md` — mapa del paquete de diseño
-2. `docs/mvp/06_Implementation_Plan.md` — qué toca construir ahora
-3. `docs/mvp/03_Data_Model.md` y `docs/mvp/04_API_Spec.md` — contratos exactos
-4. El ADR correspondiente si vas a tocar una decisión estructural
+Si vas a tocar `migrations/` o `app/db/models.py`, lee antes el skill `/migracion` (índices en FKs con cascada, CHECK en la base, triggers con `FOR SHARE` y `search_path`, qué no ve `compare_metadata`).
 
-**Regla:** si lo que vas a hacer contradice un documento, **no lo hagas**. Detente, explica la contradicción y propón actualizar el documento primero. Los documentos son la fuente de verdad; el código los sigue.
+**Regla:** si lo que vas a hacer contradice un documento, **no lo hagas**. Detente, explica la contradicción y propón actualizar el documento primero. Los documentos son la fuente de verdad; el código los sigue. Lo que no está en el plan se especifica antes con `/especificar`.
 
 ---
 
 ## Comandos
 
 ```bash
-# Entorno
-docker compose up -d                  # PostgreSQL 15 + Redis 7
-cp .env.example .env                  # configurar antes de arrancar
-
-# Aplicación
-uvicorn app.main:app --reload --port 8000
-python worker/main.py                 # worker de generación 3D
-
-# Base de datos
-alembic upgrade head                  # aplicar migraciones
-alembic revision --autogenerate -m "descripcion"
-python scripts/seed.py                # datos de desarrollo
+uv sync                                   # dependencias (Python 3.12)
+docker compose up -d                      # PostgreSQL 16 local (en la nube el hook de sesión ya lo deja listo: omítelo)
+uv run alembic upgrade head               # migraciones
+uv run python scripts/seed.py             # datos de desarrollo
+uv run uvicorn app.main:app --reload --port 8000
 
 # Calidad — deben pasar antes de cada commit
-ruff check app worker
-black --check app worker
-mypy app
-pytest -q
-pytest tests/unit -q                  # rápido, sin base
-pytest tests/integration -q           # requiere docker compose arriba
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest -q
+uv run python scripts/verificar_trazabilidad.py --tarea T-x.y --estricto   # criterio → prueba
 
-# Frontend
-npm --prefix frontend run dev
-npm --prefix frontend run build       # compila a app/static/
-npm --prefix frontend test
+# Frontend (desde T-0.5)
+npm --prefix frontend run tipos           # tipos desde /openapi.json
+npm --prefix frontend test && npm --prefix frontend run build && node frontend/scripts/presupuesto.mjs
 ```
+
+En sesiones de agente un `&` y `kill %1` no sobreviven entre llamadas a Bash: lanza la API con `nohup … &` guardando el PID en el scratchpad y mátala por PID al terminar.
 
 ---
 
 ## Reglas duras
 
-Estas no se negocian sin cambiar un ADR.
+No se negocian sin un ADR nuevo.
 
-1. **Español en el dominio.** Tablas, modelos, servicios y variables de negocio en español (`platillo`, `comanda`, `orden_personal`). Inglés sólo en palabras clave del lenguaje y librerías. Ver ADR-008.
-2. **`app/services/` no importa FastAPI.** La lógica de negocio es independiente del transporte. Si necesitas `Request` o `HTTPException` en un servicio, el diseño está mal.
-3. **Nunca `Base.metadata.create_all()`.** El esquema se cambia sólo con migraciones de Alembic.
+1. **Español en el dominio.** Tablas, modelos, servicios y variables de negocio en español (`platillo`, `comanda`, `personal_restaurante`). Inglés sólo en palabras clave del lenguaje y librerías (ADR-008).
+2. **`app/services/` no importa FastAPI.** Si necesitas `Request` o `HTTPException` en un servicio, el diseño está mal.
+3. **Nunca `Base.metadata.create_all()`.** El esquema se cambia sólo con migraciones de Alembic, y las migraciones **se commitean**.
 4. **El precio nunca viene del cliente.** Se lee de la base al agregar el ítem y se congela al confirmar.
 5. **`restaurante_id` sale del token, jamás de un parámetro de la petición.**
-6. **Recurso de otro restaurante devuelve 404, no 403.** No se filtra la existencia.
-7. **Ningún modelo 3D se publica sin aprobación humana.** El worker no puede publicar; la base lo impide.
+6. **Recurso de otro restaurante devuelve 404, no 403.**
+7. **Nada entra al menú desde un PDF sin que el operador confirme** (INV-9).
 8. **Ninguna comanda se pierde.** Toda comanda persiste hasta tener estado terminal.
 9. **Sin borrado físico** de entidades con historial: `activo = false`.
-10. **Sin datos personales del comensal en Capa 0.** Nada de nombres reales, correos, ubicación ni identificadores publicitarios.
-11. **Sin secretos en el repositorio.** Todo por variable de entorno o Secret Manager.
-12. **Una tarea del plan = un commit** con el ID: `T-2.3: endpoint de menú con ETag`.
+10. **Sin datos personales ni sensibles del comensal en el servidor.** Los filtros de alérgenos viven en el teléfono.
+11. **El PIN nunca se guarda ni se registra en claro** (Argon2id).
+12. **Sin secretos en el repositorio.** Todo por variable de entorno.
+13. **Sin SDKs propietarios de nube.** PostgreSQL, S3 compatible y variables de entorno (ADR-012).
+14. **Sin 3D ni AR en la v1** (ADR-011).
+15. **Una tarea del plan = un commit** con el ID: `T-2.3: menú público con ETag`. Cada prueba de criterio lleva `@pytest.mark.ac("AC-x.y")`.
 
 ---
 
 ## Arquitectura en 10 líneas
 
-- Un servicio FastAPI en Cloud Run sirve la API y los estáticos (ADR-001, ADR-010).
-- Tres audiencias, tres autenticaciones: `/api/v1/p` (comensal, JWT de invitado), `/api/v1/op` (comandas, token de dispositivo), `/api/v1/admin` (back-office, Firebase).
-- PostgreSQL 15 con SQLAlchemy 2.0 async sobre `asyncpg`. Redis para caché, ETags, idempotencia y límites de tasa.
-- El comensal usa una PWA, no una app nativa (ADR-002). El AR lo resuelve `<model-viewer>` delegando en Scene Viewer (Android) y AR Quick Look (iOS).
-- Sin WebSockets: sondeo HTTP con ETag cada 3 s (comensal) y 5 s (comandas) (ADR-004).
-- La cola de generación 3D es una tabla con `FOR UPDATE SKIP LOCKED`. El worker corre fuera de GCP durante el piloto.
-- Assets en dos buckets: público con CDN para lo publicado, privado con URLs firmadas para originales y borradores (ADR-007).
+- Una imagen Docker portable: API FastAPI (uvicorn, N workers) que sirve también la PWA (`app/core/estaticos.py`: `/assets` y `/fonts` inmutables un año, `index.html` `no-cache`, la SPA por `router.default`, nunca un montaje en `/` ni una ruta comodín: taparían los 405) con las cabeceras de seguridad de `app/core/cabeceras.py` (middleware **y** manejador del 500: `ServerErrorMiddleware` responde por fuera de todo middleware; la política exacta vive en 02 §12 y en `tests/unit/test_cabeceras.py`) y toda envoltura de error con `Cache-Control: no-store` (el borde cachearía un 404 de `.js`), más PostgreSQL 16. Primer destino Railway (ADR-015); variante VM con Compose y Caddy en `deploy/vps/` (ADR-012). Cloudflare delante; R2 para fotos y respaldos.
+- Tres audiencias, tres autenticaciones: `/api/v1/p` (comensal, JWT de invitado en cookie), `/api/v1/op` (personal, PIN → cookie de 12 h), `/api/v1/admin` (operador, Firebase).
+- El menú es público por `slug` y cacheable en el borde; el sondeo responde `304` sin tocar la base.
+- Sin WebSockets: sondeo adaptativo con ETag, 3 s comensal y 5 s personal, pausado en segundo plano (ADR-004).
+- Sin Redis: caché en proceso, ETags en memoria, idempotencia en la tabla `clave_idempotencia`.
+- Importación de PDF: `importacion_menu` + procesador en proceso + API de Claude con salida estructurada; el operador revisa y confirma (ADR-014).
+- Frontend: Vite + React + TypeScript, una SPA con tres áreas (`/m`, `/staff`, `/admin`), PWA, bundle ≤ 250 KB.
+- Imagen del platillo: foto (recomendada) → ilustración por categoría → generada por IA (v1.1).
+- Contrato primero: el backend publica `app/schemas/` y `/openapi.json`; el frontend genera tipos desde ahí.
+- Despliegue: push a `master` → staging; etiqueta `v*` → producción (`deploy.yml`, también publica en GHCR). Railway se configura en el panel (no hay `railway.toml`: obsoleto, no lo leen servicios nuevos) y no acepta `--mount=type=cache` sin id en el `Dockerfile`; comando previo `scripts/predespliegue.py` (no `alembic upgrade head` a secas: rompería el rollback con la base por delante); `RAILWAY_TOKEN` sólo en el Environment `produccion` de GitHub; rollback = **Deployments → Rollback** o `deploy.yml` con la etiqueta anterior, nunca `railway redeploy`. Pasos en `deploy/README.md`.
 
 ---
 
@@ -92,70 +83,57 @@ Estas no se negocian sin cambiar un ADR.
 
 | Término | Significado | Tabla / módulo |
 |---|---|---|
-| Comensal | Persona que come | `miembro_sesion`, `usuario` |
+| Comensal | Persona que come, anónima | `miembro_sesion` |
 | Platillo | Ítem del menú | `platillo` |
-| Mesa | Mesa física con su QR | `mesa` |
+| Mesa | Mesa física con su QR | `mesa` (`codigo_publico`) |
 | Sesión | Grupo de comensales en una mesa | `sesion_grupal` |
-| Miembro | Un comensal dentro de una sesión | `miembro_sesion` |
-| Orden personal | Lo que pide una persona | `orden_personal` |
-| Comanda | Pedido de la mesa enviado al piso | `comanda` |
+| Orden personal | Lo que pide una persona | `orden_personal`, `item_orden` |
+| Comanda | Pedido de la mesa enviado al personal | `comanda` (`abierta` → `atendida` → `servida`) |
 | Llamada | Solicitud de atención | `llamada_mesero` |
-| Operador | Quien administra el menú | `operador_restaurante` |
-| Borrador | Modelo 3D pendiente de revisión | `modelo_3d` con estado `listo_para_revision` |
+| Personal | Mesero o capitán, entra con PIN | `personal_restaurante` |
+| Capitán | Personal con `rol = capitan`: mismas pantallas, opciones extra | `personal_restaurante.rol` |
+| Operador | Dueño o gerente, administra el menú | `operador_restaurante`, `usuario` |
+| Importación | PDF convertido en borrador de menú | `importacion_menu` |
 
 ---
 
 ## Diseño visual
 
-Todo lo que ve un usuario sigue `docs/Carta_Design_System.md`. Lo esencial:
+Todo lo que ve un usuario sigue el skill `/diseno-visual`. Lo esencial: fondo Crema `#FEF9F1`, texto Deep Charcoal `#1A1A1A`, primario Vino `#4F1728 → #6B2D3E`, Dorado `#B8860B` con moderación; **DM Serif Display** para títulos y **DM Sans** para cuerpo e interfaz; radio mínimo 20 px, botones píldora, regla "no-line" (sin bordes de 1 px para separar), sombras cálidas, animaciones de resorte, hojas inferiores; teléfono primero, áreas táctiles ≥ 44 px.
 
-- Fondo Crema `#FEF9F1`. **Nunca** blanco puro ni negro puro.
-- Texto Deep Charcoal `#1A1A1A`. Secundario `#5B4A3D`.
-- Primario Vino, gradiente `#4F1728` → `#6B2D3E`. Acento Dorado `#B8860B`, con mucha moderación.
-- Tipografía: Playfair Display para títulos, Inter para cuerpo e interfaz. Los precios en Inter SemiBold.
-- Radio mínimo 20 px; botones tipo píldora.
-- **Regla No-Line:** prohibido usar bordes de 1 px para separar secciones. Se separa con cambios de tono y espacio en blanco.
-- Sombras cálidas: `0px 20px 40px rgba(29, 28, 23, 0.06)`.
-- Animaciones tipo resorte (rigidez 300, amortiguación 20). Nada de transiciones deslizantes estándar.
+---
 
-Las 27 pantallas de referencia están en `stitch/` con su inventario en `stitch/README.md`.
+## Ciclo de trabajo (spec-driven + Compound Engineering)
+
+Detalle en `docs/plan/07_Spec_Driven.md`. Cada sesión recorre cinco pasos y cada vuelta deja una capa que la siguiente hereda.
+
+| Paso | Cómo | Deja |
+|---|---|---|
+| 0 · Especificar | Sólo si no está en el plan: `/especificar` → `docs/specs/NNN-*/spec.md` → tareas en 04 | Criterios verificables |
+| 1 · Planear | Plan mode (`shift+tab`) o `/tarea T-x.y`: investiga sin tocar nada | Un plan revisable |
+| 2 · Trabajar | Pruebas primero (marcadas con el criterio, con las fixtures y fábricas del skill `/pruebas`), luego código; subagente `implementador` para pasos aislados, `explorador` para buscar | Código y pruebas |
+| 3 · Revisar | `/revisar` (seguridad · pruebas · adversarial), `/analizar T-x.y` (spec ↔ contrato ↔ código ↔ pruebas) y `/code-review` antes del PR | Hallazgos resueltos |
+| 4 · Compound | `/compound` antes de cerrar: ¿qué aprendimos que la próxima sesión debería saber? | Memoria para la próxima |
+
+Cada lección se vuelve un artefacto: bug que regresa → test (`tests/`); hallazgo de revisión → regla (aquí, corto); procedimiento repetido → skill (`.claude/skills/`); regla que no puede fallar → hook (`.claude/hooks/`); decisión costosa → ADR (`docs/mvp/adr/`). Varias tareas en paralelo: una sesión maestra con `/orquestar`, una hija por carril. Este archivo no pasa de 150 líneas; lo que crezca se mueve a una skill.
 
 ---
 
 ## Al terminar una tarea
 
-1. Ejecuta el comando de verificación que indica el plan. Si falla, la tarea no está hecha.
-2. Ejecuta `ruff`, `black --check`, `mypy` y `pytest`.
-3. Haz commit con el ID de la tarea.
-4. Si descubriste que el plan estaba equivocado, **actualiza el plan** y anótalo en su registro de cambios al final de `06_Implementation_Plan.md`.
+1. El comando de **Verificar** de la tarea y la puerta de calidad en verde. Si algo falla, la tarea no está hecha.
+2. Commit con el ID de la tarea. No hagas push a `master` ni fuerces un push; todo entra por PR con `.github/pull_request_template.md`.
+3. Si el plan estaba equivocado, corrígelo en `docs/plan/04_Fases_y_Tareas.md` y añade la fila en su registro de cambios (§11).
+4. **`/compound` siempre**, según el resultado (TERMINADA · BLOQUEADA · FALLIDA, ver `07_Spec_Driven.md` §2.3), y termina con el bloque `RESULTADO:`. Después la sesión se cierra: **una tarea, una sesión**; la siguiente arranca en una sesión nueva con la memoria actualizada.
 
 ---
 
 ## Qué NO construir
 
-El alcance del MVP está cerrado. No construyas, aunque parezca obvio o fácil:
-
-- Pagos, propinas o comisión
-- App de mesero (Mis Mesas, Detalle de Mesa)
-- Panel de analytics para el restaurante
-- Perfil portable del mesero, reputación o invitaciones por QR
-- Onboarding self-service de restaurantes
-- Plan Premium del comensal
-- Multi-idioma
-
-Todo esto ya está diseñado y vendrá después. Si crees que algo de esto es necesario para el MVP, dilo antes de escribir código.
+El alcance de la v1 está cerrado. No construyas, aunque parezca obvio o fácil: realidad aumentada o 3D; pagos, propinas o comisión; cuenta, perfil o historial del comensal; Carta+; analytics del restaurante; perfil portable del mesero o invitaciones por QR; pantallas propias del capitán; asignación de mesas por mesero; multi-idioma; multi-sucursal; Redis, colas o Kubernetes. Si crees que algo de esto es necesario, dilo antes de escribir código.
 
 ---
 
-## Errores conocidos del estado actual
+## Estado del código
 
-Al 30 de agosto de 2026, antes de la Fase 0:
-
-| Problema | Dónde | Tarea que lo corrige |
-|---|---|---|
-| La aplicación no arranca: `create_async_engine` con driver síncrono | `app/db/database.py`, `pyproject.toml` | T-0.1 |
-| `create_all()` en el arranque en lugar de migraciones | `app/main.py` | T-0.3 |
-| CORS abierto a todo origen | `app/main.py` | T-6.5 |
-| `SECRET_KEY` por defecto en `.env.example` | `.env.example` | T-6.7 |
-| `max_overflow=0` provoca esperas bajo carga | `app/db/database.py` | T-0.1 |
-| Wireframes obsoletos frente a las pantallas de Stitch | `wireframes/` | T-0.4 (archivar) |
+Fase 0 (completa salvo la parte operativa de T-0.7): T-0.1 (toolchain, `Settings`), T-0.2 (motor asyncpg, modelos v1 con `Mapped[]`, migración `0001_base_v1` con triggers INV-3/INV-8) y T-0.3 (routers por audiencia en `app/api/{publico,operacion,admin}/`, `ErrorCarta` y manejadores en `app/core/errores.py`, `X-Request-ID` y logs JSON en `app/core/{peticion,registro}.py`, `/health` y `/ready`) y T-0.5 (esqueleto del frontend en `frontend/`: Vite + React 18 + TypeScript, tokens y componentes base de `/diseno-visual`, PWA, 66 pruebas, presupuesto ≤ 250 KB gzip) hechas. Todo error sale con la envoltura única: en rutas y servicios lanza `ErrorCarta(codigo, mensaje, http)`, nunca construyas el JSON de error a mano. `MiddlewareRequestId` va **último** en `add_middleware` (queda el más externo; uno por fuera que falle pierde cabecera y línea de acceso). En `log.*(..., extra={...})` sólo claves de `CAMPOS_EXTRA` y `request_id`: `message` u otro atributo de `LogRecord` tumba la petición con 500. T-0.4 (`tests/conftest.py`: base de pruebas migrada, transacción por prueba con savepoints, sesión nueva por petición, fábricas; skill `/pruebas`; CI en GitHub Actions con acciones por SHA) hecha. T-0.6 (la API sirve `frontend/dist` con cabeceras de seguridad desde `app/core/{estaticos,cabeceras}.py`; `Dockerfile` multi-etapa; `deploy/{respaldo,railway,vps}`; job `imagen` en CI) hecha. T-0.7 (repositorio y guía) hecha: `deploy.yml` (etiquetas `v*` sobre `master`; trabajos `verificar`, `produccion`, `humo` y `publicar`), comando previo `scripts/predespliegue.py` y `deploy/railway/README.md` clic a clic; falta su parte operativa (Calvin en el panel de Railway, la maestra en Cloudflare, `v0.0.1` tras el merge). T-0.8 (hook de sesión verificado, skills `/desplegar` y `/carga`, README) hecha. Fase 1 (código completo): T-1.1 hecha (migración `0002_consistencia_inquilino`: INV-10 con FK compuestas por restaurante y por sesión, `restaurante_id` inmutable en `platillo` y `sesion_grupal`, `sesion_id` inmutable en `miembro_sesion`; `migrations/env.py` fija `lock_timeout` 10 s; esquemas de respuesta de la Fase 1 en `app/schemas/` con la envoltura `ErrorRespuesta` declarada en el contrato (`errores(...)` en `comun.py`); las rutas de ejemplo de la fase ya fueron sustituidas por las reales y `app/api/admin/ejemplos.py` y `solo_desarrollo` se eliminaron en T-1.6). T-1.2 hecha (verificador del ID token de Firebase en `app/core/firebase.py` sin SDK; `operador_actual`, `restaurante_del_operador` y `platillo_del_operador` en `app/api/admin/dependencias.py`; CSP abierta a Firebase desde `Settings`). T-1.8 hecha (`app/services/importacion_menu.py`: `extraer_menu` con la API de Claude, plazo total de 170 s, errores del dominio, páginas con `pypdf`; pruebas con el SDK sobre `MockTransport`, `live` sólo con `-m live`). T-1.10 hecha (`frontend/src/admin/`: acceso con Firebase por redirect y enlace por correo, cliente HTTP con el token en memoria, armazón del panel; el SDK sólo por `import()` y el presupuesto lo vigila). T-1.3 hecha (`app/services/menu.py` y `app/api/admin/menu.py`: categorías y platillos con `categoria_del_operador`, reordenar con `FOR UPDATE`, baja lógica; `app/services/cache_menu.py` con generación por slug y purga de Cloudflare en segundo plano; `manejar_integridad` en `app/core/errores.py`: UNIQUE → 409, CHECK/NOT NULL → 422, FK → 404, log sólo con `constraint_name`; la limpieza de textos vive sólo en `app/schemas/comun.py`). T-1.11 hecha (`frontend/src/admin/alta/`: asistente de siete pasos contra el contrato con datos simulados en `frontend/src/mocks/`; sondeo de 3 s con tope, reanudación por `sessionStorage`; el recorrido real cronometrado espera a T-1.9, T-1.5 y T-1.6). T-1.4 hecha (`app/services/assets.py`: `Almacen` local y S3 con hilos propios y plazos, `procesar_foto` que reduce al cargar y valida por contenido, `PROCESOS_SIMULTANEOS = 1`; `app/api/admin/fotos.py`: multipart con 401/404 antes de leer, `sesion.close()` antes del cuerpo, 408/413/415/422/503; `app/services/ilustraciones.py` con 20 claves; `/ready` sondea R2 cada 20 s; `/almacen` sólo en desarrollo; `Settings` con `hide_input_in_errors`). T-1.12 hecha (`frontend/src/admin/menu/`: lista por categorías con miniatura (foto o las 20 ilustraciones de `frontend/src/compartido/ilustraciones.ts`, atadas por prueba a `app/services/ilustraciones.py`), interruptores optimistas con reversión, baja con confirmación, editor en hoja inferior, foto con recorte en `canvas`, reordenar con cola por categoría; mock en `frontend/src/mocks/servicioMenuSimulado.ts` validado con Ajv contra `mocks/openapi.json`; job `frontend` en `ci.yml`; la puerta del frontend se lee por código de salida: `npx vitest run; echo $?`). T-1.5 hecha (`app/services/mesas.py`: crear N mesas con código de 128 bits y tope de 500 activas bajo `FOR UPDATE`, regenerar con revocación inmediata, `mesa_por_codigo` para la Fase 2; `app/services/qr_pdf.py`: PDF de tarjetas con QR en hilo propio y turno único (503 `SERVICIO_OCUPADO`), logo sólo por https a una IP pública fijada, relectura de códigos al terminar (409 `CODIGOS_CAMBIADOS`); `Settings.DOMINIO` validado y obligatorio fuera de desarrollo; `app/core/enlaces.py`; en pruebas nunca se parchea `socket.getaddrinfo`: la CI conecta a la base por `localhost`). T-1.9 hecha (`app/api/admin/importaciones.py` y `app/api/admin/subidas.py` (multipart común: 401/404/503 antes de leer, 408, cupo de 3 en curso → 409 `IMPORTACION_EN_CURSO`); `app/services/importaciones.py` (confirmar en una transacción bajo `FOR UPDATE` del restaurante, INV-9, 409 al repetir, cuerpo ≤ 2 MB y ≤ 1000 platillos, repetidos del modelo fusionados); `app/services/procesador.py` (arranca en el lifespan, `FOR UPDATE SKIP LOCKED`, sin conexión durante la llamada a la API, recuperación de `procesando` a los 4 min, relanzado si muere y `/ready` 503 `PROCESADOR_DETENIDO`); `pypdf` con flujos ≤ 8 MB bajo el semáforo de `assets`). T-1.6 hecha (`app/services/personal.py` y `app/api/admin/personal.py`: alta, listado, edición, baja o reactivación y reasignación de PIN; PIN de 4–6 dígitos sólo como hash Argon2id (t=3, m=64 MiB, p=4) en un pool propio con cola acotada, nunca devuelto ni registrado; tope de 50 activos bajo `FOR UPDATE` comprobado antes de hashear; migración `0003_personal_sesiones_desde` con el sello que la Fase 3 compara con la cookie (AC-26.3); `populate_existing=True` en toda relectura con `FOR UPDATE` de una fila ya cargada (personal y mesas); `StrictBool` en los cuerpos; los nombres pierden los caracteres de formato Unicode en `app/schemas/comun.py`). T-1.13 hecha (`frontend/src/admin/{mesas,personal,ajustes}/` con `React.lazy`: mesas con alta en hoja, regenerar con confirmación y «el último gana», PDF de QR con 409/503, nombre del servidor y `Retry-After`; personal con PIN estricto de 4–6 dígitos ASCII que nunca vuelve y se conserva sólo si el servidor no aplicó nada, baja con aviso de revocación, reactivar y reasignar; ajustes con PATCH parcial y logo https, sin ninguna URL de mesa (el enlace público del menú llega con la Fase 2); mocks en `frontend/src/mocks/servicio{Mesas,Personal,Ajustes}Simulado.ts` validados con Ajv; `frontend/scripts/capturas-admin.mjs`). T-1.7 hecha (`scripts/seed.py`: «La Ceiba» creada por los servicios reales, 22 platillos (18 con foto sintética de `tests/fixtures/fotos/`, 4 con ilustración, uno agotado), 8 mesas, 3 personas con el PIN de desarrollo sólo como hash, operador con `firebase_uid` fijo e importación `listo` desde la respuesta grabada; idempotente borrando sólo `la-ceiba` (único borrado físico) y únicamente con `ENTORNO=desarrollo`; `scripts/__init__.py` y `uv run mypy` sin argumento revisan también `scripts/`). Fase 1 completa salvo el recorrido real cronometrado del asistente (T-1.11, S4 < 15 min). La lista de problemas heredados y la tarea que corrige cada uno está en `docs/plan/04_Fases_y_Tareas.md` §4.

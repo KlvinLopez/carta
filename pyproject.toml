@@ -1,57 +1,96 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.32.4"]
 build-backend = "hatchling.build"
 
 [project]
 name = "carta"
 version = "0.1.0"
-description = "Intelligent restaurant menu platform with AI-powered personalization"
+description = "Carta: menú visual por QR, orden compartida en la mesa y comanda directa al personal"
 readme = "README.md"
-requires-python = ">=3.11"
-authors = [
-    { name = "Calvin", email = "calvinisheamus20@gmail.com" }
-]
+requires-python = ">=3.12"
+authors = [{ name = "Calvin", email = "calvinisheamus20@gmail.com" }]
 
 dependencies = [
-    "fastapi==0.110.0",
-    "uvicorn[standard]==0.27.0",
-    "sqlalchemy==2.0.25",
-    "psycopg2-binary==2.9.9",
-    "alembic==1.13.0",
-    "pydantic==2.5.3",
-    "pydantic-settings==2.1.0",
-    "python-dotenv==1.0.0",
-    "firebase-admin==6.2.0",
-    "httpx==0.25.2",
-    "redis==5.0.1",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "httpx>=0.27",
+    "anthropic>=2.5,<3",
+    "pillow>=10.4",
+    "qrcode[pil]==8.2",
+    "reportlab==5.1.0",
+    "pypdf>=6,<7",
+    "boto3>=1.35",
+    "argon2-cffi>=23.1",
+    "pyjwt[crypto]>=2.9",
+    "slowapi>=0.1.9",
+    "python-multipart>=0.0.12",
+    "sentry-sdk[fastapi]>=2.14",
+    "pillow-heif>=1.8.1",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "pytest==7.4.3",
-    "pytest-asyncio==0.21.1",
-    "pytest-cov==4.1.0",
-    "ruff==0.1.11",
-    "black==23.12.1",
-    "mypy==1.7.1",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "pip-audit>=2.7",
+    "pytest-timeout>=2.4.0",
+    "pyyaml>=6",
+    "moto[server]>=5.2.5",
+    "zxing-cpp==3.1.1",
 ]
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-addopts = "--cov=app --cov-report=html --cov-report=term"
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
-select = ["E", "F", "W"]
+target-version = "py312"
+extend-exclude = ["docs", "frontend", "marketing", "prototipo", "stitch", "deploy", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
 ignore = ["E501"]
 
-[tool.black]
-line-length = 100
-target-version = ["py311"]
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests", "scripts"]
+
+[tool.ruff.lint.flake8-bugbear]
+# `Depends(...)` en valores por defecto es el idioma de FastAPI, no un error.
+extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body",
+    "fastapi.Header", "fastapi.Cookie", "fastapi.File", "fastapi.Form",
+]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
+files = ["app", "scripts"]
 check_untyped_defs = true
 ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# Un solo bucle de eventos para toda la sesión: una conexión asyncpg sólo sirve en el bucle
+# donde nació, y el motor de pruebas (tests/conftest.py) vive toda la sesión.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+# Ninguna prueba se queda colgada (una espera de candado en PostgreSQL, un sondeo sin fin).
+timeout = 60
+testpaths = ["tests"]
+# Las pruebas `live` llaman a la API real de Claude (cuestan): sólo con `-m live` explícito.
+addopts = ["-m", "not live"]
+# Como en producción (`app/services/assets.py`): una imagen sobre el tope de píxeles nunca se
+# decodifica (T-1.4).
+filterwarnings = ["error::PIL.Image.DecompressionBombWarning"]
+markers = [
+    "ac(*ids): criterios de aceptación (AC-x.y) que cubre la prueba; los lee scripts/verificar_trazabilidad.py",
+    "live: usa la API real de Claude; requiere ANTHROPIC_API_KEY y se corre a mano",
+]
