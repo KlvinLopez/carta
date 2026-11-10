@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, StrictBool
 
 from app.db.models import RolPersonal
 from app.schemas.comun import Entrada, Esquema, Nombre60
@@ -60,7 +60,7 @@ class PersonalCambios(Entrada):
 
     nombre: Nombre60 | None = None
     rol: RolPersonal | None = None
-    activo: bool | None = None
+    activo: StrictBool | None = None
 
 
 class PinNuevo(Entrada):

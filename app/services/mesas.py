@@ -147,6 +147,7 @@ async def regenerar_codigo(sesion: AsyncSession, mesa_id: UUID, restaurante_id: 
         select(Mesa)
         .where(Mesa.id == mesa_id, Mesa.restaurante_id == restaurante_id)
         .with_for_update()
+        .execution_options(populate_existing=True)  # `mesa_del_usuario` ya la cargó
     )
     if mesa is None:
         raise _no_encontrado()

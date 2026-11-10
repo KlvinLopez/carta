@@ -6,10 +6,13 @@
   4 carriles). Un PIN de 4–6 dígitos es adivinable por fuerza bruta si alguien lee la tabla:
   el hash sólo protege lo que sale de la base, la defensa real es el límite de intentos de la
   Fase 3 (5/min, bloqueo progresivo; `intentos_fallidos` y `bloqueado_hasta` son suyos).
-- **CPU fuera del bucle.** Hashear y verificar tardan ~100 ms y 64 MiB: van a un pool propio de
-  `HILOS_ARGON2` hilos (no al ejecutor por defecto, que comparte con `getaddrinfo`, lección de
-  T-1.5 A1) y, de paso, acotan la memoria: nunca hay más de `HILOS_ARGON2` hashes a la vez.
-  Hashear ocurre **antes** de tomar candados: la conexión no espera a la CPU.
+- **CPU fuera del bucle.** Hashear y verificar tardan ~40-70 ms y 64 MiB: van a un pool propio
+  de `HILOS_ARGON2` hilos (no al ejecutor por defecto, que comparte con `getaddrinfo`, lección
+  de T-1.5 A1) y, de paso, acotan la memoria: nunca hay más de `HILOS_ARGON2` hashes a la vez.
+  La espera en la cola está acotada (`ESPERA_ARGON2_SEG`, luego 503 `SERVICIO_OCUPADO`).
+  Hashear ocurre **sin conexión retenida** (se cierra la transacción de las dependencias antes)
+  y, en el alta, **después** de comprobar el tope: repetir el alta con el restaurante lleno no
+  gasta CPU. `parallelism = 4` se midió contra 2: 40 ms contra 73 ms por hash en 4 núcleos.
 - **Aislamiento.** El restaurante llega validado contra el operador; el personal por id se
   resuelve con `personal_del_usuario`: ajeno = inexistente = 404 idéntico (regla dura 6).
 - **Baja lógica (regla dura 9).** Desactivar es `activo = false`; reactivar (`activo = true`)
@@ -20,8 +23,12 @@
 - **Revocación (AC-26.3).** `sesiones_desde` se adelanta al desactivar, reactivar, reasignar
   el PIN o cambiar el rol. La cookie de 12 h de la Fase 3 vale sólo si `activo` y se emitió
   en o después de esa marca (`personal_por_id_activo` + `sesion_vigente`); sin la marca,
-  reactivar a alguien resucitaría las cookies que tenía al darlo de baja. Se usa la hora de la
-  aplicación, la misma con que la Fase 3 sella la cookie.
+  reactivar a alguien resucitaría las cookies que tenía al darlo de baja. El sello usa la hora
+  de la **base** (`clock_timestamp()`, la hora real y no la del inicio de la transacción):
+  dos réplicas con relojes desfasados comparten referencia.
+- **`FOR UPDATE` con `populate_existing`.** La dependencia de la ruta ya cargó a la persona en
+  la sesión; sin `populate_existing` el `SELECT … FOR UPDATE` no refresca esos atributos y las
+  comparaciones (`activo`, `rol`) se hacen contra valores viejos: se perdían bajas.
 """
 
 from __future__ import annotations
@@ -29,7 +36,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime
+from datetime import datetime
 from uuid import UUID
 
 from argon2 import PasswordHasher, Type
@@ -49,6 +56,7 @@ TIEMPO_ARGON2 = 3  # pasadas
 MEMORIA_ARGON2 = 64 * 1024  # KiB = 64 MiB
 PARALELISMO_ARGON2 = 4
 HILOS_ARGON2 = 2
+ESPERA_ARGON2_SEG = 10.0  # tope de espera (cola + hash) antes de 503
 
 _hasher = PasswordHasher(
     time_cost=TIEMPO_ARGON2,
@@ -81,9 +89,20 @@ def _tope() -> ErrorCarta:
 # ---------------------------------------------------------------------------
 
 
+def _ocupado() -> ErrorCarta:
+    return ErrorCarta(
+        "SERVICIO_OCUPADO", "Hay muchos cambios de PIN en curso; inténtalo en un momento.", 503
+    )
+
+
 async def hashear_pin(pin: str) -> str:
-    """Hash Argon2id (`$argon2id$…`) del PIN, fuera del bucle de eventos."""
-    return await asyncio.get_running_loop().run_in_executor(_pool, _hasher.hash, pin)
+    """Hash Argon2id (`$argon2id$…`) del PIN, fuera del bucle de eventos. Si la cola de
+    `HILOS_ARGON2` hilos no atiende en `ESPERA_ARGON2_SEG`, 503 `SERVICIO_OCUPADO`."""
+    try:
+        async with asyncio.timeout(ESPERA_ARGON2_SEG):
+            return await asyncio.get_running_loop().run_in_executor(_pool, _hasher.hash, pin)
+    except TimeoutError:
+        raise _ocupado() from None
 
 
 def _verificar(hash_guardado: str, pin: str) -> bool:
@@ -96,7 +115,13 @@ def _verificar(hash_guardado: str, pin: str) -> bool:
 async def verificar_pin(hash_guardado: str, pin: str) -> bool:
     """`True` si `pin` corresponde al hash. Un hash que no es Argon2 válido es `False`, no
     una excepción. Lo usa la entrada con PIN de la Fase 3 (T-3.4)."""
-    return await asyncio.get_running_loop().run_in_executor(_pool, _verificar, hash_guardado, pin)
+    try:
+        async with asyncio.timeout(ESPERA_ARGON2_SEG):
+            return await asyncio.get_running_loop().run_in_executor(
+                _pool, _verificar, hash_guardado, pin
+            )
+    except TimeoutError:
+        raise _ocupado() from None
 
 
 # ---------------------------------------------------------------------------
@@ -196,16 +221,16 @@ async def crear_personal(
     sesion: AsyncSession, restaurante_id: UUID, nombre: str, rol: RolPersonal, pin: str
 ) -> PersonalRestaurante:
     """Alta con el PIN que eligió el operador; sólo se guarda su hash (INV-7)."""
-    pin_hash = await hashear_pin(pin)  # antes de los candados: la conexión no espera a la CPU
+    # Conteo barato antes de gastar CPU; se repite bajo candado (la fuente de verdad).
+    if await _activos(sesion, restaurante_id) >= MAX_PERSONAL_ACTIVO:
+        raise _tope()
+    await sesion.commit()  # suelta la conexión mientras el hash espera su turno
+    pin_hash = await hashear_pin(pin)
     await _bloquear_restaurante(sesion, restaurante_id)
     if await _activos(sesion, restaurante_id) >= MAX_PERSONAL_ACTIVO:
         raise _tope()
     persona = PersonalRestaurante(
-        restaurante_id=restaurante_id,
-        nombre=nombre,
-        rol=rol,
-        pin_hash=pin_hash,
-        sesiones_desde=datetime.now(UTC),
+        restaurante_id=restaurante_id, nombre=nombre, rol=rol, pin_hash=pin_hash
     )
     sesion.add(persona)
     await _confirmar(sesion)
@@ -222,6 +247,7 @@ async def _persona_bloqueada(
             PersonalRestaurante.restaurante_id == restaurante_id,
         )
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
     if persona is None:
         raise _no_encontrado()
@@ -254,8 +280,9 @@ async def cambiar_personal(
     if nombre is not None:
         persona.nombre = nombre
     if revoca:
-        persona.sesiones_desde = datetime.now(UTC)
+        persona.sesiones_desde = func.clock_timestamp()
     await _confirmar(sesion)
+    await sesion.refresh(persona)  # `sesiones_desde` y `actualizado_en` los puso la base
     return persona
 
 
@@ -264,10 +291,11 @@ async def reasignar_pin(
 ) -> None:
     """PIN nuevo: revoca la sesión vigente y limpia el bloqueo por intentos (el operador
     resuelve a quien se quedó fuera). Sirve también para quien está dado de baja."""
+    await sesion.commit()  # suelta la conexión de las dependencias mientras se hashea
     pin_hash = await hashear_pin(pin)
     persona = await _persona_bloqueada(sesion, personal_id, restaurante_id)
     persona.pin_hash = pin_hash
     persona.intentos_fallidos = 0
     persona.bloqueado_hasta = None
-    persona.sesiones_desde = datetime.now(UTC)
+    persona.sesiones_desde = func.clock_timestamp()
     await _confirmar(sesion)

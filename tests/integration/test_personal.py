@@ -10,6 +10,7 @@ prueba la base sobre la que se apoyará: `personal_por_id_activo`, `sesion_vigen
 from __future__ import annotations
 
 import logging
+import threading
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
@@ -20,6 +21,7 @@ from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.errores import ErrorCarta
 from app.db.models import PersonalRestaurante, Restaurante, RolPersonal, Usuario
 from app.schemas.comun import ErrorRespuesta
 from app.schemas.personal import PersonalCrear, PinNuevo
@@ -635,3 +637,210 @@ async def test_sin_token_las_cuatro_rutas_son_401(cliente: AsyncClient) -> None:
     ]
     assert [x.status_code for x in respuestas] == [401] * 4
     assert PIN not in "".join(x.text for x in respuestas)
+
+
+# ===========================================================================
+# Revisión de la maestra (A2, A4): hash fuera del bucle, tope, aislamiento
+# ===========================================================================
+
+
+class _Espia:
+    """Sustituye al `PasswordHasher` del servicio y anota desde qué hilo y con qué estado de
+    la sesión se hashea."""
+
+    def __init__(self, real: Any, sesion: AsyncSession | None = None) -> None:
+        self.real = real
+        self.sesion = sesion
+        self.hilos: list[str] = []
+        self.en_transaccion: list[bool] = []
+        self.soltar = threading.Event()
+        self.bloquear = False
+
+    def hash(self, pin: str) -> str:
+        self.hilos.append(threading.current_thread().name)
+        if self.sesion is not None:
+            self.en_transaccion.append(self.sesion.in_transaction())
+        if self.bloquear:
+            self.soltar.wait(5)
+        resultado: str = self.real.hash(pin)
+        return resultado
+
+    def verify(self, hash_guardado: str, pin: str) -> bool:
+        resultado: bool = self.real.verify(hash_guardado, pin)
+        return resultado
+
+
+@pytest.mark.ac("AC-26.1")
+async def test_el_hash_corre_en_el_pool_argon2_y_sin_transaccion_abierta(
+    restaurante: Restaurante, sesion: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    espia = _Espia(servicio._hasher, sesion)
+    monkeypatch.setattr(servicio, "_hasher", espia)
+    persona = await servicio.crear_personal(sesion, restaurante.id, "Ana", RolPersonal.mesero, PIN)
+    await servicio.reasignar_pin(sesion, persona.id, restaurante.id, PIN[::-1])
+    assert len(espia.hilos) == 2
+    assert all(h.startswith("argon2") for h in espia.hilos), espia.hilos
+    assert espia.en_transaccion == [False, False]  # la conexión no espera a la CPU
+
+
+@pytest.mark.ac("AC-26.1")
+async def test_con_el_tope_lleno_el_alta_responde_422_sin_gastar_cpu(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    fabrica_personal: Fabrica,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(servicio, "MAX_PERSONAL_ACTIVO", 1)
+    await fabrica_personal(restaurante)
+    espia = _Espia(servicio._hasher)
+    monkeypatch.setattr(servicio, "_hasher", espia)
+    for _ in range(3):
+        assert (await _alta(cliente, restaurante.id, cabecera_operador)).status_code == 422
+    assert espia.hilos == []  # ni un solo hash
+
+
+@pytest.mark.ac("AC-26.1")
+async def test_cola_de_argon2_llena_es_503_servicio_ocupado(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    fabrica_personal: Fabrica,
+    sesion: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    persona = await fabrica_personal(restaurante)
+    espia = _Espia(servicio._hasher)
+    espia.bloquear = True
+    monkeypatch.setattr(servicio, "_hasher", espia)
+    monkeypatch.setattr(servicio, "ESPERA_ARGON2_SEG", 0.05)
+    try:
+        alta = await _alta(cliente, restaurante.id, cabecera_operador, nombre="Luis")
+        pin = await cliente.post(
+            f"{A}/personal/{persona.id}/pin", json={"pin": PIN}, headers=cabecera_operador
+        )
+    finally:
+        espia.soltar.set()
+    assert (alta.status_code, pin.status_code) == (503, 503)
+    assert _codigo(alta) == _codigo(pin) == "SERVICIO_OCUPADO"
+    assert PIN not in alta.text + pin.text
+    assert await sesion.scalar(select(func.count()).select_from(PersonalRestaurante)) == 1
+
+
+@pytest.mark.ac("AC-26.1")
+def test_el_tope_real_es_de_50_activos() -> None:
+    assert servicio.MAX_PERSONAL_ACTIVO == 50
+
+
+@pytest.mark.ac("AC-26.1")
+async def test_el_tope_cuenta_solo_el_restaurante_propio(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    fabrica_personal: Fabrica,
+    ajeno: Restaurante,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(servicio, "MAX_PERSONAL_ACTIVO", 2)
+    await fabrica_personal(ajeno)
+    await fabrica_personal(ajeno)
+    assert (await _alta(cliente, restaurante.id, cabecera_operador)).status_code == 201
+
+
+@pytest.mark.ac("AC-26.1")
+async def test_el_mismo_nombre_en_otro_restaurante_se_permite(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    fabrica_personal: Fabrica,
+    ajeno: Restaurante,
+) -> None:
+    await fabrica_personal(ajeno, nombre="Ana")
+    assert (
+        await _alta(cliente, restaurante.id, cabecera_operador, nombre="Ana")
+    ).status_code == 201
+
+
+@pytest.mark.ac("AC-26.1")
+async def test_alta_sin_rol_es_mesero(
+    cliente: AsyncClient, restaurante: Restaurante, cabecera_operador: dict[str, str]
+) -> None:
+    respuesta = await _alta(cliente, restaurante.id, cabecera_operador)
+    assert respuesta.json()["rol"] == "mesero"
+
+
+@pytest.mark.ac("AC-26.1")
+async def test_el_hash_tampoco_esta_en_el_log_y_la_sesion_sigue_sirviendo_tras_un_409(
+    restaurante: Restaurante, sesion: AsyncSession, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    rid = restaurante.id  # el rollback expira los objetos de la sesión
+    persona = await servicio.crear_personal(sesion, rid, "Ana", RolPersonal.mesero, PIN)
+    with pytest.raises(ErrorCarta) as error:
+        await servicio.crear_personal(sesion, rid, "ANA", RolPersonal.mesero, PIN)
+    assert error.value.http == 409
+    await sesion.refresh(persona)
+    assert persona.pin_hash not in caplog.text and PIN not in caplog.text
+    # El `rollback` tras el IntegrityError dejó la sesión usable.
+    otra = await servicio.crear_personal(sesion, rid, "Luis", RolPersonal.mesero, PIN)
+    assert otra.nombre == "Luis"
+
+
+@pytest.mark.ac("AC-26.3")
+async def test_base_de_la_fase_3_activo_restaurante_y_sello(
+    restaurante: Restaurante, ajeno: Restaurante, fabrica_personal: Fabrica, sesion: AsyncSession
+) -> None:
+    persona = await fabrica_personal(restaurante)
+    assert await servicio.personal_por_id_activo(sesion, restaurante.id, persona.id) is persona
+    assert await servicio.personal_por_id_activo(sesion, ajeno.id, persona.id) is None
+    assert await servicio.personal_por_id_activo(sesion, restaurante.id, UUID(UUID_X)) is None
+    # Una baja no vale aunque la cookie sea posterior al sello.
+    baja = await fabrica_personal(restaurante, activo=False)
+    posterior = baja.sesiones_desde + timedelta(seconds=1)
+    assert servicio.sesion_vigente(baja, posterior) is False
+    assert servicio.sesion_vigente(persona, persona.sesiones_desde + timedelta(seconds=1)) is True
+    with pytest.raises(ErrorCarta) as error:  # `_persona_bloqueada` no cruza restaurantes
+        await servicio._persona_bloqueada(sesion, persona.id, ajeno.id)
+    assert error.value.http == 404
+
+
+# ===========================================================================
+# A3 · booleanos estrictos · A5 · caracteres de formato en el nombre
+# ===========================================================================
+
+
+@pytest.mark.ac("AC-26.3")
+@pytest.mark.parametrize("valor", ["yes", "false", "true", 0, 1, "0", [True]])
+async def test_activo_exige_un_booleano_json(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    fabrica_personal: Fabrica,
+    sesion: AsyncSession,
+    valor: Any,
+) -> None:
+    persona = await fabrica_personal(restaurante)
+    respuesta = await cliente.patch(
+        f"{A}/personal/{persona.id}", json={"activo": valor}, headers=cabecera_operador
+    )
+    assert respuesta.status_code == 422, valor
+    await sesion.refresh(persona)
+    assert persona.activo is True
+
+
+@pytest.mark.ac("AC-26.1")
+@pytest.mark.parametrize(
+    "nombre", ["A\u202ena", "A\u200bna", "Ana\u200d", "\u200dAna", "A\u2066na"]
+)
+async def test_el_formato_invisible_se_quita_y_no_burla_el_nombre_unico(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    cabecera_operador: dict[str, str],
+    nombre: str,
+) -> None:
+    """Se limpia (no se rechaza): «A‮na» se guarda como «Ana» y choca con «Ana»."""
+    primera = await _alta(cliente, restaurante.id, cabecera_operador, nombre=nombre)
+    assert primera.status_code == 201, primera.text
+    assert primera.json()["nombre"] == "Ana"
+    repetida = await _alta(cliente, restaurante.id, cabecera_operador, nombre="Ana")
+    assert repetida.status_code == 409

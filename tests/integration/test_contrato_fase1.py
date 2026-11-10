@@ -200,14 +200,13 @@ async def test_el_crud_heredado_responde_con_el_esquema_v1(
 
 
 @pytest.mark.parametrize("ruta", [f"/restaurantes/{UUID_X}/importaciones/{UUID_X}"])
-async def test_los_ejemplos_fuera_de_desarrollo_piden_token_y_no_existen(
+async def test_fuera_de_desarrollo_una_importacion_inexistente_pide_token_y_es_404(
     cliente: AsyncClient,
     cabecera_operador: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
     ruta: str,
 ) -> None:
-    """Fuera de desarrollo un ejemplo pide token (401) y, con él, no existe (404): revisión
-    de T-1.2, A1."""
+    """Fuera de desarrollo la ruta pide token (401) y, con él, un id inexistente es 404."""
     monkeypatch.setattr(settings, "ENTORNO", "staging")
     del cliente.headers["Authorization"]
     respuesta = await cliente.get(A + ruta)
