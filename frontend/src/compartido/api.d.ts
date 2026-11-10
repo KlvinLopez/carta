@@ -305,6 +305,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/restaurantes/{rid}/importaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear Importacion
+         * @description Valida el archivo por su contenido, lo guarda en el bucket privado y crea la
+         *     importación `pendiente` (AC-25.1). La lectura corre en segundo plano.
+         */
+        post: operations["crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consultar Importacion */
+        get: operations["consultar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}/reintentar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reintentar Importacion */
+        post: operations["reintentar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__reintentar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}/confirmar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar Importacion
+         * @description Crea las categorías y los platillos del borrador revisado (AC-25.3, INV-9).
+         */
+        post: operations["confirmar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__confirmar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/restaurantes/{rid}/personal": {
         parameters: {
             query?: never;
@@ -357,83 +432,10 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/restaurantes/{rid}/importaciones": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Crear Importacion */
-        post: operations["crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Consultar Importacion */
-        get: operations["consultar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}/confirmar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Confirmar Importacion */
-        post: operations["confirmar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__confirmar_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/restaurantes/{rid}/importaciones/{importacion_id}/reintentar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reintentar Importacion */
-        post: operations["reintentar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__reintentar_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post */
-        Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post: {
-            /** Archivo */
-            archivo: string;
-        };
         /**
          * CategoriaCambios
          * @description `PATCH /categorias/{id}`: sólo los campos presentes cambian.
@@ -1017,7 +1019,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        [key: string]: string;
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -1880,7 +1882,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
-            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
+            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -2160,8 +2162,329 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
-            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
+            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description PDF (hasta 30 páginas), JPG o PNG de hasta 20 MB.
+                     */
+                    archivo: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Tipo de archivo no permitido */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    consultar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                importacion_id: string;
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    reintentar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__reintentar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                importacion_id: string;
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, `IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO`) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    confirmar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__confirmar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                importacion_id: string;
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResultadoImportacion-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportacionRespuesta"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2359,249 +2682,6 @@ export interface operations {
             };
             /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-        };
-    };
-    crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rid: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_crear_importacion_api_v1_admin_restaurantes__rid__importaciones_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportacionRespuesta"];
-                };
-            };
-            /** @description Falta la credencial o expiró */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description El archivo es demasiado grande */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description Tipo de archivo no permitido */
-            415: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-        };
-    };
-    consultar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rid: string;
-                importacion_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportacionRespuesta"];
-                };
-            };
-            /** @description Falta la credencial o expiró */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-        };
-    };
-    confirmar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__confirmar_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rid: string;
-                importacion_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResultadoImportacion-Input"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportacionRespuesta"];
-                };
-            };
-            /** @description Falta la credencial o expiró */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description Choca con el estado actual */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-        };
-    };
-    reintentar_importacion_api_v1_admin_restaurantes__rid__importaciones__importacion_id__reintentar_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rid: string;
-                importacion_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportacionRespuesta"];
-                };
-            };
-            /** @description Falta la credencial o expiró */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRespuesta"];
-                };
-            };
-            /** @description Choca con el estado actual */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };

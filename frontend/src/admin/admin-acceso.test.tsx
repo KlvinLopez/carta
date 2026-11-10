@@ -324,8 +324,9 @@ describe('armazón del panel', () => {
     const nav = await screen.findByRole('navigation', { name: 'Secciones del panel' });
     const enlaces = within(nav).getAllByRole('link');
     expect(enlaces.map((a) => a.textContent)).toEqual(['Menú', 'Mesas', 'Personal', 'Pedidos', 'Ajustes']);
-    expect(enlaces[0]).toHaveAttribute('aria-current', 'page');
     expect(await screen.findByRole('heading', { name: 'Menú' })).toBeInTheDocument();
+    // El índice redirige a /admin/menu con <Navigate>: bajo carga el enlace tarda en marcarse.
+    await waitFor(() => expect(enlaces[0]).toHaveAttribute('aria-current', 'page'));
   });
 
   it.each([
