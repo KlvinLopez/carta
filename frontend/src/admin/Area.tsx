@@ -2,13 +2,13 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import { Cargando } from '../compartido/pantalla/Cargando';
+import { estilosPantalla } from '../compartido/pantalla/Pantalla';
 import { NoEncontrada } from '../compartido/pantalla/NoEncontrada';
 import PantallaAcceso from './acceso/PantallaAcceso';
 import { SesionProvider, useSesion, type FabricaProveedor } from './acceso/Sesion';
 import Armazon from './armazon/Armazon';
 import {
   SeccionAjustes,
-  SeccionMenu,
   SeccionMesas,
   SeccionPedidos,
   SeccionPersonal,
@@ -16,6 +16,8 @@ import {
 
 // El asistente de alta (T-1.11) es un trozo aparte: sólo se descarga al entrar en /admin/alta.
 const AsistenteAlta = lazy(() => import('./alta/Asistente'));
+// La pantalla Menú (T-1.12) también: lista, editor, recorte de foto y arrastre viajan en su propio trozo.
+const PantallaMenu = lazy(() => import('./menu/PantallaMenu'));
 
 /** Todo lo que no es `/admin/acceso` exige sesión; sin ella se vuelve al acceso recordando adónde iba. */
 function RutaProtegida() {
@@ -49,7 +51,21 @@ export default function AreaOperador({ fabrica }: { fabrica?: FabricaProveedor }
           />
           <Route element={<Armazon />}>
             <Route index element={<Navigate to="menu" replace />} />
-            <Route path="menu" element={<SeccionMenu />} />
+            <Route
+              path="menu"
+              element={
+                <Suspense
+                  fallback={
+                    <div className={estilosPantalla.centrado} role="status" aria-live="polite">
+                      <div className={estilosPantalla.espera} aria-hidden="true" />
+                      <p className={estilosPantalla.texto}>Preparando tu menú…</p>
+                    </div>
+                  }
+                >
+                  <PantallaMenu />
+                </Suspense>
+              }
+            />
             <Route path="mesas" element={<SeccionMesas />} />
             <Route path="personal" element={<SeccionPersonal />} />
             <Route path="pedidos" element={<SeccionPedidos />} />

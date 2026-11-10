@@ -132,6 +132,17 @@ if (referenciados.length > 0) {
   fallar(`\nCode splitting roto: index.html carga de inicio ${referenciados.join(', ')}.`);
 }
 
+// La pantalla Menú (T-1.12) debe ser su propio trozo: quitar su `React.lazy` la metería en `Area-*.js`
+// (el panel entero cargaría lista, editor y recorte de foto aunque la persona no abra el menú).
+const trozosMenu = existsSync(carpetaAssets) ? readdirSync(carpetaAssets).filter((n) => /^PantallaMenu-.*\.js$/.test(n)) : [];
+console.log(`Trozo de la pantalla Menú (React.lazy): ${trozosMenu.join(', ') || 'ninguno'}`);
+if (trozosMenu.length === 0) {
+  fallar('\nCode splitting roto: falta dist/assets/PantallaMenu-*.js (la pantalla Menú debe cargarse con React.lazy).');
+}
+if (trozosMenu.some((n) => [...rutas].some((r) => r.endsWith('/' + n)))) {
+  fallar(`\nCode splitting roto: index.html carga de inicio ${trozosMenu.join(', ')}.`);
+}
+
 if (totalGzip > LIMITE_BYTES) {
   fallar(`\nPresupuesto excedido: ${kb(totalGzip)} gzip > ${kb(LIMITE_BYTES)}.`);
 }
