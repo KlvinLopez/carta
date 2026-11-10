@@ -16,6 +16,18 @@ COPY frontend/package.json frontend/package-lock.json ./
 # El build necesita las devDependencies (tsc, vite): sin --omit=dev.
 RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
+# La configuración web de Firebase Auth se hornea en el bundle (frontend/src/admin/acceso/proveedor.ts
+# lee import.meta.env.VITE_FIREBASE_*): Railway pasa las variables del servicio como build args;
+# a mano, `docker build --build-arg VITE_FIREBASE_API_KEY=… …`. Sin ellas la imagen se construye
+# igual y el panel del operador dice «acceso sin configurar». No son secretos: viajan al navegador.
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
+    VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN \
+    VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID \
+    VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
 RUN npm run build
 
 # ---------- Etapa 2: la API ----------

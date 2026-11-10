@@ -4,7 +4,7 @@ Guía para **Calvin**: deja `carta.cooking` y `staging.carta.cooking` funcionand
 
 Quién hace qué:
 
-- **Calvin** (esta guía): crea los servicios en Railway y pega las variables.
+- **Calvin** (esta guía): crea los proyectos de Firebase y la llave de Anthropic, los servicios en Railway, y pega las variables.
 - **La sesión maestra**: crea en Cloudflare los registros DNS que Railway te muestre (paso G), la regla de caché del menú, el límite de tasa y *Always Use HTTPS*; etiqueta `v0.0.1` para el primer despliegue a producción.
 - **El repositorio** ya trae el `Dockerfile`, `.railwayignore`, `.github/workflows/deploy.yml` (producción en cada etiqueta `v*`), `scripts/predespliegue.py` (las migraciones antes de cada despliegue) y `deploy/respaldo/`.
 
@@ -32,6 +32,13 @@ Quién hace qué:
    ```
 
    cambiando `<ACCOUNT_ID>` por lo que copiaste (sin los `< >`). Es el mismo para staging y producción.
+5. **Un proyecto de Firebase por ambiente** (`carta-staging` y `carta-produccion`): con él el operador entra al panel con Google o con un enlace por correo. En [console.firebase.google.com](https://console.firebase.google.com), con tu cuenta de Google:
+   1. **Create a project** → nombre `carta-staging` → apaga **Google Analytics** → **Create project**. Anota el **Project ID** que aparece bajo el nombre (puede llevar un sufijo, como `carta-staging-1a2b3`): es `FIREBASE_PROJECT_ID`.
+   2. Menú izquierdo **Build → Authentication → Get started** → pestaña **Sign-in method** → **Google** → **Enable** → elige el correo de soporte → **Save**. Luego **Add new provider → Email/Password** → **Enable**, y abajo también **Email link (passwordless sign-in)** → **Save**.
+   3. Dentro de **Authentication**, pestaña **Settings → Authorized domains → Add domain** → `staging.carta.cooking` (en el proyecto de producción, `carta.cooking`). `localhost` ya viene puesto.
+   4. ⚙ **Project settings → General** → abajo, **Your apps → Add app → Web (`</>`)** → apodo `Carta panel` → sin Firebase Hosting → **Register app**. Del bloque `firebaseConfig` copia cuatro valores a tu gestor de contraseñas: `apiKey`, `authDomain`, `projectId` y `appId`. Son las `VITE_FIREBASE_*` del paso C. No son secretos (viajan al navegador de cada operador), pero no hace falta pegarlos en ningún chat: van directo al panel de Railway.
+   5. Repite 1 a 4 para `carta-produccion`. Opcional, más adelante: en Google Cloud → **APIs & Services → Credentials**, restringe la *Browser key* de cada proyecto a su dominio.
+6. **La llave de la API de Anthropic**, una por ambiente: con ella la aplicación lee las cartas en PDF (T-1.8 y T-1.9). En [console.anthropic.com](https://console.anthropic.com) → **Settings → API keys → Create Key** → nombre `carta-staging` → copia la llave (empieza por `sk-ant-` y sólo se muestra una vez) a tu gestor de contraseñas; otra con nombre `carta-produccion`. Hace falta saldo o un método de pago en **Billing**. Sin la llave la aplicación arranca y la importación responde «no disponible» (503); todo lo demás funciona.
 
 ---
 
@@ -62,7 +69,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
 
    | Ajuste en pantalla | Valor | Por qué |
    |---|---|---|
-   | **Source → Branch** (rama que dispara despliegues) | `claude/gifted-allen-rqjiup` **por ahora**; cuando la maestra integre todo en `master`, cámbialo a `master` | staging se despliega solo con cada push a esa rama |
+   | **Source → Branch** (rama que dispara despliegues) | `master` | staging se despliega solo con cada push a `master` cuya CI pasó |
    | **Source → Wait for CI** | Activado | no despliega un commit cuyo CI falló |
    | **Source → Root Directory** | vacío (o `/`) | el `Dockerfile` está en la raíz |
    | **Build** | debe decir que usa el **Dockerfile** (en los logs: `Using detected Dockerfile!`) | no hay que elegir nada |
@@ -92,6 +99,11 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
    FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
    FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de staging>.firebaseapp.com
+   VITE_FIREBASE_API_KEY=<apiKey de la app web del proyecto de Firebase de staging>
+   VITE_FIREBASE_AUTH_DOMAIN=<id del proyecto de Firebase de staging>.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=<id del proyecto de Firebase de staging>
+   VITE_FIREBASE_APP_ID=<appId de la app web del proyecto de Firebase de staging>
+   ANTHROPIC_API_KEY=<llave de Anthropic de staging>
    CLOUDFLARE_ZONE_ID=<Zone ID de carta.cooking>
    CLOUDFLARE_API_TOKEN=<token de Cloudflare con permiso Zone · Cache Purge>
    ```
@@ -99,9 +111,10 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    - `${{Postgres.DATABASE_URL}}` se pega **tal cual**: Railway lo cambia por la dirección real de la base de este environment.
    - `PORT=8000` fija el puerto en el que escucha la aplicación (y en el que Railway hace el *healthcheck*).
    - `FIREBASE_PROJECT_ID` es el *Project ID* de Firebase (consola de Firebase → ⚙ **Project settings** → **General**), no es secreto. Sin él nadie entra al panel del operador. Las tres `FIREBASE_CSP_*` abren la política de seguridad del navegador a Firebase Auth (inicio de sesión con Google y enlace por correo); vacías, el panel no puede iniciar sesión. Los valores vienen de `docs/plan/04_Fases_y_Tareas.md` §11 (filas T-1.2 y T-1.10).
+   - Las cuatro `VITE_FIREBASE_*` son la configuración web de Firebase (paso 5 de «Antes de empezar»; `VITE_FIREBASE_AUTH_DOMAIN` es el `authDomain` del bloque, normalmente `<id del proyecto>.firebaseapp.com`) y **se hornean en la imagen al construirla**: Railway las pasa al `Dockerfile` como *build args*. Sin ellas el panel dice «acceso sin configurar»; si las cambias después, redespliega (**Deployments → ⋮ → Redeploy**) para que el panel las vea.
+   - `ANTHROPIC_API_KEY` (paso 6 de «Antes de empezar»; **es secreto**) activa la importación de cartas en PDF; sin ella la aplicación arranca y esa función responde 503 «no disponible». `SENTRY_DSN` **no se crea todavía**: se agrega aquí mismo cuando llegue su tarea.
    - `CLOUDFLARE_ZONE_ID` (32 caracteres hexadecimales: Cloudflare → `carta.cooking` → **Overview**, columna derecha, **Zone ID**; no es secreto) y `CLOUDFLARE_API_TOKEN` (Cloudflare → **My Profile → API Tokens → Create Token → Custom token**, permiso **Zone · Cache Purge · Purge** sólo para la zona `carta.cooking`; **es secreto**) dejan que la API purgue el menú público del borde al editarlo. Sin ellas el menú editado tarda hasta 60 s en verse.
-   - `ANTHROPIC_API_KEY` y `SENTRY_DSN` **no se crean todavía**: sin ellas la aplicación arranca y esas funciones quedan apagadas. Se agregan aquí mismo cuando lleguen sus tareas.
-5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY` y `CLOUDFLARE_API_TOKEN`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
+5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
 6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra.
 
 ---
@@ -114,7 +127,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    | Ajuste en pantalla | Valor |
    |---|---|
    | **Source → Root Directory** | `/deploy/respaldo` |
-   | **Source → Branch** | la misma que `api` (`claude/gifted-allen-rqjiup` por ahora; luego `master`) |
+   | **Source → Branch** | `master`, la misma que `api` |
    | **Source → Wait for CI** | Activado (no despliega un commit cuyo CI falló) |
    | **Watch Paths** (en **Source** o en **Build**, según cómo lo muestre el panel) | `/deploy/respaldo/**` (sólo se redespliega cuando cambia esa carpeta, no con cada push) |
    | **Deploy → Cron Schedule** | `0 4 * * *` (todos los días a las 04:00 UTC = 22:00 en Ciudad de México) |
@@ -165,11 +178,16 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
    FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
    FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de producción>.firebaseapp.com
+   VITE_FIREBASE_API_KEY=<apiKey de la app web del proyecto de Firebase de producción>
+   VITE_FIREBASE_AUTH_DOMAIN=<id del proyecto de Firebase de producción>.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=<id del proyecto de Firebase de producción>
+   VITE_FIREBASE_APP_ID=<appId de la app web del proyecto de Firebase de producción>
+   ANTHROPIC_API_KEY=<llave de Anthropic de producción>
    CLOUDFLARE_ZONE_ID=<Zone ID de carta.cooking>
    CLOUDFLARE_API_TOKEN=<token de Cloudflare con permiso Zone · Cache Purge>
    ```
 
-   Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY` y `CLOUDFLARE_API_TOKEN` (para cambiarlas después, **⋮ → Edit** una por una).
+   Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY` (para cambiarlas después, **⋮ → Edit** una por una). Las `VITE_FIREBASE_*` se hornean en la imagen al construirla, igual que en staging.
 3. **D (`respaldo`):** igual que en staging: desde GitHub, Root Directory `/deploy/respaldo`, misma rama, **Wait for CI activado** y **Watch Paths** `/deploy/respaldo/**` (así un push a la rama sólo llega a producción si toca el respaldo y su CI pasó), Cron `0 4 * * *`, Restart **Never**. Con estas variables:
 
    ```text
@@ -199,6 +217,8 @@ Resumen de lo que cambia entre ambientes:
 | `R2_BUCKET_PRIVADO` | `carta-privado-staging` | `carta-privado-produccion` |
 | `R2_URL_PUBLICA` | `https://img-staging.carta.cooking` | `https://img.carta.cooking` |
 | `FIREBASE_PROJECT_ID`, `FIREBASE_CSP_FRAME_SRC` | proyecto de Firebase de staging | proyecto de Firebase de producción |
+| `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` | app web del proyecto de staging (se hornean en la imagen) | app web del proyecto de producción |
+| `ANTHROPIC_API_KEY` | llave `carta-staging` (sellada) | llave `carta-produccion` (sellada) |
 | `CLOUDFLARE_API_TOKEN` | token de purga (sellado; puede ser el mismo: la zona es la misma) | token de purga (sellado) |
 | Igual en los dos | `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=8000`, `WORKERS=2`, `FIREBASE_CSP_CONNECT_SRC`, `FIREBASE_CSP_SCRIPT_SRC`, `CLOUDFLARE_ZONE_ID`, `R2_ENDPOINT`, `RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS=30` | |
 
@@ -287,7 +307,7 @@ Desde el teléfono también puedes, en el panel de Railway: ver logs (**Deployme
 2. **SSL/TLS**: Railway documenta *Full* y no *Full (strict)* detrás de Cloudflare ([working-with-domains](https://docs.railway.com/networking/domains/working-with-domains)). Se intenta primero con *strict* (la zona ya está así); sólo si `staging.carta.cooking` o `carta.cooking` responden **526**, baja a *Full* con una *Configuration Rule* limitada a esos dos nombres, `staging.carta.cooking` y `carta.cooking` (`img.` e `img-staging.` siguen en *strict*). Consecuencia: *Full* acepta en el origen un certificado caducado o de otro nombre, así que deja de validar la identidad de Railway.
 3. **Always Use HTTPS**: activarlo cuando los dos dominios respondan. HSTS lo manda la aplicación (sólo en `staging` y `produccion`). **Decisión consciente:** `includeSubDomains` desde el apex obliga a HTTPS en **todos** los subdominios de la zona durante un año (`img.`, `staging.` y cualquier otro); no pongas en esa zona nada que deba servirse por HTTP.
 4. **Rules**: caché para `/api/v1/p/menu/*` (respeta el `ETag` de la API); límite de tasa (p. ej. 300 peticiones/min por IP); una regla WAF que no cachee ni rete `/health` ni `/ready`. **Sin *Bot Fight Mode***: en el plan Free no admite excepciones y puede retar a los runners de GitHub en la prueba de humo.
-5. **Después de integrar en `master`**: en Railway, **Source → Branch** de `api` y `respaldo` de **staging** (y de `respaldo` de **produccion**) pasa de `claude/gifted-allen-rqjiup` a `master` (lo hace Calvin); `deploy.yml` ya está en la rama predeterminada, así que aparece **Run workflow**; la primera etiqueta `v0.0.1` va sobre `master` (paso H).
+5. **Ya integrado en `master`** (PR #1, 10 de noviembre de 2026): **Source → Branch** de `api` y `respaldo` en **staging** y de `respaldo` en **produccion** es `master`; `deploy.yml` está en la rama predeterminada, así que aparece **Run workflow**; la primera etiqueta `v0.0.1` va sobre `master` (paso H).
 6. **Comprobar**:
 
    ```bash
