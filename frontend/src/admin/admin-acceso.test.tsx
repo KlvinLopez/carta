@@ -104,9 +104,9 @@ function montarSesion(fabrica: FabricaProveedor) {
   return caja as { ctx: ContextoSesion };
 }
 
-/** Las listas de la pantalla Menú (T-1.12) salen vacías; sólo `/admin/restaurantes` trae datos. */
+/** Las listas de Menú, Mesas y Personal (T-1.12, T-1.13) salen vacías; sólo `/admin/restaurantes` trae datos. */
 const deRuta = (url: URL | undefined, restaurantes: unknown[]) =>
-  /\/(categorias|platillos)$/.test(url?.pathname ?? '') ? respuesta([]) : respuesta(restaurantes);
+  /\/(categorias|platillos|mesas|personal)$/.test(url?.pathname ?? '') ? respuesta([]) : respuesta(restaurantes);
 
 const NO_AUTENTICADO = { error: { codigo: 'NO_AUTENTICADO', mensaje: 'x', detalles: {}, request_id: null } };
 
@@ -333,7 +333,7 @@ describe('armazón del panel', () => {
     ['Mesas', 'Aún no hay mesas'],
     ['Personal', 'Aún no hay personal'],
     ['Pedidos', 'Todavía no hay pedidos'],
-    ['Ajustes', 'Ajustes del restaurante'],
+    ['Ajustes', 'Tu restaurante'],
     ['Menú', 'Tu carta aparecerá aquí'],
   ])('%s muestra su estado vacío', async (seccion, vacio) => {
     await entrar();

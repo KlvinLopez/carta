@@ -1,0 +1,320 @@
+/* Pantallas de gestión del operador (Mesas, Personal, Ajustes) · teléfono primero (390 px).
+   Regla «no-line»: nada se separa con bordes de 1 px; se usa tono, espacio y sombra cálida. */
+.srSolo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  width: 100%;
+  max-width: 760px;
+}
+
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.resumen {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--carbon-suave);
+  font-size: 0.9375rem;
+}
+
+.vistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.aviso,
+.exito {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  font-size: 0.9375rem;
+}
+
+.aviso {
+  background: var(--error-tenue);
+  color: var(--error);
+}
+
+.exito {
+  background: var(--exito-tenue);
+  color: var(--exito);
+}
+
+.cerrarAviso {
+  flex: none;
+  width: var(--tactil);
+  height: var(--tactil);
+  border: 0;
+  border-radius: var(--radio-pildora);
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.cerrarAviso:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+}
+
+.vacio {
+  padding: var(--esp-8) var(--esp-4);
+  text-align: center;
+  color: var(--carbon-suave);
+}
+
+.subtitulo {
+  margin: var(--esp-2) 0 0;
+  font-family: var(--fuente-titulo);
+  font-size: 1.375rem;
+  font-weight: 400;
+  color: var(--carbon);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Botones de la barra: dos píldoras en una sola fila a 390 px. */
+.botonera {
+  display: flex;
+  flex: 1 1 100%;
+  gap: var(--esp-2);
+}
+
+.botonera > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.tramo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.alternar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--tactil);
+  padding: var(--esp-2) var(--esp-4);
+  border: 0;
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font-family: var(--fuente-titulo);
+  font-size: 1.125rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.alternar:focus-visible {
+  outline: 3px solid var(--vino-claro);
+  outline-offset: 2px;
+}
+
+/* Mesas: una columna en el teléfono, rejilla en escritorio. */
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--esp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-suave);
+}
+
+.apagada .cuerpo {
+  opacity: 0.62;
+}
+
+.principal {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+
+.cuerpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.nombre {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--fuente-titulo);
+  font-size: 1.1875rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--carbon);
+}
+
+.detalle {
+  margin: 0;
+  color: var(--carbon-suave);
+  font-size: 0.8125rem;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.accionesHoja {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  margin-top: var(--esp-4);
+}
+
+/* Regla no-line: la sombra flotante de los botones se recortaba contra el borde de la hoja y dejaba una
+   banda con borde lateral; en las hojas los botones van sin sombra. */
+.accionesHoja > button {
+  box-shadow: none !important;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  /* El halo de foco (3 px + 2 px de separación) no se recorta contra el borde de la hoja. */
+  padding: var(--esp-1);
+}
+
+.rol {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.etiqueta {
+  display: block;
+  margin-bottom: var(--esp-1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--carbon-suave);
+}
+
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.ayuda {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--error);
+}
+
+.nuevoCodigo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  padding: var(--esp-3);
+  border-radius: var(--radio);
+  background: var(--exito-tenue);
+  color: var(--exito);
+  font-size: 0.875rem;
+}
+
+.url {
+  overflow-wrap: anywhere;
+  color: var(--vino);
+  font-size: 0.8125rem;
+}
+
+/* Ajustes */
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding: var(--esp-5);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-suave);
+}
+
+.enlaces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.enlace {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-2);
+}
+
+@media (min-width: 768px) {
+  .principal {
+    gap: var(--esp-4);
+  }
+}
+
+/* Áreas táctiles ≥ 44 px (regla 11 de /diseno-visual) también en los enlaces de texto. */
+.enlaceTocable,
+a.url {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tactil);
+  color: var(--vino);
+}
