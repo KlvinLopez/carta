@@ -33,6 +33,9 @@ exporta DATABASE_URL, DATABASE_URL_SYNC y TEST_DATABASE_URL (omite `docker compo
 Al terminar: comando de Verificar en verde, puerta de calidad en verde, commit con el ID, push a
 tu rama. No abras PR. Después de tu RESULTADO, la maestra te mandará por send_message la ronda
 de revisión (lista A/B/C/D): aplícala en tu rama sin pedir confirmación, es parte de la tarea.
+La sesión arranca con HEAD suelto sobre la rama base: antes del primer commit crea tu rama
+con `git checkout -b agente/T-x.y-<descripcion>` (si no, el push falla con «src refspec does not
+match»). El Bash de la hija bloquea `sleep`: para esperar la CI, un bucle con la API de runs.
 Si algo del brief contradice el código o un documento, no improvises:
 cierra como BLOQUEADA. Termina SIEMPRE con /compound y el bloque:
 RESULTADO: TERMINADA | BLOQUEADA | FALLIDA / Qué quedó / Qué lo verifica / Compound / Siguiente.
