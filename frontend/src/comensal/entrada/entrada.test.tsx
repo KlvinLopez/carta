@@ -310,6 +310,7 @@ describe('pantallas de fallo en el lenguaje de la marca', () => {
     sim.fallarUnaVez('entrar', errorSimulado(0, 'SIN_RED'));
     render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} />);
     await screen.findByRole('heading', { name: 'Sin conexión' });
+    await act(async () => {}); // deja correr el efecto que registra el oyente
     act(() => {
       window.dispatchEvent(new Event('online'));
     });

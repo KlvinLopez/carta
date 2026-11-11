@@ -104,13 +104,13 @@ export function crearMenuSemilla(): MenuPublico {
   };
 }
 
-/** Un menú de `total` platillos repartidos en categorías de 20: para probar la lista larga. */
-export function crearMenuGrande(total: number): MenuPublico {
+/** Un menú de `total` platillos repartidos en categorías de `porCategoria` (20 por omisión): para probar la lista larga. */
+export function crearMenuGrande(total: number, porCategoria = 20): MenuPublico {
   const categorias: CategoriaPublica[] = [];
-  for (let i = 0; i < total; i += 20) {
-    const categoriaId = id(100 + i / 20);
+  for (let i = 0; i < total; i += porCategoria) {
+    const categoriaId = id(100 + i / porCategoria);
     const platillos: PlatilloPublico[] = [];
-    for (let j = i; j < Math.min(i + 20, total); j += 1) {
+    for (let j = i; j < Math.min(i + porCategoria, total); j += 1) {
       platillos.push(
         platillo(
           {
@@ -127,7 +127,7 @@ export function crearMenuGrande(total: number): MenuPublico {
         ),
       );
     }
-    categorias.push({ id: categoriaId, nombre: `Categoría ${i / 20 + 1}`, orden: i / 20, platillos });
+    categorias.push({ id: categoriaId, nombre: `Categoría ${i / porCategoria + 1}`, orden: i / porCategoria, platillos });
   }
   return { restaurante: { nombre: 'Restaurante grande', slug: 'grande', logo_url: null, tema: 'vino' }, categorias, destacados: [], actualizado_en: '2026-11-11T18:00:00Z' };
 }

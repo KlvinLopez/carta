@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
 import { Boton, Ilustracion } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
@@ -12,7 +12,6 @@ import { coincide, pajarDe } from './busqueda';
 import { ALERGENOS_COMUNES, ETIQUETAS_COMUNES, cumpleFiltros, hayFiltros, totalFiltros, type AlmacenFiltros, type Filtros } from './filtros';
 import { HojaFiltros } from './HojaFiltros';
 import estilos from './Menu.module.css';
-import { restaurarPosicion, tarjetaDePosicion } from './posicion';
 import { servicioMenuReal, type MenuPublico, type PlatilloPublico, type ServicioMenu } from './servicioMenu';
 import { TarjetaPlatillo } from './TarjetaPlatillo';
 import { useControladorMenu, type ControladorMenu } from './useControladorMenu';
@@ -84,18 +83,6 @@ function MenuListo({ menu, controlador, mesa, aviso = null, onVolver, onAbrir }:
   const idTop = useId();
   const { escrito, setEscrito, consulta, filtros, aplicarFiltros, limpiarTodo } = controlador;
   const [hojaAbierta, setHojaAbierta] = useState(false);
-
-  // Al volver del detalle de un platillo: misma posición de desplazamiento y el foco en la tarjeta que se
-  // abrió. Se lee sin consumir (el doble efecto de StrictMode repite lo mismo); «Mi mesa» la olvida. El
-  // efecto de foco va después del de `useFocoEnTitulo`, así que gana.
-  useLayoutEffect(() => {
-    const pos = controlador.posicion.current;
-    if (pos) restaurarPosicion(pos);
-  }, [controlador.posicion]);
-  useEffect(() => {
-    const pos = controlador.posicion.current;
-    if (pos) tarjetaDePosicion(pos)?.focus({ preventScroll: true });
-  }, [controlador.posicion]);
 
   // El texto de cada platillo se normaliza una sola vez por menú cargado.
   const indice = useMemo(() => {

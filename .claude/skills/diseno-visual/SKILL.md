@@ -123,6 +123,8 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 
 - Un botón con `white-space: nowrap` corta su rótulo al 200 % sin desbordar la página: `sinDesborde` en `capturas-comensal.mjs` mira también el `scrollWidth` de cada botón. Los CTA largos llevan `white-space: normal` y `height: auto`.
 - Apaisado (844×390): la foto 4:3 se come la ventana; `@media (orientation: landscape) and (max-height: 520px)` la pone al lado del texto, y el selector `main.detalle` (elemento + clase) gana a `.pantalla` sin depender del orden del CSS.
-- `content-visibility: auto` estima la altura de lo que no se ve: al volver a una lista larga, `scrollTo(y)` no basta; se corrige con lo que mide la tarjeta abierta (`menu/posicion.ts`).
+- Una lista larga con `content-visibility: auto` no se puede restaurar desmontándola: al volver, `scrollTo(y)` y hasta la corrección con la tarjeta fallaban por cientos o miles de píxeles con 132 platillos (con 22 no se nota). El detalle es una capa `position: fixed` sobre el menú, que sigue montado (`inert` + `aria-hidden`); lo mide `scripts/posicion-comensal.mjs` en Chromium, porque jsdom no calcula alturas.
 - Una prueba de «un solo `dish_view`» con StrictMode no basta: el guarda sólo se prueba cambiando la cola o el `:id` con el componente vivo (mutación obligada).
-
+- Prueba de comportamiento de scroll o tamaños = navegador real (`frontend/scripts/`), con un menú de ≥ 120 platillos y la tolerancia dicha (±4 px); una prueba de jsdom con `scrollTo` simulado no puede ver estos fallos.
+- Con el menú montado bajo una capa, `getByText` también ve el menú: en las pruebas se busca dentro de `.capa` y los roles ya excluyen lo `aria-hidden`.
+- Una prueba que dispara `online` justo después de `findByRole` pierde el evento si el efecto del oyente no corrió: `await act(async () => {})` antes de dispararlo.

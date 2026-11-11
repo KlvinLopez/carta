@@ -22,6 +22,7 @@ describe('menú: el error de red se reintenta solo, como promete la pantalla', (
     render(<Menu slug="la-ceiba" mesa={7} servicio={sim.servicio} analitica={cola.analitica} almacen={almacenEnMemoria().almacen} onVolver={() => undefined} />);
     expect(await screen.findByRole('heading', { name: 'Sin conexión' })).toBeInTheDocument();
     expect(cola.registrar).not.toHaveBeenCalled();
+    await act(async () => {}); // deja correr el efecto que registra el oyente
     act(() => {
       window.dispatchEvent(new Event('online'));
     });
@@ -35,6 +36,7 @@ describe('menú: el error de red se reintenta solo, como promete la pantalla', (
     sim.fallarUnaVez(errorSimulado(0, 'SIN_RED'));
     render(<Menu slug="la-ceiba" mesa={7} servicio={sim.servicio} analitica={analiticaFalsa().analitica} almacen={almacenEnMemoria().almacen} onVolver={() => undefined} />);
     await screen.findByRole('heading', { name: 'Sin conexión' });
+    await act(async () => {}); // deja correr el efecto que registra los oyentes
     ocultarPestana(true);
     expect(sim.llamadas).toHaveLength(1);
     ocultarPestana(false);
@@ -46,6 +48,7 @@ describe('menú: el error de red se reintenta solo, como promete la pantalla', (
     const sim = crearServicioMenuSimulado({ error: errorSimulado(500, 'ERROR_INTERNO') });
     render(<Menu slug="la-ceiba" mesa={7} servicio={sim.servicio} analitica={analiticaFalsa().analitica} almacen={almacenEnMemoria().almacen} onVolver={() => undefined} />);
     await screen.findByRole('heading', { name: 'Algo salió mal' });
+    await act(async () => {}); // deja correr el efecto que registra el oyente
     act(() => {
       window.dispatchEvent(new Event('online'));
     });

@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { Boton, Chip, Ilustracion } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
@@ -56,6 +56,11 @@ export function PlatilloVista({ id, servicio, enMemoria = null, analitica, onVol
   return <DetalleListo platillo={estado.platillo} aviso={estado.aviso} onReintentar={reintentar} onVolver={onVolver} />;
 }
 
+/** La capa sobre el menú: pantalla completa, con su propio desplazamiento (el del menú no se toca). */
+export function CapaPlatillo({ children }: { children: ReactNode }) {
+  return <div className={estilos.capa}>{children}</div>;
+}
+
 function BotonVolver({ onVolver }: { onVolver: () => void }) {
   return (
     <Boton variante="secundario" compacto onClick={onVolver} aria-label="Volver al menú">
@@ -64,7 +69,7 @@ function BotonVolver({ onVolver }: { onVolver: () => void }) {
   );
 }
 
-function EsqueletoPlatillo({ onVolver }: { onVolver: () => void }) {
+export function EsqueletoPlatillo({ onVolver }: { onVolver: () => void }) {
   return (
     <Pantalla className={estilos.detalle}>
       <div className={estilos.barra}>
@@ -86,7 +91,7 @@ function EsqueletoPlatillo({ onVolver }: { onVolver: () => void }) {
   );
 }
 
-function PlatilloNoExiste({ onVolver }: { onVolver: () => void }) {
+export function PlatilloNoExiste({ onVolver }: { onVolver: () => void }) {
   const titulo = useFocoEnTitulo();
   return (
     <Pantalla>
@@ -163,10 +168,6 @@ function AvisoReintento({ aviso, onReintentar }: { aviso: AvisoDetalle; onReinte
 
 function DetalleListo({ platillo, aviso, onReintentar, onVolver }: { platillo: PlatilloVisto; aviso: AvisoDetalle | null; onReintentar: () => void; onVolver: () => void }) {
   const titulo = useFocoEnTitulo();
-  // Al abrir, la página empieza arriba (la posición del menú es de la lista, no del detalle).
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
   const agotado = !platillo.disponible;
   const alergenos = platillo.alergenos.map(nombreDeClave);
   return (
