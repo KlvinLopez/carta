@@ -14,7 +14,7 @@ No busca bugs (eso es `/revisar` y `/code-review`): busca **desalineación** ent
 uv run python scripts/verificar_trazabilidad.py --tarea $ARGUMENTS --estricto
 ```
 
-- Cada criterio del brief (**Criterios** en `docs/plan/04_Fases_y_Tareas.md`) debe tener al menos una prueba con `@pytest.mark.ac("AC-x.y")`, o un paso manual en `docs/piloto/ensayo.md`.
+- Cada criterio del brief (**Criterios** en `docs/plan/04_Fases_y_Tareas.md`) debe tener al menos una prueba con `@pytest.mark.ac("AC-x.y")` (o, en el frontend, con `// @ac AC-x.y` sobre el `it`), o un paso manual en `docs/piloto/ensayo.md`.
 - Si el script falla: o falta la prueba (bloqueante) o el brief cita un criterio que ya no aplica (corrige el brief y anota la fila en 04 §11).
 
 ## 2. Spec ↔ código

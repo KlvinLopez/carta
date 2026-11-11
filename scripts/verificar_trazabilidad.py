@@ -2,8 +2,12 @@
 
 Lee los criterios de docs/plan/01_Alcance_v1.md y docs/mvp/01_PRD.md (sólo historias vigentes),
 los briefs de docs/plan/04_Fases_y_Tareas.md (qué criterios cita cada tarea; acepta rangos como
-"AC-02.1–AC-02.5") y los marcadores `@pytest.mark.ac("AC-x.y", ...)` en tests/. Los pasos
-manuales de docs/piloto/ensayo.md cuentan como cobertura manual.
+"AC-02.1–AC-02.5") y los marcadores de las pruebas: `@pytest.mark.ac("AC-x.y", ...)` en tests/ y,
+en el frontend, un comentario `// @ac AC-x.y` en la línea de arriba de un `it(`, `test(` o
+`describe(` de frontend/src/**/*.test.ts(x) (un criterio que sólo vive en la pantalla, como la
+búsqueda o los filtros, no tiene prueba de backend). Un `AC-x.y` en el título de una prueba no
+cuenta, ni un marcador sobre `it.skip`/`it.todo`. Los pasos manuales de docs/piloto/ensayo.md
+cuentan como cobertura manual.
 
 Uso:
   uv run python scripts/verificar_trazabilidad.py                 # resumen global
@@ -26,6 +30,7 @@ PRD = RAIZ / "docs" / "mvp" / "01_PRD.md"
 TAREAS = RAIZ / "docs" / "plan" / "04_Fases_y_Tareas.md"
 ENSAYO = RAIZ / "docs" / "piloto" / "ensayo.md"
 PRUEBAS = RAIZ / "tests"
+FRONTEND = RAIZ / "frontend" / "src"
 
 # Historias retiradas de la v1 (01_Alcance_v1.md §6): sus criterios no cuentan.
 HISTORIAS_RETIRADAS = {7, 8, 18, 19, 20, 22, 23}
@@ -36,6 +41,8 @@ RE_AC = re.compile(r"\bAC-(\d{1,2})\.(\d{1,2})\b")
 RE_RANGO = re.compile(r"\bAC-(\d{1,2})\.(\d{1,2})\s*[–-]\s*AC-(\d{1,2})\.(\d{1,2})\b")
 RE_TAREA = re.compile(r"^###\s+(?:🔴\s+)?(T-\d+\.\d+)\s+—", re.MULTILINE)
 RE_MARCADOR = re.compile(r"mark\.ac\(([^)]*)\)")
+RE_MARCADOR_TS = re.compile(r"^\s*//\s*@ac\s+(.+)$")
+RE_PRUEBA_TS = re.compile(r"""^\s*(it|test|describe)((?:\.\w+)*)\(\s*(['"`])(.+?)\3""")
 
 
 def _id(mayor: str | int, menor: str | int) -> str:
@@ -76,8 +83,10 @@ def criterios_por_tarea() -> dict[str, list[str]]:
 
 
 def cobertura_en_pruebas() -> dict[str, list[str]]:
-    """criterio -> [archivo::función] para cada @pytest.mark.ac(...)."""
+    """criterio -> [archivo::prueba] para cada marcador, de backend y de frontend."""
     cobertura: dict[str, list[str]] = defaultdict(list)
+    for ac, pruebas in cobertura_en_frontend().items():
+        cobertura[ac].extend(pruebas)
     for archivo in sorted(PRUEBAS.rglob("test_*.py")):
         lineas = archivo.read_text(encoding="utf-8").splitlines()
         for numero, linea in enumerate(lineas):
@@ -92,6 +101,35 @@ def cobertura_en_pruebas() -> dict[str, list[str]]:
                     break
             for ac in expandir(m.group(1)):
                 cobertura[ac].append(f"{archivo.relative_to(RAIZ)}::{nombre}")
+    return cobertura
+
+
+def cobertura_en_frontend() -> dict[str, list[str]]:
+    """criterio -> [archivo::título] para cada `// @ac AC-x.y` puesto justo encima de un `it(`,
+    `test(` o `describe(` (se admiten varias líneas `// @ac` seguidas). No cuenta un marcador
+    suelto ni uno sobre una prueba saltada (`.skip`, `.todo`)."""
+    cobertura: dict[str, list[str]] = defaultdict(list)
+    if not FRONTEND.exists():
+        return cobertura
+    archivos = sorted([*FRONTEND.rglob("*.test.ts"), *FRONTEND.rglob("*.test.tsx")])
+    for archivo in archivos:
+        lineas = archivo.read_text(encoding="utf-8").splitlines()
+        for numero, linea in enumerate(lineas):
+            marcador = RE_MARCADOR_TS.match(linea)
+            if not marcador:
+                continue
+            titulo = None
+            for siguiente in lineas[numero + 1 :]:
+                if RE_MARCADOR_TS.match(siguiente):
+                    continue
+                prueba = RE_PRUEBA_TS.match(siguiente)
+                if prueba and not re.search(r"\.(skip|todo)\b", prueba.group(2)):
+                    titulo = prueba.group(4)
+                break
+            if titulo is None:
+                continue
+            for ac in expandir(marcador.group(1)):
+                cobertura[ac].append(f"{archivo.relative_to(RAIZ)}::{titulo}")
     return cobertura
 
 

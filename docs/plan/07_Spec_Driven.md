@@ -102,7 +102,7 @@ Plantilla en `.claude/skills/especificar/SKILL.md`.
 
 | Mecanismo | Cómo | Cuándo falla |
 |---|---|---|
-| **Marcador de criterio** | `@pytest.mark.ac("AC-25.3")` sobre la prueba (varios IDs permitidos) | — |
+| **Marcador de criterio** | `@pytest.mark.ac("AC-25.3")` sobre la prueba (varios IDs permitidos); en vitest, `// @ac AC-05.1` en la línea de arriba del `it(`, `test(` o `describe(` (un criterio que sólo vive en la pantalla no tiene prueba de backend) | — |
 | **Verificador** | `uv run python scripts/verificar_trazabilidad.py --tarea T-1.9` lista los criterios del brief y qué prueba los cubre; `--estricto` sale con 1 si falta alguno | En `/analizar` y en CI para la fase cerrada (T-4.9) |
 | **Contrato** | `schemathesis run http://localhost:8000/openapi.json` genera peticiones válidas e inválidas desde el OpenAPI y exige que la API responda como declara (códigos, esquemas, envoltura de error) | T-4.9 en CI; antes, a mano en `/analizar` |
 | **Camino crítico** | Playwright: escanear → menú → orden en grupo → comanda en el teléfono del personal | T-4.7, contra staging |
