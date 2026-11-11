@@ -13,9 +13,9 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.config import settings
+from app.db.models import Mesa
 from app.main import app
-
-P = "/api/v1/p"
+from tests.invitado_pruebas import P, con_token, entrar
 
 # (método, ruta, esquema de la respuesta 2xx o None si no tiene cuerpo JSON)
 CONTRATO_FASE_2 = [
@@ -148,27 +148,28 @@ def test_los_eventos_del_telefono_no_incluyen_los_del_servidor(openapi: dict[str
 
 
 # ---------------------------------------------------------------------------
-# Las rutas de ejemplo responden en desarrollo y se esconden fuera
+# `POST /p/eventos` ya es real (T-2.3): pide cookie y valida el lote
 # ---------------------------------------------------------------------------
 
 
-async def test_eventos_de_ejemplo_responde_202_y_valida_el_lote(cliente: AsyncClient) -> None:
-    respuesta = await cliente.post(f"{P}/eventos", json={"eventos": [{"tipo": "menu_view"}]})
-    assert respuesta.status_code == 202
+async def test_eventos_valida_el_lote(cliente: AsyncClient, mesa: Mesa) -> None:
+    _, token = await entrar(cliente, mesa.codigo_publico)
+    cabeceras = con_token(token)
+    lote = {"eventos": [{"tipo": "menu_view"}]}
+    assert (await cliente.post(f"{P}/eventos", json=lote, headers=cabeceras)).status_code == 202
     demasiados = {"eventos": [{"tipo": "menu_view"}] * 51}
-    assert (await cliente.post(f"{P}/eventos", json=demasiados)).status_code == 422
+    respuesta = await cliente.post(f"{P}/eventos", json=demasiados, headers=cabeceras)
+    assert respuesta.status_code == 422
     servidor = {"eventos": [{"tipo": "order_confirm"}]}
-    assert (await cliente.post(f"{P}/eventos", json=servidor)).status_code == 422
+    respuesta = await cliente.post(f"{P}/eventos", json=servidor, headers=cabeceras)
+    assert respuesta.status_code == 422
 
 
 @pytest.mark.parametrize("entorno", ["staging", "produccion"])
-async def test_las_rutas_de_ejemplo_son_404_fuera_de_desarrollo(
+async def test_eventos_existe_fuera_de_desarrollo(
     cliente: AsyncClient, monkeypatch: pytest.MonkeyPatch, entorno: str
 ) -> None:
+    """Ya no hay rutas de ejemplo: fuera de desarrollo `eventos` responde (401 sin cookie)."""
     monkeypatch.setattr(settings, "ENTORNO", entorno)
-    for metodo, ruta, cuerpo in [
-        ("POST", f"{P}/eventos", {"eventos": [{"tipo": "menu_view"}]}),
-    ]:
-        respuesta = await cliente.request(metodo, ruta, json=cuerpo)
-        assert respuesta.status_code == 404, (metodo, ruta)
-        assert respuesta.json()["error"]["codigo"] == "RECURSO_NO_ENCONTRADO"
+    respuesta = await cliente.post(f"{P}/eventos", json={"eventos": [{"tipo": "menu_view"}]})
+    assert respuesta.status_code == 401

@@ -62,6 +62,21 @@ function cancelarEntrada(servicio: ServicioEntrada, codigo: string) {
   enVuelo.get(servicio)?.get(codigo)?.control.abort();
 }
 
+// Cuántas instancias vivas esperan la entrada de cada código. Sólo cuando la última se va (un
+// desmontaje real, un código nuevo) se cancela la `entrar` en vuelo: si otra instancia se monta con el
+// mismo código antes de que responda (StrictMode, volver de otra ruta), la comparte en vez de recibir un
+// `AbortError` que se pintaría como «Algo salió mal».
+const usuarios = new WeakMap<ServicioEntrada, Map<string, number>>();
+
+function sumarUsuario(servicio: ServicioEntrada, codigo: string, delta: 1 | -1): number {
+  let porCodigo = usuarios.get(servicio);
+  if (!porCodigo) usuarios.set(servicio, (porCodigo = new Map()));
+  const n = Math.max(0, (porCodigo.get(codigo) ?? 0) + delta);
+  if (n === 0) porCodigo.delete(codigo);
+  else porCodigo.set(codigo, n);
+  return n;
+}
+
 export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Espejo = espejoLocal) {
   const [vista, setVista] = useState<VistaEntrada>({ fase: 'cargando' });
   const [ciclo, setCiclo] = useState(0);
@@ -70,8 +85,6 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
   const restaurante = useRef<string | null>(null);
   const reentradas = useRef(0);
   const cambiando = useRef(false);
-  const codigoActual = useRef(codigo);
-  codigoActual.current = codigo;
   /** Miembro vigente: un PATCH tardío de otro miembro (ya reentramos) no lo toca. */
   const yoActual = useRef<string | null>(null);
   /** Sube con cada cambio de alias: un sondeo pedido antes de él trae el alias viejo. */
@@ -119,13 +132,15 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
 
   useEffect(() => {
     vivo.current = true;
+    sumarUsuario(servicio, codigo, 1);
     void entrar();
     return () => {
       vivo.current = false;
-      // StrictMode vuelve a montar al instante (vivo=true otra vez y la misma entrada sigue); un
-      // desmontaje real o un código nuevo cancela la entrada pendiente de este código.
+      sumarUsuario(servicio, codigo, -1);
+      // Se decide después del desmontaje: un montaje inmediato del mismo código (StrictMode, otra
+      // instancia) vuelve a sumar antes y la entrada sigue.
       setTimeout(() => {
-        if (!vivo.current || codigoActual.current !== codigo) cancelarEntrada(servicio, codigo);
+        if (!usuarios.get(servicio)?.get(codigo)) cancelarEntrada(servicio, codigo);
       }, 0);
     };
   }, [entrar, servicio, codigo]);

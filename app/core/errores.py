@@ -20,7 +20,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.core.peticion import request_id_valido
+from app.core.peticion import request_id_valido, ruta_para_log
 from app.core.registro import request_id_actual
 
 log = logging.getLogger("carta.errores")
@@ -212,7 +212,7 @@ async def manejar_no_controlada(request: Request, exc: Exception) -> JSONRespons
     log.exception(
         "excepción no controlada en %s %s",
         request.method,
-        request.url.path,
+        ruta_para_log(request.url.path),
         extra={"request_id": request_id_de(request), "codigo": "ERROR_INTERNO", "http": 500},
     )
     return _respuesta(request, 500, "ERROR_INTERNO", MENSAJE_ERROR_INTERNO)

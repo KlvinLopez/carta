@@ -78,16 +78,34 @@ async function aErrorApi(respuesta: Response): Promise<ErrorApi> {
   return new ErrorApi(respuesta.status, 'ERROR_INTERNO', MENSAJE_GENERICO, {}, id, espera);
 }
 
+export interface OpcionesPeticion {
+  cuerpo?: unknown;
+  etag?: string | null;
+  signal?: AbortSignal;
+}
+
+/** Una petición a `/api/v1/p/*`: `null` si el servidor respondió 304; si no, los datos ya validados. */
+export type Peticion = <T>(
+  metodo: string,
+  ruta: string,
+  valido: (v: unknown) => v is T,
+  opciones?: OpcionesPeticion,
+) => Promise<{ datos: T; etag: string | null } | null>;
+
+export const esObjetoJson = esObjeto;
+export const esTextoJson = esTexto;
+
 /**
- * Cliente de `/api/v1/p/*` contra el propio origen. La cookie `carta_invitado` es `HttpOnly`: la
- * app nunca la lee ni la escribe, sólo deja que el navegador la mande (`same-origin`).
+ * Cliente de `/api/v1/p/*` contra el propio origen: la base de todo lo que el comensal pide (entrada,
+ * menú). La cookie `carta_invitado` es `HttpOnly`: la app nunca la lee ni la escribe, sólo deja que el
+ * navegador la mande (`same-origin`). Nunca `crearCliente` de `compartido/http.ts`: manda `Authorization`.
  */
-export function crearServicioEntrada(buscar: typeof fetch = (...args) => fetch(...args)): ServicioEntrada {
-  async function pedir<T>(
+export function crearPeticion(buscar: typeof fetch = (...args) => fetch(...args)): Peticion {
+  return async function pedir<T>(
     metodo: string,
     ruta: string,
     valido: (v: unknown) => v is T,
-    { cuerpo, etag, signal }: { cuerpo?: unknown; etag?: string | null; signal?: AbortSignal } = {},
+    { cuerpo, etag, signal }: OpcionesPeticion = {},
   ): Promise<{ datos: T; etag: string | null } | null> {
     const control = new AbortController();
     let vencio = false;
@@ -129,8 +147,12 @@ export function crearServicioEntrada(buscar: typeof fetch = (...args) => fetch(.
       clearTimeout(plazo);
       signal?.removeEventListener('abort', cancelar);
     }
-  }
+  };
+}
 
+/** Lo que la pantalla de entrada necesita de la API: `entrar`, el estado de la mesa y el alias. */
+export function crearServicioEntrada(buscar: typeof fetch = (...args) => fetch(...args)): ServicioEntrada {
+  const pedir = crearPeticion(buscar);
   return {
     async entrar(codigo, signal) {
       const r = await pedir('POST', '/sesion/entrar', esEntrarRespuesta, { cuerpo: { codigo_mesa: codigo }, signal });

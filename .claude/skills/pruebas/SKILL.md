@@ -89,6 +89,12 @@ Cada conexión sale de `motor_pruebas.connect()` (dos conexiones asyncpg distint
 
 `app.services.cache_menu.cache_menu` (30 s por `slug`, singleton) alimenta `GET /p/menu/{slug}`. Una prueba del menú necesita una fixture `autouse` que haga `cache_menu.vaciar()` y sustituya `cache_menu.reloj` por un reloj a mano (`Reloj` en `tests/integration/test_menu.py`): la edad de la copia decide `max-age`/`s-maxage` y los 30 s de vigencia. «Otro worker» = cambiar la base **sin** `cache_menu.invalidar` (el `PATCH` real sí invalida, y sólo la memoria de su worker). Para una escritura a mitad de una lectura, envuelve `menu_publico._armar` y haz `commit()` sobre la sesión que recibe (no sobre `sesion`: comparten conexión y chocan los *savepoints*).
 
+## 3a''. Límites de tasa del comensal (T-2.3)
+
+`app.api.publico.limites` cuenta en memoria del proceso (120/min por miembro, 600/min por IP sin cookie). `cliente` llama a `limites.vaciar()` al empezar y al terminar; una prueba que hace cientos de peticiones o mide la ventana sustituye `reloj` de **cada** limitador (`por_token`, `por_ip`, `eventos_por_token`) por un reloj a mano (fixture `reloj` en `tests/integration/test_rate_limit.py`) y avanza 0.25 s o 3 s (valores exactos en binario: con 0.45 un `Retry-After` esperado de 6 sale 7). Para un límite chico, `monkeypatch.setattr(limites, "por_ip", limites.VentanaMovil(5, reloj=reloj))`. La IP la decide `X-Forwarded-For`/`CF-Connecting-IP` (`limites.ip_del_cliente`), nunca `request.client.host`.
+
+**Analítica después de la respuesta:** una escritura «que nunca debe tumbar la ruta» (analítica, `rollback()` en su `except`) va **después** de leer todo lo que la respuesta necesita de las filas ORM; si no, al fallar expira lo cargado y la ruta da 500 `MissingGreenlet` (regla 21). Pruébalo con un error real de la base (un valor que no cabe en la columna), no sólo con una excepción de Python: `test_si_la_base_rechaza_el_scan_entrar_responde_200_y_el_miembro_queda`.
+
 ## 3b. Rutas crudas (`..`, `%ZZ`, `%2F`)
 
 httpx normaliza la URL antes de enviarla (`/assets/../x` llega como `/x`, `/..` como `/`), así que un *path traversal* o un escape inválido no se pueden probar con `cliente.get(...)`. Llama a la aplicación con un `scope` ASGI escrito a mano (`_llamar_crudo` en `tests/integration/test_estaticos.py`): `asgi.spec_version = "2.4"` y un `receive` que devuelva `http.request` y después `http.disconnect`, o `FileResponse` se queda esperando la desconexión hasta el `timeout`.

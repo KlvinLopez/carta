@@ -102,8 +102,10 @@ export function crearServicioEntradaSimulado(opciones: OpcionesEntradaSimulado =
   const etagDe = () => `"${sesionN}-${version}-${yo}"`;
 
   const servicio: ServicioEntrada = {
-    async entrar(c, _signal) {
+    async entrar(c, signal) {
       await registrar('entrar', c);
+      // Como el cliente real: una entrada cancelada nunca llega a crear al comensal.
+      if (signal?.aborted) throw new DOMException('cancelado', 'AbortError');
       if (c !== codigo) throw errorSimulado(404, 'MESA_NO_ENCONTRADA', 'No encontramos esta mesa.');
       if (cerrada) {
         sesionN += 1;

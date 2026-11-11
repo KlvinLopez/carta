@@ -22,6 +22,13 @@ function copiaDe(clase: ClaseError, restaurante: string | null): Copia {
         titulo: 'No encontramos esta mesa',
         texto: 'Pide al personal que te comparta el QR de la mesa y vuelve a escanearlo.',
       };
+    case 'no_disponible':
+      // Sin botón: volver a pedirlo no cambia nada.
+      return {
+        simbolo: '–',
+        titulo: 'Este menú ya no está disponible',
+        texto: 'Pregunta al personal por la carta del restaurante.',
+      };
     case 'cerrada':
       return {
         simbolo: '✓',
