@@ -48,7 +48,7 @@ Quién hace qué:
 2. **Renómbralo a `produccion`**: abre **Settings** del proyecto (arriba a la derecha) → pestaña **Environments** → en la fila de `production`, el menú **⋮** → **Rename** → escribe `produccion` → confirma. Así el `RAILWAY_TOKEN` que ya guardaste sigue valiendo si lo creaste para ese environment. Si no te ofrece renombrar, crea `produccion` como en el paso 3 y en el paso F rehaces el token.
 3. Crea staging: en el selector de *environment* → **+ New Environment** → **Empty Environment** → nombre `staging` → **Create**.
 
-Desde aquí, **mira siempre el selector antes de tocar algo**: los ajustes y las variables valen sólo para el environment seleccionado, pero los servicios son del proyecto: los que crees en staging aparecen también en produccion. Empieza por **staging** (B a D) y en **produccion** (E) sólo configuras esas mismas tarjetas.
+Desde aquí, **mira siempre el selector antes de tocar algo**: los ajustes y las variables valen sólo para el environment seleccionado. Los nombres de servicio son únicos en el proyecto, pero cada servicio sólo existe en los environments donde se creó o se importó. Empieza por **staging** (B a D) y en **produccion** (E) los importas con **Sync** y les pones sus valores.
 
 ---
 
@@ -155,10 +155,12 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: los ajustes y las
 
 ## E. Lo mismo en `produccion`
 
-En Railway un servicio pertenece al **proyecto** y existe en todos los environments: `api`, `respaldo` y normalmente `Postgres` ya aparecen en **produccion** desde que los creaste en staging, sin despliegues ni variables propias. Por eso, si intentas crear otro `api`, sale «A service named "api" already exists in this project». **No crees servicios nuevos: configura los que ya están.** Los ajustes y las variables son por environment, así que todo lo de abajo hay que ponerlo aunque en staging ya esté. Cambia el selector a **produccion** y sigue en orden:
+Cómo funciona Railway aquí: un servicio es una entidad del **proyecto**, con nombre único en todo el proyecto, pero sólo está presente en los environments donde se creó o se importó, y en cada uno tiene sus propios ajustes, variables, despliegues y volumen. `produccion` nació vacío (**Empty Environment**), así que no ves `api` ni `respaldo`; crear ahí un **Empty Service** llamado `api` falla con «A service named "api" already exists in this project», y la plantilla de Postgres crea un servicio nuevo con sufijo (`Postgres-y0s3`). El camino es **Sync**: importar los tres servicios de staging a produccion y después ponerles sus valores de producción. Cambia el selector a **produccion** y sigue en orden:
 
-1. **Postgres.** Abre la tarjeta **Postgres**. Si debajo tiene un disco y su pestaña **Deployments** muestra un despliegue, ya está. Si está vacía, pulsa **Deploy** en la franja de cambios pendientes y espera **Active**; si después no aparece un disco bajo la tarjeta, clic derecho sobre ella → **Attach Volume** → *mount path* `/var/lib/postgresql/data` → **Deploy** otra vez. Si en produccion no hay ninguna tarjeta **Postgres**, créala como en B (**+ New → Database → Add PostgreSQL**). La base de producción es otra, con su propio volumen: `${{Postgres.DATABASE_URL}}` apunta siempre a la del environment seleccionado.
-2. **`api` → Settings.** Abre la tarjeta **api** → **Settings** y deja exactamente esto:
+1. **Si ya creaste aquí una base con sufijo** (`Postgres-…`), está vacía y es mejor no tener dos: tarjeta → **Settings** → al final, **Danger** → **Delete Service** → confirma (acepta borrar también su volumen). Si prefieres conservarla, sáltate este punto; entonces en los bloques de variables de abajo escribe su nombre exacto en vez de `Postgres` (por ejemplo `${{Postgres-y0s3.DATABASE_URL}}`) y en el punto 2 descarta la tarjeta `Postgres` del Sync.
+2. **Sync.** Arriba del lienzo, botón **Sync** → elige **staging** como origen. Railway deja en espera tres tarjetas marcadas **New**: `Postgres`, `api` y `respaldo`. Pulsa **Details** en la franja de cambios pendientes para verlas. Después, **con la tecla Alt pulsada**, haz clic en **Deploy**: así los servicios se guardan en produccion **sin desplegar nada todavía** (conviene poner los valores de producción antes de la primera construcción). Si el Alt no funcionara y se desplegaran, no pasa nada grave: `api` construiría con variables de staging y se corrige en el punto 8 con **Redeploy**.
+3. **Postgres.** Abre la tarjeta **Postgres**: debe tener un disco debajo (el volumen propio de produccion). Si no lo tiene, clic derecho sobre la tarjeta → **Attach Volume** → *mount path* `/var/lib/postgresql/data`. La base de producción es otra, vacía: `${{Postgres.DATABASE_URL}}` apunta siempre a la del environment seleccionado.
+4. **`api` → Settings.** Abre la tarjeta **api** → **Settings** y deja exactamente esto (el Sync trae los ajustes de staging, revísalos uno por uno):
 
    | Ajuste en pantalla | Valor |
    |---|---|
@@ -170,7 +172,7 @@ En Railway un servicio pertenece al **proyecto** y existe en todos los environme
    | **Deploy → Healthcheck Timeout** | `120` |
    | **Deploy → Restart Policy** | **On Failure**, máximo `5` reintentos |
 
-3. **`api` → Variables.** Pestaña **Variables** → **RAW Editor**. Si ya hay variables (las de staging no se copian solas, pero revisa), bórralas: son otro juego. Pega este bloque, cambia los `<…>` y pulsa **Update Variables**:
+5. **`api` → Variables.** Pestaña **Variables** → **RAW Editor**. Lo que hay son las variables de staging que trajo el Sync (sin las selladas): **bórralas todas**, pega este bloque, cambia los `<…>` y pulsa **Update Variables**:
 
    ```text
    ENTORNO=produccion
@@ -199,7 +201,7 @@ En Railway un servicio pertenece al **proyecto** y existe en todos los environme
    ```
 
    Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY` (**⋮ → Seal**; para cambiarlas después, **⋮ → Edit** una por una). Las `VITE_FIREBASE_*` se hornean en la imagen al construirla, igual que en staging. La tarjeta **api** queda **sin despliegue hasta el paso H**: es normal, no la despliegues a mano.
-4. **`respaldo` → Settings.** Abre la tarjeta **respaldo** → **Settings** y deja exactamente esto:
+6. **`respaldo` → Settings.** Abre la tarjeta **respaldo** → **Settings** y deja exactamente esto:
 
    | Ajuste en pantalla | Valor |
    |---|---|
@@ -212,7 +214,7 @@ En Railway un servicio pertenece al **proyecto** y existe en todos los environme
    | **Deploy → Restart Policy** | **Never** |
    | **Deploy → Healthcheck Path** / **Pre-deploy Command** | vacíos |
 
-5. **`respaldo` → Variables.** **RAW Editor** → pega, cambia los `<…>` y **Update Variables**:
+7. **`respaldo` → Variables.** **RAW Editor** → borra las de staging que trajo el Sync, pega, cambia los `<…>` y **Update Variables**:
 
    ```text
    ENTORNO=produccion
@@ -226,7 +228,7 @@ En Railway un servicio pertenece al **proyecto** y existe en todos los environme
    ```
 
    Sella `R2_SECRET_ACCESS_KEY`.
-6. **Deploy** en la franja de cambios pendientes. `respaldo` se despliega y correrá a las 04:00 UTC; `api` sigue sin despliegue hasta el paso H.
+8. **Deploy** en la franja de cambios pendientes (esta vez sin Alt). `Postgres` y `respaldo` se despliegan (el respaldo correrá a las 04:00 UTC); `api`, sin fuente, queda sin despliegue hasta el paso H. Si en el punto 2 `api` llegó a construirse con variables de staging, ahora **Deployments → ⋮ → Remove** sobre ese despliegue, o déjalo: el paso H lo sustituye.
 
 > Alternativa futura para `respaldo` de producción: en vez de seguir una rama, **Source → Docker Image** `ghcr.io/klvinlopez/carta-respaldo:<etiqueta>` (la publica `deploy.yml`). Requiere que el paquete de GHCR sea público o credenciales de registro en Railway.
 
@@ -322,7 +324,7 @@ Desde el teléfono también puedes, en el panel de Railway: ver logs (**Deployme
 | Ciclo de vida de los buckets privados | regla `respaldos-90-dias`: borra bajo el prefijo `respaldos/` a los 90 días (red de seguridad de la poda de 30 días de `deploy/respaldo/respaldar.sh`; las fotos originales viven fuera de ese prefijo y no caducan) |
 | Tokens S3 de R2 (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`) | *Account API tokens* con permiso *Object Read & Write*, uno por ambiente, limitados a sus dos buckets; los valores sólo en el panel de Railway |
 | Llave de respaldo (`RESPALDO_CLAVE_AGE`) | `age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk` (pública, la misma en staging y producción); la privada vive fuera de todo servidor |
-| Servicios por environment | Los tres servicios son del proyecto y existen en los dos environments, cada uno con sus ajustes y variables: `Postgres` (plantilla con volumen propio por environment), `api` (staging sigue `master`; produccion sin fuente, la despliega CI con `railway up`), `respaldo` (GitHub, `/deploy/respaldo`, Wait for CI, Watch Paths `/deploy/respaldo/**`, cron `0 4 * * *`) |
+| Servicios por environment | Los tres servicios se crean en staging y se importan a produccion con **Sync**; cada environment tiene sus ajustes, variables y volumen: `Postgres` (plantilla con volumen), `api` (staging sigue `master`; produccion sin fuente, la despliega CI con `railway up`), `respaldo` (GitHub, `/deploy/respaldo`, Wait for CI, Watch Paths `/deploy/respaldo/**`, cron `0 4 * * *`) |
 
 ---
 
