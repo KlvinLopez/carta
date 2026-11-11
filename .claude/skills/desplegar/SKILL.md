@@ -46,3 +46,11 @@ delante del código: entonces avisa y no migra) y sólo cambia el tráfico cuand
 ## Si falta algo
 
 `RAILWAY_TOKEN` vive sólo en el Environment `produccion` de GitHub, y lo que requiera el panel de Railway (variables, servicios) es de Calvin: dilo y detente en vez de improvisar.
+
+## Lecciones del primer despliegue (11 de noviembre de 2026)
+
+- **Railway:** los servicios son del proyecto (nombre único) y se importan a `produccion` con **Sync** desde `staging`; en produccion `api` queda **sin fuente** (Disconnect) y lo despliega `deploy.yml`. Las variables son por environment y las selladas no se copian: pégalas de nuevo. Un cambio de variable redespliega (2 a 4 min).
+- **La etiqueta `v*` la publica Calvin** desde GitHub → Releases → Draft a new release (la sesión no puede empujarla: permisos). La maestra sigue la corrida con `actions_list` sobre `deploy.yml`.
+- **`FIREBASE_PROJECT_ID` con sufijo** (`carta-staging-743b1`): sin él la API rechaza todos los tokens y el panel expulsa con «Tu sesión terminó». Para acotarlo: token real por REST con la apiKey pública del bundle y la API en local con las mismas variables.
+- **Cloudflare** (conector): CNAME con proxy y TXT sin proxy, *Full (strict)* funciona con Railway, *Always Use HTTPS* y TLS 1.2, reglas de caché, tasa y WAF; una llamada con `User-Agent` de script recibe 403 1010 del *Browser Integrity Check*: usa un UA de navegador en las pruebas.
+- **Staging `/ready`** devuelve un 503 `ALMACEN_NO_DISPONIBLE` aislado de vez en cuando (sonda a R2 de 3 s); `/health` no se ve afectado (nota en T-4.1).
