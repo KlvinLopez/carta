@@ -31,7 +31,7 @@ ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
 RUN npm run build
 
 # ---------- Etapa 2: la API ----------
-FROM python:3.12-slim@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54 AS api
+FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b AS api
 COPY --from=ghcr.io/astral-sh/uv:0.11.32@sha256:df4cae8f3a96d175e2e5f992e597550000edbe78fdc2594d5cd8de1a217f504c /uv /uvx /bin/
 
 # PYTHONIOENCODING: con stdout no UTF-8 una ruta con acento perdería su línea de acceso.
