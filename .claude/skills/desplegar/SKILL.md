@@ -37,7 +37,7 @@ delante del código: entonces avisa y no migra) y sólo cambia el tráfico cuand
 
 ## Procedimiento
 
-**Staging:** integrar en la rama que sigue staging → push → mirar *Deployments* de `staging/api` → `curl -sf https://staging.carta.cooking/health` y `/ready`.
+**Staging:** integrar en la rama que sigue staging → push → `uv run python scripts/railway.py esperar api` (o mirar *Deployments* de `staging/api` en el panel) → `curl -sf https://staging.carta.cooking/health` y `/ready`. Si `scripts/railway.py estado` avisa de que `api` no sigue `master`, lo fusionado no está desplegado: es un ajuste del panel (Source → Branch).
 
 **Producción:** `git fetch origin master` → `git tag vX.Y.Z origin/master` → (confirmación del usuario) → `git push origin vX.Y.Z` → vigilar `deploy.yml`. Si `humo` sale rojo pero `produccion` verde, no falló producción (DNS o certificado del primer despliegue): comprobar `/health` y *Re-run failed jobs*.
 
@@ -45,7 +45,7 @@ delante del código: entonces avisa y no migra) y sólo cambia el tráfico cuand
 
 ## Si falta algo
 
-`RAILWAY_TOKEN` vive sólo en el Environment `produccion` de GitHub, y lo que requiera el panel de Railway (variables, servicios) es de Calvin: dilo y detente en vez de improvisar.
+`RAILWAY_TOKEN` vive sólo en el Environment `produccion` de GitHub, y lo que requiera el panel de Railway en **producción** (variables, servicios) es de Calvin: dilo y detente en vez de improvisar. En **staging** la sesión sí puede mirar y operar con el skill `/railway` (`uv run python scripts/railway.py estado`, `despliegues`, `logs`, `variables`, `redesplegar`; T-0.9): úsalo para seguir un despliegue después del push y para leer por qué falló, antes de pedirle nada a Calvin. Los secretos, la rama que sigue un servicio y el Rollback siguen en el panel.
 
 ## Lecciones del primer despliegue (11 de noviembre de 2026)
 
