@@ -177,12 +177,14 @@ async def test_el_sondeo_no_cuenta_como_actividad(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.ac("AC-01.2")
 async def test_sin_cookie_es_401_sin_credencial(cliente: AsyncClient) -> None:
     respuesta = await cliente.get("/api/v1/p/sesion")
     assert respuesta.status_code == 401
     assert respuesta.json()["error"]["codigo"] == "SIN_CREDENCIAL"
 
 
+@pytest.mark.ac("AC-01.2")
 async def test_un_token_manipulado_es_401(cliente: AsyncClient, mesa: Mesa) -> None:
     (ana,) = await _mesa_con(cliente, mesa, 1)
     cabecera, carga, firma = ana["token"].split(".")
@@ -191,6 +193,7 @@ async def test_un_token_manipulado_es_401(cliente: AsyncClient, mesa: Mesa) -> N
     assert respuesta.json()["error"]["codigo"] == "TOKEN_INVALIDO"
 
 
+@pytest.mark.ac("AC-01.2")
 async def test_un_token_vencido_es_401_token_expirado(cliente: AsyncClient, mesa: Mesa) -> None:
     (ana,) = await _mesa_con(cliente, mesa, 1)
     vencido = emitir_token_invitado(
@@ -226,6 +229,7 @@ async def test_un_miembro_de_otra_sesion_o_restaurante_es_401(
 
 
 @pytest.mark.parametrize("estado_final", ["cerrada", "cancelada"])
+@pytest.mark.ac("AC-02.1")
 async def test_con_la_sesion_cerrada_el_sondeo_es_410(
     cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa, estado_final: str
 ) -> None:
@@ -540,3 +544,137 @@ async def test_un_ciclo_que_falla_no_mata_la_tarea(
     finally:
         await cierre.detener()
     assert len(ciclos) >= 2
+
+
+# ---------------------------------------------------------------------------
+# Revisión de T-2.1
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.ac("AC-02.1", "AC-02.3")
+async def test_el_recien_llegado_no_recibe_401_por_la_foto_de_otro_worker(
+    cliente: AsyncClient, mesa: Mesa, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A1: con dos workers, el que tiene la foto en memoria no ve a quien entró por el otro.
+    Sólo una foto recién leída de la base puede dar 401."""
+    _, token_a = await entrar(cliente, mesa.codigo_publico)
+    assert token_a is not None
+    assert (await estado(cliente, token_a)).status_code == 200  # foto caliente «en el worker 2»
+    monkeypatch.setattr(servicio.cache_estados, "invalidar", lambda _sid: None)
+    r_b, token_b = await entrar(cliente, mesa.codigo_publico)  # B entra «por el worker 1»
+    assert r_b.status_code == 200 and token_b
+    monkeypatch.undo()
+    r = await estado(cliente, token_b)  # B sondea «en el worker 2»
+    assert r.status_code == 200, r.text[:160]
+    assert r.json()["total_miembros"] == 2
+    # La relectura dejó la foto fresca en memoria: A también ve a B ya.
+    assert (await estado(cliente, token_a)).json()["total_miembros"] == 2
+
+
+@pytest.mark.ac("AC-01.2")
+async def test_un_miembro_que_no_existe_es_401_tras_una_sola_relectura(
+    cliente: AsyncClient, mesa: Mesa, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (ana,) = await _mesa_con(cliente, mesa, 1)
+    assert (await estado(cliente, ana["token"])).status_code == 200  # foto en memoria
+    lecturas: list[UUID] = []
+    original = servicio.leer_estado
+
+    async def contando(s: AsyncSession, sesion_id: UUID) -> servicio.FotoEstado:
+        lecturas.append(sesion_id)
+        return await original(s, sesion_id)
+
+    monkeypatch.setattr(servicio, "leer_estado", contando)
+    fantasma = emitir_token_invitado(
+        Invitado(uuid4(), UUID(ana["sesion"]["id"]), UUID(ana["sesion"]["restaurante"]["id"]))
+    )
+    respuesta = await estado(cliente, fantasma)
+    assert respuesta.status_code == 401
+    assert respuesta.json()["error"]["codigo"] == "TOKEN_INVALIDO"
+    assert len(lecturas) == 1  # una relectura, no un bucle
+    # El miembro legítimo con la foto fresca ya no relee.
+    assert (await estado(cliente, ana["token"])).status_code == 200
+    assert len(lecturas) == 1
+
+
+@pytest.mark.ac("AC-02.1")
+@pytest.mark.parametrize("que", ["restaurante", "mesa"])
+async def test_restaurante_o_mesa_de_baja_cierra_la_sesion_para_el_comensal(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    restaurante: Restaurante,
+    mesa: Mesa,
+    que: str,
+) -> None:
+    """B2: un token vigente no sirve en un restaurante inactivo ni en una mesa dada de baja:
+    410 en el sondeo y en el alias, y el alias no se mueve."""
+    (ana,) = await _mesa_con(cliente, mesa, 1)
+    if que == "restaurante":
+        await sesion.execute(
+            update(Restaurante).where(Restaurante.id == restaurante.id).values(activo=False)
+        )
+    else:
+        await sesion.execute(update(Mesa).where(Mesa.id == mesa.id).values(activa=False))
+    await sesion.commit()
+    servicio.cache_estados.invalidar(UUID(ana["sesion"]["id"]))
+    sondeo = await estado(cliente, ana["token"])
+    assert sondeo.status_code == 410
+    assert sondeo.json()["error"]["codigo"] == "SESION_CERRADA"
+    alias = await cambiar_alias(cliente, ana["token"], {"alias": "Sofía"})
+    assert alias.status_code == 410
+    assert alias.json()["error"]["codigo"] == "SESION_CERRADA"
+
+
+@pytest.mark.ac("AC-02.3")
+async def test_una_orden_no_confirmada_no_cuenta_como_lista(
+    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa
+) -> None:
+    """B3a: sólo la orden `confirmada` hace `listo`; una `armando` no."""
+    ana, beto = await _mesa_con(cliente, mesa, 2)
+    sesion_id = UUID(ana["sesion"]["id"])
+    sesion.add_all(
+        [
+            OrdenPersonal(
+                sesion_id=sesion_id, miembro_id=UUID(ana["miembro"]["id"]), estado="armando"
+            ),
+            OrdenPersonal(
+                sesion_id=sesion_id,
+                miembro_id=UUID(beto["miembro"]["id"]),
+                estado="confirmada",
+                bloqueada=True,
+            ),
+        ]
+    )
+    await sesion.commit()
+    servicio.cache_estados.invalidar(sesion_id)
+    cuerpo = (await estado(cliente, ana["token"])).json()
+    assert cuerpo["listos"] == 1
+    assert [m["estado"] for m in cuerpo["miembros"]] == ["armando", "listo"]
+
+
+@pytest.mark.ac("AC-02.4")
+async def test_el_limite_de_tres_horas_es_exacto(
+    cliente: AsyncClient, sesion: AsyncSession, fabrica_mesa: Any, restaurante: Restaurante
+) -> None:
+    """B3e: justo 3 h no cierra; 3 h y un segundo sí."""
+    ahora = datetime(2026, 11, 11, 23, 0, tzinfo=UTC)
+    (justo,) = await _mesa_con(cliente, await fabrica_mesa(restaurante), 1)
+    (pasada,) = await _mesa_con(cliente, await fabrica_mesa(restaurante), 1)
+    await _poner(sesion, justo["sesion"]["id"], ultima_actividad_en=ahora - timedelta(hours=3))
+    await _poner(
+        sesion, pasada["sesion"]["id"], ultima_actividad_en=ahora - timedelta(hours=3, seconds=1)
+    )
+    cerradas = await servicio.cerrar_inactivas(sesion, ahora=ahora)
+    assert UUID(pasada["sesion"]["id"]) in cerradas
+    assert UUID(justo["sesion"]["id"]) not in cerradas
+
+
+@pytest.mark.ac("AC-02.4")
+async def test_el_lote_limita_cuantas_cierra_una_sentencia(
+    cliente: AsyncClient, sesion: AsyncSession, fabrica_mesa: Any, restaurante: Restaurante
+) -> None:
+    ahora = datetime.now(UTC)
+    for _ in range(5):
+        (dentro,) = await _mesa_con(cliente, await fabrica_mesa(restaurante), 1)
+        await _poner(sesion, dentro["sesion"]["id"], ultima_actividad_en=ahora - timedelta(hours=4))
+    assert len(await servicio.cerrar_inactivas(sesion, ahora=ahora, lote=2)) == 2

@@ -23,6 +23,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Response, status
 
+from app.api.publico.tope import RutaComensal
 from app.db.models import TipoImagen
 from app.schemas.comun import errores
 from app.schemas.eventos import EventosLote
@@ -34,7 +35,7 @@ from app.schemas.menu_publico import (
     RestaurantePublico,
 )
 
-router = APIRouter()
+router = APIRouter(route_class=RutaComensal)
 
 # ---------------------------------------------------------------------------
 # Datos de ejemplo (fijos: el frontend puede compararlos en sus pruebas)

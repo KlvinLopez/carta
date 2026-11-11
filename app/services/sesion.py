@@ -82,6 +82,9 @@ PAUSA_REINICIO_SEGUNDOS = 5.0
 # Vueltas de `entrar` si la sesión se cierra o la crea otro mientras tanto. Cada vuelta exige
 # que alguien haya cerrado o creado una sesión en esa mesa en ese mismo instante.
 MAX_VUELTAS_ENTRAR = 5
+# Alfabeto de `secrets.token_urlsafe` (T-1.5). Lo que no tiene esta forma no se consulta: un NUL
+# llegaba a asyncpg y daba 500 en una ruta anónima (revisión de T-2.1, A2); sale el mismo 404.
+FORMA_CODIGO = re.compile(r"[A-Za-z0-9_-]{1,100}")
 
 # Un color por comensal, del más al menos de la marca (`/diseno-visual`); con 12 miembros
 # como máximo nadie repite. Mayúsculas: el contrato publica `^#[0-9A-F]{6}$`.
@@ -123,46 +126,78 @@ def _ahora() -> datetime:
 # Alias: lista de bloqueo básica (AC-03.3)
 # ---------------------------------------------------------------------------
 
-# Insultos y odio comunes en México y en inglés, ya normalizados (minúsculas, sin acentos).
-# Se comparan palabra por palabra (también en plural) y con el alias sin separadores: «p u t o»
-# y «P.U.T.O» se bloquean, «Computadora» no. Una palabra de 6 letras o más se bloquea también
-# dentro de otra («pendejote»). Es básica a propósito: el alias no sale de la mesa.
+# Insultos y odio comunes en México y en inglés, ya normalizados (minúsculas, sin acentos,
+# «ñ» como «ny» para que «coño» no choque con «cono»). Se decide **por palabra** (revisión de
+# T-2.1, B1): cada palabra del alias, y el alias entero sin separadores («p u t o», «P.U.T.O»),
+# se pliega (dígitos finales, *leet*, letras repetidas, plural, aumentativo) y se compara con
+# la lista. Una subcadena sólo bloquea con `RAICES`, raíces que no forman parte de nombres ni
+# de palabras comunes: «Maricarmen», «Therapist», «Vergara» o «Computadora» pasan. Sin
+# nombres propios en la lista («Dick», «Pito»). Es básica a propósito (AC-03.3): el alias no
+# sale de la mesa; los homoglifos (cirílico) quedan fuera (T-4.1).
 BLOQUEADAS = frozenset(
     {
-        "puto", "puta", "pendejo", "pendeja", "verga", "vergas", "chinga", "chingada",
-        "chingado", "chingar", "chingadera", "culero", "culera", "cabron", "cabrona",
-        "mamon", "mamona", "mamada", "joto", "maricon", "marica", "pinche", "ojete",
-        "zorra", "perra", "mierda", "culo", "pito", "panocha", "coño", "cono", "polla",
-        "gilipollas", "imbecil", "estupido", "estupida", "idiota", "naco", "naca",
-        "nazi", "hitler", "violador", "pedofilo", "puñal", "punal", "malparido",
-        "hijueputa", "fuck", "fucker", "fucking", "shit", "bitch", "cunt", "dick",
+        "puto", "puta", "pendejo", "pendeja", "verga", "chinga", "chingada", "chingado",
+        "chingar", "chingadera", "culero", "culera", "cabron", "cabrona", "mamon", "mamona",
+        "mamada", "joto", "maricon", "marica", "pinche", "ojete", "zorra", "perra", "mierda",
+        "culo", "panocha", "conyo", "polla", "gilipollas", "imbecil", "estupido", "estupida",
+        "idiota", "naco", "naca", "nazi", "hitler", "violador", "pedofilo", "punyal",
+        "malparido", "hijueputa", "fuck", "fucker", "fucking", "shit", "bitch", "cunt",
         "pussy", "whore", "slut", "asshole", "bastard", "retard", "nigger", "nigga",
         "faggot", "rape", "rapist",
     }
 )  # fmt: skip
-_LARGAS = frozenset(p for p in BLOQUEADAS if len(p) >= 6)
+RAICES = frozenset(
+    {
+        "pendej", "chingad", "chingar", "hijueput", "hijodeput", "putamadre", "malparid",
+        "gilipoll", "pedofil", "maricon", "culer", "nigger", "nigga", "faggot", "fuck",
+    }
+)  # fmt: skip
+# «putote», «putazo»: el aumentativo de una palabra bloqueada también. Sin diminutivos
+# («Perrito») ni «-on» («Pitón»).
+AUMENTATIVOS = ("otes", "otas", "ote", "ota", "azos", "azas", "azo", "aza")
 _LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a",
                        "$": "s", "!": "i", "|": "i", "8": "b"})  # fmt: skip
 
 
 def _normalizar(texto: str) -> str:
-    sin_acentos = "".join(
-        c for c in unicodedata.normalize("NFKD", texto) if not unicodedata.combining(c)
-    )
-    return sin_acentos.casefold().translate(_LEET)
+    """Minúsculas, «ñ» → «ny» y sin acentos; los dígitos y `@$!|` se quedan (para el *leet*)."""
+    texto = texto.casefold().replace("ñ", "ny")
+    return "".join(c for c in unicodedata.normalize("NFKD", texto) if not unicodedata.combining(c))
+
+
+def _formas(palabra: str) -> set[str]:
+    """Las formas plegadas de una palabra: con y sin dígitos finales, *leet*, letras
+    repetidas a una o a dos, y sin plural."""
+    bases = {palabra.translate(_LEET), palabra.rstrip("0123456789").translate(_LEET)}
+    formas: set[str] = set()
+    for base in bases:
+        base = re.sub(r"[^a-z]", "", base)
+        for forma in (base, re.sub(r"(.)\1+", r"\1", base), re.sub(r"(.)\1{2,}", r"\1\1", base)):
+            formas.add(forma)
+            for plural in ("es", "s"):
+                if forma.endswith(plural) and len(forma) > len(plural) + 2:
+                    formas.add(forma[: -len(plural)])
+    return formas
+
+
+def _bloqueada(forma: str) -> bool:
+    if forma in BLOQUEADAS:
+        return True
+    for sufijo in AUMENTATIVOS:
+        raiz = forma.removesuffix(sufijo)
+        if (
+            raiz != forma
+            and len(raiz) >= 3
+            and (raiz + "o" in BLOQUEADAS or raiz + "a" in BLOQUEADAS)
+        ):
+            return True
+    return any(raiz in forma for raiz in RAICES)
 
 
 def alias_permitido(alias: str) -> bool:
-    normal = _normalizar(alias)
-    palabras = re.findall(r"[a-z]+", normal)
-    for palabra in palabras:
-        for forma in (palabra, palabra.removesuffix("s"), palabra.removesuffix("es")):
-            if forma in BLOQUEADAS:
-                return False
-    compacto = "".join(palabras)
-    if compacto in BLOQUEADAS or compacto.removesuffix("s") in BLOQUEADAS:
-        return False
-    return not any(larga in compacto for larga in _LARGAS)
+    palabras = re.findall(r"[a-z0-9@$!|]+", _normalizar(alias))
+    candidatas = [*palabras, "".join(palabras)]
+    return not any(_bloqueada(forma) for palabra in candidatas for forma in _formas(palabra))
 
 
 # ---------------------------------------------------------------------------
@@ -217,11 +252,20 @@ async def _crear_sesion(sesion: AsyncSession, mesa: Mesa, ahora: datetime) -> UU
 async def unirse(sesion: AsyncSession, sesion_id: UUID) -> SesionGrupal:
     """Bloquea la sesión para unirse o escribir en ella (INV-11). 410 si ya no está viva:
     la condición se vuelve a evaluar después de esperar el candado, así que una sesión que
-    otro cerró mientras esperábamos tampoco pasa."""
+    otro cerró mientras esperábamos tampoco pasa. Una sesión de una mesa dada de baja o de un
+    restaurante inactivo cuenta como cerrada (revisión de T-2.1, B2). Sólo se bloquea la fila
+    de la sesión (`OF sesion_grupal`)."""
     grupal = await sesion.scalar(
         select(SesionGrupal)
-        .where(SesionGrupal.id == sesion_id, SesionGrupal.estado.in_(ESTADOS_VIVOS))
-        .with_for_update(key_share=True)
+        .join(Mesa, Mesa.id == SesionGrupal.mesa_id)
+        .join(Restaurante, Restaurante.id == SesionGrupal.restaurante_id)
+        .where(
+            SesionGrupal.id == sesion_id,
+            SesionGrupal.estado.in_(ESTADOS_VIVOS),
+            Mesa.activa.is_(True),
+            Restaurante.activo.is_(True),
+        )
+        .with_for_update(key_share=True, of=SesionGrupal)
         .execution_options(populate_existing=True)
     )
     if grupal is None:
@@ -271,6 +315,8 @@ async def entrar(
 ) -> Entrada:
     """Crea o reanuda la sesión de la mesa y el miembro del comensal. Confirma."""
     momento = ahora or _ahora()
+    if not FORMA_CODIGO.fullmatch(codigo):
+        raise _no_encontrada()
     mesa = await mesas.mesa_por_codigo(sesion, codigo)
     if mesa is None:
         raise _no_encontrada()
@@ -413,17 +459,19 @@ cache_estados = CacheEstados()
 
 
 async def leer_estado(sesion: AsyncSession, sesion_id: UUID) -> FotoEstado:
-    """La foto del estado desde la base (tres consultas por índice). 410 si no está viva."""
+    """La foto del estado desde la base (tres consultas por índice). 410 si no está viva, o
+    si su mesa está dada de baja o su restaurante inactivo (revisión de T-2.1, B2)."""
     fila = (
         await sesion.execute(
-            select(SesionGrupal, Mesa)
+            select(SesionGrupal, Mesa, Restaurante.activo)
             .join(Mesa, Mesa.id == SesionGrupal.mesa_id)
+            .join(Restaurante, Restaurante.id == SesionGrupal.restaurante_id)
             .where(SesionGrupal.id == sesion_id)
         )
     ).first()
-    if fila is None or fila[0].estado not in ESTADOS_VIVOS:
+    if fila is None or fila[0].estado not in ESTADOS_VIVOS or not fila[1].activa or not fila[2]:
         raise sesion_cerrada()
-    grupal, mesa = fila
+    grupal, mesa, _ = fila
     miembros = await _miembros(sesion, sesion_id)
     # `listo` = confirmó su orden viva (Fase 3; INV-2: una orden viva por miembro).
     listos = set(
@@ -466,13 +514,29 @@ async def leer_estado(sesion: AsyncSession, sesion_id: UUID) -> FotoEstado:
 
 async def estado(sesion: AsyncSession, invitado: Invitado) -> FotoEstado:
     """La foto de la sesión del invitado: de la memoria si tiene menos de 2 s (sin tocar la
-    base), si no de la base. 401 si el miembro no es de esa sesión; 410 si se cerró."""
+    base), si no de la base. 401 si el miembro no es de esa sesión; 410 si se cerró.
+
+    Sólo una foto **recién leída** puede dar 401 (revisión de T-2.1, A1): con N workers, el
+    que tiene la foto en memoria no ve a quien acaba de entrar por otro worker; si el miembro
+    no está en la foto de memoria se relee la base una vez y se decide con esa."""
+
+    def es_suya(foto: FotoEstado) -> bool:
+        return (
+            foto.restaurante_id == invitado.restaurante_id and invitado.miembro_id in foto.miembros
+        )
+
+    async def de_la_base() -> FotoEstado:
+        generacion = cache_estados.generacion(invitado.sesion_id)
+        fresca = await leer_estado(sesion, invitado.sesion_id)
+        cache_estados.guardar(fresca, generacion)
+        return fresca
+
     foto = cache_estados.obtener(invitado.sesion_id)
     if foto is None:
-        generacion = cache_estados.generacion(invitado.sesion_id)
-        foto = await leer_estado(sesion, invitado.sesion_id)
-        cache_estados.guardar(foto, generacion)
-    if foto.restaurante_id != invitado.restaurante_id or invitado.miembro_id not in foto.miembros:
+        foto = await de_la_base()
+    elif not es_suya(foto):
+        foto = await de_la_base()
+    if not es_suya(foto):
         raise _credencial_ajena()
     return foto
 
@@ -498,22 +562,26 @@ async def cerrar_inactivas(
 ) -> list[UUID]:
     """Cierra hasta `lote` sesiones vivas sin actividad en 3 h. Confirma. Regresa sus ids."""
     momento = ahora or _ahora()
+    # CTE materializado: se evalúa una sola vez. Como subconsulta de `IN (…)`, PostgreSQL
+    # podía volver a ejecutarla y, con empates en `ultima_actividad_en`, el `LIMIT` daba filas
+    # distintas en cada vuelta: con `lote=2` se cerraban 5 (revisión de T-2.1, B3e).
     candidatas = (
         select(SesionGrupal.id)
         .where(
             SesionGrupal.estado.in_(ESTADOS_VIVOS),
             SesionGrupal.ultima_actividad_en < momento - INACTIVIDAD_MAXIMA,
         )
-        .order_by(SesionGrupal.ultima_actividad_en)
+        .order_by(SesionGrupal.ultima_actividad_en, SesionGrupal.id)
         .limit(lote)
         .with_for_update(key_share=True, skip_locked=True)
-        .scalar_subquery()
+        .cte("candidatas")
+        .prefix_with("MATERIALIZED")
     )
     cerradas = list(
         (
             await sesion.scalars(
                 update(SesionGrupal)
-                .where(SesionGrupal.id.in_(candidatas))
+                .where(SesionGrupal.id.in_(select(candidatas.c.id)))
                 .values(estado="cerrada", fin=momento)
                 .returning(SesionGrupal.id)
                 .execution_options(synchronize_session=False)

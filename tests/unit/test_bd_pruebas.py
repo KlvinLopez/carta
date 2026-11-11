@@ -7,6 +7,8 @@ derivada de un servidor que no sea local.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from sqlalchemy.engine import make_url
 
@@ -114,3 +116,13 @@ def test_dos_procesos_no_generan_los_mismos_valores_unicos() -> None:
     ).stdout.strip()
     assert len(otro) == len(fabricas.SUFIJO_PROCESO) == 6
     assert otro != fabricas.SUFIJO_PROCESO
+
+
+async def test_la_fabrica_pone_el_sufijo_del_proceso_en_slug_y_uid(sesion: Any) -> None:
+    """B3g: no basta que el sufijo cambie entre procesos; las fábricas tienen que usarlo."""
+    from tests import fabricas
+
+    restaurante = await fabricas.crear_restaurante(sesion)
+    usuario = await fabricas.crear_usuario(sesion)
+    assert restaurante.slug.endswith(f"-{fabricas.SUFIJO_PROCESO}")
+    assert usuario.firebase_uid.endswith(f"-{fabricas.SUFIJO_PROCESO}")

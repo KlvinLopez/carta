@@ -11,6 +11,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.publico.tope import RutaComensal
 from app.core.seguridad import (
     Invitado,
     emitir_token_invitado,
@@ -32,7 +33,7 @@ from app.schemas.sesion import (
 )
 from app.services import sesion as servicio
 
-router = APIRouter()
+router = APIRouter(route_class=RutaComensal)
 
 SIN_CACHE = "private, no-store"
 

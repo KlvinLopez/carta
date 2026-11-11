@@ -79,7 +79,10 @@ async def test_un_alias_invalido_es_422_y_conserva_el_anterior(
 @pytest.mark.parametrize(
     "alias",
     ["Puto", "PENDEJO", "p u t o", "P.U.T.O", "P3nd3j0", "pendejos", "El Pendejote",
-     "chíngada", "cabrón", "Hijueputa", "fuck", "Sh1t", "putas", "nazi"],
+     "chíngada", "cabrón", "Hijueputa", "fuck", "Sh1t", "putas", "nazi",
+     # Variantes simples (revisión B1): dígitos finales, letras repetidas, plural, aumentativo.
+     "puto1", "putoo", "putote", "PUTAZO", "tus putas", "las perras", "dos culeros", "coño",
+     "perrrra", "m4r1c0n"],
 )  # fmt: skip
 @pytest.mark.ac("AC-03.3")
 async def test_un_alias_de_la_lista_de_bloqueo_es_422_y_conserva_el_anterior(
@@ -96,12 +99,69 @@ async def test_un_alias_de_la_lista_de_bloqueo_es_422_y_conserva_el_anterior(
 @pytest.mark.parametrize(
     "alias",
     ["Computadora", "Ridículo", "Cabra", "Pitonisa", "Disputa", "Culinaria", "Naomi", "Shiitake",
-     "Pinchos", "Mamá", "Perrito", "Ana Puentes"],
+     "Pinchos", "Mamá", "Perrito", "Ana Puentes", "Pera", "Pitón", "Puertas", "Vergara",
+     # Nombres reales (revisión B1): «Maricarmen» contenía «marica» como subcadena.
+     "Maricarmen", "Mari Carmen", "Dick", "Concepción", "Penélope", "Analía", "Benito",
+     "Therapist", "Pito", "Cono", "Constantino"],
 )  # fmt: skip
 @pytest.mark.ac("AC-03.3")
-def test_la_lista_no_bloquea_palabras_comunes(alias: str) -> None:
-    """Contraprueba: la lista compara palabras, no subcadenas cortas («computadora»)."""
+def test_la_lista_no_bloquea_palabras_comunes_ni_nombres(alias: str) -> None:
+    """Contraprueba: la lista decide por palabra; la subcadena sólo con raíces que no forman
+    parte de nombres ni de palabras comunes."""
     assert servicio.alias_permitido(alias), alias
+
+
+@pytest.mark.ac("AC-03.3")
+async def test_un_nombre_real_se_acepta_por_http(
+    cliente: AsyncClient, comensal: dict[str, Any]
+) -> None:
+    respuesta = await cambiar_alias(cliente, comensal["token"], {"alias": "Maricarmen"})
+    assert respuesta.status_code == 200
+    assert respuesta.json()["alias"] == "Maricarmen"
+
+
+@pytest.mark.ac("AC-03.2")
+@pytest.mark.parametrize(
+    ("alias", "esperado"),
+    [("A", 200), ("🌮" * 24, 200), ("🌮" * 25, 422)],
+    ids=["un-caracter", "24-tacos", "25-tacos"],
+)
+async def test_el_tope_cuenta_puntos_de_codigo(
+    cliente: AsyncClient, comensal: dict[str, Any], alias: str, esperado: int
+) -> None:
+    """B3g: «🌮» es un punto de código; el tope de 24 cuenta puntos de código, como la
+    columna `VARCHAR(24)` (no bytes ni grafemas)."""
+    respuesta = await cambiar_alias(cliente, comensal["token"], {"alias": alias})
+    assert respuesta.status_code == esperado, respuesta.text
+
+
+@pytest.mark.ac("AC-01.2", "AC-03.2")
+async def test_un_token_de_otro_restaurante_o_de_otra_sesion_no_cambia_el_alias(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    mesa: Mesa,
+    fabrica_mesa: Any,
+    restaurante: Any,
+    comensal: dict[str, Any],
+) -> None:
+    """B3b: aun bien firmado, el token tiene que ser de ese restaurante y de esa sesión."""
+    from uuid import uuid4
+
+    from app.core.seguridad import Invitado, emitir_token_invitado
+
+    (otro_dentro, _) = await entrar(cliente, (await fabrica_mesa(restaurante)).codigo_publico)
+    sesion_id = UUID(comensal["sesion"]["id"])
+    for invitado in (
+        Invitado(UUID(comensal["miembro"]["id"]), sesion_id, uuid4()),
+        Invitado(UUID(otro_dentro.json()["miembro"]["id"]), sesion_id, restaurante.id),
+    ):
+        respuesta = await cambiar_alias(
+            cliente, emitir_token_invitado(invitado), {"alias": "Intruso"}
+        )
+        assert respuesta.status_code == 401, invitado
+        assert respuesta.json()["error"]["codigo"] == "TOKEN_INVALIDO"
+    assert await _alias_en_base(sesion, comensal["miembro"]["id"]) == "Comensal 1"
+    assert await _alias_en_base(sesion, otro_dentro.json()["miembro"]["id"]) == "Comensal 1"
 
 
 @pytest.mark.ac("AC-02.4")
@@ -125,12 +185,14 @@ async def test_cambiar_el_alias_cuenta_como_actividad(
     assert actividad is not None and actividad > hace_dos_horas + timedelta(hours=1)
 
 
+@pytest.mark.ac("AC-01.2")
 async def test_sin_cookie_es_401(cliente: AsyncClient) -> None:
     respuesta = await cliente.patch("/api/v1/p/miembro", json={"alias": "Ana"})
     assert respuesta.status_code == 401
     assert respuesta.json()["error"]["codigo"] == "SIN_CREDENCIAL"
 
 
+@pytest.mark.ac("AC-02.1")
 async def test_con_la_sesion_cerrada_es_410_y_no_cambia(
     cliente: AsyncClient, sesion: AsyncSession, comensal: dict[str, Any]
 ) -> None:

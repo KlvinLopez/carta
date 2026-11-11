@@ -494,3 +494,77 @@ async def test_dos_que_entran_por_el_lugar_doce_no_pasan_de_doce(
             .where(MiembroSesion.sesion_id == grupal.id)
         )
     assert cuantos == 12
+
+
+# ---------------------------------------------------------------------------
+# Revisión de T-2.1
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.ac("AC-01.3")
+@pytest.mark.parametrize(
+    "codigo",
+    ["a\x00b", "\x00", " ", "  abc  ", "%00", "../", "../../etc/passwd", "🌮🌮", "a" * 200,
+     "abc def", "abc\n", "ab/cd", "Jx3k9QwLmN2pR7sT4vY8zA\x00"],
+    ids=lambda c: repr(c)[:20],
+)  # fmt: skip
+async def test_un_codigo_sin_forma_de_codigo_es_el_mismo_404(
+    cliente: AsyncClient, codigo: str
+) -> None:
+    """A2: un NUL llegaba a asyncpg y daba 500 en una ruta anónima. Lo que no tiene el
+    alfabeto de `token_urlsafe` no se consulta: mismo 404, mismo cuerpo, mismas cabeceras."""
+    referencia = await cliente.post(f"{P}/sesion/entrar", json={"codigo_mesa": codigo_de_mesa()})
+    respuesta = await cliente.post(f"{P}/sesion/entrar", json={"codigo_mesa": codigo})
+    assert respuesta.status_code == 404, respuesta.text
+    assert sin_request_id(respuesta.json()) == sin_request_id(referencia.json())
+    assert respuesta.headers["cache-control"] == referencia.headers["cache-control"] == "no-store"
+    assert "set-cookie" not in respuesta.headers
+
+
+@pytest.mark.ac("AC-01.4")
+async def test_cookie_vencida_con_la_mesa_viva_entra_como_miembro_nuevo(
+    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa
+) -> None:
+    """B3c, caracterización (decisión pendiente de Calvin, 04 §11, P3): con el token de 6 h
+    vencido y la sesión viva, el comensal vuelve como «Comensal 2» y el anterior sigue
+    ocupando su lugar. Si se decide otra cosa, esta prueba cambia con la decisión."""
+    from app.core.seguridad import emitir_token_invitado
+
+    primera, token = await entrar(cliente, mesa.codigo_publico)
+    assert token is not None
+    invitado = verificar_token_invitado(token)
+    vencido = emitir_token_invitado(
+        invitado, ahora=datetime.now(UTC) - timedelta(hours=6, seconds=1)
+    )
+    otra_vez, _ = await entrar(cliente, mesa.codigo_publico, vencido)
+    assert otra_vez.status_code == 200
+    assert otra_vez.json()["sesion"]["id"] == primera.json()["sesion"]["id"]
+    assert otra_vez.json()["miembro"]["id"] != primera.json()["miembro"]["id"]
+    assert otra_vez.json()["miembro"]["alias"] == "Comensal 2"
+    assert len(await _miembros(sesion, primera.json()["sesion"]["id"])) == 2
+
+
+@pytest.mark.ac("AC-01.4")
+async def test_dos_entrar_a_la_vez_con_la_misma_cookie_no_duplican_el_miembro(
+    mesa_real: dict[str, Any],
+) -> None:
+    """B3g: el mismo teléfono reintenta `entrar` dos veces a la vez (red intermitente): las
+    dos reanudan al mismo miembro; nadie crea un fantasma."""
+    fabrica, mesa = mesa_real["fabrica"], mesa_real["mesa"]
+    async with fabrica() as s:
+        primera = await servicio.entrar(s, mesa.codigo_publico)
+    invitado = primera.invitado
+    async with fabrica() as a, fabrica() as b:
+        resultados = await asyncio.gather(
+            servicio.entrar(a, mesa.codigo_publico, invitado),
+            servicio.entrar(b, mesa.codigo_publico, invitado),
+        )
+    assert {r.miembro.id for r in resultados} == {primera.miembro.id}
+    assert all(r.reanudada for r in resultados)
+    async with fabrica() as s:
+        cuantos = await s.scalar(
+            select(func.count())
+            .select_from(MiembroSesion)
+            .where(MiembroSesion.sesion_id == primera.sesion.id)
+        )
+    assert cuantos == 1

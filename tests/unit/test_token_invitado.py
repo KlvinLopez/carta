@@ -141,6 +141,7 @@ def test_la_carga_de_referencia_es_valida() -> None:
     ],
     ids=lambda c: ",".join(f"{k}={v}" for k, v in c.items()),
 )
+@pytest.mark.ac("AC-01.2")
 def test_un_token_de_otra_audiencia_o_incompleto_es_401(cambios: dict[str, object]) -> None:
     assert _codigo(_firmar(_carga_valida(**cambios))) == "TOKEN_INVALIDO"
 
@@ -150,6 +151,7 @@ def test_un_token_firmado_con_otra_llave_es_401() -> None:
     assert _codigo(_firmar(_carga_valida(), llave=otra)) == "TOKEN_INVALIDO"
 
 
+@pytest.mark.ac("AC-01.2")
 def test_alg_none_u_otro_algoritmo_es_401() -> None:
     sin_firma = jwt.encode(_carga_valida(), key=None, algorithm="none")
     assert _codigo(sin_firma) == "TOKEN_INVALIDO"
@@ -177,3 +179,14 @@ def test_la_cookie_es_httponly_secure_lax_de_seis_horas() -> None:
 def test_el_invitado_es_inmutable() -> None:
     with pytest.raises(AttributeError):
         INVITADO.sesion_id = UUID(int=0)  # type: ignore[misc]
+
+
+@pytest.mark.ac("AC-01.2")
+def test_un_token_bien_firmado_de_mas_de_1_kb_es_401() -> None:
+    """B3d: el tope de largo se aplica antes de decodificar, aun con firma válida."""
+    largo = _firmar(_carga_valida(relleno="x" * 1100))
+    assert len(largo) > 1024
+    assert _codigo(largo) == "TOKEN_INVALIDO"
+    justo = _firmar(_carga_valida(relleno="x" * 300))
+    assert len(justo) <= 1024
+    assert verificar_token_invitado(justo) == INVITADO

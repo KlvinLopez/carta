@@ -21,9 +21,10 @@ async def solo_desarrollo() -> None:
 
 
 # Toda ruta del comensal puede responder 422 (cuerpo o ruta inválidos) y 429 (límite de tasa,
-# T-2.3) con la envoltura de 04_API_Spec §1.2; declararlo aquí sustituye el
-# `HTTPValidationError` que FastAPI publicaría por defecto y que la API nunca responde.
-router = APIRouter(tags=["comensal"], responses=errores(422, 429))
+# T-2.3) con la envoltura de 04_API_Spec §1.2, y 400/408/413 por el tope del cuerpo;
+# declararlo aquí sustituye el `HTTPValidationError` que FastAPI publicaría por defecto y que
+# la API nunca responde. El tope del cuerpo está en `tope.py`.
+router = APIRouter(tags=["comensal"], responses=errores(400, 408, 413, 422, 429))
 router.include_router(sesion.router)
 router.include_router(ejemplos.router, dependencies=[Depends(solo_desarrollo)])
 
