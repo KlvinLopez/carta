@@ -107,3 +107,14 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 - Cuenta atrás con `setTimeout` encadenado y fake timers: avanzar de 1 s en 1 s, cada uno en su `act`; un solo salto de 3 s no re-renderiza entre ticks.
 - Una pantalla de error debe distinguir «el servidor no me reconoce» (401 repetido = cookies bloqueadas) de «token vencido»: tope de reentradas, nunca un ciclo.
 - Un trozo de área en el camino crítico (AC-01.1) se vigila con una prueba que lee sus imports (`entrada-aislamiento.test.ts`) además del presupuesto.
+
+## Lecciones del menú del comensal (T-2.5)
+
+- `base.css` no reinicia `input` ni `ul`: un campo sin `border: none` dibuja su borde del navegador (rompe no-line) y una lista flex deja la viñeta entre tarjetas (`list-style: none`). Se ven en la captura, no en las pruebas: revisa siempre las capturas a 390 px.
+- Un mock que ignora el `AbortSignal` esconde los fallos de cancelación: el de `entrar` ahora lo respeta, y una prueba de «montar otra vez con el mismo código» sólo vale si falla al quitar la corrección (hay que dejar pasar un macrotask antes de soltar la respuesta). Mutación obligada.
+- Las pruebas del menú cuentan platillos con `nombresEnLista()` (`section[id^="categoria-"] h3`): el Top 3 repite platillos y los `h3` de la hoja de filtros viven en un portal, así que `getAllByRole('heading', { level: 3 })` miente.
+- Analítica del teléfono: sólo `{tipo, ocurrido_en}` (y `platillo_id` con `dish_view`); lo que se busca y los filtros elegidos no salen de ahí. Se prueba mirando el cuerpo que viaja, no el espía de la pantalla.
+- Con `vi.useFakeTimers` el efecto de `menu_view` corre después de que aparece el título: espera `toHaveBeenCalledWith('menu_view')` antes de `mockClear()`.
+- `npx vitest` desde la raíz del repositorio crea un `node_modules/` suelto (caché): córrelo siempre desde `frontend/`.
+- Capturas con fotos de un dominio inventado: `pagina.route()` de Playwright sirve una imagen de relleno; sin eso todas caen a la ilustración y no se ve el diseño con foto.
+- La trazabilidad estricta marca FALTA un criterio manual (AC-01.1, Lighthouse) hasta que exista `docs/piloto/ensayo.md` (T-4.9): es esperado, no un hueco de la tarea.

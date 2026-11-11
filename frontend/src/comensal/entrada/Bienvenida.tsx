@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Avatar, AvatarGrupo, Boton, Tarjeta } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
 import estilos from './Entrada.module.css';
+import { AvisoConexion } from './AvisoConexion';
 import { HojaAlias } from './HojaAlias';
 import { useFocoEnTitulo } from './useFocoEnTitulo';
 import type { DatosMesa, ResultadoAlias } from './useEntrada';
@@ -18,7 +19,7 @@ function logoSeguro(url: string | null | undefined): string | null {
   }
 }
 
-function Logo({ nombre, url }: { nombre: string; url?: string | null }) {
+export function Logo({ nombre, url }: { nombre: string; url?: string | null }) {
   const [fallo, setFallo] = useState(false);
   const seguro = logoSeguro(url);
   if (seguro && !fallo) {
@@ -39,10 +40,12 @@ const VISIBLES = 5;
 export interface PropsBienvenida {
   datos: DatosMesa;
   onCambiarAlias: (alias: string) => Promise<ResultadoAlias>;
+  /** Abre el menú de la mesa. */
+  onVerMenu: () => void;
 }
 
 /** Tarjeta de bienvenida: restaurante, mesa, alias editable y aviso de privacidad. */
-export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
+export function Bienvenida({ datos, onCambiarAlias, onVerMenu }: PropsBienvenida) {
   const { sesion, yo, estado, regresa, aviso } = datos;
   const titulo = useFocoEnTitulo();
   const [editando, setEditando] = useState(false);
@@ -63,13 +66,7 @@ export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
         </h1>
       </header>
 
-      {aviso && (
-        <p className={estilos.aviso} role="status">
-          {aviso === 'red'
-            ? 'Perdimos la conexión un momento. Seguimos intentando.'
-            : 'Estamos teniendo un problema de nuestro lado. Seguimos intentando.'}
-        </p>
-      )}
+      <AvisoConexion aviso={aviso} />
 
       <Tarjeta>
         <div className={estilos.yo}>
@@ -98,9 +95,8 @@ export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
       )}
 
       <div className={e.acciones}>
-        {/* El menú llega con T-2.5: aquí sólo se deja el sitio, sin prometer un enlace que no existe. */}
-        <Boton ancho disabled>
-          El menú llega pronto
+        <Boton ancho onClick={onVerMenu}>
+          Ver el menú
         </Boton>
       </div>
 

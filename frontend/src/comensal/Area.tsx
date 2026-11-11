@@ -1,14 +1,14 @@
 import { useParams } from 'react-router-dom';
 
 import { PantallaError } from './entrada/PantallaError';
-import { PantallaEntrada } from './entrada/PantallaEntrada';
+import { SesionMesa } from './SesionMesa';
 
 /** Forma de `mesa.codigo_publico` (03 §2: ≥ 22 caracteres, columna de 100). */
 export const CODIGO_MESA = /^[A-Za-z0-9_-]{22,100}$/;
 
 /**
- * Área del comensal (`/m/:codigo`). Hoy sólo la entrada (T-2.4); el menú, el detalle y la orden
- * llegan con T-2.5 en adelante.
+ * Área del comensal (`/m/:codigo/*`): la entrada a la mesa y el menú; el detalle del platillo (T-2.6) y
+ * la orden (Fase 3) cuelgan de la misma sesión.
  */
 export default function AreaComensal() {
   const { codigo } = useParams<{ codigo: string }>();
@@ -17,5 +17,5 @@ export default function AreaComensal() {
   if (!codigo || !CODIGO_MESA.test(codigo)) {
     return <PantallaError clase="mesa_invalida" onReintentar={() => undefined} />;
   }
-  return <PantallaEntrada key={codigo} codigo={codigo} />;
+  return <SesionMesa key={codigo} codigo={codigo} />;
 }
