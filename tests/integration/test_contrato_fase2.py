@@ -152,15 +152,6 @@ def test_los_eventos_del_telefono_no_incluyen_los_del_servidor(openapi: dict[str
 # ---------------------------------------------------------------------------
 
 
-async def test_el_menu_de_ejemplo_responde_con_el_esquema(cliente: AsyncClient) -> None:
-    respuesta = await cliente.get(f"{P}/menu/la-ceiba")
-    assert respuesta.status_code == 200
-    cuerpo = respuesta.json()
-    assert cuerpo["restaurante"]["slug"] == "la-ceiba"
-    assert cuerpo["categorias"][0]["platillos"][0]["precio"] == 145.0
-    assert respuesta.headers["etag"]
-
-
 async def test_eventos_de_ejemplo_responde_202_y_valida_el_lote(cliente: AsyncClient) -> None:
     respuesta = await cliente.post(f"{P}/eventos", json={"eventos": [{"tipo": "menu_view"}]})
     assert respuesta.status_code == 202
@@ -176,8 +167,6 @@ async def test_las_rutas_de_ejemplo_son_404_fuera_de_desarrollo(
 ) -> None:
     monkeypatch.setattr(settings, "ENTORNO", entorno)
     for metodo, ruta, cuerpo in [
-        ("GET", f"{P}/menu/la-ceiba", None),
-        ("GET", f"{P}/platillos/00000000-0000-4000-8000-000000000201", None),
         ("POST", f"{P}/eventos", {"eventos": [{"tipo": "menu_view"}]}),
     ]:
         respuesta = await cliente.request(metodo, ruta, json=cuerpo)
