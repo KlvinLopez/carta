@@ -42,7 +42,12 @@ RE_RANGO = re.compile(r"\bAC-(\d{1,2})\.(\d{1,2})\s*[–-]\s*AC-(\d{1,2})\.(\d{1
 RE_TAREA = re.compile(r"^###\s+(?:🔴\s+)?(T-\d+\.\d+)\s+—", re.MULTILINE)
 RE_MARCADOR = re.compile(r"mark\.ac\(([^)]*)\)")
 RE_MARCADOR_TS = re.compile(r"^\s*//\s*@ac\s+(.+)$")
-RE_PRUEBA_TS = re.compile(r"""^\s*(it|test|describe)((?:\.\w+)*)\(\s*(['"`])(.+?)\3""")
+# Inicio de una prueba o de un bloque: `it(`, `test.only(`, `describe.skip(`, `it.each(…)(` o
+# `it.each\`…\`(`. El título de un `.each` va después de la tabla, quizá líneas más abajo.
+RE_PRUEBA_TS = re.compile(r"^(\s*)(it|test|describe)((?:\.\w+)*)\s*[(`]")
+RE_TITULO_TS = re.compile(r"""^\s*(?:it|test|describe)(?:\.\w+)*\(\s*(['"`])(.+?)\1""")
+RE_TITULO_EACH_TS = re.compile(r"""[)`]\s*\(\s*(['"`])(.+?)\1""")
+LINEAS_DE_TABLA_EACH = 60
 
 
 def _id(mayor: str | int, menor: str | int) -> str:
@@ -104,28 +109,58 @@ def cobertura_en_pruebas() -> dict[str, list[str]]:
     return cobertura
 
 
+def _pruebas_de_vitest(lineas: list[str]) -> dict[int, str]:
+    """número de línea -> título de cada `it`, `test` o `describe` que de verdad corre.
+
+    No cuentan `.skip` ni `.todo`, ni lo que está dentro de un `describe.skip` (se sigue la
+    sangría: los archivos pasan por prettier). Un `it.each(tabla)('título')` cuenta con su
+    título, aunque la tabla ocupe varias líneas."""
+    pruebas: dict[int, str] = {}
+    bloques: list[tuple[int, bool]] = []  # (sangría, saltado) de cada `describe` abierto
+    for numero, linea in enumerate(lineas):
+        inicio = RE_PRUEBA_TS.match(linea)
+        if not inicio:
+            continue
+        sangria = len(inicio.group(1).expandtabs(2))
+        while bloques and bloques[-1][0] >= sangria:
+            bloques.pop()
+        modificadores = inicio.group(3)
+        saltada = re.search(r"\.(skip|todo)\b", modificadores) is not None
+        bajo_saltado = any(saltado for _, saltado in bloques)
+        if inicio.group(2) == "describe":
+            bloques.append((sangria, saltada))
+        if saltada or bajo_saltado:
+            continue
+        if ".each" in modificadores:
+            tabla = "\n".join(lineas[numero : numero + LINEAS_DE_TABLA_EACH])
+            titulo = RE_TITULO_EACH_TS.search(tabla, inicio.end() - 1)
+        else:
+            titulo = RE_TITULO_TS.match(linea)
+        if titulo:
+            pruebas[numero] = titulo.group(2)
+    return pruebas
+
+
 def cobertura_en_frontend() -> dict[str, list[str]]:
     """criterio -> [archivo::título] para cada `// @ac AC-x.y` puesto justo encima de un `it(`,
-    `test(` o `describe(` (se admiten varias líneas `// @ac` seguidas). No cuenta un marcador
-    suelto ni uno sobre una prueba saltada (`.skip`, `.todo`)."""
+    `test(` o `describe(` (se admiten varias líneas `// @ac` seguidas, y `it.each`). No cuenta
+    un marcador suelto ni uno sobre una prueba que no corre (`.skip`, `.todo` o dentro de un
+    `describe.skip`)."""
     cobertura: dict[str, list[str]] = defaultdict(list)
     if not FRONTEND.exists():
         return cobertura
     archivos = sorted([*FRONTEND.rglob("*.test.ts"), *FRONTEND.rglob("*.test.tsx")])
     for archivo in archivos:
         lineas = archivo.read_text(encoding="utf-8").splitlines()
+        pruebas = _pruebas_de_vitest(lineas)
         for numero, linea in enumerate(lineas):
             marcador = RE_MARCADOR_TS.match(linea)
             if not marcador:
                 continue
-            titulo = None
-            for siguiente in lineas[numero + 1 :]:
-                if RE_MARCADOR_TS.match(siguiente):
-                    continue
-                prueba = RE_PRUEBA_TS.match(siguiente)
-                if prueba and not re.search(r"\.(skip|todo)\b", prueba.group(2)):
-                    titulo = prueba.group(4)
-                break
+            siguiente = numero + 1
+            while siguiente < len(lineas) and RE_MARCADOR_TS.match(lineas[siguiente]):
+                siguiente += 1
+            titulo = pruebas.get(siguiente)
             if titulo is None:
                 continue
             for ac in expandir(marcador.group(1)):

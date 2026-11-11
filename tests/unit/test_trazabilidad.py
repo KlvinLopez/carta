@@ -113,3 +113,59 @@ def test_sin_frontend_no_falla(repo: Path, monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setattr(traza, "FRONTEND", repo / "no-existe")
     assert traza.cobertura_en_frontend() == {}
     assert traza.cobertura_en_pruebas()["AC-10.1"] == ["tests/test_algo.py::test_de_backend"]
+
+
+VITEST_EACH_Y_SALTADOS = """\
+import { describe, it } from 'vitest';
+
+// @ac AC-11.1
+it.each(casos)('busca %s', () => {});
+
+// @ac AC-11.2
+it.each([
+  ['a', 'b'],
+  ['c', 'd'],
+])('tabla en varias líneas %s', () => {});
+
+// @ac AC-11.3
+it.each`
+  a    | b
+  ${1} | ${2}
+`("con plantilla $a", () => {});
+
+describe.skip('bloque saltado', () => {
+  // @ac AC-11.4
+  it('dentro de un describe saltado', () => {});
+
+  describe('anidado', () => {
+    // @ac AC-11.5
+    it('nieto de un describe saltado', () => {});
+  });
+});
+
+// @ac AC-11.6
+it('después del bloque saltado', () => {});
+
+// @ac AC-11.7
+it.skip.each(casos)('each saltado', () => {});
+
+describe('bloque normal', () => {
+  // @ac AC-11.8
+  it('dentro de un describe normal', () => {});
+});
+"""
+
+
+def test_it_each_cuenta_con_su_titulo_y_un_describe_saltado_no(repo: Path) -> None:
+    archivo = repo / "frontend" / "src" / "comensal" / "busqueda.test.tsx"
+    archivo.write_text(VITEST_EACH_Y_SALTADOS, encoding="utf-8")
+    cobertura = traza.cobertura_en_frontend()
+    ruta = "frontend/src/comensal/busqueda.test.tsx"
+    assert cobertura["AC-11.1"] == [f"{ruta}::busca %s"]
+    assert cobertura["AC-11.2"] == [f"{ruta}::tabla en varias líneas %s"]
+    assert cobertura["AC-11.3"] == [f"{ruta}::con plantilla $a"]
+    assert cobertura["AC-11.6"] == [f"{ruta}::después del bloque saltado"]
+    assert cobertura["AC-11.8"] == [f"{ruta}::dentro de un describe normal"]
+    assert "AC-11.4" not in cobertura, "un it dentro de describe.skip no corre"
+    assert "AC-11.5" not in cobertura, "ni lo anidado dentro de un describe.skip"
+    assert "AC-11.7" not in cobertura, "un it.skip.each no corre"
