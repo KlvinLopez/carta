@@ -46,25 +46,22 @@ Es 05 §2, en orden. El detalle de cada clic está en [`railway/README.md`](rail
    curl -sI https://staging.carta.cooking/ | grep -i content-security-policy
    ```
 
-## 3. Desplegar a producción (etiqueta `v*`)
+## 3. Desplegar a producción (versión `vX.Y.Z`, con aprobación de Calvin)
 
-1. Comprueba que el commit que vas a publicar está en `master` (`deploy.yml` rechaza una etiqueta fuera de `master`: se etiqueta **después** del merge), que su CI terminó en verde y que staging funciona con él. Para el primer `v0.0.1`, además, el dominio `carta.cooking` activo en Railway y sus registros en Cloudflare ([`railway/README.md`](railway/README.md) pasos G y H).
-2. Crea la etiqueta y súbela:
+Producción se publica por versión y **siempre con un humano en medio**: el trabajo `produccion` de `deploy.yml` usa el Environment `produccion` de GitHub, que tiene a Calvin como *required reviewer* (guía de Railway, paso F.6). GitHub detiene el despliegue hasta que él pulsa **Approve and deploy**, desde el teléfono si quiere. Lo demás lo hace el workflow **Publicar versión** (`.github/workflows/publicar.yml`).
 
-   ```bash
-   git fetch origin master
-   git tag v0.0.1 origin/master          # la siguiente versión, p. ej. v0.1.0
-   git push origin v0.0.1
-   ```
-
-   Sin terminal (desde el teléfono también): GitHub → **Releases** → **Draft a new release** → **Choose a tag** → escribe `v0.0.1` → **Create new tag** → *Target* `master` → **Publish release**.
-3. GitHub Actions corre **Despliegue a producción** (`deploy.yml`):
-   1. `verificar`: la etiqueta tiene forma `vX.Y.Z`, su commit está en `master` y `ci.yml` pasó en ese commit (si no, se detiene sin tocar nada).
-   2. `produccion` (con el secreto del Environment `produccion`): instala la CLI de Railway fijada y verificada por SHA-256 y corre `railway up --environment produccion --service api`, que espera a que el despliegue quede activo.
+1. Comprueba que lo que vas a publicar está en `master`, con su CI en verde, y que **staging funciona con ese mismo commit** (staging se despliega solo con cada push a `master`): es ahí donde Calvin valida que se cumplió lo prometido.
+2. Lanza **Publicar versión** con la versión siguiente (`v0.0.2`, `v0.1.0`…): GitHub → **Actions** → **Publicar versión** → **Run workflow** → `version`. La sesión maestra lo lanza igual por la API de GitHub (`actions_run_trigger`, `run_workflow`, `publicar.yml`, `ref: master`, `inputs: {version}`) cuando Calvin le dice la versión. El workflow: comprueba la forma `vX.Y.Z`, que la etiqueta no exista y que `ci.yml` pasó en la punta de `master`; crea la etiqueta sobre `master`; publica la **Release** con notas generadas a partir de los PRs; y lanza **Despliegue a producción** con esa etiqueta.
+3. GitHub avisa a Calvin (notificación y correo): **Actions** → la corrida de **Despliegue a producción** → **Review deployments** → marcar `produccion` → **Approve and deploy**. Hasta entonces nada toca producción; si rechaza, la corrida termina sin desplegar y la etiqueta queda publicada sin uso (se puede volver a lanzar después con **Run workflow** de `deploy.yml`).
+4. Tras la aprobación, `deploy.yml` corre:
+   1. `verificar`: la etiqueta tiene forma `vX.Y.Z`, su commit está en `master` y `ci.yml` pasó en ese commit.
+   2. `produccion`: instala la CLI de Railway fijada y verificada por SHA-256 y corre `railway up --environment produccion --service api`, que espera a que el despliegue quede activo.
    3. `humo`: la prueba de humo contra `https://carta.cooking` (`/health`, `/ready`, la PWA, CSP y HSTS).
-   4. `publicar` (sólo si `produccion` salió bien): la imagen en `ghcr.io/klvinlopez/carta:<etiqueta>` y `:latest` (y `carta-respaldo`), para la variante de VM.
-4. Si `produccion` sale en rojo, la versión anterior sigue sirviendo (Railway no cambia el tráfico sin `/health`): lee el log del paso que falló. Si sólo `humo` sale en rojo, producción **no** falló: suele ser el DNS o el certificado del primer despliegue. Comprueba `https://carta.cooking/health` desde el teléfono y, cuando responda, **Re-run failed jobs** (repite sólo el humo).
-5. Lanza un despliegue a la vez: GitHub guarda un solo pendiente por grupo y, si se encolan tres, cancela el del medio.
+   4. `publicar`: la imagen en `ghcr.io/klvinlopez/carta:<etiqueta>` y `:latest` (y `carta-respaldo`), para la variante de VM.
+5. Si `produccion` sale en rojo, la versión anterior sigue sirviendo (Railway no cambia el tráfico sin `/health`): lee el log del paso que falló. Si sólo `humo` sale en rojo, producción **no** falló: suele ser DNS o certificado. Comprueba `https://carta.cooking/health` y, cuando responda, **Re-run failed jobs** (repite sólo el humo).
+6. Una publicación a la vez: `publicar.yml` y `deploy.yml` tienen cada uno su grupo de concurrencia; espera a que termine la anterior.
+
+**Camino manual** (si GitHub Actions no está disponible): `git tag v0.0.2 origin/master && git push origin v0.0.2` desde una terminal con permiso de escritura, o GitHub → **Releases** → **Draft a new release** → **Choose a tag** → `v0.0.2` → *Target* `master` → **Publish release**. El `push` de la etiqueta dispara `deploy.yml` igual, y el despliegue espera la misma aprobación.
 
 ## 4. Rollback
 

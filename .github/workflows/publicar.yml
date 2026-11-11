@@ -1,0 +1,101 @@
+# Publicar una versión a producción con Calvin como «human in the loop» (T-0.7, 05_Operacion §3).
+#
+#   Actions → «Publicar versión» → Run workflow con `version: v0.0.2`
+#   (la sesión maestra lo lanza igual por la API de GitHub: sin terminal ni etiqueta a mano)
+#
+# Qué hace, en orden: comprueba que la versión tiene forma vX.Y.Z y no existe, que la punta de
+# `master` tiene ci.yml en verde; crea la etiqueta sobre `master`; publica la Release en GitHub con
+# notas generadas; y lanza «Despliegue a producción» (deploy.yml) con esa etiqueta. Ese despliegue
+# se detiene en su trabajo `produccion` hasta que Calvin lo aprueba (Environment `produccion` →
+# Required reviewers, deploy/railway/README.md paso F): nadie llega a producción sin su toque.
+#
+# Por qué se lanza aparte: la etiqueta se crea con GITHUB_TOKEN y GitHub no dispara workflows
+# por eventos de ese token (el `push: tags` de deploy.yml no se enteraría); `workflow_dispatch` sí
+# está permitido. Las acciones van fijadas por SHA completo (el tag es comentario), como en ci.yml.
+name: Publicar versión
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versión a publicar sobre master, p. ej. v0.0.2"
+        required: true
+        type: string
+
+permissions:
+  contents: write # la etiqueta y la Release
+  actions: write # lanzar deploy.yml
+
+# Una publicación a la vez.
+concurrency:
+  group: publicar-version
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # La versión viaja siempre por variable de entorno, nunca interpolada dentro de un `run`.
+  VERSION: ${{ inputs.version }}
+
+jobs:
+  publicar:
+    name: Etiqueta, Release y lanzamiento del despliegue
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: La versión tiene forma vX.Y.Z
+        run: |
+          if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$VERSION' no tiene la forma vX.Y.Z (p. ej. v0.0.2)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: La versión no existe todavía
+        run: |
+          git fetch --tags origin
+          if git rev-parse -q --verify "refs/tags/$VERSION" > /dev/null; then
+            echo "::error::La etiqueta $VERSION ya existe. Para volver a desplegarla usa «Despliegue a producción» → Run workflow (rollback)."
+            exit 1
+          fi
+
+      - name: El CI pasó en la punta de master
+        id: commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          exitos="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&status=success&per_page=1" --jq '.total_count')"
+          if [ "$exitos" = "0" ]; then
+            echo "::error::No hay corrida en verde de ci.yml para la punta de master ($sha): espera a que termine (o relánzalo) y vuelve a lanzar este workflow."
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "CI en verde para $sha."
+
+      - name: Etiqueta sobre master (por la API, sin credenciales en el checkout)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$VERSION" -f sha="$SHA" --jq '.ref'
+
+      - name: Release en GitHub con notas generadas
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$VERSION" --verify-tag --title "Carta $VERSION" --generate-notes
+
+      - name: Lanzar «Despliegue a producción» (espera la aprobación en el Environment produccion)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run deploy.yml --ref master -f "etiqueta=$VERSION"
+          echo "Lanzado. Aprobación pendiente en https://github.com/$GITHUB_REPOSITORY/actions/workflows/deploy.yml"

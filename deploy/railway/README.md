@@ -260,6 +260,7 @@ Resumen de lo que cambia entre ambientes:
 3. **Quién puede usarlo.** En esa página, **Deployment branches and tags** → elige **Selected branches and tags** → **Add deployment branch or tag rule** → **Ref type: Tag**, patrón `v*` → **Add rule**. Otra vez **Add deployment branch or tag rule** → **Ref type: Branch**, patrón `master` → **Add rule** (hace falta para el rollback con **Run workflow**, que corre desde `master`).
 4. **El secreto.** Más abajo, **Environment secrets** → **Add environment secret** → **Name** `RAILWAY_TOKEN`, **Value** el token del paso 1 → **Add secret**.
 5. **Borra el viejo.** **Settings** → **Secrets and variables** → **Actions** → pestaña **Secrets** → sección **Repository secrets** → en `RAILWAY_TOKEN`, el ícono de **papelera** → confirma. Así queda en un solo lugar: el Environment.
+6. **Tú apruebas cada despliegue a producción.** En la misma página del Environment `produccion` → **Deployment protection rules** → marca **Required reviewers** → **Add up to 6 reviewers** → escribe tu usuario **KlvinLopez** → **Save protection rules**. Desde entonces, cada corrida de **Despliegue a producción** se detiene antes de tocar producción y GitHub te manda una notificación y un correo: **Actions** → la corrida → **Review deployments** → marca `produccion` → **Approve and deploy** (o **Reject**). Es lo que permite que la sesión maestra lance las versiones sin que nada llegue a producción sin tu toque.
 
 ---
 
@@ -285,17 +286,16 @@ Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api`
 
 ---
 
-## H. El primer despliegue a producción
+## H. Publicar una versión a producción
 
-Lo hace la maestra. Antes tienen que cumplirse **todas** estas condiciones:
+El primer despliegue (`v0.0.1`, 11 de noviembre de 2026) lo publicaste tú desde **Releases**. Desde entonces el camino es éste, y sirve para todas las versiones:
 
-1. El paso G terminado: en Railway, `carta.cooking` con la **palomita verde** (dominio activo) y los cuatro registros DNS ya creados en Cloudflare por la maestra (o, si usas el plan B de G, sabiendo que el `humo` va a fallar hasta que lo estén).
-2. Todo en `master`: el PR #1 (Fases 0 y 1) ya está fusionado; también debe estarlo el PR de esta guía, que trae el `Dockerfile` con la configuración de Firebase. `deploy.yml` sólo despliega etiquetas cuyo commit está en `master` (y el botón **Run workflow** del rollback sólo aparece cuando `deploy.yml` está en `master`, la rama predeterminada).
-3. El paso F hecho (el token en el Environment `produccion`).
+1. **Validas en staging.** Cada merge a `master` se despliega solo en `staging.carta.cooking`; ahí compruebas que lo prometido funciona (el recorrido del operador, lo que haya cambiado).
+2. **Pides la versión.** Le dices a la sesión maestra «publica v0.0.2» (o la lanzas tú: GitHub → **Actions** → **Publicar versión** → **Run workflow** → `version`). El workflow crea la etiqueta sobre `master`, publica la **Release** con las notas y lanza **Despliegue a producción**.
+3. **Apruebas.** GitHub te avisa; **Actions** → la corrida → **Review deployments** → `produccion` → **Approve and deploy**. Hasta ese toque nada cambia en producción (paso F.6). Si algo no te convence, **Reject**: la etiqueta queda publicada sin desplegar.
+4. **Miras el resultado.** En la corrida, los cuatro trabajos en verde; en Railway → **produccion** → **api** → **Deployments**, el despliegue **Active**; y `https://carta.cooking/health` desde el teléfono.
 
-Entonces la maestra crea la etiqueta `v0.0.1` sobre `master` (pasos exactos en [`deploy/README.md`](../README.md)) y GitHub Actions corre **Despliegue a producción**. Tú sólo miras: GitHub → **Actions** → la corrida, y en Railway → **produccion** → **api** → **Deployments**, el despliegue **Active**.
-
-Si sale en rojo **sólo** el trabajo `humo` y `produccion` salió en verde, producción **no** falló: casi siempre es el DNS o el certificado que todavía no están. Abre `https://carta.cooking/health` en el teléfono; cuando responda, en la corrida pulsa **Re-run failed jobs** (repite sólo el humo, no vuelve a desplegar).
+Si sale en rojo **sólo** el trabajo `humo` y `produccion` salió en verde, producción **no** falló: casi siempre es el DNS o el certificado. Abre `https://carta.cooking/health`; cuando responda, en la corrida pulsa **Re-run failed jobs** (repite sólo el humo, no vuelve a desplegar).
 
 ---
 

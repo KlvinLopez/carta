@@ -29,7 +29,7 @@ delante del código: entonces avisa y no migra) y sólo cambia el tráfico cuand
 ## Límites (no se cruzan sin pedirlo)
 
 - **Producción sólo por etiqueta `v*` sobre `master`.** Nunca `railway up` a mano contra `produccion`, nunca push a `master` para forzar un despliegue.
-- **Crear y subir una etiqueta es publicar a producción**: confirma con el usuario la versión exacta antes de `git push origin vX.Y.Z`, aunque el mensaje original diga "despliega".
+- **Lanzar «Publicar versión» es pedir un despliegue a producción**: sólo con la versión exacta que el usuario pidió, y sabiendo que el despliegue no ocurre hasta que él lo aprueba en GitHub. Nunca una etiqueta a mano para saltarse esa aprobación.
 - **Rollback = Rollback.** Botón **Deployments → ⋮ → Rollback** en Railway, o `deploy.yml` (*Run workflow*) con la etiqueta anterior. **Nunca `railway redeploy`**: repite el último despliegue, no vuelve atrás. Si entre versiones se rotó un secreto, el botón reactiva el viejo: usa la etiqueta.
 - El rollback nunca baja la base; las migraciones son hacia adelante y compatibles.
 - Secretos sólo en el panel de Railway y en el Environment `produccion` de GitHub. Ni en el repositorio, ni en el chat, ni en un `.env` commiteado (`CLAUDE.md`, regla 12). No leas `.env*` de `deploy/`.
@@ -50,7 +50,7 @@ delante del código: entonces avisa y no migra) y sólo cambia el tráfico cuand
 ## Lecciones del primer despliegue (11 de noviembre de 2026)
 
 - **Railway:** los servicios son del proyecto (nombre único) y se importan a `produccion` con **Sync** desde `staging`; en produccion `api` queda **sin fuente** (Disconnect) y lo despliega `deploy.yml`. Las variables son por environment y las selladas no se copian: pégalas de nuevo. Un cambio de variable redespliega (2 a 4 min).
-- **La etiqueta `v*` la publica Calvin** desde GitHub → Releases → Draft a new release (la sesión no puede empujarla: permisos). La maestra sigue la corrida con `actions_list` sobre `deploy.yml`.
+- **Las versiones se publican con el workflow «Publicar versión»** (`publicar.yml`): la maestra lo lanza con `actions_run_trigger` (`run_workflow`, `publicar.yml`, `ref: master`, `inputs: {version: vX.Y.Z}`) cuando Calvin dice la versión; crea la etiqueta y la Release y lanza `deploy.yml`, que **espera la aprobación de Calvin** en el Environment `produccion` (required reviewer). La sesión no empuja etiquetas a mano (permisos) y no hace falta. La maestra sigue la corrida con `actions_list` sobre `deploy.yml`.
 - **`FIREBASE_PROJECT_ID` con sufijo** (`carta-staging-743b1`): sin él la API rechaza todos los tokens y el panel expulsa con «Tu sesión terminó». Para acotarlo: token real por REST con la apiKey pública del bundle y la API en local con las mismas variables.
 - **Cloudflare** (conector): CNAME con proxy y TXT sin proxy, *Full (strict)* funciona con Railway, *Always Use HTTPS* y TLS 1.2, reglas de caché, tasa y WAF; una llamada con `User-Agent` de script recibe 403 1010 del *Browser Integrity Check*: usa un UA de navegador en las pruebas.
 - **Staging `/ready`** devuelve un 503 `ALMACEN_NO_DISPONIBLE` aislado de vez en cuando (sonda a R2 de 3 s); `/health` no se ve afectado (nota en T-4.1).
