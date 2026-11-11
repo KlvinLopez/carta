@@ -104,7 +104,7 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 
 | Método y ruta | Qué hace | Historia |
 |---|---|---|
-| `POST /sesion/entrar` `{codigo}` | Crea o reanuda sesión y miembro; emite cookie | US-01, US-02 |
+| `POST /sesion/entrar` `{codigo_mesa}` | Crea o reanuda sesión y miembro; emite cookie | US-01, US-02 |
 | `GET /sesion` | Estado de la mesa: miembros, estados, mi orden, comandas y su estado. ETag | US-02, US-11, US-12 |
 | `PATCH /miembro` `{alias}` | Cambiar alias | US-03 |
 | `GET /menu/{slug}` | Menú activo por categorías. Público, cacheable | US-04 |

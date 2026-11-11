@@ -164,16 +164,21 @@ def cuerpo_multipart(titulo: str, descripcion: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def ruta_con_tope(maximo: int, plazo: float) -> type[APIRoute]:
+def ruta_con_tope(maximo: int, plazo: float | Callable[[], float]) -> type[APIRoute]:
     """Clase de ruta que lee el cuerpo **antes** que FastAPI con un tope de `maximo` bytes:
     `Content-Length` mayor → 413 sin leer nada; *chunked* que pasa del tope → 413 al pasarlo;
     más de `plazo` segundos → 408. FastAPI lee y valida el cuerpo JSON antes de cualquier
     dependencia, así que una dependencia llegaría tarde. Lo leído queda en la petición y la
-    validación de Pydantic sigue igual (y el contrato publica el mismo esquema)."""
+    validación de Pydantic sigue igual (y el contrato publica el mismo esquema). `plazo` puede
+    ser una función: se lee en cada petición (el comensal, T-2.1, lo cambia en las pruebas)."""
 
     limites = Limites(
         max_archivo=maximo,
-        mensaje_tamano=f"El cuerpo pasa de {maximo // (1024 * 1024)} MB.",
+        mensaje_tamano=(
+            f"El cuerpo pasa de {maximo // (1024 * 1024)} MB."
+            if maximo >= 1024 * 1024
+            else f"El cuerpo pasa de {maximo // 1024} KB."  # el comensal (T-2.1): 16 KB
+        ),
         mensaje_campo="",
     )
 
@@ -187,7 +192,7 @@ def ruta_con_tope(maximo: int, plazo: float) -> type[APIRoute]:
         partes: list[bytes] = []
         leidos = 0
         try:
-            async with asyncio.timeout(plazo):
+            async with asyncio.timeout(plazo() if callable(plazo) else plazo):
                 async for trozo in request.stream():
                     leidos += len(trozo)
                     if leidos > maximo:

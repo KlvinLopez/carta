@@ -26,6 +26,8 @@ description: Cómo se escribe una prueba en Carta con la infraestructura de test
 | `tests.bd_pruebas.base_desechable(url_bd, "sufijo")` | Base vacía propia del proceso, borrada al salir | Lo único que puede hacer `downgrade base` o destruir el esquema |
 | `tests.dist_pruebas.construir_dist(tmp_path / "dist")` | Un `frontend/dist` mínimo (index, un asset, una fuente, manifest) | Pruebas que sirven la PWA: `monkeypatch.setattr(settings, "FRONTEND_DIST", str(dist))` y luego `create_app()` (ejemplo: `tests/integration/test_estaticos.py`) |
 
+| `tests/invitado_pruebas.py` (T-2.1) | `entrar(cliente, codigo, token)` → `(respuesta, token)`, `estado(cliente, token, **cabeceras)`, `cambiar_alias(...)`, `con_token(token)`, `set_cookie_invitado(respuesta)`, `sin_request_id(cuerpo)` | Rutas del comensal (`/api/v1/p`). La cookie `carta_invitado` es `Secure` y el cliente va por `http://pruebas`: httpx **no** la reenvía sola, así que cada petición la manda en la cabecera `Cookie` (lo hacen los ayudantes) |
+
 Las fábricas viven en `tests/fabricas.py` (una función `crear_<entidad>(sesion, ...)` por entidad; terminan en `commit()`, que con `create_savepoint` es un RELEASE SAVEPOINT: nada sale de la transacción de la prueba, pero lo creado sobrevive a un `rollback()` del código bajo prueba). Si una tarea necesita otra entidad (categoría, platillo, personal), **agrégala ahí** con el mismo patrón y su fixture en `conftest.py`.
 
 ## 2. Reglas
@@ -75,6 +77,14 @@ async def test_carrera_inv3(motor_pruebas: AsyncEngine) -> None:
 
 Cada conexión sale de `motor_pruebas.connect()` (dos conexiones asyncpg distintas); el `lock_timeout` de 5 s convierte un cuelgue en un error con diagnóstico.
 
+**Esperar a que la otra conexión de verdad esté bloqueada (T-2.1):** para una carrera con orden fijo («A cierra la sesión, B entra y espera el candado, A confirma»), toma el `pid` de B con `SELECT pg_backend_pid()` en su `AsyncSession` (la sesión retiene la conexión mientras dura la transacción), lanza B con `asyncio.create_task` y consulta desde una tercera conexión `pg_stat_activity.wait_event_type = 'Lock'` para ese `pid` antes de que A confirme (`_esperar_bloqueo` en `tests/integration/test_entrar.py`). Sin eso la prueba puede pasar sin que B haya llegado a esperar. Muta la condición o el tipo de candado y comprueba que la prueba falla.
+
+**Datos confirmados y tareas de fondo reales:** el *lifespan* de la app arranca el cierre de sesiones inactivas (`CierreInactivas`, T-2.1) sobre la base de pruebas; si otra corrida lo arranca a la vez puede cerrar sesiones vencidas que tu prueba confirmó. Asevera el estado final (todas `cerrada`, ninguna dos veces), no quién cerró cada una. Una prueba del *lifespan* sustituye `correr` de **cada** tarea de fondo (`Procesador` y `CierreInactivas`).
+
+## 3a. Caché del sondeo del comensal (T-2.1)
+
+`app.services.sesion.cache_estados` guarda en memoria del proceso el estado de cada sesión 2 s y sólo lo invalidan las escrituras del servicio. Una prueba que cambia la sesión, sus miembros o sus órdenes **directamente en la base** llama a `servicio.cache_estados.invalidar(sesion_id)` después del `commit()` (o la fixture `autouse` que hace `vaciar()`); si no, el siguiente `GET /p/sesion` sale de la memoria y la prueba ve el estado viejo.
+
 ## 3b. Rutas crudas (`..`, `%ZZ`, `%2F`)
 
 httpx normaliza la URL antes de enviarla (`/assets/../x` llega como `/x`, `/..` como `/`), así que un *path traversal* o un escape inválido no se pueden probar con `cliente.get(...)`. Llama a la aplicación con un `scope` ASGI escrito a mano (`_llamar_crudo` en `tests/integration/test_estaticos.py`): `asgi.spec_version = "2.4"` y un `receive` que devuelva `http.request` y después `http.disconnect`, o `FileResponse` se queda esperando la desconexión hasta el `timeout`.
@@ -123,7 +133,13 @@ uv run pytest -q                                     # todo en verde, local
 ENTORNO=pruebas uv run pytest -q                     # como en CI
 env -u TEST_DATABASE_URL uv run pytest -q            # sin variables: deriva carta_test
 uv run python scripts/verificar_trazabilidad.py --tarea T-x.y --estricto
-(uv run pytest -q & uv run pytest -q & wait)              # dos corridas a la vez: la suite es reentrante
+(uv run pytest -q & uv run pytest -q & wait)              # dos corridas a la vez (ver nota)
+# Nota (T-2.1): la suite NO es del todo reentrante. Las fábricas ya llevan `SUFIJO_PROCESO`
+# en `slug` y `firebase_uid` (antes las dos corridas creaban `restaurante-1` a la vez y una
+# esperaba el candado UNIQUE de la otra), pero `test_seed.py` (siempre `la-ceiba`) y las
+# carreras de `test_importaciones.py` (cola compartida confirmada de verdad) chocan entre dos
+# corridas simultáneas con `lock timeout`. Si fallan sólo con dos corridas, repítelas solas;
+# para la puerta, una corrida a la vez.
 ```
 
 El CI (`.github/workflows/ci.yml`) corre lo mismo sobre PostgreSQL 16 en cada push a `master`, `agente/**` y `claude/**` y en cada PR.
