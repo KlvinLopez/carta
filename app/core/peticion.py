@@ -41,16 +41,24 @@ LONGITUD_MAXIMA = 64
 _FORMATO_VALIDO = re.compile(rf"[A-Za-z0-9._-]{{1,{LONGITUD_MAXIMA}}}")
 
 
-# `/m`, `/m/<lo que sea>` y variantes con barras de más (`//m/x`): la SPA del comensal.
-_RUTA_COMENSAL = re.compile(r"/+m(?:/.*)?", re.DOTALL)
+# `/m`, `/m/<lo que sea>` y variantes con barras de más (`//m/x`) o mayúsculas: la SPA del
+# comensal.
+_RUTA_COMENSAL = re.compile(r"/+m(?:/.*)?", re.DOTALL | re.IGNORECASE)
+# Un segmento con la forma exacta de un código de mesa (`secrets.token_urlsafe(16)`: 22
+# caracteres) en cualquier otra ruta (`/x/m/<codigo>`, `/api/v1/p/menu/<codigo>`…). Un UUID
+# (36) o un `slug` con otra longitud no casan.
+_SEGMENTO_CODIGO = re.compile(r"(?<![^/])[A-Za-z0-9_-]{22}(?![^/])")
 RUTA_COMENSAL_TACHADA = "/m/<codigo>"
+CODIGO_TACHADO = "<codigo>"
 
 
 def ruta_para_log(ruta: str | None) -> str | None:
-    """La ruta tal como se puede escribir en un log: sin el código de mesa."""
-    if ruta is not None and _RUTA_COMENSAL.fullmatch(ruta):
+    """La ruta tal como se puede escribir en un log: sin el código de mesa (T-2.3)."""
+    if ruta is None:
+        return None
+    if _RUTA_COMENSAL.fullmatch(ruta):
         return RUTA_COMENSAL_TACHADA
-    return ruta
+    return _SEGMENTO_CODIGO.sub(CODIGO_TACHADO, ruta)
 
 
 def generar_request_id() -> str:

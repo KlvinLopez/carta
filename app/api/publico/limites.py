@@ -8,29 +8,39 @@ grueso (300 peticiones por 10 s por IP) y esto el fino.
 
 | Quién | Cubo | Límite |
 |---|---|---|
-| Petición con cookie de invitado válida | el miembro (`sub` del token) | 120 por minuto |
-| Petición sin cookie válida (`entrar`, menú, detalle) | la IP del cliente | 600 por minuto |
+| `POST /p/sesion/entrar`, traiga o no cookie | la IP del cliente | 600 por minuto |
+| Otra petición con cookie de invitado válida | el miembro (`sub` del token) | 120 por minuto |
+| Otra petición sin cookie válida (menú, detalle, cookie vencida o falsa) | la IP | 600 por minuto |
 
-Las peticiones con token no cuentan en el cubo de la IP: todo un restaurante sale a internet
-por una sola IP y 40 comensales sondeando cada 3 s ya son 800 por minuto (fila T-2.3 de 04
-§11). Un token sólo lo da `entrar`, que cuesta del cubo de la IP y de un código de mesa real,
-con 12 lugares por mesa.
+Las peticiones con token (salvo `entrar`) no cuentan en el cubo de la IP: todo un restaurante
+sale a internet por una sola IP y 40 comensales sondeando cada 3 s ya son 800 por minuto (fila
+T-2.3 de 04 §11). `entrar` acuña identidades (un miembro nuevo en cualquier mesa cuyo código
+se tenga), así que paga **siempre** en el cubo de la IP, aunque traiga una cookie válida.
+
+La cuenta se hace en la clase de ruta (`app.api.publico.tope.RutaComensal`), **antes** de leer
+el cuerpo: una petición limitada no gasta lectura ni validación, y un JSON roto o un cuerpo
+de más también cuentan.
 
 Ventana **móvil** de 60 s (no fija): la petición 121 dentro de cualquier minuto es 429, sin el
 doble de ráfaga en el cambio de minuto de una ventana fija. Lo rechazado no cuenta. Entre leer
 y anotar no hay `await`: dentro de un worker dos peticiones simultáneas no se cuelan.
 
-**IP del cliente** (`ip_del_cliente`). Detrás del proxy de la plataforma (o de Caddy en la VM) el contenedor
-sólo es alcanzable por el proxy de la plataforma, que añade al **final** de
-`X-Forwarded-For` la IP que se le conectó. Lo que esté a su izquierda lo pudo escribir el
-cliente: no se mira (`request.client.host` de uvicorn con `FORWARDED_ALLOW_IPS=*` es justo el
-primero de la lista, el que escribe el cliente, así que no se usa). Se toma el último
-salto público (los privados son saltos internos de la plataforma); si ese salto es de
+**IP del cliente** (`ip_del_cliente`). `request.client.host` de uvicorn con
+`FORWARDED_ALLOW_IPS=*` es el **primer** elemento de `X-Forwarded-For`, el que escribe el
+cliente: no se usa. Se unen todas las líneas de `X-Forwarded-For` en orden y se recorren desde
+la derecha saltando los saltos internos (privadas, loopback, link-local, CGNAT, ULA); el
+primero público es la IP que se conectó al proxy de la plataforma. Si ese salto es de
 Cloudflare (sus rangos publicados), la IP real es `CF-Connecting-IP`, que Cloudflare
-sobrescribe siempre. Quien entra directo al origen sin Cloudflare cae en su propia IP, la que
-anotó la plataforma, aunque falsifique las dos cabeceras. Sin proxy delante (uvicorn a pelo
-en local) `X-Forwarded-For` lo escribe el cliente: no es un despliegue soportado (Dockerfile).
-IPv6 se agrupa por `/64` (un teléfono tiene un `/64` entero y cambiaría de cubo a voluntad).
+sobrescribe siempre. Con la cabecera presente pero inservible (vacía o basura a la derecha) la
+IP es `DESCONOCIDA` (un cubo compartido), nunca el par de la conexión. IPv6 se agrupa por `/64`
+(un teléfono tiene un `/64` entero y cambiaría de cubo a voluntad).
+
+**Supuesto sin verificar:** que el contenedor sólo sea alcanzable a través del proxy de la
+plataforma y que ese proxy **añada** la IP que se le conectó al final de `X-Forwarded-For`
+(la documentación de la plataforma sólo habla de `X-Real-IP`). Si lo pasara intacto, quien entre
+directo al dominio de la plataforma elegiría su cubo. La maestra lo comprueba en staging con
+este código desplegado (fila T-2.3 de 04 §11). Sin proxy delante (uvicorn a pelo en local)
+`X-Forwarded-For` lo escribe el cliente: no es un despliegue soportado.
 """
 
 from __future__ import annotations
@@ -39,9 +49,10 @@ import ipaddress
 import math
 import time
 from collections import OrderedDict, deque
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 
 from fastapi import HTTPException, Request
+from starlette.datastructures import Headers
 
 from app.core.seguridad import invitado_opcional
 
@@ -116,32 +127,50 @@ def _es_de_cloudflare(direccion: Direccion) -> bool:
     return any(direccion in rango for rango in RANGOS_CLOUDFLARE)
 
 
+# Saltos internos de una plataforma: nunca la IP de un cliente que llega por internet. Lista
+# explícita (no `not is_global`): Teredo, 6to4, NAT64 o 198.18/15 no son de la plataforma.
+RANGOS_INTERNOS = tuple(
+    ipaddress.ip_network(rango)
+    for rango in (
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "127.0.0.0/8",
+        "169.254.0.0/16",
+        "100.64.0.0/10",
+        "::1/128",
+        "fe80::/10",
+        "fc00::/7",
+    )
+)
+
+
 def _es_interna(direccion: Direccion) -> bool:
-    # `is_global` es falso para privadas, loopback, link-local y CGNAT (100.64/10): saltos de
-    # la plataforma, nunca la IP de un cliente que llega por internet.
-    return not direccion.is_global
+    return any(direccion in rango for rango in RANGOS_INTERNOS)
 
 
-def ip_del_cliente(cabeceras: Mapping[str, str], par: str | None) -> str:
+def ip_del_cliente(cabeceras: Headers, par: str | None) -> str:
     """La IP del cliente como texto (IPv6 ya agrupada por `/64`), o `DESCONOCIDA`.
 
-    `cabeceras` son las de la petición (sin distinguir mayúsculas, como `Headers` de
-    Starlette); `par` es el `client.host` del `scope`, que sólo se usa sin `X-Forwarded-For`
-    (pruebas, desarrollo)."""
-    salto: Direccion | None = None
-    xff = cabeceras.get("x-forwarded-for")
-    if xff:
-        for elemento in reversed(xff.split(",")):
+    `cabeceras` son las de la petición (`Headers` de Starlette: todas las líneas de
+    `X-Forwarded-For` cuentan, unidas en orden); `par` es el `client.host` del `scope`, que
+    sólo se usa **sin** `X-Forwarded-For` (pruebas, desarrollo)."""
+    lineas = cabeceras.getlist("x-forwarded-for")
+    if lineas:
+        salto: Direccion | None = None
+        for elemento in reversed(",".join(lineas).split(",")):
             direccion = _direccion(elemento)
             if direccion is None:
-                break  # basura a la derecha: lo de su izquierda ya no es de fiar
+                break  # basura: lo de su izquierda ya no es de fiar
             salto = direccion
             if not _es_interna(direccion):
                 break
-    if salto is None:
+        if salto is None:
+            return DESCONOCIDA
+    else:
         salto = _direccion(par)
-    if salto is None:
-        return DESCONOCIDA
+        if salto is None:
+            return DESCONOCIDA
     if _es_de_cloudflare(salto):
         real = _direccion(cabeceras.get("cf-connecting-ip"))
         if real is not None:
@@ -222,6 +251,8 @@ class VentanaMovil:
 por_token = VentanaMovil(LIMITE_POR_TOKEN)
 por_ip = VentanaMovil(LIMITE_POR_IP)
 eventos_por_token = VentanaMovil(LIMITE_EVENTOS_POR_TOKEN)
+# Un `scan` por miembro y minuto: recargar la bienvenida no escribe una fila cada vez.
+scan_por_miembro = VentanaMovil(1)
 
 
 def vaciar() -> None:
@@ -229,6 +260,7 @@ def vaciar() -> None:
     por_token.vaciar()
     por_ip.vaciar()
     eventos_por_token.vaciar()
+    scan_por_miembro.vaciar()
 
 
 def demasiadas(espera: float) -> HTTPException:
@@ -237,13 +269,14 @@ def demasiadas(espera: float) -> HTTPException:
     return HTTPException(429, headers={"Retry-After": str(max(1, math.ceil(espera)))})
 
 
-async def limite_comensal(request: Request) -> None:
-    """Dependencia de todo `/api/v1/p`: cuenta la petición en el cubo del miembro (cookie
-    válida) o en el de la IP (sin cookie válida) y responde 429 al pasarse.
+def contar(request: Request, *, solo_ip: bool = False) -> None:
+    """Cuenta la petición en el cubo del miembro (cookie válida) o en el de la IP (sin cookie
+    válida, o siempre con `solo_ip`) y lanza 429 al pasarse. La llama `RutaComensal` antes
+    de leer el cuerpo.
 
     Verifica la firma del token sin tocar la base (`invitado_opcional`); un token falso,
     vencido o de otra audiencia cuenta como anónimo."""
-    invitado = invitado_opcional(request)
+    invitado = None if solo_ip else invitado_opcional(request)
     if invitado is not None:
         espera = por_token.intentar(str(invitado.miembro_id))
     else:

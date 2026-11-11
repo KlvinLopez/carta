@@ -70,9 +70,10 @@ El `ETag` se deriva de `max(actualizado_en)` de las filas implicadas y se cachea
 | `POST /p/llamar-mesero` | 1 por minuto por sesión (AC-12.3) |
 | `POST /admin/**` | 60 peticiones/min por operador |
 | `POST /admin/platillos/{id}/modelo3d/generar` | 20 por hora por restaurante |
-| Por IP, peticiones del comensal sin token de invitado válido | 600 peticiones/min |
+| Por IP, comensal (`/p/**`): `POST /p/sesion/entrar` siempre y las demás peticiones sin token de invitado válido | 600 peticiones/min |
+| Global por IP, `/op/**` y `/admin/**` | 600 peticiones/min; lo ponen T-3.4 (PIN) y T-4.1 con `limites.VentanaMovil`; hasta entonces sólo el borde (Cloudflare) |
 
-En la v1 (T-2.3) los límites del comensal viven en la memoria de cada worker (sin Redis): con N workers el efectivo es hasta N veces el nominal. Las peticiones con token no cuentan en el cubo de la IP: todo un restaurante comparte una IP pública. La IP es el último salto público de `X-Forwarded-For` o, si ese salto es Cloudflare, `CF-Connecting-IP`. El techo grueso por IP está en el borde (Cloudflare, 300 peticiones por 10 s).
+En la v1 (T-2.3) los límites del comensal viven en la memoria de cada worker (sin Redis): con N workers el efectivo es hasta N veces el nominal. Las peticiones con token (salvo `entrar`, que acuña identidades) no cuentan en el cubo de la IP: todo un restaurante comparte una IP pública. La cuenta se hace antes de leer el cuerpo. La IP es el último salto público de `X-Forwarded-For` (todas sus líneas, saltando las internas) o, si ese salto es Cloudflare, `CF-Connecting-IP`. El techo grueso por IP está en el borde (Cloudflare, 300 peticiones por 10 s).
 
 ### 1.6 Versionado
 

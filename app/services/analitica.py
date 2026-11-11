@@ -10,6 +10,11 @@
   `registrar_lote` atrapan cualquier error de la base, deshacen sólo lo suyo, lo anotan en el
   log (sin datos del comensal) y regresan. Se llaman **después** del `commit()` de la acción
   del comensal, así que el `rollback()` no le quita nada.
+- **Ni por latencia ni por conexiones** (revisión de T-2.3, A1): cada escritura corre con
+  `lock_timeout` de 1 s y `statement_timeout` de 1.5 s en su transacción (`SET LOCAL`), y
+  como mucho `MAX_ESCRITURAS_SIMULTANEAS` a la vez por worker; si están ocupadas, lo nuevo se
+  descarta sin esperar. Con la tabla bloqueada (una migración, un `VACUUM FULL`) la analítica
+  nunca ocupa más que ese puñado de conexiones del pool ni retrasa `entrar` más de ~1 s.
 
 El teléfono sólo manda `menu_view`, `dish_view`, `search` y `filter` (`app/schemas/eventos.py`);
 el servidor registra `scan` al entrar y, en la Fase 3, los de la orden y el personal.
@@ -27,7 +32,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -39,6 +44,9 @@ log = logging.getLogger("carta.analitica")
 # un token de invitado (6 h, `INVITADO_VIGENCIA_HORAS`).
 ANTIGUEDAD_MAXIMA = timedelta(hours=6)
 LARGO_MAXIMO_USER_AGENT = 512
+MAX_ESCRITURAS_SIMULTANEAS = 2  # por worker
+LOCK_TIMEOUT = "1s"
+STATEMENT_TIMEOUT = "1500ms"
 
 FAMILIAS = (
     "bot",
@@ -74,6 +82,33 @@ class EventoCliente:
     tipo: str
     platillo_id: UUID | None = None
     ocurrido_en: datetime | None = None
+
+
+class _Turnos:
+    """Cupo de escrituras de analítica en curso en este worker. Sin `await` entre mirar y
+    tomar: dos corrutinas no se cuelan."""
+
+    def __init__(self, maximo: int) -> None:
+        self.maximo = maximo
+        self.en_curso = 0
+
+    def tomar(self) -> bool:
+        if self.en_curso >= self.maximo:
+            return False
+        self.en_curso += 1
+        return True
+
+    def soltar(self) -> None:
+        self.en_curso -= 1
+
+
+turnos = _Turnos(MAX_ESCRITURAS_SIMULTANEAS)
+
+
+async def _con_plazo(sesion: AsyncSession) -> None:
+    """Plazos de la transacción que empieza (se van con su `commit()` o `rollback()`)."""
+    await sesion.execute(text(f"SET LOCAL lock_timeout = '{LOCK_TIMEOUT}'"))
+    await sesion.execute(text(f"SET LOCAL statement_timeout = '{STATEMENT_TIMEOUT}'"))
 
 
 def _ahora() -> datetime:
@@ -164,10 +199,13 @@ async def registrar_scan(
     origen: Origen,
     ahora: datetime | None = None,
 ) -> bool:
-    """Un `scan` por cada `entrar` que respondió 200 (nuevo o reanudado: el `ip_hash`
-    distingue escaneos repetidos). `True` si quedó guardado; nunca lanza."""
+    """Un `scan` de un `entrar` que respondió 200 (la ruta deja uno por miembro y minuto).
+    `True` si quedó guardado; `False` si falló o el cupo estaba lleno. Nunca lanza."""
     momento = ahora or _ahora()
+    if not turnos.tomar():
+        return False
     try:
+        await _con_plazo(sesion)
         await sesion.execute(
             insert(EventoAnalitica).values(
                 restaurante_id=restaurante_id,
@@ -183,6 +221,8 @@ async def registrar_scan(
     except Exception as error:  # noqa: BLE001 — regla de 04_API_Spec §2.6
         await _fallo(sesion, "scan", error)
         return False
+    finally:
+        turnos.soltar()
     return True
 
 
@@ -205,13 +245,18 @@ async def registrar_lote(
       llevan platillo.
     """
     momento = ahora or _ahora()
+    if not turnos.tomar():
+        return 0
+    filas: list[dict[str, Any]] = []
     try:
+        await _con_plazo(sesion)
         mesa_id = await sesion.scalar(
             select(SesionGrupal.mesa_id).where(
                 SesionGrupal.id == sesion_id, SesionGrupal.restaurante_id == restaurante_id
             )
         )
         if mesa_id is None:
+            await sesion.rollback()
             return 0
         pedidos = {e.platillo_id for e in eventos if e.tipo == "dish_view" and e.platillo_id}
         validos: set[UUID] = set()
@@ -224,7 +269,6 @@ async def registrar_lote(
                 )
             )
         comunes = _comunes(origen, momento)
-        filas: list[dict[str, Any]] = []
         for evento in eventos:
             platillo_id = evento.platillo_id if evento.tipo == "dish_view" else None
             if evento.tipo == "dish_view" and platillo_id not in validos:
@@ -243,8 +287,10 @@ async def registrar_lote(
             )
         if filas:
             await sesion.execute(insert(EventoAnalitica), filas)
-            await sesion.commit()
+        await sesion.commit()
     except Exception as error:  # noqa: BLE001 — regla de 04_API_Spec §2.6
         await _fallo(sesion, "un lote de eventos", error)
         return 0
+    finally:
+        turnos.soltar()
     return len(filas)

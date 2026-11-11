@@ -4,14 +4,14 @@
 (T-2.2) y `eventos.py` la analítica del teléfono (T-2.3). Ya no quedan rutas de ejemplo: T-2.3
 borró `ejemplos.py` y `solo_desarrollo`.
 
-Toda ruta pasa por `limites.limite_comensal` (T-2.3, 04_API_Spec §1.5): 120 peticiones por
-minuto por miembro con cookie válida, 600 por IP sin ella, en la memoria de cada worker.
+Toda ruta usa `tope.RutaComensal`, que cuenta la petición en `limites` antes de leer el cuerpo
+(T-2.3, 04_API_Spec §1.5): 120 por minuto por miembro con cookie válida, 600 por IP sin ella
+(y `entrar` siempre en la IP), en la memoria de cada worker.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
 from app.api.publico import eventos, menu, sesion
-from app.api.publico.limites import limite_comensal
 from app.schemas.comun import errores
 
 # Toda ruta del comensal puede responder 422 (cuerpo o ruta inválidos) y 429 (límite de tasa,
@@ -21,7 +21,6 @@ from app.schemas.comun import errores
 router = APIRouter(
     tags=["comensal"],
     responses=errores(400, 408, 413, 422, 429),
-    dependencies=[Depends(limite_comensal)],
 )
 router.include_router(sesion.router)
 router.include_router(menu.router)

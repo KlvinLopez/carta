@@ -13,16 +13,20 @@ import hashlib
 import logging
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import Headers
+from starlette.requests import Request
 
 from app.api.publico import limites
+from app.api.publico.eventos import origen_de
 from app.db.models import EventoAnalitica, Mesa, MiembroSesion, Platillo, Restaurante
 from app.services import analitica
+from app.services import sesion as servicio_sesion
 from tests.conftest import Fabrica
 from tests.invitado_pruebas import P, con_token, entrar, token_de
 
@@ -36,6 +40,10 @@ UA_ANDROID = (
     "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/130.0.0.0 Mobile Safari/537.36"
 )
+# HMAC-SHA256 de IP con la sal de cada día y SECRET_KEY = "llave-de-prueba-" + "k" * 32,
+# calculados aparte con hmac/hashlib (vector fijo).
+HASH_1_ENERO = "cc54c76815ed69030d5820903507aa6a354d6d40ef1c5572234b7069154cc0c6"
+HASH_2_ENERO = "eb1265f43f3a5479c1c7560234baf3480816f524fe3ea14c524a9586f833feeb"
 POR_CLOUDFLARE = {
     "X-Forwarded-For": f"10.9.9.9, {IP}, {IP_CF}",
     "CF-Connecting-IP": IP,
@@ -70,12 +78,29 @@ async def _lote(cliente: AsyncClient, token: str, eventos: list[dict[str, Any]],
 # ---------------------------------------------------------------------------
 
 
+class Reloj:
+    def __init__(self) -> None:
+        self.ahora = 9000.0
+
+    def __call__(self) -> float:
+        return self.ahora
+
+
+@pytest.fixture
+def reloj(monkeypatch: pytest.MonkeyPatch) -> Reloj:
+    r = Reloj()
+    for limitador in (limites.scan_por_miembro, limites.eventos_por_token, limites.por_token):
+        monkeypatch.setattr(limitador, "reloj", r)
+    return r
+
+
 @pytest.mark.ac("AC-24.1")
 async def test_entrar_registra_scan_con_mesa_sesion_y_miembro(
-    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante
+    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante, reloj: Reloj
 ) -> None:
     cuerpo, token = await _entrar(cliente, mesa, **POR_CLOUDFLARE)
-    # Reanudar con la cookie es otro escaneo (el `ip_hash` permite contarlos únicos).
+    # Reanudar con la cookie pasado un minuto es otro escaneo.
+    reloj.ahora += 60
     respuesta, _ = await entrar(cliente, mesa.codigo_publico, token)
     assert respuesta.status_code == 200
     filas = await _eventos(sesion, restaurante_id=restaurante.id)
@@ -88,6 +113,23 @@ async def test_entrar_registra_scan_con_mesa_sesion_y_miembro(
         assert fila.propiedades == {}
     assert filas[0].user_agent_fam == "ios-safari"
     assert filas[1].user_agent_fam == "bot"  # httpx manda `python-httpx/…`
+
+
+@pytest.mark.ac("AC-24.1")
+async def test_recargar_no_escribe_un_scan_cada_vez_pero_el_miembro_nuevo_siempre(
+    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante, reloj: Reloj
+) -> None:
+    """B1: 20 `entrar` seguidos con la misma cookie → un `scan` de ese miembro; otro miembro
+    nuevo en el mismo instante tiene el suyo."""
+    cuerpo, token = await _entrar(cliente, mesa)
+    for _ in range(19):
+        respuesta, _ = await entrar(cliente, mesa.codigo_publico, token)
+        assert respuesta.status_code == 200
+    otro, _ = await _entrar(cliente, mesa)
+    filas = await _eventos(sesion, restaurante_id=restaurante.id, tipo="scan")
+    assert sorted(str(f.miembro_id) for f in filas) == sorted(
+        [cuerpo["miembro"]["id"], otro["miembro"]["id"]]
+    )
 
 
 @pytest.mark.ac("AC-24.1")
@@ -286,6 +328,28 @@ def test_la_sal_cambia_cada_dia_y_depende_de_la_llave(monkeypatch: pytest.Monkey
         ("Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0", "firefox"),
         ("Googlebot/2.1 (+http://www.google.com/bot.html)", "bot"),
         ("python-httpx/0.28", "bot"),
+        ("curl/8.0", "bot"),
+        ("Wget/1.21", "bot"),
+        ("Mozilla/5.0 (compatible; bingbot/2.0)", "bot"),
+        ("Mozilla/5.0 (compatible; AhrefsBot/7.0)", "bot"),
+        ("Mozilla/5.0 (compatible; Yahoo! Slurp)", "bot"),
+        ("Mozilla/5.0 (X11) AppleWebKit/537.36 HeadlessChrome/130.0 Safari/537.36", "bot"),
+        (
+            "Mozilla/5.0 (Linux; Android 11) Chrome/130 Mobile Safari/537.36 Chrome-Lighthouse",
+            "bot",
+        ),
+        ("k6/0.50 (https://k6.io/)", "bot"),
+        ("GOOGLEBOT", "bot"),
+        ("Mozilla/5.0 (compatible; YandexSpider)", "bot"),
+        ("Mozilla/5.0 (compatible; MJ12Crawler)", "bot"),
+        ("Mozilla/5.0 (iPhone; CPU iPhone OS 18_1) AppleWebKit/605.1.15 Mobile/15E148", "ios-otro"),
+        (
+            UA_ANDROID.replace("Mobile Safari/537.36", "Mobile Safari/537.36 EdgA/130.0"),
+            "android-edge",
+        ),
+        ("Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Version/4.0", "android-otro"),
+        ("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/130.0 Safari/537.36", "chrome"),
+        ("A" * 600 + " Firefox/1", "otro"),
         ("algo raro <script>", "otro"),
         ("x" * 10_000, "otro"),
         ("", None),
@@ -367,25 +431,199 @@ async def test_si_la_analitica_explota_eventos_responde_202(
     assert respuesta.status_code == 200
 
 
-async def test_el_lote_con_un_token_de_sesion_ajena_al_restaurante_no_guarda(
-    sesion: AsyncSession, restaurante: Restaurante, fabrica_restaurante: Fabrica
+async def test_el_lote_con_una_sesion_de_otro_restaurante_no_guarda(
+    cliente: AsyncClient,
+    sesion: AsyncSession,
+    mesa: Mesa,
+    restaurante: Restaurante,
+    fabrica_restaurante: Fabrica,
 ) -> None:
-    """El servicio comprueba que la sesión sea del restaurante (no confía en sus argumentos)."""
+    """B6 j: una sesión REAL del restaurante A con `restaurante_id` de B: 0 guardados y
+    ninguna fila en ninguno de los dos (reglas duras 5 y 6)."""
+    cuerpo, _ = await _entrar(cliente, mesa)
     otro = await fabrica_restaurante()
+    # El `rollback()` del servicio expira lo cargado (regla 21 de /pruebas): ids antes.
+    otro_id, propio_id = otro.id, restaurante.id
     guardados = await analitica.registrar_lote(
         sesion,
-        restaurante_id=otro.id,
-        sesion_id=uuid4(),
-        miembro_id=uuid4(),
+        restaurante_id=otro_id,
+        sesion_id=UUID(cuerpo["sesion"]["id"]),
+        miembro_id=UUID(cuerpo["miembro"]["id"]),
         eventos=[analitica.EventoCliente("menu_view")],
         origen=analitica.Origen(ip=IP, user_agent=None),
     )
     assert guardados == 0
-    assert await _eventos(sesion, restaurante_id=otro.id) == []
+    assert await _eventos(sesion, restaurante_id=otro_id) == []
+    assert [f.tipo for f in await _eventos(sesion, restaurante_id=propio_id)] == ["scan"]
 
 
 def test_la_ip_de_analitica_y_la_del_limite_son_la_misma() -> None:
     """`ip_hash` usa el mismo cubo que el límite (IPv6 por `/64`)."""
-    assert limites.ip_del_cliente({"x-forwarded-for": "2001:db8:1:2::9"}, None) == (
-        "2001:db8:1:2::/64"
+    cabeceras = Headers(headers={"x-forwarded-for": "2001:db8:1:2::9"})
+    assert limites.ip_del_cliente(cabeceras, None) == ("2001:db8:1:2::/64")
+
+
+# ---------------------------------------------------------------------------
+# Revisión de la maestra (B6)
+# ---------------------------------------------------------------------------
+
+
+async def test_el_evento_121_en_un_minuto_se_descarta_y_el_120_cabe(
+    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante, reloj: Reloj
+) -> None:
+    _, token = await _entrar(cliente, mesa)
+    for cuantos in (50, 50, 19):
+        await _lote(cliente, token, [{"tipo": "menu_view"}] * cuantos)
+    await _lote(cliente, token, [{"tipo": "search"}])  # el 120: cabe
+    await _lote(cliente, token, [{"tipo": "filter"}])  # el 121: se descarta
+    filas = await _eventos(sesion, restaurante_id=restaurante.id)
+    assert len([f for f in filas if f.tipo != "scan"]) == 120
+    assert [f.tipo for f in filas].count("search") == 1
+    assert [f.tipo for f in filas].count("filter") == 0
+    reloj.ahora += 60
+    await _lote(cliente, token, [{"tipo": "filter"}])  # pasado el minuto, otra vez cabe
+    assert [f.tipo for f in await _eventos(sesion, restaurante_id=restaurante.id)].count(
+        "filter"
+    ) == 1
+
+
+async def test_el_limite_de_eventos_es_por_miembro(
+    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante, reloj: Reloj
+) -> None:
+    _, ana = await _entrar(cliente, mesa)
+    beto_cuerpo, beto = await _entrar(cliente, mesa)
+    for _ in range(3):
+        await _lote(cliente, ana, [{"tipo": "menu_view"}] * 40)  # 120: agotado
+    await _lote(cliente, beto, [{"tipo": "search"}] * 50)
+    filas = await _eventos(sesion, restaurante_id=restaurante.id, tipo="search")
+    assert len(filas) == 50
+    assert {str(f.miembro_id) for f in filas} == {beto_cuerpo["miembro"]["id"]}
+
+
+async def test_lote_de_0_es_422_y_el_de_50_es_202(
+    cliente: AsyncClient, sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante
+) -> None:
+    _, token = await _entrar(cliente, mesa)
+    vacio = await cliente.post(f"{P}/eventos", json={"eventos": []}, headers=con_token(token))
+    assert vacio.status_code == 422
+    await _lote(cliente, token, [{"tipo": "menu_view"}] * 50)
+    filas = await _eventos(sesion, restaurante_id=restaurante.id, tipo="menu_view")
+    assert len(filas) == 50
+
+
+@pytest.mark.ac("AC-24.2")
+async def test_el_ip_hash_usa_la_sal_del_dia_utc_del_evento(
+    sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Vector fijo: con esta llave, la misma IP a un segundo antes y después de la medianoche
+    UTC da estos dos hashes (atrapa el día local en vez del UTC y un cambio de algoritmo)."""
+    monkeypatch.setattr(analitica.settings, "SECRET_KEY", "llave-de-prueba-" + "k" * 32)
+    sesion_mesa, miembro = await _sesion_y_miembro(sesion, mesa)
+    for ahora in (
+        datetime(2026, 1, 1, 23, 59, 59, tzinfo=UTC),
+        datetime(2026, 1, 2, 0, 0, 1, tzinfo=UTC),
+    ):
+        assert await analitica.registrar_scan(
+            sesion,
+            restaurante_id=restaurante.id,
+            mesa_id=mesa.id,
+            sesion_id=sesion_mesa,
+            miembro_id=miembro,
+            origen=analitica.Origen(ip=IP, user_agent=None),
+            ahora=ahora,
+        )
+    filas = await _eventos(sesion, restaurante_id=restaurante.id)
+    assert [f.ip_hash for f in filas] == [HASH_1_ENERO, HASH_2_ENERO]
+
+
+async def _sesion_y_miembro(sesion: AsyncSession, mesa: Mesa) -> tuple[UUID, UUID]:
+    entrada = await servicio_sesion.entrar(sesion, mesa.codigo_publico, None)
+    return entrada.sesion.id, entrada.miembro.id
+
+
+async def test_un_evento_sin_hora_se_guarda_con_la_del_servidor(
+    sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante
+) -> None:
+    sesion_mesa, miembro = await _sesion_y_miembro(sesion, mesa)
+    ahora = datetime(2026, 11, 11, 12, 0, tzinfo=UTC)
+    guardados = await analitica.registrar_lote(
+        sesion,
+        restaurante_id=restaurante.id,
+        sesion_id=sesion_mesa,
+        miembro_id=miembro,
+        eventos=[analitica.EventoCliente("menu_view")],
+        origen=analitica.Origen(ip=None, user_agent=None),
+        ahora=ahora,
     )
+    assert guardados == 1
+    (fila,) = await _eventos(sesion, restaurante_id=restaurante.id)
+    assert fila.ocurrido_en == ahora
+    assert fila.ip_hash is None
+
+
+async def test_registrar_lote_devuelve_cuantos_guardo(
+    sesion: AsyncSession, mesa: Mesa, restaurante: Restaurante, platillo: Platillo
+) -> None:
+    sesion_mesa, miembro = await _sesion_y_miembro(sesion, mesa)
+    guardados = await analitica.registrar_lote(
+        sesion,
+        restaurante_id=restaurante.id,
+        sesion_id=sesion_mesa,
+        miembro_id=miembro,
+        eventos=[
+            analitica.EventoCliente("menu_view"),
+            analitica.EventoCliente("dish_view", platillo.id),
+            analitica.EventoCliente("dish_view", uuid4()),  # descartado
+            analitica.EventoCliente("dish_view"),  # descartado
+            analitica.EventoCliente("search"),
+        ],
+        origen=analitica.Origen(ip=IP, user_agent=None),
+    )
+    assert guardados == 3
+    assert len(await _eventos(sesion, restaurante_id=restaurante.id)) == 3
+
+
+@pytest.mark.parametrize("cual", ["scan", "lote"])
+async def test_tras_un_fallo_de_la_analitica_la_sesion_sigue_sirviendo(
+    sesion: AsyncSession,
+    mesa: Mesa,
+    restaurante: Restaurante,
+    monkeypatch: pytest.MonkeyPatch,
+    cual: str,
+) -> None:
+    sesion_mesa, miembro = await _sesion_y_miembro(sesion, mesa)
+    monkeypatch.setattr(analitica, "hash_ip", lambda ip, *, dia: "f" * 65)
+    origen = analitica.Origen(ip=IP, user_agent=None)
+    if cual == "scan":
+        resultado: object = await analitica.registrar_scan(
+            sesion,
+            restaurante_id=restaurante.id,
+            mesa_id=mesa.id,
+            sesion_id=sesion_mesa,
+            miembro_id=miembro,
+            origen=origen,
+        )
+        assert resultado is False
+    else:
+        resultado = await analitica.registrar_lote(
+            sesion,
+            restaurante_id=restaurante.id,
+            sesion_id=sesion_mesa,
+            miembro_id=miembro,
+            eventos=[analitica.EventoCliente("menu_view")],
+            origen=origen,
+        )
+        assert resultado == 0
+    assert (await sesion.execute(text("select 1"))).scalar() == 1
+    assert analitica.turnos.en_curso == 0  # el cupo se devolvió
+
+
+def test_hash_ip_vacia_es_none() -> None:
+    assert analitica.hash_ip("", dia=date(2026, 11, 11)) is None
+
+
+def test_origen_sin_client_ni_cabeceras_no_tiene_ip() -> None:
+    alcance: dict[str, Any] = {"type": "http", "method": "POST", "path": "/", "headers": []}
+    origen = origen_de(Request(alcance))
+    assert origen.ip is None
+    assert origen.user_agent is None

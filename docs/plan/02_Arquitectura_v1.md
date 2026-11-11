@@ -228,7 +228,7 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 | Consistencia vs disponibilidad | Consistencia fuerte en órdenes y comandas (transacciones, `FOR UPDATE`); el menú tolera 60 s de desfase | — |
 | Diseño de API | REST, `/api/v1`, envoltura de error única, `Idempotency-Key` en escrituras visibles para el personal | — |
 | Replicación y sharding | Ninguno. Respaldos diarios + PITR por WAL archivado en R2 | SLA contractual → réplica administrada |
-| Límites de tasa | Cloudflare (por IP, en el borde) + en proceso por token/IP (`slowapi`) | — |
+| Límites de tasa | Cloudflare (por IP, en el borde: 300 por 10 s) + en proceso, ventana móvil en la memoria de cada worker (`app/api/publico/limites.py`, T-2.3; con N workers hasta N × el nominal): comensal por miembro o por IP; `/op` y `/admin` con la misma `VentanaMovil` en T-3.4 y T-4.1 | > 3 instancias de API → Redis |
 | Tiempo real | Sondeo adaptativo con ETag (§6) | Latencia pedida < 1 s → SSE |
 | CDN y borde | Cloudflare gratis para estáticos, menú y fotos (R2) | — |
 | Búsqueda | En el cliente (menú ≤ 300 platillos, sin acentos); en el servidor `ILIKE` con `unaccent` para el personal | — |

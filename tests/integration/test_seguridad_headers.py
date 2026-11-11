@@ -40,7 +40,7 @@ CABECERAS = {
     "referrer-policy": "strict-origin-when-cross-origin",
     "permissions-policy": "camera=(), microphone=(), geolocation=()",
 }
-CODIGO = "Zx9_secreto-de-la-mesa-123"
+CODIGO = "Zx9_secreto-de-la-mesa"  # 22 caracteres, como `token_urlsafe(16)`
 
 
 def _comprobar(respuesta: Any) -> None:
@@ -98,6 +98,18 @@ def _comprobar_sin_img(respuesta: Any) -> None:
         (f"//m/{CODIGO}", "/m/<codigo>"),
         (f"/m/{CODIGO}/otra/cosa", "/m/<codigo>"),
         (f"/m/{CODIGO}\n", "/m/<codigo>"),
+        (f"/M/{CODIGO}", "/m/<codigo>"),
+        (f"/./m/{CODIGO}", "/./m/<codigo>"),
+        (f"/x/m/{CODIGO}", "/x/m/<codigo>"),
+        (f"/staff/m/{CODIGO}", "/staff/m/<codigo>"),
+        (f"/api/../m/{CODIGO}", "/api/../m/<codigo>"),
+        (f"/api/v1/p/sesion/entrar/{CODIGO}", "/api/v1/p/sesion/entrar/<codigo>"),
+        (f"/api/v1/p/menu/{CODIGO}", "/api/v1/p/menu/<codigo>"),
+        (
+            "/api/v1/p/platillos/123e4567-e89b-12d3-a456-426614174000",
+            "/api/v1/p/platillos/123e4567-e89b-12d3-a456-426614174000",
+        ),
+        (f"/assets/x{CODIGO}.js", f"/assets/x{CODIGO}.js"),
         ("/menu", "/menu"),
         ("/mx/abc", "/mx/abc"),
         ("/api/v1/p/sesion", "/api/v1/p/sesion"),
@@ -130,6 +142,26 @@ async def cliente_app(aplicacion: FastAPI) -> AsyncIterator[AsyncClient]:
         yield c
 
 
+VARIANTES = [
+    f"/m/{CODIGO}",
+    f"/M/{CODIGO}",
+    f"//m/{CODIGO}",
+    f"/x/m/{CODIGO}",
+    f"/staff/m/{CODIGO}",
+    f"/%2e/m/{CODIGO}",
+    f"/api/v1/p/sesion/entrar/{CODIGO}",
+    f"/api/v1/p/menu/{CODIGO}",
+]
+
+
+def _sin_codigo(caplog: pytest.LogCaptureFixture) -> None:
+    for registro in caplog.records:
+        if registro.name.startswith("httpx"):
+            continue  # el cliente de la prueba, no la aplicación
+        texto = registro.getMessage() + json.dumps(registro.__dict__, default=str)
+        assert CODIGO not in texto, (registro.name, registro.getMessage())
+
+
 async def test_el_log_de_acceso_tacha_el_codigo_de_la_mesa(
     cliente_app: AsyncClient, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -143,8 +175,32 @@ async def test_el_log_de_acceso_tacha_el_codigo_de_la_mesa(
     assert acceso[0].getMessage() == "GET /m/<codigo> 200"
     assert getattr(acceso[0], "ruta", None) == "/m/<codigo>"
     assert acceso[1].getMessage() == "GET /m/<codigo> 500"
-    for registro in caplog.records:
-        if registro.name.startswith("httpx"):
-            continue  # el cliente de la prueba, no la aplicación
-        texto = registro.getMessage() + json.dumps(registro.__dict__, default=str)
-        assert CODIGO not in texto, registro.name
+    _sin_codigo(caplog)
+
+
+@pytest.mark.parametrize("ruta", VARIANTES)
+async def test_ninguna_variante_deja_el_codigo_en_el_log(
+    cliente_app: AsyncClient, caplog: pytest.LogCaptureFixture, ruta: str
+) -> None:
+    with caplog.at_level(logging.INFO):
+        await cliente_app.get(ruta)
+        await cliente_app.post(ruta, json={})
+    assert [r for r in caplog.records if r.name == "carta.peticion"]
+    _sin_codigo(caplog)
+
+
+@pytest.mark.parametrize("ruta", [f"/M/{CODIGO}/explota", f"/x/{CODIGO}/explota"])
+async def test_la_traza_del_500_no_lleva_el_codigo(
+    aplicacion: FastAPI, caplog: pytest.LogCaptureFixture, ruta: str
+) -> None:
+    async def explota() -> None:
+        raise RuntimeError("detalle interno")
+
+    aplicacion.add_api_route("/M/{codigo}/explota", explota)
+    aplicacion.add_api_route("/x/{codigo}/explota", explota)
+    transporte = ASGITransport(app=aplicacion, raise_app_exceptions=False)
+    async with AsyncClient(transport=transporte, base_url="http://pruebas") as c:
+        with caplog.at_level(logging.INFO):
+            assert (await c.get(ruta)).status_code == 500
+    assert any(r.name == "carta.errores" for r in caplog.records)
+    _sin_codigo(caplog)

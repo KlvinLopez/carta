@@ -34,7 +34,7 @@ compartida sólo recibe `upgrade head` (idempotente y serializado por un candado
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -155,6 +155,16 @@ def almacen(tmp_path: Path) -> AlmacenLocal:
     return AlmacenLocal(tmp_path / "almacen", URL_FOTOS_PRUEBAS)
 
 
+@pytest.fixture(autouse=True)
+def limites_en_cero() -> Iterator[None]:
+    """Los límites de tasa del comensal (T-2.3) cuentan en memoria del proceso: cada prueba
+    empieza y termina con las cuentas en cero (si no, la suite entera agota el cubo de
+    127.0.0.1), también las que arman su propia app."""
+    limites.vaciar()
+    yield
+    limites.vaciar()
+
+
 @pytest.fixture
 async def cliente(
     fabrica_sesion: async_sessionmaker[AsyncSession], sesion: AsyncSession, almacen: AlmacenLocal
@@ -172,9 +182,6 @@ async def cliente(
     # `cabecera_operador` o `cabecera_de(uid)` dan la cabecera `Authorization`.
     app.dependency_overrides[obtener_verificador] = lambda: VERIFICADOR_DE_PRUEBA
     app.dependency_overrides[obtener_almacen] = lambda: almacen
-    # Los límites de tasa del comensal (T-2.3) cuentan en memoria del proceso: cada prueba
-    # empieza con las cuentas en cero (si no, la suite entera agota el cubo de 127.0.0.1).
-    limites.vaciar()
     transporte = ASGITransport(app=app, raise_app_exceptions=False)
     try:
         async with AsyncClient(transport=transporte, base_url="http://pruebas") as c:
@@ -183,7 +190,6 @@ async def cliente(
         app.dependency_overrides.pop(get_db_session, None)
         app.dependency_overrides.pop(obtener_verificador, None)
         app.dependency_overrides.pop(obtener_almacen, None)
-        limites.vaciar()
 
 
 # ---------------------------------------------------------------------------

@@ -11,10 +11,14 @@ es hasta N veces el nominal (fila T-2.3 de 04 §11). Aquí corre un solo proceso
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+from uuid import UUID
+
 import pytest
 from httpx import AsyncClient, Response
 
 from app.api.publico import limites
+from app.core.seguridad import Invitado, emitir_token_invitado
 from app.db.models import Mesa, Restaurante
 from tests.conftest import Fabrica
 from tests.invitado_pruebas import P, con_token, entrar, estado, sin_request_id
@@ -218,3 +222,115 @@ async def test_fuera_de_p_no_hay_limite_del_comensal(
     for _ in range(5):
         assert (await cliente.get("/health")).status_code == 200
     assert len(limites.por_ip) == 0
+
+
+# ---------------------------------------------------------------------------
+# Revisión de la maestra (A2, A3, B4, B6 l)
+# ---------------------------------------------------------------------------
+
+
+async def _agotar_ip(cliente: AsyncClient, **cabeceras: str) -> None:
+    for n in range(600):
+        respuesta = await cliente.get(f"{P}/menu/no-existe", headers=cabeceras)
+        assert respuesta.status_code == 404, n
+
+
+async def test_x_forwarded_for_en_dos_lineas_no_elige_el_cubo(
+    cliente: AsyncClient, reloj: Reloj
+) -> None:
+    """A2: el cliente pone su línea primero y el proxy añade la suya como línea nueva; rotar
+    la primera no cambia el cubo: la 601 es 429."""
+    for n in range(601):
+        cabeceras = [
+            ("X-Forwarded-For", f"{n % 250}.{n // 250}.0.1"),
+            ("X-Forwarded-For", "8.8.8.8"),
+        ]
+        respuesta = await cliente.get(f"{P}/menu/no-existe", headers=cabeceras)
+        if n < 600:
+            assert respuesta.status_code == 404, n
+    _es_429(respuesta)
+
+
+async def test_entrar_con_cookie_valida_tambien_paga_en_el_cubo_de_la_ip(
+    cliente: AsyncClient, mesa: Mesa, fabrica_mesa: Fabrica, restaurante: Restaurante, reloj: Reloj
+) -> None:
+    """A3: `entrar` acuña identidades; con la IP agotada, una cookie válida no lo salva."""
+    _, token = await entrar(cliente, mesa.codigo_publico)  # 1 en el cubo de la IP
+    assert token
+    for n in range(599):
+        assert (await cliente.get(f"{P}/menu/no-existe")).status_code == 404, n
+    otra = await fabrica_mesa(restaurante)
+    _es_429(
+        await cliente.post(
+            f"{P}/sesion/entrar",
+            json={"codigo_mesa": otra.codigo_publico},
+            headers=con_token(token),
+        )
+    )
+    # Lo demás con cookie sigue en el cubo del miembro.
+    assert (await estado(cliente, token)).status_code == 200
+
+
+async def test_52_comensales_tras_una_ip_entran_recargan_y_sondean_sin_429(
+    cliente: AsyncClient, restaurante: Restaurante, fabrica_mesa: Fabrica, reloj: Reloj
+) -> None:
+    """Uso normal con `entrar` en el cubo de la IP: 52 comensales en 5 mesas entran, cada uno
+    recarga la bienvenida dos veces (otro `entrar` con su cookie) y sondean un minuto."""
+    tokens: list[tuple[str, str]] = []
+    for numero in range(1, 6):
+        mesa = await fabrica_mesa(restaurante, numero=numero)
+        for _ in range(12 if numero < 5 else 4):
+            respuesta, token = await entrar(cliente, mesa.codigo_publico)
+            assert respuesta.status_code == 200 and token
+            tokens.append((mesa.codigo_publico, token))
+    assert len(tokens) == 52
+    for codigo, token in tokens:
+        for _ in range(2):
+            respuesta, _ = await entrar(cliente, codigo, token)
+            assert respuesta.status_code == 200
+    for _ in range(20):
+        for _, token in tokens:
+            assert (await estado(cliente, token)).status_code == 200
+        reloj.ahora += 3
+
+
+async def test_un_json_roto_cuenta_y_la_601_es_429_sin_leer_el_cuerpo(
+    cliente: AsyncClient, reloj: Reloj
+) -> None:
+    """B4: la cuenta va en la clase de ruta, antes de leer y validar el cuerpo."""
+    for n in range(600):
+        respuesta = await cliente.post(
+            f"{P}/sesion/entrar",
+            content=b'{"codigo_mesa":',
+            headers={"content-type": "application/json"},
+        )
+        assert respuesta.status_code == 422, n
+    respuesta = await cliente.post(
+        f"{P}/sesion/entrar",
+        content=b'{"codigo_mesa":',
+        headers={"content-type": "application/json"},
+    )
+    _es_429(respuesta)
+    grande = b"x" * (20 * 1024)
+    _es_429(await cliente.post(f"{P}/sesion/entrar", content=grande))
+
+
+async def test_un_token_vencido_cuenta_en_el_cubo_de_la_ip(
+    cliente: AsyncClient, mesa: Mesa, monkeypatch: pytest.MonkeyPatch, reloj: Reloj
+) -> None:
+    respuesta, token = await entrar(cliente, mesa.codigo_publico)
+    assert token
+    cuerpo = respuesta.json()
+    vencido = emitir_token_invitado(
+        Invitado(
+            UUID(cuerpo["miembro"]["id"]),
+            UUID(cuerpo["sesion"]["id"]),
+            UUID(cuerpo["sesion"]["restaurante"]["id"]),
+        ),
+        ahora=datetime.now(UTC) - timedelta(hours=7),
+    )
+    monkeypatch.setattr(limites, "por_ip", limites.VentanaMovil(3, reloj=reloj))
+    for _ in range(3):
+        assert (await estado(cliente, vencido)).status_code == 401
+    _es_429(await estado(cliente, vencido))
+    assert (await estado(cliente, token)).status_code == 200  # el vigente va por su miembro
