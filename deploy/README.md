@@ -14,7 +14,7 @@ Cómo llega el código a cada ambiente:
 
 | Ambiente | Cómo se despliega | Quién lo dispara |
 |---|---|---|
-| `staging` → `https://staging.carta.cooking` | Railway construye solo cada push a la rama elegida en el panel (`master`; mientras no esté integrado, `claude/gifted-allen-rqjiup`) y espera a que el CI pase (**Wait for CI**) | un push |
+| `staging` → `https://staging.carta.cooking` | Railway construye solo cada push a la rama elegida en el panel (`master`) y espera a que el CI pase (**Wait for CI**) | un push |
 | `produccion` → `https://carta.cooking` | `.github/workflows/deploy.yml`: `railway up` del código de la etiqueta, prueba de humo, y la imagen a GHCR | una etiqueta `v*` |
 
 En los dos, Railway corre antes el comando previo `uv run python scripts/predespliegue.py` (`alembic upgrade head`, salvo en un rollback con la base por delante del código: avisa y no migra) y sólo manda tráfico a la versión nueva cuando `/health` responde. Si la migración falla, la versión anterior sigue sirviendo.
@@ -27,7 +27,7 @@ Es 05 §2, en orden. El detalle de cada clic está en [`railway/README.md`](rail
 
 1. Cuenta de Railway con 2FA y tarjeta, proyecto `carta` *(hecho el 6 de noviembre)*.
 2. Environments `staging` y `produccion` (guía, paso A).
-3. En cada uno: `Postgres` desde la plantilla con volumen (paso B); `api` con *Pre-deploy Command* `uv run python scripts/predespliegue.py`, *Healthcheck Path* `/health` y *Restart Policy* «On Failure» (paso C; en `produccion` como *Empty Service*, paso E); `respaldo` desde `/deploy/respaldo` con *Wait for CI*, *Watch Paths* `/deploy/respaldo/**` y *Cron Schedule* `0 4 * * *` (paso D).
+3. En cada uno: `Postgres` desde la plantilla con volumen (paso B); `api` con *Pre-deploy Command* `uv run python scripts/predespliegue.py`, *Healthcheck Path* `/health` y *Restart Policy* «On Failure» (paso C; en `produccion` es el mismo servicio, sin fuente conectada, paso E); `respaldo` desde `/deploy/respaldo` con *Wait for CI*, *Watch Paths* `/deploy/respaldo/**` y *Cron Schedule* `0 4 * * *` (paso D).
 4. Variables de `api` y `respaldo` por environment (pasos C, D y E; los valores exactos están ahí).
 5. `RAILWAY_TOKEN` = *project token* del environment `produccion` de Railway, guardado como secreto del **Environment `produccion`** de GitHub (sólo etiquetas `v*` y `master`), no del repositorio (paso F).
 6. Dominios propios en Railway y registros `CNAME` + `TXT` en Cloudflare (paso G; Cloudflare lo opera la sesión maestra).
@@ -35,7 +35,7 @@ Es 05 §2, en orden. El detalle de cada clic está en [`railway/README.md`](rail
 
 ## 2. Desplegar a staging
 
-1. Integra el cambio en la rama que sigue staging (`master`; mientras no esté integrado, `claude/gifted-allen-rqjiup`) y haz push.
+1. Integra el cambio en la rama que sigue staging (`master`) y haz push.
 2. El CI (`.github/workflows/ci.yml`) corre sobre ese commit. Con **Wait for CI** activado, Railway espera; si el CI falla, no despliega.
 3. Railway construye la imagen, corre `uv run python scripts/predespliegue.py` y espera a `/health`. Míralo en Railway → **staging** → **api** → **Deployments**.
 4. Comprueba:
@@ -87,3 +87,5 @@ Las migraciones son compatibles hacia atrás (expandir → usar → contraer, 05
 ## 5. Variante de VM (GHCR)
 
 `deploy/vps/docker-compose.yml` arranca de `ghcr.io/klvinlopez/carta:${IMAGEN_TAG}`, que publica el trabajo `publicar` en cada etiqueta. Los paquetes de GHCR nacen **privados**: para que la VM los baje sin credenciales, GitHub → perfil → **Packages** → `carta` (y `carta-respaldo`) → **Package settings** → **Change visibility** → *Public*; o en la VM `docker login ghcr.io` con un token de sólo lectura. Si la imagen no está, `docker compose up --build` la construye desde el repositorio clonado.
+
+La imagen de GHCR se construye en GitHub Actions **sin** la configuración web de Firebase (los `ARG` `VITE_FIREBASE_*` del `Dockerfile`), así que su panel del operador dice «acceso sin configurar». Para la VM, construye la imagen con esos valores: `docker build --build-arg VITE_FIREBASE_API_KEY=… --build-arg VITE_FIREBASE_AUTH_DOMAIN=… --build-arg VITE_FIREBASE_PROJECT_ID=… --build-arg VITE_FIREBASE_APP_ID=… -t carta .`, o añádelos como *variables* (no secretos) del repositorio y pásalos en el `docker build` de `deploy.yml`. En Railway no hace falta: las variables del servicio llegan al `Dockerfile` como *build args*.

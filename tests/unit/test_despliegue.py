@@ -602,7 +602,12 @@ def test_guias_de_despliegue_dicen_que_poner() -> None:
         "0 4 * * *",
         "${{Postgres.DATABASE_URL}}",
         "staging.carta.cooking",
-        "claude/gifted-allen-rqjiup",
+        "| `master` |",  # la rama que sigue staging (PR #1 fusionado)
+        "VITE_FIREBASE_API_KEY",  # la app web de Firebase se hornea en la imagen
+        "ANTHROPIC_API_KEY=<",  # la importación (T-1.8/T-1.9) ya la necesita
+        "console.firebase.google.com",
+        "Authorized domains",
+        "console.anthropic.com",
         "carta-publico-staging",
         "carta-privado-produccion",
         "https://img-staging.carta.cooking",

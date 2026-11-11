@@ -4,7 +4,7 @@ Guía para **Calvin**: deja `carta.cooking` y `staging.carta.cooking` funcionand
 
 Quién hace qué:
 
-- **Calvin** (esta guía): crea los servicios en Railway y pega las variables.
+- **Calvin** (esta guía): crea los proyectos de Firebase y la llave de Anthropic, los servicios en Railway, y pega las variables.
 - **La sesión maestra**: crea en Cloudflare los registros DNS que Railway te muestre (paso G), la regla de caché del menú, el límite de tasa y *Always Use HTTPS*; etiqueta `v0.0.1` para el primer despliegue a producción.
 - **El repositorio** ya trae el `Dockerfile`, `.railwayignore`, `.github/workflows/deploy.yml` (producción en cada etiqueta `v*`), `scripts/predespliegue.py` (las migraciones antes de cada despliegue) y `deploy/respaldo/`.
 
@@ -32,6 +32,13 @@ Quién hace qué:
    ```
 
    cambiando `<ACCOUNT_ID>` por lo que copiaste (sin los `< >`). Es el mismo para staging y producción.
+5. **Un proyecto de Firebase por ambiente** (`carta-staging` y `carta-produccion`): con él el operador entra al panel con Google o con un enlace por correo. En [console.firebase.google.com](https://console.firebase.google.com), con tu cuenta de Google:
+   1. **Create a project** → nombre `carta-staging` → apaga **Google Analytics** → **Create project**. Anota el **Project ID** que aparece bajo el nombre (puede llevar un sufijo, como `carta-staging-1a2b3`): es `FIREBASE_PROJECT_ID`.
+   2. Menú izquierdo **Build → Authentication → Get started** → pestaña **Sign-in method** → **Google** → **Enable** → elige el correo de soporte → **Save**. Luego **Add new provider → Email/Password** → **Enable**, y abajo también **Email link (passwordless sign-in)** → **Save**.
+   3. Dentro de **Authentication**, pestaña **Settings → Authorized domains → Add domain** → `staging.carta.cooking` (en el proyecto de producción, `carta.cooking`). `localhost` ya viene puesto.
+   4. ⚙ **Project settings → General** → abajo, **Your apps → Add app → Web (`</>`)** → apodo `Carta panel` → sin Firebase Hosting → **Register app**. Del bloque `firebaseConfig` copia cuatro valores a tu gestor de contraseñas: `apiKey`, `authDomain`, `projectId` y `appId`. Son las `VITE_FIREBASE_*` del paso C. No son secretos (viajan al navegador de cada operador), pero no hace falta pegarlos en ningún chat: van directo al panel de Railway.
+   5. Repite 1 a 4 para `carta-produccion`. Opcional, más adelante: en Google Cloud → **APIs & Services → Credentials**, restringe la *Browser key* de cada proyecto a su dominio.
+6. **La llave de la API de Anthropic**, una por ambiente: con ella la aplicación lee las cartas en PDF (T-1.8 y T-1.9). En [console.anthropic.com](https://console.anthropic.com) → **Settings → API keys → Create Key** → nombre `carta-staging` → copia la llave (empieza por `sk-ant-` y sólo se muestra una vez) a tu gestor de contraseñas; otra con nombre `carta-produccion`. Hace falta saldo o un método de pago en **Billing**. Sin la llave la aplicación arranca y la importación responde «no disponible» (503); todo lo demás funciona.
 
 ---
 
@@ -41,7 +48,7 @@ Quién hace qué:
 2. **Renómbralo a `produccion`**: abre **Settings** del proyecto (arriba a la derecha) → pestaña **Environments** → en la fila de `production`, el menú **⋮** → **Rename** → escribe `produccion` → confirma. Así el `RAILWAY_TOKEN` que ya guardaste sigue valiendo si lo creaste para ese environment. Si no te ofrece renombrar, crea `produccion` como en el paso 3 y en el paso F rehaces el token.
 3. Crea staging: en el selector de *environment* → **+ New Environment** → **Empty Environment** → nombre `staging` → **Create**.
 
-Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas vale sólo para el environment que esté seleccionado. Empieza por **staging** (B a D) y luego repite en **produccion** (E).
+Desde aquí, **mira siempre el selector antes de tocar algo**: los ajustes y las variables valen sólo para el environment seleccionado. Los nombres de servicio son únicos en el proyecto, pero cada servicio sólo existe en los environments donde se creó o se importó. Empieza por **staging** (B a D) y en **produccion** (E) los importas con **Sync** y les pones sus valores.
 
 ---
 
@@ -62,7 +69,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
 
    | Ajuste en pantalla | Valor | Por qué |
    |---|---|---|
-   | **Source → Branch** (rama que dispara despliegues) | `claude/gifted-allen-rqjiup` **por ahora**; cuando la maestra integre todo en `master`, cámbialo a `master` | staging se despliega solo con cada push a esa rama |
+   | **Source → Branch** (rama que dispara despliegues) | `master` (si lo habías dejado en la rama de trabajo, cámbialo) | staging se despliega solo con cada push a `master` cuya CI pasó |
    | **Source → Wait for CI** | Activado | no despliega un commit cuyo CI falló |
    | **Source → Root Directory** | vacío (o `/`) | el `Dockerfile` está en la raíz |
    | **Build** | debe decir que usa el **Dockerfile** (en los logs: `Using detected Dockerfile!`) | no hay que elegir nada |
@@ -92,6 +99,11 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
    FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
    FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de staging>.firebaseapp.com
+   VITE_FIREBASE_API_KEY=<apiKey de la app web del proyecto de Firebase de staging>
+   VITE_FIREBASE_AUTH_DOMAIN=<id del proyecto de Firebase de staging>.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=<id del proyecto de Firebase de staging>
+   VITE_FIREBASE_APP_ID=<appId de la app web del proyecto de Firebase de staging>
+   ANTHROPIC_API_KEY=<llave de Anthropic de staging>
    CLOUDFLARE_ZONE_ID=<Zone ID de carta.cooking>
    CLOUDFLARE_API_TOKEN=<token de Cloudflare con permiso Zone · Cache Purge>
    ```
@@ -99,10 +111,11 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    - `${{Postgres.DATABASE_URL}}` se pega **tal cual**: Railway lo cambia por la dirección real de la base de este environment.
    - `PORT=8000` fija el puerto en el que escucha la aplicación (y en el que Railway hace el *healthcheck*).
    - `FIREBASE_PROJECT_ID` es el *Project ID* de Firebase (consola de Firebase → ⚙ **Project settings** → **General**), no es secreto. Sin él nadie entra al panel del operador. Las tres `FIREBASE_CSP_*` abren la política de seguridad del navegador a Firebase Auth (inicio de sesión con Google y enlace por correo); vacías, el panel no puede iniciar sesión. Los valores vienen de `docs/plan/04_Fases_y_Tareas.md` §11 (filas T-1.2 y T-1.10).
+   - Las cuatro `VITE_FIREBASE_*` son la configuración web de Firebase (paso 5 de «Antes de empezar»; `VITE_FIREBASE_AUTH_DOMAIN` es el `authDomain` del bloque, normalmente `<id del proyecto>.firebaseapp.com`) y **se hornean en la imagen al construirla**: Railway las pasa al `Dockerfile` como *build args*. Sin ellas el panel dice «acceso sin configurar»; si las cambias después, redespliega (**Deployments → ⋮ → Redeploy**) para que el panel las vea.
+   - `ANTHROPIC_API_KEY` (paso 6 de «Antes de empezar»; **es secreto**) activa la importación de cartas en PDF; sin ella la aplicación arranca y esa función responde 503 «no disponible». `SENTRY_DSN` **no se crea todavía**: se agrega aquí mismo cuando llegue su tarea.
    - `CLOUDFLARE_ZONE_ID` (32 caracteres hexadecimales: Cloudflare → `carta.cooking` → **Overview**, columna derecha, **Zone ID**; no es secreto) y `CLOUDFLARE_API_TOKEN` (Cloudflare → **My Profile → API Tokens → Create Token → Custom token**, permiso **Zone · Cache Purge · Purge** sólo para la zona `carta.cooking`; **es secreto**) dejan que la API purgue el menú público del borde al editarlo. Sin ellas el menú editado tarda hasta 60 s en verse.
-   - `ANTHROPIC_API_KEY` y `SENTRY_DSN` **no se crean todavía**: sin ellas la aplicación arranca y esas funciones quedan apagadas. Se agregan aquí mismo cuando lleguen sus tareas.
-5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY` y `CLOUDFLARE_API_TOKEN`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
-6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra.
+5. **Sella los secretos**: en la lista de variables, en `SECRET_KEY` → menú **⋮** → **Seal**. Igual con `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY`. Una variable sellada ya no se puede ver, ni des-sellar, ni cambiar con el **RAW Editor**: si vuelves a pegar el bloque, los valores sellados **no cambian**. Para cambiar un secreto sellado: **⋮ → Edit** en esa variable, una por una. Si la necesitas, está en tu gestor de contraseñas.
+6. Pulsa **Deploy** en la franja de cambios pendientes. En la pestaña **Deployments** verás, en orden: la construcción (**Build Logs**, 3–6 min la primera vez), el **Pre-deploy** (las migraciones), el *healthcheck* y al final **Active**. Si algo sale en rojo, copia las últimas líneas del log y pásaselas a la maestra. Si el panel del operador dice «acceso sin configurar», la imagen se construyó con un `master` anterior al `Dockerfile` que recibe las `VITE_FIREBASE_*`: tras fusionar ese PR, **Deployments → ⋮ → Redeploy**.
 
 ---
 
@@ -114,7 +127,7 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
    | Ajuste en pantalla | Valor |
    |---|---|
    | **Source → Root Directory** | `/deploy/respaldo` |
-   | **Source → Branch** | la misma que `api` (`claude/gifted-allen-rqjiup` por ahora; luego `master`) |
+   | **Source → Branch** | `master`, la misma que `api` |
    | **Source → Wait for CI** | Activado (no despliega un commit cuyo CI falló) |
    | **Watch Paths** (en **Source** o en **Build**, según cómo lo muestre el panel) | `/deploy/respaldo/**` (sólo se redespliega cuando cambia esa carpeta, no con cada push) |
    | **Deploy → Cron Schedule** | `0 4 * * *` (todos los días a las 04:00 UTC = 22:00 en Ciudad de México) |
@@ -142,11 +155,24 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: todo lo que hagas
 
 ## E. Lo mismo en `produccion`
 
-Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
+Cómo funciona Railway aquí: un servicio es una entidad del **proyecto**, con nombre único en todo el proyecto, pero sólo está presente en los environments donde se creó o se importó, y en cada uno tiene sus propios ajustes, variables, despliegues y volumen. `produccion` nació vacío (**Empty Environment**), así que no ves `api` ni `respaldo`; crear ahí un **Empty Service** llamado `api` falla con «A service named "api" already exists in this project», y la plantilla de Postgres crea un servicio nuevo con sufijo (`Postgres-y0s3`). El camino es **Sync**: importar los tres servicios de staging a produccion y después ponerles sus valores de producción. Cambia el selector a **produccion** y sigue en orden:
 
-1. **B (Postgres):** igual.
-2. **C (`api`):** **no** lo conectes a GitHub. Usa **+ New** → **Empty Service** → nombre `api`. Producción no sigue ninguna rama: la despliega GitHub Actions con cada etiqueta `v*` (`.github/workflows/deploy.yml`). Los ajustes de **Deploy** (Pre-deploy Command, Pre-deploy Timeout, Healthcheck Path, Healthcheck Timeout, Restart Policy) son **los mismos** que en staging. No hay **Source → Branch** ni **Wait for CI**. Hasta el primer despliegue (paso H) la tarjeta queda vacía: es normal.
-   Variables (**RAW Editor**):
+1. **Si ya creaste aquí una base con sufijo** (`Postgres-…`), está vacía y es mejor no tener dos: tarjeta → **Settings** → al final, **Danger** → **Delete Service** → confirma (acepta borrar también su volumen). Si prefieres conservarla, sáltate este punto; entonces en los bloques de variables de abajo escribe su nombre exacto en vez de `Postgres` (por ejemplo `${{Postgres-y0s3.DATABASE_URL}}`) y en el punto 2 descarta la tarjeta `Postgres` del Sync.
+2. **Sync.** Arriba del lienzo, botón **Sync** → elige **staging** como origen. Railway deja en espera tres tarjetas marcadas **New**: `Postgres`, `api` y `respaldo`. Pulsa **Details** en la franja de cambios pendientes para verlas. Después, **con la tecla Alt pulsada**, haz clic en **Deploy**: así los servicios se guardan en produccion **sin desplegar nada todavía** (conviene poner los valores de producción antes de la primera construcción). Si el Alt no funcionara y se desplegaran, no pasa nada grave: `api` construiría con variables de staging y se corrige en el punto 8 con **Redeploy**.
+3. **Postgres.** Abre la tarjeta **Postgres**: debe tener un disco debajo (el volumen propio de produccion). Si no lo tiene, clic derecho sobre la tarjeta → **Attach Volume** → *mount path* `/var/lib/postgresql/data`. La base de producción es otra, vacía: `${{Postgres.DATABASE_URL}}` apunta siempre a la del environment seleccionado.
+4. **`api` → Settings.** Abre la tarjeta **api** → **Settings** y deja exactamente esto (el Sync trae los ajustes de staging, revísalos uno por uno):
+
+   | Ajuste en pantalla | Valor |
+   |---|---|
+   | **Source** | Si muestra el repositorio **KlvinLopez/carta** con una rama, pulsa **Disconnect** (junto al repositorio) y confirma. Producción no sigue ninguna rama: la despliega GitHub Actions con cada etiqueta `v*` (`.github/workflows/deploy.yml`, `railway up`). Sin fuente, **Branch** y **Wait for CI** desaparecen: es lo esperado |
+   | **Deploy → Custom Start Command** | vacío |
+   | **Deploy → Pre-deploy Command** | `uv run python scripts/predespliegue.py` |
+   | **Deploy → Pre-deploy Timeout** | `300` |
+   | **Deploy → Healthcheck Path** | `/health` |
+   | **Deploy → Healthcheck Timeout** | `120` |
+   | **Deploy → Restart Policy** | **On Failure**, máximo `5` reintentos |
+
+5. **`api` → Variables.** Pestaña **Variables** → **RAW Editor**. Lo que hay son las variables de staging que trajo el Sync (sin las selladas): **bórralas todas**, pega este bloque, cambia los `<…>` y pulsa **Update Variables**:
 
    ```text
    ENTORNO=produccion
@@ -165,12 +191,30 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    FIREBASE_CSP_CONNECT_SRC=https://identitytoolkit.googleapis.com https://securetoken.googleapis.com
    FIREBASE_CSP_SCRIPT_SRC=https://apis.google.com
    FIREBASE_CSP_FRAME_SRC=https://<id del proyecto de Firebase de producción>.firebaseapp.com
+   VITE_FIREBASE_API_KEY=<apiKey de la app web del proyecto de Firebase de producción>
+   VITE_FIREBASE_AUTH_DOMAIN=<id del proyecto de Firebase de producción>.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=<id del proyecto de Firebase de producción>
+   VITE_FIREBASE_APP_ID=<appId de la app web del proyecto de Firebase de producción>
+   ANTHROPIC_API_KEY=<llave de Anthropic de producción>
    CLOUDFLARE_ZONE_ID=<Zone ID de carta.cooking>
    CLOUDFLARE_API_TOKEN=<token de Cloudflare con permiso Zone · Cache Purge>
    ```
 
-   Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY` y `CLOUDFLARE_API_TOKEN` (para cambiarlas después, **⋮ → Edit** una por una).
-3. **D (`respaldo`):** igual que en staging: desde GitHub, Root Directory `/deploy/respaldo`, misma rama, **Wait for CI activado** y **Watch Paths** `/deploy/respaldo/**` (así un push a la rama sólo llega a producción si toca el respaldo y su CI pasó), Cron `0 4 * * *`, Restart **Never**. Con estas variables:
+   Sella `SECRET_KEY`, `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN` y `ANTHROPIC_API_KEY` (**⋮ → Seal**; para cambiarlas después, **⋮ → Edit** una por una). Las `VITE_FIREBASE_*` se hornean en la imagen al construirla, igual que en staging. La tarjeta **api** queda **sin despliegue hasta el paso H**: es normal, no la despliegues a mano.
+6. **`respaldo` → Settings.** Abre la tarjeta **respaldo** → **Settings** y deja exactamente esto:
+
+   | Ajuste en pantalla | Valor |
+   |---|---|
+   | **Source** | el repositorio **KlvinLopez/carta** conectado (si ves **Disconnect** junto al repositorio, está conectado; si ves **Connect Repo**, conéctalo) |
+   | **Source → Branch** | `master` |
+   | **Source → Root Directory** | `/deploy/respaldo` |
+   | **Source → Wait for CI** | Activado |
+   | **Watch Paths** | `/deploy/respaldo/**` (así un push a `master` sólo llega a producción si toca el respaldo y su CI pasó) |
+   | **Deploy → Cron Schedule** | `0 4 * * *` |
+   | **Deploy → Restart Policy** | **Never** |
+   | **Deploy → Healthcheck Path** / **Pre-deploy Command** | vacíos |
+
+7. **`respaldo` → Variables.** **RAW Editor** → borra las de staging que trajo el Sync, pega, cambia los `<…>` y **Update Variables**:
 
    ```text
    ENTORNO=produccion
@@ -183,7 +227,8 @@ Cambia el selector a **produccion** y repite B, C y D con **estas diferencias**:
    RESPALDO_DIAS=30
    ```
 
-4. **Deploy** en la franja de cambios pendientes.
+   Sella `R2_SECRET_ACCESS_KEY`.
+8. **Deploy** en la franja de cambios pendientes (esta vez sin Alt). `Postgres` y `respaldo` se despliegan (el respaldo correrá a las 04:00 UTC); `api`, sin fuente, queda sin despliegue hasta el paso H. Si en el punto 2 `api` llegó a construirse con variables de staging, ahora **Deployments → ⋮ → Remove** sobre ese despliegue, o déjalo: el paso H lo sustituye.
 
 > Alternativa futura para `respaldo` de producción: en vez de seguir una rama, **Source → Docker Image** `ghcr.io/klvinlopez/carta-respaldo:<etiqueta>` (la publica `deploy.yml`). Requiere que el paquete de GHCR sea público o credenciales de registro en Railway.
 
@@ -199,6 +244,8 @@ Resumen de lo que cambia entre ambientes:
 | `R2_BUCKET_PRIVADO` | `carta-privado-staging` | `carta-privado-produccion` |
 | `R2_URL_PUBLICA` | `https://img-staging.carta.cooking` | `https://img.carta.cooking` |
 | `FIREBASE_PROJECT_ID`, `FIREBASE_CSP_FRAME_SRC` | proyecto de Firebase de staging | proyecto de Firebase de producción |
+| `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` | app web del proyecto de staging (se hornean en la imagen) | app web del proyecto de producción |
+| `ANTHROPIC_API_KEY` | llave `carta-staging` (sellada) | llave `carta-produccion` (sellada) |
 | `CLOUDFLARE_API_TOKEN` | token de purga (sellado; puede ser el mismo: la zona es la misma) | token de purga (sellado) |
 | Igual en los dos | `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=8000`, `WORKERS=2`, `FIREBASE_CSP_CONNECT_SRC`, `FIREBASE_CSP_SCRIPT_SRC`, `CLOUDFLARE_ZONE_ID`, `R2_ENDPOINT`, `RESPALDO_CLAVE_AGE`, `RESPALDO_DIAS=30` | |
 
@@ -218,7 +265,7 @@ Resumen de lo que cambia entre ambientes:
 
 ## G. Los dominios: `staging.carta.cooking` y `carta.cooking`
 
-Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api` de **produccion** porque todavía no tiene ningún despliegue (*Empty Service*), haz primero el paso H, vuelve aquí y, cuando el DNS esté listo, relanza el trabajo `humo` (GitHub → **Actions** → la corrida → **Re-run failed jobs**).
+Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api` de **produccion** porque todavía no tiene ningún despliegue, haz primero el paso H, vuelve aquí y, cuando el DNS esté listo, relanza el trabajo `humo` (GitHub → **Actions** → la corrida → **Re-run failed jobs**).
 
 1. Selector en **staging** → tarjeta **api** → **Settings** → **Networking** → **Public Networking** → **+ Custom Domain** → escribe `staging.carta.cooking`. Si pregunta el puerto, elige o escribe `8000`.
 2. Railway muestra **dos registros DNS** para crear: uno **CNAME** (su *Value* termina en `.up.railway.app`) y uno **TXT** (verifica que el dominio es tuyo). **Hacen falta los dos**: sin el TXT el dominio responde 404.
@@ -243,7 +290,7 @@ Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api`
 Lo hace la maestra. Antes tienen que cumplirse **todas** estas condiciones:
 
 1. El paso G terminado: en Railway, `carta.cooking` con la **palomita verde** (dominio activo) y los cuatro registros DNS ya creados en Cloudflare por la maestra (o, si usas el plan B de G, sabiendo que el `humo` va a fallar hasta que lo estén).
-2. Esta rama integrada en `master`: `deploy.yml` sólo despliega etiquetas cuyo commit está en `master` (y el botón **Run workflow** del rollback sólo aparece cuando `deploy.yml` está en `master`, la rama predeterminada). Hasta el merge no hay despliegue a producción.
+2. Todo en `master`: el PR #1 (Fases 0 y 1) ya está fusionado; también debe estarlo el PR de esta guía, que trae el `Dockerfile` con la configuración de Firebase. `deploy.yml` sólo despliega etiquetas cuyo commit está en `master` (y el botón **Run workflow** del rollback sólo aparece cuando `deploy.yml` está en `master`, la rama predeterminada).
 3. El paso F hecho (el token en el Environment `produccion`).
 
 Entonces la maestra crea la etiqueta `v0.0.1` sobre `master` (pasos exactos en [`deploy/README.md`](../README.md)) y GitHub Actions corre **Despliegue a producción**. Tú sólo miras: GitHub → **Actions** → la corrida, y en Railway → **produccion** → **api** → **Deployments**, el despliegue **Active**.
@@ -277,7 +324,7 @@ Desde el teléfono también puedes, en el panel de Railway: ver logs (**Deployme
 | Ciclo de vida de los buckets privados | regla `respaldos-90-dias`: borra bajo el prefijo `respaldos/` a los 90 días (red de seguridad de la poda de 30 días de `deploy/respaldo/respaldar.sh`; las fotos originales viven fuera de ese prefijo y no caducan) |
 | Tokens S3 de R2 (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`) | *Account API tokens* con permiso *Object Read & Write*, uno por ambiente, limitados a sus dos buckets; los valores sólo en el panel de Railway |
 | Llave de respaldo (`RESPALDO_CLAVE_AGE`) | `age1snv8uknzuhdupcpkh8dljw39979dlcjdr0x9p5ck68xgeqn09y6qj267mk` (pública, la misma en staging y producción); la privada vive fuera de todo servidor |
-| Servicios por environment | `Postgres` (plantilla con volumen), `api` (staging: GitHub; produccion: *Empty Service* desplegado por CI), `respaldo` (GitHub, `/deploy/respaldo`, Wait for CI, Watch Paths `/deploy/respaldo/**`, cron `0 4 * * *`) |
+| Servicios por environment | Los tres servicios se crean en staging y se importan a produccion con **Sync**; cada environment tiene sus ajustes, variables y volumen: `Postgres` (plantilla con volumen), `api` (staging sigue `master`; produccion sin fuente, la despliega CI con `railway up`), `respaldo` (GitHub, `/deploy/respaldo`, Wait for CI, Watch Paths `/deploy/respaldo/**`, cron `0 4 * * *`) |
 
 ---
 
@@ -287,7 +334,7 @@ Desde el teléfono también puedes, en el panel de Railway: ver logs (**Deployme
 2. **SSL/TLS**: Railway documenta *Full* y no *Full (strict)* detrás de Cloudflare ([working-with-domains](https://docs.railway.com/networking/domains/working-with-domains)). Se intenta primero con *strict* (la zona ya está así); sólo si `staging.carta.cooking` o `carta.cooking` responden **526**, baja a *Full* con una *Configuration Rule* limitada a esos dos nombres, `staging.carta.cooking` y `carta.cooking` (`img.` e `img-staging.` siguen en *strict*). Consecuencia: *Full* acepta en el origen un certificado caducado o de otro nombre, así que deja de validar la identidad de Railway.
 3. **Always Use HTTPS**: activarlo cuando los dos dominios respondan. HSTS lo manda la aplicación (sólo en `staging` y `produccion`). **Decisión consciente:** `includeSubDomains` desde el apex obliga a HTTPS en **todos** los subdominios de la zona durante un año (`img.`, `staging.` y cualquier otro); no pongas en esa zona nada que deba servirse por HTTP.
 4. **Rules**: caché para `/api/v1/p/menu/*` (respeta el `ETag` de la API); límite de tasa (p. ej. 300 peticiones/min por IP); una regla WAF que no cachee ni rete `/health` ni `/ready`. **Sin *Bot Fight Mode***: en el plan Free no admite excepciones y puede retar a los runners de GitHub en la prueba de humo.
-5. **Después de integrar en `master`**: en Railway, **Source → Branch** de `api` y `respaldo` de **staging** (y de `respaldo` de **produccion**) pasa de `claude/gifted-allen-rqjiup` a `master` (lo hace Calvin); `deploy.yml` ya está en la rama predeterminada, así que aparece **Run workflow**; la primera etiqueta `v0.0.1` va sobre `master` (paso H).
+5. **Ya integrado en `master`** (PR #1, 10 de noviembre de 2026): **Source → Branch** de `api` y `respaldo` en **staging** y de `respaldo` en **produccion** es `master`; `deploy.yml` está en la rama predeterminada, así que aparece **Run workflow**; la primera etiqueta `v0.0.1` va sobre `master` (paso H).
 6. **Comprobar**:
 
    ```bash
