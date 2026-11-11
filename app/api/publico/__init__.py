@@ -1,6 +1,7 @@
 """Comensal: `/api/v1/p/*`, cookie `carta_invitado` (ADR-003, 02 §5.1).
 
-`sesion.py` tiene las rutas reales de la sesión de mesa (T-2.1). `ejemplos.py` publica el
+`sesion.py` tiene las rutas reales de la sesión de mesa (T-2.1) y `menu.py` las del menú
+público (T-2.2). `ejemplos.py` publica el
 resto del contrato de la Fase 2 con datos de ejemplo (T-2.1, contrato primero)
 hasta que cada tarea ponga sus rutas reales; `solo_desarrollo` las esconde (404) fuera de
 desarrollo y pruebas. Siguen en `/openapi.json`.
@@ -8,7 +9,7 @@ desarrollo y pruebas. Siguen en `/openapi.json`.
 
 from fastapi import APIRouter, Depends
 
-from app.api.publico import ejemplos, sesion
+from app.api.publico import ejemplos, menu, sesion
 from app.core.config import settings
 from app.core.errores import ErrorCarta, mensaje_por_http
 from app.schemas.comun import errores
@@ -26,6 +27,7 @@ async def solo_desarrollo() -> None:
 # la API nunca responde. El tope del cuerpo está en `tope.py`.
 router = APIRouter(tags=["comensal"], responses=errores(400, 408, 413, 422, 429))
 router.include_router(sesion.router)
+router.include_router(menu.router)
 router.include_router(ejemplos.router, dependencies=[Depends(solo_desarrollo)])
 
 __all__ = ["router", "solo_desarrollo"]
