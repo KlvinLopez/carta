@@ -25,6 +25,7 @@ from app.services import menu_publico as servicio
 from app.services.cache_menu import cache_menu
 from tests.conftest import Fabrica
 from tests.invitado_pruebas import sin_request_id
+from tests.menu_pruebas import Reloj, reloj_falso
 
 P = "/api/v1/p"
 A = "/api/v1/admin"
@@ -51,32 +52,9 @@ CAMPOS_PLATILLO = {
 }
 
 
-class Reloj:
-    """Reloj monótono falso de `cache_menu`: la edad de la copia local se controla a mano."""
-
-    def __init__(self) -> None:
-        self.ahora = 1000.0
-
-    def __call__(self) -> float:
-        return self.ahora
-
-    def avanzar(self, segundos: float) -> None:
-        self.ahora += segundos
-
-
 @pytest.fixture(autouse=True)
 def reloj() -> Iterator[Reloj]:
-    falso = Reloj()
-    anterior, ventana = cache_menu.reloj, cache_menu.ventana
-    cache_menu.reloj = falso
-    cache_menu.ventana = 0.01
-    cache_menu.vaciar()
-    try:
-        yield falso
-    finally:
-        cache_menu.cancelar_purgas()
-        cache_menu.reloj, cache_menu.ventana = anterior, ventana
-        cache_menu.vaciar()
+    yield from reloj_falso()
 
 
 class Lecturas:
@@ -645,10 +623,11 @@ async def test_otro_worker_sirve_su_copia_hasta_30_s_pero_el_borde_no_la_guarda_
     ("edad", "esperado"),
     [
         (0, CACHE_LITERAL),
-        (0.9, CACHE_LITERAL),
+        (0.04, CACHE_LITERAL),  # lo que tarda en salir la respuesta
+        (0.5, "public, max-age=29, s-maxage=59"),
         (1, "public, max-age=29, s-maxage=59"),
         (15, "public, max-age=15, s-maxage=45"),
-        (29.9, "public, max-age=1, s-maxage=31"),
+        (29.9, "public, max-age=0, s-maxage=30"),
     ],
 )
 async def test_los_tiempos_de_cache_descuentan_la_edad_de_la_copia(

@@ -24,9 +24,11 @@ contando desde que se armó.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from uuid import UUID
 
@@ -44,10 +46,13 @@ from app.schemas.menu_publico import (
     RestaurantePublico,
 )
 from app.schemas.restaurante import LARGO_MAXIMO_SLUG, PATRON_SLUG
-from app.services.cache_menu import VIGENCIA_SEGUNDOS, cache_menu
+from app.services.cache_menu import cache_menu
 
 MAX_AGE_SEGUNDOS = 30
 S_MAXAGE_SEGUNDOS = 60
+# Lo que tarda en salir la respuesta: un menú recién armado lleva los tiempos completos.
+HOLGURA_SEGUNDOS = 0.05
+SIN_ALMACENAR = "no-store"
 
 _SLUG = re.compile(PATRON_SLUG)
 
@@ -63,19 +68,25 @@ def _etag(cuerpo: bytes) -> str:
 
 @dataclass(frozen=True)
 class FotoMenu:
-    """El menú ya serializado. `construido` es el reloj de `cache_menu` al armarlo."""
+    """El menú ya serializado. `construido` es el reloj de `cache_menu` al armarlo.
+    `almacenable = False`: una escritura confirmó mientras se leía, así que esta copia ya es
+    vieja y ni el borde ni el navegador deben guardarla."""
 
     cuerpo: bytes
     etag: str
     construido: float
+    almacenable: bool = True
 
     def edad(self) -> float:
         return max(0.0, cache_menu.reloj() - self.construido)
 
     def cabecera_cache(self) -> str:
         """`public, max-age=30, s-maxage=60` recién armado; menos mientras envejece la copia
-        local (ver el docstring del módulo). Nunca negativo."""
-        edad = min(int(self.edad()), int(VIGENCIA_SEGUNDOS))
+        local (ver el docstring del módulo), de modo que `edad + s-maxage <= 60`. Una copia
+        no almacenable sale `no-store`."""
+        if not self.almacenable:
+            return SIN_ALMACENAR
+        edad = math.ceil(max(0.0, self.edad() - HOLGURA_SEGUNDOS))
         return (
             f"public, max-age={max(0, MAX_AGE_SEGUNDOS - edad)}, "
             f"s-maxage={max(0, S_MAXAGE_SEGUNDOS - edad)}"
@@ -161,23 +172,61 @@ async def _armar(sesion: AsyncSession, slug: str) -> MenuPublico:
     )
 
 
-async def menu(sesion: AsyncSession, slug: str) -> FotoMenu:
-    """El menú del restaurante `slug`, de la caché de este worker si tiene ≤ 30 s.
+# `slug` → vuelo en curso. `None` en el resultado = quien armaba se canceló: reintenta el resto.
+_vuelos: dict[str, asyncio.Future[FotoMenu | None]] = {}
 
-    La generación se toma **antes** de consultar la base: si una escritura confirma y
-    `invalidar` corre mientras se lee, `guardar` descarta lo leído (si no, un menú anterior
-    al `commit` quedaría 30 s). Un 404 no se guarda."""
-    if not _slug_valido(slug):
-        raise no_encontrado()
-    guardado = cache_menu.obtener(slug)
-    if isinstance(guardado, FotoMenu):
-        return guardado
+
+async def _armar_y_guardar(sesion: AsyncSession, slug: str) -> FotoMenu:
     generacion = cache_menu.generacion(slug)
     armado = await _armar(sesion, slug)
     cuerpo = armado.model_dump_json().encode()
     foto = FotoMenu(cuerpo=cuerpo, etag=_etag(cuerpo), construido=cache_menu.reloj())
-    cache_menu.guardar(slug, foto, generacion)
+    if not cache_menu.guardar(slug, foto, generacion):
+        return replace(foto, almacenable=False)
     return foto
+
+
+async def menu(sesion: AsyncSession, slug: str) -> FotoMenu:
+    """El menú del restaurante `slug`, de la caché de este worker si tiene ≤ 30 s.
+
+    **Vuelo único por `slug`:** con la caché fría o recién caducada, las peticiones
+    simultáneas esperan a la primera en lugar de armar el menú entera cada una (40 lecturas
+    iguales agotaban el pool). Si quien armaba falla, el error llega a todos y el `slug` no
+    queda atascado; si se cancela (el cliente cuelga), los demás reintentan sin cancelarse.
+
+    La generación se toma **antes** de consultar la base: si una escritura confirma y
+    `invalidar` corre mientras se lee, `guardar` descarta lo leído y la respuesta sale
+    `no-store` (si no, el borde guardaría 60 s un menú anterior al `commit`). Un 404 no se
+    guarda."""
+    if not _slug_valido(slug):
+        raise no_encontrado()
+    while True:
+        guardado = cache_menu.obtener(slug)
+        if isinstance(guardado, FotoMenu):
+            return guardado
+        vuelo = _vuelos.get(slug)
+        if vuelo is None:
+            break
+        resultado = await asyncio.shield(vuelo)  # el error de quien armaba llega aquí
+        if resultado is not None:
+            return resultado
+    vuelo = asyncio.get_running_loop().create_future()
+    _vuelos[slug] = vuelo
+    try:
+        foto = await _armar_y_guardar(sesion, slug)
+    except asyncio.CancelledError:
+        vuelo.set_result(None)
+        raise
+    except BaseException as error:
+        vuelo.set_exception(error)
+        vuelo.exception()  # sin nadie esperando, que no se registre «nunca recuperada»
+        raise
+    else:
+        vuelo.set_result(foto)
+        return foto
+    finally:
+        if _vuelos.get(slug) is vuelo:
+            del _vuelos[slug]
 
 
 @dataclass(frozen=True)
