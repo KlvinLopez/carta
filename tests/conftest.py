@@ -34,7 +34,7 @@ compartida sólo recibe `upgrade head` (idempotente y serializado por un candado
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -58,6 +58,7 @@ settings.DATABASE_URL = URL_PRUEBAS
 
 # Sólo después de fijar la URL: importar cualquier `app.db.*` crea el motor global de la
 # aplicación, que así nace ya sobre la base de pruebas.
+from app.api.publico import limites  # noqa: E402
 from app.core.firebase import obtener_verificador  # noqa: E402
 from app.db.database import close_db, get_db_session  # noqa: E402
 from app.db.models import (  # noqa: E402
@@ -152,6 +153,16 @@ def almacen(tmp_path: Path) -> AlmacenLocal:
     """Almacén de fotos de la prueba (T-1.4): una carpeta temporal, nunca `./datos`.
     `cliente` lo instala; mira lo subido en `almacen.raiz / "publico" | "privado"`."""
     return AlmacenLocal(tmp_path / "almacen", URL_FOTOS_PRUEBAS)
+
+
+@pytest.fixture(autouse=True)
+def limites_en_cero() -> Iterator[None]:
+    """Los límites de tasa del comensal (T-2.3) cuentan en memoria del proceso: cada prueba
+    empieza y termina con las cuentas en cero (si no, la suite entera agota el cubo de
+    127.0.0.1), también las que arman su propia app."""
+    limites.vaciar()
+    yield
+    limites.vaciar()
 
 
 @pytest.fixture
