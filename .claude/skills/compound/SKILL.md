@@ -49,3 +49,7 @@ description: Cierra la sesión guardando lo aprendido donde la próxima sesión 
 - No escribas notas de "cómo estuvo la sesión" en `CLAUDE.md`: va lo que cambia el comportamiento de la próxima sesión, nada más.
 - No conviertas en regla algo que pasó una vez y no tiene por qué repetirse.
 - No crees una skill sin un comando de verificación.
+
+## Al cerrar una fase o una sesión maestra
+
+Además de guardar lo aprendido, pasa la lista de salida limpia de `docs/plan/07_Spec_Driven.md` §8.1 y deja el mensaje de arranque de la siguiente sesión. Una sesión que termina con ramas, PRs, check-ins o decisiones sin dueño no ha terminado.

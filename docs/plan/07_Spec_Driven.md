@@ -165,3 +165,25 @@ Reglas:
 - **GitHub** es donde se revisa: PRs con la plantilla, `/code-review` integrado, diffs legibles en el teléfono. El PR es la unidad de revisión humana; la conversación con el agente es la unidad de trabajo.
 - **Antigravity (o cualquier IDE con agente)** es opcional y encaja sin cambiar nada: abre el repo, lee `AGENTS.md` (que apunta a `CLAUDE.md`), y sirve para ver la app corriendo (`npm run dev`, Vite con recarga), revisar diffs grandes con comodidad y hacer ajustes visuales pequeños del frontend. Dos reglas: **las mismas instrucciones** (no crees reglas propias del IDE que `CLAUDE.md` no tenga) y **nunca dos agentes en el mismo carril al mismo tiempo**, sea en la nube o en el IDE.
 - **La vista previa de la app** en sesiones en la nube: la sesión puede levantar `uvicorn` y `vite` y anunciar el puerto para verla desde el teléfono (T-0.5 en adelante).
+
+## 8. Cierre de fase y handover de sesión
+
+Una fase o una sesión maestra se cierra **limpia** o no se cierra. «Limpia» significa que la siguiente sesión arranca desde `master` sin nada volando: ni ramas, ni PRs, ni check-ins, ni decisiones a medias. Las dos listas de abajo son la puerta; se pasan en orden y se marcan en el reporte de cierre. Lo que no se pueda cerrar se **anota con dueño y fecha** en 04 §11 (fila «Pendientes al cierre de la Fase N»): un pendiente anotado no vuela; uno sin anotar, sí.
+
+### 8.1 Salida limpia (quien cierra)
+
+1. **Código.** Todo en `master` por PR fusionado; la rama de trabajo apunta a `master` (sin commits sin subir, `git status --porcelain` vacío). Ninguna rama `agente/*` viva: las fusionadas se borran; una no fusionada se fusiona o se borra con su razón en 04 §11.
+2. **PRs.** Ninguno abierto de la fase, ni de bots (Dependabot: fusionado, cerrado con motivo o con regla en `.github/dependabot.yml`). Suscripciones a PRs y check-ins (`send_later`, `list_triggers`) cancelados.
+3. **Sesiones.** Todas las hijas archivadas. Sin worktrees (`git worktree list` sólo la raíz). Las bases y archivos locales de la sesión son efímeros: no hace falta borrarlos, pero no deben guardar nada que la siguiente necesite.
+4. **Documentos al día.** CLAUDE.md «Estado del código» (≤ 150 líneas), `docs/plan/README.md` §Estado, 04 §11 con una fila por tarea y por ronda de revisión, `deploy/*/README.md` con los valores reales no secretos. Lecciones en el skill que toque (`/orquestar`, `/desplegar`, `/pruebas`…), nunca sólo en el chat.
+5. **Decisiones.** Ninguna «pendiente de la maestra» ni «pendiente de Calvin» sin resolver o sin fila con dueño y fecha. Las que cambian el alcance van a `/especificar`; las que cambian una regla, a un ADR.
+6. **Operación.** Staging y producción responden (`/health`, `/ready`); la etiqueta `v*` publicada si la fase cambió código de producción; secretos sólo en Railway, el gestor de contraseñas y el formulario seguro; variables no secretas documentadas.
+7. **Reporte de cierre** al usuario: entregable observable de la fase cumplido (cómo se comprobó), tabla de tareas, decisiones tomadas, pendientes anotados y propuesta de la siguiente ola, más el **mensaje de arranque** literal para la sesión nueva.
+
+### 8.2 Entrada limpia (quien arranca)
+
+1. `git fetch` y `git status`: en `master`, al día, sin ramas `agente/*` ni PRs abiertos que no sean tuyos; si los hay, primero se cierran (8.1), no se construye encima.
+2. Lee en orden `docs/plan/README.md` §Estado, CLAUDE.md «Estado del código», las últimas filas de 04 §11 y «Pendientes al cierre» de la fase anterior.
+3. Comprueba el entorno: hook de sesión en verde, `uv run pytest -q` y la puerta del frontend pasan sobre `master`; staging responde.
+4. Confirma el modelo y el presupuesto: `rate_limit_info` de cualquier sesión (`allowed_warning` = una hija a la vez) y los modelos por rol de README §Decisiones.
+5. Sólo entonces: elige la ola con `/orquestar` y lanza la primera hija.

@@ -16,6 +16,11 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
+    ignore:
+      # Node mayor (22 → 26) se decide a mano y junto con `ci.yml` (job frontend) y la
+      # versión que usa Vite; Dependabot sólo propone parches y menores del mismo LTS.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /deploy/respaldo
     schedule:

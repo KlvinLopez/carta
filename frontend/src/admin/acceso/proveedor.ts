@@ -5,8 +5,11 @@
  * viaja en el trozo del área `/admin` (o en uno propio), nunca en el bundle inicial.
  * El resto de la app habla con la interfaz `ProveedorAcceso`, que las pruebas sustituyen.
  *
- * Flujo elegido (menos superficie de CSP que el popup): `signInWithRedirect` para Google y
- * `sendSignInLinkToEmail` para el correo. Dominios que exige: ver 04 §11, fila «T-1.10».
+ * Flujo: `signInWithPopup` para Google (con `signInWithRedirect` de respaldo si el navegador
+ * bloquea la ventana) y `sendSignInLinkToEmail` para el correo. El redirect a secas no sirve
+ * con el `authDomain` en `firebaseapp.com`: Safari y Chrome recientes particionan el
+ * almacenamiento de terceros y el resultado no se puede leer al volver (staging, 11 de
+ * noviembre de 2026). Dominios que exige: ver 04 §11, fila «T-1.10».
  */
 
 export interface UsuarioAcceso {
@@ -154,10 +157,25 @@ export async function crearProveedorFirebase(
       );
     },
     async entrarConGoogle() {
+      // Popup primero: la ventana devuelve el resultado por `postMessage` y no depende del
+      // almacenamiento del dominio de Firebase. Si el navegador bloquea la ventana, el redirect
+      // (navega fuera de la app; la promesa no vuelve a esta página) queda de respaldo.
+      const google = new auth.GoogleAuthProvider();
       try {
-        // Navega fuera de la app; la promesa no vuelve a esta página.
-        await auth.signInWithRedirect(instancia, new auth.GoogleAuthProvider());
+        await auth.signInWithPopup(instancia, google);
       } catch (e) {
+        const codigo = (e as { code?: unknown } | null)?.code;
+        if (
+          codigo === 'auth/popup-blocked' ||
+          codigo === 'auth/operation-not-supported-in-this-environment'
+        ) {
+          try {
+            await auth.signInWithRedirect(instancia, google);
+          } catch (e2) {
+            throw aErrorAcceso(e2);
+          }
+          return;
+        }
         throw aErrorAcceso(e);
       }
     },
