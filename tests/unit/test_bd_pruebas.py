@@ -95,3 +95,22 @@ def test_la_aplicacion_corre_sobre_la_base_de_pruebas() -> None:
     assert base_de_pruebas and "test" in base_de_pruebas
     assert engine.url.database == base_de_pruebas
     assert make_url(settings.DATABASE_URL).database == base_de_pruebas
+
+
+def test_dos_procesos_no_generan_los_mismos_valores_unicos() -> None:
+    """Regresión (T-2.1): con el contador solo, dos corridas de la suite a la vez creaban
+    `restaurante-1`, `uid-1`… en las dos y una esperaba el candado UNIQUE de la otra hasta el
+    `lock_timeout`. Cada proceso lleva su sufijo en los `slug` y `firebase_uid` por defecto."""
+    import subprocess
+    import sys
+
+    from tests import fabricas
+
+    otro = subprocess.run(
+        [sys.executable, "-c", "from tests import fabricas; print(fabricas.SUFIJO_PROCESO)"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    assert len(otro) == len(fabricas.SUFIJO_PROCESO) == 6
+    assert otro != fabricas.SUFIJO_PROCESO
