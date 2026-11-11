@@ -1,10 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './App';
+import { CODIGO_SEMILLA, crearServicioEntradaSimulado } from './mocks/servicioEntradaSimulado';
+
+afterEach(() => vi.unstubAllGlobals());
 
 const irA = (ruta: string) => window.history.replaceState({}, '', ruta);
-const CODIGO = 'ABCDEFGHJKLMNPQRSTUVWX'; // 22 caracteres, como mesa.codigo_publico
 
 describe('App', () => {
   it('/ muestra el inicio sin pasar por el estado de carga', () => {
@@ -15,7 +17,6 @@ describe('App', () => {
   });
 
   it.each([
-    [`/m/${CODIGO}`, `Mesa ${CODIGO}`, 'Bienvenido a la mesa', 'Preparando la mesa…'],
     ['/staff/la-cocina', 'Personal · la-cocina', '¿Quién eres?', 'Preparando la mesa…'],
     ['/admin', 'Panel del operador', 'Tu restaurante, listo en minutos', 'Preparando tu panel…'],
   ])(
@@ -30,6 +31,23 @@ describe('App', () => {
     },
   );
 
+  it('/m/:codigo carga su área por separado y entra a la mesa con la API (T-2.4)', async () => {
+    const sim = crearServicioEntradaSimulado();
+    const fetchFalso = vi.fn(
+      async () =>
+        new Response(JSON.stringify(await sim.servicio.entrar(CODIGO_SEMILLA)), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+    );
+    vi.stubGlobal('fetch', fetchFalso);
+    irA(`/m/${CODIGO_SEMILLA}`);
+    render(<App />);
+    expect(screen.getByRole('status')).toHaveTextContent('Preparando la mesa…');
+    expect(await screen.findByRole('heading', { name: 'Estás en la mesa 7' })).toBeInTheDocument();
+    expect((fetchFalso.mock.calls[0] as unknown as [string])[0]).toBe('/api/v1/p/sesion/entrar');
+  });
+
   it('una ruta desconocida muestra el 404 en el lenguaje de la marca con un enlace-botón', () => {
     irA('/esto-no-existe');
     render(<App />);
@@ -39,11 +57,15 @@ describe('App', () => {
     expect(enlace).toHaveClass('boton', 'fantasma');
   });
 
-  it('un código de mesa que no puede existir (corto o con símbolos) cae al 404', async () => {
-    irA('/m/ABC123');
-    render(<App />);
-    expect(
-      await screen.findByRole('heading', { name: 'No encontramos esta página' }),
-    ).toBeInTheDocument();
-  });
+  it.each(['/m/ABC123', '/m/%ZZ', '/m/%E0%A4%A', `/m/${'A'.repeat(101)}`, '/m/abc%00defghijklmnopqrstuvw'])(
+    'un código que no puede ser de una mesa (%s) da la pantalla de mesa inválida sin llamar a la API',
+    async (ruta) => {
+      const fetchFalso = vi.fn();
+      vi.stubGlobal('fetch', fetchFalso);
+      irA(ruta);
+      render(<App />);
+      expect(await screen.findByRole('heading', { name: 'No encontramos esta mesa' })).toBeInTheDocument();
+      expect(fetchFalso).not.toHaveBeenCalled();
+    },
+  );
 });

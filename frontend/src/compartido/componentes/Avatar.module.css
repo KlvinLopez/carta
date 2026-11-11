@@ -54,6 +54,14 @@
   object-fit: cover;
 }
 
+/* Color asignado por el servidor (`--color-avatar`, validado como #RRGGBB en Avatar.tsx). */
+.colorPropio {
+  background: var(--color-avatar);
+}
+.textoOscuro {
+  color: var(--carbon);
+}
+
 /* Color estable por miembro: ocho tonos cálidos; el índice sale del nombre. */
 .tono0 {
   background: #6b2d3e;

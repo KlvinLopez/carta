@@ -102,7 +102,7 @@ Plantilla en `.claude/skills/especificar/SKILL.md`.
 
 | Mecanismo | Cómo | Cuándo falla |
 |---|---|---|
-| **Marcador de criterio** | `@pytest.mark.ac("AC-25.3")` sobre la prueba (varios IDs permitidos) | — |
+| **Marcador de criterio** | `@pytest.mark.ac("AC-25.3")` sobre la prueba (varios IDs permitidos); en vitest, `// @ac AC-05.1` en la línea de arriba del `it(`, `test(` o `describe(` (un criterio que sólo vive en la pantalla no tiene prueba de backend) | — |
 | **Verificador** | `uv run python scripts/verificar_trazabilidad.py --tarea T-1.9` lista los criterios del brief y qué prueba los cubre; `--estricto` sale con 1 si falta alguno | En `/analizar` y en CI para la fase cerrada (T-4.9) |
 | **Contrato** | `schemathesis run http://localhost:8000/openapi.json` genera peticiones válidas e inválidas desde el OpenAPI y exige que la API responda como declara (códigos, esquemas, envoltura de error) | T-4.9 en CI; antes, a mano en `/analizar` |
 | **Camino crítico** | Playwright: escanear → menú → orden en grupo → comanda en el teléfono del personal | T-4.7, contra staging |
@@ -172,7 +172,7 @@ Una fase o una sesión maestra se cierra **limpia** o no se cierra. «Limpia» s
 
 ### 8.1 Salida limpia (quien cierra)
 
-1. **Código.** Todo en `master` por PR fusionado; la rama de trabajo apunta a `master` (sin commits sin subir, `git status --porcelain` vacío). Ninguna rama `agente/*` viva: las fusionadas se borran; una no fusionada se fusiona o se borra con su razón en 04 §11.
+1. **Código.** Todo en `master` por PR fusionado; la rama de trabajo apunta a `master` (sin commits sin subir, `git status --porcelain` vacío). Ninguna rama `agente/*` **sin fusionar**: se fusiona o se borra con su razón en 04 §11. Las fusionadas **se conservan** (decisión de Calvin del 11 de noviembre de 2026: son el registro de qué se hizo en cada tarea y por qué).
 2. **PRs.** Ninguno abierto de la fase, ni de bots (Dependabot: fusionado, cerrado con motivo o con regla en `.github/dependabot.yml`). Suscripciones a PRs y check-ins (`send_later`, `list_triggers`) cancelados.
 3. **Sesiones.** Todas las hijas archivadas. Sin worktrees (`git worktree list` sólo la raíz). Las bases y archivos locales de la sesión son efímeros: no hace falta borrarlos, pero no deben guardar nada que la siguiente necesite.
 4. **Documentos al día.** CLAUDE.md «Estado del código» (≤ 150 líneas), `docs/plan/README.md` §Estado, 04 §11 con una fila por tarea y por ronda de revisión, `deploy/*/README.md` con los valores reales no secretos. Lecciones en el skill que toque (`/orquestar`, `/desplegar`, `/pruebas`…), nunca sólo en el chat.
@@ -182,7 +182,7 @@ Una fase o una sesión maestra se cierra **limpia** o no se cierra. «Limpia» s
 
 ### 8.2 Entrada limpia (quien arranca)
 
-1. `git fetch` y `git status`: en `master`, al día, sin ramas `agente/*` ni PRs abiertos que no sean tuyos; si los hay, primero se cierran (8.1), no se construye encima.
+1. `git fetch` y `git status`: en `master`, al día, sin ramas `agente/*` de tareas que no estén integradas (las de tareas integradas se conservan; compara con §Estado del README, porque `git branch -r --no-merged` también lista ramas viejas cuya punta no es ancestro de `master`) ni PRs abiertos que no sean tuyos; si los hay, primero se cierran (8.1), no se construye encima.
 2. Lee en orden `docs/plan/README.md` §Estado, CLAUDE.md «Estado del código», las últimas filas de 04 §11 y «Pendientes al cierre» de la fase anterior.
 3. Comprueba el entorno: hook de sesión en verde, `uv run pytest -q` y la puerta del frontend pasan sobre `master`; staging responde.
 4. Confirma el modelo y el presupuesto: `rate_limit_info` de cualquier sesión (`allowed_warning` = una hija a la vez) y los modelos por rol de README §Decisiones.

@@ -33,6 +33,10 @@ from app.db.models import (
 )
 
 _contador = count(1)
+# El contador empieza en 1 en cada proceso: dos corridas de la suite a la vez generaban los
+# mismos `slug` y `firebase_uid` (UNIQUE) y una esperaba el candado de la otra hasta el
+# `lock_timeout` (T-2.1). El sufijo por proceso los separa.
+SUFIJO_PROCESO = secrets.token_hex(3)
 
 # `mesa.codigo_publico` exige al menos 22 caracteres (CHECK `ck_codigo_largo`, 03 §3).
 LARGO_CODIGO_MESA = 22
@@ -45,7 +49,10 @@ def codigo_de_mesa() -> str:
 
 async def crear_restaurante(sesion: AsyncSession, **valores: Any) -> Restaurante:
     n = next(_contador)
-    datos: dict[str, Any] = {"nombre": f"Restaurante {n}", "slug": f"restaurante-{n}"}
+    datos: dict[str, Any] = {
+        "nombre": f"Restaurante {n}",
+        "slug": f"restaurante-{n}-{SUFIJO_PROCESO}",
+    }
     datos.update(valores)
     restaurante = Restaurante(**datos)
     sesion.add(restaurante)
@@ -55,7 +62,7 @@ async def crear_restaurante(sesion: AsyncSession, **valores: Any) -> Restaurante
 
 async def crear_usuario(sesion: AsyncSession, **valores: Any) -> Usuario:
     n = next(_contador)
-    datos: dict[str, Any] = {"firebase_uid": f"uid-{n}", "provider": "google"}
+    datos: dict[str, Any] = {"firebase_uid": f"uid-{n}-{SUFIJO_PROCESO}", "provider": "google"}
     datos.update(valores)
     usuario = Usuario(**datos)
     sesion.add(usuario)

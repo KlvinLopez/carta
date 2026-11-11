@@ -98,3 +98,12 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 - Un formulario en hoja inferior necesita `padding` de ≥ 4 px: el halo de foco se recorta contra el borde de la hoja.
 - Las pantallas de gestión comparten `admin/gestion/` (`useLista`, `mensajes`, `LimiteGestion`, `CopiarEnlace`, `utilesContrato` sólo para pruebas): úsalo en la siguiente (categorías, pedidos) en vez de copiar.
 - **Revisión de T-1.13:** la URL de una mesa (`/m/<codigo>`) es una credencial, nunca un «enlace público»: no se muestra ni se copia fuera de Mesas. Un `<a href="/admin/…">` recarga la SPA y tira el token en memoria: usa `<Link>`. `maxLength` del DOM cuenta UTF-16 y el servidor puntos de código: valida con `[...texto].length`. Un PIN no se normaliza (NFKC lo «arreglaba» en silencio): se rechaza, y sólo se conserva tras un error si el servidor no aplicó nada (503, 408, red). La sombra flotante de un botón dentro de una hoja se recorta contra su borde y dibuja una banda: sin sombra en las hojas. Las pruebas que pintan cientos de filas esperan el estado final con `timeout` explícito (bajo carga el plazo por defecto no alcanza).
+
+## Lecciones de la entrada del comensal (T-2.4)
+
+- El comensal no usa `crearCliente` (Bearer, renovación, el 304 es error): su cliente es `comensal/entrada/servicio.ts` con la cookie `HttpOnly` y `If-None-Match`. Lo que se pinta de un `200` se valida por forma: un HTML del borde no es una respuesta.
+- Un alias o logo ajeno se pinta como texto de React (nunca `dangerouslySetInnerHTML`) y el logo sólo si es `https` sin credenciales y con `referrerPolicy="no-referrer"`; si no carga (CSP de `img-src`) cae a la inicial.
+- `entrar` crea un miembro por llamada sin cookie: toda entrada pasa por una sola llamada en vuelo por código (StrictMode, doble toque). Contar puntos de código (`[...texto].length`), no `maxLength`, para el alias.
+- Cuenta atrás con `setTimeout` encadenado y fake timers: avanzar de 1 s en 1 s, cada uno en su `act`; un solo salto de 3 s no re-renderiza entre ticks.
+- Una pantalla de error debe distinguir «el servidor no me reconoce» (401 repetido = cookies bloqueadas) de «token vencido»: tope de reentradas, nunca un ciclo.
+- Un trozo de área en el camino crítico (AC-01.1) se vigila con una prueba que lee sus imports (`entrada-aislamiento.test.ts`) además del presupuesto.
