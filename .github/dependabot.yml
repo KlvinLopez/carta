@@ -21,6 +21,10 @@ updates:
       # versión que usa Vite; Dependabot sólo propone parches y menores del mismo LTS.
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
+      # Python va fijado en 3.12 por `.python-version` y `pyproject.toml` (uv, mypy, ruff):
+      # subir de versión es una decisión del plan, no una actualización automática.
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: docker
     directory: /deploy/respaldo
     schedule:
