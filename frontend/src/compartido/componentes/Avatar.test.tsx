@@ -57,4 +57,31 @@ describe('Avatar', () => {
     fireEvent.error(screen.getByRole('img', { name: 'Carlos Ramírez' }).querySelector('img')!);
     expect(screen.getByTestId('iniciales')).toHaveTextContent('CR');
   });
+
+  describe('color del servidor (AC-03.1)', () => {
+    it('pinta el color recibido y no cambia al cambiar el nombre', () => {
+      const { rerender } = render(<Avatar nombre="Ana" color="#4F1728" />);
+      const interior = () => screen.getByTestId('iniciales').parentElement!;
+      expect(interior().style.getPropertyValue('--color-avatar')).toBe('#4F1728');
+      rerender(<Avatar nombre="Zoila Pérez" color="#4F1728" />);
+      expect(interior().style.getPropertyValue('--color-avatar')).toBe('#4F1728');
+    });
+
+    it.each(['rojo', '#fff', '#4f1728', 'url(x)', '#4F1728; background:red', ''])('un color inválido (%s) se ignora y vale el del nombre', (color) => {
+      render(<Avatar nombre="Ana" color={color} />);
+      expect(screen.getByTestId('iniciales').parentElement!.style.getPropertyValue('--color-avatar')).toBe('');
+    });
+
+    it('sobre un color claro el texto es oscuro; sobre uno oscuro, claro', () => {
+      const { rerender } = render(<Avatar nombre="Ana" color="#B8860B" />);
+      expect(screen.getByTestId('iniciales').parentElement).toHaveClass('textoOscuro');
+      rerender(<Avatar nombre="Ana" color="#4F1728" />);
+      expect(screen.getByTestId('iniciales').parentElement).not.toHaveClass('textoOscuro');
+    });
+
+    it('sin la prop nada cambia para quien ya lo usa', () => {
+      render(<Avatar nombre="Valeria Ruiz" />);
+      expect(screen.getByTestId('iniciales').parentElement!.className).toMatch(/tono\d/);
+    });
+  });
 });
