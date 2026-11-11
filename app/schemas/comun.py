@@ -203,9 +203,11 @@ def errores(*codigos: int) -> dict[int | str, dict[str, Any]]:
         401: "Falta la credencial o expiró",
         404: "No existe o no es de tu restaurante (nunca 403, AC-15.3)",
         409: "Choca con el estado actual",
+        410: "La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR",
         413: "El archivo es demasiado grande",
         415: "Tipo de archivo no permitido",
         422: "Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`)",
+        429: "Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`)",
         503: (
             "Un servicio del que dependemos no responde; reintenta (`ALMACEN_NO_DISPONIBLE`, "
             "`IMPORTACION_NO_DISPONIBLE`, `SERVICIO_OCUPADO`)"
