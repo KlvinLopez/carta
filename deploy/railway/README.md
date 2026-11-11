@@ -291,7 +291,7 @@ Antes de empezar: si en el paso 3 Railway no te deja añadir un dominio al `api`
 El primer despliegue (`v0.0.1`, 11 de noviembre de 2026) lo publicaste tú desde **Releases**. Desde entonces el camino es éste, y sirve para todas las versiones:
 
 1. **Validas en staging.** Cada merge a `master` se despliega solo en `staging.carta.cooking`; ahí compruebas que lo prometido funciona (el recorrido del operador, lo que haya cambiado).
-2. **Pides la versión.** Le dices a la sesión maestra «publica v0.0.2» (o la lanzas tú: GitHub → **Actions** → **Publicar versión** → **Run workflow** → `version`). El workflow crea la etiqueta sobre `master`, publica la **Release** con las notas y lanza **Despliegue a producción**.
+2. **Pides la versión.** Le dices a la sesión maestra «publica v0.0.2»: ella abre un PR que cambia el archivo `VERSION` y tú lo fusionas (**Merge pull request**): ésa es tu primera validación. Al entrar en `master`, el workflow **Publicar versión** espera a que el CI termine en verde, crea la etiqueta, publica la **Release** con las notas y lanza **Despliegue a producción**. (También puedes lanzarlo tú: GitHub → **Actions** → **Publicar versión** → **Run workflow** → `version`.)
 3. **Apruebas.** GitHub te avisa; **Actions** → la corrida → **Review deployments** → `produccion` → **Approve and deploy**. Hasta ese toque nada cambia en producción (paso F.6). Si algo no te convence, **Reject**: la etiqueta queda publicada sin desplegar.
 4. **Miras el resultado.** En la corrida, los cuatro trabajos en verde; en Railway → **produccion** → **api** → **Deployments**, el despliegue **Active**; y `https://carta.cooking/health` desde el teléfono.
 
