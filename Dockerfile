@@ -69,9 +69,10 @@ COPY --from=frontend /src/frontend/dist frontend/dist
 # En tiempo de ejecución `uv run` no sincroniza ni escribe nada: el entorno ya está completo y
 # el usuario no tiene permiso de escritura sobre /app (el código es de root, sólo lectura).
 # FORWARDED_ALLOW_IPS=*: uvicorn sólo confía X-Forwarded-* desde 127.0.0.1; detrás del proxy de
-# Railway o de Caddy `request.url.scheme` sería `http` y `request.client.host` la IP del proxy
-# (307 con Location http://, cookies Secure, URLs de QR, límite por IP). El contenedor sólo es
-# alcanzable a través de ese proxy, así que confiar en todos los orígenes es correcto aquí.
+# Railway o de Caddy `request.url.scheme` sería `http` (307 con Location http://, cookies
+# Secure, URLs de QR). Ojo: con `*` `request.client.host` es el PRIMER elemento de
+# X-Forwarded-For, el que escribe el cliente: no sirve para límites ni para `ip_hash`; la IP del
+# cliente sale de app.api.publico.limites.ip_de_peticion (T-2.3).
 ENV UV_NO_SYNC=1 \
     FORWARDED_ALLOW_IPS=*
 
