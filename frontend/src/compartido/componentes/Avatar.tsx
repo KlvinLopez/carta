@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 
 import estilos from './Avatar.module.css';
 
@@ -37,8 +37,28 @@ export function inicialesDe(nombre: string): string {
   return primera + ultima;
 }
 
+/** Color de avatar que asigna el servidor (`#RRGGBB` en mayúsculas, hay CHECK en la base). */
+const COLOR_AVATAR = /^#[0-9A-F]{6}$/;
+
+/** Texto claro u oscuro según cuál contraste más con el color de fondo (luminancia WCAG). */
+function textoOscuroSobre(color: string): boolean {
+  const canales = [1, 3, 5].map((i) => {
+    const c = parseInt(color.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const luminancia = 0.2126 * canales[0]! + 0.7152 * canales[1]! + 0.0722 * canales[2]!;
+  const contrasteConBlanco = 1.05 / (luminancia + 0.05);
+  const contrasteConCarbon = (luminancia + 0.05) / (0.0103 + 0.05); // #1A1A1A ≈ 0.0103
+  return contrasteConCarbon > contrasteConBlanco;
+}
+
 export interface PropsAvatar {
   nombre: string;
+  /**
+   * Color de fondo asignado por el servidor (AC-03.1: estable en toda la sesión, no cambia con el
+   * alias). Opcional y aditivo: sin él, o si no es `#RRGGBB`, el color sale del nombre como siempre.
+   */
+  color?: string;
   foto?: string;
   tamano?: 'chico' | 'normal' | 'grande';
   /** Anillo Vino → Dorado: quien ya confirmó o está activo. */
@@ -55,6 +75,7 @@ export interface PropsAvatar {
  */
 export function Avatar({
   nombre,
+  color,
   foto,
   tamano = 'normal',
   anillo = false,
@@ -62,7 +83,10 @@ export function Avatar({
   className,
 }: PropsAvatar) {
   const [fotoFallo, setFotoFallo] = useState(false);
-  const tono = estilos[`tono${tonoDeNombre(nombre)}`];
+  const colorPropio = color !== undefined && COLOR_AVATAR.test(color) ? color : null;
+  const tono = colorPropio
+    ? `${estilos.colorPropio} ${textoOscuroSobre(colorPropio) ? estilos.textoOscuro : ''}`
+    : estilos[`tono${tonoDeNombre(nombre)}`];
   const clases = [
     estilos.avatar,
     estilos[tamano],
@@ -77,7 +101,11 @@ export function Avatar({
 
   return (
     <span className={clases} role="img" aria-label={nombre} title={nombre}>
-      <span className={`${estilos.interior} ${mostrarFoto ? '' : tono}`}>
+      {/* El color va como propiedad personalizada: React la pone por CSSOM, que la CSP permite. */}
+      <span
+        className={`${estilos.interior} ${mostrarFoto ? '' : tono}`}
+        style={colorPropio && !mostrarFoto ? ({ '--color-avatar': colorPropio } as CSSProperties) : undefined}
+      >
         {mostrarFoto ? (
           <img
             className={estilos.foto}

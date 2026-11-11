@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ErrorApi } from '../../compartido/http';
 import { validador } from '../../admin/gestion/utilesContrato';
-import { CODIGO_SEMILLA, crearServicioEntradaSimulado, errorSimulado } from '../../mocks/servicioEntradaSimulado';
+import { CODIGO_SEMILLA, crearServicioEntradaSimulado, cuerpoDeError, errorSimulado } from '../../mocks/servicioEntradaSimulado';
 import { claseDeError } from './errores';
 import { espejoLocal } from './espejo';
 import { crearServicioEntrada } from './servicio';
@@ -17,7 +17,8 @@ afterEach(() => {
   window.localStorage.clear();
 });
 
-describe('servicio HTTP del comensal (AC-01.5)', () => {
+describe('servicio HTTP del comensal', () => {
+  // @ac AC-01.5
   it('entrar manda {codigo_mesa} con la cookie del propio origen y sin Authorization', async () => {
     const sim = crearServicioEntradaSimulado();
     const fetchFalso = vi.fn(async () => json(await sim.servicio.entrar(CODIGO_SEMILLA)));
@@ -93,7 +94,11 @@ describe('servicio HTTP del comensal (AC-01.5)', () => {
       })) as unknown as typeof fetch;
     const servicio = crearServicioEntrada(colgado);
     const resultado = servicio.entrar('x').catch((e: unknown) => e);
-    await vi.advanceTimersByTimeAsync(15_001);
+    let terminada = false;
+    void resultado.then(() => (terminada = true));
+    await vi.advanceTimersByTimeAsync(14_000);
+    expect(terminada).toBe(false); // todavía espera: el plazo no es de 1.5 s
+    await vi.advanceTimersByTimeAsync(1_100);
     expect(await resultado).toMatchObject({ estado: 0, codigo: 'SIN_RED' });
   });
 
@@ -109,6 +114,20 @@ describe('servicio HTTP del comensal (AC-01.5)', () => {
     expect(error).toBeInstanceOf(DOMException);
   });
 
+  it('Retry-After fraccionario sube al entero siguiente y los inválidos se ignoran', async () => {
+    const con = (valor: string) =>
+      crearServicioEntrada(
+        (async () => json(envoltura('DEMASIADAS_PETICIONES'), { status: 429, headers: { 'Retry-After': valor } })) as typeof fetch,
+      )
+        .entrar('x')
+        .catch((e: ErrorApi) => e.reintentarEn);
+    expect(await con('0.0001')).toBe(1);
+    expect(await con('2.2')).toBe(3);
+    expect(await con('-5')).toBeNull();
+    expect(await con('abc')).toBeNull();
+    expect(await con('99999')).toBe(300);
+  });
+
   it('Retry-After de un 429 llega a reintentarEn', async () => {
     const servicio = crearServicioEntrada(
       (async () => json(envoltura('DEMASIADAS_PETICIONES'), { status: 429, headers: { 'Retry-After': '7' } })) as typeof fetch,
@@ -117,7 +136,7 @@ describe('servicio HTTP del comensal (AC-01.5)', () => {
   });
 });
 
-describe('clasificación de errores (AC-01.3)', () => {
+describe('clasificación de errores', () => {
   it.each([
     [new ErrorApi(404, 'MESA_NO_ENCONTRADA', ''), 'mesa_invalida'],
     [new ErrorApi(404, 'RECURSO_NO_ENCONTRADO', ''), 'generico'],
@@ -138,18 +157,44 @@ describe('clasificación de errores (AC-01.3)', () => {
 });
 
 describe('el servicio simulado cumple el contrato', () => {
-  it('sus respuestas validan contra openapi.json y sus peticiones también', async () => {
-    const sim = crearServicioEntradaSimulado({ restaurante: { nombre: 'La Ceiba', logo_url: 'https://cdn.example/logo.png' } });
-    const entrar = await sim.servicio.entrar(CODIGO_SEMILLA);
-    expect(validador('EntrarRespuesta')(entrar), validador('EntrarRespuesta')(entrar).errores).toMatchObject({ valido: true });
-    sim.sentarOtro();
-    const estado = await sim.servicio.estado(null);
-    if (estado.sinCambios) throw new Error('esperaba estado');
-    expect(validador('SesionEstado')(estado.estado)).toMatchObject({ valido: true });
-    const alias = await sim.servicio.cambiarAlias('Luz');
-    expect(validador('MiembroRespuesta')(alias)).toMatchObject({ valido: true });
+  it('todas sus respuestas validan contra openapi.json, con 1, 5 y 12 comensales, y sus peticiones también', async () => {
+    for (const ocupados of [0, 4, 11]) {
+      const sim = crearServicioEntradaSimulado({ ocupados, restaurante: { nombre: 'La Ceiba', logo_url: 'https://cdn.example/logo.png' } });
+      const entrar = await sim.servicio.entrar(CODIGO_SEMILLA);
+      const v = validador('EntrarRespuesta')(entrar);
+      expect(v.valido, v.errores).toBe(true);
+      const estado = await sim.servicio.estado(null);
+      if (estado.sinCambios) throw new Error('esperaba estado');
+      const ve = validador('SesionEstado')(estado.estado);
+      expect(ve.valido, ve.errores).toBe(true);
+      const alias = await sim.servicio.cambiarAlias('Luz');
+      const va = validador('MiembroRespuesta')(alias);
+      expect(va.valido, va.errores).toBe(true);
+    }
     expect(validador('EntrarCuerpo')({ codigo_mesa: CODIGO_SEMILLA })).toMatchObject({ valido: true });
     expect(validador('MiembroCambios')({ alias: 'Luz' })).toMatchObject({ valido: true });
+  });
+
+  it('todos sus errores salen con la envoltura ErrorRespuesta del contrato', async () => {
+    const sim = crearServicioEntradaSimulado({ ocupados: 12 });
+    const s2 = crearServicioEntradaSimulado();
+    await s2.servicio.entrar(CODIGO_SEMILLA);
+    const fallos: unknown[] = [
+      await sim.servicio.entrar(CODIGO_SEMILLA).catch((e) => e), // 409
+      await sim.servicio.entrar('otro').catch((e) => e), // 404
+      await s2.servicio.cambiarAlias('eres tonto').catch((e) => e), // 422 alias
+      await s2.servicio.cambiarAlias('x'.repeat(30)).catch((e) => e), // 422 payload
+      errorSimulado(429, 'DEMASIADAS_PETICIONES', 'x', 7),
+    ];
+    s2.expirarToken();
+    fallos.push(await s2.servicio.estado(null).catch((e) => e)); // 401
+    s2.cerrar();
+    fallos.push(await s2.servicio.estado(null).catch((e) => e)); // 410
+    expect(fallos.every((f) => f instanceof ErrorApi)).toBe(true);
+    for (const f of fallos as ErrorApi[]) {
+      const v = validador('ErrorRespuesta')(cuerpoDeError(f));
+      expect(v.valido, `${f.codigo}: ${v.errores}`).toBe(true);
+    }
   });
 
   it('aplica las reglas del servidor: 12 como máximo, alias bloqueado, 304, 401 y 410', async () => {
@@ -172,7 +217,8 @@ describe('el servicio simulado cumple el contrato', () => {
   });
 });
 
-describe('espejo local (AC-01.4)', () => {
+describe('espejo local', () => {
+  // @ac AC-01.4
   it('guarda sólo ids opacos y los lee de vuelta', () => {
     espejoLocal.guardar({ miembro: 'm-1', sesion: 's-1' });
     expect(espejoLocal.leer()).toEqual({ miembro: 'm-1', sesion: 's-1' });

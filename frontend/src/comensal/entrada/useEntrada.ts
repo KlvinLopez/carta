@@ -8,8 +8,12 @@ import type { EntrarRespuesta, MiembroRespuesta, ServicioEntrada, SesionEstado, 
 /** Sondeo del estado de la mesa (ADR-004): 3 s, con retroceso si falla, pausado en segundo plano. */
 export const INTERVALO_SONDEO_MS = 3000;
 const ESPERA_MAXIMA_MS = 30_000;
-/** Dos reentradas seguidas sin que el servidor nos reconozca: el navegador no guarda la cookie. */
-const REENTRADAS_MAXIMAS = 2;
+/**
+ * Una sola reentrada automática tras un 401 (cubre el token de 6 h vencido). Cada `entrar` sin
+ * cookie crea un comensal: si el 401 vuelve enseguida, el navegador no guarda la cookie y no se
+ * insiste sin que la persona toque. Se reinicia cuando un sondeo funciona de verdad.
+ */
+const REENTRADAS_MAXIMAS = 1;
 
 export interface DatosMesa {
   sesion: SesionResumen;
@@ -19,7 +23,7 @@ export interface DatosMesa {
   /** El servidor reconoció al mismo invitado que el espejo local recordaba (AC-01.4). */
   regresa: boolean;
   /** El último sondeo falló: se conserva lo pintado y se avisa sin tapar la pantalla. */
-  sinRed: boolean;
+  aviso: 'red' | 'servidor' | null;
 }
 
 export type VistaEntrada =
@@ -33,17 +37,29 @@ export type ResultadoAlias =
 
 // Una sola `entrar` en vuelo por servicio y código: el doble toque, el doble montaje de
 // StrictMode y dos pestañas montadas a la vez comparten la misma llamada (si no, sin cookie previa
-// cada una crearía un comensal).
-const enVuelo = new WeakMap<ServicioEntrada, Map<string, Promise<EntrarRespuesta>>>();
+// cada una crearía un comensal). Se puede cancelar: una entrada lenta de otra mesa no debe dejar su
+// cookie por encima de la de la mesa actual.
+interface EnVuelo {
+  promesa: Promise<EntrarRespuesta>;
+  control: AbortController;
+}
+const enVuelo = new WeakMap<ServicioEntrada, Map<string, EnVuelo>>();
 
 function entrarUnica(servicio: ServicioEntrada, codigo: string): Promise<EntrarRespuesta> {
   let porCodigo = enVuelo.get(servicio);
   if (!porCodigo) enVuelo.set(servicio, (porCodigo = new Map()));
   const actual = porCodigo.get(codigo);
-  if (actual) return actual;
-  const nueva = servicio.entrar(codigo).finally(() => porCodigo.delete(codigo));
-  porCodigo.set(codigo, nueva);
-  return nueva;
+  if (actual) return actual.promesa;
+  const control = new AbortController();
+  const promesa = servicio.entrar(codigo, control.signal).finally(() => {
+    if (porCodigo.get(codigo)?.promesa === promesa) porCodigo.delete(codigo);
+  });
+  porCodigo.set(codigo, { promesa, control });
+  return promesa;
+}
+
+function cancelarEntrada(servicio: ServicioEntrada, codigo: string) {
+  enVuelo.get(servicio)?.get(codigo)?.control.abort();
 }
 
 export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Espejo = espejoLocal) {
@@ -54,6 +70,12 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
   const restaurante = useRef<string | null>(null);
   const reentradas = useRef(0);
   const cambiando = useRef(false);
+  const codigoActual = useRef(codigo);
+  codigoActual.current = codigo;
+  /** Miembro vigente: un PATCH tardío de otro miembro (ya reentramos) no lo toca. */
+  const yoActual = useRef<string | null>(null);
+  /** Sube con cada cambio de alias: un sondeo pedido antes de él trae el alias viejo. */
+  const cambiosAlias = useRef(0);
 
   const fallar = useCallback(
     (error: unknown) => {
@@ -71,13 +93,14 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
       const previo = espejo.leer();
       espejo.guardar({ miembro: r.miembro.id, sesion: r.sesion.id });
       restaurante.current = r.sesion.restaurante.nombre;
+      yoActual.current = r.miembro.id;
       setVista({
         fase: 'lista',
         sesion: r.sesion,
         yo: r.miembro,
         estado: null,
         regresa: previo?.miembro === r.miembro.id,
-        sinRed: false,
+        aviso: null,
       });
     },
     [espejo],
@@ -99,8 +122,13 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
     void entrar();
     return () => {
       vivo.current = false;
+      // StrictMode vuelve a montar al instante (vivo=true otra vez y la misma entrada sigue); un
+      // desmontaje real o un código nuevo cancela la entrada pendiente de este código.
+      setTimeout(() => {
+        if (!vivo.current || codigoActual.current !== codigo) cancelarEntrada(servicio, codigo);
+      }, 0);
     };
-  }, [entrar]);
+  }, [entrar, servicio, codigo]);
 
   /** El token venció o no llegó: se vuelve a entrar con el código (crea un comensal nuevo si hace falta). */
   const reentrar = useCallback(async () => {
@@ -140,16 +168,27 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
       // Pausado en segundo plano; `visibilitychange` lo retoma. Una sola petición a la vez.
       if (parar || ocupado || document.hidden) return;
       ocupado = true;
+      const versionAlias = cambiosAlias.current;
       try {
         const r = await servicio.estado(etag, control.signal);
         if (parar) return;
+        if (cambiosAlias.current !== versionAlias) {
+          // Pedido antes de un cambio de alias: trae el alias viejo. Se descarta, sin guardar su ETag.
+          programar(0);
+          return;
+        }
+        if (!r.sinCambios && r.estado.id !== clave) {
+          // El servidor nos tiene en otra sesión que la de esta entrada: se vuelve a entrar con el código.
+          void reentrar();
+          return;
+        }
         fallos = 0;
         reentradas.current = 0;
         if (!r.sinCambios) etag = r.etag;
         setVista((v) => {
           if (v.fase !== 'lista') return v;
-          if (r.sinCambios) return v.sinRed ? { ...v, sinRed: false } : v;
-          return { ...v, estado: r.estado, sinRed: false };
+          if (r.sinCambios) return v.aviso ? { ...v, aviso: null } : v;
+          return { ...v, estado: r.estado, aviso: null };
         });
         programar(INTERVALO_SONDEO_MS);
       } catch (error) {
@@ -164,7 +203,8 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
           return;
         }
         fallos += 1;
-        setVista((v) => (v.fase === 'lista' && !v.sinRed ? { ...v, sinRed: true } : v));
+        const aviso = clase === 'sin_conexion' ? 'red' : 'servidor';
+        setVista((v) => (v.fase === 'lista' && v.aviso !== aviso ? { ...v, aviso } : v));
         const pedida = error instanceof ErrorApi && error.reintentarEn ? error.reintentarEn * 1000 : 0;
         programar(Math.min(Math.max(pedida, INTERVALO_SONDEO_MS * 2 ** fallos), ESPERA_MAXIMA_MS));
       } finally {
@@ -200,8 +240,14 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
     async (alias: string): Promise<ResultadoAlias> => {
       if (cambiando.current) return { ok: false, motivo: 'ocupado' };
       cambiando.current = true;
+      cambiosAlias.current += 1;
       try {
         const m = await servicio.cambiarAlias(alias);
+        cambiosAlias.current += 1;
+        if (m.id !== yoActual.current) {
+          // Reentramos como otro comensal mientras tanto: este cambio ya no es de quien está en pantalla.
+          return { ok: false, motivo: 'credencial' };
+        }
         if (vivo.current) {
           setVista((v) =>
             v.fase !== 'lista'

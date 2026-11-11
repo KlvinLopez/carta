@@ -47,6 +47,11 @@ export function HojaAlias({ abierta, aliasActual, onCerrar, onGuardar }: PropsHo
   const largo = largoAlias(limpio);
   const valido = largo >= 1 && largo <= MAX_ALIAS;
 
+  // Con el guardado en curso la hoja no se cierra (Escape, fondo, ×): si el PATCH falla, el error se ve.
+  function cerrar() {
+    if (!guardando) onCerrar();
+  }
+
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
     if (guardando || !valido) return;
@@ -63,7 +68,7 @@ export function HojaAlias({ abierta, aliasActual, onCerrar, onGuardar }: PropsHo
   }
 
   return (
-    <HojaInferior abierta={abierta} onCerrar={onCerrar} titulo="¿Cómo te llamamos?" descripcion="Tu nombre en la mesa lo ven quienes comen contigo.">
+    <HojaInferior abierta={abierta} onCerrar={cerrar} titulo="¿Cómo te llamamos?" descripcion="Tu nombre en la mesa lo ven quienes comen contigo.">
       <form className={estilos.formulario} onSubmit={(ev) => void enviar(ev)} noValidate>
         <div className={estilos.campo}>
           <label className={e.texto} htmlFor={idCampo}>
@@ -89,7 +94,9 @@ export function HojaAlias({ abierta, aliasActual, onCerrar, onGuardar }: PropsHo
             </p>
           )}
           {largo > MAX_ALIAS && (
-            <p className={estilos.error}>Usa {MAX_ALIAS} caracteres o menos.</p>
+            <p className={estilos.error} role="status">
+              Usa {MAX_ALIAS} caracteres o menos.
+            </p>
           )}
         </div>
         <Boton type="submit" ancho cargando={guardando} disabled={!valido}>

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { Boton } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
 import type { ClaseError } from './errores';
+import estilos from './Entrada.module.css';
+import { useFocoEnTitulo } from './useFocoEnTitulo';
 
 interface Copia {
   simbolo: string;
@@ -76,7 +78,8 @@ export interface PropsPantallaError {
 /** Pantalla de fallo de la entrada, en el lenguaje de la marca. */
 export function PantallaError({ clase, restaurante = null, reintentarEn = null, onReintentar }: PropsPantallaError) {
   const copia = copiaDe(clase, restaurante);
-  const [falta, setFalta] = useState(clase === 'limite' ? Math.min(reintentarEn ?? 5, 60) : 0);
+  const titulo = useFocoEnTitulo();
+  const [falta, setFalta] = useState(clase === 'limite' ? Math.min(Math.ceil(reintentarEn ?? 5), 60) : 0);
   const [reintentando, setReintentando] = useState(false);
 
   useEffect(() => {
@@ -87,11 +90,13 @@ export function PantallaError({ clase, restaurante = null, reintentarEn = null, 
 
   return (
     <Pantalla>
-      <div className={e.centrado} role={clase === 'mesa_invalida' ? undefined : 'alert'}>
+      <div className={e.centrado} role="alert">
         <div className={e.ilustracion} aria-hidden="true">
           {copia.simbolo}
         </div>
-        <h1 className={e.titulo}>{copia.titulo}</h1>
+        <h1 ref={titulo} tabIndex={-1} className={`${e.titulo} ${estilos.titulo}`}>
+          {copia.titulo}
+        </h1>
         <p className={e.texto}>{copia.texto}</p>
         {copia.boton && (
           <Boton

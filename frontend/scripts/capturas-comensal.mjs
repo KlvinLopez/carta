@@ -7,7 +7,8 @@
  *
  * Como `capturas-admin.mjs`: levanta Vite con una página temporal (`captura-comensal.html` +
  * `src/captura-comensal.tsx`, que se borran al terminar) y usa Playwright. Genera: bienvenida,
- * alias-edicion, mesa-invalida, mesa-llena, sesion-cerrada, sin-conexion, error-generico, cargando.
+ * alias-edicion, mesa-invalida, mesa-llena, sesion-cerrada, sin-conexion, error-generico, sin-lugar
+ * («No pudimos guardar tu lugar»), cargando.
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -25,38 +26,50 @@ const { createServer } = await import(pathToFileURL(join(frontend, 'node_modules
 const html = join(frontend, 'captura-comensal.html');
 const tsx = join(frontend, 'src', 'captura-comensal.tsx');
 
-writeFileSync(
-  html,
-  '<!doctype html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>captura</title></head><body><div id="app"></div><script type="module" src="/src/captura-comensal.tsx"></script></body></html>',
-);
-writeFileSync(
-  tsx,
-  `import './compartido/tokens.css';
-import './compartido/base.css';
-import { createRoot } from 'react-dom/client';
-import { PantallaEntrada } from './comensal/entrada/PantallaEntrada';
-import { CODIGO_SEMILLA, crearServicioEntradaSimulado, errorSimulado } from './mocks/servicioEntradaSimulado';
-
-const p = new URLSearchParams(location.search).get('p');
-const opciones = {
-  bienvenida: {},
-  'mesa-invalida': { errores: { entrar: errorSimulado(404, 'MESA_NO_ENCONTRADA') } },
-  'mesa-llena': { ocupados: 12 },
-  'sesion-cerrada': { errores: { estado: errorSimulado(410, 'SESION_CERRADA') } },
-  'sin-conexion': { errores: { entrar: errorSimulado(0, 'SIN_RED') } },
-  'error-generico': { errores: { entrar: errorSimulado(500, 'ERROR_INTERNO') } },
-}[p] ?? {};
-const sim = crearServicioEntradaSimulado({ ...opciones, restaurante: { nombre: 'La Ceiba' } });
-if (p === 'cargando') sim.retener('entrar');
-if (p === 'bienvenida' || p === 'alias') { sim.sentarOtro(); sim.sentarOtro(); }
-createRoot(document.getElementById('app')!).render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} />);
-`,
-);
-const servidor = await createServer({ root: frontend, server: { port: 0, host: '127.0.0.1' }, logLevel: 'error' });
-await servidor.listen();
-const origen = `http://127.0.0.1:${servidor.httpServer.address().port}`;
-const navegador = await chromium.launch();
+const limpiar = () => {
+  rmSync(html, { force: true });
+  rmSync(tsx, { force: true });
+};
+// Ctrl-C también deja el repositorio como estaba.
+process.on('SIGINT', () => {
+  limpiar();
+  process.exit(130);
+});
+let servidor;
+let navegador;
 try {
+  writeFileSync(
+    html,
+    '<!doctype html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>captura</title></head><body><div id="app"></div><script type="module" src="/src/captura-comensal.tsx"></script></body></html>',
+  );
+  writeFileSync(
+    tsx,
+    `import './compartido/tokens.css';
+  import './compartido/base.css';
+  import { createRoot } from 'react-dom/client';
+  import { PantallaEntrada } from './comensal/entrada/PantallaEntrada';
+  import { CODIGO_SEMILLA, crearServicioEntradaSimulado, errorSimulado } from './mocks/servicioEntradaSimulado';
+  
+  const p = new URLSearchParams(location.search).get('p');
+  const opciones = {
+    bienvenida: {},
+    'mesa-invalida': { errores: { entrar: errorSimulado(404, 'MESA_NO_ENCONTRADA') } },
+    'mesa-llena': { ocupados: 12 },
+    'sesion-cerrada': { errores: { estado: errorSimulado(410, 'SESION_CERRADA') } },
+    'sin-conexion': { errores: { entrar: errorSimulado(0, 'SIN_RED') } },
+    'error-generico': { errores: { entrar: errorSimulado(500, 'ERROR_INTERNO') } },
+    'sin-lugar': { errores: { estado: errorSimulado(401, 'SIN_CREDENCIAL') } },
+  }[p] ?? {};
+  const sim = crearServicioEntradaSimulado({ ...opciones, restaurante: { nombre: 'La Ceiba' } });
+  if (p === 'cargando') sim.retener('entrar');
+  if (p === 'bienvenida' || p === 'alias') { sim.sentarOtro(); sim.sentarOtro(); }
+  createRoot(document.getElementById('app')!).render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} />);
+  `,
+  );
+  servidor = await createServer({ root: frontend, server: { port: 0, host: '127.0.0.1' }, logLevel: 'error' });
+  await servidor.listen();
+  const origen = `http://127.0.0.1:${servidor.httpServer.address().port}`;
+  navegador = await chromium.launch();
   const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   const pagina = await ctx.newPage();
   pagina.on('console', (m) => m.type() === 'error' && console.error('consola:', m.text()));
@@ -89,10 +102,11 @@ try {
   await guardar('sin-conexion');
   await ir('error-generico', titulo('Algo salió mal'));
   await guardar('error-generico');
+  await ir('sin-lugar', titulo('No pudimos guardar tu lugar'));
+  await guardar('sin-lugar');
   console.log(`Capturas en ${salida}`);
 } finally {
-  await navegador.close();
-  await servidor.close();
-  rmSync(html, { force: true });
-  rmSync(tsx, { force: true });
+  await navegador?.close();
+  await servidor?.close();
+  limpiar();
 }

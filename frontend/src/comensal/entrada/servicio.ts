@@ -68,7 +68,8 @@ async function aErrorApi(respuesta: Response): Promise<ErrorApi> {
   }
   const id = respuesta.headers.get('X-Request-ID');
   const reintento = Number(respuesta.headers.get('Retry-After'));
-  const espera = Number.isFinite(reintento) && reintento > 0 ? Math.min(reintento, 300) : null;
+  // Entero y al alza: «0.0001 s» no es algo que se le diga a nadie.
+  const espera = Number.isFinite(reintento) && reintento > 0 ? Math.min(Math.ceil(reintento), 300) : null;
   const detalle = esObjeto(cuerpo) && esObjeto(cuerpo.error) ? cuerpo.error : null;
   if (detalle && esTexto(detalle.codigo)) {
     const detalles = esObjeto(detalle.detalles) ? detalle.detalles : {};

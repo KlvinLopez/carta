@@ -13,7 +13,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('bienvenida (AC-01.2, AC-01.4)', () => {
+describe('bienvenida', () => {
   it('muestra restaurante, mesa, alias y el aviso de privacidad en una línea', async () => {
     montarEntrada();
     expect(await bienvenida()).toBeInTheDocument();
@@ -44,7 +44,8 @@ describe('bienvenida (AC-01.2, AC-01.4)', () => {
     expect(await bienvenida()).toBeInTheDocument();
   });
 
-  it('guarda el espejo con ids opacos, sin alias ni el código de la mesa (AC-01.4)', async () => {
+  // @ac AC-01.4
+  it('guarda el espejo con ids opacos, sin alias ni el código de la mesa', async () => {
     const { sim } = montarEntrada();
     await bienvenida();
     const crudo = window.localStorage.getItem('carta:invitado:v1')!;
@@ -56,7 +57,8 @@ describe('bienvenida (AC-01.2, AC-01.4)', () => {
     }
   });
 
-  it('al volver con la misma identidad dice «Qué bueno verte de nuevo» y no duplica al comensal (AC-01.4)', async () => {
+  // @ac AC-01.4
+  it('al volver con la misma identidad dice «Qué bueno verte de nuevo» y no duplica al comensal', async () => {
     const sim = crearServicioEntradaSimulado();
     const primera = render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} />);
     await bienvenida();
@@ -129,7 +131,7 @@ describe('logo del restaurante', () => {
   });
 });
 
-describe('alias (AC-03.2, AC-03.3)', () => {
+describe('alias', () => {
   async function abrirHoja(m: ReturnType<typeof montarEntrada>) {
     await bienvenida();
     await m.u.click(screen.getByRole('button', { name: /Cambiar mi nombre/ }));
@@ -149,16 +151,7 @@ describe('alias (AC-03.2, AC-03.3)', () => {
     expect(m.sim.miembros()[0]!.alias).toBe('<b>Luz</b> 🍕');
   });
 
-  it('un alias de otra persona con HTML llega del sondeo y se pinta como texto', async () => {
-    const m = montarEntrada();
-    await bienvenida();
-    const otro = m.sim.sentarOtro();
-    otro.alias = '<img src=x onerror=alert(1)>';
-    // El sondeo siguiente lo trae; el avatar lleva el nombre como etiqueta accesible.
-    expect(document.querySelector('img[src="x"]')).toBeNull();
-  });
-
-  it('un alias bloqueado deja el anterior, conserva lo escrito y lo explica (AC-03.3)', async () => {
+  it('un alias bloqueado deja el anterior, conserva lo escrito y lo explica ', async () => {
     const m = montarEntrada();
     const campo = await abrirHoja(m);
     await m.u.clear(campo);
@@ -241,7 +234,8 @@ describe('alias (AC-03.2, AC-03.3)', () => {
   });
 });
 
-describe('pantallas de fallo en el lenguaje de la marca (AC-01.3)', () => {
+describe('pantallas de fallo en el lenguaje de la marca', () => {
+  // @ac AC-01.3
   it('mesa inexistente, revocada o de baja: el mismo mensaje, sin revelar nada y sin botón', async () => {
     const { sim } = montarEntrada({}, 'OtroCodigoQueNoExiste123');
     expect(await screen.findByRole('heading', { name: 'No encontramos esta mesa' })).toBeInTheDocument();
@@ -259,15 +253,23 @@ describe('pantallas de fallo en el lenguaje de la marca (AC-01.3)', () => {
   });
 
   it('mesa llena (409): pantalla amable; «Intentar de nuevo» entra cuando se libera un lugar', async () => {
-    const m = montarEntrada({ ocupados: 12 });
+    const sim = crearServicioEntradaSimulado();
+    sim.fallarUnaVez('entrar', errorSimulado(409, 'SESION_LLENA'));
+    const u = (await import('@testing-library/user-event')).default.setup();
+    render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} />);
     expect(await screen.findByRole('heading', { name: 'Esta mesa ya está completa' })).toBeInTheDocument();
     expect(screen.getByText(/Pide al mesero/)).toBeInTheDocument();
-    m.sim.miembros(); // 12 sentados
-    m.sim.fallarUnaVez('entrar', errorSimulado(409, 'SESION_LLENA'));
-    await m.u.click(screen.getByRole('button', { name: 'Intentar de nuevo' }));
+    await u.click(screen.getByRole('button', { name: 'Intentar de nuevo' }));
+    expect(await bienvenida()).toBeInTheDocument();
+    expect(llamadasA(sim, 'entrar')).toHaveLength(2);
+  });
+
+  it('con la mesa de 12 de verdad, el 13.º ve la pantalla de mesa completa', async () => {
+    montarEntrada({ ocupados: 12 });
     expect(await screen.findByRole('heading', { name: 'Esta mesa ya está completa' })).toBeInTheDocument();
   });
 
+  // @ac AC-01.3
   it('sesión cerrada (410) al sondear: «La mesa se cerró» con el nombre del restaurante y reabrir', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const sim = crearServicioEntradaSimulado();
@@ -343,7 +345,11 @@ describe('pantallas de fallo en el lenguaje de la marca (AC-01.3)', () => {
       await vi.advanceTimersByTimeAsync(2000);
     });
     expect(await screen.findByRole('heading', { name: 'No pudimos guardar tu lugar' })).toBeInTheDocument();
-    expect(llamadasA(sim, 'entrar').length).toBeLessThanOrEqual(3);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000); // y no insiste solo
+    });
+    // Una sola reentrada automática: cada `entrar` sin cookie crea un comensal.
+    expect(llamadasA(sim, 'entrar')).toHaveLength(2);
     const dentro = within(screen.getByRole('alert'));
     expect(dentro.getByRole('button', { name: 'Intentar de nuevo' })).toBeInTheDocument();
   });

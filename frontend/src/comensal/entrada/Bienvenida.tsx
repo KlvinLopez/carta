@@ -4,6 +4,7 @@ import { Avatar, AvatarGrupo, Boton, Tarjeta } from '../../compartido/componente
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
 import estilos from './Entrada.module.css';
 import { HojaAlias } from './HojaAlias';
+import { useFocoEnTitulo } from './useFocoEnTitulo';
 import type { DatosMesa, ResultadoAlias } from './useEntrada';
 
 /** Sólo https: el logo lo escribe el operador y se pide desde el teléfono del comensal. */
@@ -42,7 +43,8 @@ export interface PropsBienvenida {
 
 /** Tarjeta de bienvenida: restaurante, mesa, alias editable y aviso de privacidad. */
 export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
-  const { sesion, yo, estado, regresa, sinRed } = datos;
+  const { sesion, yo, estado, regresa, aviso } = datos;
+  const titulo = useFocoEnTitulo();
   const [editando, setEditando] = useState(false);
   const restaurante = sesion.restaurante;
   const total = estado?.total_miembros ?? 1;
@@ -56,18 +58,22 @@ export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
           <span className={estilos.restaurante}>{restaurante.nombre}</span>
         </div>
         <p className={e.sobretitulo}>{regresa ? 'Qué bueno verte de nuevo' : 'Te damos la bienvenida'}</p>
-        <h1 className={e.titulo}>Estás en la mesa {sesion.mesa.numero}</h1>
+        <h1 ref={titulo} tabIndex={-1} className={`${e.titulo} ${estilos.titulo}`}>
+          Estás en la mesa {sesion.mesa.numero}
+        </h1>
       </header>
 
-      {sinRed && (
+      {aviso && (
         <p className={estilos.aviso} role="status">
-          Perdimos la conexión un momento. Seguimos intentando.
+          {aviso === 'red'
+            ? 'Perdimos la conexión un momento. Seguimos intentando.'
+            : 'Estamos teniendo un problema de nuestro lado. Seguimos intentando.'}
         </p>
       )}
 
       <Tarjeta>
         <div className={estilos.yo}>
-          <Avatar nombre={yo.alias} tamano="grande" anillo />
+          <Avatar nombre={yo.alias} color={yo.color_avatar} tamano="grande" anillo />
           <div className={estilos.yoTexto}>
             <span className={estilos.etiqueta}>Así te ven en la mesa</span>
             <span className={estilos.alias}>{yo.alias}</span>
@@ -83,7 +89,7 @@ export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
           <div className={estilos.mesa}>
             <AvatarGrupo etiqueta="Comensales en la mesa">
               {otros.slice(0, VISIBLES).map((m) => (
-                <Avatar key={m.id} nombre={m.alias} tamano="chico" />
+                <Avatar key={m.id} nombre={m.alias} color={m.color_avatar} tamano="chico" />
               ))}
             </AvatarGrupo>
             <p className={e.texto}>{total} personas en la mesa</p>
@@ -99,7 +105,7 @@ export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
       </div>
 
       <p className={e.pie}>
-        Sin cuentas ni datos personales: sólo una cookie propia que recuerda tu lugar en esta mesa.
+        Sin cuentas ni datos personales: sólo una cookie propia y una marca en tu teléfono que recuerdan tu lugar en esta mesa.
       </p>
 
       <HojaAlias abierta={editando} aliasActual={yo.alias} onCerrar={() => setEditando(false)} onGuardar={onCambiarAlias} />

@@ -31,7 +31,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('sondeo del estado de la mesa (AC-02.3)', () => {
+describe('sondeo del estado de la mesa', () => {
   it('sondea cada 3 s con el último ETag y con 304 conserva lo pintado, también repetidos', async () => {
     const sim = await montar();
     await avanzar(100);

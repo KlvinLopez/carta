@@ -10,7 +10,7 @@ function fuentes(dir: string): string[] {
   });
 }
 
-describe('el trozo del comensal es el camino crítico (AC-01.1)', () => {
+describe('el trozo del comensal es el camino crítico', () => {
   it('no importa nada del panel del operador ni de Firebase, ni los datos simulados', () => {
     const raiz = join(__dirname, '..');
     for (const archivo of fuentes(raiz)) {

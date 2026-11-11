@@ -10,7 +10,21 @@ import type {
 
 export const CODIGO_SEMILLA = 'Jx3k9QwLmN2pR7sT4vY8zA';
 export const MAX_MIEMBROS = 12;
-const COLORES = ['#7A3B4C', '#B8860B', '#4F6D5B', '#5B4A3D', '#3D5A80', '#8A4F7D', '#6B705C', '#A44A3F'];
+/** Los 12 de `app/services/sesion.py::COLORES`: `#RRGGBB` en mayúsculas, uno por miembro. */
+export const COLORES = [
+  '#4F1728',
+  '#B8860B',
+  '#2F5D50',
+  '#C2562E',
+  '#3B4A7A',
+  '#8A5A83',
+  '#5E7D3A',
+  '#A63D40',
+  '#2D6E8E',
+  '#7A5230',
+  '#6B2D3E',
+  '#4E5D6C',
+];
 const PALABRAS_BLOQUEADAS = ['tonto', 'caca'];
 
 type Metodo = keyof ServicioEntrada;
@@ -29,6 +43,11 @@ export interface OpcionesEntradaSimulado {
 /** Cuerpo de error con la envoltura del contrato. */
 export function errorSimulado(estado: number, codigo: string, mensaje = 'Mensaje del servidor.', reintentarEn: number | null = null) {
   return new ErrorApi(estado, codigo, mensaje, {}, 'req-simulado', reintentarEn);
+}
+
+/** Cuerpo JSON que el servidor mandaría para ese error (la envoltura `ErrorRespuesta` del contrato). */
+export function cuerpoDeError(e: ErrorApi) {
+  return { error: { codigo: e.codigo, mensaje: e.message, detalles: e.detalles, request_id: e.requestId } };
 }
 
 /**
@@ -61,7 +80,7 @@ export function crearServicioEntradaSimulado(opciones: OpcionesEntradaSimulado =
     const m: MiembroDeSesion = {
       id: `00000000-0000-4000-8000-${String(miembroN).padStart(12, '0')}`,
       alias: `Comensal ${miembros.length + 1}`,
-      color_avatar: COLORES[miembroN % COLORES.length]!,
+      color_avatar: COLORES[(miembroN - 1) % COLORES.length]!,
       rol: miembros.length === 0 ? 'host' : 'miembro',
       estado: 'armando',
     };
@@ -83,7 +102,7 @@ export function crearServicioEntradaSimulado(opciones: OpcionesEntradaSimulado =
   const etagDe = () => `"${sesionN}-${version}-${yo}"`;
 
   const servicio: ServicioEntrada = {
-    async entrar(c) {
+    async entrar(c, _signal) {
       await registrar('entrar', c);
       if (c !== codigo) throw errorSimulado(404, 'MESA_NO_ENCONTRADA', 'No encontramos esta mesa.');
       if (cerrada) {

@@ -165,3 +165,8 @@
 .formulario button {
   box-shadow: none;
 }
+
+/* El título recibe el foco al aparecer la pantalla; no es un control, no lleva anillo. */
+.titulo:focus {
+  outline: none;
+}
