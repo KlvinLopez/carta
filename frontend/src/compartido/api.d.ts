@@ -115,7 +115,8 @@ export interface paths {
         };
         /**
          * Menu
-         * @description Menú activo por categorías. Público, sin cookie, cacheable en el borde (02 §4).
+         * @description Menú activo por categorías de un restaurante. Público, sin cookie, cacheable en el
+         *     borde. Restaurante inexistente o inactivo: el mismo 404 (`RECURSO_NO_ENCONTRADO`).
          */
         get: operations["menu_api_v1_p_menu__slug__get"];
         put?: never;
@@ -135,7 +136,7 @@ export interface paths {
         };
         /**
          * Platillo
-         * @description Detalle de un platillo activo.
+         * @description Detalle de un platillo activo (de una categoría y un restaurante activos).
          */
         get: operations["platillo_api_v1_p_platillos__platillo_id__get"];
         put?: never;
@@ -1943,6 +1944,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlatilloDetalle"];
                 };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
             400: {
