@@ -66,6 +66,9 @@ cambia el esquema, se lee por introspección (`{ __schema { queryType { fields {
    de `VARIABLES_NO_SECRETAS`; el resto sale «oculta», o «sellada» si Railway ya no la entrega, y
    `logs` tacha esos valores si un log los trae. No consultes `variables` con `curl` a mano: el
    valor acabaría en el chat.
+   `logs` tacha también el **código de mesa** (es la credencial de la mesa): toda ruta `/m/…`
+   sale como `/m/<codigo>` y, en los logs HTTP, cualquier segmento de 22 caracteres con forma de
+   código sale como `<codigo>`. Los ids de petición y los UUID se siguen viendo.
 3. **Escribir es sólo dejar staging como dice la guía.** `variable` corrige una variable **que
    el servicio ya tiene** y sólo al valor que `deploy/railway/README.md` fija para staging
    (tabla `VALOR_FIJO`: dominio, buckets, proyecto y CSP de Firebase…) o, en `WORKERS` (1 a 8) y

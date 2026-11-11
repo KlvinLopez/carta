@@ -1420,3 +1420,84 @@ def test_cambiar_variable_comprueba_por_si_misma_aunque_no_pase_por_la_orden() -
             with pytest.raises(railway.ErrorRailway, match="Postgres"):
                 accion()
     assert not {"variableUpsert", "deploymentRedeploy"} & set(falso.campos())
+
+
+# ── El código de mesa no llega a la sesión (revisión del PR 11) ──────────────
+
+CODIGO_DE_MESA = "Jx3k9QwLmN2pR7sT4vY8zA"  # 22 caracteres, como `secrets.token_urlsafe(16)`
+
+
+@pytest.mark.parametrize(
+    "ruta",
+    [
+        f"/m/{CODIGO_DE_MESA}",
+        f"/M/{CODIGO_DE_MESA}",
+        f"/m/{CODIGO_DE_MESA}/",
+        f"/m/{CODIGO_DE_MESA}?x=1",
+        f"//m/{CODIGO_DE_MESA}",
+        f"/x/m/{CODIGO_DE_MESA}",
+        f"/./m/{CODIGO_DE_MESA}",
+        f"/staff/m/{CODIGO_DE_MESA}/orden",
+        f"/api/v1/p/menu/{CODIGO_DE_MESA}",
+        f"/api/v1/p/sesion/entrar/{CODIGO_DE_MESA}",
+        f"/api/v1/p/menu/{CODIGO_DE_MESA}?x=1",
+    ],
+)
+def test_logs_http_no_muestra_el_codigo_de_mesa(ruta: str) -> None:
+    falso = RailwayFalso()
+    _alterar(falso, "httpLogs", lambda d: d["httpLogs"][0].update(path=ruta))
+    codigo, salida = correr(falso, "logs", "api", "--tipo", "http")
+    assert codigo == 0
+    assert CODIGO_DE_MESA not in salida
+    assert railway.CODIGO_TACHADO in salida.splitlines()[1]
+
+
+def test_logs_http_tacha_todo_lo_que_cuelga_de_m_aunque_no_tenga_forma_de_codigo() -> None:
+    falso = RailwayFalso()
+    _alterar(falso, "httpLogs", lambda d: d["httpLogs"][0].update(path="/m/codigo-viejo-corto"))
+    codigo, salida = correr(falso, "logs", "api", "--tipo", "http")
+    assert codigo == 0 and "codigo-viejo-corto" not in salida
+    assert "GET /m/<codigo> 3 ms req-1" in salida
+
+
+def test_logs_http_conserva_las_rutas_normales_y_el_id_de_la_peticion() -> None:
+    """Sólo se tacha la ruta: un UUID, un archivo con hash o un id de petición de 22
+    caracteres se siguen viendo (hacen falta para diagnosticar)."""
+    id_de_22 = "nY2Xvka9T7uTCQkrOKjRSw"
+    ruta = "/api/v1/admin/platillos/3f2b8c1e-9a4d-4e5f-8b6a-1c2d3e4f5a6b?campo=menu"
+    falso = RailwayFalso()
+    _alterar(falso, "httpLogs", lambda d: d["httpLogs"][0].update(path=ruta, requestId=id_de_22))
+    codigo, salida = correr(falso, "logs", "api", "--tipo", "http")
+    assert codigo == 0
+    assert salida.splitlines()[1] == f"2026-11-11T04:01:31 200 GET {ruta} 3 ms {id_de_22}"
+    for normal in (
+        "/health",
+        "/menu",
+        "/m",
+        "/assets/index-DzgFvgFd.js",
+        "/api/v1/p/menu/la-ceiba",
+    ):
+        assert railway.ruta_sin_codigo(normal) == normal
+
+
+def test_logs_de_ejecucion_tachan_la_ruta_del_comensal() -> None:
+    """Un despliegue anterior a T-2.3 escribía `/m/<codigo>` completo en su log de acceso."""
+    falso = RailwayFalso()
+    _alterar(
+        falso,
+        "deploymentLogs",
+        lambda d: d["deploymentLogs"][0].update(
+            message="",
+            attributes=[
+                {"key": "logger", "value": json.dumps("carta.peticion")},
+                {"key": "mensaje", "value": json.dumps(f"GET /m/{CODIGO_DE_MESA} 200")},
+                {"key": "ruta", "value": json.dumps(f"/M/{CODIGO_DE_MESA}")},
+                {"key": "estado", "value": "200"},
+            ],
+        ),
+    )
+    codigo, salida = correr(falso, "logs", "api")
+    assert codigo == 0 and CODIGO_DE_MESA not in salida
+    assert salida.splitlines()[1] == (
+        "2026-11-11T04:01:31 error carta.peticion GET /m/<codigo> 200 ruta=/m/<codigo> estado=200"
+    )

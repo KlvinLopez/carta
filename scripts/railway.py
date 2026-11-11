@@ -615,6 +615,30 @@ def censurar(texto: str, ocultos: Sequence[str]) -> str:
     return texto
 
 
+# El código de una mesa es su credencial (va en la ruta `/m/<codigo>` de la PWA): ni el log
+# HTTP de Railway ni un log viejo de la API deben traerlo a la sesión.
+CODIGO_TACHADO = "<codigo>"
+_RUTA_COMENSAL = re.compile(r"/+m/[^\s\"'?#]+", re.IGNORECASE)
+_FORMA_DE_CODIGO = re.compile(r"[A-Za-z0-9_-]{22}")  # `secrets.token_urlsafe(16)`
+
+
+def tachar_rutas_comensal(texto: str) -> str:
+    """Toda ruta `/m/…` de un texto (mayúsculas, barras de más, prefijos) sin su código."""
+    return _RUTA_COMENSAL.sub(f"/m/{CODIGO_TACHADO}", texto)
+
+
+def ruta_sin_codigo(ruta: object) -> str:
+    """La ruta de una petición sin el código de mesa: `/m/…` entero y, además, cualquier
+    segmento con la forma exacta de un código (alguien lo pegó en otra ruta). Un UUID o el
+    nombre de un archivo no tienen esa forma y se quedan."""
+    camino, separador, consulta = tachar_rutas_comensal(str(ruta)).partition("?")
+    segmentos = [
+        CODIGO_TACHADO if _FORMA_DE_CODIGO.fullmatch(segmento) else segmento
+        for segmento in camino.split("/")
+    ]
+    return "/".join(segmentos) + separador + consulta
+
+
 def _hora(marca: object) -> str:
     return str(marca or "-")[:19]
 
@@ -766,11 +790,12 @@ def orden_logs(railway: Railway, args: argparse.Namespace, salida: Callable[[str
         if args.tipo == "http":
             texto = (
                 f"{_hora(linea.get('timestamp'))} {linea.get('httpStatus')} "
-                f"{linea.get('method')} {linea.get('path')} {linea.get('totalDuration')} ms "
+                f"{linea.get('method')} {ruta_sin_codigo(linea.get('path'))} "
+                f"{linea.get('totalDuration')} ms "
                 f"{linea.get('requestId')}"
             )
         else:
-            texto = linea_de_log(linea)
+            texto = tachar_rutas_comensal(linea_de_log(linea))
         salida(censurar(texto, ocultos))
     return 0
 
