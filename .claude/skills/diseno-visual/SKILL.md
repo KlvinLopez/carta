@@ -118,3 +118,11 @@ La interfaz es el marco; la comida es el arte. Calidez de comedor fino con preci
 - `npx vitest` desde la raíz del repositorio crea un `node_modules/` suelto (caché): córrelo siempre desde `frontend/`.
 - Capturas con fotos de un dominio inventado: `pagina.route()` de Playwright sirve una imagen de relleno; sin eso todas caen a la ilustración y no se ve el diseño con foto.
 - La trazabilidad estricta marca FALTA un criterio manual (AC-01.1, Lighthouse) hasta que exista `docs/piloto/ensayo.md` (T-4.9): es esperado, no un hueco de la tarea.
+
+## Lecciones del detalle del platillo (T-2.6)
+
+- Un botón con `white-space: nowrap` corta su rótulo al 200 % sin desbordar la página: `sinDesborde` en `capturas-comensal.mjs` mira también el `scrollWidth` de cada botón. Los CTA largos llevan `white-space: normal` y `height: auto`.
+- Apaisado (844×390): la foto 4:3 se come la ventana; `@media (orientation: landscape) and (max-height: 520px)` la pone al lado del texto, y el selector `main.detalle` (elemento + clase) gana a `.pantalla` sin depender del orden del CSS.
+- `content-visibility: auto` estima la altura de lo que no se ve: al volver a una lista larga, `scrollTo(y)` no basta; se corrige con lo que mide la tarjeta abierta (`menu/posicion.ts`).
+- Una prueba de «un solo `dish_view`» con StrictMode no basta: el guarda sólo se prueba cambiando la cola o el `:id` con el componente vivo (mutación obligada).
+

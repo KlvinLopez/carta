@@ -53,9 +53,11 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     (frontend / "menu.tsx").write_text("// @ac AC-09.1\nit('no es prueba', () => {});\n")
     pruebas = tmp_path / "tests"
     pruebas.mkdir()
+    # El marcador se arma en dos trozos: el escáner lee también este archivo y, escrito de
+    # corrido, lo contaría como una prueba real de AC-05.1 y AC-10.1.
+    marcador = "@pytest.mark." + 'ac("AC-05.1", "AC-10.1")'
     (pruebas / "test_algo.py").write_text(
-        '@pytest.mark.ac("AC-05.1", "AC-10.1")\nasync def test_de_backend():\n    pass\n',
-        encoding="utf-8",
+        f"{marcador}\nasync def test_de_backend():\n    pass\n", encoding="utf-8"
     )
     monkeypatch.setattr(traza, "RAIZ", tmp_path)
     monkeypatch.setattr(traza, "FRONTEND", tmp_path / "frontend" / "src")

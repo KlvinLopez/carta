@@ -11,10 +11,13 @@
  * («No pudimos guardar tu lugar»), cargando; y el menú (T-2.5): menu-inicio (con «Top 3 del chef»),
  * menu-lista (más abajo), menu-busqueda, menu-sin-resultados, menu-filtros (hoja), menu-filtrado
  * (con un alérgeno descartado), menu-agotado, menu-cargando y menu-limite (429); y la hoja de filtros
- * en horizontal (844×390), en un teléfono bajo (375×568) y con el texto al 200 %.
+ * en horizontal (844×390), en un teléfono bajo (375×568) y con el texto al 200 %. Detalle del platillo
+ * (T-2.6): detalle-foto (con calorías y picante), detalle-ilustracion, detalle-agotado,
+ * detalle-no-encontrado, detalle-cargando, detalle-horizontal (844×390) y detalle-zoom200.
  *
  * También **comprueba** y sale con código ≠ 0 si: algún control tocable del menú o de la hoja mide menos
- * de 44 px de alto, o el botón «Ver N platillos» queda fuera de la ventana al abrir la hoja.
+ * de 44 px de alto, el botón «Ver N platillos» queda fuera de la ventana al abrir la hoja, o el detalle del platillo
+ * se desborda a lo ancho (también apaisado y al 200 %).
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -55,11 +58,24 @@ try {
   import { createRoot } from 'react-dom/client';
   import { PantallaEntrada } from './comensal/entrada/PantallaEntrada';
   import { Menu } from './comensal/menu/Menu';
+  import { PlatilloVista } from './comensal/platillo/Platillo';
   import { CODIGO_SEMILLA, crearServicioEntradaSimulado, errorSimulado } from './mocks/servicioEntradaSimulado';
-  import { crearServicioMenuSimulado } from './mocks/servicioMenuComensalSimulado';
+  import { crearMenuSemilla, crearServicioMenuSimulado } from './mocks/servicioMenuComensalSimulado';
+  import { crearServicioPlatilloSimulado } from './mocks/servicioPlatilloSimulado';
   
   const p = new URLSearchParams(location.search).get('p');
-  if (p && p.startsWith('menu-')) {
+  const idDe = (nombre) => crearMenuSemilla().categorias.flatMap((c) => c.platillos).find((x) => x.nombre === nombre).id;
+  if (p && p.startsWith('platillo-')) {
+    // Detalle del platillo (T-2.6): con foto (y calorías), con ilustración, agotado, no encontrado, cargando.
+    const chiles = idDe('Chiles rellenos de queso');
+    const nombre = { 'platillo-foto': 'Chiles rellenos de queso', 'platillo-ilustracion': 'Churros con chocolate', 'platillo-agotado': 'Pescado a la veracruzana', 'platillo-no-encontrado': 'Mole poblano', 'platillo-cargando': 'Mole poblano' }[p];
+    const sim = crearServicioPlatilloSimulado({ ajustes: { [chiles]: { calorias: 420 } }, noExisten: p === 'platillo-no-encontrado' ? [idDe('Mole poblano')] : [] });
+    if (p === 'platillo-cargando') sim.retener();
+    const analitica = { registrar: () => undefined, vaciar: () => undefined, detener: () => undefined };
+    createRoot(document.getElementById('app')!).render(
+      <PlatilloVista id={idDe(nombre)} servicio={sim.servicio} analitica={analitica} onVolver={() => undefined} />,
+    );
+  } else if (p && p.startsWith('menu-')) {
     const menuSim = crearServicioMenuSimulado({
       error: p === 'menu-limite' ? errorSimulado(429, 'DEMASIADAS_PETICIONES', 'x', 12) : undefined,
     });
@@ -204,6 +220,48 @@ try {
     await botonAplicarVisible(c.nombre);
     await pagina.screenshot({ path: join(salida, `${c.nombre}.png`) });
   }
+
+  // ── Detalle del platillo (T-2.6) ───────────────────────────────────────────────────────
+  const sinDesborde = async (etiqueta) => {
+    const [ancho, visible] = await pagina.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+    if (ancho > visible + 1) fallos.push(`${etiqueta}: la página se desborda a lo ancho (${ancho} > ${visible})`);
+    const cortados = await pagina.evaluate(() =>
+      [...document.querySelectorAll('button')].filter((b) => [...b.querySelectorAll('span'), b].some((n) => n.scrollWidth > n.clientWidth + 1)).map((b) => (b.textContent || '').trim().slice(0, 40)),
+    );
+    for (const c of cortados) fallos.push(`${etiqueta}: el texto del botón se corta: ${c}`);
+  };
+  await pagina.setViewportSize({ width: 390, height: 844 });
+  const detalles = [
+    ['platillo-foto', 'Chiles rellenos de queso', 'detalle-foto'],
+    ['platillo-ilustracion', 'Churros con chocolate', 'detalle-ilustracion'],
+    ['platillo-agotado', 'Pescado a la veracruzana', 'detalle-agotado'],
+    ['platillo-no-encontrado', 'Este platillo ya no está en el menú', 'detalle-no-encontrado'],
+  ];
+  for (const [modo, encabezado, archivo] of detalles) {
+    await ir(modo, titulo(encabezado));
+    await guardar(archivo);
+    await medir(archivo);
+    await sinDesborde(archivo);
+  }
+  await ir('platillo-cargando', () => pagina.getByRole('status').waitFor());
+  await guardar('detalle-cargando');
+  await medir('detalle-cargando');
+  // Apaisado (844×390) y con el texto al 200 %: utilizables, sin desbordes y con el botón de volver a la vista.
+  await pagina.setViewportSize({ width: 844, height: 390 });
+  await ir('platillo-foto', titulo('Chiles rellenos de queso'));
+  await pagina.screenshot({ path: join(salida, 'detalle-horizontal.png') });
+  await medir('detalle-horizontal');
+  await sinDesborde('detalle-horizontal');
+  const volver = await pagina.getByRole('button', { name: 'Volver al menú' }).boundingBox();
+  if (!volver || volver.y < 0 || volver.y + volver.height > 390) fallos.push('detalle-horizontal: «Volver al menú» queda fuera de la ventana');
+  await pagina.setViewportSize({ width: 390, height: 844 });
+  await ir('platillo-foto', titulo('Chiles rellenos de queso'));
+  await pagina.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+  await pagina.waitForTimeout(500);
+  await guardar('detalle-zoom200');
+  await medir('detalle-zoom200');
+  await sinDesborde('detalle-zoom200');
+
   if (fallos.length > 0) {
     console.error('Comprobaciones fallidas:\n - ' + fallos.join('\n - '));
     process.exitCode = 1;
