@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ErrorApi } from '../../compartido/http';
 import { claseDeError, type ClaseError } from './errores';
-import { espejoLocal, type Espejo } from './espejo';
+import { espejoLocal, marcaDeMesa, type Espejo } from './espejo';
 import type { EntrarRespuesta, MiembroRespuesta, ServicioEntrada, SesionEstado, SesionResumen } from './servicio';
 
 /** Sondeo del estado de la mesa (ADR-004): 3 s, con retroceso si falla, pausado en segundo plano. */
@@ -104,7 +104,7 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
   const aplicar = useCallback(
     (r: EntrarRespuesta) => {
       const previo = espejo.leer();
-      espejo.guardar({ miembro: r.miembro.id, sesion: r.sesion.id });
+      espejo.guardar({ miembro: r.miembro.id, sesion: r.sesion.id, slug: r.sesion.restaurante.slug, mesa: marcaDeMesa(codigo) });
       restaurante.current = r.sesion.restaurante.nombre;
       yoActual.current = r.miembro.id;
       setVista({
@@ -116,7 +116,7 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
         aviso: null,
       });
     },
-    [espejo],
+    [espejo, codigo],
   );
 
   const entrar = useCallback(async () => {

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import type { AvisoSondeo } from './AvisoConexion';
 import { Bienvenida } from './Bienvenida';
 import { Esqueleto } from './Esqueleto';
 import { PantallaError } from './PantallaError';
@@ -23,15 +24,17 @@ export function pantallaSinMesa({ vista, reintentar }: EntradaEnCurso): ReactNod
 
 export interface PropsVistaEntrada {
   entrada: EntradaEnCurso;
+  /** El aviso único elegido por `SesionMesa`; sin él, el del sondeo de la mesa. */
+  aviso?: AvisoSondeo;
   onVerMenu: () => void;
 }
 
 /** La bienvenida (o el fallo) de una entrada que ya corre en otro sitio: el área la sube y la comparte. */
-export function VistaEntrada({ entrada, onVerMenu }: PropsVistaEntrada) {
+export function VistaEntrada({ entrada, aviso, onVerMenu }: PropsVistaEntrada) {
   const sinMesa = pantallaSinMesa(entrada);
   if (sinMesa) return <>{sinMesa}</>;
   if (entrada.vista.fase !== 'lista') return null;
-  return <Bienvenida datos={entrada.vista} onCambiarAlias={entrada.cambiarAlias} onVerMenu={onVerMenu} />;
+  return <Bienvenida datos={entrada.vista} aviso={aviso} onCambiarAlias={entrada.cambiarAlias} onVerMenu={onVerMenu} />;
 }
 
 export interface PropsPantallaEntrada {

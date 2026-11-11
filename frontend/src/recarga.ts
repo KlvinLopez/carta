@@ -12,6 +12,12 @@ const PREFIJO = 'carta:recargado:';
 export interface Ventana {
   location: { href: string; reload: () => void };
   sessionStorage: Pick<Storage, 'getItem' | 'setItem'>;
+  /**
+   * Con un service worker (T-2.7) la pestaña vieja sigue recibiendo el `index.html` precargado, que pide los
+   * mismos trozos que ya no existen: recargar sin más repetiría el fallo. Antes de recargar se da de baja el
+   * worker y se vacían sus copias; la recarga trae la versión nueva de la red.
+   */
+  liberarServiceWorker?: () => Promise<void>;
 }
 
 /** Devuelve `true` si recargó (y canceló el evento); `false` si dejó pasar el error. */
@@ -25,12 +31,28 @@ export function manejarPreloadError(evento: Event, ventana: Ventana): boolean {
     return false;
   }
   evento.preventDefault();
-  ventana.location.reload();
+  if (ventana.liberarServiceWorker) {
+    void ventana.liberarServiceWorker().then(() => ventana.location.reload(), () => ventana.location.reload());
+  } else {
+    ventana.location.reload();
+  }
   return true;
 }
 
-export function instalarGuardiaDeRecarga(ventana: Window): void {
+export function instalarGuardiaDeRecarga(ventana: Window, liberar?: () => Promise<void>): void {
   ventana.addEventListener('vite:preloadError', (evento) => {
-    manejarPreloadError(evento, ventana);
+    // Getters: leer `sessionStorage` puede lanzar con el sitio bloqueado, y `manejarPreloadError` lo atiende.
+    const v: Ventana = liberar
+      ? {
+          get location() {
+            return ventana.location;
+          },
+          get sessionStorage() {
+            return ventana.sessionStorage;
+          },
+          liberarServiceWorker: liberar,
+        }
+      : ventana;
+    manejarPreloadError(evento, v);
   });
 }

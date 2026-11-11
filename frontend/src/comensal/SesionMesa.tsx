@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import type { Analitica } from './analitica/cola';
+import { avisoUnico, useSinRed } from './entrada/AvisoConexion';
+import { espejoLocal, marcaDeMesa, type Espejo } from './entrada/espejo';
 import { pantallaSinMesa, servicioEntradaReal, VistaEntrada } from './entrada/PantallaEntrada';
 import type { ServicioEntrada } from './entrada/servicio';
 import { useEntrada } from './entrada/useEntrada';
@@ -21,6 +23,7 @@ export interface PropsSesionMesa {
   servicioPlatillo?: ServicioPlatillo;
   analitica?: Analitica;
   almacenFiltros?: AlmacenFiltros;
+  espejo?: Espejo;
 }
 
 /**
@@ -30,12 +33,27 @@ export interface PropsSesionMesa {
  * lista, sin esqueleto y sin otro `menu_view`). El menú se pide en cuanto `entrar` responde. Toda ruta
  * cuelga de `/m/<codigo>/…`.
  */
-export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMenu = servicioMenuReal, servicioPlatillo = servicioPlatilloReal, analitica, almacenFiltros }: PropsSesionMesa) {
-  const entrada = useEntrada(codigo, servicio);
+export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMenu = servicioMenuReal, servicioPlatillo = servicioPlatilloReal, analitica, almacenFiltros, espejo = espejoLocal }: PropsSesionMesa) {
+  const entrada = useEntrada(codigo, servicio, espejo);
   const navigate = useNavigate();
   const { vista } = entrada;
+  // Sin red la entrada falla (no hay cookie ni `slug` que esperar). Si el espejo recuerda que este mismo código
+  // fue de ese restaurante, el menú se pide igual: el service worker lo sirve de su copia y lo dice en pantalla.
+  const sinConexionEntrada = vista.fase === 'error' && vista.clase === 'sin_conexion';
+  const slugGuardado = useMemo(() => {
+    if (!sinConexionEntrada) return null;
+    const huella = espejo.leer();
+    return huella?.slug && huella.mesa === marcaDeMesa(codigo) ? huella.slug : null;
+  }, [sinConexionEntrada, espejo, codigo]);
+  // Al volver la red `entrar` se reintenta y la vista pasa un instante por «cargando»: el menú de la copia sigue a
+  // la vista hasta que haya mesa (sin esqueleto ni parpadeo). Una ref basta: sólo se lee al pintar.
+  const copiaActiva = useRef<string | null>(null);
+  if (vista.fase === 'lista') copiaActiva.current = null;
+  else if (slugGuardado !== null) copiaActiva.current = slugGuardado;
+  else if (vista.fase === 'error') copiaActiva.current = null;
+  const slugCopia = copiaActiva.current;
   const menu = useControladorMenu({
-    slug: vista.fase === 'lista' ? vista.sesion.restaurante.slug : null,
+    slug: vista.fase === 'lista' ? vista.sesion.restaurante.slug : slugCopia,
     servicio: servicioMenu,
     analitica,
     almacen: almacenFiltros,
@@ -51,6 +69,13 @@ export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMen
     };
   }, []);
 
+  // Un solo aviso a la vez: la copia guardada, la falta de red o el último sondeo fallido de la mesa.
+  const sinRed = useSinRed();
+  const sondeo = vista.fase === 'lista' ? vista.aviso : null;
+  const deCopia = menu.estado.fase === 'listo' && menu.estado.menu.deCopia === true;
+  const avisoMenu = avisoUnico({ deCopia, sinRed, sondeo });
+  const avisoBienvenida = avisoUnico({ deCopia: false, sinRed, sondeo });
+
   /** Del menú al detalle: se anota cuál tarjeta se tocó (el menú sigue montado bajo la capa). */
   const abrirPlatillo = (id: string) => {
     menu.recordarTarjeta(id);
@@ -61,16 +86,16 @@ export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMen
 
   return (
     <Routes>
-      <Route index element={<VistaEntrada entrada={entrada} onVerMenu={() => navigate(`/m/${codigo}/menu`)} />} />
+      <Route index element={<VistaEntrada entrada={entrada} aviso={avisoBienvenida} onVerMenu={() => navigate(`/m/${codigo}/menu`)} />} />
       <Route
         element={
           // Un enlace directo al menú o al detalle espera la entrada (cookie y mesa); si falla, el mismo fallo de siempre.
-          vista.fase === 'lista' ? (
+          vista.fase === 'lista' || slugCopia !== null ? (
             <MenuConCapa
               codigo={codigo}
               controlador={menu}
-              mesa={vista.sesion.mesa.numero}
-              aviso={vista.aviso}
+              mesa={vista.fase === 'lista' ? vista.sesion.mesa.numero : null}
+              aviso={avisoMenu}
               onAbrir={abrirPlatillo}
               onVolver={() => navigate(`/m/${codigo}`)}
             />

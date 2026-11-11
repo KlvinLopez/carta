@@ -242,3 +242,48 @@ jobs:
 
       - name: Presupuesto del bundle
         run: node frontend/scripts/presupuesto.mjs
+
+  contrato:
+    # Desfase entre el backend y el frontend (T-2.7): regenera el contrato OpenAPI del frontend y sus tipos desde
+    # el código del backend (sin levantar servidor) y falla si cambian. Un esquema que cambió sin regenerar no
+    # llega a `master`. No depende de `calidad` ni de `frontend`.
+    name: Contrato (frontend al día con el backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Python (versión de .python-version)
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version-file: .python-version
+
+      - name: uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Dependencias del backend (uv sync --locked)
+        run: uv sync --locked
+
+      - name: Node 22 (el de la imagen Docker)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Dependencias del frontend
+        run: npm --prefix frontend ci
+
+      - name: Regenerar el contrato y los tipos desde el código del backend
+        run: npm --prefix frontend run sincronizar
+
+      - name: Falla si el frontend quedó desfasado
+        run: |
+          if ! git diff --exit-code -- frontend/src/mocks/openapi.json frontend/src/compartido/api.d.ts; then
+            echo "::error title=Contrato desfasado::El backend cambió y frontend/src/mocks/openapi.json o frontend/src/compartido/api.d.ts no. Corre «npm --prefix frontend run sincronizar» y haz commit de los dos archivos."
+            exit 1
+          fi

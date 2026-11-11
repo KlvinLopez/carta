@@ -1,5 +1,6 @@
 import type { components } from '../../compartido/api';
 import { ErrorApi, ESTADO_SIN_RED } from '../../compartido/http';
+import { CABECERA_COPIA } from '../../pwa/rutas';
 
 export type EntrarRespuesta = components['schemas']['EntrarRespuesta'];
 export type SesionResumen = components['schemas']['SesionResumen'];
@@ -90,7 +91,7 @@ export type Peticion = <T>(
   ruta: string,
   valido: (v: unknown) => v is T,
   opciones?: OpcionesPeticion,
-) => Promise<{ datos: T; etag: string | null } | null>;
+) => Promise<{ datos: T; etag: string | null; copia?: boolean } | null>;
 
 export const esObjetoJson = esObjeto;
 export const esTextoJson = esTexto;
@@ -106,7 +107,7 @@ export function crearPeticion(buscar: typeof fetch = (...args) => fetch(...args)
     ruta: string,
     valido: (v: unknown) => v is T,
     { cuerpo, etag, signal }: OpcionesPeticion = {},
-  ): Promise<{ datos: T; etag: string | null } | null> {
+  ): Promise<{ datos: T; etag: string | null; copia?: boolean } | null> {
     const control = new AbortController();
     let vencio = false;
     const plazo = setTimeout(() => {
@@ -142,7 +143,8 @@ export function crearPeticion(buscar: typeof fetch = (...args) => fetch(...args)
         throw new ErrorApi(respuesta.status, 'RESPUESTA_INVALIDA', MENSAJE_GENERICO);
       }
       if (!valido(datos)) throw new ErrorApi(respuesta.status, 'RESPUESTA_INVALIDA', MENSAJE_GENERICO);
-      return { datos, etag: respuesta.headers.get('ETag') };
+      // El service worker marca con `X-Carta-Copia` lo que sirvió de su copia porque la red falló (T-2.7).
+      return { datos, etag: respuesta.headers.get('ETag'), copia: respuesta.headers.get(CABECERA_COPIA) === '1' };
     } finally {
       clearTimeout(plazo);
       signal?.removeEventListener('abort', cancelar);

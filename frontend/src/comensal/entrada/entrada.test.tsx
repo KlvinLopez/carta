@@ -49,7 +49,8 @@ describe('bienvenida', () => {
     const { sim } = montarEntrada();
     await bienvenida();
     const crudo = window.localStorage.getItem('carta:invitado:v1')!;
-    expect(JSON.parse(crudo)).toEqual({ miembro: sim.yo(), sesion: expect.any(String) });
+    // T-2.7: además el `slug` público del restaurante y una huella de la mesa (no el código) para la copia sin conexión.
+    expect(JSON.parse(crudo)).toEqual({ miembro: sim.yo(), sesion: expect.any(String), slug: expect.any(String), mesa: expect.stringMatching(/^[0-9a-f]+$/) });
     expect(crudo).not.toContain(CODIGO_SEMILLA);
     expect(crudo).not.toContain('Comensal');
     for (let i = 0; i < window.localStorage.length; i += 1) {
