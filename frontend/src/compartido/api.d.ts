@@ -38,6 +38,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/p/sesion/entrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Entrar
+         * @description Crea o reanuda la sesión de la mesa y emite la cookie `carta_invitado` (6 h).
+         *
+         *     404 `MESA_NO_ENCONTRADA` para un código desconocido, revocado o de una mesa o restaurante
+         *     dados de baja, siempre con el mismo cuerpo (AC-01.3, AC-21.3); 409 `SESION_LLENA` con 12
+         *     comensales (AC-02.5). Una cookie vigente de esta misma sesión reanuda al miembro (AC-01.4);
+         *     una vieja o ajena se ignora y se entra como comensal nuevo.
+         */
+        post: operations["entrar_api_v1_p_sesion_entrar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/sesion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado De Sesion
+         * @description Estado de la mesa para el sondeo de 3 s (AC-02.3), con `ETag`; 304 si no cambió. Con
+         *     el estado en memoria (≤ 2 s) no consulta la base. 410 `SESION_CERRADA` cuando la sesión
+         *     ya no está viva (la app muestra «la mesa se cerró» y deja de sondear).
+         */
+        get: operations["estado_de_sesion_api_v1_p_sesion_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/miembro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar Alias
+         * @description Cambia el alias (1–24 caracteres, AC-03.2). Uno de la lista de bloqueo es 422
+         *     `ALIAS_NO_PERMITIDO` y el anterior se conserva (AC-03.3).
+         */
+        patch: operations["cambiar_alias_api_v1_p_miembro_patch"];
+        trace?: never;
+    };
+    "/api/v1/p/menu/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Menu
+         * @description Menú activo por categorías. Público, sin cookie, cacheable en el borde (02 §4).
+         */
+        get: operations["menu_api_v1_p_menu__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/platillos/{platillo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Platillo
+         * @description Detalle de un platillo activo.
+         */
+        get: operations["platillo_api_v1_p_platillos__platillo_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Eventos
+         * @description Lote de hasta 50 eventos. `202` siempre que el cuerpo sea válido.
+         */
+        post: operations["eventos_api_v1_p_eventos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/restaurantes": {
         parameters: {
             query?: never;
@@ -482,6 +610,26 @@ export interface components {
             /** Platillos */
             platillos: components["schemas"]["PlatilloImportado-Output"][];
         };
+        /** CategoriaPublica */
+        CategoriaPublica: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Nombre
+             * @example Entradas
+             */
+            nombre: string;
+            /** Orden */
+            orden: number;
+            /**
+             * Platillos
+             * @description Por `orden`, sólo los activos.
+             */
+            platillos: components["schemas"]["PlatilloPublico"][];
+        };
         /** CategoriaRespuesta */
         CategoriaRespuesta: {
             /**
@@ -519,6 +667,25 @@ export interface components {
             request_id: string | null;
         };
         /**
+         * EntrarCuerpo
+         * @description `POST /p/sesion/entrar`: el código que trae el QR (`/m/{codigo_mesa}`).
+         */
+        EntrarCuerpo: {
+            /**
+             * Codigo Mesa
+             * @example Jx3k9QwLmN2pR7sT4vY8zA
+             */
+            codigo_mesa: string;
+        };
+        /**
+         * EntrarRespuesta
+         * @description Sesión creada o reanudada y el miembro que la cookie `carta_invitado` identifica.
+         */
+        EntrarRespuesta: {
+            sesion: components["schemas"]["SesionResumen"];
+            miembro: components["schemas"]["MiembroRespuesta"];
+        };
+        /**
          * ErrorRespuesta
          * @description `{"error": {"codigo", "mensaje", "detalles", "request_id"}}`.
          * @example {
@@ -554,6 +721,32 @@ export interface components {
          * @enum {string}
          */
         EstadoImportacion: "pendiente" | "procesando" | "listo" | "confirmado" | "fallido";
+        /** EventoEntrada */
+        EventoEntrada: {
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "menu_view" | "dish_view" | "search" | "filter";
+            /**
+             * Platillo Id
+             * @description Con `dish_view`.
+             */
+            platillo_id?: string | null;
+            /**
+             * Ocurrido En
+             * @description Hora del teléfono; el servidor la acota a la suya.
+             */
+            ocurrido_en?: string | null;
+        };
+        /**
+         * EventosLote
+         * @description Responde `202` sin cuerpo: un fallo de analítica nunca se ve en la app.
+         */
+        EventosLote: {
+            /** Eventos */
+            eventos: components["schemas"]["EventoEntrada"][];
+        };
         /**
          * ImportacionRespuesta
          * @description Estado de una importación. Sin `archivo_url` (bucket privado) ni tokens ni modelo.
@@ -585,6 +778,39 @@ export interface components {
             finalizado_en?: string | null;
             /** Confirmado En */
             confirmado_en?: string | null;
+        };
+        /** MenuPublico */
+        MenuPublico: {
+            restaurante: components["schemas"]["RestaurantePublico"];
+            /**
+             * Categorias
+             * @description Por `orden`, sólo las activas.
+             */
+            categorias: components["schemas"]["CategoriaPublica"][];
+            /**
+             * Destacados
+             * @description Hasta 3 ids de platillos con `destacado`, en el orden del menú.
+             */
+            destacados: string[];
+            /**
+             * Actualizado En
+             * Format: date-time
+             * @description Cambio más reciente del menú.
+             */
+            actualizado_en: string;
+        };
+        /** MesaDeSesion */
+        MesaDeSesion: {
+            /**
+             * Numero
+             * @example 7
+             */
+            numero: number;
+            /**
+             * Capacidad
+             * @example 4
+             */
+            capacidad: number;
         };
         /** MesaRespuesta */
         MesaRespuesta: {
@@ -620,6 +846,73 @@ export interface components {
              * @default 4
              */
             capacidad: number;
+        };
+        /**
+         * MiembroCambios
+         * @description `PATCH /p/miembro`: el alias nuevo (1–24 caracteres, sin datos reales, AC-03.2).
+         */
+        MiembroCambios: {
+            /**
+             * Alias
+             * @example Sofía
+             */
+            alias: string;
+        };
+        /** MiembroDeSesion */
+        MiembroDeSesion: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Alias
+             * @example Comensal 2
+             */
+            alias: string;
+            /**
+             * Color Avatar
+             * @description `#RRGGBB`
+             * @example #B8860B
+             */
+            color_avatar: string;
+            /**
+             * Rol
+             * @enum {string}
+             */
+            rol: "host" | "miembro";
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "armando" | "listo";
+        };
+        /**
+         * MiembroRespuesta
+         * @description Un comensal de la sesión: alias, color de avatar estable y si abrió la mesa.
+         */
+        MiembroRespuesta: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Alias
+             * @example Comensal 2
+             */
+            alias: string;
+            /**
+             * Color Avatar
+             * @description `#RRGGBB`
+             * @example #B8860B
+             */
+            color_avatar: string;
+            /**
+             * Rol
+             * @enum {string}
+             */
+            rol: "host" | "miembro";
         };
         /**
          * PersonalCambios
@@ -750,6 +1043,70 @@ export interface components {
              */
             disponible: boolean;
         };
+        /**
+         * PlatilloDetalle
+         * @description `GET /p/platillos/{id}`: lo mismo que en el menú más el nombre de su categoría.
+         */
+        PlatilloDetalle: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Categoria Id */
+            categoria_id?: string | null;
+            /**
+             * Nombre
+             * @example Guacamole de la casa
+             */
+            nombre: string;
+            /** Descripcion */
+            descripcion?: string | null;
+            /**
+             * Precio
+             * @example 145
+             */
+            precio: number;
+            /**
+             * Disponible
+             * @description `false` = «Agotado hoy»: se ve atenuado, no se pide.
+             */
+            disponible: boolean;
+            imagen_tipo: components["schemas"]["TipoImagen"];
+            /** Foto Thumb Url */
+            foto_thumb_url?: string | null;
+            /** Foto Detalle Url */
+            foto_detalle_url?: string | null;
+            /**
+             * Ilustracion Clave
+             * @description Con `imagen_tipo = ilustracion_categoria` (20 claves, T-1.4).
+             */
+            ilustracion_clave?: string | null;
+            /**
+             * Alergenos
+             * @example [
+             *       "lacteos"
+             *     ]
+             */
+            alergenos: string[];
+            /**
+             * Etiquetas
+             * @example [
+             *       "vegetariano"
+             *     ]
+             */
+            etiquetas: string[];
+            /** Calorias */
+            calorias?: number | null;
+            /** Nivel Picante */
+            nivel_picante: number;
+            /** Destacado */
+            destacado: boolean;
+            /** Orden */
+            orden: number;
+            /** Categoria Nombre */
+            categoria_nombre?: string | null;
+        };
         /** PlatilloImportado */
         "PlatilloImportado-Input": {
             /** Nombre */
@@ -793,6 +1150,68 @@ export interface components {
             etiquetas_sugeridas?: string[];
             /** Pagina */
             pagina?: number | null;
+        };
+        /**
+         * PlatilloPublico
+         * @description Un platillo del menú con su imagen resuelta (foto → ilustración por categoría, 02 §8).
+         */
+        PlatilloPublico: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Categoria Id */
+            categoria_id?: string | null;
+            /**
+             * Nombre
+             * @example Guacamole de la casa
+             */
+            nombre: string;
+            /** Descripcion */
+            descripcion?: string | null;
+            /**
+             * Precio
+             * @example 145
+             */
+            precio: number;
+            /**
+             * Disponible
+             * @description `false` = «Agotado hoy»: se ve atenuado, no se pide.
+             */
+            disponible: boolean;
+            imagen_tipo: components["schemas"]["TipoImagen"];
+            /** Foto Thumb Url */
+            foto_thumb_url?: string | null;
+            /** Foto Detalle Url */
+            foto_detalle_url?: string | null;
+            /**
+             * Ilustracion Clave
+             * @description Con `imagen_tipo = ilustracion_categoria` (20 claves, T-1.4).
+             */
+            ilustracion_clave?: string | null;
+            /**
+             * Alergenos
+             * @example [
+             *       "lacteos"
+             *     ]
+             */
+            alergenos: string[];
+            /**
+             * Etiquetas
+             * @example [
+             *       "vegetariano"
+             *     ]
+             */
+            etiquetas: string[];
+            /** Calorias */
+            calorias?: number | null;
+            /** Nivel Picante */
+            nivel_picante: number;
+            /** Destacado */
+            destacado: boolean;
+            /** Orden */
+            orden: number;
         };
         /**
          * PlatilloRespuesta
@@ -906,6 +1325,55 @@ export interface components {
             tema: "vino" | "verde" | "azul" | "ocre" | "cafe";
         };
         /**
+         * RestauranteDeSesion
+         * @description Lo justo para la tarjeta de bienvenida y para pedir el menú por `slug` (T-2.2).
+         */
+        RestauranteDeSesion: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Nombre
+             * @example La Ceiba
+             */
+            nombre: string;
+            /**
+             * Slug
+             * @description Para `GET /api/v1/p/menu/{slug}`.
+             * @example la-ceiba
+             */
+            slug: string;
+            /** Logo Url */
+            logo_url?: string | null;
+            /**
+             * Tema
+             * @example vino
+             */
+            tema: string;
+        };
+        /** RestaurantePublico */
+        RestaurantePublico: {
+            /**
+             * Nombre
+             * @example La Ceiba
+             */
+            nombre: string;
+            /**
+             * Slug
+             * @example la-ceiba
+             */
+            slug: string;
+            /** Logo Url */
+            logo_url?: string | null;
+            /**
+             * Tema
+             * @example vino
+             */
+            tema: string;
+        };
+        /**
          * RestauranteRespuesta
          * @description Lo que el panel muestra de un restaurante. Sin `plan` ni `horarios` (sin uso en v1).
          */
@@ -969,6 +1437,59 @@ export interface components {
          * @enum {string}
          */
         RolPersonal: "mesero" | "capitan";
+        /**
+         * SesionEstado
+         * @description `GET /p/sesion`: lo que el sondeo de 3 s pinta (AC-02.3). `yo` es el miembro de la
+         *     cookie; los demás datos son iguales para toda la mesa.
+         */
+        SesionEstado: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "activa" | "lista_para_enviar";
+            mesa: components["schemas"]["MesaDeSesion"];
+            /**
+             * Yo
+             * Format: uuid
+             */
+            yo: string;
+            /**
+             * Listos
+             * @example 1
+             */
+            listos: number;
+            /**
+             * Total Miembros
+             * @example 3
+             */
+            total_miembros: number;
+            /**
+             * Miembros
+             * @description En orden de llegada; el `host` primero.
+             */
+            miembros: components["schemas"]["MiembroDeSesion"][];
+        };
+        /** SesionResumen */
+        SesionResumen: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "activa" | "lista_para_enviar";
+            mesa: components["schemas"]["MesaDeSesion"];
+            restaurante: components["schemas"]["RestauranteDeSesion"];
+        };
         /**
          * TipoImagen
          * @enum {string}
@@ -1043,6 +1564,516 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    entrar_api_v1_p_sesion_entrar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntrarCuerpo"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntrarRespuesta"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    estado_de_sesion_api_v1_p_sesion_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SesionEstado"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    cambiar_alias_api_v1_p_miembro_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MiembroCambios"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MiembroRespuesta"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    menu_api_v1_p_menu__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuPublico"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    platillo_api_v1_p_platillos__platillo_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platillo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatilloDetalle"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    eventos_api_v1_p_eventos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventosLote"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
         };
