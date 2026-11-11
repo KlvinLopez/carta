@@ -61,7 +61,7 @@ No se negocian sin un ADR nuevo.
 12. **Sin secretos en el repositorio.** Todo por variable de entorno.
 13. **Sin SDKs propietarios de nube.** PostgreSQL, S3 compatible y variables de entorno (ADR-012).
 14. **Sin 3D ni AR en la v1** (ADR-011).
-15. **Una tarea del plan = un commit** con el ID: `T-2.3: menú público con ETag`. Cada prueba de criterio lleva `@pytest.mark.ac("AC-x.y")`.
+15. **Una tarea del plan = un commit** con el ID: `T-2.3: menú público con ETag`. Cada prueba de criterio lleva `@pytest.mark.ac("AC-x.y")` (en vitest, `// @ac AC-x.y` en la línea de arriba del `it`).
 
 ---
 
