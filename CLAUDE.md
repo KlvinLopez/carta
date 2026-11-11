@@ -75,7 +75,7 @@ No se negocian sin un ADR nuevo.
 - Frontend: Vite + React + TypeScript, una SPA con tres áreas (`/m`, `/staff`, `/admin`), PWA, bundle ≤ 250 KB.
 - Imagen del platillo: foto (recomendada) → ilustración por categoría → generada por IA (v1.1).
 - Contrato primero: el backend publica `app/schemas/` y `/openapi.json`; el frontend genera tipos desde ahí.
-- Despliegue: push a `master` → staging; etiqueta `v*` → producción (`deploy.yml`, también publica en GHCR). Railway se configura en el panel (no hay `railway.toml`: obsoleto, no lo leen servicios nuevos) y no acepta `--mount=type=cache` sin id en el `Dockerfile`; comando previo `scripts/predespliegue.py` (no `alembic upgrade head` a secas: rompería el rollback con la base por delante); `RAILWAY_TOKEN` sólo en el Environment `produccion` de GitHub; rollback = **Deployments → Rollback** o `deploy.yml` con la etiqueta anterior, nunca `railway redeploy`. Pasos en `deploy/README.md`.
+- Despliegue: push a `master` → staging; etiqueta `v*` → producción (`deploy.yml`, también publica en GHCR). La etiqueta la crea el workflow «Publicar versión» (`publicar.yml`, lo lanza la maestra con la versión que pide Calvin) y el despliegue espera la aprobación de Calvin en el Environment `produccion` (required reviewer). Railway se configura en el panel (no hay `railway.toml`: obsoleto, no lo leen servicios nuevos) y no acepta `--mount=type=cache` sin id en el `Dockerfile`; comando previo `scripts/predespliegue.py` (no `alembic upgrade head` a secas: rompería el rollback con la base por delante); `RAILWAY_TOKEN` sólo en el Environment `produccion` de GitHub; rollback = **Deployments → Rollback** o `deploy.yml` con la etiqueta anterior, nunca `railway redeploy`. Pasos en `deploy/README.md`.
 
 ---
 
