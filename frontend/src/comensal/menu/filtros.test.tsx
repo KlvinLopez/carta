@@ -2,6 +2,7 @@ import { act, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { cumpleFiltros, CLAVE_FILTROS, almacenFiltrosLocal, leerFiltros, mismosFiltros, nombreDeClave } from './filtros';
+import { crearMenuSemilla } from '../../mocks/servicioMenuComensalSimulado';
 import { montarMenu, nombresEnLista } from './utilesPrueba';
 
 const AVISO = /La información de alérgenos la declara el restaurante y no sustituye preguntar al personal/;
@@ -33,6 +34,12 @@ describe('filtros: lógica', () => {
     });
   });
 
+  it('el tope por lista es de 30 claves y la clave de almacenamiento es carta:filtros:v1', () => {
+    const muchas = Array.from({ length: 40 }, (_, i) => `a${i}`);
+    expect(leerFiltros(JSON.stringify({ alergenos: muchas, etiquetas: muchas })).alergenos).toHaveLength(30);
+    expect(CLAVE_FILTROS).toBe('carta:filtros:v1');
+  });
+
   it('compara selecciones sin importar el orden y nombra las claves', () => {
     expect(mismosFiltros({ alergenos: ['a', 'b'], etiquetas: [] }, { alergenos: ['b', 'a'], etiquetas: [] })).toBe(true);
     expect(mismosFiltros({ alergenos: ['a'], etiquetas: [] }, { alergenos: [], etiquetas: [] })).toBe(false);
@@ -51,6 +58,19 @@ describe('filtros: pantalla', () => {
       expect(within(hoja).getByRole('button', { name: nombre })).toBeInTheDocument();
     }
     for (const nombre of ['Vegetariano', 'Vegano', 'Picante']) {
+      expect(within(hoja).getByRole('button', { name: nombre })).toBeInTheDocument();
+    }
+  });
+
+  // @ac AC-05.1
+  it('la lista mínima no depende de lo que traiga el menú: un menú sin alérgenos ni etiquetas ofrece los mínimos', async () => {
+    const uno = crearMenuSemilla();
+    const p = uno.categorias[0]!.platillos[0]!;
+    uno.categorias = [{ ...uno.categorias[0]!, platillos: [{ ...p, alergenos: [], etiquetas: [] }] }];
+    uno.destacados = [];
+    const { u } = montarMenu({ menu: uno });
+    const hoja = await abrirHoja(u);
+    for (const nombre of ['Nueces y frutos secos', 'Lácteos', 'Gluten', 'Huevo', 'Mariscos', 'Vegetariano', 'Vegano', 'Picante']) {
       expect(within(hoja).getByRole('button', { name: nombre })).toBeInTheDocument();
     }
   });
@@ -91,13 +111,24 @@ describe('filtros: pantalla', () => {
   });
 
   // @ac AC-05.2
-  it('el Top 3 también respeta el filtro de alérgenos', async () => {
-    const { u } = montarMenu({ filtros: { alergenos: ['lacteos'], etiquetas: [] } });
+  it('con un filtro activo el Top 3 se esconde y el platillo descartado no aparece en ninguna parte', async () => {
+    montarMenu({ filtros: { alergenos: ['lacteos'], etiquetas: [] } });
     await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
-    const top = screen.getByRole('region', { name: 'Top 3 del chef' });
-    expect(within(top).queryByRole('heading', { name: 'Flan de cajeta' })).toBeNull();
-    expect(within(top).getByRole('heading', { name: 'Guacamole de la casa' })).toBeInTheDocument();
-    expect(u).toBeDefined();
+    expect(screen.queryByRole('region', { name: 'Top 3 del chef' })).toBeNull();
+    expect(screen.queryAllByRole('heading', { name: 'Flan de cajeta' })).toHaveLength(0);
+    // Lo permitido aparece una sola vez (en su categoría), no repetido arriba.
+    expect(screen.getAllByRole('heading', { name: 'Guacamole de la casa' })).toHaveLength(1);
+    expect(screen.getByRole('status').textContent).toBe(`${nombres().length} platillos`);
+  });
+
+  it('sin filtros ni búsqueda el Top 3 está; al quitar los filtros vuelve', async () => {
+    const { u } = montarMenu({ filtros: { alergenos: [], etiquetas: ['vegano'] } });
+    await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
+    expect(screen.queryByRole('region', { name: 'Top 3 del chef' })).toBeNull();
+    await u.click(screen.getByRole('button', { name: /^Filtros/ }));
+    await u.click(screen.getByRole('button', { name: 'Quitar filtros' }));
+    await u.click(screen.getByRole('button', { name: /^Ver \d+ platillos$/ }));
+    expect(screen.getByRole('region', { name: 'Top 3 del chef' })).toBeInTheDocument();
   });
 
   // @ac AC-05.2
@@ -213,5 +244,65 @@ describe('filtros: viven en el teléfono', () => {
     expect(cola.registrar).toHaveBeenCalledWith('filter');
     expect(cola.registrar.mock.calls.flat().join(' ')).not.toMatch(/mariscos/i);
     vi.unstubAllGlobals();
+  });
+
+  // @ac AC-05.1
+  it('las etiquetas guardadas se restauran y filtran solas, sin alérgenos', async () => {
+    window.localStorage.setItem('carta:filtros:v1', JSON.stringify({ alergenos: [], etiquetas: ['vegano'] }));
+    montarMenu({ props: { almacen: almacenFiltrosLocal } });
+    await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
+    expect(nombres().sort()).toEqual(['Agua de jamaica', 'Café de olla', 'Hongos al ajillo', 'Nieve de limón', 'Piña colada sin alcohol'].sort());
+    expect(screen.getByRole('button', { name: 'Filtros, 1 activos' })).toBeInTheDocument();
+  });
+
+  // @ac AC-05.2
+  it('una categoría sin resultados no se pinta, ni su chip', async () => {
+    const { u } = montarMenu();
+    await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
+    await u.type(screen.getByRole('searchbox', { name: 'Buscar en el menú' }), 'flan');
+    expect(screen.queryByRole('heading', { name: 'Bebidas', level: 2 })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Platos fuertes', level: 2 })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Postres', level: 2 })).toBeInTheDocument();
+  });
+
+  // @ac AC-05.1
+  it('aplicar, «Quitar búsqueda y filtros» y reabrir la hoja: nada marcado y nada guardado', async () => {
+    window.localStorage.clear();
+    const { u } = montarMenu({ props: { almacen: almacenFiltrosLocal } });
+    let hoja = await abrirHoja(u);
+    await u.click(within(hoja).getByRole('button', { name: 'Lácteos' }));
+    await u.click(within(hoja).getByRole('button', { name: 'Vegano' }));
+    await u.click(within(hoja).getByRole('button', { name: /^Ver \d+ platillos?$/ }));
+    expect(window.localStorage.getItem('carta:filtros:v1')).not.toBeNull();
+    await u.type(screen.getByRole('searchbox', { name: 'Buscar en el menú' }), 'zzzz');
+    await u.click(screen.getByRole('button', { name: 'Quitar búsqueda y filtros' }));
+    expect(window.localStorage.getItem('carta:filtros:v1')).toBeNull();
+    hoja = await abrirHoja(u);
+    expect(within(hoja).queryAllByRole('button', { pressed: true })).toHaveLength(0);
+  });
+
+  it('guardar con un almacenamiento que lanza no rompe', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('lleno', 'QuotaExceededError');
+    });
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new DOMException('bloqueado', 'SecurityError');
+    });
+    expect(() => almacenFiltrosLocal.guardar({ alergenos: ['gluten'], etiquetas: [] })).not.toThrow();
+    expect(() => almacenFiltrosLocal.guardar({ alergenos: [], etiquetas: [] })).not.toThrow();
+  });
+
+  it('un menú sin platillos no ofrece buscador ni filtros y no dice «sin resultados»', async () => {
+    const vacio = crearMenuSemilla();
+    vacio.categorias = [];
+    vacio.destacados = [];
+    montarMenu({ menu: vacio });
+    await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Filtros/ })).toBeNull();
+    expect(screen.queryByText(/Sin resultados|No hay platillos con/)).toBeNull();
+    expect(screen.getByText(/todavía no tiene platillos/)).toBeInTheDocument();
+    // El aviso de alérgenos no depende de que haya platillos.
+    expect(screen.getByText(AVISO)).toBeInTheDocument();
   });
 });

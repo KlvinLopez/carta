@@ -151,6 +151,49 @@ describe('rutas del comensal bajo /m/<codigo>', () => {
   });
 });
 
+describe('el menú sobrevive a ir y volver (estado en el área)', () => {
+  it('3 idas y vueltas: un solo menu_view, una sola petición, la búsqueda sigue y no hay esqueleto', async () => {
+    const { u, menu, cola } = montar(`/m/${CODIGO_SEMILLA}`);
+    for (let i = 0; i < 3; i += 1) {
+      await u.click(await screen.findByRole('button', { name: 'Ver el menú' }));
+      await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
+      const campo = screen.getByRole('searchbox', { name: 'Buscar en el menú' });
+      if (i === 0) await u.type(campo, 'pastor');
+      expect(campo).toHaveValue('pastor');
+      expect(screen.queryByText('Preparando el menú…')).toBeNull();
+      await u.click(screen.getByRole('button', { name: 'Mi mesa' }));
+    }
+    expect(menu.llamadas).toHaveLength(1);
+    expect(cola.registrar.mock.calls.filter(([t]) => t === 'menu_view')).toHaveLength(1);
+  });
+
+  it('los filtros aplicados también siguen al volver', async () => {
+    const { u } = montar(`/m/${CODIGO_SEMILLA}/menu`);
+    await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
+    await u.click(screen.getByRole('button', { name: 'Filtros' }));
+    await u.click(screen.getByRole('button', { name: 'Huevo' }));
+    await u.click(screen.getByRole('button', { name: /^Ver \d+ platillos$/ }));
+    await u.click(screen.getByRole('button', { name: 'Mi mesa' }));
+    await u.click(await screen.findByRole('button', { name: 'Ver el menú' }));
+    expect(await screen.findByRole('button', { name: 'Filtros, 1 activos' })).toBeInTheDocument();
+  });
+
+  it('el menú se pide en cuanto entrar responde, con la bienvenida a la vista', async () => {
+    const { menu } = montar(`/m/${CODIGO_SEMILLA}`);
+    await screen.findByRole('heading', { name: 'Estás en la mesa 7' });
+    await waitFor(() => expect(menu.llamadas).toEqual([{ slug: 'la-ceiba' }]));
+  });
+
+  it('un fallo del sondeo se avisa también en el menú, sin tapar la lista', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    montar(`/m/${CODIGO_SEMILLA}/menu`, { errores: { estado: errorSimulado(500, 'ERROR_INTERNO') } });
+    await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
+    await avanzar(200);
+    expect(await screen.findByText('Estamos teniendo un problema de nuestro lado. Seguimos intentando.')).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Buscar en el menú' })).toBeInTheDocument();
+  });
+});
+
 describe('el código de la mesa', () => {
   it('la forma que acepta el área es la que acepta y genera el backend (una sola verdad: app/)', () => {
     const sesion = readFileSync(resolve(process.cwd(), '../app/services/sesion.py'), 'utf8');

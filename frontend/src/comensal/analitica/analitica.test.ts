@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { validador } from '../../admin/gestion/utilesContrato';
-import { crearColaAnalitica, enviarLoteReal, analiticaDelComensal, INTERVALO_ENVIO_MS, MAXIMO_POR_LOTE, type EventoAnalitica } from './cola';
+import { crearColaAnalitica, enviarLoteReal, analiticaDelComensal, type EventoAnalitica } from './cola';
 
 const validarLote = validador('EventosLote');
 
@@ -33,7 +33,7 @@ describe('cola de analítica del comensal', () => {
     cola.registrar('search');
     cola.registrar('filter');
     expect(enviar).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS - 1);
+    await vi.advanceTimersByTimeAsync(4999);
     expect(enviar).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(2);
     expect(enviar).toHaveBeenCalledTimes(1);
@@ -48,7 +48,7 @@ describe('cola de analítica del comensal', () => {
     // Aunque alguien pase un id con otro tipo, sólo dish_view lo lleva.
     cola.registrar('search', '00000000-0000-4000-8000-000000001001');
     cola.registrar('dish_view', '00000000-0000-4000-8000-000000001002');
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS);
+    await vi.advanceTimersByTimeAsync(5000);
     const lote = enviar.mock.calls[0]![0];
     expect(lote.map((e) => Object.keys(e).sort())).toEqual([
       ['ocurrido_en', 'tipo'],
@@ -63,8 +63,8 @@ describe('cola de analítica del comensal', () => {
   it('manda de 50 en 50 y no guarda más de 100 en el teléfono', async () => {
     const { cola, enviar } = montar();
     for (let i = 0; i < 130; i += 1) cola.registrar('search');
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS);
-    expect(enviar.mock.calls.map((c) => c[0].length)).toEqual([MAXIMO_POR_LOTE, MAXIMO_POR_LOTE]);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(enviar.mock.calls.map((c) => c[0].length)).toEqual([50, 50]);
   });
 
   it('al ocultarse la página manda ya, con keepalive; al volver a verse no manda nada', async () => {
@@ -78,7 +78,7 @@ describe('cola de analítica del comensal', () => {
     expect(enviar).toHaveBeenCalledTimes(1);
     expect(enviar.mock.calls[0]![1]).toEqual({ keepalive: true });
     // Ya vaciada: el temporizador no vuelve a mandar lo mismo.
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS * 2);
+    await vi.advanceTimersByTimeAsync(10_000);
     expect(enviar).toHaveBeenCalledTimes(1);
   });
 
@@ -93,26 +93,58 @@ describe('cola de analítica del comensal', () => {
     const { enviar, doc } = montar();
     doc.visibilityState = 'hidden';
     doc.dispatchEvent(new Event('visibilitychange'));
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS * 3);
+    await vi.advanceTimersByTimeAsync(15_000);
     expect(enviar).not.toHaveBeenCalled();
   });
 
   it('un fallo (asíncrono o síncrono) se descarta en silencio y no se reintenta', async () => {
-    const huerfanos = vi.fn();
-    process.on('unhandledRejection', huerfanos);
-    const enviar = vi.fn().mockRejectedValueOnce(new Error('429')).mockImplementationOnce(() => {
-      throw new Error('boom');
+    const huerfanos: unknown[] = [];
+    const oyente = (motivo: unknown) => huerfanos.push(motivo);
+    process.on('unhandledRejection', oyente);
+    try {
+      const enviar = vi.fn().mockRejectedValueOnce(new Error('429')).mockImplementationOnce(() => {
+        throw new Error('boom');
+      });
+      const { cola } = montar(enviar);
+      cola.registrar('menu_view');
+      await vi.advanceTimersByTimeAsync(5000);
+      cola.registrar('search');
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(enviar).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(25_000);
+      expect(enviar).toHaveBeenCalledTimes(2); // nada de reintentos
+      // Node avisa de un rechazo sin atender en el turno real siguiente: se le da.
+      vi.useRealTimers();
+      await new Promise((r) => setTimeout(r, 20));
+      expect(huerfanos).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', oyente);
+    }
+  });
+
+  it('sigue siendo periódica aunque se registre sin parar (no reinicia la espera en cada evento)', async () => {
+    const { cola, enviar } = montar();
+    for (let t = 0; t <= 12_000; t += 2000) {
+      cola.registrar('search');
+      await vi.advanceTimersByTimeAsync(2000);
+    }
+    expect(enviar.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('con 100 pendientes se descarta el más viejo', async () => {
+    let n = 0;
+    const enviar = falso();
+    const cola = crearColaAnalitica({
+      enviar,
+      ahora: () => new Date(Date.UTC(2026, 10, 11, 18, 0, n++)),
+      documento: new EventTarget() as unknown as Document,
+      ventana: new EventTarget() as unknown as Window,
     });
-    const { cola } = montar(enviar);
-    cola.registrar('menu_view');
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS);
-    cola.registrar('search');
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS);
-    expect(enviar).toHaveBeenCalledTimes(2);
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS * 5);
-    expect(enviar).toHaveBeenCalledTimes(2); // nada de reintentos
-    process.off('unhandledRejection', huerfanos);
-    expect(huerfanos).not.toHaveBeenCalled();
+    for (let i = 0; i < 101; i += 1) cola.registrar('search');
+    await vi.advanceTimersByTimeAsync(5000);
+    const todos = enviar.mock.calls.flatMap((c) => c[0]);
+    expect(todos).toHaveLength(100);
+    expect(todos[0]!.ocurrido_en).toBe('2026-11-11T18:00:01.000Z'); // el 0 se descartó
   });
 
   it('detener limpia el temporizador y deja de escuchar la página', async () => {
@@ -121,7 +153,10 @@ describe('cola de analítica del comensal', () => {
     cola.detener();
     doc.visibilityState = 'hidden';
     doc.dispatchEvent(new Event('visibilitychange'));
-    await vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS * 2);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(enviar).not.toHaveBeenCalled();
+    // La cola quedó vacía: ni vaciar a mano manda lo anterior.
+    cola.vaciar();
     expect(enviar).not.toHaveBeenCalled();
   });
 });
@@ -144,7 +179,7 @@ describe('envío real a POST /api/v1/p/eventos', () => {
     vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))));
     const { cola } = montar(enviarLoteReal as unknown as ReturnType<typeof falso>);
     cola.registrar('menu_view');
-    await expect(vi.advanceTimersByTimeAsync(INTERVALO_ENVIO_MS)).resolves.not.toThrow();
+    await expect(vi.advanceTimersByTimeAsync(5000)).resolves.not.toThrow();
   });
 
   it('la cola de la pestaña es una sola y no existe hasta que se usa', () => {

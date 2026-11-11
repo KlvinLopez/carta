@@ -5,8 +5,9 @@ import { pantallaSinMesa, servicioEntradaReal, VistaEntrada } from './entrada/Pa
 import type { ServicioEntrada } from './entrada/servicio';
 import { useEntrada } from './entrada/useEntrada';
 import type { AlmacenFiltros } from './menu/filtros';
-import { Menu } from './menu/Menu';
-import type { ServicioMenu } from './menu/servicioMenu';
+import { MenuVista } from './menu/Menu';
+import { servicioMenuReal, type ServicioMenu } from './menu/servicioMenu';
+import { useControladorMenu } from './menu/useControladorMenu';
 
 export interface PropsSesionMesa {
   codigo: string;
@@ -18,14 +19,22 @@ export interface PropsSesionMesa {
 }
 
 /**
- * La sesión del comensal en esta pestaña: `useEntrada` corre **una sola vez** aquí, por encima de las
- * rutas, para que el sondeo de la mesa siga vivo al pasar de la bienvenida al menú (y no se cree otro
- * comensal al cambiar de pantalla). Toda ruta cuelga de `/m/<codigo>/…`.
+ * La sesión del comensal en esta pestaña. Por encima de las rutas viven **una sola vez** `useEntrada` (el
+ * sondeo de la mesa sigue vivo al pasar de la bienvenida al menú y no se crea otro comensal) y el
+ * controlador del menú (datos, búsqueda y filtros: volver de «Mi mesa» o del detalle muestra la misma
+ * lista, sin esqueleto y sin otro `menu_view`). El menú se pide en cuanto `entrar` responde. Toda ruta
+ * cuelga de `/m/<codigo>/…`.
  */
-export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMenu, analitica, almacenFiltros }: PropsSesionMesa) {
+export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMenu = servicioMenuReal, analitica, almacenFiltros }: PropsSesionMesa) {
   const entrada = useEntrada(codigo, servicio);
   const navigate = useNavigate();
   const { vista } = entrada;
+  const menu = useControladorMenu({
+    slug: vista.fase === 'lista' ? vista.sesion.restaurante.slug : null,
+    servicio: servicioMenu,
+    analitica,
+    almacen: almacenFiltros,
+  });
 
   return (
     <Routes>
@@ -35,14 +44,7 @@ export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMen
         element={
           // Un enlace directo al menú espera la entrada (cookie y mesa); si falla, el mismo fallo de siempre.
           vista.fase === 'lista' ? (
-            <Menu
-              slug={vista.sesion.restaurante.slug}
-              mesa={vista.sesion.mesa.numero}
-              servicio={servicioMenu}
-              analitica={analitica}
-              almacen={almacenFiltros}
-              onVolver={() => navigate(`/m/${codigo}`)}
-            />
+            <MenuVista controlador={menu} mesa={vista.sesion.mesa.numero} aviso={vista.aviso} onVolver={() => navigate(`/m/${codigo}`)} />
           ) : (
             pantallaSinMesa(entrada)
           )

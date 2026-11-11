@@ -1,57 +1,56 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
 import { Boton, Ilustracion } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
-import { analiticaDelComensal, type Analitica } from '../analitica/cola';
+import type { Analitica } from '../analitica/cola';
 import { Logo } from '../entrada/Bienvenida';
+import { AvisoConexion, type AvisoSondeo } from '../entrada/AvisoConexion';
 import { PantallaError } from '../entrada/PantallaError';
 import { useFocoEnTitulo } from '../entrada/useFocoEnTitulo';
-import { consultaEfectiva, coincide, pajarDe } from './busqueda';
-import {
-  almacenFiltrosLocal,
-  ALERGENOS_COMUNES,
-  ETIQUETAS_COMUNES,
-  cumpleFiltros,
-  hayFiltros,
-  mismosFiltros,
-  FILTROS_VACIOS,
-  totalFiltros,
-  type AlmacenFiltros,
-  type Filtros,
-} from './filtros';
+import { coincide, pajarDe } from './busqueda';
+import { ALERGENOS_COMUNES, ETIQUETAS_COMUNES, cumpleFiltros, hayFiltros, totalFiltros, type AlmacenFiltros, type Filtros } from './filtros';
 import { HojaFiltros } from './HojaFiltros';
 import estilos from './Menu.module.css';
-import { crearServicioMenu, type MenuPublico, type PlatilloPublico, type ServicioMenu } from './servicioMenu';
+import { servicioMenuReal, type MenuPublico, type PlatilloPublico, type ServicioMenu } from './servicioMenu';
 import { TarjetaPlatillo } from './TarjetaPlatillo';
-import { useMenu } from './useMenu';
+import { useControladorMenu, type ControladorMenu } from './useControladorMenu';
 
-const servicioMenuReal = crearServicioMenu();
+export { ESPERA_BUSQUEDA_MS } from './useControladorMenu';
 
-/** Cuánto se espera sin teclear para contar una búsqueda como «asentada» (analítica; no filtra la lista). */
-export const ESPERA_BUSQUEDA_MS = 800;
-
-export interface PropsMenu {
-  /** `sesion.restaurante.slug`. */
-  slug: string;
+export interface PropsMenuVista {
+  controlador: ControladorMenu;
   /** Número de la mesa en la que está el comensal. */
   mesa: number;
-  /** Pruebas y capturas inyectan el servicio simulado. */
-  servicio?: ServicioMenu;
-  analitica?: Analitica;
-  almacen?: AlmacenFiltros;
+  /** El último sondeo de la mesa falló (`useEntrada`): se avisa sin tapar la lista. */
+  aviso?: AvisoSondeo;
   onVolver: () => void;
   /** Abre un platillo (T-2.6). Sin ella las tarjetas son de sólo lectura. */
   onAbrir?: (id: string) => void;
 }
 
+export interface PropsMenu extends Omit<PropsMenuVista, 'controlador'> {
+  /** `sesion.restaurante.slug`. */
+  slug: string;
+  /** Pruebas y capturas inyectan el servicio simulado. */
+  servicio?: ServicioMenu;
+  analitica?: Analitica;
+  almacen?: AlmacenFiltros;
+}
+
+/** El menú con su propio estado: para pruebas y capturas. La app usa `MenuVista` con el controlador de `SesionMesa`. */
+export function Menu({ slug, servicio = servicioMenuReal, analitica, almacen, ...resto }: PropsMenu) {
+  const controlador = useControladorMenu({ slug, servicio, analitica, almacen });
+  return <MenuVista controlador={controlador} {...resto} />;
+}
+
 /** `/m/:codigo/menu`: el menú del restaurante, con búsqueda y filtros locales. */
-export function Menu({ slug, servicio = servicioMenuReal, ...resto }: PropsMenu) {
-  const { estado, reintentar } = useMenu(slug, servicio);
+export function MenuVista({ controlador, ...resto }: PropsMenuVista) {
+  const { estado, reintentar } = controlador;
   if (estado.fase === 'cargando') return <EsqueletoMenu />;
   if (estado.fase === 'error') {
     return <PantallaError clase={estado.clase} reintentarEn={estado.reintentarEn} onReintentar={reintentar} />;
   }
-  return <MenuListo menu={estado.menu} {...resto} />;
+  return <MenuListo menu={estado.menu} controlador={controlador} {...resto} />;
 }
 
 function EsqueletoMenu() {
@@ -78,13 +77,11 @@ function unir(comunes: string[], presentes: Iterable<string>, elegidos: string[]
   return [...new Set([...comunes, ...presentes, ...elegidos])];
 }
 
-function MenuListo({ menu, mesa, analitica, almacen = almacenFiltrosLocal, onVolver, onAbrir }: Omit<PropsMenu, 'slug' | 'servicio'> & { menu: MenuPublico }) {
+function MenuListo({ menu, controlador, mesa, aviso = null, onVolver, onAbrir }: Omit<PropsMenuVista, 'controlador'> & { menu: MenuPublico; controlador: ControladorMenu }) {
   const titulo = useFocoEnTitulo();
   const idTop = useId();
-  const [escrito, setEscrito] = useState('');
-  const [filtros, setFiltros] = useState<Filtros>(() => almacen.leer());
+  const { escrito, setEscrito, consulta, filtros, aplicarFiltros, limpiarTodo } = controlador;
   const [hojaAbierta, setHojaAbierta] = useState(false);
-  const cola = useMemo(() => analitica ?? analiticaDelComensal(), [analitica]);
 
   // El texto de cada platillo se normaliza una sola vez por menú cargado.
   const indice = useMemo(() => {
@@ -103,8 +100,6 @@ function MenuListo({ menu, mesa, analitica, almacen = almacenFiltrosLocal, onVol
     return { porId, alergenos, etiquetas, total };
   }, [menu]);
 
-  const consulta = consultaEfectiva(escrito);
-
   /** Los platillos que pasan los filtros y la búsqueda dados. */
   const visiblesCon = useMemo(
     () => (f: Filtros, q: string | null) => {
@@ -118,34 +113,9 @@ function MenuListo({ menu, mesa, analitica, almacen = almacenFiltrosLocal, onVol
   );
   const visibles = useMemo(() => visiblesCon(filtros, consulta), [visiblesCon, filtros, consulta]);
 
-  // Analítica: sin texto libre. Sólo «hubo un menú», «hubo una búsqueda» y «hubo un filtro».
-  const menuVisto = useRef<MenuPublico | null>(null);
-  useEffect(() => {
-    if (menuVisto.current === menu) return;
-    menuVisto.current = menu;
-    cola.registrar('menu_view');
-  }, [menu, cola]);
-
-  useEffect(() => {
-    if (!consulta) return;
-    const t = setTimeout(() => cola.registrar('search'), ESPERA_BUSQUEDA_MS);
-    return () => clearTimeout(t);
-  }, [consulta, cola]);
-
   function aplicar(nuevos: Filtros) {
     setHojaAbierta(false);
-    if (mismosFiltros(nuevos, filtros)) return;
-    setFiltros(nuevos);
-    almacen.guardar(nuevos);
-    cola.registrar('filter');
-  }
-
-  function limpiarTodo() {
-    setEscrito('');
-    if (hayFiltros(filtros)) {
-      setFiltros(FILTROS_VACIOS);
-      almacen.guardar(FILTROS_VACIOS);
-    }
+    aplicarFiltros(nuevos);
   }
 
   function irA(idCategoria: string) {
@@ -158,8 +128,9 @@ function MenuListo({ menu, mesa, analitica, almacen = almacenFiltrosLocal, onVol
   const categorias = menu.categorias
     .map((c) => ({ ...c, platillos: c.platillos.filter((p) => visibles.has(p.id)) }))
     .filter((c) => c.platillos.length > 0);
-  // El «Top 3» respeta los filtros (un alérgeno descartado se oculta en todas partes) y cede ante una búsqueda.
-  const destacados = consulta === null ? menu.destacados.map((id) => indice.porId.get(id)?.platillo).filter((p): p is PlatilloPublico => !!p && visibles.has(p.id)) : [];
+  // El «Top 3» es del menú completo: con una búsqueda o un filtro activo se esconde (si no, repetiría lo
+  // que ya está en la lista). Un platillo descartado por alérgeno tampoco aparece arriba.
+  const destacados = activo ? [] : menu.destacados.map((id) => indice.porId.get(id)?.platillo).filter((p): p is PlatilloPublico => !!p && visibles.has(p.id));
   const conteo = visibles.size === 0 ? 'Sin resultados' : visibles.size === 1 ? '1 platillo' : `${visibles.size} platillos`;
   const alergenosOpciones = unir(ALERGENOS_COMUNES, indice.alergenos, filtros.alergenos);
   const etiquetasOpciones = unir(ETIQUETAS_COMUNES, indice.etiquetas, filtros.etiquetas);
@@ -181,42 +152,49 @@ function MenuListo({ menu, mesa, analitica, almacen = almacenFiltrosLocal, onVol
         </h1>
       </header>
 
-      <div className={estilos.herramientas}>
-        <div className={estilos.buscador}>
-          <input
-            type="search"
-            className={estilos.campo}
-            aria-label="Buscar en el menú"
-            placeholder="Buscar un platillo"
-            value={escrito}
-            maxLength={80}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="search"
-            onChange={(ev) => setEscrito(ev.target.value)}
-          />
-          {escrito && (
-            <button type="button" className={estilos.borrar} aria-label="Borrar la búsqueda" onClick={() => setEscrito('')}>
-              <span aria-hidden="true">×</span>
-            </button>
+      <AvisoConexion aviso={aviso} />
+
+      {indice.total > 0 && (
+        <div className={estilos.herramientas}>
+          <div className={estilos.buscador}>
+            <input
+              type="search"
+              className={estilos.campo}
+              aria-label="Buscar en el menú"
+              placeholder="Buscar un platillo"
+              value={escrito}
+              maxLength={80}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="search"
+              onChange={(ev) => setEscrito(ev.target.value)}
+            />
+            {escrito && (
+              <button type="button" className={estilos.borrar} aria-label="Borrar la búsqueda" onClick={() => setEscrito('')}>
+                <span aria-hidden="true">×</span>
+              </button>
           )}
+          </div>
+          <Boton
+            variante={hayFiltros(filtros) ? 'primario' : 'secundario'}
+            onClick={() => setHojaAbierta(true)}
+            aria-label={hayFiltros(filtros) ? `Filtros, ${totalFiltros(filtros)} activos` : 'Filtros'}
+          >
+            Filtros{hayFiltros(filtros) ? ` · ${totalFiltros(filtros)}` : ''}
+          </Boton>
         </div>
-        <Boton
-          variante={hayFiltros(filtros) ? 'primario' : 'secundario'}
-          onClick={() => setHojaAbierta(true)}
-          aria-label={hayFiltros(filtros) ? `Filtros, ${totalFiltros(filtros)} activos` : 'Filtros'}
-        >
-          Filtros{hayFiltros(filtros) ? ` · ${totalFiltros(filtros)}` : ''}
-        </Boton>
-      </div>
+
+      )}
 
       {/* AC-05.3: siempre a la vista, en cada estado del menú, y sin forma de cerrarlo. */}
       <p className={estilos.aviso}>La información de alérgenos la declara el restaurante y no sustituye preguntar al personal.</p>
 
-      <p className={estilos.conteo} role="status" aria-live="polite">
-        {activo ? conteo : ''}
-      </p>
+      {indice.total > 0 && (
+        <p className={estilos.conteo} role="status" aria-live="polite">
+          {activo ? conteo : ''}
+        </p>
+      )}
 
       {indice.total === 0 && <p className={e.texto}>Este menú todavía no tiene platillos. Pide la carta al personal.</p>}
 

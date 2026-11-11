@@ -37,6 +37,11 @@ describe('búsqueda: pantalla', () => {
     ['jalapeno', 'Chiles rellenos de queso'],
     ['pina', 'Piña colada sin alcohol'],
     ['achiote', 'Cochinita pibil'],
+    // Sólo está en el nombre (la descripción dice «Aguacate»).
+    ['guacamole', 'Guacamole de la casa'],
+    // NFD (n + tilde suelta) contra el menú en NFC, y un paréntesis que no es una expresión regular.
+    ['pin\u0303a', 'Piña colada sin alcohol'],
+    ['(3', 'Tostadas de atún'],
   ])('«%s» encuentra «%s» por nombre o descripción, sin importar acentos ni mayúsculas', async (texto, esperado) => {
     const { u } = montarMenu();
     await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
@@ -85,7 +90,7 @@ describe('búsqueda: pantalla', () => {
     const { u } = montarMenu();
     await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
     await u.type(buscador(), 'flan');
-    expect(screen.getByRole('status')).toHaveTextContent('1 platillo');
+    expect(screen.getByRole('status').textContent).toBe('1 platillo');
     await u.clear(buscador());
     await u.type(buscador(), 'queso');
     expect(screen.getByRole('status')).toHaveTextContent(/\d+ platillos/);

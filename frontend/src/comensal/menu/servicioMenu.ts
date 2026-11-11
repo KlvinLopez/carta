@@ -53,3 +53,5 @@ export function crearServicioMenu(buscar: typeof fetch = (...args) => fetch(...a
     },
   };
 }
+
+export const servicioMenuReal = crearServicioMenu();

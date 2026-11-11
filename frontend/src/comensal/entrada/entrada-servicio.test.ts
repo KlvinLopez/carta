@@ -139,7 +139,7 @@ describe('servicio HTTP del comensal', () => {
 describe('clasificación de errores', () => {
   it.each([
     [new ErrorApi(404, 'MESA_NO_ENCONTRADA', ''), 'mesa_invalida'],
-    [new ErrorApi(404, 'RECURSO_NO_ENCONTRADO', ''), 'generico'],
+    [new ErrorApi(404, 'RECURSO_NO_ENCONTRADO', ''), 'no_disponible'],
     [new ErrorApi(409, 'SESION_LLENA', ''), 'llena'],
     [new ErrorApi(410, 'SESION_CERRADA', ''), 'cerrada'],
     [new ErrorApi(401, 'SIN_CREDENCIAL', ''), 'credencial'],

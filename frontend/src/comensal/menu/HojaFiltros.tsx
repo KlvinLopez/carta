@@ -39,7 +39,7 @@ export function HojaFiltros({ abierta, filtros, alergenos, etiquetas, contar, on
           </h3>
           <div className={estilos.chips} role="group" aria-labelledby="filtro-alergenos">
             {alergenos.map((a) => (
-              <Chip key={a} activo={borrador.alergenos.includes(a)} onClick={() => setBorrador((b) => ({ ...b, alergenos: alternar(b.alergenos, a) }))}>
+              <Chip key={a} className={estilos.chipFiltro} activo={borrador.alergenos.includes(a)} onClick={() => setBorrador((b) => ({ ...b, alergenos: alternar(b.alergenos, a) }))}>
                 {nombreDeClave(a)}
               </Chip>
             ))}
@@ -51,7 +51,7 @@ export function HojaFiltros({ abierta, filtros, alergenos, etiquetas, contar, on
           </h3>
           <div className={estilos.chips} role="group" aria-labelledby="filtro-etiquetas">
             {etiquetas.map((e) => (
-              <Chip key={e} activo={borrador.etiquetas.includes(e)} onClick={() => setBorrador((b) => ({ ...b, etiquetas: alternar(b.etiquetas, e) }))}>
+              <Chip key={e} className={estilos.chipFiltro} activo={borrador.etiquetas.includes(e)} onClick={() => setBorrador((b) => ({ ...b, etiquetas: alternar(b.etiquetas, e) }))}>
                 {nombreDeClave(e)}
               </Chip>
             ))}

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Avatar, AvatarGrupo, Boton, Tarjeta } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
 import estilos from './Entrada.module.css';
+import { AvisoConexion } from './AvisoConexion';
 import { HojaAlias } from './HojaAlias';
 import { useFocoEnTitulo } from './useFocoEnTitulo';
 import type { DatosMesa, ResultadoAlias } from './useEntrada';
@@ -65,13 +66,7 @@ export function Bienvenida({ datos, onCambiarAlias, onVerMenu }: PropsBienvenida
         </h1>
       </header>
 
-      {aviso && (
-        <p className={estilos.aviso} role="status">
-          {aviso === 'red'
-            ? 'Perdimos la conexión un momento. Seguimos intentando.'
-            : 'Estamos teniendo un problema de nuestro lado. Seguimos intentando.'}
-        </p>
-      )}
+      <AvisoConexion aviso={aviso} />
 
       <Tarjeta>
         <div className={estilos.yo}>

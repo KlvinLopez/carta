@@ -45,6 +45,23 @@ describe('servicio del menú', () => {
     await expect(servicio(json({ restaurante: 1 })).menu('a')).rejects.toMatchObject({ codigo: 'RESPUESTA_INVALIDA' });
   });
 
+  it('un 304 (que la app no pide) no se pinta: es un error del dominio', async () => {
+    const buscar = (async () => new Response(null, { status: 304 })) as unknown as typeof fetch;
+    await expect(crearServicioMenu(buscar).menu('a')).rejects.toMatchObject({ codigo: 'RESPUESTA_INVALIDA' });
+  });
+
+  it('la señal de aborto llega a la petición', async () => {
+    const buscar = vi.fn(async (_u: string, init?: RequestInit) => {
+      await new Promise((_r, rechazar) => init?.signal?.addEventListener('abort', () => rechazar(new DOMException('x', 'AbortError'))));
+      return json({});
+    });
+    const control = new AbortController();
+    const pedido = crearServicioMenu(buscar as unknown as typeof fetch).menu('a', control.signal);
+    control.abort();
+    await expect(pedido).rejects.toMatchObject({ name: 'AbortError' });
+    expect((buscar.mock.calls[0] as unknown as [string, RequestInit])[1].signal?.aborted).toBe(true);
+  });
+
   it('sin red es un error de red, sin pintar nada', async () => {
     const buscar = (async () => {
       throw new TypeError('Failed to fetch');
@@ -58,5 +75,11 @@ describe('servicio del menú', () => {
     expect(esMenuPublico({ ...bueno, destacados: 'x' })).toBe(false);
     expect(esMenuPublico({ ...bueno, categorias: [{ id: 'a', nombre: 'b', platillos: [{ id: 'x' }] }] })).toBe(false);
     expect(esMenuPublico(null)).toBe(false);
+    const p = bueno.categorias[0]!.platillos[0]!;
+    const con = (cambio: Record<string, unknown>) => ({ ...bueno, categorias: [{ ...bueno.categorias[0]!, platillos: [{ ...p, ...cambio }] }] });
+    expect(esMenuPublico(con({}))).toBe(true);
+    expect(esMenuPublico(con({ disponible: 'si' }))).toBe(false);
+    expect(esMenuPublico(con({ alergenos: 'lacteos' }))).toBe(false);
+    expect(esMenuPublico(con({ etiquetas: [1] }))).toBe(false);
   });
 });

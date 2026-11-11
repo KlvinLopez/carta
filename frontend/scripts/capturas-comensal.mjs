@@ -10,7 +10,11 @@
  * alias-edicion, mesa-invalida, mesa-llena, sesion-cerrada, sin-conexion, error-generico, sin-lugar
  * («No pudimos guardar tu lugar»), cargando; y el menú (T-2.5): menu-inicio (con «Top 3 del chef»),
  * menu-lista (más abajo), menu-busqueda, menu-sin-resultados, menu-filtros (hoja), menu-filtrado
- * (con un alérgeno descartado), menu-agotado, menu-cargando y menu-limite (429).
+ * (con un alérgeno descartado), menu-agotado, menu-cargando y menu-limite (429); y la hoja de filtros
+ * en horizontal (844×390), en un teléfono bajo (375×568) y con el texto al 200 %.
+ *
+ * También **comprueba** y sale con código ≠ 0 si: algún control tocable del menú o de la hoja mide menos
+ * de 44 px de alto, o el botón «Ver N platillos» queda fuera de la ventana al abrir la hoja.
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -161,6 +165,51 @@ try {
   await pagina.getByRole('button', { name: /^Ver \d+ platillos?$/ }).click();
   await pagina.waitForTimeout(500);
   await guardar('menu-filtrado');
+
+  // ── Comprobaciones de tamaño y de visibilidad (jsdom no mide) ───────────────────────────
+  const fallos = [];
+  const medir = async (etiqueta) => {
+    const chicos = await pagina.evaluate(() =>
+      [...document.querySelectorAll('button, [role="button"], input, a[href]')]
+        .map((el) => ({ el, r: el.getBoundingClientRect(), css: getComputedStyle(el) }))
+        .filter(({ r, css }) => r.width > 0 && r.height > 0 && css.visibility !== 'hidden')
+        .filter(({ r }) => r.height < 43.5)
+        .map(({ el, r }) => `${(el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 40)} (${Math.round(r.height)} px)`),
+    );
+    for (const c of chicos) fallos.push(`${etiqueta}: control de menos de 44 px de alto: ${c}`);
+  };
+  const botonAplicarVisible = async (etiqueta) => {
+    const caja = await pagina.getByRole('button', { name: /^Ver \d+ platillos?$/ }).boundingBox();
+    const ventana = pagina.viewportSize();
+    if (!caja || caja.y < 0 || caja.y + caja.height > ventana.height) {
+      fallos.push(`${etiqueta}: «Ver N platillos» queda fuera de la ventana (${JSON.stringify(caja)} en ${ventana.width}×${ventana.height})`);
+    }
+  };
+  await ir('menu-inicio', menu);
+  await medir('menu 390×844');
+  const configuraciones = [
+    { nombre: 'menu-filtros-390', ancho: 390, alto: 844 },
+    { nombre: 'menu-filtros-horizontal', ancho: 844, alto: 390 },
+    { nombre: 'menu-filtros-bajo', ancho: 375, alto: 568 },
+    { nombre: 'menu-filtros-zoom200', ancho: 390, alto: 844, zoom: true },
+  ];
+  for (const c of configuraciones) {
+    await pagina.setViewportSize({ width: c.ancho, height: c.alto });
+    await ir('menu-filtros', menu);
+    if (c.zoom) await pagina.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    await pagina.getByRole('button', { name: 'Filtros' }).click();
+    await pagina.getByRole('dialog').waitFor();
+    await pagina.waitForTimeout(600);
+    await medir(c.nombre);
+    await botonAplicarVisible(c.nombre);
+    await pagina.screenshot({ path: join(salida, `${c.nombre}.png`) });
+  }
+  if (fallos.length > 0) {
+    console.error('Comprobaciones fallidas:\n - ' + fallos.join('\n - '));
+    process.exitCode = 1;
+  } else {
+    console.log('Comprobaciones de tamaño táctil y de botón visible: ok');
+  }
   console.log(`Capturas en ${salida}`);
 } finally {
   await navegador?.close();

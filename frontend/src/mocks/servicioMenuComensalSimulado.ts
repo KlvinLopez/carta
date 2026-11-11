@@ -142,12 +142,17 @@ export interface OpcionesMenuSimulado {
 export function crearServicioMenuSimulado(opciones: OpcionesMenuSimulado = {}) {
   const menu = opciones.menu ?? crearMenuSemilla();
   const llamadas: { slug: string }[] = [];
+  const senales: AbortSignal[] = [];
   let espera: Promise<void> | null = null;
+  const pendientes: ErrorApi[] = [];
   const servicio: ServicioMenu = {
     async menu(slug, signal) {
       llamadas.push({ slug });
+      if (signal) senales.push(signal);
       if (espera) await espera;
       if (signal?.aborted) throw new DOMException('cancelado', 'AbortError');
+      const unaVez = pendientes.shift();
+      if (unaVez) throw unaVez;
       if (opciones.error) throw opciones.error;
       return structuredClone(menu);
     },
@@ -155,7 +160,12 @@ export function crearServicioMenuSimulado(opciones: OpcionesMenuSimulado = {}) {
   return {
     servicio,
     llamadas,
+    senales,
     menu,
+    /** La próxima petición falla con este error; las siguientes responden bien. */
+    fallarUnaVez(error: ErrorApi) {
+      pendientes.push(error);
+    },
     retener(): () => void {
       let soltar!: () => void;
       espera = new Promise<void>((r) => (soltar = r));

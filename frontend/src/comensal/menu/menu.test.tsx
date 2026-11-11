@@ -51,15 +51,16 @@ describe('menú: lo que se ve', () => {
     montarMenu();
     await titulo();
     const guacamole = tarjeta('Guacamole de la casa');
+    await waitFor(() => expect(guacamole.querySelector('img')).not.toBeNull());
     fireEvent.error(guacamole.querySelector('img')!);
-    expect(guacamole.querySelector('img')).toBeNull();
+    await waitFor(() => expect(guacamole.querySelector('img')).toBeNull());
     expect(guacamole.querySelector('svg')).not.toBeNull();
   });
 
   it('sólo se piden fotos https o del propio origen', () => {
     expect(urlDeFotoSegura('https://r2.example/a.jpg')).toBe('https://r2.example/a.jpg');
     expect(urlDeFotoSegura('/almacen/a.jpg')).toBe('/almacen/a.jpg');
-    for (const mala of ['http://x/a.jpg', 'javascript:alert(1)', 'data:image/png;base64,AAAA', '//evil/a.jpg', '', null, undefined]) {
+    for (const mala of ['http://x/a.jpg', 'javascript:alert(1)', 'data:image/png;base64,AAAA', '//evil/a.jpg', '/\\evil.example/x', '\\\\evil', '/api/v1/p/sesion', 'https://u:p@x/a.jpg', '', null, undefined]) {
       expect(urlDeFotoSegura(mala)).toBeNull();
     }
     const platillo = { ...crearMenuSemilla().categorias[0]!.platillos[0]!, foto_thumb_url: 'javascript:alert(1)' };
@@ -133,18 +134,55 @@ describe('menú: lo que se ve', () => {
   });
 });
 
+describe('menú: tarjeta', () => {
+  it('muestra las etiquetas como chips y los alérgenos como «Contiene: …»', async () => {
+    montarMenu();
+    await titulo();
+    const chiles = tarjeta('Chiles rellenos de queso');
+    expect(within(chiles).getByText('Picante')).toBeInTheDocument();
+    expect(within(chiles).getByText('Contiene: Lácteos, Gluten, Huevo')).toBeInTheDocument();
+    expect(within(tarjeta('Guacamole de la casa')).queryByText(/^Contiene:/)).toBeNull();
+    expect(within(tarjeta('Guacamole de la casa')).getByText('Vegetariano')).toBeInTheDocument();
+  });
+
+  it('una foto sólo se usa si imagen_tipo es foto; si no, la ilustración aunque haya URL', () => {
+    const base = crearMenuSemilla().categorias[0]!.platillos[0]!;
+    const { container } = render(<ImagenPlatillo platillo={{ ...base, imagen_tipo: 'ilustracion_categoria', ilustracion_clave: 'tacos' }} proporcion="cuadrada" />);
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('svg[data-clave="tacos"]')).not.toBeNull();
+  });
+
+  it('las fotos no mandan Referer, y una foto rota se reintenta si cambia la URL', async () => {
+    const base = crearMenuSemilla().categorias[0]!.platillos[0]!;
+    const { container, rerender } = render(<ImagenPlatillo platillo={base} proporcion="cuadrada" />);
+    const foto = container.querySelector('img')!;
+    expect(foto).toHaveAttribute('referrerpolicy', 'no-referrer');
+    fireEvent.error(foto);
+    await waitFor(() => expect(container.querySelector('img')).toBeNull());
+    rerender(<ImagenPlatillo platillo={{ ...base, foto_thumb_url: 'https://fotos.carta.example/otra.jpg' }} proporcion="cuadrada" />);
+    expect(container.querySelector('img')).toHaveAttribute('src', 'https://fotos.carta.example/otra.jpg');
+  });
+});
+
 describe('menú: platillo agotado', () => {
   // @ac AC-04.2
-  it('se ve atenuado con «Agotado hoy» y no se puede abrir', async () => {
+  it('se ve atenuado con «Agotado hoy» y no se puede abrir; uno disponible, sí (control positivo)', async () => {
     const abrir = vi.fn();
     const { u } = montarMenu({ props: { onAbrir: abrir } });
     await titulo();
-    const agotado = tarjeta('Pescado a la veracruzana');
-    expect(within(agotado).getByText('Agotado hoy')).toBeInTheDocument();
-    expect(within(agotado).getByText('$340.00')).toBeInTheDocument();
-    expect(agotado).not.toHaveAttribute('role', 'button');
+    expect(screen.queryByRole('button', { name: 'Ver Pescado a la veracruzana' })).toBeNull();
+    const agotado = tarjeta('Pescado a la veracruzana').querySelector('[data-agotado]')!;
+    expect(agotado).toHaveAttribute('data-agotado', 'si');
+    expect(within(agotado as HTMLElement).getByText('Agotado hoy')).toBeInTheDocument();
+    expect(within(agotado as HTMLElement).getByText('$340.00')).toBeInTheDocument();
     await u.click(agotado);
     expect(abrir).not.toHaveBeenCalled();
+    // Control positivo: el mismo clic sobre uno disponible sí abre.
+    const disponible = tarjeta('Cochinita pibil').querySelector('[data-agotado]')!;
+    expect(disponible).toHaveAttribute('data-agotado', 'no');
+    expect(screen.getAllByRole('button', { name: 'Ver Cochinita pibil' }).length).toBeGreaterThan(0);
+    await u.click(disponible);
+    expect(abrir).toHaveBeenCalledTimes(1);
   });
 
   it('un platillo disponible se abre con su id, por clic y por teclado (T-2.6 lo conectará)', async () => {
@@ -171,13 +209,24 @@ describe('menú: platillo agotado', () => {
 
 describe('menú: fallos', () => {
   it('un 429 explica la espera con la pantalla de siempre y reintenta', async () => {
-    const { u, sim } = montarMenu({ error: errorSimulado(429, 'DEMASIADAS_PETICIONES', 'x', 3) });
-    expect(await screen.findByRole('heading', { name: 'Vamos un poco rápido' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Reintentar (3 s)' })).toBeDisabled();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Reintentar' })).toBeEnabled(), { timeout: 4500 });
-    await u.click(screen.getByRole('button', { name: 'Reintentar' }));
-    expect(sim.llamadas).toHaveLength(2);
-  }, 10_000);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { sim } = montarMenu({ error: errorSimulado(429, 'DEMASIADAS_PETICIONES', 'x', 3) });
+      expect(await screen.findByRole('heading', { name: 'Vamos un poco rápido' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Reintentar (3 s)' })).toBeDisabled();
+      for (let i = 0; i < 3; i += 1) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1000);
+        });
+      }
+      const boton = screen.getByRole('button', { name: 'Reintentar' });
+      expect(boton).toBeEnabled();
+      fireEvent.click(boton);
+      await waitFor(() => expect(sim.llamadas).toHaveLength(2));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it('sin conexión y error del servidor tienen su pantalla', async () => {
     const a = montarMenu({ error: errorSimulado(0, 'SIN_RED') });
@@ -196,11 +245,18 @@ describe('menú: fallos', () => {
     expect(screen.getByText(/todavía no tiene platillos/)).toBeInTheDocument();
   });
 
-  it('desmontar a mitad de la carga no pinta nada ni falla', async () => {
+  it('desmontar a mitad de la carga aborta la petición y soltar la respuesta después no escribe nada', async () => {
+    const consola = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { sim, unmount } = montarMenu();
     const soltar = sim.retener();
+    await waitFor(() => expect(sim.llamadas).toHaveLength(1));
+    const senal = sim.senales[0]!;
+    expect(senal.aborted).toBe(false);
     unmount();
+    expect(senal.aborted).toBe(true);
     await act(async () => soltar());
+    expect(consola).not.toHaveBeenCalled();
+    consola.mockRestore();
   });
 });
 
@@ -208,31 +264,49 @@ describe('menú: analítica sin texto libre', () => {
   it('menu_view una sola vez por carga', async () => {
     const { cola } = montarMenu();
     await titulo();
+    await waitFor(() => expect(cola.registrar).toHaveBeenCalledWith('menu_view'));
     expect(cola.registrar.mock.calls).toEqual([['menu_view']]);
   });
 
-  it('una búsqueda asentada manda «search» sin el término; mientras se teclea no manda nada', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+  it('una búsqueda asentada manda «search» a los 800 ms exactos, sin el término; una letra no es una búsqueda', async () => {
+    const { cola } = montarMenu();
+    await titulo();
+    await waitFor(() => expect(cola.registrar).toHaveBeenCalledWith('menu_view'));
+    cola.registrar.mockClear();
+    // Los temporizadores falsos se activan después de montar: waitFor no avanza el reloj de vitest.
+    vi.useFakeTimers();
     try {
-      const { cola, u } = montarMenu();
-      await titulo();
-      await waitFor(() => expect(cola.registrar).toHaveBeenCalledWith('menu_view'));
-      cola.registrar.mockClear();
       const campo = screen.getByRole('searchbox', { name: 'Buscar en el menú' });
-      await u.type(campo, 'pastor');
+      fireEvent.change(campo, { target: { value: 'pastor' } });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(799);
+      });
       expect(cola.registrar).not.toHaveBeenCalled();
       await act(async () => {
-        vi.advanceTimersByTime(900);
+        await vi.advanceTimersByTimeAsync(1);
       });
       expect(cola.registrar.mock.calls).toEqual([['search']]);
       expect(JSON.stringify(cola.registrar.mock.calls)).not.toContain('pastor');
-      // Una sola letra no es una búsqueda.
-      await u.clear(campo);
-      await u.type(campo, 'a');
+      // Seguir tecleando reinicia la espera: sólo cuenta la búsqueda asentada.
+      fireEvent.change(campo, { target: { value: 'pastor c' } });
       await act(async () => {
-        vi.advanceTimersByTime(2000);
+        await vi.advanceTimersByTimeAsync(500);
+      });
+      fireEvent.change(campo, { target: { value: 'pastor ce' } });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(799);
       });
       expect(cola.registrar).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1);
+      });
+      expect(cola.registrar).toHaveBeenCalledTimes(2);
+      // Una sola letra no es una búsqueda.
+      fireEvent.change(campo, { target: { value: 'a' } });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000);
+      });
+      expect(cola.registrar).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();
     }
@@ -241,6 +315,7 @@ describe('menú: analítica sin texto libre', () => {
   it('filter se manda al aplicar, no al marcar, y sin decir cuál', async () => {
     const { u, cola } = montarMenu();
     await titulo();
+    await waitFor(() => expect(cola.registrar).toHaveBeenCalledWith('menu_view'));
     cola.registrar.mockClear();
     await u.click(screen.getByRole('button', { name: 'Filtros' }));
     await u.click(screen.getByRole('button', { name: 'Huevo' }));
