@@ -64,6 +64,7 @@ Para cada rama terminada, en la maestra:
 1. Actualiza `docs/plan/README.md` §Estado y, si una hija corrigió un brief, verifica que la fila esté en 04 §11.
 2. `/compound` con lo aprendido **sobre orquestar** (briefs que faltaron contexto, choques de carriles, tiempos reales).
 3. Reporte al usuario: tabla tarea · rama · estado · PR · tiempo · bloqueos, y la propuesta de la siguiente ola.
+4. Si la ola cierra una fase o la sesión termina: pasa la **salida limpia** de `docs/plan/07_Spec_Driven.md` §8.1 (ramas `agente/*` borradas, PRs de la fase y de bots resueltos, check-ins y suscripciones cancelados, hijas archivadas, worktrees quitados, documentos y decisiones al día, staging y producción respondiendo) y entrega el mensaje de arranque literal de la siguiente sesión. Lo que no cierre, a 04 §11 con dueño y fecha.
 
 ## Límites
 

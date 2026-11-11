@@ -124,7 +124,7 @@ Cada lección se vuelve un artefacto: bug que regresa → test (`tests/`); halla
 1. El comando de **Verificar** de la tarea y la puerta de calidad en verde. Si algo falla, la tarea no está hecha.
 2. Commit con el ID de la tarea. No hagas push a `master` ni fuerces un push; todo entra por PR con `.github/pull_request_template.md`.
 3. Si el plan estaba equivocado, corrígelo en `docs/plan/04_Fases_y_Tareas.md` y añade la fila en su registro de cambios (§11).
-4. **`/compound` siempre**, según el resultado (TERMINADA · BLOQUEADA · FALLIDA, ver `07_Spec_Driven.md` §2.3), y termina con el bloque `RESULTADO:`. Después la sesión se cierra: **una tarea, una sesión**; la siguiente arranca en una sesión nueva con la memoria actualizada.
+4. **`/compound` siempre**, según el resultado (TERMINADA · BLOQUEADA · FALLIDA, ver `07_Spec_Driven.md` §2.3), y termina con el bloque `RESULTADO:`. Después la sesión se cierra: **una tarea, una sesión**; la siguiente arranca en una sesión nueva con la memoria actualizada. Al cerrar una fase o una sesión maestra se pasa la lista de salida y entrada limpias de `07_Spec_Driven.md` §8: nada volando (PRs, ramas, check-ins, worktrees, decisiones), o anotado con dueño y fecha en 04 §11.
 
 ---
 
