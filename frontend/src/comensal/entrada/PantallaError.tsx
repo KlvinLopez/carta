@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import { Boton } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
@@ -80,10 +80,12 @@ export interface PropsPantallaError {
   /** Segundos que pidió esperar el servidor (429); el botón se activa al terminar. */
   reintentarEn?: number | null;
   onReintentar: () => void;
+  /** Acciones extra bajo el botón (p. ej. «Volver al menú» en el detalle del platillo). */
+  children?: ReactNode;
 }
 
 /** Pantalla de fallo de la entrada, en el lenguaje de la marca. */
-export function PantallaError({ clase, restaurante = null, reintentarEn = null, onReintentar }: PropsPantallaError) {
+export function PantallaError({ clase, restaurante = null, reintentarEn = null, onReintentar, children }: PropsPantallaError) {
   const copia = copiaDe(clase, restaurante);
   const titulo = useFocoEnTitulo();
   const [falta, setFalta] = useState(clase === 'limite' ? Math.min(Math.ceil(reintentarEn ?? 5), 60) : 0);
@@ -118,6 +120,7 @@ export function PantallaError({ clase, restaurante = null, reintentarEn = null, 
             {falta > 0 ? `${copia.boton} (${falta} s)` : copia.boton}
           </Boton>
         )}
+        {children}
       </div>
     </Pantalla>
   );

@@ -18,7 +18,7 @@ export interface ServicioMenu {
 const esLista = (v: unknown): v is unknown[] => Array.isArray(v);
 const esListaDeTextos = (v: unknown): v is string[] => esLista(v) && v.every(esTexto);
 
-function esPlatillo(v: unknown): v is PlatilloPublico {
+export function esPlatillo(v: unknown): v is PlatilloPublico {
   return (
     esObjeto(v) &&
     esTexto(v.id) &&

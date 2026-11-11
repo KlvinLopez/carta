@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ErrorApi } from '../../compartido/http';
 import { analiticaDelComensal, type Analitica } from '../analitica/cola';
 import { claseDeError, type ClaseError } from '../entrada/errores';
 import { consultaEfectiva } from './busqueda';
 import { almacenFiltrosLocal, FILTROS_VACIOS, hayFiltros, mismosFiltros, type AlmacenFiltros, type Filtros } from './filtros';
+import { capturarPosicion, type PosicionMenu } from './posicion';
 import type { MenuPublico, ServicioMenu } from './servicioMenu';
 
 export type EstadoMenu =
@@ -35,6 +36,8 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
   const [intento, setIntento] = useState(0);
   const [escrito, setEscrito] = useState('');
   const [filtros, setFiltros] = useState<Filtros>(() => almacen.leer());
+  // Dónde se quedó la persona al abrir un platillo: el menú se desmonta y, al volver, se coloca ahí.
+  const posicion = useRef<PosicionMenu | null>(null);
 
   useEffect(() => {
     if (slug === null) return;
@@ -100,7 +103,14 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
     }
   }, [filtros, almacen]);
 
-  return { estado, reintentar, escrito, setEscrito, consulta, filtros, aplicarFiltros, limpiarTodo };
+  const recordarPosicion = useCallback((id: string) => {
+    posicion.current = capturarPosicion(id);
+  }, []);
+  const olvidarPosicion = useCallback(() => {
+    posicion.current = null;
+  }, []);
+
+  return { estado, reintentar, posicion, recordarPosicion, olvidarPosicion, escrito, setEscrito, consulta, filtros, aplicarFiltros, limpiarTodo };
 }
 
 export type ControladorMenu = ReturnType<typeof useControladorMenu>;

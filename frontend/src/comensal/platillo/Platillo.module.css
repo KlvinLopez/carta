@@ -1,0 +1,240 @@
+/* Detalle del platillo (T-2.6). Sin bordes de 1 px, radios ≥ 20 px, áreas táctiles ≥ 44 px, sin estilos en línea. */
+.soloLectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+}
+
+.titulo,
+.nombre {
+  overflow-wrap: anywhere;
+}
+.titulo:focus,
+.nombre:focus {
+  outline: none;
+}
+
+/* Apaisado y bajo (844×390): la foto a la izquierda y el texto a la derecha, para no gastar la ventana en una foto. */
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  /* Entra con un resorte corto; con «reducir movimiento» aparece sin moverse (abajo). */
+  animation: abrir var(--duracion-hoja) var(--resorte) both;
+}
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+
+/* ── Foto grande: el marco 4:3 está reservado desde el primer render ─────────────────── */
+.foto {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--crema-baja);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra-tarjeta);
+}
+.imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ilustracion {
+  width: 45%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Agotado: la foto se apaga, el texto conserva su contraste. */
+.foto[data-agotado='si'] {
+  opacity: 0.6;
+  filter: grayscale(0.85);
+}
+
+.nombre {
+  font-family: var(--fuente-titulo);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--carbon);
+}
+.nombre[data-agotado='si'] {
+  color: var(--carbon-suave);
+}
+.precioFila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+.precio {
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600; /* precios en DM Sans SemiBold */
+  font-size: 1.375rem;
+  color: var(--vino);
+}
+.precio[data-agotado='si'] {
+  color: var(--carbon-suave);
+}
+.descripcion {
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+  color: var(--carbon);
+}
+
+.datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-5);
+  margin: 0;
+  list-style: none; /* base.css no reinicia las listas */
+  font-size: 0.9375rem;
+  color: var(--carbon-suave);
+}
+.picante {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+.puntos {
+  display: inline-flex;
+  gap: 3px;
+}
+.punto {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-alta);
+}
+.puntoActivo {
+  background: var(--error);
+}
+
+.alergenos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  padding: var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+}
+.contiene {
+  overflow-wrap: anywhere;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--carbon);
+}
+.aviso {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+/* Con el texto al 200 % el rótulo pasa a dos líneas en vez de cortarse. */
+.agregar,
+.agregar > span {
+  height: auto;
+  min-height: var(--tactil);
+  padding-block: var(--esp-3);
+  white-space: normal;
+  text-align: center;
+}
+.agotadoAviso {
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--crema-alta);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--carbon);
+}
+
+.avisoRed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--aviso-tenue);
+  color: var(--carbon);
+  font-size: 0.875rem;
+}
+.avisoRed p {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+/* ── Esqueleto ────────────────────────────────────────────────────────────────────────── */
+.esqueleto {
+  display: flex;
+  flex-direction: column;
+}
+.esqueleto .contenido {
+  animation: none;
+}
+.bloque {
+  background: linear-gradient(90deg, var(--crema-baja) 0%, var(--crema-alta) 50%, var(--crema-baja) 100%);
+  background-size: 200% 100%;
+  animation: brillo 1.4s linear infinite;
+}
+.bloqueTitulo,
+.bloqueLinea {
+  border-radius: var(--radio);
+}
+.bloqueTitulo {
+  height: 44px;
+}
+.bloqueLinea {
+  height: 24px;
+}
+
+@keyframes abrir {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes brillo {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  /* Elemento + clase: gana a `.pantalla` (430 px) sin depender del orden del CSS. */
+  main.detalle {
+    max-width: 760px;
+  }
+  .contenido {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: start;
+    gap: var(--esp-6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contenido,
+  .bloque {
+    animation: none;
+  }
+}

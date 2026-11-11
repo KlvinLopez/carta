@@ -12,7 +12,7 @@ export interface PropsTarjetaPlatillo {
   /** `fila` en la lista; `destacado` en el «Top 3 del chef». */
   variante?: 'fila' | 'destacado';
   /**
-   * Abre el platillo (el detalle llega con T-2.6). Sin esta función la tarjeta es sólo lectura. Un
+   * Abre el platillo (`/m/<codigo>/platillo/<id>`). Sin esta función la tarjeta es sólo lectura. Un
    * platillo agotado nunca se abre, aunque se pase.
    */
   onAbrir?: (id: string) => void;
@@ -44,7 +44,7 @@ export const TarjetaPlatillo = memo(function TarjetaPlatillo({ platillo, variant
     </div>
   );
   return (
-    <Tarjeta ajustada onClick={abrir} className={estilos.tarjetaPlatillo} aria-label={abrir ? `Ver ${platillo.nombre}` : undefined}>
+    <Tarjeta ajustada onClick={abrir} className={estilos.tarjetaPlatillo} data-platillo={platillo.id} aria-label={abrir ? `Ver ${platillo.nombre}` : undefined}>
       {cuerpo}
     </Tarjeta>
   );

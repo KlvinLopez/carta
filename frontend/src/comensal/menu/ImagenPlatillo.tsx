@@ -7,14 +7,15 @@ import type { PlatilloPublico } from './servicioMenu';
 /**
  * Sólo `https:` o el propio origen con una ruta que no sea de la API: nada de `javascript:`, `data:`,
  * `http:` ajeno, barras invertidas (el navegador las lee como `/`), `//host` ni `/api/…` (se pediría como
- * imagen, con la cookie). Defensa en profundidad: hoy la URL la genera el servidor.
+ * imagen, con la cookie). Defensa en profundidad: hoy la URL la genera el servidor. `origen` es el de la
+ * página (las pruebas lo fijan en `https:` porque jsdom sirve desde `http:`).
  */
-export function urlDeFotoSegura(url: string | null | undefined): string | null {
+export function urlDeFotoSegura(url: string | null | undefined, origen: string = window.location.origin): string | null {
   if (!url || url.includes('\\') || url.startsWith('//')) return null;
   try {
-    const u = new URL(url, window.location.origin);
+    const u = new URL(url, origen);
     if (u.username || u.password) return null;
-    if (u.origin === window.location.origin) return u.pathname.startsWith('/api/') ? null : url;
+    if (u.origin === origen) return u.pathname.startsWith('/api/') ? null : url;
     return u.protocol === 'https:' ? url : null;
   } catch {
     return null;
