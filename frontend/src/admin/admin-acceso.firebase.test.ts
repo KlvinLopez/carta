@@ -41,11 +41,29 @@ const CONFIG = { apiKey: 'k', authDomain: 'p.firebaseapp.com', projectId: 'p', a
 beforeEach(() => vi.clearAllMocks());
 
 describe('proveedor Firebase (SDK simulado)', () => {
-  it('Google entra por redirección, nunca por popup', async () => {
+  it('Google entra por popup (el redirect no sobrevive al particionado de terceros)', async () => {
     const p = await crearProveedorFirebase(CONFIG, 'https://carta.cooking');
     await p.entrarConGoogle();
-    expect(sdk.signInWithRedirect).toHaveBeenCalledOnce();
-    expect(sdk.signInWithPopup).not.toHaveBeenCalled();
+    expect(sdk.signInWithPopup).toHaveBeenCalledOnce();
+    expect(sdk.signInWithPopup).toHaveBeenCalledWith(sdk.instancia, expect.anything());
+    expect(sdk.signInWithRedirect).not.toHaveBeenCalled();
+  });
+
+  it.each(['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment'])(
+    'si el navegador bloquea la ventana (%s) entra por redirección',
+    async (code) => {
+      const p = await crearProveedorFirebase(CONFIG, 'https://carta.cooking');
+      sdk.signInWithPopup.mockRejectedValueOnce({ code });
+      await p.entrarConGoogle();
+      expect(sdk.signInWithRedirect).toHaveBeenCalledWith(sdk.instancia, expect.anything());
+    },
+  );
+
+  it('cerrar la ventana de Google es «cancelado» y no cae al redirect', async () => {
+    const p = await crearProveedorFirebase(CONFIG, 'https://carta.cooking');
+    sdk.signInWithPopup.mockRejectedValueOnce({ code: 'auth/popup-closed-by-user' });
+    await expect(p.entrarConGoogle()).rejects.toMatchObject({ name: 'ErrorAcceso', codigo: 'cancelado' });
+    expect(sdk.signInWithRedirect).not.toHaveBeenCalled();
   });
 
   it('el enlace por correo vuelve a /admin/acceso y se completa en la app', async () => {
@@ -103,7 +121,7 @@ describe('proveedor Firebase (SDK simulado)', () => {
     const p = await crearProveedorFirebase(CONFIG);
     expect(sdk.getAuth).toHaveBeenCalledOnce();
     await p.entrarConGoogle();
-    expect(sdk.signInWithRedirect).toHaveBeenCalledWith(sdk.instancia, expect.anything());
+    expect(sdk.signInWithPopup).toHaveBeenCalledWith(sdk.instancia, expect.anything());
   });
 
   it.each([
