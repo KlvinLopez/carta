@@ -207,7 +207,7 @@ async def test_ni_el_menu_ni_el_detalle_ponen_cookie_ni_vary_cookie(
 
 @pytest.mark.ac("AC-04.1")
 @pytest.mark.parametrize("entorno", ["staging", "produccion"])
-async def test_menu_y_detalle_responden_fuera_de_desarrollo_y_eventos_sigue_escondido(
+async def test_menu_y_detalle_responden_fuera_de_desarrollo(
     cliente: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
     restaurante: Restaurante,
@@ -217,8 +217,6 @@ async def test_menu_y_detalle_responden_fuera_de_desarrollo_y_eventos_sigue_esco
     monkeypatch.setattr(settings, "ENTORNO", entorno)
     assert (await _menu(cliente, restaurante)).status_code == 200
     assert (await cliente.get(f"{P}/platillos/{platillo.id}")).status_code == 200
-    eventos = await cliente.post(f"{P}/eventos", json={"eventos": [{"tipo": "menu_view"}]})
-    assert eventos.status_code == 404
 
 
 # ===========================================================================

@@ -58,6 +58,7 @@ settings.DATABASE_URL = URL_PRUEBAS
 
 # Sólo después de fijar la URL: importar cualquier `app.db.*` crea el motor global de la
 # aplicación, que así nace ya sobre la base de pruebas.
+from app.api.publico import limites  # noqa: E402
 from app.core.firebase import obtener_verificador  # noqa: E402
 from app.db.database import close_db, get_db_session  # noqa: E402
 from app.db.models import (  # noqa: E402
@@ -171,6 +172,9 @@ async def cliente(
     # `cabecera_operador` o `cabecera_de(uid)` dan la cabecera `Authorization`.
     app.dependency_overrides[obtener_verificador] = lambda: VERIFICADOR_DE_PRUEBA
     app.dependency_overrides[obtener_almacen] = lambda: almacen
+    # Los límites de tasa del comensal (T-2.3) cuentan en memoria del proceso: cada prueba
+    # empieza con las cuentas en cero (si no, la suite entera agota el cubo de 127.0.0.1).
+    limites.vaciar()
     transporte = ASGITransport(app=app, raise_app_exceptions=False)
     try:
         async with AsyncClient(transport=transporte, base_url="http://pruebas") as c:
@@ -179,6 +183,7 @@ async def cliente(
         app.dependency_overrides.pop(get_db_session, None)
         app.dependency_overrides.pop(obtener_verificador, None)
         app.dependency_overrides.pop(obtener_almacen, None)
+        limites.vaciar()
 
 
 # ---------------------------------------------------------------------------

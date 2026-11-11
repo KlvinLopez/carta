@@ -13,6 +13,10 @@ Debe ser el middleware **más externo** (el último `add_middleware` en `create_
 más externo que lance o responda por su cuenta saldría sin cabecera ni línea de acceso.
 `app.core.errores.request_id_de` cubre ese caso leyendo la cabecera entrante.
 
+La ruta se registra con `ruta_para_log`: toda ruta de la SPA del comensal (`/m/…`) sale como
+`/m/<codigo>`, porque el código es la credencial de la mesa (T-2.3, nota de T-2.4). Ni el log
+ni la analítica guardan IPs.
+
 Dos detalles de la medición: la latencia incluye las `BackgroundTasks` (corren antes de que
 la aplicación devuelva el control); y si una excepción ocurre después de `http.response.start`
 la línea lleva el estado ya enviado, no 500 (en la v1 no hay respuestas en streaming).
@@ -35,6 +39,18 @@ log = logging.getLogger("carta.peticion")
 CABECERA = "X-Request-ID"
 LONGITUD_MAXIMA = 64
 _FORMATO_VALIDO = re.compile(rf"[A-Za-z0-9._-]{{1,{LONGITUD_MAXIMA}}}")
+
+
+# `/m`, `/m/<lo que sea>` y variantes con barras de más (`//m/x`): la SPA del comensal.
+_RUTA_COMENSAL = re.compile(r"/+m(?:/.*)?", re.DOTALL)
+RUTA_COMENSAL_TACHADA = "/m/<codigo>"
+
+
+def ruta_para_log(ruta: str | None) -> str | None:
+    """La ruta tal como se puede escribir en un log: sin el código de mesa."""
+    if ruta is not None and _RUTA_COMENSAL.fullmatch(ruta):
+        return RUTA_COMENSAL_TACHADA
+    return ruta
 
 
 def generar_request_id() -> str:
@@ -81,15 +97,16 @@ class MiddlewareRequestId:
             await self.app(scope, receive, enviar)
         finally:
             latencia_ms = round((time.perf_counter() - inicio) * 1000, 2)
+            ruta = ruta_para_log(scope.get("path"))
             log.info(
                 "%s %s %s",
                 scope.get("method", "-"),
-                scope.get("path", "-"),
+                ruta or "-",
                 estado,
                 extra={
                     "request_id": request_id,
                     "metodo": scope.get("method"),
-                    "ruta": scope.get("path"),
+                    "ruta": ruta,
                     "estado": estado,
                     "latencia_ms": latencia_ms,
                 },

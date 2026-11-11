@@ -11,6 +11,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.publico.eventos import origen_de
 from app.api.publico.tope import RutaComensal
 from app.core.seguridad import (
     Invitado,
@@ -31,6 +32,7 @@ from app.schemas.sesion import (
     SesionEstado,
     SesionResumen,
 )
+from app.services import analitica
 from app.services import sesion as servicio
 
 router = APIRouter(route_class=RutaComensal)
@@ -51,10 +53,11 @@ async def entrar(
     dados de baja, siempre con el mismo cuerpo (AC-01.3, AC-21.3); 409 `SESION_LLENA` con 12
     comensales (AC-02.5). Una cookie vigente de esta misma sesión reanuda al miembro (AC-01.4);
     una vieja o ajena se ignora y se entra como comensal nuevo."""
+    # También registra el evento `scan` (T-2.3), sin cambiar la descripción publicada.
     entrada = await servicio.entrar(sesion, cuerpo.codigo_mesa, invitado_opcional(request))
     poner_cookie_invitado(response, emitir_token_invitado(entrada.invitado))
     response.headers["Cache-Control"] = SIN_CACHE
-    return EntrarRespuesta(
+    respuesta = EntrarRespuesta(
         sesion=SesionResumen(
             id=entrada.sesion.id,
             estado=entrada.sesion.estado,  # type: ignore[arg-type]  # viva: `unirse` lo garantiza
@@ -63,6 +66,18 @@ async def entrar(
         ),
         miembro=MiembroRespuesta.model_validate(entrada.miembro),
     )
+    # Evento `scan` (US-24) al final, después del `commit()` de `entrar` y de leer todo lo que
+    # la respuesta necesita: si la analítica falla, su `rollback()` expira las filas cargadas
+    # y leerlas después sería E/S implícita (500 `MissingGreenlet`, regla 21 de `/pruebas`).
+    await analitica.registrar_scan(
+        sesion,
+        restaurante_id=respuesta.sesion.restaurante.id,
+        mesa_id=entrada.mesa.id,
+        sesion_id=respuesta.sesion.id,
+        miembro_id=respuesta.miembro.id,
+        origen=origen_de(request),
+    )
+    return respuesta
 
 
 @router.get(

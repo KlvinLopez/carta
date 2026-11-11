@@ -70,7 +70,9 @@ El `ETag` se deriva de `max(actualizado_en)` de las filas implicadas y se cachea
 | `POST /p/llamar-mesero` | 1 por minuto por sesión (AC-12.3) |
 | `POST /admin/**` | 60 peticiones/min por operador |
 | `POST /admin/platillos/{id}/modelo3d/generar` | 20 por hora por restaurante |
-| Global por IP | 600 peticiones/min |
+| Por IP, peticiones del comensal sin token de invitado válido | 600 peticiones/min |
+
+En la v1 (T-2.3) los límites del comensal viven en la memoria de cada worker (sin Redis): con N workers el efectivo es hasta N veces el nominal. Las peticiones con token no cuentan en el cubo de la IP: todo un restaurante comparte una IP pública. La IP es el último salto público de `X-Forwarded-For` o, si ese salto es Cloudflare, `CF-Connecting-IP`. El techo grueso por IP está en el borde (Cloudflare, 300 peticiones por 10 s).
 
 ### 1.6 Versionado
 
