@@ -164,3 +164,10 @@ No hay rasterizador en el entorno: el QR se extrae como imagen incrustada (`PdfR
 
 `scripts/__init__.py` existe (T-1.7): impórtalo como `from scripts import seed` y llama a sus funciones `async` con la fixture `sesion` y el `almacen` temporal; el `main()` de un script con guarda de entorno se prueba con `monkeypatch.setattr(settings, "ENTORNO", ...)`, nunca por subproceso (con `staging` o `produccion` `Settings` ni siquiera carga sin R2). `uv run mypy` (sin `app`) revisa también `scripts/`.
 La CI corre con `ENTORNO=pruebas` y la sesión de agente con `desarrollo`: una prueba que dependa del entorno (p. ej. `seed.main()`) lo fija con `monkeypatch.setattr(settings, "ENTORNO", ...)`; si no, pasa local y falla en la CI. Compruébalo con `ENTORNO=pruebas uv run pytest <archivo>`.
+
+## Scripts de navegador real (Playwright) — trampas de T-2.7
+
+- **No abras una segunda sesión CDP (`context.newCDPSession`) en una página que vas a poner sin red con `context.setOffline(true)`**: `navigator.onLine` sigue en `true` y el evento `online` no llega. Para la caché HTTP, espera a que caduque el `max-age` (el menú trae 30 s) en vez de vaciarla por CDP.
+- **Sin `clients.claim` la primera página no la controla el service worker**: recarga una vez con red antes de probar la copia sin conexión.
+- **El código de mesa es una credencial**: los scripts pasan todo lo que imprimen por una función que lo tacha (ver `frontend/scripts/verificar-pwa.mjs`).
+- **Un menú que cambia por escritura directa a la base** no invalida la caché en proceso del API (30 s): espera ese plazo real antes de adelantar el reloj de la página (`page.clock.runFor`).
