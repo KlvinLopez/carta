@@ -5,7 +5,7 @@ import { analiticaDelComensal, type Analitica } from '../analitica/cola';
 import { claseDeError, type ClaseError } from '../entrada/errores';
 import { consultaEfectiva } from './busqueda';
 import { almacenFiltrosLocal, FILTROS_VACIOS, hayFiltros, mismosFiltros, type AlmacenFiltros, type Filtros } from './filtros';
-import { capturarPosicion, type PosicionMenu } from './posicion';
+import { tarjetaAbierta } from './posicion';
 import type { MenuPublico, ServicioMenu } from './servicioMenu';
 
 export type EstadoMenu =
@@ -36,8 +36,8 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
   const [intento, setIntento] = useState(0);
   const [escrito, setEscrito] = useState('');
   const [filtros, setFiltros] = useState<Filtros>(() => almacen.leer());
-  // Dónde se quedó la persona al abrir un platillo: el menú se desmonta y, al volver, se coloca ahí.
-  const posicion = useRef<PosicionMenu | null>(null);
+  // La tarjeta que se abrió: el menú sigue montado bajo el detalle y, al volver, el foco regresa a ella.
+  const abierta = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (slug === null) return;
@@ -103,14 +103,16 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
     }
   }, [filtros, almacen]);
 
-  const recordarPosicion = useCallback((id: string) => {
-    posicion.current = capturarPosicion(id);
+  const recordarTarjeta = useCallback((id: string) => {
+    abierta.current = tarjetaAbierta(id);
   }, []);
-  const olvidarPosicion = useCallback(() => {
-    posicion.current = null;
+  const devolverFoco = useCallback(() => {
+    const tarjeta = abierta.current;
+    abierta.current = null;
+    if (tarjeta?.isConnected) tarjeta.focus({ preventScroll: true });
   }, []);
 
-  return { estado, reintentar, posicion, recordarPosicion, olvidarPosicion, escrito, setEscrito, consulta, filtros, aplicarFiltros, limpiarTodo };
+  return { estado, reintentar, recordarTarjeta, devolverFoco, escrito, setEscrito, consulta, filtros, aplicarFiltros, limpiarTodo };
 }
 
 export type ControladorMenu = ReturnType<typeof useControladorMenu>;

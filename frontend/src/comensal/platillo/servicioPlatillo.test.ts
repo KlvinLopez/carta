@@ -58,6 +58,9 @@ describe('servicio del detalle del platillo', () => {
 
   it('sólo un UUID puede ser un platillo', () => {
     expect(ID_PLATILLO.test(idDe('Guacamole de la casa'))).toBe(true);
+    expect(ID_PLATILLO.test('ABCDEF12-ABCD-4ABC-8ABC-ABCDEF123456')).toBe(true); // las letras hexadecimales, en mayúsculas o minúsculas
+    expect(ID_PLATILLO.test('abcdef12-abcd-4abc-8abc-abcdef123456')).toBe(true);
+    expect(ID_PLATILLO.test('ghcdef12-abcd-4abc-8abc-abcdef123456')).toBe(false);
     for (const malo of ['', 'abc', '../menu', '00000000-0000-4000-8000-00000000100', `${idDe('Guacamole de la casa')}x`]) expect(ID_PLATILLO.test(malo)).toBe(false);
   });
 });

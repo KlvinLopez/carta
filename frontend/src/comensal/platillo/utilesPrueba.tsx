@@ -5,10 +5,13 @@ import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-rou
 import { vi } from 'vitest';
 
 import { CODIGO_SEMILLA, crearServicioEntradaSimulado, type OpcionesEntradaSimulado } from '../../mocks/servicioEntradaSimulado';
-import { crearMenuSemilla, crearServicioMenuSimulado } from '../../mocks/servicioMenuComensalSimulado';
+import { crearMenuSemilla, crearServicioMenuSimulado, type OpcionesMenuSimulado } from '../../mocks/servicioMenuComensalSimulado';
 import { crearServicioPlatilloSimulado, type OpcionesPlatilloSimulado } from '../../mocks/servicioPlatilloSimulado';
+import type { Analitica } from '../analitica/cola';
+import type { MenuPublico } from '../menu/servicioMenu';
 import { almacenEnMemoria, analiticaFalsa } from '../menu/utilesPrueba';
 import { SesionMesa } from '../SesionMesa';
+import type { ServicioPlatillo } from './servicioPlatillo';
 
 /** El `id` de un platillo del menú de ejemplo, por nombre. */
 export function idDe(nombre: string): string {
@@ -18,15 +21,31 @@ export function idDe(nombre: string): string {
 }
 
 const Ubicacion = () => <span data-testid="ruta">{useLocation().pathname}</span>;
-/** El botón «atrás» del navegador: `navigate(-1)`. */
-const AtrasDelNavegador = () => {
+/** Los botones «atrás» y «adelante» del navegador: `navigate(-1)` y `navigate(1)`. */
+const HistorialDelNavegador = () => {
   const navigate = useNavigate();
   return (
-    <button type="button" onClick={() => navigate(-1)}>
-      atrás del navegador
-    </button>
+    <>
+      <button type="button" onClick={() => navigate(-1)}>
+        atrás del navegador
+      </button>
+      <button type="button" onClick={() => navigate(1)}>
+        adelante del navegador
+      </button>
+    </>
   );
 };
+
+/** El mismo menú de ejemplo, con el id del primer platillo cambiado por uno con letras hexadecimales. */
+export const ID_CON_LETRAS = 'abcdef12-abcd-4abc-8abc-abcdef123456';
+export function menuConIdConLetras(): MenuPublico {
+  const menu = crearMenuSemilla();
+  const primero = menu.categorias[0]!.platillos[0]!;
+  const viejo = primero.id;
+  primero.id = ID_CON_LETRAS;
+  menu.destacados = menu.destacados.map((d) => (d === viejo ? ID_CON_LETRAS : d));
+  return menu;
+}
 
 /** Un enlace a otro platillo sin pasar por el menú (cambia el `:id` de la misma ruta). */
 const IrAOtroPlatillo = ({ id }: { id: string }) => {
@@ -62,14 +81,20 @@ export interface OpcionesMontaje {
   entrada?: OpcionesEntradaSimulado;
   platillo?: OpcionesPlatilloSimulado;
   estricto?: boolean;
+  /** Opciones del servicio del menú (por omisión, el menú de ejemplo). */
+  menu?: OpcionesMenuSimulado;
+  /** Otro servicio del detalle (p. ej. uno manual que ignore la señal); por omisión, el simulado. */
+  servicioPlatillo?: ServicioPlatillo;
+  /** Otra cola de analítica (p. ej. la real); por omisión, una falsa. */
+  analitica?: Analitica;
   /** Deja pendiente la primera respuesta de estos servicios (se suelta con `soltarMenu()` / `soltarDetalle()`). */
   retener?: ('menu' | 'detalle')[];
 }
 
 /** La sesión del comensal completa (entrada, menú y detalle) con los tres servicios simulados. */
-export function montarSesion(ruta: string, { entrada, platillo, estricto = false, retener = [] }: OpcionesMontaje = {}) {
+export function montarSesion(ruta: string, { entrada, platillo, estricto = false, retener = [], menu: opcionesMenu, servicioPlatillo, analitica }: OpcionesMontaje = {}) {
   const sim = crearServicioEntradaSimulado(entrada);
-  const menu = crearServicioMenuSimulado();
+  const menu = crearServicioMenuSimulado(opcionesMenu);
   const detalle = crearServicioPlatilloSimulado(platillo);
   const cola = analiticaFalsa();
   const soltarMenu = retener.includes('menu') ? menu.retener() : () => undefined;
@@ -85,15 +110,15 @@ export function montarSesion(ruta: string, { entrada, platillo, estricto = false
               codigo={CODIGO_SEMILLA}
               servicio={sim.servicio}
               servicioMenu={menu.servicio}
-              servicioPlatillo={detalle.servicio}
-              analitica={cola.analitica}
+              servicioPlatillo={servicioPlatillo ?? detalle.servicio}
+              analitica={analitica ?? cola.analitica}
               almacenFiltros={almacenEnMemoria().almacen}
             />
           }
         />
       </Routes>
       <Ubicacion />
-      <AtrasDelNavegador />
+      <HistorialDelNavegador />
       <IrAOtroPlatillo id={idDe('Mole poblano')} />
     </MemoryRouter>
   );
@@ -105,8 +130,11 @@ export const rutaMenu = `/m/${CODIGO_SEMILLA}/menu`;
 export const rutaPlatillo = (id: string) => `/m/${CODIGO_SEMILLA}/platillo/${id}`;
 export const rutaActual = () => screen.getByTestId('ruta').textContent;
 export const atrasDelNavegador = (u: ReturnType<typeof userEvent.setup>) => u.click(screen.getByRole('button', { name: 'atrás del navegador' }));
-export const dejarPasar = (ms = 20) =>
-  act(async () => {
-    await new Promise((r) => setTimeout(r, ms));
-  });
+/**
+ * Deja correr lo pendiente (promesas y efectos) sin temporizadores reales: sirve para afirmar que algo
+ * NO pasó. Los servicios simulados sólo se resuelven con promesas, así que unas cuantas vueltas bastan.
+ */
+export async function asentar(vueltas = 5) {
+  for (let i = 0; i < vueltas; i += 1) await act(async () => {});
+}
 export const vistas = (registrar: { mock: { calls: unknown[][] } }, tipo: string) => registrar.mock.calls.filter(([t]) => t === tipo);

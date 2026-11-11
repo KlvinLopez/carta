@@ -16,6 +16,7 @@ import { urlDeFotoSegura } from '../menu/ImagenPlatillo';
 import { Menu } from '../menu/Menu';
 import type { MenuPublico, ServicioMenu } from '../menu/servicioMenu';
 import { almacenEnMemoria, analiticaFalsa } from '../menu/utilesPrueba';
+import { asentar } from './utilesPrueba';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -54,7 +55,9 @@ describe('cola de analítica', () => {
       const cola = crearColaAnalitica({ enviar: () => Promise.reject(new Error('red caída')), documento: undefined, ventana: undefined });
       cola.registrar('menu_view');
       cola.vaciar();
-      await new Promise((r) => setTimeout(r, 30));
+      // Un rechazo sin atender se reporta tras vaciar las microtareas: dos vueltas de `setImmediate`, sin reloj.
+      await new Promise((r) => setImmediate(r));
+      await new Promise((r) => setImmediate(r));
       expect(sinAtender).not.toHaveBeenCalled();
       cola.detener();
     } finally {
@@ -162,8 +165,8 @@ describe('useControladorMenu: una carga abortada que falla tarde no pinta un err
 
     await act(async () => {
       rechazarA(new ErrorApi(500, 'ERROR_INTERNO', 'x'));
-      await new Promise((r) => setTimeout(r, 20));
     });
+    await asentar();
     // Mientras B carga, sigue el esqueleto: ni «Algo salió mal» ni un reintento.
     expect(screen.queryByText('Algo salió mal')).toBeNull();
     expect(screen.getByRole('status')).toHaveTextContent('Preparando el menú…');

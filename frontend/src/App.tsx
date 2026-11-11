@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { Cargando } from './compartido/pantalla/Cargando';
 import { Inicio } from './compartido/pantalla/Inicio';
@@ -20,19 +21,40 @@ function CargandoArea() {
   return <Cargando texto={esPanel ? 'Preparando tu panel…' : undefined} />;
 }
 
+// Un salto de línea u otro carácter de control codificado (`/m/<codigo>/menu%0A`) no lo casa ni el comodín
+// del enrutador: la pantalla quedaba en blanco. Se quitan y la ruta cae donde caería sin ellos. El código de
+// una mesa (`/m/<codigo>`) no se toca: con un carácter de control no tiene la forma de un código y el área
+// ya lo explica como «mesa inválida» (no se le arregla para que parezca válido).
+const CONTROL_CODIFICADO = /%(?:[01][0-9a-f]|7f)/gi;
+
+function sinControles(pathname: string): string {
+  const partes = pathname.split('/');
+  const desde = partes[1] === 'm' ? 3 : 0;
+  return partes.map((parte, i) => (i < desde ? parte : parte.replace(CONTROL_CODIFICADO, ''))).join('/');
+}
+
+function SinControlesEnLaRuta({ children }: { children: ReactNode }) {
+  const { pathname, search, hash } = useLocation();
+  const limpia = sinControles(pathname);
+  if (limpia !== pathname) return <Navigate to={{ pathname: limpia || '/', search, hash }} replace />;
+  return children;
+}
+
 export function App() {
   return (
     <BrowserRouter>
       <LimiteError>
-        <Suspense fallback={<CargandoArea />}>
-          <Routes>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/m/:codigo/*" element={<AreaComensal />} />
-            <Route path="/staff/:slug/*" element={<AreaPersonal />} />
-            <Route path="/admin/*" element={<AreaOperador />} />
-            <Route path="*" element={<NoEncontrada />} />
-          </Routes>
-        </Suspense>
+        <SinControlesEnLaRuta>
+          <Suspense fallback={<CargandoArea />}>
+            <Routes>
+              <Route path="/" element={<Inicio />} />
+              <Route path="/m/:codigo/*" element={<AreaComensal />} />
+              <Route path="/staff/:slug/*" element={<AreaPersonal />} />
+              <Route path="/admin/*" element={<AreaOperador />} />
+              <Route path="*" element={<NoEncontrada />} />
+            </Routes>
+          </Suspense>
+        </SinControlesEnLaRuta>
       </LimiteError>
     </BrowserRouter>
   );

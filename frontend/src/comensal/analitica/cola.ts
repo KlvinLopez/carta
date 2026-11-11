@@ -28,6 +28,8 @@ export const MAXIMO_POR_LOTE = 50;
 export const INTERVALO_ENVIO_MS = 5000;
 /** Lo que se guarda en el teléfono sin enviar: el servidor sólo acepta 120 por minuto. */
 const MAXIMO_EN_COLA = 100;
+/** Un platillo se cuenta una vez por pestaña y minuto: ir y venir por el historial no infla `dish_view`. */
+export const VENTANA_DISH_VIEW_MS = 60_000;
 
 export interface OpcionesCola {
   enviar: EnviarLote;
@@ -47,6 +49,7 @@ export function crearColaAnalitica({
 }: OpcionesCola): Analitica {
   let cola: EventoAnalitica[] = [];
   let temporizador: ReturnType<typeof setTimeout> | undefined;
+  const vistos = new Map<string, number>(); // platillo → cuándo se contó su último dish_view
 
   function mandar(keepalive: boolean) {
     clearTimeout(temporizador);
@@ -72,6 +75,13 @@ export function crearColaAnalitica({
 
   return {
     registrar(tipo, platilloId) {
+      if (tipo === 'dish_view' && platilloId) {
+        const ahoraMs = ahora().getTime();
+        const ultimo = vistos.get(platilloId);
+        if (ultimo !== undefined && ahoraMs - ultimo < VENTANA_DISH_VIEW_MS) return;
+        for (const [id, cuando] of vistos) if (ahoraMs - cuando >= VENTANA_DISH_VIEW_MS) vistos.delete(id);
+        vistos.set(platilloId, ahoraMs);
+      }
       if (cola.length >= MAXIMO_EN_COLA) cola.shift();
       const evento: EventoAnalitica = { tipo, ocurrido_en: ahora().toISOString() };
       if (tipo === 'dish_view' && platilloId) evento.platillo_id = platilloId;
@@ -83,6 +93,7 @@ export function crearColaAnalitica({
       clearTimeout(temporizador);
       temporizador = undefined;
       cola = [];
+      vistos.clear();
       documento?.removeEventListener('visibilitychange', alCambiarVisibilidad);
       ventana?.removeEventListener('pagehide', alOcultarPagina);
     },

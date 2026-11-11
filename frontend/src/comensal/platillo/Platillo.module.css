@@ -8,6 +8,22 @@
   white-space: nowrap;
 }
 
+/* El menú queda montado bajo el detalle: su envoltura no crea caja (el `main` sigue siendo hijo del layout). */
+.directo {
+  display: contents;
+}
+/* La capa: pantalla completa con su propio desplazamiento; el del menú de abajo no se toca. */
+.capa {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--crema);
+}
+
 .barra {
   display: flex;
   align-items: center;
@@ -123,7 +139,7 @@
   background: var(--crema-alta);
 }
 .puntoActivo {
-  background: var(--error);
+  background: var(--vino);
 }
 
 .alergenos {
