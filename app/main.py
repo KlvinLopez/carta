@@ -21,7 +21,7 @@ from app.core.estaticos import EstaticosInmutables, montar_frontend
 from app.core.peticion import MiddlewareRequestId
 from app.core.registro import configurar_registro
 from app.db import async_session, close_db
-from app.services import procesador
+from app.services import procesador, sesion
 from app.services.assets import obtener_almacen
 
 
@@ -32,14 +32,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     Arranca el procesador de importaciones de este worker (`app.services.procesador`, T-1.9):
     al arrancar y cada 10 s toma la cola con `SKIP LOCKED`, así que N workers son seguros. Si
     la tarea muere sola se relanza; al apagar se detiene y la importación en curso vuelve a
-    `pendiente`."""
+    `pendiente`.
+
+    Arranca también el cierre de sesiones inactivas (`app.services.sesion`, T-2.1): cada 5 min
+    cierra las sesiones de mesa sin actividad en 3 h; con N workers `SKIP LOCKED` las reparte.
+    """
     trabajador = procesador.Procesador(async_session, obtener_almacen)
     procesador.instalar(trabajador)
     trabajador.iniciar()
+    cierre = sesion.CierreInactivas(async_session)
+    cierre.iniciar()
     try:
         yield
     finally:
         procesador.instalar(None)
+        await cierre.detener()
         await trabajador.detener()
         await close_db()
 

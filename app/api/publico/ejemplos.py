@@ -2,11 +2,11 @@
 
 Publican en `/openapi.json` la forma final de cada respuesta para que el frontend (carril E)
 genere sus tipos (`npm --prefix frontend run tipos`) y trabaje con datos simulados mientras el
-backend se construye. Cada tarea sustituye sus rutas por las reales y las borra de aquí:
+backend se construye. Las de T-2.1 (`sesion/entrar`, `sesion`, `miembro`) ya son reales
+(`app.api.publico.sesion`). Cada tarea sustituye sus rutas por las reales y las borra de aquí:
 
 | Rutas | Tarea |
 |---|---|
-| `sesion/entrar`, `sesion`, `miembro` | T-2.1 |
 | `menu/{slug}`, `platillos/{platillo_id}` | T-2.2 |
 | `eventos` | T-2.3 |
 
@@ -33,17 +33,6 @@ from app.schemas.menu_publico import (
     PlatilloPublico,
     RestaurantePublico,
 )
-from app.schemas.sesion import (
-    EntrarCuerpo,
-    EntrarRespuesta,
-    MesaDeSesion,
-    MiembroCambios,
-    MiembroDeSesion,
-    MiembroRespuesta,
-    RestauranteDeSesion,
-    SesionEstado,
-    SesionResumen,
-)
 
 router = APIRouter()
 
@@ -52,10 +41,6 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 MOMENTO = datetime(2026, 11, 11, 20, 0, tzinfo=UTC)
-ID_RESTAURANTE = UUID("00000000-0000-4000-8000-000000000001")
-ID_SESION = UUID("00000000-0000-4000-8000-000000000601")
-ID_MIEMBRO = UUID("00000000-0000-4000-8000-000000000701")
-ID_OTRO_MIEMBRO = UUID("00000000-0000-4000-8000-000000000702")
 ID_CATEGORIA = UUID("00000000-0000-4000-8000-000000000101")
 ID_PLATILLO = UUID("00000000-0000-4000-8000-000000000201")
 ETAG_EJEMPLO = '"ejemplo-0001"'
@@ -64,12 +49,6 @@ ETAG_EJEMPLO = '"ejemplo-0001"'
 SIN_CAMBIOS: dict[int | str, dict[str, Any]] = {
     304: {"description": "Sin cambios desde el `ETag` de `If-None-Match`."}
 }
-
-MESA = MesaDeSesion(numero=7, capacidad=4)
-
-
-def _miembro(alias: str = "Comensal 1") -> MiembroRespuesta:
-    return MiembroRespuesta(id=ID_MIEMBRO, alias=alias, color_avatar="#4F1728", rol="host")
 
 
 def _platillo() -> PlatilloPublico:
@@ -88,61 +67,6 @@ def _platillo() -> PlatilloPublico:
         destacado=True,
         orden=1,
     )
-
-
-# ---------------------------------------------------------------------------
-# T-2.1 · sesión y miembro (US-01, US-02, US-03)
-# ---------------------------------------------------------------------------
-
-
-@router.post("/sesion/entrar", response_model=EntrarRespuesta, responses=errores(404, 409, 410))
-async def entrar(cuerpo: EntrarCuerpo) -> EntrarRespuesta:
-    """Crea o reanuda la sesión de la mesa y emite la cookie `carta_invitado`."""
-    return EntrarRespuesta(
-        sesion=SesionResumen(
-            id=ID_SESION,
-            estado="activa",
-            mesa=MESA,
-            restaurante=RestauranteDeSesion(
-                id=ID_RESTAURANTE, nombre="La Ceiba", slug="la-ceiba", logo_url=None, tema="vino"
-            ),
-        ),
-        miembro=_miembro(),
-    )
-
-
-@router.get(
-    "/sesion",
-    response_model=SesionEstado,
-    responses={**SIN_CAMBIOS, **errores(401, 410)},
-)
-async def estado_de_sesion(response: Response) -> SesionEstado:
-    """Estado de la mesa para el sondeo de 3 s, con `ETag`."""
-    response.headers["ETag"] = ETAG_EJEMPLO
-    return SesionEstado(
-        id=ID_SESION,
-        estado="activa",
-        mesa=MESA,
-        yo=ID_MIEMBRO,
-        listos=0,
-        total_miembros=2,
-        miembros=[
-            MiembroDeSesion(**_miembro().model_dump(), estado="armando"),
-            MiembroDeSesion(
-                id=ID_OTRO_MIEMBRO,
-                alias="Comensal 2",
-                color_avatar="#B8860B",
-                rol="miembro",
-                estado="armando",
-            ),
-        ],
-    )
-
-
-@router.patch("/miembro", response_model=MiembroRespuesta, responses=errores(401, 410))
-async def cambiar_alias(cuerpo: MiembroCambios) -> MiembroRespuesta:
-    """Cambia el alias; uno de la lista de bloqueo es 422 `ALIAS_NO_PERMITIDO`."""
-    return _miembro(cuerpo.alias)
 
 
 # ---------------------------------------------------------------------------
