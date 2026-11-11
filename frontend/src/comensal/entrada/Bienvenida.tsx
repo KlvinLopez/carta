@@ -18,7 +18,7 @@ function logoSeguro(url: string | null | undefined): string | null {
   }
 }
 
-function Logo({ nombre, url }: { nombre: string; url?: string | null }) {
+export function Logo({ nombre, url }: { nombre: string; url?: string | null }) {
   const [fallo, setFallo] = useState(false);
   const seguro = logoSeguro(url);
   if (seguro && !fallo) {
@@ -39,10 +39,12 @@ const VISIBLES = 5;
 export interface PropsBienvenida {
   datos: DatosMesa;
   onCambiarAlias: (alias: string) => Promise<ResultadoAlias>;
+  /** Abre el menú de la mesa. */
+  onVerMenu: () => void;
 }
 
 /** Tarjeta de bienvenida: restaurante, mesa, alias editable y aviso de privacidad. */
-export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
+export function Bienvenida({ datos, onCambiarAlias, onVerMenu }: PropsBienvenida) {
   const { sesion, yo, estado, regresa, aviso } = datos;
   const titulo = useFocoEnTitulo();
   const [editando, setEditando] = useState(false);
@@ -98,9 +100,8 @@ export function Bienvenida({ datos, onCambiarAlias }: PropsBienvenida) {
       )}
 
       <div className={e.acciones}>
-        {/* El menú llega con T-2.5: aquí sólo se deja el sitio, sin prometer un enlace que no existe. */}
-        <Boton ancho disabled>
-          El menú llega pronto
+        <Boton ancho onClick={onVerMenu}>
+          Ver el menú
         </Boton>
       </div>
 

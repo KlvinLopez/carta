@@ -1,0 +1,348 @@
+/* Menú del comensal (T-2.5). Sin bordes de 1 px, radios ≥ 20 px, áreas táctiles ≥ 44 px, sin estilos en línea. */
+.soloLectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+.marca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+.titulo {
+  overflow-wrap: anywhere;
+}
+.titulo:focus {
+  outline: none;
+}
+
+/* ── Búsqueda y filtros ───────────────────────────────────────────────────────────────── */
+.herramientas {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+}
+.buscador {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.campo {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 44px 12px var(--esp-5);
+  border: none; /* sin borde: el campo se separa por tono y sombra (no-line) */
+  border-radius: var(--radio-pildora);
+  background: var(--superficie);
+  box-shadow: var(--sombra-suave);
+  font-size: 1rem; /* ≥ 16 px: iOS no hace zoom al enfocar */
+  color: var(--carbon);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.campo::-webkit-search-cancel-button {
+  display: none;
+}
+.borrar {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radio-pildora);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--carbon-suave);
+}
+
+.aviso {
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  color: var(--carbon-suave);
+  font-size: 0.8125rem;
+}
+.conteo {
+  min-height: 1.25rem;
+  margin-block: calc(var(--esp-2) * -1);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--carbon-suave);
+}
+
+/* ── Top 3 y categorías ───────────────────────────────────────────────────────────────── */
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+.topTitulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  color: var(--dorado-oscuro); /* el único toque dorado de la pantalla */
+}
+.carrusel,
+.lista {
+  list-style: none;
+  margin: 0;
+}
+.carrusel {
+  display: flex;
+  gap: var(--esp-4);
+  overflow-x: auto;
+  padding: var(--esp-1) var(--esp-1) var(--esp-4);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.carrusel::-webkit-scrollbar {
+  display: none;
+}
+.itemDestacado {
+  flex: none;
+  width: 240px;
+  scroll-snap-align: start;
+}
+
+.categorias {
+  display: flex;
+  gap: var(--esp-2);
+  overflow-x: auto;
+  padding: var(--esp-1);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.categorias::-webkit-scrollbar {
+  display: none;
+}
+.categoriaBoton {
+  flex: none;
+  min-height: var(--tactil);
+  padding: 0 var(--esp-5);
+  border-radius: var(--radio-pildora);
+  background: var(--crema-baja);
+  color: var(--carbon);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: transform var(--duracion-corta) var(--resorte);
+}
+.categoriaBoton:active {
+  transform: scale(0.96);
+}
+
+.categoria {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  scroll-margin-top: var(--esp-4);
+  /* 200 platillos sin trabarse: lo que está lejos de la pantalla no se pinta hasta que se acerca. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
+.categoriaTitulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  color: var(--carbon);
+}
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+/* ── Tarjeta del platillo ────────────────────────────────────────────────────────────── */
+.tarjetaPlatillo {
+  height: 100%;
+}
+.platillo {
+  display: flex;
+  gap: var(--esp-4);
+  padding: var(--esp-4);
+}
+.platilloDestacado {
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-3) var(--esp-4);
+}
+.platilloTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+.platilloNombre {
+  overflow-wrap: anywhere;
+  font-family: var(--fuente-titulo);
+  font-size: 1.1875rem;
+  font-weight: 400;
+  color: var(--carbon);
+}
+.platilloDescripcion {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+  color: var(--carbon-suave);
+}
+.platilloPie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+  margin-top: var(--esp-1);
+}
+.precio {
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600; /* precios en DM Sans SemiBold */
+  font-size: 1.0625rem;
+  color: var(--vino);
+}
+.alergenosDelPlatillo {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+/* Agotado: se ve y se lee, pero la foto se apaga y no hay nada que tocar. El texto conserva su contraste. */
+.platillo[data-agotado='si'] .imagen {
+  opacity: 0.55;
+  filter: grayscale(0.85);
+}
+.platillo[data-agotado='si'] .platilloNombre {
+  color: var(--carbon-suave);
+}
+.platillo[data-agotado='si'] .precio {
+  color: var(--carbon-suave);
+}
+
+/* ── Imagen con el tamaño reservado: ni la foto tardía ni la ilustración mueven el diseño ── */
+.imagen {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--crema-baja);
+  border-radius: var(--radio);
+}
+.imagenCuadrada {
+  width: 96px;
+  height: 96px;
+}
+.imagenAncha {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+.foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Vacío ─────────────────────────────────────────────────────────────────────────────── */
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-8) var(--esp-4);
+  text-align: center;
+}
+.vacioIlustracion {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radio-pildora);
+  background: var(--crema-baja);
+}
+
+/* ── Hoja de filtros ──────────────────────────────────────────────────────────────────── */
+.hojaFiltros {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  padding: var(--esp-1);
+}
+.hojaSubtitulo {
+  font-family: var(--fuente-cuerpo);
+  margin-bottom: var(--esp-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--carbon-suave);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+.hojaAviso {
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+.hojaAcciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+/* La sombra flotante de un botón dentro de una hoja se recorta contra su borde y dibuja una banda. */
+.hojaAcciones button {
+  box-shadow: none;
+}
+
+/* ── Esqueleto ────────────────────────────────────────────────────────────────────────── */
+.esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+.bloque {
+  border-radius: var(--radio);
+  background: linear-gradient(90deg, var(--crema-baja) 0%, var(--crema-alta) 50%, var(--crema-baja) 100%);
+  background-size: 200% 100%;
+  animation: brillo 1400ms ease-in-out infinite;
+}
+.bloqueTitulo {
+  height: 40px;
+  width: 70%;
+}
+.bloqueBuscador {
+  height: 48px;
+  border-radius: var(--radio-pildora);
+}
+.bloqueFila {
+  height: 128px;
+  border-radius: var(--radio-grande);
+}
+@keyframes brillo {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bloque {
+    animation: none;
+  }
+  .categoriaBoton {
+    transition: none;
+  }
+}

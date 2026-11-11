@@ -6,5 +6,6 @@ export { Chip } from './Chip';
 export type { PropsChip, TonoChip } from './Chip';
 export { HojaInferior } from './HojaInferior';
 export type { PropsHojaInferior } from './HojaInferior';
+export { Ilustracion } from './Ilustracion';
 export { Tarjeta } from './Tarjeta';
 export type { PropsTarjeta } from './Tarjeta';

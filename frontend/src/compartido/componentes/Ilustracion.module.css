@@ -1,0 +1,42 @@
+.ilustracion {
+  width: 70%;
+  height: 70%;
+}
+.ilustracion[data-tono='vino'] {
+  --trazo: var(--vino-claro);
+  --relleno: var(--vino-tenue);
+}
+.ilustracion[data-tono='dorado'] {
+  --trazo: var(--dorado-oscuro);
+  --relleno: var(--dorado-tenue);
+}
+.ilustracion[data-tono='verde'] {
+  --trazo: var(--exito);
+  --relleno: var(--exito-tenue);
+}
+.ilustracion[data-tono='cafe'] {
+  --trazo: var(--aviso);
+  --relleno: var(--aviso-tenue);
+}
+.ilustracion[data-tono='carbon'] {
+  --trazo: var(--carbon-suave);
+  --relleno: var(--crema-alta);
+}
+.suave {
+  fill: var(--superficie);
+  stroke: var(--trazo, var(--vino-claro));
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.fuerte {
+  fill: var(--relleno, var(--vino-tenue));
+  stroke: var(--trazo, var(--vino));
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.linea {
+  fill: none;
+  stroke: var(--trazo, var(--vino));
+  stroke-width: 2;
+  stroke-linecap: round;
+}

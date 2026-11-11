@@ -288,11 +288,15 @@ describe('lo que llega después de desmontar no toca nada', () => {
 });
 
 describe('bienvenida: lo que se ve', () => {
-  it('el botón del menú sigue deshabilitado hasta T-2.5', async () => {
+  it('«Ver el menú» está activo y abre el menú de la mesa (T-2.5)', async () => {
     const sim = crearServicioEntradaSimulado();
-    render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} />);
+    const verMenu = vi.fn();
+    render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} onVerMenu={verMenu} />);
     await titulo(7);
-    expect(screen.getByRole('button', { name: 'El menú llega pronto' })).toBeDisabled();
+    const boton = screen.getByRole('button', { name: 'Ver el menú' });
+    expect(boton).toBeEnabled();
+    await userEvent.click(boton);
+    expect(verMenu).toHaveBeenCalledTimes(1);
   });
 
   it('el número de mesa es el del servidor, no uno fijo', async () => {

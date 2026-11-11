@@ -8,7 +8,9 @@
  * Como `capturas-admin.mjs`: levanta Vite con una página temporal (`captura-comensal.html` +
  * `src/captura-comensal.tsx`, que se borran al terminar) y usa Playwright. Genera: bienvenida,
  * alias-edicion, mesa-invalida, mesa-llena, sesion-cerrada, sin-conexion, error-generico, sin-lugar
- * («No pudimos guardar tu lugar»), cargando.
+ * («No pudimos guardar tu lugar»), cargando; y el menú (T-2.5): menu-inicio (con «Top 3 del chef»),
+ * menu-lista (más abajo), menu-busqueda, menu-sin-resultados, menu-filtros (hoja), menu-filtrado
+ * (con un alérgeno descartado), menu-agotado, menu-cargando y menu-limite (429).
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -48,9 +50,23 @@ try {
   import './compartido/base.css';
   import { createRoot } from 'react-dom/client';
   import { PantallaEntrada } from './comensal/entrada/PantallaEntrada';
+  import { Menu } from './comensal/menu/Menu';
   import { CODIGO_SEMILLA, crearServicioEntradaSimulado, errorSimulado } from './mocks/servicioEntradaSimulado';
+  import { crearServicioMenuSimulado } from './mocks/servicioMenuComensalSimulado';
   
   const p = new URLSearchParams(location.search).get('p');
+  if (p && p.startsWith('menu-')) {
+    const menuSim = crearServicioMenuSimulado({
+      error: p === 'menu-limite' ? errorSimulado(429, 'DEMASIADAS_PETICIONES', 'x', 12) : undefined,
+    });
+    if (p === 'menu-cargando') menuSim.retener();
+    let filtros = { alergenos: [], etiquetas: [] };
+    const almacen = { leer: () => filtros, guardar: (f) => { filtros = f; } };
+    const analitica = { registrar: () => undefined, vaciar: () => undefined, detener: () => undefined };
+    createRoot(document.getElementById('app')!).render(
+      <Menu slug="la-ceiba" mesa={7} servicio={menuSim.servicio} analitica={analitica} almacen={almacen} onVolver={() => undefined} onAbrir={() => undefined} />,
+    );
+  } else {
   const opciones = {
     bienvenida: {},
     'mesa-invalida': { errores: { entrar: errorSimulado(404, 'MESA_NO_ENCONTRADA') } },
@@ -64,6 +80,7 @@ try {
   if (p === 'cargando') sim.retener('entrar');
   if (p === 'bienvenida' || p === 'alias') { sim.sentarOtro(); sim.sentarOtro(); }
   createRoot(document.getElementById('app')!).render(<PantallaEntrada codigo={CODIGO_SEMILLA} servicio={sim.servicio} />);
+  }
   `,
   );
   servidor = await createServer({ root: frontend, server: { port: 0, host: '127.0.0.1' }, logLevel: 'error' });
@@ -73,6 +90,14 @@ try {
   const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   const pagina = await ctx.newPage();
   pagina.on('console', (m) => m.type() === 'error' && console.error('consola:', m.text()));
+  // Las fotos del menú simulado viven en un dominio inventado: se sirve una imagen de relleno para ver el diseño con foto.
+  await pagina.route('https://fotos.carta.example/**', (ruta) => {
+    const tono = [24, 38, 52, 205][Math.floor(Math.random() * 4)];
+    ruta.fulfill({
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="180"><defs><radialGradient id="g" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="hsl(' + tono + ',60%,62%)"/><stop offset="1" stop-color="hsl(' + tono + ',55%,32%)"/></radialGradient></defs><rect width="240" height="180" fill="url(#g)"/><circle cx="120" cy="90" r="46" fill="hsl(' + tono + ',70%,85%)" opacity=".85"/></svg>',
+    });
+  });
   const ir = async (nombre, esperar) => {
     await pagina.goto(`${origen}/captura-comensal.html?p=${nombre}`);
     await esperar();
@@ -104,6 +129,38 @@ try {
   await guardar('error-generico');
   await ir('sin-lugar', titulo('No pudimos guardar tu lugar'));
   await guardar('sin-lugar');
+
+  // ── Menú (T-2.5) ──────────────────────────────────────────────────────────────────────
+  const menu = titulo('La Ceiba');
+  await ir('menu-cargando', () => pagina.getByRole('status').waitFor());
+  await guardar('menu-cargando');
+  await ir('menu-limite', titulo('Vamos un poco rápido'));
+  await guardar('menu-limite');
+  await ir('menu-inicio', menu);
+  await pagina.getByRole('region', { name: 'Top 3 del chef' }).waitFor();
+  await pagina.screenshot({ path: join(salida, 'menu-inicio.png') }); // sólo lo que se ve al abrir
+  await guardar('menu-lista');
+  await pagina.getByRole('heading', { name: 'Pescado a la veracruzana' }).scrollIntoViewIfNeeded();
+  await pagina.waitForTimeout(300);
+  await pagina.screenshot({ path: join(salida, 'menu-agotado.png') });
+  await ir('menu-busqueda', menu);
+  await pagina.getByRole('searchbox', { name: 'Buscar en el menú' }).fill('PINA');
+  await pagina.waitForTimeout(400);
+  await guardar('menu-busqueda');
+  await pagina.getByRole('searchbox', { name: 'Buscar en el menú' }).fill('sushi');
+  await pagina.waitForTimeout(400);
+  await guardar('menu-sin-resultados');
+  await ir('menu-filtros', menu);
+  await pagina.getByRole('button', { name: 'Filtros' }).click();
+  await pagina.getByRole('dialog').waitFor();
+  await pagina.getByRole('button', { name: 'Lácteos' }).click();
+  await pagina.getByRole('button', { name: 'Gluten', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Vegetariano' }).click();
+  await pagina.waitForTimeout(500);
+  await pagina.screenshot({ path: join(salida, 'menu-filtros.png') });
+  await pagina.getByRole('button', { name: /^Ver \d+ platillos?$/ }).click();
+  await pagina.waitForTimeout(500);
+  await guardar('menu-filtrado');
   console.log(`Capturas en ${salida}`);
 } finally {
   await navegador?.close();
