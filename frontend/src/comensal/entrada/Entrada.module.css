@@ -1,0 +1,167 @@
+/* Entrada del comensal (T-2.4). Sin bordes de 1 px, radios ≥ 20 px, áreas táctiles ≥ 44 px. */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+
+.logo {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  color: var(--vino);
+  overflow: hidden;
+}
+
+.restaurante {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  color: var(--vino);
+}
+
+.yo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+}
+
+.yoTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.etiqueta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--carbon-suave);
+}
+
+.alias {
+  overflow-wrap: anywhere; /* el alias es de otra persona: texto, sin HTML, y no desborda */
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--carbon);
+}
+
+.mesa {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.aviso {
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  color: var(--carbon-suave);
+  font-size: 0.9375rem;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding: var(--esp-1); /* el halo de foco no se recorta contra el borde de la hoja */
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.entrada {
+  min-height: 52px;
+  padding: 12px var(--esp-5);
+  border-radius: var(--radio);
+  background: var(--crema-baja);
+  font-size: 1rem; /* ≥ 16 px: iOS no hace zoom al enfocar */
+  width: 100%;
+}
+
+.contador {
+  align-self: flex-end;
+  font-size: 0.8125rem;
+  color: var(--carbon-suave);
+}
+
+.error {
+  color: var(--error);
+  font-size: 0.9375rem;
+}
+
+/* Esqueleto: lo que ocupará la tarjeta de bienvenida, en vez de una pantalla en blanco. */
+.esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+}
+
+.bloque {
+  border-radius: var(--radio);
+  background: linear-gradient(90deg, var(--crema-baja) 0%, var(--crema-alta) 50%, var(--crema-baja) 100%);
+  background-size: 200% 100%;
+  animation: brillo 1400ms ease-in-out infinite;
+}
+
+.bloqueLogo {
+  width: 56px;
+  height: 56px;
+}
+.bloqueLinea {
+  height: 20px;
+}
+.bloqueTitulo {
+  height: 40px;
+  width: 80%;
+}
+.bloqueTarjeta {
+  height: 112px;
+  border-radius: var(--radio-grande);
+}
+.bloqueBoton {
+  height: 48px;
+  border-radius: var(--radio-pildora);
+}
+
+@keyframes brillo {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloque {
+    animation: none;
+  }
+}
+
+/* La sombra flotante de un botón dentro de una hoja se recorta contra su borde y dibuja una banda. */
+.formulario button {
+  box-shadow: none;
+}
