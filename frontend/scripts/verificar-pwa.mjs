@@ -23,6 +23,8 @@
  *   f. con la red puesta, un platillo marcado agotado en la base aparece agotado en ≤ 60 s (turno de 25 s del cliente +
  *      30 s del servidor) sin recargar, sin
  *      perder lo escrito en el buscador;
+ *   h. (T-2.5) con el JS de entrada respondiendo 503 aparece, pasados ~12 s, la ayuda del arranque con «Volver a intentar»
+ *      (que recarga); con la carga normal nunca;
  *   g. `sw.js` se sirve `no-cache`; el manifest tiene nombre, start_url, display, íconos 192/512, maskable y
  *      theme_color; y Chromium no reporta errores de instalabilidad (`Page.getInstallabilityErrors`).
  */
@@ -391,6 +393,55 @@ async function main() {
     } finally {
       await persistente.close();
       rmSync(perfil, { recursive: true, force: true });
+    }
+
+    // ── h. arranque sin JS (T-2.5, A1) ───────────────────────────────────────
+    // Si el JS de entrada no llega (aquí: 503) la pantalla no se queda en «Un momento…» para siempre: pasados ~12 s
+    // aparece, sólo con CSS, un texto honesto y «Volver a intentar», que recarga. Con la carga normal nunca se ve.
+    decir('h. el arranque ofrece ayuda si el JS de entrada no llega (y sólo entonces)');
+    {
+      const ruta = `${ORIGEN}/m/${'A'.repeat(22)}/menu`; // forma de código válida: con JS daría «mesa inválida» sin llamar a la API
+      const roto = await navegador.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-MX' });
+      try {
+        let entradasDelHtml = 0;
+        const p = await roto.newPage();
+        await roto.route('**/assets/index-*.js', (r) => r.fulfill({ status: 503, contentType: 'text/plain', body: 'no disponible' }));
+        p.on('request', (r) => {
+          if (r.isNavigationRequest()) entradasDelHtml += 1;
+        });
+        await p.goto(ruta, { waitUntil: 'load' });
+        const marca = p.locator('.arranque-marca');
+        const ayuda = p.locator('.arranque-ayuda');
+        const enlace = p.getByRole('link', { name: 'Volver a intentar' });
+        await espera(3000);
+        comprobar('a los 3 s la ayuda no se ve ni se puede tocar', !(await ayuda.isVisible()) && !(await enlace.isVisible()));
+        const antes = await marca.boundingBox();
+        await esperarA(() => ayuda.isVisible(), { plazo: 14000, paso: 500 });
+        comprobar('pasado el plazo aparece el texto honesto', (await ayuda.innerText()).includes('Está tardando más de lo normal. Revisa tu conexión.'));
+        const caja = await enlace.boundingBox();
+        comprobar('«Volver a intentar» mide ≥ 44 px de alto', caja !== null && caja.height >= 44, JSON.stringify(caja));
+        const despues = await marca.boundingBox();
+        comprobar('al aparecer la ayuda la marca no se movió', JSON.stringify(antes) === JSON.stringify(despues), `${JSON.stringify(antes)} → ${JSON.stringify(despues)}`);
+        const delAnuncio = await p.evaluate(() => ({ marca: document.querySelector('.arranque-marca')?.getAttribute('aria-hidden'), ayuda: document.querySelector('.arranque-ayuda')?.closest('[aria-hidden="true"]') !== null }));
+        comprobar('la marca está oculta a lectores y la ayuda no', delAnuncio.marca === 'true' && delAnuncio.ayuda === false, JSON.stringify(delAnuncio));
+        await roto.unroute('**/assets/index-*.js');
+        await Promise.all([p.waitForNavigation({ waitUntil: 'load' }), enlace.click()]);
+        comprobar('el enlace recarga la página (otra navegación al HTML)', entradasDelHtml >= 2, `navegaciones: ${entradasDelHtml}`);
+        await p.getByRole('heading', { name: 'No encontramos esta mesa' }).waitFor({ timeout: 10000 });
+        comprobar('con el JS de vuelta la recarga muestra la app y no queda la ayuda', (await p.locator('.arranque-ayuda').count()) === 0);
+      } finally {
+        await roto.close();
+      }
+      const normal = await navegador.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-MX' });
+      try {
+        const p = await normal.newPage();
+        await p.goto(ruta, { waitUntil: 'load' });
+        await p.getByRole('heading', { name: 'No encontramos esta mesa' }).waitFor({ timeout: 10000 });
+        await espera(13000);
+        comprobar('con la carga normal la ayuda no existe ni a los 13 s', (await p.locator('.arranque-ayuda').count()) === 0 && !(await p.getByRole('link', { name: 'Volver a intentar' }).isVisible().catch(() => false)));
+      } finally {
+        await normal.close();
+      }
     }
 
     await pasoF();

@@ -16,15 +16,17 @@ export interface PropsTarjetaPlatillo {
    * platillo agotado nunca se abre, aunque se pase.
    */
   onAbrir?: (id: string) => void;
+  /** Cae en la primera pantalla: su foto va `eager` y con `fetchpriority="high"`. */
+  prioridad?: boolean;
 }
 
 /** Un platillo: foto o ilustración, nombre, descripción, precio (DM Sans SemiBold) y etiquetas. */
-export const TarjetaPlatillo = memo(function TarjetaPlatillo({ platillo, variante = 'fila', onAbrir }: PropsTarjetaPlatillo) {
+export const TarjetaPlatillo = memo(function TarjetaPlatillo({ platillo, variante = 'fila', onAbrir, prioridad = false }: PropsTarjetaPlatillo) {
   const agotado = !platillo.disponible;
   const abrir = !agotado && onAbrir ? () => onAbrir(platillo.id) : undefined;
   const cuerpo = (
     <div className={`${estilos.platillo} ${variante === 'destacado' ? estilos.platilloDestacado : ''}`} data-agotado={agotado ? 'si' : 'no'}>
-      <ImagenPlatillo platillo={platillo} proporcion={variante === 'destacado' ? 'ancha' : 'cuadrada'} />
+      <ImagenPlatillo platillo={platillo} proporcion={variante === 'destacado' ? 'ancha' : 'cuadrada'} prioridad={prioridad} />
       <div className={estilos.platilloTexto}>
         <h3 className={estilos.platilloNombre}>{platillo.nombre}</h3>
         {platillo.descripcion && <p className={estilos.platilloDescripcion}>{platillo.descripcion}</p>}

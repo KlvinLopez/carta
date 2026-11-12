@@ -2,15 +2,18 @@ import { lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
+import AreaComensal from './comensal/Area';
+import { Arranque } from './compartido/pantalla/Arranque';
 import { Cargando } from './compartido/pantalla/Cargando';
 import { Inicio } from './compartido/pantalla/Inicio';
 import { LimiteError } from './compartido/pantalla/LimiteError';
 import { NoEncontrada } from './compartido/pantalla/NoEncontrada';
 
-// Tres áreas, tres trozos: cada una se descarga sólo cuando se entra en su ruta.
-// Lo vigilan src/App.test.tsx (estado de carga antes del contenido) y scripts/presupuesto.mjs
-// (≥ 3 trozos Area-*.js fuera de index.html).
-const AreaComensal = lazy(() => import('./comensal/Area'));
+// El comensal va en la entrada, no en un trozo: con React.lazy su código (y sus 8 dependencias) se pedía hasta que
+// `index.js` terminaba de ejecutarse, un salto de red más en la carga en frío del tráfico principal (T-2.5, AC-01.1:
+// medido contra la alternativa de `modulepreload`, ≈ 0.1–0.15 s menos). El panel y el personal siguen siendo un
+// trozo cada uno, que se descarga sólo al entrar en su ruta. Lo vigilan src/App.test.tsx (estado de carga antes del
+// contenido) y scripts/presupuesto.mjs (≥ 2 trozos Area-*.js fuera de index.html y nada del panel en la entrada).
 const AreaPersonal = lazy(() => import('./personal/Area'));
 const AreaOperador = lazy(() => import('./admin/Area'));
 
@@ -18,7 +21,7 @@ const AreaOperador = lazy(() => import('./admin/Area'));
 function CargandoArea() {
   const { pathname } = useLocation();
   const esPanel = pathname === '/admin' || pathname.startsWith('/admin/');
-  return <Cargando texto={esPanel ? 'Preparando tu panel…' : undefined} />;
+  return esPanel ? <Cargando texto="Preparando tu panel…" /> : <Arranque />;
 }
 
 // Un salto de línea u otro carácter de control codificado (`/m/<codigo>/menu%0A`) no lo casa ni el comodín

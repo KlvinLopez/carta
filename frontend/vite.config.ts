@@ -3,9 +3,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 
 import { entradasDelArmazon } from './scripts/armazon.mjs';
+import { sinMocksEnProduccion } from './scripts/sin-mocks.mjs';
 
-// Una SPA con tres áreas (/m, /staff, /admin). Cada área entra con React.lazy, así que Vite
-// la deja en su propio trozo; el bundle inicial sólo lleva React, el router y lo compartido.
+// Una SPA con tres áreas (/m, /staff, /admin). El panel y el personal entran con React.lazy (cada uno en su propio
+// trozo); el área del comensal va en la entrada (T-2.5, AC-01.1): como React.lazy costaba un salto de red más en
+// la carga en frío del 90 % del tráfico.
 // Marcha atrás del service worker: `VITE_SW_APAGADO=1 npm run build` genera un `sw.js` que se da de baja, vacía las
 // cachés y toma el control en una carga (con `skipWaiting`), y la página deja de registrar uno nuevo. Ver deploy/README.md.
 const swApagado = process.env.VITE_SW_APAGADO === '1';
@@ -14,6 +16,7 @@ export default defineConfig({
   define: swApagado ? { 'import.meta.env.VITE_SW_APAGADO': JSON.stringify('1') } : {},
   plugins: [
     react(),
+    sinMocksEnProduccion(),
     // Service worker (T-2.7): `src/sw.ts` con Workbox; el plugin sólo lo compila e inyecta la lista de
     // precarga. Sin registro automático (la CSP no admite scripts en línea; registra `src/pwa/registro.ts`),
     // sin manifest generado (el de `public/` ya existe) y apagado en `vite dev` y en vitest.
