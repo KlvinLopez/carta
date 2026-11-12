@@ -35,6 +35,7 @@ import {
   MENU_PLAZO_RED_S,
   NAVEGACION_PLAZO_MS,
   RUTAS_SPA,
+  esFalloDeServidor,
   esGuardable,
   esPeticionDeMenu,
 } from './pwa/rutas';
@@ -104,6 +105,28 @@ const marcarCopia: WorkboxPlugin = {
   },
 };
 
+/**
+ * Un 5xx o un 429 del menú cuenta como fallo de red **si hay copia** (`fetchDidSucceed` guarda la respuesta mala y
+ * lanza: `NetworkFirst` cae a la copia). Si no hay copia, `handlerDidError` devuelve la respuesta original del
+ * servidor para que la página vea el 503, o el 429 con su `Retry-After`, como sin worker.
+ */
+const respuestasMalas = new Map<string, Response>();
+const fallosDelServidor: WorkboxPlugin = {
+  fetchDidSucceed: async ({ request, response }) => {
+    if (!esFalloDeServidor(response.status)) {
+      respuestasMalas.delete(request.url);
+      return response;
+    }
+    respuestasMalas.set(request.url, response.clone());
+    throw new Error(`El servidor respondió ${response.status}`);
+  },
+  handlerDidError: async ({ request }) => {
+    const mala = respuestasMalas.get(request.url);
+    respuestasMalas.delete(request.url);
+    return mala;
+  },
+};
+
 registerRoute(
   ({ request, url }) => esPeticionDeMenu(request, url, self.location.origin),
   new NetworkFirst({
@@ -111,6 +134,7 @@ registerRoute(
     networkTimeoutSeconds: MENU_PLAZO_RED_S,
     plugins: [
       soloMenuGuardable,
+      fallosDelServidor,
       new ExpirationPlugin({ maxEntries: MENU_MAX_ENTRADAS, maxAgeSeconds: MENU_MAX_EDAD_S, purgeOnQuotaError: true }),
       marcarCopia,
     ],

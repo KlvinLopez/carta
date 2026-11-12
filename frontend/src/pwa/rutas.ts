@@ -44,3 +44,12 @@ export function esGuardable(respuesta: Pick<Response, 'status' | 'type' | 'heade
   const control = (respuesta.headers.get('Cache-Control') ?? '').toLowerCase();
   return !/(?:^|[\s,])(?:no-store|private)(?:[\s,=]|$)/.test(control);
 }
+
+/**
+ * Para el menú, un 5xx (un despliegue de Railway: 502/503) o un 429 cuenta como si la red hubiera fallado **si hay
+ * copia**: sale la copia, marcada. Sin copia, a la página le llega la respuesta original del servidor (con su
+ * `Retry-After`), como sin worker. El resto de los estados (200, 304, 404…) son respuestas de verdad.
+ */
+export function esFalloDeServidor(estado: number): boolean {
+  return estado >= 500 || estado === 429;
+}

@@ -11,7 +11,7 @@ export type AvisoSondeo = 'red' | 'servidor' | 'copia' | 'sin_conexion' | null;
 const TEXTOS: Record<NonNullable<AvisoSondeo>, string> = {
   red: 'Perdimos la conexión un momento. Seguimos intentando.',
   servidor: 'Estamos teniendo un problema de nuestro lado. Seguimos intentando.',
-  copia: 'Estás viendo la última copia del menú guardada en tu teléfono. Se actualiza sola cuando vuelva la conexión.',
+  copia: 'Estás viendo la última copia guardada del menú. Se actualiza sola en cuanto la red responda.',
   sin_conexion: 'Sin conexión. Puedes seguir viendo lo que ya cargó; el resto aparece cuando vuelva la red.',
 };
 

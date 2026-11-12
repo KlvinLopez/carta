@@ -3,10 +3,10 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { calcularArmazon } from '../../scripts/armazon.mjs';
+import { archivosDeLaPrecarga, calcularArmazon, listarDist } from '../../scripts/armazon.mjs';
 import { manejarPreloadError, type Ventana } from '../recarga';
 import { liberarServiceWorker, registrarServiceWorker } from './registro';
-import { CABECERA_COPIA, PREFIJOS_SPA, RUTAS_SPA, RUTA_MENU, esGuardable, esPeticionDeMenu } from './rutas';
+import { CABECERA_COPIA, PREFIJOS_SPA, RUTAS_SPA, RUTA_MENU, esFalloDeServidor, esGuardable, esPeticionDeMenu } from './rutas';
 
 const ORIGEN = 'https://carta.test';
 
@@ -143,6 +143,19 @@ describe('registro del service worker', () => {
     await Promise.resolve();
     expect(register).toHaveBeenCalled();
   });
+  it('un registro que falla no deja un rechazo sin capturar', async () => {
+    const sinCapturar = vi.fn();
+    process.on('unhandledRejection', sinCapturar);
+    try {
+      const register = vi.fn().mockRejectedValue(new Error('x'));
+      registrarServiceWorker({ serviceWorker: { register } }, { addEventListener: vi.fn(), document: { readyState: 'complete' } }, true);
+      await new Promise((r) => setTimeout(r, 20));
+      expect(register).toHaveBeenCalled();
+      expect(sinCapturar).not.toHaveBeenCalled();
+    } finally {
+      process.off('unhandledRejection', sinCapturar);
+    }
+  });
   it('liberar: da de baja los workers y vacía todas las cachés', async () => {
     const unregister = vi.fn().mockResolvedValue(true);
     const borrar = vi.fn().mockResolvedValue(true);
@@ -169,6 +182,30 @@ describe('un trozo que ya no existe tras un despliegue (vite:preloadError)', () 
     await Promise.resolve();
     await Promise.resolve();
     expect(orden).toEqual(['liberar', 'recargar']);
+  });
+  it('la recarga espera a que termine liberar (una promesa diferida)', async () => {
+    let terminar: () => void = () => undefined;
+    const { v, reload } = ventana(() => new Promise<void>((r) => (terminar = r)));
+    manejarPreloadError(new Event('vite:preloadError', { cancelable: true }), v);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(reload).not.toHaveBeenCalled();
+    terminar();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+  it('sin red no libera ni recarga y deja pasar el error (LimiteError con «Reintentar»); con red, una vez', async () => {
+    const liberar = vi.fn().mockResolvedValue(undefined);
+    const sinRed = ventana(liberar);
+    sinRed.v.navigator = { onLine: false };
+    const evento = new Event('vite:preloadError', { cancelable: true });
+    expect(manejarPreloadError(evento, sinRed.v)).toBe(false);
+    expect(evento.defaultPrevented).toBe(false);
+    expect(liberar).not.toHaveBeenCalled();
+    expect(sinRed.reload).not.toHaveBeenCalled();
+    // No gastó la única recarga: con red todavía puede.
+    const conRed = ventana(liberar);
+    conRed.v.navigator = { onLine: true };
+    expect(manejarPreloadError(new Event('vite:preloadError', { cancelable: true }), conRed.v)).toBe(true);
   });
   it('si liberar falla, igual recarga', async () => {
     const { v, reload } = ventana(() => Promise.reject(new Error('x')));
@@ -215,5 +252,55 @@ describe('qué precarga el worker (scripts/armazon.mjs)', () => {
   it('no lleva el panel del operador ni el SDK de Firebase', () => {
     const { js } = calcularArmazon(dist(), TODOS);
     expect([...js].some((a) => /Area-admin|index\.esm/.test(a))).toBe(false);
+  });
+});
+
+describe('el servidor en falla cuenta como red caída para el menú', () => {
+  it.each([
+    [200, false],
+    [304, false],
+    [404, false],
+    [429, true],
+    [500, true],
+    [502, true],
+    [503, true],
+    [499, false],
+  ])('%i → %s', (estado, esperado) => {
+    expect(esFalloDeServidor(estado)).toBe(esperado);
+  });
+});
+
+describe('la precarga son exactamente estos archivos (scripts/armazon.mjs)', () => {
+  it('index.html, la entrada, el comensal y sus dependencias, dos fuentes latin, manifest e íconos chicos; nada más', () => {
+    const raiz = mkdtempSync(join(tmpdir(), 'precarga-'));
+    try {
+      mkdirSync(join(raiz, 'assets'));
+      mkdirSync(join(raiz, 'fonts'));
+      const f = (n: string, c = '') => writeFileSync(join(raiz, n), c);
+      f('index.html', '<link rel="stylesheet" href="/assets/index-A.css">');
+      f('assets/index-A.js', 'const m=(i)=>{m.f||(m.f=["assets/Area-comensal-A.js"]);return i.map(j=>m.f[j])};a=()=>import("./Area-comensal-A.js"),__vite__mapDeps([0]));');
+      f('assets/index-A.css');
+      f('assets/Area-comensal-A.js');
+      f('assets/Area-admin-A.js');
+      for (const n of ['DMSans-variable-latin', 'DMSerifDisplay-Regular-latin', 'DMSans-variable-latin-ext', 'DMSerifDisplay-Italic-latin', 'DMSerifDisplay-Regular-latin-ext']) f(`fonts/${n}.woff2`);
+      for (const n of ['icono.svg', 'icono-maskable.svg', 'icono-180.png', 'icono-192.png', 'icono-512.png', 'icono-maskable-512.png', 'manifest.webmanifest', 'sw.js', 'otro.txt']) f(n);
+      expect(archivosDeLaPrecarga(raiz, listarDist(raiz)).sort()).toEqual(
+        [
+          'assets/Area-comensal-A.js',
+          'assets/index-A.css',
+          'assets/index-A.js',
+          'fonts/DMSans-variable-latin.woff2',
+          'fonts/DMSerifDisplay-Regular-latin.woff2',
+          'icono-180.png',
+          'icono-192.png',
+          'icono-maskable.svg',
+          'icono.svg',
+          'index.html',
+          'manifest.webmanifest',
+        ].sort(),
+      );
+    } finally {
+      rmSync(raiz, { recursive: true, force: true });
+    }
   });
 });

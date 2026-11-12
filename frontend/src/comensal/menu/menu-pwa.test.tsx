@@ -75,9 +75,9 @@ describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
     await asentar();
     titulo();
     expect(menu.llamadas).toHaveLength(1);
-    await avanzar(24_000);
+    await avanzar(24_999);
     expect(menu.llamadas).toHaveLength(1);
-    await avanzar(1000);
+    await avanzar(1);
     expect(menu.llamadas).toHaveLength(2);
     await avanzar(25_000);
     expect(menu.llamadas).toHaveLength(3);
@@ -195,21 +195,99 @@ describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
   });
 });
 
+describe('el reloj del menú (AC-04.4)', () => {
+  // @ac AC-04.4
+  it('tras ocultar la pestaña 3 min y volver, el menú sigue pidiéndose en cada turno', async () => {
+    const { menu } = montar(RUTA_MENU);
+    await asentar();
+    ocultarPestana(true);
+    await avanzar(180_000);
+    expect(menu.llamadas).toHaveLength(1);
+    ocultarPestana(false);
+    await asentar();
+    expect(menu.llamadas).toHaveLength(2); // al volver
+    await avanzar(24_999);
+    expect(menu.llamadas).toHaveLength(2);
+    await avanzar(1);
+    expect(menu.llamadas).toHaveLength(3); // y el reloj se reprogramó
+  });
+
+  it('veinte eventos online seguidos piden el menú una sola vez, y una lectura reciente difiere la siguiente en lugar de perderla', async () => {
+    const { menu } = montar(RUTA_MENU);
+    await asentar();
+    await avanzar(10_000); // la carga inicial queda a más de 5 s
+    for (let i = 0; i < 20; i += 1) {
+      act(() => {
+        window.dispatchEvent(new Event('online'));
+      });
+    }
+    await asentar();
+    expect(menu.llamadas).toHaveLength(2);
+    // Otro parpadeo a los 2 s: no se pide enseguida, se programa para cuando acabe la espera de 5 s.
+    await avanzar(2000);
+    for (let i = 0; i < 5; i += 1) {
+      act(() => {
+        window.dispatchEvent(new Event('online'));
+      });
+    }
+    expect(menu.llamadas).toHaveLength(2);
+    await avanzar(2999);
+    expect(menu.llamadas).toHaveLength(2);
+    await avanzar(1);
+    expect(menu.llamadas).toHaveLength(3);
+  });
+
+  it('un refresco que devuelve la copia (red lenta) no sustituye un menú de la red ni enciende el aviso', async () => {
+    const { menu } = montar(RUTA_MENU);
+    await asentar();
+    menu.servirDeCopia(true);
+    await avanzar(25_000);
+    expect(menu.llamadas).toHaveLength(2);
+    expect(avisos()).toHaveLength(0);
+    // Con la copia en pantalla y un contenido distinto, sí se actualiza; una respuesta de la red apaga el aviso.
+    menu.servirDeCopia(false);
+    await avanzar(25_000);
+    expect(avisos()).toHaveLength(0);
+  });
+
+  it('con una copia en pantalla y red, el siguiente turno es a los 8 s; la respuesta de la red apaga el aviso', async () => {
+    const menu = crearServicioMenuSimulado();
+    menu.servirDeCopia(true);
+    montar(RUTA_MENU, { menu });
+    await asentar();
+    expect(avisos()).toHaveLength(1);
+    menu.servirDeCopia(false);
+    await avanzar(7_999);
+    expect(menu.llamadas).toHaveLength(1);
+    await avanzar(1);
+    expect(menu.llamadas).toHaveLength(2);
+    expect(avisos()).toHaveLength(0);
+  });
+
+  it('el aviso de la copia no dice que no hay conexión', async () => {
+    const menu = crearServicioMenuSimulado();
+    menu.servirDeCopia(true);
+    montar(RUTA_MENU, { menu });
+    await asentar();
+    expect(avisos()[0]!.textContent).toBe('Estás viendo la última copia guardada del menú. Se actualiza sola en cuanto la red responda.');
+  });
+});
+
 describe('copia sin conexión (T-2.7)', () => {
   it('si el menú viene de la copia lo dice y no lo da por recién leído; al volver la red lo pide otra vez y el aviso se va', async () => {
     const menu = crearServicioMenuSimulado();
     menu.servirDeCopia(true);
     montar(RUTA_MENU, { menu });
     await asentar();
-    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia del menú/i)]);
+    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia guardada del menú/i)]);
     expect(screen.queryByText(/Perdimos la conexión/)).not.toBeInTheDocument();
     menu.servirDeCopia(false);
     act(() => {
       window.dispatchEvent(new Event('online'));
     });
-    await asentar();
+    await avanzar(5000); // la lectura de la carga fue hace menos de 5 s: se difiere, no se pierde
     expect(menu.llamadas.length).toBeGreaterThanOrEqual(2);
-    expect(screen.queryByText(/última copia del menú/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/última copia guardada del menú/i)).not.toBeInTheDocument();
   });
 
   it('un solo aviso a la vez: copia gana a «sin conexión» y a la falla del sondeo', async () => {
@@ -221,7 +299,7 @@ describe('copia sin conexión (T-2.7)', () => {
     act(() => {
       window.dispatchEvent(new Event('offline'));
     });
-    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia del menú/i)]);
+    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia guardada del menú/i)]);
   });
 
   it('sin red y con el menú fresco: el aviso general «Sin conexión» (uno solo); al volver la red se va', async () => {
@@ -262,7 +340,7 @@ describe('recarga sin red con la copia guardada', () => {
     await asentar();
     titulo();
     expect(menu.llamadas).toEqual([{ slug: 'la-ceiba' }]);
-    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia del menú/i)]);
+    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia guardada del menú/i)]);
     expect(screen.queryByText(/^Mesa \d/)).not.toBeInTheDocument();
   });
 
@@ -273,7 +351,7 @@ describe('recarga sin red con la copia guardada', () => {
     const { sim } = montar(RUTA_MENU, { menu, antes: (e) => e.fallarUnaVez('entrar', errorSimulado(0, 'SIN_RED')) });
     await asentar();
     titulo();
-    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia del menú/i)]);
+    expect(avisos().map((a) => a.textContent)).toEqual([expect.stringMatching(/última copia guardada del menú/i)]);
     menu.servirDeCopia(false);
     act(() => {
       window.dispatchEvent(new Event('online'));
@@ -282,6 +360,7 @@ describe('recarga sin red con la copia guardada', () => {
     expect(screen.queryByRole('heading', { name: 'La Ceiba', level: 1 })).toBeInTheDocument();
     await asentar();
     expect(screen.getByText('Mesa 7')).toBeInTheDocument();
+    await avanzar(5000);
     expect(avisos()).toHaveLength(0);
     expect(sim.llamadas.filter((l) => l.metodo === 'entrar')).toHaveLength(2);
   });
@@ -292,6 +371,21 @@ describe('recarga sin red con la copia guardada', () => {
     montar(RUTA_MENU, { menu, entrada: { errores: { entrar: errorSimulado(0, 'SIN_RED') } } });
     await asentar();
     expect(screen.getByRole('heading', { name: 'Sin conexión' })).toBeInTheDocument();
+    expect(menu.llamadas).toHaveLength(0);
+  });
+
+  it.each([
+    [404, 'MESA_NO_ENCONTRADA', 'No encontramos esta mesa'],
+    [410, 'SESION_CERRADA', 'La mesa se cerró'],
+    [429, 'DEMASIADAS_PETICIONES', 'Vamos un poco rápido'],
+  ])('con el espejo de esta mesa, una entrada que falla con %i muestra su pantalla y no la copia', async (estado, codigo, titulo) => {
+    espejoDe(CODIGO_SEMILLA);
+    const menu = crearServicioMenuSimulado();
+    menu.servirDeCopia(true);
+    montar(RUTA_MENU, { menu, entrada: { errores: { entrar: errorSimulado(estado, codigo, 'x', estado === 429 ? 12 : null) } } });
+    await asentar();
+    expect(screen.getByRole('heading', { name: new RegExp(titulo) })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'La Ceiba', level: 1 })).not.toBeInTheDocument();
     expect(menu.llamadas).toHaveLength(0);
   });
 

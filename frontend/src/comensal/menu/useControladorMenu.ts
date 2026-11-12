@@ -23,6 +23,8 @@ export type EstadoMenu =
  */
 export const INTERVALO_MENU_MS = 25_000;
 export const ESPERA_MINIMA_MENU_MS = 5_000;
+/** Con una copia en pantalla y red, el siguiente turno es pronto: la respuesta tardía ya actualizó la copia. */
+export const INTERVALO_COPIA_MS = 8_000;
 
 /** Mismo contenido (y mismo origen: red o copia): no hace falta cambiar el estado ni repintar. */
 function mismoMenu(a: MenuLeido, b: MenuLeido): boolean {
@@ -83,11 +85,15 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
   // posición; si la red falla se conserva lo que se ve. Si la respuesta viene de la copia, lo dice el
   // propio menú (`deCopia`) y al volver la red se pide otra vez sin esperar el minuto.
   const listo = estado.fase === 'listo';
+  const deCopia = estado.fase === 'listo' && estado.menu.deCopia === true;
+  const deCopiaAhora = useRef(false);
+  deCopiaAhora.current = deCopia;
   useEffect(() => {
     if (!listo || slug === null) return;
     let parar = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let control: AbortController | null = null;
+    let espera: ReturnType<typeof setTimeout> | undefined;
 
     const refrescar = async () => {
       control?.abort();
@@ -96,14 +102,22 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
       try {
         const menu = await servicio.menu(slug, propio.signal);
         if (propio.signal.aborted) return;
-        setEstado((previo) => (previo.fase === 'listo' && mismoMenu(previo.menu, menu) ? previo : { fase: 'listo', menu }));
+        setEstado((previo) => {
+          if (previo.fase !== 'listo') return previo;
+          // Un refresco que devuelve la copia (red lenta, plazo vencido) no sustituye un menú leído de la red ni
+          // enciende el aviso: se trata como un refresco fallido. Si ya se veía una copia y trae otro contenido, se
+          // actualiza. Una respuesta de la red siempre sustituye (y apaga el aviso).
+          if (menu.deCopia && !previo.menu.deCopia) return previo;
+          return mismoMenu(previo.menu, menu) ? previo : { fase: 'listo', menu };
+        });
       } catch {
         // Se conserva el menú que ya se ve; el siguiente turno lo intenta de nuevo.
       }
     };
     const programar = () => {
       clearTimeout(timer);
-      if (!parar) timer = setTimeout(turno, INTERVALO_MENU_MS);
+      const sigue = deCopiaAhora.current && navigator.onLine ? INTERVALO_COPIA_MS : INTERVALO_MENU_MS;
+      if (!parar) timer = setTimeout(turno, sigue);
     };
     function turno() {
       if (parar || document.hidden) return; // la pestaña al volver retoma el reloj
@@ -115,24 +129,45 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
       if (Date.now() - ultimaLectura.current >= ESPERA_MINIMA_MENU_MS) void refrescar();
       programar();
     };
+    // `online` puede parpadear (una red que cae y vuelve): no más de una lectura cada `ESPERA_MINIMA_MENU_MS`. Si hubo una
+    // hace poco se programa una para cuando acabe la espera (no se pierde), y los eventos que llegan mientras tanto
+    // se juntan en ella.
     const alVolverLaRed = () => {
+      const falta = ESPERA_MINIMA_MENU_MS - (Date.now() - ultimaLectura.current);
+      if (falta <= 0) {
+        clearTimeout(espera);
+        espera = undefined;
+        void refrescar();
+        programar();
+      } else if (espera === undefined) {
+        espera = setTimeout(() => {
+          espera = undefined;
+          if (parar) return;
+          void refrescar();
+          programar();
+        }, falta);
+      }
+    };
+    // El worker tomó la página: una vez, sin espera mínima.
+    const alTomarControl = () => {
       void refrescar();
       programar();
     };
     // Primera visita: el worker toma la página cuando termina de instalarse. Se pide el menú una vez más para que la
     // copia quede guardada ahora y no al siguiente turno.
     const contenedor = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;
-    contenedor?.addEventListener?.('controllerchange', alVolverLaRed);
+    contenedor?.addEventListener?.('controllerchange', alTomarControl);
     document.addEventListener('visibilitychange', alVolverLaPestana);
     window.addEventListener('online', alVolverLaRed);
     programar();
     return () => {
       parar = true;
       clearTimeout(timer);
+      clearTimeout(espera);
       control?.abort();
       document.removeEventListener('visibilitychange', alVolverLaPestana);
       window.removeEventListener('online', alVolverLaRed);
-      contenedor?.removeEventListener?.('controllerchange', alVolverLaRed);
+      contenedor?.removeEventListener?.('controllerchange', alTomarControl);
     };
   }, [listo, slug, servicio]);
 

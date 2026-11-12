@@ -27,15 +27,21 @@
  *      theme_color; y Chromium no reporta errores de instalabilidad (`Page.getInstallabilityErrors`).
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer, request as peticionHttp } from 'node:http';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 
-const ORIGEN = (process.argv[2] ?? 'http://localhost:8000').replace(/\/$/, '');
+const SERVIDOR = (process.argv.find((a) => /^https?:/.test(a)) ?? 'http://localhost:8000').replace(/\/$/, '');
+/** Todo lo que ve el navegador pasa por un proxy mínimo delante del servidor (se llena en `main`): permite simular un 503 del menú. */
+let ORIGEN = SERVIDOR;
+const SOLO_F = process.argv.includes('--solo-f');
+const SW_DIST = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'dist', 'sw.js');
 const SLUG = 'la-ceiba';
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -91,14 +97,98 @@ async function esperarA(condicion, { plazo = 15000, paso = 250 } = {}) {
   return false;
 }
 
+/** Proxy mínimo delante del servidor: reenvía todo y, cuando se pide, contesta 503 al menú público (un despliegue de Railway). */
+function levantarProxy() {
+  const destino = new URL(SERVIDOR);
+  const estado = { menu503: false };
+  const servidor = createServer((req, res) => {
+    if (estado.menu503 && /^\/api\/v1\/p\/menu\//.test(req.url ?? '')) {
+      res.writeHead(503, { 'content-type': 'application/json', 'retry-after': '7', 'cache-control': 'no-store' });
+      res.end('{"error":{"codigo":"SERVICIO_NO_DISPONIBLE","mensaje":"x","detalles":{},"request_id":"proxy"}}');
+      return;
+    }
+    const saliente = peticionHttp({ host: destino.hostname, port: destino.port, path: req.url, method: req.method, headers: req.headers }, (r) => {
+      res.writeHead(r.statusCode ?? 502, r.headers);
+      r.pipe(res);
+    });
+    saliente.on('error', () => {
+      res.writeHead(502);
+      res.end();
+    });
+    req.pipe(saliente);
+  });
+  return new Promise((listo) => servidor.listen(0, '127.0.0.1', () => listo({ servidor, estado, origen: `http://localhost:${servidor.address().port}` })));
+}
+
+/** Cada contexto nuevo es un comensal nuevo y a los 12 la mesa se llena: se explica en vez de agotar el plazo sin decir por qué. */
+async function esperarMesa(pagina) {
+  const ok = await pagina.getByRole('heading', { name: /Estás en la mesa|La Ceiba/ }).first().waitFor({ timeout: 20000 }).then(() => true, () => false);
+  if (ok) return;
+  if (await pagina.getByText(/ya está completa/).count()) {
+    throw new Error('La mesa está llena (12 comensales: cada corrida crea varios). Usa otra con CODIGO_MESA=… o limpia las sesiones de desarrollo (`uv run python scripts/seed.py`).');
+  }
+  throw new Error('La pantalla de la mesa no cargó.');
+}
+
 async function main() {
-  codigo = process.env.CODIGO_MESA ?? psql(`select m.codigo_publico from mesa m join restaurante r on r.id = m.restaurante_id where r.slug = '${SLUG}' and m.numero = 7`);
-  if (!codigo) throw new Error('No hay una mesa 7 de «La Ceiba»: corre `uv run python scripts/seed.py`.');
+  const proxy = await levantarProxy();
+  ORIGEN = proxy.origen;
+  // La mesa de la semilla con menos comensales: cada corrida crea varios y a los 12 la mesa se llena.
+  codigo =
+    process.env.CODIGO_MESA ??
+    psql(
+      `select m.codigo_publico from mesa m join restaurante r on r.id = m.restaurante_id left join sesion_grupal s on s.mesa_id = m.id left join miembro_sesion ms on ms.sesion_id = s.id where r.slug = '${SLUG}' and m.activa group by m.id order by count(ms.id), m.numero limit 1`,
+    );
+  if (!codigo) throw new Error('No hay mesas de «La Ceiba»: corre `uv run python scripts/seed.py`.');
   const rutaMenu = `/m/${codigo}/menu`;
   const navegador = await chromium.launch();
   let platilloAgotado = null;
 
   try {
+  const pasoF = async () => {
+    // ── f. un platillo agotado se ve en ≤ 60 s ──────────────────────────────
+    decir('f. un platillo agotado se ve en ≤ 60 s, sin recargar');
+    // Se elige un platillo disponible y se busca por su nombre completo: ningún otro platillo (agotado o no) casa con esa búsqueda.
+    const elegido = psql(`select p.id || '|' || p.nombre from platillo p join restaurante r on r.id = p.restaurante_id where r.slug = '${SLUG}' and p.disponible and p.activo order by p.nombre limit 1 offset 3`).split('|');
+    platilloAgotado = { id: elegido[0], nombre: elegido.slice(1).join('|') };
+    const ctx2 = await navegador.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-MX', serviceWorkers: 'allow' });
+    const p2 = await ctx2.newPage();
+    await p2.clock.install();
+    await p2.goto(`${ORIGEN}${rutaMenu}`, { waitUntil: 'load' });
+    await esperarMesa(p2);
+    await p2.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
+    await p2.evaluate(() => {
+      window.__sinRecarga = true;
+    });
+    const buscador = p2.getByRole('searchbox', { name: 'Buscar en el menú' });
+    const consulta = platilloAgotado.nombre;
+    await buscador.fill(consulta);
+    const estadoDelPlatillo = p2.locator(`[data-platillo="${platilloAgotado.id}"] [data-agotado]`);
+    await estadoDelPlatillo.first().waitFor({ timeout: 10000 });
+    comprobar('antes, ESA tarjeta no está agotada', (await estadoDelPlatillo.first().getAttribute('data-agotado')) === 'no');
+    comprobar('antes, ninguna otra tarjeta visible dice «Agotado hoy»', (await p2.getByText('Agotado hoy').count()) === 0);
+    psql(`update platillo set disponible = false where id = '${platilloAgotado.id}'`);
+    // El servidor guarda el menú 30 s en memoria (y esta escritura directa no lo invalida, a diferencia de una del
+    // operador): se espera ese plazo real antes de adelantar el reloj de la página al siguiente turno de 25 s.
+    decir('  · esperando 32 s reales (caché en proceso del servidor)…');
+    await espera(32000);
+    const inicio = Date.now();
+    // Sólo lo justo para cruzar el turno de 25 s; después se espera en tiempo real (no se sigue adelantando el reloj: vencería
+    // el plazo de la petición antes de que llegue la respuesta).
+    await p2.clock.runFor(25500);
+    const visto = await esperarA(async () => (await estadoDelPlatillo.first().getAttribute('data-agotado')) === 'si', { plazo: 10000 });
+    decir(`  · agotado visible ${Date.now() - inicio} ms reales después de cruzar el turno`);
+    comprobar('ESA tarjeta pasa a agotada tras un turno de 25 s del reloj de la página (peor caso del servidor: 30 s de copia + 25 s = 55 s)', visto, `${Date.now() - inicio} ms reales`);
+    comprobar('sin recargar la página', await p2.evaluate(() => window.__sinRecarga === true));
+    comprobar('la búsqueda escrita se conserva', (await buscador.inputValue()) === consulta);
+    await ctx2.close();
+  };
+
+    if (SOLO_F) {
+      await pasoF();
+      return;
+    }
+
     // ── g. cabeceras, manifest ───────────────────────────────────────────────
     decir('g. sw.js y manifest');
     const sw = await fetch(`${ORIGEN}/sw.js`);
@@ -119,7 +209,8 @@ async function main() {
       if (/\/api\/v1\/p\/menu\//.test(p.url())) menuPedidos.push(Date.now());
     });
     await pagina.goto(`${ORIGEN}/m/${codigo}`, { waitUntil: 'load' });
-    await pagina.getByRole('heading', { name: /Estás en la mesa 7/ }).waitFor({ timeout: 20000 });
+    await esperarMesa(pagina);
+    await pagina.getByRole('heading', { name: /Estás en la mesa \d+/ }).waitFor({ timeout: 20000 });
     comprobar('la bienvenida carga', true);
     await pagina.getByRole('button', { name: 'Ver el menú' }).click();
     await pagina.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
@@ -138,8 +229,34 @@ async function main() {
     // El menú llega con `max-age=30`: si la recarga cayera dentro de esos 30 s, el propio navegador lo serviría de su
     // caché HTTP aun sin red (y con razón no se avisaría de copia). Se espera a que caduque para probar la copia del
     // worker. (Vaciarla por CDP no sirve: una segunda sesión CDP descuadra la emulación de «sin red».)
-    decir('  · esperando 31 s reales (el menú trae max-age=30)…');
+    // Con el menú a la vista la app lo vuelve a pedir cada 25 s y eso renueva esa caché: se pone la pestaña «en segundo
+    // plano» (la app pausa sus lecturas) mientras se espera; la recarga de abajo crea un documento nuevo.
+    await pagina.evaluate(() => {
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    decir('  · esperando 31 s reales (el menú trae max-age=30; pestaña en segundo plano)…');
     await espera(31000);
+
+    // ── h. el servidor en falla (503 de un despliegue) ──────────────────────
+    decir('h. el menú responde 503');
+    proxy.estado.menu503 = true;
+    await pagina.reload({ waitUntil: 'load' });
+    await pagina.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
+    comprobar('con copia guardada, un 503 del menú muestra la copia y lo dice', await pagina.getByText(/última copia guardada del menú/).isVisible());
+    comprobar('con copia, la página no ve el error del servidor', (await pagina.getByRole('heading', { name: /Algo salió mal/ }).count()) === 0);
+    const sinCopia = await navegador.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-MX' });
+    const pSin = await sinCopia.newPage();
+    const respuestasMenu = [];
+    pSin.on('response', (r) => {
+      if (/\/api\/v1\/p\/menu\//.test(r.url())) respuestasMenu.push({ estado: r.status(), espera: r.headers()['retry-after'] });
+    });
+    await pSin.goto(`${ORIGEN}${rutaMenu}`, { waitUntil: 'load' });
+    await esperarA(async () => respuestasMenu.length > 0);
+    comprobar('sin copia, a la página le llega el 503 original con su Retry-After', respuestasMenu[0]?.estado === 503 && respuestasMenu[0]?.espera === '7', JSON.stringify(respuestasMenu));
+    comprobar('sin copia no se inventa una copia', (await pSin.getByText(/última copia guardada del menú/).count()) === 0);
+    await sinCopia.close();
+    proxy.estado.menu503 = false;
     await contexto.setOffline(true);
     await pagina.reload({ waitUntil: 'load' }).catch((e) => {
       throw new Error(`La recarga sin red no cargó el armazón: ${e.message}`);
@@ -147,7 +264,7 @@ async function main() {
     comprobar('el armazón carga sin red', (await pagina.title()) === 'Carta');
     await pagina.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
     comprobar('el menú sale de la copia (se ven los platillos)', (await pagina.locator('section[id^="categoria-"] h3').count()) > 5);
-    const aviso = pagina.getByText(/última copia del menú guardada/);
+    const aviso = pagina.getByText(/última copia guardada del menú/);
     comprobar('el aviso lo dice', await aviso.isVisible());
     comprobar('un solo aviso de conexión', (await pagina.locator('p[role="status"]').filter({ hasText: /conexión|copia/ }).count()) === 1);
     const sesionEnCache = await pagina.evaluate(async () => {
@@ -186,7 +303,7 @@ async function main() {
     comprobar('el menú se volvió a pedir', menuPedidos.length > antes, `${menuPedidos.length} peticiones, antes ${antes}`);
     await pagina.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
     comprobar('sigue viéndose el menú', await pagina.getByRole('heading', { name: 'La Ceiba', level: 1 }).isVisible());
-    comprobar('la mesa vuelve a conocerse (ya hay sesión)', await pagina.getByText(/^Mesa 7$/).first().isVisible());
+    comprobar('la mesa vuelve a conocerse (ya hay sesión)', await pagina.getByText(/^Mesa \d+$/).first().isVisible());
     comprobar('sin aviso de conexión', (await pagina.locator('p[role="status"]').filter({ hasText: /conexión|copia/ }).count()) === 0);
 
     // ── e (con red). el armazón no tapa rutas del servidor ──────────────────
@@ -224,6 +341,23 @@ async function main() {
     comprobar('de la API sólo está el menú público', api.length > 0 && api.every((p) => /^\/api\/v1\/p\/menu\/[^/]+$/.test(p)), api.join(', '));
     comprobar('todas las claves son del propio origen', claves.every((c) => c.url.startsWith(`${ORIGEN}/`)));
     comprobar('el panel del operador y Firebase no se bajaron solos', !claves.some((c) => /Area-(?:admin|personal)|Pantalla[A-Z]|Asistente|index\.esm/.test(c.url)), claves.filter((c) => /Area-|Pantalla|Asistente|index\.esm/.test(c.url)).map((c) => new URL(c.url).pathname).join(', '));
+    // ── i. una versión nueva del worker espera: no recarga la pestaña ni toma el control ────────────────
+    decir('i. una versión nueva del worker con una pestaña abierta');
+    const swOriginal = readFileSync(SW_DIST, 'utf8');
+    try {
+      await pagina.evaluate(() => {
+        window.__pestana = true;
+      });
+      const antes = await pagina.evaluate(() => navigator.serviceWorker.controller?.scriptURL ?? null);
+      writeFileSync(SW_DIST, `${swOriginal}\n// versión de prueba ${Date.now()}\n`);
+      await pagina.evaluate(async () => (await navigator.serviceWorker.getRegistration()).update());
+      comprobar('el worker nuevo queda esperando', await esperarA(() => pagina.evaluate(async () => Boolean((await navigator.serviceWorker.getRegistration()).waiting))));
+      await espera(2500);
+      const despues = await pagina.evaluate(async () => ({ pestana: window.__pestana === true, espera: Boolean((await navigator.serviceWorker.getRegistration()).waiting), controlador: navigator.serviceWorker.controller?.scriptURL ?? null }));
+      comprobar('sigue esperando (sin skipWaiting) y la pestaña no se recargó sola', despues.pestana && despues.espera && despues.controlador === antes, JSON.stringify(despues));
+    } finally {
+      writeFileSync(SW_DIST, swOriginal);
+    }
     const pesoPrecarga = await pagina.evaluate(async () => {
       let total = 0;
       let n = 0;
@@ -259,43 +393,9 @@ async function main() {
       rmSync(perfil, { recursive: true, force: true });
     }
 
-    // ── f. un platillo agotado se ve en ≤ 60 s ──────────────────────────────
-    decir('f. un platillo agotado se ve en ≤ 60 s, sin recargar');
-    const elegido = psql(`select p.id || '|' || p.nombre from platillo p join restaurante r on r.id = p.restaurante_id where r.slug = '${SLUG}' and p.disponible and p.activo order by p.nombre limit 1 offset 3`).split('|');
-    platilloAgotado = { id: elegido[0], nombre: elegido.slice(1).join('|') };
-    const ctx2 = await navegador.newContext({ viewport: { width: 390, height: 844 }, locale: 'es-MX', serviceWorkers: 'allow' });
-    const p2 = await ctx2.newPage();
-    await p2.clock.install();
-    await p2.goto(`${ORIGEN}${rutaMenu}`, { waitUntil: 'load' });
-    await p2.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
-    await p2.evaluate(() => {
-      window.__sinRecarga = true;
-    });
-    const buscador = p2.getByRole('searchbox', { name: 'Buscar en el menú' });
-    const consulta = platilloAgotado.nombre.slice(0, 4);
-    await buscador.fill(consulta);
-    const tarjeta = p2.locator('section[id^="categoria-"] h3', { hasText: platilloAgotado.nombre });
-    await tarjeta.first().waitFor({ timeout: 10000 });
-    const agotadoAntes = await p2.locator('section[id^="categoria-"]', { has: tarjeta }).getByText('Agotado hoy').count();
-    comprobar('antes, el platillo está disponible', agotadoAntes === 0 || platilloAgotado.nombre.length > 0);
-    psql(`update platillo set disponible = false where id = '${platilloAgotado.id}'`);
-    // El servidor guarda el menú 30 s en memoria (y esta escritura directa no lo invalida, a diferencia de una del
-    // operador): se espera ese plazo real antes de adelantar el reloj de la página al siguiente turno de 25 s.
-    decir('  · esperando 32 s reales (caché en proceso del servidor)…');
-    await espera(32000);
-    const inicio = Date.now();
-    // Sólo lo justo para cruzar el turno de 25 s; después se espera en tiempo real (no se sigue adelantando el reloj: vencería
-    // el plazo de la petición antes de que llegue la respuesta).
-    await p2.clock.runFor(25500);
-    const atenuado = p2.locator('article, li, div', { has: tarjeta }).getByText('Agotado hoy');
-    const visto = await esperarA(async () => (await p2.getByText('Agotado hoy').count()) > 0, { plazo: 10000 });
-    decir(`  · agotado visible ${Date.now() - inicio} ms reales después de cruzar el turno`);
-    comprobar('el platillo aparece agotado tras un turno de 25 s del reloj de la página (peor caso del servidor: 30 s de copia + 25 s = 55 s)', visto, `${Date.now() - inicio} ms reales`);
-    comprobar('sin recargar la página', await p2.evaluate(() => window.__sinRecarga === true));
-    comprobar('la búsqueda escrita se conserva', (await buscador.inputValue()) === consulta);
-    void atenuado;
-    await ctx2.close();
+    await pasoF();
   } finally {
+    proxy.servidor.close();
     if (platilloAgotado) psql(`update platillo set disponible = true where id = '${platilloAgotado.id}'`);
     await navegador.close();
   }

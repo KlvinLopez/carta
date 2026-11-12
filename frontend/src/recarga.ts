@@ -18,10 +18,14 @@ export interface Ventana {
    * worker y se vacían sus copias; la recarga trae la versión nueva de la red.
    */
   liberarServiceWorker?: () => Promise<void>;
+  /** Sin red no se libera ni se recarga: recargar iría a la página de error del navegador y se perdería la copia. */
+  navigator?: { onLine: boolean };
 }
 
 /** Devuelve `true` si recargó (y canceló el evento); `false` si dejó pasar el error. */
 export function manejarPreloadError(evento: Event, ventana: Ventana): boolean {
+  // Un trozo que falla porque no hay red no es un despliegue nuevo: se deja pasar el error (`LimiteError` con «Reintentar»).
+  if (ventana.navigator?.onLine === false) return false;
   const clave = PREFIJO + ventana.location.href;
   try {
     if (ventana.sessionStorage.getItem(clave) !== null) return false;
@@ -44,6 +48,9 @@ export function instalarGuardiaDeRecarga(ventana: Window, liberar?: () => Promis
     // Getters: leer `sessionStorage` puede lanzar con el sitio bloqueado, y `manejarPreloadError` lo atiende.
     const v: Ventana = liberar
       ? {
+          get navigator() {
+            return ventana.navigator;
+          },
           get location() {
             return ventana.location;
           },
