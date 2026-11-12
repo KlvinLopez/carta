@@ -19,8 +19,15 @@
   <body>
     <noscript>Carta necesita JavaScript para mostrar el menú. Actívalo y recarga la página.</noscript>
     <div id="app">
-      <!-- Arranque: se pinta con el HTML y el CSS, antes de que llegue el JS; React lo reemplaza por lo mismo (compartido/pantalla/Arranque.tsx) y después por el esqueleto de cada área. Neutro: sirve a las tres áreas. -->
-      <div class="arranque" aria-hidden="true"><p class="arranque-marca">Carta</p><p class="arranque-texto">Un momento…</p></div>
+      <!-- Arranque: se pinta con el HTML y el CSS, antes de que llegue el JS; React lo reemplaza por lo mismo (compartido/pantalla/Arranque.tsx) y después por el esqueleto de cada área. Neutro: sirve a las tres áreas. La ayuda se revela sola por CSS pasado un plazo: si el JS no llegó, la persona no se queda mirando «Un momento…» para siempre. -->
+      <div class="arranque">
+        <p class="arranque-marca" aria-hidden="true">Carta</p>
+        <p class="arranque-texto" aria-hidden="true">Un momento…</p>
+        <div class="arranque-ayuda">
+          <p class="arranque-ayuda-texto">Está tardando más de lo normal. Revisa tu conexión.</p>
+          <a class="arranque-reintento" href="">Volver a intentar</a>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

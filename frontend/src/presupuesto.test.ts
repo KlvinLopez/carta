@@ -148,6 +148,15 @@ describe('presupuesto.mjs: el trozo del comensal no arrastra panel, Firebase ni 
     expect(salida).toContain('El SDK de Firebase está en la carga inicial');
   });
 
+  it.each(['admin', 'personal'])('falla si falta el trozo propio de %s aunque haya otros trozos Area-* (B2)', (area) => {
+    const raiz = dist('console.log("hola");');
+    rmSync(join(raiz, 'assets', `Area-${area}-1.js`));
+    writeFileSync(join(raiz, 'assets', 'Area-comensal-2.js'), '//'); // el conteo (≥ 2) sigue cumplido: lo que falta es el nombre
+    const { codigo, salida } = correr(raiz);
+    expect(codigo).toBe(1);
+    expect(salida).toContain(`falta dist/assets/Area-${area}-*.js`);
+  });
+
   it('falla si el panel y el personal dejan de ser trozos propios (menos de dos trozos de área)', () => {
     const raiz = dist('console.log("hola");');
     rmSync(join(raiz, 'assets', 'Area-comensal-1.js'));

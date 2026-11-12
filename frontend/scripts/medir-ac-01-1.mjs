@@ -14,20 +14,34 @@
  * Perfiles: libre · lento (150 ms RTT, 1.6 Mbps, 750 kbps, CPU ×4) · rapido (60 ms, 9 Mbps, 1.5 Mbps, CPU ×4).
  * Con CARTA_LOCAL=1 y CARTA_MESA_URL apuntando a http://127.0.0.1:8000 no usa el proxy de la sesión.
  */
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { dirname, join, relative, resolve, isAbsolute } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const { chromium, devices } = require('playwright');
 
 const URL_MESA = process.env.CARTA_MESA_URL;
 if (!URL_MESA) throw new Error('Falta CARTA_MESA_URL');
-const CODIGO = (URL_MESA.match(/\/m\/([^/]+)/) ?? [])[1] ?? '';
-const limpio = (x) => (CODIGO ? JSON.stringify(x, null, 1).split(CODIGO).join('<codigo>') : JSON.stringify(x, null, 1));
+// El código de mesa es una credencial: se exige la forma /m/<codigo> (sólo [A-Za-z0-9_-]) y, si no casa, se aborta
+// sin repetir la URL (un error de Playwright con `?query` o sin `/m/` podría dejarlo en un mensaje).
+const CODIGO = (URL_MESA.match(/\/m\/([\w-]+)/) ?? [])[1] ?? '';
+if (!CODIGO) throw new Error('CARTA_MESA_URL no tiene la forma <origen>/m/<codigo>/menu');
+const limpio = (x) => JSON.stringify(x, null, 1).split(CODIGO).join('<codigo>');
 const [, , orden = 'ayuda', arg1, arg2] = process.argv;
-const salida = resolve(process.env.CARTA_MEDICION_SALIDA ?? '.');
-mkdirSync(salida, { recursive: true });
+
+// La cookie del comensal (otra credencial) se guarda en la carpeta de salida: obligatoria, fuera del repositorio,
+// con permisos de sólo el dueño.
+if (!process.env.CARTA_MEDICION_SALIDA) throw new Error('Falta CARTA_MEDICION_SALIDA (una carpeta fuera del repositorio)');
+const salida = resolve(process.env.CARTA_MEDICION_SALIDA);
+const repositorio = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const relativa = relative(repositorio, salida);
+if (relativa === '' || (!relativa.startsWith('..') && !isAbsolute(relativa))) {
+  throw new Error('CARTA_MEDICION_SALIDA cae dentro del repositorio: la cookie del comensal no debe quedar ahí');
+}
+mkdirSync(salida, { recursive: true, mode: 0o700 });
+chmodSync(salida, 0o700);
 
 const PERFILES = {
   libre: null,
@@ -170,11 +184,13 @@ async function main() {
       await esperarMenu(pagina);
       const cookies = (await ctx.cookies()).filter((c) => c.name === 'carta_invitado');
       if (!cookies.length) throw new Error('No hay cookie carta_invitado');
-      writeFileSync(join(salida, 'cookie.json'), JSON.stringify(cookies));
+      writeFileSync(join(salida, 'cookie.json'), JSON.stringify(cookies), { mode: 0o600 });
+      chmodSync(join(salida, 'cookie.json'), 0o600);
       console.log('cookie guardada (no se muestra); atributos:', cookies.map((c) => ({ path: c.path, secure: c.secure, httpOnly: c.httpOnly, sameSite: c.sameSite })));
       console.log(limpio(await leer(pagina)));
     } else if (orden === 'frio' || orden === 'segunda') {
       const perfil = orden === 'segunda' ? 'lento' : arg1;
+      if (!Object.hasOwn(PERFILES, perfil ?? '')) throw new Error(`Perfil desconocido: usa ${Object.keys(PERFILES).join(' · ')}`);
       const n = Number(orden === 'segunda' ? arg1 : arg2) || 9;
       const cookies = cargarCookies();
       const corridas = [];
@@ -217,6 +233,7 @@ async function main() {
       console.log(limpio({ ...res, corridas: undefined }));
     } else if (orden === 'cascada' || orden === 'traza') {
       const perfil = arg1 ?? 'lento';
+      if (!Object.hasOwn(PERFILES, perfil)) throw new Error(`Perfil desconocido: usa ${Object.keys(PERFILES).join(' · ')}`);
       const cookies = cargarCookies();
       const c = await contexto(navegador, cookies, perfil);
       const cabeceras = new Map();

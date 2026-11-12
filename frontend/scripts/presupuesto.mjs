@@ -125,6 +125,13 @@ const trozosArea = existsSync(carpetaAssets)
   ? readdirSync(carpetaAssets).filter((n) => /^Area-.*\.js$/.test(n))
   : [];
 console.log(`Trozos de área (React.lazy): ${trozosArea.length} → ${trozosArea.join(', ') || 'ninguno'}`);
+// Por nombre, además del conteo: el panel y el personal deben ser trozos propios (un `import` estático de uno de
+// ellos en la entrada se notaba sólo por el número, y otro `Area-*` cualquiera lo disimulaba).
+for (const area of ['admin', 'personal']) {
+  if (!trozosArea.some((n) => n.startsWith(`Area-${area}-`))) {
+    fallar(`\nCode splitting roto: falta dist/assets/Area-${area}-*.js (el ${area === 'admin' ? 'panel' : 'personal'} debe ser su propio trozo, no entrar en la carga inicial).`);
+  }
+}
 if (trozosArea.length < MINIMO_TROZOS_AREA) {
   fallar(
     `\nCode splitting roto: se esperaban ≥ ${MINIMO_TROZOS_AREA} trozos dist/assets/Area-*.js (uno por área) y hay ${trozosArea.length}.`,

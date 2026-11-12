@@ -25,10 +25,10 @@ describe('App', () => {
       irA(ruta);
       const { container } = render(<App />);
       // Si el área entrara con un import estático no habría estado de carga: esta es la guarda. Fuera del panel el
-      // estado de carga es el Arranque (el mismo que pinta index.html; oculto a lectores de pantalla).
+      // estado de carga es el Arranque (el mismo que pinta index.html), y se anuncia a lectores de pantalla.
       if (cargando === null) {
         expect(container.querySelector('.arranque')).toHaveTextContent('Carta');
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent('Un momento…');
       } else {
         expect(screen.getByRole('status')).toHaveTextContent(cargando);
       }

@@ -132,8 +132,17 @@ function MenuListo({ menu, controlador, mesa, aviso = null, onVolver, onAbrir }:
   // El «Top 3» es del menú completo: con una búsqueda o un filtro activo se esconde (si no, repetiría lo
   // que ya está en la lista). Un platillo descartado por alérgeno tampoco aparece arriba.
   const destacados = activo ? [] : menu.destacados.map((id) => indice.porId.get(id)?.platillo).filter((p): p is PlatilloPublico => !!p && visibles.has(p.id));
-  // Fotos de la primera pantalla: las del «Top 3» y la primera tarjeta de la lista que tenga foto.
-  const idPrimeraFoto = categorias.flatMap((c) => c.platillos).find((p) => p.imagen_tipo === 'foto' && p.foto_thumb_url)?.id ?? null;
+  // Fotos de la primera pantalla (`eager` + `fetchpriority="high"`). Con el «Top 3» a la vista sólo llevan prioridad
+  // sus fotos (la lista queda bajo el pliegue); sin él (búsqueda, filtro o carta sin destacados), la primera foto de la
+  // lista, y sólo si está entre las primeras 4 tarjetas: una foto lejos del pliegue no debe quitarle ancho de banda
+  // a lo que sí se ve.
+  const idPrimeraFoto =
+    destacados.length > 0
+      ? null
+      : (categorias
+          .flatMap((c) => c.platillos)
+          .slice(0, 4)
+          .find((p) => p.imagen_tipo === 'foto' && p.foto_thumb_url)?.id ?? null);
   const conteo = visibles.size === 0 ? 'Sin resultados' : visibles.size === 1 ? '1 platillo' : `${visibles.size} platillos`;
   const alergenosOpciones = unir(ALERGENOS_COMUNES, indice.alergenos, filtros.alergenos);
   const etiquetasOpciones = unir(ETIQUETAS_COMUNES, indice.etiquetas, filtros.etiquetas);
