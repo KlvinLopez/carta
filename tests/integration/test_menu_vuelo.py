@@ -330,5 +330,39 @@ def test_una_copia_no_almacenable_sale_no_store(reloj: Reloj) -> None:
     assert foto.cabecera_cache() == "no-store"
 
 
+@pytest.mark.ac("AC-04.4")
+async def test_la_edad_de_la_copia_cuenta_desde_antes_de_leer_la_base(
+    cliente: AsyncClient,
+    restaurante: Restaurante,
+    platillo: Platillo,
+    reloj: Reloj,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Revisión del PR de T-2.7: el reloj de la copia se tomaba al terminar de armarla. Un
+    armado lento (2 s) dejaba servir el menú 30 s contados desde el final, es decir 32 s desde
+    que se leyó la base, y se comía el margen de AC-04.4 (30 s de copia + 25 s del turno del
+    comensal)."""
+    original = servicio._armar
+    armados = 0
+
+    async def _armar_lento(*args: Any, **kwargs: Any) -> Any:
+        nonlocal armados
+        armados += 1
+        leido = await original(*args, **kwargs)
+        reloj.avanzar(2)  # lo que tardó la lectura
+        return leido
+
+    monkeypatch.setattr(servicio, "_armar", _armar_lento)
+    primera = await cliente.get(f"{P}/menu/{restaurante.slug}")
+    assert primera.status_code == 200
+    assert primera.headers["cache-control"] == "public, max-age=28, s-maxage=28"
+    reloj.avanzar(27.9)  # 29.9 s desde la lectura: la copia de este worker sigue valiendo
+    assert (await cliente.get(f"{P}/menu/{restaurante.slug}")).status_code == 200
+    assert armados == 1
+    reloj.avanzar(0.2)  # 30.1 s desde la lectura: ya no
+    assert (await cliente.get(f"{P}/menu/{restaurante.slug}")).status_code == 200
+    assert armados == 2
+
+
 # Fixture `Fabrica` sólo para anotar tipos
 from tests.conftest import Fabrica  # noqa: E402

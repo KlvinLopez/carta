@@ -157,14 +157,18 @@ class CacheMenu:
             return None
         return entrada.valor
 
-    def guardar(self, slug: str, valor: Any, generacion: int | None = None) -> bool:
+    def guardar(
+        self, slug: str, valor: Any, generacion: int | None = None, desde: float | None = None
+    ) -> bool:
         """Guarda el menú armado. `generacion` es la que se leyó antes de consultar la base:
-        si cambió en medio, no se guarda (`False`)."""
+        si cambió en medio, no se guarda (`False`). `desde` es el reloj de justo antes de leer
+        la base: la vigencia cuenta desde el dato y no desde que se terminó de armar."""
         vigente = self.generacion(slug)
         if generacion is not None and generacion != vigente:
             return False
         self._entradas.pop(slug, None)
-        self._entradas[slug] = _Entrada(valor, self.reloj() + self.vigencia, vigente)
+        inicio = self.reloj() if desde is None else desde
+        self._entradas[slug] = _Entrada(valor, inicio + self.vigencia, vigente)
         while len(self._entradas) > self.max_entradas:
             self._entradas.popitem(last=False)
         return True
