@@ -1,6 +1,6 @@
 # ADR-016 — Service worker: la red manda, la copia es el respaldo, y nunca se toma una mesa a la fuerza
 
-**Estado:** propuesta (sesión maestra, 2026-11-12; pendiente de que Calvin la acepte) · **Fecha:** 2026-11-12 · **Complementa:** ADR-004 (sondeo con ETag), ADR-010 (la API sirve la PWA) · **Tarea:** T-2.7
+**Estado:** aceptada (Calvin, 2026-11-12; propuesta por la sesión maestra el mismo día) · **Fecha:** 2026-11-12 · **Complementa:** ADR-004 (sondeo con ETag), ADR-010 (la API sirve la PWA) · **Tarea:** T-2.7
 
 ## Contexto
 La v1 necesita que el comensal siga viendo el menú si pierde la señal a media comida. Un service worker lo da, pero cambia cómo llega cada versión a los teléfonos: uno mal planteado deja a la gente con una versión vieja o rota que un despliegue normal ya no corrige. La primera entrega de T-2.7 servía la navegación desde la precarga; medido en Chromium, quien ya había visitado veía la versión anterior tras un despliegue (en la primera carga y en tres recargas) hasta cerrar la pestaña, las cabeceras de seguridad quedaban congeladas con las del día de la instalación y la primera visita no guardaba copia del menú.
