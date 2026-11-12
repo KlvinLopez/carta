@@ -215,7 +215,7 @@ describe('detalle: volver al menú (el menú no se desmonta bajo el detalle)', (
       expect(screen.queryByRole('heading', { name: 'Tacos de pastor', level: 1 })).toBeNull(); // la capa se fue
       expect(screen.queryByText('Preparando el menú…')).toBeNull();
       expect(menu.llamadas).toHaveLength(1);
-      expect(vistas(cola.registrar, 'menu_view')).toHaveLength(1);
+      await waitFor(() => expect(vistas(cola.registrar, 'menu_view')).toHaveLength(1));
       expect(desplazamiento.scrollTo).not.toHaveBeenCalled();
       expect(desplazamiento.scrollBy).not.toHaveBeenCalled();
       await waitFor(() => expect(tarjeta).toHaveFocus());
