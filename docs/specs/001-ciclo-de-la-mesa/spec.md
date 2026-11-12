@@ -54,11 +54,12 @@ Mientras haya una cuenta sin cerrar, sin pagar o flotante, la mesa no se puede l
 5. «Cargo validado» = lo que la cocina ya procesó. El personal cancela lo que la cocina aún no empieza.
 6. La mesa se abre con el primer escaneo. Pase de 24 h sin usarse; la sesión y la cuenta no caducan. Tope de 12 comensales.
 7. **Candado de dos partes entre restaurantes:** quien está en una mesa abierta no entra a otra (de ningún restaurante) hasta que el ciclo se cierre en orden; entonces se liberan a la vez su sesión y la mesa del restaurante.
-8. **La propina entra en la v1 como dato declarado:** el comensal fija una propina por defecto en su teléfono que siempre se suma a su total; al cerrar su cuenta se envía al servidor **sólo como dato** (para llevar registro de cuánta propina genera cada mesero), no como dinero recibido. El personal **no la ve** hasta validar el pago; ve **cuánto hay que cobrar**.
+8. **La propina entra en la v1 como dato declarado:** el comensal fija una propina por defecto en su teléfono (10 %, 15 %, 20 %, sin propina u otra, como en el prototipo) que siempre se suma a su total; al cerrar su cuenta se envía al servidor **sólo como dato** (no como dinero recibido) para llevar registro de cuánta propina genera cada mesero. **El personal ve el consumo, la propina declarada y el total a cobrar** de cada cuenta: el total es el consumo más la propina, nunca menos que el consumo.
 9. Sin mesas asignadas a meseros; permisos por defecto de §5; tras 2 h en rojo, escanear exige aprobación.
 10. **Recortes a la v1.1, con condición:** que cubrir después esos huecos **no obligue a rehacer** infraestructura ni desarrollo (sección 7).
 11. **Horario del restaurante:** dentro del horario, entrada normal; fuera, el escaneo deja una solicitud o se rechaza, según un ajuste del dueño. Por defecto, pedir aprobación; el horario y las 2 h en rojo conviven.
-12. **Pantallas:** comensal y personal, teléfono y tablet (hay tablets del restaurante que comparten meseros y capitanes); el dueño, además, computadora. Cada rol tiene su propio panel: el dueño opera desde el suyo.
+12. **Pantallas:** comensal y personal, teléfono y tablet (hay tablets del restaurante que comparten meseros y capitanes); el dueño, además, computadora. Hay tres paneles (comensal, personal y dueño); el capitán usa las pantallas del mesero con opciones extra y nuevas integraciones.
+13. **El prototipo navegable es la referencia de flujo** (sección 13): ante una duda de producto se mira primero el prototipo; si no aparece, se le pregunta a Calvin citando la pantalla.
 
 **Qué entra en la v1 y qué espera a la v1.1** (confirma de un vistazo)
 
@@ -76,14 +77,15 @@ Mientras haya una cuenta sin cerrar, sin pagar o flotante, la mesa no se puede l
 | Traspasos entre comensales: pedir por otro, «pásale esto», invitar, «yo invito» | | ✔ |
 | Invitar a medida (porcentaje o monto) y dividir a una persona entre varios | | ✔ |
 | El dueño opera desde su panel con las mismas acciones del personal | ✔ | |
-| Propina declarada: se guarda al cerrar la cuenta y el personal la ve tras validar el pago | ✔ | Reporte de propinas por mesero |
+| Propina declarada: se guarda al cerrar la cuenta y el personal la ve en el total a cobrar y se anota a quien valida | ✔ | Reporte de propinas por mesero |
 | Teléfono y tablet para comensal y personal; el panel del dueño, también computadora | ✔ | |
 
-**Preguntas abiertas: ninguna.**
+**Pregunta abierta: una.**
+- **[ACLARAR-9] ¿Con qué propina arranca el comensal?** En el prototipo (`prototipo/js/checkout-v2.jsx`, la pantalla «Mesero + propina», con `useState(15)`) la propina arranca **preseleccionada en 15 %**. Calvin habló de 0 % como peor caso y de que el comensal fija su propina por defecto. Recomendación: **sin propina preseleccionada (0 %)** hasta que el comensal elija, y a partir de ahí recordar su elección. La nota legal del repositorio (`docs/research/2026-09-23-checkout-y-ley-fintech.md` §2.4) prohíbe la propina «obligatoria o precargada sin poder quitarla»; una preseleccionada y quitable no la rompe, pero una voluntaria que el comensal fija es lo más seguro.
 
 **Lecturas de esta spec que Calvin aprueba al fusionar** (no son palabras suyas; son el diseño que la spec propone para completar sus decisiones):
-1. **«Lo que hay que cobrar»** antes de validar es el consumo de la cuenta; el comensal dice esa cifra o un excedente (US-37).
-2. **La propina se anota al personal que valida el pago**, o al dueño si valida desde el panel; el comensal puede cambiarla hasta que se valide (US-37).
+1. **«Lo que hay que cobrar»** es el consumo más la propina declarada (con propina ≥ 0, nunca por debajo del consumo); mientras la cuenta no esté cerrada, el personal ve sólo el consumo (US-37).
+2. **La propina se anota al personal que valida el pago**, o al dueño si valida desde su panel; el comensal puede cambiarla hasta que se valide (US-37). *Calvin ya confirmó esta lectura.*
 3. **«Cargo validado»** = ítem que la cocina ya procesó; antes de eso el personal puede cancelarlo (§6).
 4. **La tabla fija de permisos** de §5, en particular que sólo el capitán y el dueño cierran o abren la entrada de una mesa.
 5. **Las costuras** de §7, en especial el **reparto del cargo** como tabla desde la v1.
@@ -91,6 +93,8 @@ Mientras haya una cuenta sin cerrar, sin pagar o flotante, la mesa no se puede l
 7. **Cómo conviven el horario y las 2 h en rojo**: las tres razones (entrada cerrada, rojo, fuera de horario) producen la misma solicitud, y si coinciden se muestra una sola (US-38).
 8. **Cambiar de persona en una tablet compartida** es un toque más el PIN y cada acción se anota a quien la hizo (US-39).
 9. **Lo que sale a la v1.1** (sección 8) y que ningún reporte de propinas entra en la v1.
+10. **Nombres de los estados frente al prototipo** (`mesero.jsx`: `activa`, `alerta`, `pagada` que se muestra «Pagando», `libre`): la spec llama «cuenta cerrada» a lo que el prototipo llama «Cerrar cuenta» y deja «pagada» para después de «Confirmar pago»; el estatus verde, amarillo y rojo por inactividad se **suma** a la `alerta` del prototipo (llamada o demora), no la sustituye.
+11. **Sin cobro parcial en la app:** el prototipo muestra un avance de cobro (`paidPct`, «pagos desde el teléfono de cada comensal», `mesero.jsx` ~596); la v1 no cobra, así que validar es un sí o no por cuenta.
 
 **Tamaño de la Fase 3.** De 7 a **17 tareas** (10 nuevas, 2 de ellas pequeñas; la propina declarada y las pantallas se reparten en tareas que ya existían, sin añadir ninguna). Después, la v1.1 son unas 6 tareas más, todas **añadidas** sobre las costuras de la v1 (sección 7), sin rehacer.
 
@@ -126,7 +130,7 @@ La v1 **no tiene planes ni cobros de Carta**. Los topes que podrían variar por 
 | **Horario** | Días y horas en que el QR admite comensales, en la zona horaria del restaurante | sin configurar = como hoy |
 | **Fuera de horario** | Qué pasa al escanear fuera del horario: «pedir aprobación» (llega una solicitud) o «rechazar siempre» | pedir aprobación |
 | **Propina por defecto** | Porcentaje o monto que el comensal fija una vez; vive en su teléfono y se suma a su total. Al cerrar su cuenta se envía como «propina declarada»: un dato, no dinero | ninguna hasta que la fije |
-| **Lo que hay que cobrar** | El consumo de la cuenta; es lo que ve el personal antes de validar el pago. La propina la ve después | — |
+| **Lo que hay que cobrar** | El consumo de la cuenta más la propina declarada; nunca menos que el consumo. Es lo que ve el personal. Cuando existan descuentos o cupones serán lo único que lo baje | — |
 
 ## 4. Recorridos
 
@@ -423,36 +427,40 @@ Un QR impreso no puede guardar un secreto que rote: quien tiene la foto sigue en
 
 ### US-37 — Propina por defecto y propina declarada
 
-> Como comensal, quiero fijar una propina por defecto que siempre se sume a mi total y que el mesero la conozca al cobrarme, para que los dos entendamos lo mismo; como restaurante, quiero saber cuánta propina genera cada mesero.
+> Como comensal, quiero fijar una propina por defecto que siempre se sume a mi total y que el mesero vea cuánto me va a cobrar, para que los dos entendamos lo mismo; como restaurante, quiero saber cuánta propina genera cada mesero.
 
-La propina **no es dinero que Carta reciba**: es un cálculo en el teléfono y, al cerrar la cuenta, un **dato declarado**. Carta no la cobra, no la custodia y no la reparte.
+La propina **no es dinero que Carta reciba**: es un cálculo en el teléfono y, al cerrar la cuenta, un **dato declarado** que modifica el total que ve el personal. Carta no la cobra, no la custodia y no la reparte. Las opciones son las del prototipo (`checkout-v2.jsx`): 10 %, 15 %, 20 %, sin propina y otra, con monto a medida.
 
-- **AC-37.1** — EL sistema DEBERÁ permitir al comensal fijar una propina por defecto, en porcentaje o en monto, que se guarda en su teléfono (como los filtros de alérgenos).
+- **AC-37.1** — EL sistema DEBERÁ permitir al comensal fijar una propina por defecto, que se guarda en su teléfono (como los filtros de alérgenos), eligiendo 10 %, 15 %, 20 %, «sin propina» u «otra» con un monto o un porcentaje a medida.
 - **AC-37.2** — MIENTRAS la propina esté fijada, EL sistema DEBERÁ sumarla al total que el comensal ve de su cuenta y de su desglose, de forma visible y quitable.
-- **AC-37.3** — CUANDO el comensal cambie la propina por otro monto o porcentaje, EL sistema DEBERÁ ajustar el desglose en el acto.
-- **AC-37.4** — EL sistema DEBERÁ calcular la propina sobre el consumo, nunca sobre otra propina, y NO DEBERÁ precargar ninguna hasta que el comensal la fije.
+- **AC-37.3** — CUANDO el comensal cambie la propina, EL sistema DEBERÁ ajustar el desglose en el acto.
+- **AC-37.4** — EL sistema DEBERÁ calcular la propina sobre el consumo, nunca sobre otra propina. (Con qué valor arranca el comensal: [ACLARAR-9].)
 - **AC-37.5** — CUANDO el comensal cierre su cuenta, EL sistema DEBERÁ enviar al servidor la propina que eligió como «propina declarada» de esa cuenta, sin nada personal del comensal (regla dura 10) y sin tratarla como un cobro.
-- **AC-37.6** — MIENTRAS la cuenta no esté pagada, EL sistema DEBERÁ mostrar al personal **lo que hay que cobrar** (el consumo) y NO DEBERÁ mostrarle la propina declarada.
-- **AC-37.7** — CUANDO el personal valide el pago de una cuenta, EL sistema DEBERÁ mostrarle la propina declarada y anotarla a quien validó (a la persona del personal, o al dueño si valida desde su panel).
-- **AC-37.8** — MIENTRAS el personal no haya validado el pago, EL sistema DEBERÁ permitir al comensal cambiar su propina declarada; una vez validado, NO DEBERÁ permitir cambiarla.
+- **AC-37.6** — EL sistema DEBERÁ mostrar al personal, de cada cuenta, el consumo, la propina declarada (cero mientras no se haya declarado) y el **total a cobrar**, que es el consumo más la propina declarada; la propina NUNCA DEBERÁ ser negativa, de modo que el total a cobrar no es menor que el consumo.
+- **AC-37.7** — CUANDO el personal valide el pago de una cuenta, EL sistema DEBERÁ anotar la propina declarada a quien validó (la persona del personal, o el dueño si valida desde su panel).
+- **AC-37.8** — MIENTRAS el personal no haya validado el pago, EL sistema DEBERÁ permitir al comensal cambiar su propina declarada, y el personal DEBERÁ ver el total actualizado; una vez validado, NO DEBERÁ permitir cambiarla.
 - **AC-37.9** — EL sistema NO DEBERÁ cobrar, custodiar ni repartir la propina, ni producir su reporte (los informes del restaurante siguen fuera de la v1; aquí sólo se guarda el dato, como las marcas de tiempo de US-35).
 - **AC-37.10** — CUANDO el comensal cierre su cuenta, EL sistema DEBERÁ mostrarle consumo, propina y total en una vista para enseñar al mesero.
+- **AC-37.11** — En la v1 no existen descuentos ni cupones; cuando existan, serán lo único que pueda bajar el total a cobrar por debajo del consumo más la propina.
 
 **Escenarios**
-- **AC-37.1** · Dado Beto que fija 15 % · Cuando vuelve mañana en otra mesa · Entonces sigue en 15 % en su teléfono.
+- **AC-37.1** · Dado Beto que elige «Otra» y escribe 12 % · Cuando vuelve mañana en otra mesa · Entonces sigue en 12 % en su teléfono.
 - **AC-37.2** · Dado un consumo de $480 y 15 % · Entonces ve «consumo $480 · propina $72 · total $552».
 - **AC-37.3** · Dado el 15 % · Cuando escribe $100 · Entonces el total pasa a $580.
-- **AC-37.4** · Dado un comensal nuevo · Entonces su propina es $0 hasta que la fije.
+- **AC-37.4** · Dado un consumo de $480 y 10 % · Entonces la propina es $48, no un porcentaje de $528.
 - **AC-37.5** · Dado que Beto cierra su cuenta con $72 · Entonces el servidor guarda «propina declarada $72» de esa cuenta, sin alias ni identificadores.
-- **AC-37.6** · Dado que Marisol abre la cuenta de Beto antes de validar · Entonces ve «cobrar $480» y ninguna propina.
-- **AC-37.7** · Dado que Marisol valida el pago de Beto · Entonces ve «propina declarada $72» y queda anotada a Marisol; si valida Doña Lupe desde el panel, a Doña Lupe.
-- **AC-37.8** · Dado que Beto cambia a $100 tras cerrar y antes de que valide Marisol · Entonces queda $100; después de validar, no puede cambiarla.
+- **AC-37.6** · Dado que Marisol abre la cuenta de Beto · Entonces ve «consumo $480 · propina $72 · cobrar $552»; con «sin propina», «cobrar $480», nunca menos.
+- **AC-37.7** · Dado que Marisol valida el pago de Beto · Entonces la propina de $72 queda anotada a Marisol; si valida Doña Lupe desde su panel, a Doña Lupe.
+- **AC-37.8** · Dado que Beto cambia a $100 tras cerrar y antes de que valide Marisol · Entonces Marisol ve «cobrar $580»; después de validar, Beto no puede cambiarla.
 - **AC-37.9** · Dado cualquier petición · Entonces no existe ruta que cobre, reparta ni reporte propinas.
 - **AC-37.10** · Dado Beto con la cuenta cerrada · Entonces ve consumo $480, propina $72 y total $552 para mostrarle a Marisol.
+- **AC-37.11** · Dado un restaurante en la v1 · Entonces no hay forma de capturar un descuento; el total a cobrar nunca baja del consumo.
 
-**Lecturas de la spec (propuesta):** (1) «lo que hay que cobrar» es el consumo, la lectura más coherente con que el mesero no vea la propina; el comensal dice la cifra total o un excedente. (2) Como la v1 no asigna mesas, la propina se anota a quien **valida** el pago; si valida el dueño, queda anotada al dueño y no a un mesero, límite aceptado. (3) El comensal puede cambiarla hasta la validación. (4) El dato lleva consumo de la cuenta, propina, quién validó y cuándo, nada más.
+**Lecturas de la spec (propuesta):** (1) la propina se anota a quien **valida** el pago (Calvin lo confirmó); si valida el dueño, queda a su nombre, límite aceptado porque la v1 no asigna mesas. (2) El dato lleva consumo, propina, quién validó y cuándo, nada más. (3) Mientras el comensal no cierra su cuenta no hay propina declarada y el personal ve sólo el consumo.
 
-**Revisión legal.** La nota de ley fintech (§2.4) concluye que Carta «sugiere, calcula y muestra; nunca la cobra, nunca la guarda, nunca la reparte». Guardar un **monto declarado** no cambia lo esencial de esa conclusión (no hay saldo ajeno ni movimiento de dinero, que es lo que pesa en el artículo 22 de la Ley Fintech), pero sí cambia la palabra «nunca la guarda» a «guarda sólo el dato». Un registro de propinas por trabajador es además un **dato laboral del restaurante** (LFT art. 346 y 350): queda anotado para la revisión legal de T-4.5.
+**Revisión legal.** La nota de ley fintech (§2.4) concluye que Carta «sugiere, calcula y muestra; nunca la cobra, nunca la guarda, nunca la reparte», y prohíbe la propina «obligatoria o precargada sin poder quitarla». Guardar un **monto declarado** no cambia lo esencial (no hay saldo ajeno ni movimiento de dinero, que es lo que pesa en el artículo 22 de la Ley Fintech), pero sí cambia «nunca la guarda» a «guarda sólo el dato». Un registro de propinas por trabajador es además un **dato laboral del restaurante** (LFT art. 346 y 350): queda anotado para la revisión legal de T-4.5.
+
+**Pregunta abierta: [ACLARAR-9] ¿con qué propina arranca el comensal?** Escenario: Ana escanea por primera vez y llega a su cuenta. En el prototipo (`checkout-v2.jsx`, pantalla «Mesero + propina») ya viene marcado 15 %; Calvin habló de 0 % como peor caso y de que el comensal la fije. Recomendación: sin propina preseleccionada (0 %), y a partir de que elija, recordar su elección; evita la propina «precargada» que la nota legal desaconseja.
 
 ### US-38 — Horario del restaurante
 
@@ -609,7 +617,7 @@ El servidor conoce al comensal **sólo por su cookie**; no hay cuenta, nombre ni
 | Comensal bloqueado en otro restaurante porque su mesa no se cerró | «Salir de la mesa» si no tiene cargos validados sin pagar (AC-34.4) | **Aceptado:** el restaurante cierra por la noche con la mesa abierta y el comensal queda bloqueado hasta que la limpien o liberen |
 | Evadir «una mesa a la vez» con otra cookie | Ninguno, a propósito (AC-34.5) | Aceptado |
 | Pase robado | Caducidad sin uso (AC-30.5); la mesa limpia lo deja sin efecto (AC-30.4) | Mientras dura la mesa, quien tenga la cookie es esa persona |
-| Propina declarada falsa o inflada | Es un dato declarado, no un cobro; el mesero cobra el consumo y la ve sólo tras validar (AC-37.6, 37.7) | El registro por mesero puede no coincidir con lo que de verdad se dejó |
+| Propina declarada falsa o inflada | Es un dato declarado, no un cobro; el personal ve consumo, propina y total, y cobra lo que corresponde (AC-37.6) | El registro por mesero puede no coincidir con lo que de verdad se dejó |
 | Propina anotada al mesero equivocado | Se anota a quien valida; cambiar de persona en la tablet (AC-39.4) | Si valida el dueño o el mesero de otro, queda a su nombre |
 | Datos personales en la propina | El dato no lleva nada del comensal (AC-37.5) | — |
 | Traspasos no deseados o invitaciones que se cobran dos veces (v1.1) | Aceptación, bloqueo de cargos ofrecidos y 3 ofertas pendientes (AC-32.2, 32.6, 32.7) | Spam de hasta 3 ofertas |
@@ -668,7 +676,7 @@ El servidor conoce al comensal **sólo por su cookie**; no hay cuenta, nombre ni
 - **T-3.12 — Pase, estatus y recordatorio.** Carril D · Depende de T-3.8 · AC-30.x. Verificar: `uv run pytest tests/integration/test_pase_estatus.py -q`.
 - **T-3.13 — Permisos por rol (punto único).** Carril G · pequeña · Depende de T-3.0 y T-3.4 · AC-36.x (v1). Verificar: `uv run pytest tests/integration/test_permisos_personal.py -q`.
 - **T-3.15 — UI del comensal: cuenta, desglose, propina, solicitud y «ya estás en la mesa».** Carril H · Depende de T-3.5 y el contrato · AC-29.6, US-37, AC-34.x, AC-39.1 (teléfono y tablet, con capturas en 375×667 y 820×1180). Verificar: `npm --prefix frontend test -- cuenta propina solicitud`.
-- **T-3.16 — UI del personal: ciclo, entrada, estatus y correcciones.** Carril H · Depende de T-3.6 y el contrato · muestra lo que hay que cobrar y la propina tras validar (AC-37.6, 37.7); teléfono y tablet y «cambiar de persona» (AC-39.1, 39.3, 39.4). Verificar: `npm --prefix frontend test -- ciclo correcciones`.
+- **T-3.16 — UI del personal: ciclo, entrada, estatus y correcciones.** Carril H · Depende de T-3.6 y el contrato · muestra el consumo, la propina declarada y el total a cobrar (AC-37.6); teléfono y tablet y «cambiar de persona» (AC-39.1, 39.3, 39.4). Verificar: `npm --prefix frontend test -- ciclo correcciones`.
 - **T-3.19 — Horario y zona horaria: API y editor en el panel.** Carril A/C · Depende de T-3.0 · AC-38.1, 38.4, 38.5, 38.7. Verificar: `uv run pytest tests/integration/test_horario.py -q` y `npm --prefix frontend test -- admin-horario`.
 - **T-3.18 — Retiro del cierre por inactividad.** Carril D/I · pequeña · Depende de T-3.12, T-3.16 y una corrida real en staging. Verificar: `uv run pytest tests/integration/test_sin_cierre_inactividad.py -q`.
 
@@ -683,7 +691,9 @@ El servidor conoce al comensal **sólo por su cookie**; no hay cuenta, nombre ni
 
 ## 13. Los prototipos: qué se toma y dónde chocan con «Qué NO construir»
 
-Referencia de flujo y de pantallas, no alcance.
+**Regla de trabajo (Calvin):** el **prototipo navegable** (`prototipo/`, hecho en Claude Design, con cuatro grupos de pantallas: comensal, mesero, capitán y admin) es **la versión más refinada y la referencia de flujo**; las maquetas de Stitch (`stitch/`) son la primera versión. Ante cualquier duda de producto se busca primero cómo está el flujo en el prototipo; si no aparece, se le pregunta a Calvin **citando la pantalla** que se revisó. El alcance de la v1 lo siguen fijando el plan y «Qué NO construir»: donde el prototipo va más allá (pagos, calificaciones…), se dice y se pregunta.
+
+**Cotejo de esta spec con el prototipo.** Coincide: el mesero cierra la cuenta, confirma el pago, puede reabrir y marca la mesa limpia (`mesero.jsx`, detalle de mesa, líneas ~335–343 y ~563–568, y la lista «Por cobrar»); el total de la mesa muestra la propina (~532); las opciones de propina (`checkout-v2.jsx`, ~97–122). Difiere y se tomó una decisión: el prototipo muestra la propina al mesero sólo en la mesa `pagada` (Calvin pidió verla antes de validar, AC-37.6); arranca la propina en 15 % ([ACLARAR-9]); muestra un avance de cobro por teléfono de cada comensal (fuera, lectura 11 de la sección 0); y reutiliza el estado `alerta` para llamadas y demoras (se conserva aparte del estatus de actividad, lectura 10).
 
 | En el prototipo | Qué hace la v1 |
 |---|---|
@@ -714,4 +724,4 @@ Referencia de flujo y de pantallas, no alcance.
 
 ## 15. Preguntas abiertas
 
-**Ninguna.** [ACLARAR-6] (el dueño opera desde su panel), [ACLARAR-7] (la propina se declara y el personal la ve tras validar el pago) y [ACLARAR-8] (fuera de horario: pedir aprobación; el horario y las 2 h en rojo conviven) quedaron decididas por Calvin. Las lecturas que él aprueba al fusionar están listadas en la sección 0.
+**Una**, con recomendación: **[ACLARAR-9]** con qué propina arranca el comensal (en US-37). [ACLARAR-6] (el dueño opera desde su panel), [ACLARAR-7] (la propina se declara y el personal la ve; ahora, antes de validar) y [ACLARAR-8] (fuera de horario: pedir aprobación; el horario y las 2 h en rojo conviven) quedaron decididas por Calvin. Las lecturas que él aprueba al fusionar están en la sección 0.
