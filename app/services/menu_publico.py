@@ -16,10 +16,15 @@ un NUL en el texto reventaría el driver).
 categoría; el hash del contenido sí, y nunca depende del tiempo.
 
 **Varios workers**: `invalidar` sólo toca la memoria del worker que atendió el `PATCH`; los
-demás sirven su copia hasta 30 s. Para que el borde no la guarde 60 s más, cada respuesta
+demás sirven su copia hasta 30 s. Para que el borde no la guarde otros 30 s, cada respuesta
 descuenta la edad de la copia local de sus tiempos (`FotoMenu.cabecera_cache`): una copia de
-hace 20 s sale con `max-age=10, s-maxage=40`, y el borde nunca conserva un menú más de 60 s
-contando desde que se armó.
+hace 20 s sale con `max-age=10, s-maxage=10`, y ni el borde ni el navegador conservan un menú
+más de 30 s contando desde que se armó.
+
+**AC-04.4 de punta a punta** (revisión de T-2.7): un cambio debe verse en ≤ 60 s. Ninguna copia
+anterior al cambio vive más de 30 s (este módulo) y el comensal vuelve a pedir el menú cada
+25 s mientras lo ve (`INTERVALO_MENU_MS` en el frontend): 30 + 25 = 55 s. Con `s-maxage=60` el
+peor caso eran 60 s de copia vieja en el borde más el turno del teléfono.
 """
 
 from __future__ import annotations
@@ -49,7 +54,8 @@ from app.schemas.restaurante import LARGO_MAXIMO_SLUG, PATRON_SLUG
 from app.services.cache_menu import cache_menu
 
 MAX_AGE_SEGUNDOS = 30
-S_MAXAGE_SEGUNDOS = 60
+# Igual que `max-age`: el borde no guarda el menú más que el navegador (ver «AC-04.4» arriba).
+S_MAXAGE_SEGUNDOS = 30
 # Lo que tarda en salir la respuesta: un menú recién armado lleva los tiempos completos.
 HOLGURA_SEGUNDOS = 0.05
 SIN_ALMACENAR = "no-store"
@@ -81,8 +87,8 @@ class FotoMenu:
         return max(0.0, cache_menu.reloj() - self.construido)
 
     def cabecera_cache(self) -> str:
-        """`public, max-age=30, s-maxage=60` recién armado; menos mientras envejece la copia
-        local (ver el docstring del módulo), de modo que `edad + s-maxage <= 60`. Una copia
+        """`public, max-age=30, s-maxage=30` recién armado; menos mientras envejece la copia
+        local (ver el docstring del módulo), de modo que `edad + s-maxage <= 30`. Una copia
         no almacenable sale `no-store`."""
         if not self.almacenable:
             return SIN_ALMACENAR
@@ -196,7 +202,7 @@ async def menu(sesion: AsyncSession, slug: str) -> FotoMenu:
 
     La generación se toma **antes** de consultar la base: si una escritura confirma y
     `invalidar` corre mientras se lee, `guardar` descarta lo leído y la respuesta sale
-    `no-store` (si no, el borde guardaría 60 s un menú anterior al `commit`). Un 404 no se
+    `no-store` (si no, el borde guardaría 30 s un menú anterior al `commit`). Un 404 no se
     guarda."""
     if not _slug_valido(slug):
         raise no_encontrado()
