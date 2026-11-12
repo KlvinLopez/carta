@@ -18,6 +18,10 @@
 - [ ] Si el plan estaba mal: 04 corregido y fila en §11
 - [ ] Sin secretos, sin `create_all`, sin FastAPI en `app/services/`
 
+## Para la revisión antes de producción
+
+<Para Calvin, que lee el código cuando pide una versión (07 §9.3). Qué mirar primero y en qué archivos; por qué se hizo así y qué se descartó; qué riesgo tiene (leer con cuidado · hojear · sólo documentos) y cómo se comprobó.>
+
 ## Hallazgos menores anotados
 
 - …
