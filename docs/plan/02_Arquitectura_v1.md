@@ -85,7 +85,7 @@ flowchart LR
 | Petición | Ruta | Quién responde | Caché |
 |---|---|---|---|
 | PWA y estáticos | `/`, `/m/*`, `/staff/*`, `/admin/*`, `/assets/*` | Caddy desde `frontend/dist` | Cloudflare 1 año (nombres con hash); `index.html` sin caché |
-| Menú público | `GET /api/v1/p/menu/{slug}` | API, **sin cookie**, `Cache-Control: public, max-age=30, s-maxage=60` + `ETag` | Cloudflare 60 s; purga por API al editar el menú (en segundo plano, agrupada; T-1.3). El `ETag` lleva la versión del contenido y la ruta no rellena el borde con caché local de otra generación |
+| Menú público | `GET /api/v1/p/menu/{slug}` | API, **sin cookie**, `Cache-Control: public, max-age=30, s-maxage=30` + `ETag` | Cloudflare 30 s (AC-04.4: ninguna copia anterior a un cambio vive más de 30 s, y el comensal vuelve a pedir el menú cada 25 s); purga por API al editar el menú (en segundo plano, agrupada; T-1.3). El `ETag` lleva la versión del contenido y la ruta no rellena el borde con caché local de otra generación |
 | Fotos de platillos | `https://img.<dominio>/...` | R2 detrás de Cloudflare | 1 año, nombres inmutables por hash |
 | Sondeo del comensal | `GET /api/v1/p/sesion` cada 3 s con `If-None-Match` | API; `304` si el ETag coincide (ETag en memoria, invalidado al escribir) | Nunca en el borde (`Cache-Control: private, no-store`) |
 | Sondeo del personal | `GET /api/v1/op/mesas` cada 5 s | API; igual | Igual |

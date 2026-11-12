@@ -5,7 +5,7 @@ Dos capas, por `slug`:
 - **En proceso, 30 s** (`CacheMenu`): el menú ya armado que guarda T-2.x. Cada worker tiene
   la suya; `invalidar` borra la de este worker y las demás caducan solas en ≤ 30 s (sin
   Redis, 02 §9).
-- **Cloudflare, `s-maxage=60`**: `invalidar` programa la purga de la URL del menú por la API
+- **Cloudflare, `s-maxage=30`**: `invalidar` programa la purga de la URL del menú por la API
   de Cloudflare sólo cuando `Settings` trae `CLOUDFLARE_ZONE_ID` y `CLOUDFLARE_API_TOKEN`.
 
 **Generación por `slug`** (revisión de T-1.3, A6): `invalidar` la incrementa. Quien arma el
@@ -18,7 +18,7 @@ ETag y no rellena el borde con una entrada de otra generación.
 cola; una tarea en segundo plano espera `ventana` (200 ms), junta los `slug` pendientes y
 hace **una** llamada. Nunca hace fallar ni demorar la escritura: un error o un plazo vencido
 (3 s) se registra (`PURGA_FALLIDA`) y el borde caduca solo. Una purga pendiente al apagar el
-proceso se pierde (el borde caduca en 60 s). Las pruebas esperan la cola con
+proceso se pierde (el borde caduca en 30 s). Las pruebas esperan la cola con
 `esperar_purgas()`. El cliente HTTP de la purga es inyectable
 (`PurgadorCloudflare(cliente=...)`) para probarlo con `httpx.MockTransport`.
 """
@@ -77,7 +77,7 @@ class PurgadorCloudflare:
                 else:
                     async with httpx.AsyncClient(timeout=self.plazo) as cliente:
                         respuesta = await self._enviar(cliente, archivos)
-        except Exception as error:  # red, plazo, TLS…: el borde caduca solo en 60 s
+        except Exception as error:  # red, plazo, TLS…: el borde caduca solo en 30 s
             log.warning(
                 "purga de Cloudflare fallida: %s",
                 type(error).__name__,
