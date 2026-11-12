@@ -4,7 +4,7 @@ Aquí viven las specs de lo que **no está** en `docs/plan/04_Fases_y_Tareas.md`
 
 | Spec | Nombre | Estado | Entró al plan como |
 |---|---|---|---|
-| [001](001-ciclo-de-la-mesa/spec.md) | Ciclo de vida de la mesa y del comensal | borrador (v3, para aprobar) | — (propuesta: T-3.0, T-3.8, T-3.10 a T-3.13, T-3.15, T-3.16, T-3.18 y T-3.19, Fase 3) |
+| [001](001-ciclo-de-la-mesa/spec.md) | Ciclo de vida de la mesa y del comensal | borrador (v4, final) | — (propuesta: T-3.0, T-3.8, T-3.10 a T-3.13, T-3.15, T-3.16, T-3.18 y T-3.19, Fase 3) |
 
 Convenciones:
 - Carpeta `NNN-nombre-en-espanol/` con `spec.md` (numeración consecutiva desde `001`).
