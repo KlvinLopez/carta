@@ -17,7 +17,7 @@ Aquí se registran los criterios de aceptación que se comprueban **a mano** (no
 |---|---|---|---|
 | 2026-11-12 | Lighthouse móvil desde las DevTools, **con extensiones** (corrida no limpia) | Rendimiento 54 · FCP 2.0 s · LCP 4.4 s · TBT 2 900 ms · CLS 0 | Calvin |
 | 2026-11-12 | Menú visible, antes de la corrección de T-2.5 (120 platillos sin fotos) | **2.50 s p75** con Slow 4G y procesador ×4 · 1.58 s con Fast 4G · segunda visita ≈ 0.9 s | sesión hija, con el script |
-| 2026-11-12 | Menú visible, después de la corrección de T-2.5 | pendiente (al desplegar en staging) | sesión hija, con el script |
+| 2026-11-12 | Menú visible, después de la corrección de T-2.5 | **2.31 s p75** con Slow 4G y procesador ×4 (antes 2.50) · 1.55 s con Fast 4G (antes 1.58) · 1.03 s sin limitación (antes 1.56) · segunda visita 0.84 s (antes 0.89) · FCP ≈ 0.82 s con Slow 4G · CLS 0 en 27 de 27 | sesión hija, con el script |
 | — | Lighthouse móvil en incógnito, después de la corrección | pendiente | Calvin |
 
 **Veredicto por ahora:** el criterio (≤ 3 s, p75) se cumple con lo medido. La nota de Lighthouse ≥ 85 está pendiente de la corrida en limpio.
