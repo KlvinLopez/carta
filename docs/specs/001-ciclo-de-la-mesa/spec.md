@@ -43,7 +43,7 @@ stateDiagram-v2
 | Liberar una mesa con cargos sin pagar | no | no | sí | sí |
 | Cerrar o abrir la entrada; aprobar solicitudes | no | sí | sí | sí |
 | Quitar a alguien; actuar por él; pasar una cuenta | no | sí | sí | sí |
-| Regenerar el código del QR (T-1.5, ya existe) | no | no | no | sí (panel) |
+| Regenerar el código del QR (T-1.5, ya existe) | no | no | no (ver [ACLARAR-16]) | sí (panel) |
 
 **Lo que se le pide a Calvin decidir** (detalle, escenario y recomendación en cada historia; ordenadas por cuánto cambian el producto):
 
@@ -62,6 +62,11 @@ stateDiagram-v2
 13. **[ACLARAR-13] Valores del piloto** de solicitudes, ofertas y avisos (sección 3).
 14. **[ACLARAR-14] Reabrir después de «pagada».** Recomendación: no en la v1.
 15. **[ACLARAR-15] Ofrecer en un traspaso sólo ítems ya confirmados.** Recomendación: sí.
+16. **[ACLARAR-16] Quién regenera el código del QR.** Recomendación: sólo el dueño desde el panel; el capitán corta cerrando la entrada.
+
+Cada pregunta trae su recomendación: Calvin puede contestar «ok a todo» o sólo los números que cambiaría.
+
+**Tres palancas para recortar la Fase 3** (de unas 15 tareas): (a) pago por mesa y no por comensal ([ACLARAR-1]) ahorra cerca de 1 tarea y simplifica T-3.8, T-3.13 y T-3.14; (b) diferir «el mesero agrega ítems» ([ACLARAR-3]) ahorra cerca de 1 tarea (el selector del menú de T-3.14 y parte de T-3.11); (c) diferir los traspasos (US-32) ahorra 2 tareas (T-3.9 y su parte de T-3.13) y el diseño del responsable del cargo en T-3.0.
 
 **Qué crece la Fase 3:** de 7 a unas 15 tareas (sección 8). Las tres decisiones que más pesan: la 1 (pago por comensal), la 3 (el mesero agrega ítems) y los traspasos entre comensales (US-32).
 
@@ -200,7 +205,7 @@ Definiciones usadas en los criterios:
 
 > Como comensal, quiero pedir por alguien que aún no llega y pasarle lo que pedí cuando llegue, para que cada quien pague lo suyo sin perder la costumbre de invitar la primera ronda.
 
-- **AC-32.1** — CUANDO un comensal marque un ítem como «para otra persona» (un alias de alguien presente o un nombre libre de hasta 24 caracteres), EL sistema DEBERÁ dejar el cargo en la cuenta de quien lo pidió y mostrar la marca a la mesa.
+- **AC-32.1** — CUANDO un comensal marque un ítem como «para otra persona» (un alias de alguien presente o un nombre libre de hasta 24 caracteres), EL sistema DEBERÁ dejar el cargo en la cuenta de quien lo pidió y mostrar la marca a la mesa. El nombre libre se trata **igual que un alias**: misma limpieza, misma lista de bloqueo, visible sólo dentro de la mesa, y el sistema NO DEBERÁ pedir ni guardar nada más de esa persona (regla dura 10).
 - **AC-32.2** — CUANDO un comensal ofrezca pasar ítems ya confirmados a otro miembro presente, EL sistema DEBERÁ mostrarle a ese miembro quién ofrece, qué y cuánto, y NO DEBERÁ mover nada hasta que acepte.
 - **AC-32.3** — CUANDO el destinatario acepte, EL sistema DEBERÁ mover los cargos a su cuenta con el precio ya congelado, sin alterar la comanda que ve la cocina, y registrar quién ofreció, quién aceptó y cuándo.
 - **AC-32.4** — SI el destinatario rechaza, o cierra su cuenta sin responder, ENTONCES EL sistema DEBERÁ dejar los cargos con quien los pidió.
@@ -251,6 +256,7 @@ Un QR impreso no puede guardar un secreto que rote: quien tiene la foto sigue en
 **Preguntas abiertas**
 - **[ACLARAR-7] Tope del piloto.** Calvin dijo: 6 en gratuitos, hasta 12 en de paga; ocho y hasta unos 32 en una respuesta anterior, que la adenda sustituye («el diseño se queda en 12»). Recomendación: 12 para el piloto (el restaurante piloto se trata como de paga y se prueba el diseño completo); lo fija Calvin, no el operador.
 - **[ACLARAR-8] Apertura por aprobación.** Hoy el primer escaneo abre la mesa (AC-02.2), lo que da a cualquiera con la foto del QR la capacidad de abrir una mesa libre. Recomendación: primer escaneo por defecto (cero fricción para el comensal) y el ajuste de AC-33.7 por restaurante para quien lo necesite; el mecanismo es el mismo que la entrada cerrada.
+- **[ACLARAR-16] Quién regenera el código.** Calvin lo pidió para «el capitán de meseros y/o el dueño». Recomendación: sólo el dueño, desde el panel, donde ya está el PDF de QR; regenerar obliga a reimprimir y el capitán ya corta el ataque cerrando la entrada. Alternativa: que el capitán también regenere desde la app del personal, sabiendo que el QR impreso deja de servir hasta que el dueño reimprima.
 - Alternativa que la maestra dejó anotada y esta spec no recomienda: un código corto que cambia en cada sesión y que da el mesero. Más fricción y una pantalla más.
 
 ### US-34 — Una mesa a la vez
@@ -311,6 +317,7 @@ El servidor conoce al comensal **sólo por su cookie**; no hay cuenta, nombre ni
 | Abrir una mesa libre a las 3 a.m. con la foto del QR | Ajuste de aprobación (AC-33.7); el personal ve la mesa abierta sin comandas | Por defecto cualquiera con el QR abre una mesa |
 | Miembro silencioso que nunca confirma y frena la comanda | El personal lo quita (AC-31.1) y el progreso se recalcula | El grupo espera hasta que el mesero actúe |
 | Pedidos falsos de un desconocido | El mesero revisa las comandas antes de atender; AC-31.2 | Una comanda falsa puede llegar a cocina antes de que el mesero la vea |
+| Texto ofensivo o datos personales en el nombre de «para otra persona» | Mismo tratamiento que el alias: limpieza y lista de bloqueo (AC-32.1); sólo visible en la mesa | El que ya tiene el alias (un nombre inocente que coincide con una persona real) |
 | Hacerse pasar por otro comensal | Identidad = cookie; ofertas sólo se aceptan desde el miembro destinatario (AC-32.6) | Alias repetidos: se distinguen por color y número (AC-31.7) |
 | Quitar a alguien que ya tiene cargos | Prohibido (AC-31.2) | — |
 | Traspaso no deseado | Sin aceptación no se mueve nada (AC-32.2, 32.6); máximo 3 ofertas (AC-32.7) | Spam hasta 3 ofertas por persona |
@@ -395,4 +402,4 @@ El servidor conoce al comensal **sólo por su cookie**; no hay cuenta, nombre ni
 
 ## 10. Preguntas abiertas (dónde está cada una)
 
-Las 15 están en la sección 0 con su recomendación. Por historia (máximo cinco cada una): US-29 → 1, 10, 11, 12, 14; US-30 → 4, 5; US-31 → 2, 3, 6; US-32 → 6 (remite a US-31), 15; US-33 → 7, 8; US-34 → 9; ajustes (sección 3) → 13.
+Las 16 están en la sección 0 con su recomendación. Por historia (máximo cinco cada una): US-29 → 1, 10, 11, 12, 14; US-30 → 4, 5; US-31 → 2, 3, 6; US-32 → 6 (remite a US-31), 15; US-33 → 7, 8, 16; US-34 → 9; ajustes (sección 3) → 13.
