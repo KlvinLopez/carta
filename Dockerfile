@@ -28,6 +28,11 @@ ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
     VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN \
     VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID \
     VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
+# Marcha atrás del service worker (T-2.7, deploy/README.md): con `VITE_SW_APAGADO=1` como variable del
+# servicio, el build genera un `sw.js` que se da de baja y vacía las cachés de los teléfonos, y la
+# página deja de registrar uno nuevo. Sin la variable (lo normal) sale el worker de siempre.
+ARG VITE_SW_APAGADO
+ENV VITE_SW_APAGADO=$VITE_SW_APAGADO
 RUN npm run build
 
 # ---------- Etapa 2: la API ----------
