@@ -164,4 +164,26 @@ describe('manifest.webmanifest e index.html', () => {
       expect(existsSync(join(raiz, 'public', href!)), href).toBe(true);
     }
   });
+  it('index.html trae el arranque: texto visible (marca y una línea) antes del JS, oculto a lectores y sin nada en línea', () => {
+    const html = leer('index.html');
+    const arranque = /<div class="arranque" aria-hidden="true">([\s\S]*?)<\/div>/.exec(html);
+    expect(arranque, 'el arranque dentro de #app').not.toBeNull();
+    expect(arranque![1]).toContain('<p class="arranque-marca">Carta</p>');
+    expect(arranque![1]).toMatch(/<p class="arranque-texto">[^<]+<\/p>/);
+    // Neutro: sirve a las tres áreas; ni nombre de restaurante ni mesa.
+    expect(arranque![1]).not.toMatch(/mesa/i);
+    // La CSP no admite nada en línea (app/core/cabeceras.py): ni <script> sin src, ni <style>, ni style="…".
+    const sinComentarios = html.replace(/<!--[\s\S]*?-->/g, '');
+    expect(sinComentarios).not.toMatch(/<style\b/i);
+    expect(sinComentarios).not.toMatch(/\sstyle\s*=/i);
+    for (const [etiqueta] of sinComentarios.matchAll(/<script\b[^>]*>/gi)) expect(etiqueta).toMatch(/\ssrc=/);
+  });
+
+  it('el arranque se pinta con el CSS global (sin animación: el relevo con React no parpadea)', () => {
+    const css = leer('src/compartido/base.css');
+    const bloque = /\.arranque \{[^}]*\}/.exec(css)?.[0] ?? '';
+    expect(bloque).not.toBe('');
+    expect(bloque).not.toMatch(/animation/);
+    expect(/\.arranque-marca \{[^}]*font-family: var\(--fuente-titulo\)/.test(css)).toBe(true);
+  });
 });

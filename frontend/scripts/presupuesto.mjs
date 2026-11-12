@@ -4,7 +4,7 @@
 // Mide lo que el navegador descarga para pintar la primera pantalla: los <script type="module">,
 // los <link rel="modulepreload"> y las hojas <link rel="stylesheet"> que referencia dist/index.html,
 // más el propio HTML. Los trozos que entran con React.lazy (uno por área, `Area-*.js`) no cuentan:
-// se descargan al navegar; este script exige que existan al menos tres y que index.html no los
+// se descargan al navegar; este script exige que existan al menos dos (panel y personal; el comensal va en la entrada, T-2.5) y que index.html no los
 // referencie (guarda del code splitting, punto del Entregable de T-0.5).
 //
 // Decisión: el presupuesto es de JS + CSS + HTML. Las fuentes precargadas (≈ 55 KB en woff2) no
@@ -20,7 +20,8 @@ import { fileURLToPath } from 'node:url';
 import { archivosDeLaPrecarga, calcularArmazon, listarDist } from './armazon.mjs';
 
 const LIMITE_BYTES = 250 * 1024;
-const MINIMO_TROZOS_AREA = 3;
+// El comensal va en la entrada (T-2.5, AC-01.1); el panel y el personal siguen en su propio trozo.
+const MINIMO_TROZOS_AREA = 2;
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // `PRESUPUESTO_DIST` sólo lo usa la prueba de este script (src/presupuesto.test.ts) para apuntar a un dist falso.
 const dist = resolve(process.env.PRESUPUESTO_DIST ?? join(raiz, 'dist'));
@@ -59,7 +60,7 @@ for (const [etiqueta, nombre] of htmlVivo.matchAll(/<(script|link)\b[^>]*>/gi)) 
     }
   } else {
     const rel = (a.rel ?? '').toLowerCase().split(/\s+/);
-    if ((rel.includes('modulepreload') || rel.includes('stylesheet')) && a.href) rutas.add(a.href);
+    if ((rel.includes('modulepreload') || rel.includes('stylesheet') || (rel.includes('preload') && a.as === 'style')) && a.href) rutas.add(a.href);
   }
 }
 
@@ -160,10 +161,8 @@ for (const [pantalla, prefijo] of [
 const MARCAS_MOCKS = ['Jx3k9QwLmN2pR7sT4vY8zA', 'req-simulado'];
 const DEL_PANEL = /(?:^|\/)(?:Area-admin|Area-personal|Pantalla[A-Z]\w*|Asistente|index\.esm)-/;
 const archivosDist = listarDist(dist);
-const comensal = archivosDist.filter((a) => /^assets\/Area-comensal-[\w-]+\.js$/.test(a));
-if (comensal.length !== 1) {
-  fallar(`\nFalta el trozo del comensal: se esperaba un dist/assets/Area-comensal-*.js y hay ${comensal.length}.`);
-}
+// Desde T-2.5 (AC-01.1) el área del comensal va en la entrada (sin `Area-comensal-*.js` propio, un salto de red menos
+// en la carga en frío); si alguien la vuelve a hacer perezosa, el trozo aparece y este grafo lo incluye igual.
 const grafoComensal = calcularArmazon(dist, archivosDist);
 const intrusos = [];
 for (const ruta of [...grafoComensal.js, ...grafoComensal.css]) {

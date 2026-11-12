@@ -132,6 +132,8 @@ function MenuListo({ menu, controlador, mesa, aviso = null, onVolver, onAbrir }:
   // El «Top 3» es del menú completo: con una búsqueda o un filtro activo se esconde (si no, repetiría lo
   // que ya está en la lista). Un platillo descartado por alérgeno tampoco aparece arriba.
   const destacados = activo ? [] : menu.destacados.map((id) => indice.porId.get(id)?.platillo).filter((p): p is PlatilloPublico => !!p && visibles.has(p.id));
+  // Fotos de la primera pantalla: las del «Top 3» y la primera tarjeta de la lista que tenga foto.
+  const idPrimeraFoto = categorias.flatMap((c) => c.platillos).find((p) => p.imagen_tipo === 'foto' && p.foto_thumb_url)?.id ?? null;
   const conteo = visibles.size === 0 ? 'Sin resultados' : visibles.size === 1 ? '1 platillo' : `${visibles.size} platillos`;
   const alergenosOpciones = unir(ALERGENOS_COMUNES, indice.alergenos, filtros.alergenos);
   const etiquetasOpciones = unir(ETIQUETAS_COMUNES, indice.etiquetas, filtros.etiquetas);
@@ -207,7 +209,7 @@ function MenuListo({ menu, controlador, mesa, aviso = null, onVolver, onAbrir }:
           <ul className={estilos.carrusel}>
             {destacados.map((p) => (
               <li key={p.id} className={estilos.itemDestacado}>
-                <TarjetaPlatillo platillo={p} variante="destacado" onAbrir={onAbrir} />
+                <TarjetaPlatillo platillo={p} variante="destacado" onAbrir={onAbrir} prioridad />
               </li>
             ))}
           </ul>
@@ -232,7 +234,7 @@ function MenuListo({ menu, controlador, mesa, aviso = null, onVolver, onAbrir }:
           <ul className={estilos.lista}>
             {c.platillos.map((p) => (
               <li key={p.id}>
-                <TarjetaPlatillo platillo={p} onAbrir={onAbrir} />
+                <TarjetaPlatillo platillo={p} onAbrir={onAbrir} prioridad={p.id === idPrimeraFoto} />
               </li>
             ))}
           </ul>

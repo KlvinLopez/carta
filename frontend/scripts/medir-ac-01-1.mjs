@@ -154,7 +154,7 @@ const pct = (a, q) => {
 };
 function resumen(corridas) {
   const r = {};
-  for (const k of ['textoPintado', 'tarjeta', 'visible', 'fotoCargada', 'tbt', 'tbtHastaMenu', 'tareasLargas', 'cls']) {
+  for (const k of ['fcp', 'lcp', 'textoPintado', 'tarjeta', 'visible', 'fotoCargada', 'tbt', 'tbtHastaMenu', 'tareasLargas', 'cls']) {
     const v = corridas.map((c) => c[k]);
     r[k] = { p50: pct(v, 0.5), p75: pct(v, 0.75), min: pct(v, 0), max: pct(v, 1) };
   }

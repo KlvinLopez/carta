@@ -22,12 +22,16 @@ export function urlDeFotoSegura(url: string | null | undefined, origen: string =
   }
 }
 
+// React 18 no conoce la prop `fetchPriority` (llegó en React 19) y avisa en consola; el atributo HTML en minúsculas sí lo lee el navegador.
+const ATRIBUTOS_PRIORIDAD = { fetchpriority: 'high' };
+
 /**
- * La foto del platillo (miniatura, carga diferida, con el tamaño reservado por el contenedor: sin saltos
+ * La foto del platillo (miniatura, carga diferida salvo las de la primera pantalla (`prioridad`: `eager` y
+ * `fetchpriority="high"`, para que la LCP no espere al desplazamiento ni a la cola de imágenes), con el tamaño reservado por el contenedor: sin saltos
  * de diseño) o, sin ella, la ilustración de su categoría. Si la foto no carga, también la ilustración:
  * nunca un icono roto.
  */
-export const ImagenPlatillo = memo(function ImagenPlatillo({ platillo, proporcion }: { platillo: PlatilloPublico; proporcion: 'cuadrada' | 'ancha' }) {
+export const ImagenPlatillo = memo(function ImagenPlatillo({ platillo, proporcion, prioridad = false }: { platillo: PlatilloPublico; proporcion: 'cuadrada' | 'ancha'; prioridad?: boolean }) {
   const foto = platillo.imagen_tipo === 'foto' ? urlDeFotoSegura(platillo.foto_thumb_url) : null;
   // Se recuerda cuál foto falló: otra URL merece otro intento, sin efectos que corran tarde.
   const [rota, setRota] = useState<string | null>(null);
@@ -35,7 +39,7 @@ export const ImagenPlatillo = memo(function ImagenPlatillo({ platillo, proporcio
   return (
     <span className={`${estilos.imagen} ${proporcion === 'ancha' ? estilos.imagenAncha : estilos.imagenCuadrada}`} data-con-foto={conFoto ? 'si' : 'no'}>
       {conFoto ? (
-        <img src={foto} alt="" loading="lazy" decoding="async" width={proporcion === 'ancha' ? 240 : 96} height={proporcion === 'ancha' ? 180 : 96} className={estilos.foto} referrerPolicy="no-referrer" onError={() => setRota(foto)} />
+        <img src={foto} alt="" loading={prioridad ? 'eager' : 'lazy'} {...(prioridad ? ATRIBUTOS_PRIORIDAD : {})} decoding="async" width={proporcion === 'ancha' ? 240 : 96} height={proporcion === 'ancha' ? 180 : 96} className={estilos.foto} referrerPolicy="no-referrer" onError={() => setRota(foto)} />
       ) : (
         <Ilustracion clave={platillo.ilustracion_clave} />
       )}

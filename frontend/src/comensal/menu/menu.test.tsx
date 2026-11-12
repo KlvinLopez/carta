@@ -77,11 +77,36 @@ describe('menú: lo que se ve', () => {
     expect(menu.categorias.flatMap((c) => c.platillos).length).toBeGreaterThan(20);
     const fotos = [...document.querySelectorAll('img')];
     expect(fotos.length).toBeGreaterThan(10);
-    for (const foto of fotos) {
+    const eager = fotos.filter((f) => f.getAttribute('loading') === 'eager');
+    // Sólo las de la primera pantalla (ver la prueba de prioridad): el resto es perezoso.
+    expect(eager.length).toBeGreaterThan(0);
+    expect(eager.length).toBeLessThanOrEqual(4);
+    for (const foto of fotos.filter((f) => !eager.includes(f))) {
       expect(foto).toHaveAttribute('loading', 'lazy');
+    }
+    for (const foto of fotos) {
       expect(foto).toHaveAttribute('decoding', 'async');
       expect(foto).toHaveAttribute('width');
       expect(foto).toHaveAttribute('height');
+    }
+  });
+
+  it('las fotos de la primera pantalla (Top 3 y primera tarjeta con foto) cargan ya y con prioridad alta; el resto no', async () => {
+    montarMenu();
+    await titulo();
+    const enTop = [...screen.getByRole('region', { name: 'Top 3 del chef' }).querySelectorAll('img')];
+    expect(enTop.length).toBeGreaterThan(0);
+    for (const f of enTop) {
+      expect(f).toHaveAttribute('loading', 'eager');
+      expect(f).toHaveAttribute('fetchpriority', 'high');
+    }
+    const enLista = [...document.querySelectorAll('section[id^="categoria-"] img')];
+    const primera = enLista[0]!;
+    expect(primera).toHaveAttribute('loading', 'eager');
+    expect(primera).toHaveAttribute('fetchpriority', 'high');
+    for (const f of enLista.slice(1)) {
+      expect(f).toHaveAttribute('loading', 'lazy');
+      expect(f).not.toHaveAttribute('fetchpriority');
     }
   });
 
@@ -90,7 +115,9 @@ describe('menú: lo que se ve', () => {
     montarMenu({ menu: crearMenuGrande(200) });
     await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
     expect(nombresEnLista()).toHaveLength(200);
-    expect(document.querySelectorAll('img[loading="lazy"]')).toHaveLength(100);
+    // La primera tarjeta con foto es de la primera pantalla (eager); las demás, perezosas.
+    expect(document.querySelectorAll('img[loading="lazy"]')).toHaveLength(99);
+    expect(document.querySelectorAll('img[loading="eager"]')).toHaveLength(1);
     expect(document.querySelectorAll('section[id^="categoria-"]')).toHaveLength(10);
   });
 

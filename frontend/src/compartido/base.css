@@ -83,6 +83,31 @@ body {
   flex-direction: column;
 }
 
+/* Arranque: lo primero con contenido que ve cualquier persona (index.html y, idéntico, el Suspense de App.tsx).
+   Sin animación: el relevo entre el HTML y React no debe parpadear. */
+.arranque {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+.arranque-marca {
+  font-family: var(--fuente-titulo);
+  font-size: 2.5rem;
+  line-height: 1.15;
+  color: var(--vino);
+  margin: 0;
+}
+.arranque-texto {
+  font-size: 1rem;
+  color: var(--carbon-suave);
+  margin: 0;
+}
+
 h1,
 h2,
 h3,

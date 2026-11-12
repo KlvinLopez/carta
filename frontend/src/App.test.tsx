@@ -17,21 +17,27 @@ describe('App', () => {
   });
 
   it.each([
-    ['/staff/la-cocina', 'Personal · la-cocina', '¿Quién eres?', 'Preparando la mesa…'],
+    ['/staff/la-cocina', 'Personal · la-cocina', '¿Quién eres?', null],
     ['/admin', 'Panel del operador', 'Tu restaurante, listo en minutos', 'Preparando tu panel…'],
   ])(
     '%s carga su área por separado: primero su estado de carga, luego la pantalla',
     async (ruta, sobretitulo, titulo, cargando) => {
       irA(ruta);
-      render(<App />);
-      // Si el área entrara con un import estático no habría estado de carga: esta es la guarda.
-      expect(screen.getByRole('status')).toHaveTextContent(cargando);
+      const { container } = render(<App />);
+      // Si el área entrara con un import estático no habría estado de carga: esta es la guarda. Fuera del panel el
+      // estado de carga es el Arranque (el mismo que pinta index.html; oculto a lectores de pantalla).
+      if (cargando === null) {
+        expect(container.querySelector('.arranque')).toHaveTextContent('Carta');
+        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      } else {
+        expect(screen.getByRole('status')).toHaveTextContent(cargando);
+      }
       expect(await screen.findByText(sobretitulo)).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: titulo })).toBeInTheDocument();
     },
   );
 
-  it('/m/:codigo carga su área por separado y entra a la mesa con la API (T-2.4)', async () => {
+  it('/m/:codigo no espera a un trozo de código: entra a la mesa con la API (T-2.4)', async () => {
     const sim = crearServicioEntradaSimulado();
     const fetchFalso = vi.fn(
       async () =>
@@ -43,7 +49,8 @@ describe('App', () => {
     vi.stubGlobal('fetch', fetchFalso);
     irA(`/m/${CODIGO_SEMILLA}`);
     render(<App />);
-    expect(screen.getByRole('status')).toHaveTextContent('Preparando la mesa…');
+    // El comensal va en la entrada (T-2.5): sin estado de carga de área, directo a la entrada a la mesa.
+    expect(screen.getByRole('status')).toHaveTextContent('Buscando tu mesa…');
     expect(await screen.findByRole('heading', { name: 'Estás en la mesa 7' })).toBeInTheDocument();
     expect((fetchFalso.mock.calls[0] as unknown as [string])[0]).toBe('/api/v1/p/sesion/entrar');
   });
