@@ -40,6 +40,8 @@ describe('rutas de la SPA que el worker responde con index.html', () => {
     '/manifest.webmanifest',
     '/sw.js',
     '/otra',
+    '/index',
+    '/index.html',
   ])('no (pasa a la red): %s', (ruta) => {
     expect(RUTAS_SPA.test(ruta)).toBe(false);
   });
@@ -65,14 +67,18 @@ describe('lo único de la API que el worker puede guardar', () => {
     expect(RUTA_MENU.test('/api/v1/p/sesion')).toBe(false);
   });
 
-  const respuesta = (init: { status?: number; type?: ResponseType; cc?: string }) => ({
+  const respuesta = (init: { status?: number; type?: ResponseType; cc?: string; ct?: string }) => ({
     status: init.status ?? 200,
     type: init.type ?? 'basic',
-    headers: new Headers(init.cc ? { 'Cache-Control': init.cc } : {}),
+    headers: new Headers({ ...(init.cc ? { 'Cache-Control': init.cc } : {}), ...(init.ct === '' ? {} : { 'Content-Type': init.ct ?? 'application/json' }) }),
   });
   it('sólo se guarda un 200 sin no-store ni private, y nunca una respuesta opaca', () => {
-    expect(esGuardable(respuesta({ cc: 'public, max-age=30, s-maxage=60' }))).toBe(true);
+    expect(esGuardable(respuesta({ cc: 'public, max-age=30, s-maxage=30' }))).toBe(true);
     expect(esGuardable(respuesta({}))).toBe(true);
+    expect(esGuardable(respuesta({ ct: 'application/json; charset=utf-8' }))).toBe(true);
+    // Una página de mantenimiento del borde con 200 dejaría la copia inservible.
+    expect(esGuardable(respuesta({ ct: 'text/html; charset=utf-8' }))).toBe(false);
+    expect(esGuardable(respuesta({ ct: '' }))).toBe(false);
     expect(esGuardable(respuesta({ cc: 'no-store' }))).toBe(false);
     expect(esGuardable(respuesta({ cc: 'public, NO-STORE' }))).toBe(false);
     expect(esGuardable(respuesta({ cc: 'private, no-cache' }))).toBe(false);
@@ -86,8 +92,20 @@ describe('lo único de la API que el worker puede guardar', () => {
 describe('sw.ts: la configuración del worker', () => {
   // Sin comentarios: el texto que explica «no hay skipWaiting» no cuenta como código.
   const sw = readFileSync(resolve(process.cwd(), 'src/sw.ts'), 'utf8').replace(/\/\/.*$/gm, '');
-  it('no se salta la espera ni toma las pestañas abiertas (una versión nueva no rompe una mesa a media orden)', () => {
-    expect(sw).not.toMatch(/skipWaiting|clientsClaim|clients\.claim/);
+  it('no se salta la espera (una versión nueva no rompe una mesa a media orden) pero toma la página en la primera instalación', () => {
+    expect(sw).not.toMatch(/skipWaiting/);
+    // `clients.claim()` en `activate` sólo actúa en la primera instalación: sin él la primera visita no deja copia del menú.
+    expect(sw).toMatch(/clientsClaim\(\)/);
+  });
+  it('la navegación es red primero con plazo y sin guardar; la precarga sólo es respaldo y no contesta `/` ni `/index`', () => {
+    expect(sw).toContain('NAVEGACION_PLAZO_MS');
+    expect(sw).toContain('fetch(opciones.request');
+    expect(sw).toMatch(/respuesta\.status < 500/);
+    expect(sw).not.toMatch(/cache\.put|\.put\(/); // la navegación nunca se guarda
+    expect(sw).toMatch(/cleanURLs: false/);
+    expect(sw).toMatch(/directoryIndex: ''/);
+    // La navegación se registra antes que la precarga: ésta no contesta antes.
+    expect(sw.indexOf('new NavigationRoute')).toBeLessThan(sw.indexOf('addRoute('));
   });
   it('sólo hay un registerRoute de la API, el del menú; el respaldo de navegación usa la lista de permitidos', () => {
     expect(sw).toContain('allowlist: [RUTAS_SPA]');

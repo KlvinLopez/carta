@@ -10,7 +10,7 @@
 // que es idéntico a lo que da `npm run tipos` contra una API en marcha; `openapi.json` va con las claves
 // ordenadas (diffs estables), igual que `npm run contrato`.
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,19 +18,18 @@ import { fileURLToPath } from 'node:url';
 const frontend = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = resolve(frontend, '..');
 
-const volcar = (ordenado) =>
-  execFileSync('uv', ['run', 'python', '-c', `import json; from app.main import app; print(json.dumps(app.openapi()${ordenado ? ', sort_keys=True' : ''}))`], {
-    cwd: repo,
-    encoding: 'utf8',
-    maxBuffer: 256 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
+// Python **escribe el JSON en el archivo** cuya ruta recibe: nada de leer su stdout. Al importar `app.main` sin
+// `frontend/dist` (la CI) la aplicación escribe un aviso de log en stdout, y eso acabó dentro del JSON.
+const PROGRAMA = 'import json, sys; from app.main import app; open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(app.openapi(), sort_keys=(sys.argv[2] == "1")) + "\\n")';
+function volcar(destino, ordenado) {
+  execFileSync('uv', ['run', 'python', '-c', PROGRAMA, destino, ordenado ? '1' : '0'], { cwd: repo, stdio: ['ignore', 'ignore', 'inherit'] });
+}
 
-writeFileSync(join(frontend, 'src', 'mocks', 'openapi.json'), volcar(true));
+volcar(join(frontend, 'src', 'mocks', 'openapi.json'), true);
 const temporal = mkdtempSync(join(tmpdir(), 'contrato-'));
 try {
   const entrada = join(temporal, 'openapi.json');
-  writeFileSync(entrada, volcar(false));
+  volcar(entrada, false);
   execFileSync(process.execPath, [join(frontend, 'node_modules', 'openapi-typescript', 'bin', 'cli.js'), entrada, '-o', join(frontend, 'src', 'compartido', 'api.d.ts')], { stdio: 'inherit' });
 } finally {
   rmSync(temporal, { recursive: true, force: true });

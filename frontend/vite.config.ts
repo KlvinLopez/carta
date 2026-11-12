@@ -6,7 +6,12 @@ import { entradasDelArmazon } from './scripts/armazon.mjs';
 
 // Una SPA con tres áreas (/m, /staff, /admin). Cada área entra con React.lazy, así que Vite
 // la deja en su propio trozo; el bundle inicial sólo lleva React, el router y lo compartido.
+// Marcha atrás del service worker: `VITE_SW_APAGADO=1 npm run build` genera un `sw.js` que se da de baja, vacía las
+// cachés y toma el control en una carga (con `skipWaiting`), y la página deja de registrar uno nuevo. Ver deploy/README.md.
+const swApagado = process.env.VITE_SW_APAGADO === '1';
+
 export default defineConfig({
+  define: swApagado ? { 'import.meta.env.VITE_SW_APAGADO': JSON.stringify('1') } : {},
   plugins: [
     react(),
     // Service worker (T-2.7): `src/sw.ts` con Workbox; el plugin sólo lo compila e inyecta la lista de
@@ -18,6 +23,7 @@ export default defineConfig({
       filename: 'sw.ts',
       injectRegister: false,
       manifest: false,
+      selfDestroying: swApagado,
       devOptions: { enabled: false },
       injectManifest: {
         // Se filtra a mano (scripts/armazon.mjs): sólo lo que necesita el comensal, nada de /admin ni Firebase.

@@ -13,7 +13,7 @@ interface Contenedor {
 export function registrarServiceWorker(
   navegador: Contenedor = navigator,
   ventana: Pick<Window, 'addEventListener'> & { document: Pick<Document, 'readyState'> } = window,
-  produccion: boolean = import.meta.env.PROD,
+  produccion: boolean = import.meta.env.PROD && import.meta.env.VITE_SW_APAGADO !== '1',
 ): void {
   if (!produccion || !navegador.serviceWorker) return;
   const registrar = () => {

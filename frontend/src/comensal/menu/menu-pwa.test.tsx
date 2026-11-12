@@ -10,7 +10,6 @@ import { crearServicioPlatilloSimulado } from '../../mocks/servicioPlatilloSimul
 import { marcaDeMesa } from '../entrada/espejo';
 import { SesionMesa } from '../SesionMesa';
 import { almacenEnMemoria, analiticaFalsa } from './utilesPrueba';
-import { INTERVALO_MENU_MS } from './useControladorMenu';
 
 const avanzar = (ms: number) =>
   act(async () => {
@@ -71,28 +70,28 @@ afterEach(() => {
 
 describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
   // @ac AC-04.4
-  it('cada 60 s y no antes: a los 59 s sigue una sola lectura, a los 60 s dos, a los 120 s tres', async () => {
+  it('cada 25 s y no antes: a los 24 s sigue una sola lectura, a los 25 s dos, a los 50 s tres', async () => {
     const { menu } = montar(RUTA_MENU);
     await asentar();
     titulo();
     expect(menu.llamadas).toHaveLength(1);
-    await avanzar(INTERVALO_MENU_MS - 1000);
+    await avanzar(24_000);
     expect(menu.llamadas).toHaveLength(1);
     await avanzar(1000);
     expect(menu.llamadas).toHaveLength(2);
-    await avanzar(INTERVALO_MENU_MS);
+    await avanzar(25_000);
     expect(menu.llamadas).toHaveLength(3);
   });
 
   // @ac AC-04.4
-  it('un platillo que pasa a agotado se atenúa a los 60 s, sin otro menu_view y sin perder la búsqueda', async () => {
+  it('un platillo que pasa a agotado se atenúa a los 25 s, sin otro menu_view y sin perder la búsqueda', async () => {
     const { menu, cola } = montar(RUTA_MENU);
     await asentar();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Buscar en el menú' }), { target: { value: 'ta' } });
     const platillo = menu.menu.categorias.flatMap((c) => c.platillos).find((p) => p.disponible && /ta/i.test(p.nombre))!;
     expect(screen.queryByText('Agotado hoy')).not.toBeInTheDocument();
     menu.reemplazar(conPlatillo(menu.menu, platillo.nombre, { disponible: false }));
-    await avanzar(INTERVALO_MENU_MS);
+    await avanzar(25_000);
     expect(screen.getAllByText('Agotado hoy').length).toBeGreaterThan(0);
     expect(screen.getByRole('searchbox', { name: 'Buscar en el menú' })).toHaveValue('ta');
     expect(cola.registrar.mock.calls.filter(([t]) => t === 'menu_view')).toHaveLength(1);
@@ -103,7 +102,7 @@ describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
     const { menu } = montar(RUTA_MENU);
     await asentar();
     ocultarPestana(true);
-    await avanzar(3 * INTERVALO_MENU_MS);
+    await avanzar(75_000);
     expect(menu.llamadas).toHaveLength(1);
     ocultarPestana(false);
     await asentar();
@@ -115,6 +114,26 @@ describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
   });
 
   // @ac AC-04.4
+  // @ac AC-04.4
+  it('primera visita: cuando el worker toma la página (controllerchange) el menú se pide una vez más para guardar la copia', async () => {
+    const escuchas: Record<string, () => void> = {};
+    Object.defineProperty(navigator, 'serviceWorker', {
+      configurable: true,
+      value: { addEventListener: (t: string, f: () => void) => (escuchas[t] = f), removeEventListener: () => undefined },
+    });
+    try {
+      const { menu } = montar(RUTA_MENU);
+      await asentar();
+      expect(menu.llamadas).toHaveLength(1);
+      escuchas.controllerchange?.();
+      await asentar();
+      expect(menu.llamadas).toHaveLength(2);
+    } finally {
+      Reflect.deleteProperty(navigator, 'serviceWorker');
+    }
+  });
+
+  // @ac AC-04.4
   it('un platillo que desaparece del menú con su detalle abierto pasa a «ya no está en el menú»', async () => {
     const { menu } = montar(RUTA_MENU);
     await asentar();
@@ -123,7 +142,7 @@ describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
     fireEvent.click(screen.getAllByText(nombre)[0]!.closest('a,button,[role="button"],article,li')!);
     await asentar();
     menu.reemplazar(conPlatillo(menu.menu, nombre, { quitar: true }));
-    await avanzar(INTERVALO_MENU_MS);
+    await avanzar(25_000);
     expect(screen.getByText(/ya no está en el menú/i)).toBeInTheDocument();
   });
 
@@ -136,7 +155,7 @@ describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
     await asentar();
     expect(screen.queryByText('Hoy no se puede pedir este platillo.')).not.toBeInTheDocument();
     menu.reemplazar(conPlatillo(menu.menu, platillo.nombre, { disponible: false }));
-    await avanzar(INTERVALO_MENU_MS);
+    await avanzar(25_000);
     expect(screen.getByText('Hoy no se puede pedir este platillo.')).toBeInTheDocument();
   });
 
@@ -152,15 +171,24 @@ describe('AC-04.4: el menú se vuelve a pedir mientras se ve', () => {
     expect(platillo.llamadas.length).toBeGreaterThan(0); // el detalle sí llegó del servidor
     expect(screen.queryByText('Hoy no se puede pedir este platillo.')).not.toBeInTheDocument();
     menu.reemplazar(conPlatillo(menu.menu, elegido.nombre, { disponible: false }));
-    await avanzar(INTERVALO_MENU_MS);
+    await avanzar(25_000);
     expect(screen.getByText('Hoy no se puede pedir este platillo.')).toBeInTheDocument();
+  });
+
+  it('en /m/<codigo>/menu no hay capa del detalle en el DOM; al abrir un platillo sí', async () => {
+    const { menu } = montar(RUTA_MENU);
+    await asentar();
+    expect(document.querySelector('.capa')).toBeNull();
+    fireEvent.click(screen.getAllByText(menu.menu.categorias[0]!.platillos[0]!.nombre)[0]!.closest('a,button,[role="button"],article,li')!);
+    await asentar();
+    expect(document.querySelector('.capa')).not.toBeNull();
   });
 
   it('una lectura que falla conserva el menú que se ve', async () => {
     const { menu } = montar(RUTA_MENU);
     await asentar();
     menu.fallarUnaVez(errorSimulado(0, 'SIN_RED'));
-    await avanzar(INTERVALO_MENU_MS);
+    await avanzar(25_000);
     expect(menu.llamadas).toHaveLength(2);
     titulo();
     expect(screen.queryByRole('heading', { name: 'Sin conexión' })).not.toBeInTheDocument();

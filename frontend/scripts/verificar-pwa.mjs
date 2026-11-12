@@ -11,15 +11,17 @@
  * **El código de mesa es una credencial: este script nunca lo imprime** (todo lo que escribe pasa por `limpio`).
  *
  * Comprueba, contra el servidor real:
- *   a. primera visita a la mesa y al menú: el service worker queda activo;
+ *   a. primera visita a la mesa y al menú, SIN recargar: el service worker queda activo, controla la página y la copia
+ *      del menú queda guardada;
  *   b. sin red, recargar en /m/<código>/menu: carga el armazón, el menú sale de la copia y el aviso lo dice;
  *      `GET /api/v1/p/sesion` no sale de ninguna caché;
  *   c. al volver la red el aviso se va y el menú se vuelve a pedir;
  *   d. ninguna clave de ninguna caché contiene el código de mesa, ni una ruta de la API que no sea el menú,
  *      ni ninguna ruta /m/…;
- *   e. sin red, `/api/v1/p/menu/no-existe` no devuelve un index.html; con red, `/wp-admin` y `/health`
+ *   e. sin red, `/api/v1/p/menu/no-existe` no devuelve un index.html; con red, `/wp-admin`, `/index` y `/health`
  *      llegan al servidor (404 JSON, 200), no al armazón;
- *   f. con la red puesta, un platillo marcado agotado en la base aparece agotado en ≤ 60 s sin recargar, sin
+ *   f. con la red puesta, un platillo marcado agotado en la base aparece agotado en ≤ 60 s (turno de 25 s del cliente +
+ *      30 s del servidor) sin recargar, sin
  *      perder lo escrito en el buscador;
  *   g. `sw.js` se sirve `no-cache`; el manifest tiene nombre, start_url, display, íconos 192/512, maskable y
  *      theme_color; y Chromium no reporta errores de instalabilidad (`Page.getInstallabilityErrors`).
@@ -123,11 +125,9 @@ async function main() {
     await pagina.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
     comprobar('el menú carga', true);
     comprobar('el service worker se activa', await esperarA(() => hayServiceWorkerActivo(pagina)));
-    // Sin `clients.claim`, la primera página no la controla el worker: la copia del menú se guarda desde la
-    // siguiente navegación completa. Una recarga con red lo deja listo.
-    await pagina.reload({ waitUntil: 'load' });
-    await pagina.getByRole('heading', { name: 'La Ceiba', level: 1 }).waitFor({ timeout: 20000 });
-    comprobar('tras recargar, la página la controla el worker', await esperarA(() => pagina.evaluate(() => Boolean(navigator.serviceWorker.controller))));
+    // Primera visita SIN recargar: el worker toma la página al activarse (`clients.claim()` sólo actúa en la primera
+    // instalación) y el menú se vuelve a pedir una vez para dejar la copia guardada.
+    comprobar('en la primera visita, sin recargar, la página queda controlada por el worker', await esperarA(() => pagina.evaluate(() => Boolean(navigator.serviceWorker.controller))));
     comprobar(
       'la copia del menú queda guardada',
       await esperarA(async () => (await clavesDeCache(pagina)).some((c) => c.url === `${ORIGEN}/api/v1/p/menu/${SLUG}`)),
@@ -197,6 +197,18 @@ async function main() {
     comprobar('/wp-admin sigue siendo 404 JSON (fetch)', wp.estado === 404 && wp.json, JSON.stringify(wp));
     const nav = await pagina.goto(`${ORIGEN}/wp-admin`);
     comprobar('/wp-admin navegando (controlada por el worker) sigue siendo 404 JSON, no el armazón', nav?.status() === 404 && (nav.headers()['content-type'] ?? '').includes('json'), String(nav?.status()));
+    const indice = await pagina.goto(`${ORIGEN}/index`);
+    comprobar('/index navegando es 404 JSON (la precarga no lo contesta con index.html)', indice?.status() === 404 && (indice.headers()['content-type'] ?? '').includes('json'), String(indice?.status()));
+    const indiceFetch = await pagina.evaluate(async () => (await fetch('/index')).status);
+    comprobar('/index por fetch también es 404', indiceFetch === 404, String(indiceFetch));
+    // La navegación es red primero: con red, lo que se ve viene del servidor (cada respuesta trae su `X-Request-ID`),
+    // no del `index.html` que quedó precargado el día de la instalación.
+    const idsNavegacion = [];
+    for (let i = 0; i < 2; i += 1) {
+      const r = await pagina.goto(`${ORIGEN}/m/${codigo}`, { waitUntil: 'load' });
+      idsNavegacion.push(r?.headers()['x-request-id'] ?? '');
+    }
+    comprobar('dos navegaciones seguidas a la mesa vienen del servidor (X-Request-ID distintos)', idsNavegacion.every(Boolean) && idsNavegacion[0] !== idsNavegacion[1], idsNavegacion.join(' / ').replaceAll(codigo, '<codigo>'));
     const salud = await pagina.goto(`${ORIGEN}/health`);
     comprobar('/health navegando llega al servidor', salud?.status() === 200 && (salud.headers()['content-type'] ?? '').includes('json'));
 
@@ -268,14 +280,17 @@ async function main() {
     comprobar('antes, el platillo está disponible', agotadoAntes === 0 || platilloAgotado.nombre.length > 0);
     psql(`update platillo set disponible = false where id = '${platilloAgotado.id}'`);
     // El servidor guarda el menú 30 s en memoria (y esta escritura directa no lo invalida, a diferencia de una del
-    // operador): se espera ese plazo real antes de adelantar el reloj de la página al siguiente turno de 60 s.
+    // operador): se espera ese plazo real antes de adelantar el reloj de la página al siguiente turno de 25 s.
     decir('  · esperando 32 s reales (caché en proceso del servidor)…');
     await espera(32000);
     const inicio = Date.now();
-    await p2.clock.runFor(61000);
+    // Sólo lo justo para cruzar el turno de 25 s; después se espera en tiempo real (no se sigue adelantando el reloj: vencería
+    // el plazo de la petición antes de que llegue la respuesta).
+    await p2.clock.runFor(25500);
     const atenuado = p2.locator('article, li, div', { has: tarjeta }).getByText('Agotado hoy');
     const visto = await esperarA(async () => (await p2.getByText('Agotado hoy').count()) > 0, { plazo: 10000 });
-    comprobar('el platillo aparece agotado tras un turno de 60 s del reloj de la página', visto, `${Date.now() - inicio} ms reales`);
+    decir(`  · agotado visible ${Date.now() - inicio} ms reales después de cruzar el turno`);
+    comprobar('el platillo aparece agotado tras un turno de 25 s del reloj de la página (peor caso del servidor: 30 s de copia + 25 s = 55 s)', visto, `${Date.now() - inicio} ms reales`);
     comprobar('sin recargar la página', await p2.evaluate(() => window.__sinRecarga === true));
     comprobar('la búsqueda escrita se conserva', (await buscador.inputValue()) === consulta);
     void atenuado;

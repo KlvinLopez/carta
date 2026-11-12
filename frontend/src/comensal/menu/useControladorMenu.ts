@@ -14,12 +14,14 @@ export type EstadoMenu =
   | { fase: 'error'; clase: ClaseError; reintentarEn: number | null };
 
 /**
- * Mientras el menú está a la vista se vuelve a pedir cada 60 s (AC-04.4: un platillo agotado se ve en ≤ 60 s);
- * el navegador revalida con el `ETag`, así que un menú sin cambios cuesta un 304. Pausado en segundo plano; al
- * volver la pestaña se pide enseguida, pero no antes de `ESPERA_MINIMA_MENU_MS` desde la última lectura.
- * El servidor admite 120 peticiones por minuto por comensal: esto gasta, como mucho, una por minuto.
+ * Mientras el menú está a la vista se vuelve a pedir cada 25 s (AC-04.4: un platillo agotado se ve en ≤ 60 s). La
+ * cuenta: el servidor y el borde no sirven una copia anterior a un cambio más de 30 s desde que se armó
+ * (`S_MAXAGE_SEGUNDOS = 30` en `app/services/menu_publico.py`) + 25 s hasta el siguiente turno = 55 s; quedan 5 s para
+ * la red y la deriva del temporizador. Son 2.4 peticiones por minuto y por comensal, casi siempre un 304 (el navegador
+ * revalida con el `ETag`), frente al límite de 120. Pausado en segundo plano; al volver la pestaña se pide enseguida,
+ * pero no antes de `ESPERA_MINIMA_MENU_MS` desde la última lectura.
  */
-export const INTERVALO_MENU_MS = 60_000;
+export const INTERVALO_MENU_MS = 25_000;
 export const ESPERA_MINIMA_MENU_MS = 5_000;
 
 /** Mismo contenido (y mismo origen: red o copia): no hace falta cambiar el estado ni repintar. */
@@ -117,6 +119,10 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
       void refrescar();
       programar();
     };
+    // Primera visita: el worker toma la página cuando termina de instalarse. Se pide el menú una vez más para que la
+    // copia quede guardada ahora y no al siguiente turno.
+    const contenedor = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;
+    contenedor?.addEventListener?.('controllerchange', alVolverLaRed);
     document.addEventListener('visibilitychange', alVolverLaPestana);
     window.addEventListener('online', alVolverLaRed);
     programar();
@@ -126,6 +132,7 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
       control?.abort();
       document.removeEventListener('visibilitychange', alVolverLaPestana);
       window.removeEventListener('online', alVolverLaRed);
+      contenedor?.removeEventListener?.('controllerchange', alVolverLaRed);
     };
   }, [listo, slug, servicio]);
 

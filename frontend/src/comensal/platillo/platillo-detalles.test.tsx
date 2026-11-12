@@ -3,7 +3,7 @@ import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from '../../App';
-import { crearColaAnalitica, VENTANA_DISH_VIEW_MS } from '../analitica/cola';
+import { crearColaAnalitica } from '../analitica/cola';
 import { tarjetaAbierta } from '../menu/posicion';
 import { asentar, espiarDesplazamiento, idDe, montarSesion, rutaMenu, rutaPlatillo } from './utilesPrueba';
 
@@ -144,18 +144,22 @@ describe('dish_view: como mucho uno por platillo y minuto en la pestaña', () =>
     cola.registrar('dish_view', 'a');
     cola.registrar('dish_view', 'a');
     cola.registrar('dish_view', 'b');
-    ahora = new Date(ahora.getTime() + VENTANA_DISH_VIEW_MS - 1);
-    cola.registrar('dish_view', 'a');
-    ahora = new Date(ahora.getTime() + 1);
-    cola.registrar('dish_view', 'a');
+    // El minuto va con el número, no con la constante exportada: cambiarla debe tumbar esta prueba.
+    ahora = new Date(ahora.getTime() + 60_000 - 1);
+    cola.registrar('dish_view', 'a'); // 59.999 ms: todavía dentro del minuto
     cola.vaciar();
-    const lote = (enviar.mock.calls[0] as unknown as [{ tipo: string; platillo_id?: string }[]])[0];
-    expect(lote.map((e) => e.platillo_id)).toEqual(['a', 'b', 'a']);
+    const primero = (enviar.mock.calls[0] as unknown as [{ tipo: string; platillo_id?: string }[]])[0];
+    expect(primero.map((e) => e.platillo_id)).toEqual(['a', 'b']);
+    ahora = new Date(ahora.getTime() + 1);
+    cola.registrar('dish_view', 'a'); // 60.000 ms: vuelve a contar
+    cola.vaciar();
+    const segundo = (enviar.mock.calls[1] as unknown as [{ tipo: string; platillo_id?: string }[]])[0];
+    expect(segundo.map((e) => e.platillo_id)).toEqual(['a']);
     // Los demás tipos no se filtran.
     cola.registrar('menu_view');
     cola.registrar('menu_view');
     cola.vaciar();
-    expect((enviar.mock.calls[1] as unknown as [unknown[]])[0]).toHaveLength(2);
+    expect((enviar.mock.calls[2] as unknown as [unknown[]])[0]).toHaveLength(2);
     cola.detener();
   });
 });
@@ -201,6 +205,16 @@ describe('rutas con caracteres de control codificados', () => {
     abrir('/m/Jx3k9QwLmN2pR7sT4vY8%0AzA/menu');
     expect(await screen.findByRole('heading', { name: 'No encontramos esta mesa' })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/m/Jx3k9QwLmN2pR7sT4vY8%0AzA/menu');
+  });
+
+  it('la redirección sustituye la entrada del historial: atrás no vuelve a la ruta con el carácter de control', async () => {
+    window.history.replaceState(null, '', '/previa');
+    window.history.pushState(null, '', '/xyz%0A');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 404 })));
+    render(<App />);
+    await waitFor(() => expect(window.location.pathname).toBe('/xyz'));
+    window.history.back();
+    await waitFor(() => expect(window.location.pathname).toBe('/previa'));
   });
 
   it('una ruta limpia no se toca', async () => {

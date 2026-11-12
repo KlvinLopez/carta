@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "tipos": "openapi-typescript http://localhost:8000/openapi.json -o src/compartido/api.d.ts",
     "presupuesto": "node scripts/presupuesto.mjs",
-    "contrato": "cd .. && uv run python -c \"import json; from app.main import app; print(json.dumps(app.openapi(), sort_keys=True))\" > frontend/src/mocks/openapi.json",
+    "contrato": "node scripts/sincronizar-contrato.mjs",
     "sincronizar": "node scripts/sincronizar-contrato.mjs"
   },
   "dependencies": {
@@ -47,7 +47,6 @@
     "workbox-expiration": "7.4.1",
     "workbox-precaching": "7.4.1",
     "workbox-routing": "7.4.1",
-    "workbox-strategies": "7.4.1",
-    "workbox-window": "7.4.1"
+    "workbox-strategies": "7.4.1"
   }
 }

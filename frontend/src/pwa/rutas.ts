@@ -31,9 +31,16 @@ export function esPeticionDeMenu(peticion: { method: string }, url: URL, origen:
   return peticion.method === 'GET' && url.origin === origen && RUTA_MENU.test(url.pathname);
 }
 
-/** ¿Vale la pena guardar esta respuesta? Sólo un 200 sin `no-store`/`private`, y nunca una opaca. */
+/** Plazo de la red para una navegación antes de caer al `index.html` precargado. */
+export const NAVEGACION_PLAZO_MS = 3000;
+
+/**
+ * ¿Vale la pena guardar esta respuesta? Sólo un 200 de tipo JSON sin `no-store`/`private`, y nunca una opaca:
+ * una página de mantenimiento del borde (`text/html`) dejaría la copia inservible.
+ */
 export function esGuardable(respuesta: Pick<Response, 'status' | 'type' | 'headers'>): boolean {
   if (respuesta.status !== 200 || respuesta.type === 'opaque') return false;
+  if (!/^application\/json\b/i.test(respuesta.headers.get('Content-Type') ?? '')) return false;
   const control = (respuesta.headers.get('Cache-Control') ?? '').toLowerCase();
   return !/(?:^|[\s,])(?:no-store|private)(?:[\s,=]|$)/.test(control);
 }
