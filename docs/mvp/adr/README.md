@@ -19,7 +19,7 @@ Registro de decisiones técnicas del MVP de Carta. Cada una documenta el context
 | [013](ADR-013-personal-con-pin.md) | El personal entra con nombre y PIN; el capitán es un mesero con opciones extra | Aceptada · 2026-11-02 |
 | [014](ADR-014-importacion-menu-con-llm.md) | Alta self-service: el PDF se convierte en borrador de menú con un modelo de lenguaje | Aceptada · 2026-11-02 |
 | [015](ADR-015-primer-despliegue-railway.md) | Primer despliegue en Railway; la VM como camino de ahorro y Cloud Run como camino de escala | Aceptada · 2026-11-05 |
-| [016](ADR-016-service-worker-red-primero.md) | Service worker: la red manda, la copia es el respaldo, y nunca se toma una mesa a la fuerza | Propuesta · 2026-11-12 (espera a Calvin) |
+| [016](ADR-016-service-worker-red-primero.md) | Service worker: la red manda, la copia es el respaldo, y nunca se toma una mesa a la fuerza | Aceptada · 2026-11-12 |
 
 **Pospuestas a v2 por ADR-011:** 005 y 006 (3D). **Vigentes:** 001, 002, 003, 004, 008, 009; 007 en espíritu (dos buckets) sobre R2.
 
