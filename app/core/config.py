@@ -104,7 +104,7 @@ class Settings(BaseSettings):
     FIREBASE_CSP_FRAME_SRC: str = ""
 
     # Purga del menú público en Cloudflare al editarlo (T-1.3, 02 §4). Sin las dos, sólo se
-    # invalida la caché en proceso y el borde sirve lo viejo hasta su `s-maxage` (60 s).
+    # invalida la caché en proceso y el borde sirve lo viejo hasta su `s-maxage` (30 s).
     # El token sólo necesita el permiso «Zone · Cache Purge» de esa zona.
     # El id de zona va dentro de la URL de la API: 32 hex, nada más (revisión de T-1.3, B2).
     CLOUDFLARE_ZONE_ID: str | None = Field(None, pattern=r"^[0-9a-f]{32}$")

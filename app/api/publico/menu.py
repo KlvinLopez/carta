@@ -3,7 +3,7 @@
 Sin cookie: el menú es público por `slug` y lo cachea el borde (02 §4; Cloudflare tiene la
 regla de caché para `/api/v1/p/menu/*`). La lógica vive en `app.services.menu_publico`.
 
-- **Menú:** `ETag` (hash del contenido) y `Cache-Control: public, max-age=30, s-maxage=60`
+- **Menú:** `ETag` (hash del contenido) y `Cache-Control: public, max-age=30, s-maxage=30`
   (menos, mientras envejece la copia de este worker: ver el servicio). Con `If-None-Match`
   vigente responde `304` sin cuerpo y, si la copia es de este worker, sin tocar la base.
 - **Detalle:** `ETag` y `Cache-Control: private, no-cache`: el borde no lo guarda (la purga

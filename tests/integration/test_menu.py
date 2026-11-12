@@ -29,7 +29,7 @@ from tests.menu_pruebas import Reloj, reloj_falso
 
 P = "/api/v1/p"
 A = "/api/v1/admin"
-CACHE_LITERAL = "public, max-age=30, s-maxage=60"
+CACHE_LITERAL = "public, max-age=30, s-maxage=30"
 INEXISTENTE = "no-existe-este-restaurante"
 
 CAMPOS_PLATILLO = {
@@ -596,8 +596,8 @@ async def test_otro_worker_sirve_su_copia_hasta_30_s_pero_el_borde_no_la_guarda_
 ) -> None:
     """Con N workers el `PATCH` invalida sólo la memoria de uno. Aquí el cambio entra a la
     base sin invalidar (lo atendió otro worker): este worker sigue con su copia, pero cada
-    respuesta descuenta la edad de la copia, así que el borde nunca guarda un menú más de
-    60 s contando desde que se armó (y el navegador, 30)."""
+    respuesta descuenta la edad de la copia, así que ni el borde ni el navegador guardan un
+    menú más de 30 s contando desde que se armó."""
     nombre_inicial = platillo.nombre
     inicial = await _menu(cliente, restaurante)
     assert inicial.headers["cache-control"] == CACHE_LITERAL
@@ -607,10 +607,10 @@ async def test_otro_worker_sirve_su_copia_hasta_30_s_pero_el_borde_no_la_guarda_
     viejo = await _menu(cliente, restaurante)
     assert viejo.json()["categorias"][0]["platillos"][0]["nombre"] == nombre_inicial
     assert viejo.headers["etag"] == inicial.headers["etag"]
-    assert viejo.headers["cache-control"] == "public, max-age=10, s-maxage=40"
+    assert viejo.headers["cache-control"] == "public, max-age=10, s-maxage=10"
     revalidado = await _menu(cliente, restaurante, **{"If-None-Match": inicial.headers["etag"]})
     assert revalidado.status_code == 304
-    assert revalidado.headers["cache-control"] == "public, max-age=10, s-maxage=40"
+    assert revalidado.headers["cache-control"] == "public, max-age=10, s-maxage=10"
     reloj.avanzar(11)  # 31 s: la copia caducó
     nuevo = await _menu(cliente, restaurante)
     assert nuevo.json()["categorias"][0]["platillos"][0]["nombre"] == "Nuevo"
@@ -624,10 +624,10 @@ async def test_otro_worker_sirve_su_copia_hasta_30_s_pero_el_borde_no_la_guarda_
     [
         (0, CACHE_LITERAL),
         (0.04, CACHE_LITERAL),  # lo que tarda en salir la respuesta
-        (0.5, "public, max-age=29, s-maxage=59"),
-        (1, "public, max-age=29, s-maxage=59"),
-        (15, "public, max-age=15, s-maxage=45"),
-        (29.9, "public, max-age=0, s-maxage=30"),
+        (0.5, "public, max-age=29, s-maxage=29"),
+        (1, "public, max-age=29, s-maxage=29"),
+        (15, "public, max-age=15, s-maxage=15"),
+        (29.9, "public, max-age=0, s-maxage=0"),
     ],
 )
 async def test_los_tiempos_de_cache_descuentan_la_edad_de_la_copia(

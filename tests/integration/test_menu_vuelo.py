@@ -1,5 +1,5 @@
 """T-2.2 (ronda de revisión, A1/A2/B1): vuelo único por `slug`, lecturas anteriores a una
-escritura y tiempos de caché que nunca pasan de 60 s contando desde que se armó el menú."""
+escritura y tiempos de caché que nunca pasan de 30 s contando desde que se armó el menú."""
 
 from __future__ import annotations
 
@@ -256,7 +256,7 @@ async def test_por_http_una_lectura_anterior_a_la_escritura_sale_no_store(
     assert cache_menu.obtener(restaurante.slug) is None
     siguiente = await cliente.get(f"{P}/menu/{restaurante.slug}")
     assert siguiente.json()["categorias"][0]["platillos"][0]["nombre"] == "Después"
-    assert siguiente.headers["cache-control"] == "public, max-age=30, s-maxage=60"
+    assert siguiente.headers["cache-control"] == "public, max-age=30, s-maxage=30"
     assert siguiente.headers["etag"] != primera.headers["etag"]
 
 
@@ -288,7 +288,7 @@ async def test_los_que_esperan_un_vuelo_invalidado_tampoco_reciben_copia_cacheab
 
 
 # ===========================================================================
-# B1 · edad + s-maxage <= 60
+# B1 · edad + s-maxage <= 30 (revisión de T-2.7: antes 60; ver AC-04.4 en el servicio)
 # ===========================================================================
 
 
@@ -298,12 +298,12 @@ def _foto(edad: float, reloj: Reloj) -> servicio.FotoMenu:
 
 @pytest.mark.ac("AC-04.1")
 @pytest.mark.parametrize("edad", [0.0, 0.5, 9.99, 20.9, 29.5, 29.999, 30.0])
-def test_la_edad_mas_el_s_maxage_nunca_pasa_de_60(edad: float, reloj: Reloj) -> None:
+def test_la_edad_mas_el_s_maxage_nunca_pasa_de_30(edad: float, reloj: Reloj) -> None:
     cabecera = _foto(edad, reloj).cabecera_cache()
     m = re.fullmatch(r"public, max-age=(\d+), s-maxage=(\d+)", cabecera)
     assert m, cabecera
     max_age, s_maxage = int(m[1]), int(m[2])
-    assert edad + s_maxage <= 60
+    assert edad + s_maxage <= 30
     assert edad + max_age <= 30
 
 
@@ -311,12 +311,12 @@ def test_la_edad_mas_el_s_maxage_nunca_pasa_de_60(edad: float, reloj: Reloj) -> 
 @pytest.mark.parametrize(
     ("edad", "esperado"),
     [
-        (0.0, "public, max-age=30, s-maxage=60"),
-        (0.5, "public, max-age=29, s-maxage=59"),
-        (9.99, "public, max-age=20, s-maxage=50"),
-        (20.9, "public, max-age=9, s-maxage=39"),
-        (29.999, "public, max-age=0, s-maxage=30"),
-        (45.0, "public, max-age=0, s-maxage=15"),  # un armado lento, fuera de la caché
+        (0.0, "public, max-age=30, s-maxage=30"),
+        (0.5, "public, max-age=29, s-maxage=29"),
+        (9.99, "public, max-age=20, s-maxage=20"),
+        (20.9, "public, max-age=9, s-maxage=9"),
+        (29.999, "public, max-age=0, s-maxage=0"),
+        (45.0, "public, max-age=0, s-maxage=0"),  # un armado lento, fuera de la caché
         (75.0, "public, max-age=0, s-maxage=0"),
     ],
 )
