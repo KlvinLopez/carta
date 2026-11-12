@@ -28,7 +28,8 @@ describe('menú: el error de red se reintenta solo, como promete la pantalla', (
     });
     await titulo();
     expect(sim.llamadas).toHaveLength(2);
-    expect(cola.registrar.mock.calls).toEqual([['menu_view']]);
+    // `menu_view` se registra en un efecto posterior al render del menú: se espera, no se supone.
+    await waitFor(() => expect(cola.registrar.mock.calls).toEqual([['menu_view']]));
   });
 
   it('al volver la pestaña a primer plano también; en segundo plano no', async () => {

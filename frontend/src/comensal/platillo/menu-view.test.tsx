@@ -21,15 +21,16 @@ describe('menu_view sólo con el menú a la vista', () => {
     const { cola } = montarSesion(rutaMenu);
     await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
     await asentar();
-    expect(vistas(cola.registrar, 'menu_view')).toHaveLength(1);
+    await waitFor(() => expect(vistas(cola.registrar, 'menu_view')).toHaveLength(1));
   });
 
   it('abrir directo un platillo no manda menu_view (sí dish_view); al volver al menú se manda uno', async () => {
     const { u, cola } = montarSesion(rutaPlatillo(idDe('Tacos de pastor')));
     await screen.findByRole('heading', { name: 'Tacos de pastor', level: 1 });
     await asentar();
+    // El detalle ya contó su vista (esperarla deja correr los efectos del montaje) y el menú, tapado, no.
+    await waitFor(() => expect(vistas(cola.registrar, 'dish_view')).toHaveLength(1));
     expect(vistas(cola.registrar, 'menu_view')).toHaveLength(0);
-    expect(vistas(cola.registrar, 'dish_view')).toHaveLength(1);
     await u.click(screen.getByRole('button', { name: 'Volver al menú' }));
     await waitFor(() => expect(rutaActual()).toBe(rutaMenu));
     await waitFor(() => expect(vistas(cola.registrar, 'menu_view')).toHaveLength(1));
@@ -44,7 +45,7 @@ describe('menu_view sólo con el menú a la vista', () => {
     const { menu, cola } = montarSesion(rutaMenu);
     await screen.findByRole('heading', { name: 'La Ceiba', level: 1 });
     await asentar();
-    expect(vistas(cola.registrar, 'menu_view')).toHaveLength(1);
+    await waitFor(() => expect(vistas(cola.registrar, 'menu_view')).toHaveLength(1));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(26_000);
     });
