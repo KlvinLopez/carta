@@ -164,7 +164,7 @@ describe('el menú sobrevive a ir y volver (estado en el área)', () => {
       await u.click(screen.getByRole('button', { name: 'Mi mesa' }));
     }
     expect(menu.llamadas).toHaveLength(1);
-    expect(cola.registrar.mock.calls.filter(([t]) => t === 'menu_view')).toHaveLength(1);
+    await waitFor(() => expect(cola.registrar.mock.calls.filter(([t]) => t === 'menu_view')).toHaveLength(1));
   });
 
   it('los filtros aplicados también siguen al volver', async () => {
