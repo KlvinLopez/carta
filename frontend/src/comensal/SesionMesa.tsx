@@ -37,6 +37,9 @@ export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMen
   const entrada = useEntrada(codigo, servicio, espejo);
   const navigate = useNavigate();
   const { vista } = entrada;
+  const { pathname: ruta } = useLocation();
+  // `menu_view` sólo con la pantalla del menú a la vista: ni la bienvenida ni el detalle de un platillo cuentan.
+  const menuALaVista = ruta.replace(/\/+$/, '') === `/m/${codigo}/menu`;
   // Sin red la entrada falla (no hay cookie ni `slug` que esperar). Si el espejo recuerda que este mismo código
   // fue de ese restaurante, el menú se pide igual: el service worker lo sirve de su copia y lo dice en pantalla.
   const sinConexionEntrada = vista.fase === 'error' && vista.clase === 'sin_conexion';
@@ -57,6 +60,7 @@ export function SesionMesa({ codigo, servicio = servicioEntradaReal, servicioMen
     servicio: servicioMenu,
     analitica,
     almacen: almacenFiltros,
+    aLaVista: menuALaVista,
   });
 
   // Al volver del detalle el menú se coloca solo donde estaba: el navegador no debe adelantarse.
