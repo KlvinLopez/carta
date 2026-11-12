@@ -40,6 +40,12 @@ export interface OpcionesControladorMenu {
   servicio: ServicioMenu;
   analitica?: Analitica;
   almacen?: AlmacenFiltros;
+  /**
+   * `true` mientras la pantalla del menú está de verdad a la vista (ni la bienvenida, ni el detalle de un platillo
+   * encima). `menu_view` se manda cuando hay un menú cargado **y** esto es verdad, una vez por carga (decisión de
+   * Calvin, 12 de noviembre: abrir directo un platillo no cuenta como ver el menú). Por omisión `true`.
+   */
+  aLaVista?: boolean;
 }
 
 /**
@@ -48,7 +54,7 @@ export interface OpcionesControladorMenu {
  * `SesionMesa`, por encima de las rutas: volver muestra la misma lista, sin esqueleto y sin otro
  * `menu_view`. Se pide en cuanto `entrar` responde; sin sondeo propio (el navegador revalida con el `ETag`).
  */
-export function useControladorMenu({ slug, servicio, analitica, almacen = almacenFiltrosLocal }: OpcionesControladorMenu) {
+export function useControladorMenu({ slug, servicio, analitica, almacen = almacenFiltrosLocal, aLaVista = true }: OpcionesControladorMenu) {
   const cola = useMemo(() => analitica ?? analiticaDelComensal(), [analitica]);
   const [estado, setEstado] = useState<EstadoMenu>({ fase: 'cargando' });
   const [intento, setIntento] = useState(0);
@@ -57,6 +63,8 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
   // La tarjeta que se abrió: el menú sigue montado bajo el detalle y, al volver, el foco regresa a ella.
   const abierta = useRef<HTMLElement | null>(null);
   const ultimaLectura = useRef(0);
+  // Una carga lograda deja una vista pendiente; se cuenta en cuanto el menú está a la vista (ver `aLaVista`).
+  const [vistaPendiente, setVistaPendiente] = useState(false);
 
   useEffect(() => {
     if (slug === null) return;
@@ -67,8 +75,9 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
         if (control.signal.aborted) return;
         ultimaLectura.current = Date.now();
         setEstado({ fase: 'listo', menu });
-        // Una carga lograda, un `menu_view`: la carga abortada del doble efecto de StrictMode no cuenta.
-        cola.registrar('menu_view');
+        // Una carga lograda, un `menu_view` (cuando el menú esté a la vista): la carga abortada del doble efecto de
+        // StrictMode no cuenta.
+        setVistaPendiente(true);
       },
       (error: unknown) => {
         if (control.signal.aborted) return;
@@ -76,7 +85,13 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
       },
     );
     return () => control.abort();
-  }, [slug, servicio, intento, cola]);
+  }, [slug, servicio, intento]);
+
+  useEffect(() => {
+    if (!vistaPendiente || !aLaVista) return;
+    setVistaPendiente(false);
+    cola.registrar('menu_view');
+  }, [vistaPendiente, aLaVista, cola]);
 
   const reintentar = useCallback(() => setIntento((n) => n + 1), []);
 

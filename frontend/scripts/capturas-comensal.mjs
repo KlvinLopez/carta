@@ -20,7 +20,7 @@
  * de 44 px de alto, el botón «Ver N platillos» queda fuera de la ventana al abrir la hoja, o el detalle del platillo
  * se desborda a lo ancho (también apaisado y al 200 %).
  */
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -32,6 +32,11 @@ mkdirSync(salida, { recursive: true });
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const { createServer } = await import(pathToFileURL(join(frontend, 'node_modules', 'vite', 'dist', 'node', 'index.js')).href);
+
+// La frase del aviso de copia se lee del componente: si cambia su texto, el script no se desfasa (T-2.7).
+const FRASE_COPIA = /copia: '([^']+)'/.exec(readFileSync(join(frontend, 'src', 'comensal', 'entrada', 'AvisoConexion.tsx'), 'utf8'))?.[1];
+if (!FRASE_COPIA) throw new Error('No encuentro el texto del aviso de copia en AvisoConexion.tsx');
+const AVISO_COPIA = new RegExp(FRASE_COPIA.slice(0, 40).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
 const html = join(frontend, 'captura-comensal.html');
 const tsx = join(frontend, 'src', 'captura-comensal.tsx');
@@ -166,7 +171,7 @@ try {
   await pagina.screenshot({ path: join(salida, 'menu-agotado.png') });
   // T-2.7: la última copia guardada (sin haber entrado a la mesa) y el aviso general de «sin conexión»: uno a la vez.
   await ir('menu-copia', menu);
-  await pagina.getByText(/última copia del menú guardada/).waitFor();
+  await pagina.getByText(AVISO_COPIA).waitFor();
   await pagina.screenshot({ path: join(salida, 'menu-copia-sin-conexion.png') });
   await ir('menu-sin-red', menu);
   await pagina.getByText(/^Sin conexión\./).waitFor();
@@ -216,7 +221,7 @@ try {
   await ir('menu-inicio', menu);
   await medir('menu 390×844');
   for (const [modo, texto, etiqueta] of [
-    ['menu-copia', /última copia del menú guardada/, 'menu con aviso de copia'],
+    ['menu-copia', AVISO_COPIA, 'menu con aviso de copia'],
     ['menu-sin-red', /^Sin conexión\./, 'menu con banner sin conexión'],
   ]) {
     await ir(modo, menu);

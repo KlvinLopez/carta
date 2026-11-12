@@ -77,12 +77,96 @@ describe('menú: lo que se ve', () => {
     expect(menu.categorias.flatMap((c) => c.platillos).length).toBeGreaterThan(20);
     const fotos = [...document.querySelectorAll('img')];
     expect(fotos.length).toBeGreaterThan(10);
-    for (const foto of fotos) {
+    const eager = fotos.filter((f) => f.getAttribute('loading') === 'eager');
+    // Sólo las de la primera pantalla (ver la prueba de prioridad): el resto es perezoso.
+    expect(eager.length).toBeGreaterThan(0);
+    expect(eager.length).toBeLessThanOrEqual(4);
+    for (const foto of fotos.filter((f) => !eager.includes(f))) {
       expect(foto).toHaveAttribute('loading', 'lazy');
+    }
+    for (const foto of fotos) {
       expect(foto).toHaveAttribute('decoding', 'async');
       expect(foto).toHaveAttribute('width');
       expect(foto).toHaveAttribute('height');
     }
+  });
+
+  const conPrioridad = () => [...document.querySelectorAll('img[fetchpriority]')];
+  const eagers = () => [...document.querySelectorAll('img[loading="eager"]')];
+
+  it('con el «Top 3» a la vista sólo sus fotos llevan prioridad alta y carga inmediata; la lista, ninguna', async () => {
+    montarMenu();
+    await titulo();
+    const enTop = [...screen.getByRole('region', { name: 'Top 3 del chef' }).querySelectorAll('img')];
+    expect(enTop.length).toBeGreaterThan(0);
+    for (const f of enTop) {
+      expect(f).toHaveAttribute('loading', 'eager');
+      expect(f).toHaveAttribute('fetchpriority', 'high');
+    }
+    const enLista = [...document.querySelectorAll('section[id^="categoria-"] img')];
+    expect(enLista.length).toBeGreaterThan(0);
+    for (const f of enLista) {
+      expect(f).toHaveAttribute('loading', 'lazy');
+      expect(f).not.toHaveAttribute('fetchpriority');
+    }
+    expect(conPrioridad()).toHaveLength(enTop.length);
+  });
+
+  it('con una búsqueda activa (sin «Top 3») sólo la primera foto visible lleva prioridad; ningún otro img', async () => {
+    const { u } = montarMenu({ menu: crearMenuGrande(40) });
+    await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
+    await u.type(screen.getByRole('searchbox', { name: 'Buscar en el menú' }), 'Platillo 1');
+    await waitFor(() => expect(nombresEnLista()[0]).toBe('Platillo 1'));
+    expect(eagers()).toHaveLength(1);
+    expect(conPrioridad()).toHaveLength(1);
+    expect(conPrioridad()[0]).toBe(eagers()[0]);
+    expect(conPrioridad()[0]).toBe(document.querySelector('section[id^="categoria-"] img'));
+  });
+
+  it('sin «Top 3» (carta sin destacados) la primera foto va con prioridad si está entre las primeras 4 tarjetas', async () => {
+    montarMenu({ menu: crearMenuGrande(40) });
+    await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
+    expect(screen.queryByRole('region', { name: 'Top 3 del chef' })).toBeNull();
+    expect(conPrioridad()).toHaveLength(1);
+    expect(conPrioridad()[0]).toBe(document.querySelector('section[id^="categoria-"] img'));
+  });
+
+  it('una primera foto lejos del pliegue (la 5.ª tarjeta o más) no lleva prioridad: ninguna en la lista', async () => {
+    const menu = crearMenuGrande(40);
+    // Las cuatro primeras tarjetas sin foto (ilustración); la primera foto cae en la 5.ª.
+    for (const p of menu.categorias[0]!.platillos.slice(0, 4)) Object.assign(p, { imagen_tipo: 'ilustracion', foto_thumb_url: null, foto_url: null });
+    montarMenu({ menu });
+    await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
+    expect(document.querySelectorAll('section[id^="categoria-"] img').length).toBeGreaterThan(0);
+    expect(conPrioridad()).toHaveLength(0);
+    expect(eagers()).toHaveLength(0);
+  });
+
+  it('una primera foto en una categoría lejana (las primeras tarjetas sin foto) tampoco lleva prioridad', async () => {
+    const menu = crearMenuGrande(60);
+    for (const p of menu.categorias[0]!.platillos) Object.assign(p, { imagen_tipo: 'ilustracion', foto_thumb_url: null, foto_url: null });
+    montarMenu({ menu });
+    await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
+    expect(conPrioridad()).toHaveLength(0);
+  });
+
+  it('si la foto con prioridad falla pasa a ilustración y no queda ningún img con fetchpriority huérfano', async () => {
+    montarMenu({ menu: crearMenuGrande(40) });
+    await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
+    const foto = conPrioridad()[0] as HTMLImageElement;
+    expect(foto).toBeDefined();
+    fireEvent.error(foto);
+    await waitFor(() => expect(foto.isConnected).toBe(false));
+    expect(conPrioridad()).toHaveLength(0);
+  });
+
+  it('una carta sin ninguna foto no pone ningún img ni prioridad', async () => {
+    const menu = crearMenuGrande(40);
+    for (const c of menu.categorias) for (const p of c.platillos) Object.assign(p, { imagen_tipo: 'ilustracion', foto_thumb_url: null, foto_url: null });
+    montarMenu({ menu });
+    await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
+    expect(document.querySelectorAll('img')).toHaveLength(0);
+    expect(conPrioridad()).toHaveLength(0);
   });
 
   // @ac AC-04.3
@@ -90,7 +174,9 @@ describe('menú: lo que se ve', () => {
     montarMenu({ menu: crearMenuGrande(200) });
     await screen.findByRole('heading', { name: 'Restaurante grande', level: 1 });
     expect(nombresEnLista()).toHaveLength(200);
-    expect(document.querySelectorAll('img[loading="lazy"]')).toHaveLength(100);
+    // La primera tarjeta con foto es de la primera pantalla (eager); las demás, perezosas.
+    expect(document.querySelectorAll('img[loading="lazy"]')).toHaveLength(99);
+    expect(document.querySelectorAll('img[loading="eager"]')).toHaveLength(1);
     expect(document.querySelectorAll('section[id^="categoria-"]')).toHaveLength(10);
   });
 

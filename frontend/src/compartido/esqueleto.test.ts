@@ -1,6 +1,10 @@
+import { render } from '@testing-library/react';
+import { createElement } from 'react';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+
+import { Arranque } from './pantalla/Arranque';
 
 const raiz = resolve(__dirname, '../..'); // frontend/
 const leer = (ruta: string) => readFileSync(join(raiz, ruta), 'utf8');
@@ -163,5 +167,73 @@ describe('manifest.webmanifest e index.html', () => {
     for (const [, href] of html.matchAll(/rel="preload" href="(\/fonts\/[^"]+)"/g)) {
       expect(existsSync(join(raiz, 'public', href!)), href).toBe(true);
     }
+  });
+  /** El bloque de arranque de index.html: el contenedor y sus partes. */
+  function arranqueDelHtml() {
+    const html = leer('index.html');
+    const bloque = /<div class="arranque">([\s\S]*?)<\/div>\s*<\/div>/.exec(html);
+    expect(bloque, 'el arranque dentro de #app').not.toBeNull();
+    return { html, interior: bloque![1]! };
+  }
+
+  it('index.html trae el arranque: marca y línea visibles antes del JS (ocultas a lectores), neutro y sin nada en línea', () => {
+    const { html, interior } = arranqueDelHtml();
+    expect(interior).toContain('<p class="arranque-marca" aria-hidden="true">Carta</p>');
+    expect(interior).toMatch(/<p class="arranque-texto" aria-hidden="true">[^<]+<\/p>/);
+    // Neutro: sirve a las tres áreas; ni nombre de restaurante ni mesa.
+    expect(interior.replace(/<div class="arranque-ayuda">[\s\S]*$/, '')).not.toMatch(/mesa/i);
+    // La CSP no admite nada en línea (app/core/cabeceras.py): ni <script> sin src, ni <style>, ni style="…".
+    const sinComentarios = html.replace(/<!--[\s\S]*?-->/g, '');
+    expect(sinComentarios).not.toMatch(/<style\b/i);
+    expect(sinComentarios).not.toMatch(/\sstyle\s*=/i);
+    for (const [etiqueta] of sinComentarios.matchAll(/<script\b[^>]*>/gi)) expect(etiqueta).toMatch(/\ssrc=/);
+  });
+
+  // A1: si el JS de entrada no llega (404, 503, corte) la pantalla no se queda en «Un momento…» para siempre.
+  it('el arranque trae una ayuda sin JS: texto honesto y un enlace «Volver a intentar» que recarga, legible (no aria-hidden)', () => {
+    const { interior } = arranqueDelHtml();
+    const ayuda = /<div class="arranque-ayuda">([\s\S]*)$/.exec(interior)?.[1] ?? '';
+    expect(ayuda).toContain('Está tardando más de lo normal. Revisa tu conexión.');
+    expect(ayuda).toMatch(/<a class="arranque-reintento" href="">Volver a intentar<\/a>/); // href vacío = recarga la página
+    expect(ayuda).not.toContain('aria-hidden');
+    expect(interior).not.toMatch(/<div class="arranque-ayuda"[^>]*aria-hidden/);
+  });
+
+  it('la ayuda del arranque se revela sola por CSS pasado un plazo, sin mover la marca ni animar con movimiento', () => {
+    const css = leer('src/compartido/base.css');
+    const arranque = /\.arranque \{[^}]*\}/.exec(css)?.[0] ?? '';
+    expect(arranque).not.toBe('');
+    expect(arranque).not.toMatch(/animation/); // el retardo va en la ayuda, no en `.arranque` (el relevo con React no parpadea)
+    expect(/\.arranque-marca \{[^}]*font-family: var\(--fuente-titulo\)/.test(css)).toBe(true);
+    const ayuda = /\.arranque-ayuda \{[^}]*\}/.exec(css)?.[0] ?? '';
+    const retardo = /animation: arranque-ayuda \S+ \S+ (\d+)s forwards/.exec(ayuda);
+    expect(retardo, 'animation con retardo en la ayuda').not.toBeNull();
+    expect(Number(retardo![1])).toBeGreaterThanOrEqual(10);
+    expect(Number(retardo![1])).toBeLessThanOrEqual(15);
+    expect(ayuda).toMatch(/position: absolute/); // fuera del flujo: al aparecer no mueve la marca
+    expect(ayuda).toMatch(/visibility: hidden/); // oculta (no se lee ni se toca) hasta entonces
+    const cuadros = /@keyframes arranque-ayuda \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    expect(cuadros).toMatch(/opacity: 1/);
+    expect(cuadros).not.toMatch(/transform|translate|scale|top|left|margin/); // sólo opacidad y visibilidad
+    const enlace = /\.arranque-reintento \{[^}]*\}/.exec(css)?.[0] ?? '';
+    expect(enlace).toMatch(/min-height: 44px/);
+    expect(enlace).toMatch(/border-radius: var\(--radio-pildora\)/);
+    expect(enlace).not.toMatch(/border:/); // regla «no-line»
+  });
+
+  // A3: el comentario dice que React pinta «lo mismo» que el HTML; esta prueba lo ata.
+  it('Arranque.tsx pinta las mismas clases y textos que el arranque de index.html (salvo la ayuda y el role, a propósito)', () => {
+    const { interior } = arranqueDelHtml();
+    const delHtml = [...interior.replace(/<div class="arranque-ayuda">[\s\S]*$/, '').matchAll(/<p class="([^"]+)"[^>]*>([^<]*)<\/p>/g)].map((m) => [m[1], m[2]]);
+    const { container } = render(createElement(Arranque));
+    const raiz = container.firstElementChild as HTMLElement;
+    expect(raiz).toHaveClass('arranque');
+    // Diferencias permitidas: el estado de carga se anuncia (role=status) y no lleva el bloque de ayuda.
+    expect(raiz).toHaveAttribute('role', 'status');
+    expect(raiz.querySelector('.arranque-ayuda')).toBeNull();
+    const delComponente = [...raiz.querySelectorAll('p')].map((p) => [p.className, p.textContent]);
+    expect(delComponente).toEqual(delHtml);
+    expect(delHtml).toHaveLength(2);
+    expect(raiz.querySelector('[aria-hidden]')).toBeNull();
   });
 });

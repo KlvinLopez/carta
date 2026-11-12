@@ -132,12 +132,37 @@ describe('presupuesto.mjs: el trozo del comensal no arrastra panel, Firebase ni 
     expect(salida).toContain('trozo de otra área');
   });
 
-  it('falla si falta el trozo del comensal', () => {
+  it('pasa sin trozo propio del comensal: va en la entrada (T-2.5, AC-01.1)', () => {
     const raiz = dist('console.log("hola");');
     rmSync(join(raiz, 'assets', 'Area-comensal-1.js'));
-    writeFileSync(join(raiz, 'assets', 'Area-otro-1.js'), '//'); // sigue habiendo tres trozos de área: lo que falta es el del comensal
+    const { codigo, salida } = correr(raiz);
+    expect(salida).toContain('Presupuesto en verde');
+    expect(codigo).toBe(0);
+  });
+
+  it('el SDK de Firebase o el panel dentro de la entrada (donde ahora vive el comensal) siguen fallando', () => {
+    const raiz = dist('const a = "x.firebaseapp.com";');
+    rmSync(join(raiz, 'assets', 'Area-comensal-1.js'));
     const { codigo, salida } = correr(raiz);
     expect(codigo).toBe(1);
-    expect(salida).toContain('Falta el trozo del comensal');
+    expect(salida).toContain('El SDK de Firebase está en la carga inicial');
+  });
+
+  it.each(['admin', 'personal'])('falla si falta el trozo propio de %s aunque haya otros trozos Area-* (B2)', (area) => {
+    const raiz = dist('console.log("hola");');
+    rmSync(join(raiz, 'assets', `Area-${area}-1.js`));
+    writeFileSync(join(raiz, 'assets', 'Area-comensal-2.js'), '//'); // el conteo (≥ 2) sigue cumplido: lo que falta es el nombre
+    const { codigo, salida } = correr(raiz);
+    expect(codigo).toBe(1);
+    expect(salida).toContain(`falta dist/assets/Area-${area}-*.js`);
+  });
+
+  it('falla si el panel y el personal dejan de ser trozos propios (menos de dos trozos de área)', () => {
+    const raiz = dist('console.log("hola");');
+    rmSync(join(raiz, 'assets', 'Area-comensal-1.js'));
+    rmSync(join(raiz, 'assets', 'Area-personal-1.js'));
+    const { codigo, salida } = correr(raiz);
+    expect(codigo).toBe(1);
+    expect(salida).toContain('Code splitting roto');
   });
 });
