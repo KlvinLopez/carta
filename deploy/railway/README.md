@@ -59,6 +59,8 @@ Desde aquí, **mira siempre el selector antes de tocar algo**: los ajustes y las
 3. Aparece una tarjeta llamada **Postgres** con un disco debajo (el volumen: ahí viven los datos). **No le cambies el nombre**: las variables de los otros servicios la buscan como `Postgres`.
 4. Pulsa **Deploy** en la franja de cambios pendientes. Espera a que la tarjeta diga **Active** (o una palomita verde).
 
+> **Versión:** la base que crea la plantilla de Railway es **PostgreSQL 18** (no la 16 del desarrollo local). Por eso la imagen de `respaldo` lleva `pg_dump` 18 (`deploy/respaldo/README.md`).
+
 ---
 
 ## C. La aplicación de staging (`api`)
