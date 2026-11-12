@@ -206,6 +206,8 @@ jobs:
         run: |
           docker build -t carta-respaldo:test deploy/respaldo
           docker run --rm carta-respaldo:test sh -c 'pg_dump --version && age --version && rclone version | head -1'
+          # El cliente debe ser PostgreSQL 18, como la base de la plantilla de Railway.
+          docker run --rm carta-respaldo:test sh -c "pg_dump --version | grep -q 'PostgreSQL) 18\.'"
           # Sin variables sale con 2 y dice cuál falta.
           set +e; docker run --rm carta-respaldo:test; estado=$?; set -e
           test "$estado" = "2"

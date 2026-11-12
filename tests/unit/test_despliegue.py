@@ -360,7 +360,28 @@ def test_script_de_respaldo_falla_pronto_y_no_trae_secretos() -> None:
 def test_imagen_de_respaldo_fija_su_base_por_digest() -> None:
     instrucciones = instrucciones_dockerfile(DOCKERFILE_RESPALDO.read_text(encoding="utf-8"))
     (base,) = [arg for ins, arg in instrucciones if ins == "FROM"]
-    assert re.fullmatch(r"alpine:3\.22" + DIGEST, base), base
+    assert re.fullmatch(r"alpine:3\.\d+" + DIGEST, base), base
+
+
+def test_imagen_de_respaldo_usa_el_cliente_18_de_la_base_de_railway() -> None:
+    """La base de la plantilla de Railway es PostgreSQL 18 y `pg_dump` se niega a volcar un
+    servidor más nuevo que él: el cliente de la imagen es 18, y la versión se afirma al
+    construir y en la CI (en Alpine el `pg_dump` del PATH depende de qué versión queda)."""
+    texto = DOCKERFILE_RESPALDO.read_text(encoding="utf-8")
+    instrucciones = instrucciones_dockerfile(texto)
+    (base,) = [arg for ins, arg in instrucciones if ins == "FROM"]
+    assert re.fullmatch(r"alpine:3\.\d+@sha256:[0-9a-f]{64}", base), base
+    assert re.findall(r"postgresql\d+-client", texto) == ["postgresql18-client"]
+    comprobaciones = [
+        arg for ins, arg in instrucciones if ins == "RUN" and "pg_dump --version" in arg
+    ]
+    assert comprobaciones and all(r"PostgreSQL) 18\." in arg for arg in comprobaciones)
+    paso = next(
+        p
+        for p in yaml.safe_load(CI.read_text(encoding="utf-8"))["jobs"]["imagen"]["steps"]
+        if p.get("name") == "Imagen de respaldo"
+    )
+    assert "pg_dump --version | grep -q 'PostgreSQL) 18\\.'" in paso["run"]
 
 
 # --- T-0.7: Railway ----------------------------------------------------------------------
