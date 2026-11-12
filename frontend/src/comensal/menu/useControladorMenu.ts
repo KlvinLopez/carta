@@ -6,12 +6,30 @@ import { claseDeError, type ClaseError } from '../entrada/errores';
 import { consultaEfectiva } from './busqueda';
 import { almacenFiltrosLocal, FILTROS_VACIOS, hayFiltros, mismosFiltros, type AlmacenFiltros, type Filtros } from './filtros';
 import { tarjetaAbierta } from './posicion';
-import type { MenuPublico, ServicioMenu } from './servicioMenu';
+import type { MenuLeido, ServicioMenu } from './servicioMenu';
 
 export type EstadoMenu =
   | { fase: 'cargando' }
-  | { fase: 'listo'; menu: MenuPublico }
+  | { fase: 'listo'; menu: MenuLeido }
   | { fase: 'error'; clase: ClaseError; reintentarEn: number | null };
+
+/**
+ * Mientras el menú está a la vista se vuelve a pedir cada 25 s (AC-04.4: un platillo agotado se ve en ≤ 60 s). La
+ * cuenta: el servidor y el borde no sirven una copia anterior a un cambio más de 30 s desde que se armó
+ * (`S_MAXAGE_SEGUNDOS = 30` en `app/services/menu_publico.py`) + 25 s hasta el siguiente turno = 55 s; quedan 5 s para
+ * la red y la deriva del temporizador. Son 2.4 peticiones por minuto y por comensal, casi siempre un 304 (el navegador
+ * revalida con el `ETag`), frente al límite de 120. Pausado en segundo plano; al volver la pestaña se pide enseguida,
+ * pero no antes de `ESPERA_MINIMA_MENU_MS` desde la última lectura.
+ */
+export const INTERVALO_MENU_MS = 25_000;
+export const ESPERA_MINIMA_MENU_MS = 5_000;
+/** Con una copia en pantalla y red, el siguiente turno es pronto: la respuesta tardía ya actualizó la copia. */
+export const INTERVALO_COPIA_MS = 8_000;
+
+/** Mismo contenido (y mismo origen: red o copia): no hace falta cambiar el estado ni repintar. */
+function mismoMenu(a: MenuLeido, b: MenuLeido): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
 
 /** Cuánto se espera sin teclear para contar una búsqueda como «asentada» (analítica; no filtra la lista). */
 export const ESPERA_BUSQUEDA_MS = 800;
@@ -38,6 +56,7 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
   const [filtros, setFiltros] = useState<Filtros>(() => almacen.leer());
   // La tarjeta que se abrió: el menú sigue montado bajo el detalle y, al volver, el foco regresa a ella.
   const abierta = useRef<HTMLElement | null>(null);
+  const ultimaLectura = useRef(0);
 
   useEffect(() => {
     if (slug === null) return;
@@ -46,6 +65,7 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
     servicio.menu(slug, control.signal).then(
       (menu) => {
         if (control.signal.aborted) return;
+        ultimaLectura.current = Date.now();
         setEstado({ fase: 'listo', menu });
         // Una carga lograda, un `menu_view`: la carga abortada del doble efecto de StrictMode no cuenta.
         cola.registrar('menu_view');
@@ -59,6 +79,97 @@ export function useControladorMenu({ slug, servicio, analitica, almacen = almace
   }, [slug, servicio, intento, cola]);
 
   const reintentar = useCallback(() => setIntento((n) => n + 1), []);
+
+  // AC-04.4: con el menú a la vista se vuelve a pedir, en silencio y sin otro `menu_view`. Si cambió algo
+  // (un platillo agotado, uno que ya no está) se actualiza el estado conservando búsqueda, filtros y
+  // posición; si la red falla se conserva lo que se ve. Si la respuesta viene de la copia, lo dice el
+  // propio menú (`deCopia`) y al volver la red se pide otra vez sin esperar el minuto.
+  const listo = estado.fase === 'listo';
+  const deCopia = estado.fase === 'listo' && estado.menu.deCopia === true;
+  const deCopiaAhora = useRef(false);
+  deCopiaAhora.current = deCopia;
+  useEffect(() => {
+    if (!listo || slug === null) return;
+    let parar = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let control: AbortController | null = null;
+    let espera: ReturnType<typeof setTimeout> | undefined;
+
+    const refrescar = async () => {
+      control?.abort();
+      const propio = (control = new AbortController());
+      ultimaLectura.current = Date.now();
+      try {
+        const menu = await servicio.menu(slug, propio.signal);
+        if (propio.signal.aborted) return;
+        setEstado((previo) => {
+          if (previo.fase !== 'listo') return previo;
+          // Un refresco que devuelve la copia (red lenta, plazo vencido) no sustituye un menú leído de la red ni
+          // enciende el aviso: se trata como un refresco fallido. Si ya se veía una copia y trae otro contenido, se
+          // actualiza. Una respuesta de la red siempre sustituye (y apaga el aviso).
+          if (menu.deCopia && !previo.menu.deCopia) return previo;
+          return mismoMenu(previo.menu, menu) ? previo : { fase: 'listo', menu };
+        });
+      } catch {
+        // Se conserva el menú que ya se ve; el siguiente turno lo intenta de nuevo.
+      }
+    };
+    const programar = () => {
+      clearTimeout(timer);
+      const sigue = deCopiaAhora.current && navigator.onLine ? INTERVALO_COPIA_MS : INTERVALO_MENU_MS;
+      if (!parar) timer = setTimeout(turno, sigue);
+    };
+    function turno() {
+      if (parar || document.hidden) return; // la pestaña al volver retoma el reloj
+      void refrescar();
+      programar();
+    }
+    const alVolverLaPestana = () => {
+      if (document.hidden) return;
+      if (Date.now() - ultimaLectura.current >= ESPERA_MINIMA_MENU_MS) void refrescar();
+      programar();
+    };
+    // `online` puede parpadear (una red que cae y vuelve): no más de una lectura cada `ESPERA_MINIMA_MENU_MS`. Si hubo una
+    // hace poco se programa una para cuando acabe la espera (no se pierde), y los eventos que llegan mientras tanto
+    // se juntan en ella.
+    const alVolverLaRed = () => {
+      const falta = ESPERA_MINIMA_MENU_MS - (Date.now() - ultimaLectura.current);
+      if (falta <= 0) {
+        clearTimeout(espera);
+        espera = undefined;
+        void refrescar();
+        programar();
+      } else if (espera === undefined) {
+        espera = setTimeout(() => {
+          espera = undefined;
+          if (parar) return;
+          void refrescar();
+          programar();
+        }, falta);
+      }
+    };
+    // El worker tomó la página: una vez, sin espera mínima.
+    const alTomarControl = () => {
+      void refrescar();
+      programar();
+    };
+    // Primera visita: el worker toma la página cuando termina de instalarse. Se pide el menú una vez más para que la
+    // copia quede guardada ahora y no al siguiente turno.
+    const contenedor = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;
+    contenedor?.addEventListener?.('controllerchange', alTomarControl);
+    document.addEventListener('visibilitychange', alVolverLaPestana);
+    window.addEventListener('online', alVolverLaRed);
+    programar();
+    return () => {
+      parar = true;
+      clearTimeout(timer);
+      clearTimeout(espera);
+      control?.abort();
+      document.removeEventListener('visibilitychange', alVolverLaPestana);
+      window.removeEventListener('online', alVolverLaRed);
+      contenedor?.removeEventListener?.('controllerchange', alTomarControl);
+    };
+  }, [listo, slug, servicio]);
 
   // «Lo intentamos de nuevo en cuanto vuelva» tiene que ser cierto: al volver la red, o la pestaña a
   // primer plano, un menú que falló por red se pide solo.

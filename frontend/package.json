@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "tipos": "openapi-typescript http://localhost:8000/openapi.json -o src/compartido/api.d.ts",
     "presupuesto": "node scripts/presupuesto.mjs",
-    "contrato": "cd .. && uv run python -c \"import json; from app.main import app; print(json.dumps(app.openapi(), sort_keys=True))\" > frontend/src/mocks/openapi.json"
+    "contrato": "node scripts/sincronizar-contrato.mjs",
+    "sincronizar": "node scripts/sincronizar-contrato.mjs"
   },
   "dependencies": {
     "firebase": "13.2.0",
@@ -38,6 +39,14 @@
     "openapi-typescript": "7.13.0",
     "typescript": "5.9.3",
     "vite": "7.3.7",
-    "vitest": "5.1.0"
+    "vite-plugin-pwa": "2.0.0",
+    "vitest": "5.1.0",
+    "workbox-build": "7.4.1",
+    "workbox-cacheable-response": "7.4.1",
+    "workbox-core": "7.4.1",
+    "workbox-expiration": "7.4.1",
+    "workbox-precaching": "7.4.1",
+    "workbox-routing": "7.4.1",
+    "workbox-strategies": "7.4.1"
   }
 }

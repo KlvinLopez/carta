@@ -20,7 +20,7 @@ function dist(js: string, trozosExtra: string[] = TROZOS_DE_PANTALLA): string {
     '<!doctype html><html><head><script type="module" src="/assets/index-a.js"></script></head><body></body></html>',
   );
   writeFileSync(join(raiz, 'assets', 'index-a.js'), js);
-  for (const n of ['Area-1.js', 'Area-2.js', 'Area-3.js', ...trozosExtra]) writeFileSync(join(raiz, 'assets', n), '//');
+  for (const n of ['Area-comensal-1.js', 'Area-personal-1.js', 'Area-admin-1.js', ...trozosExtra]) writeFileSync(join(raiz, 'assets', n), '//');
   return raiz;
 }
 
@@ -90,5 +90,54 @@ describe('presupuesto.mjs: Mesas, Personal y Ajustes son sus propios trozos (T-1
     const { codigo, salida } = correr(carpeta);
     expect(codigo).toBe(1);
     expect(salida).toContain(`index.html carga de inicio ${nombre}-1.js`);
+  });
+});
+
+describe('presupuesto.mjs: el trozo del comensal no arrastra panel, Firebase ni datos simulados (T-2.7)', () => {
+  /** Un dist falso cuyo `index-a.js` importa el trozo del comensal con la tabla de dependencias que escribe Vite. */
+  function distConComensal(comensal: string, dependencias: string[] = [], extra: Record<string, string> = {}): string {
+    const raiz = dist('console.log("hola");');
+    const tabla = ['assets/Area-comensal-1.js', ...dependencias.map((d) => `assets/${d}`)];
+    const indices = tabla.map((_, i) => i).join(',');
+    writeFileSync(
+      join(raiz, 'assets', 'index-a.js'),
+      `const m=(i)=>{m.f||(m.f=[${tabla.map((t) => JSON.stringify(t)).join(',')}]);return i.map(j=>m.f[j])};a=()=>import("./Area-comensal-1.js"),__vite__mapDeps([${indices}]));`,
+    );
+    writeFileSync(join(raiz, 'assets', 'Area-comensal-1.js'), comensal);
+    for (const [nombre, contenido] of Object.entries(extra)) writeFileSync(join(raiz, 'assets', nombre), contenido);
+    return raiz;
+  }
+
+  it('un comensal limpio pasa y se imprime el peso de la precarga', () => {
+    const { codigo, salida } = correr(distConComensal('export default 1;'));
+    expect(codigo).toBe(0);
+    expect(salida).toContain('Precarga del service worker');
+  });
+
+  it.each([
+    ['el SDK de Firebase', 'fetch("https://identitytoolkit.googleapis.com/v1");', 'SDK de Firebase'],
+    ['un dominio de Firebase', 'const a = "x.firebaseapp.com";', 'SDK de Firebase'],
+    ['el código de mesa de los datos simulados', 'const c = "Jx3k9QwLmN2pR7sT4vY8zA";', 'datos simulados'],
+    ['la huella de los errores simulados', 'const r = "req-simulado";', 'datos simulados'],
+  ])('falla si el trozo del comensal lleva %s', (_que, js, etiqueta) => {
+    const { codigo, salida } = correr(distConComensal(js));
+    expect(codigo).toBe(1);
+    expect(salida).toContain('El grafo del comensal arrastra lo que no es suyo');
+    expect(salida).toContain(etiqueta);
+  });
+
+  it.each(['PantallaMenu-1.js', 'Area-admin-1.js', 'Area-personal-1.js', 'index.esm-1.js'])('falla si el comensal depende de %s', (panel) => {
+    const { codigo, salida } = correr(distConComensal('export default 1;', [panel], { [panel]: '//' }));
+    expect(codigo).toBe(1);
+    expect(salida).toContain('trozo de otra área');
+  });
+
+  it('falla si falta el trozo del comensal', () => {
+    const raiz = dist('console.log("hola");');
+    rmSync(join(raiz, 'assets', 'Area-comensal-1.js'));
+    writeFileSync(join(raiz, 'assets', 'Area-otro-1.js'), '//'); // sigue habiendo tres trozos de área: lo que falta es el del comensal
+    const { codigo, salida } = correr(raiz);
+    expect(codigo).toBe(1);
+    expect(salida).toContain('Falta el trozo del comensal');
   });
 });

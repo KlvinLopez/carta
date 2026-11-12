@@ -13,7 +13,8 @@
  * (con un alérgeno descartado), menu-agotado, menu-cargando y menu-limite (429); y la hoja de filtros
  * en horizontal (844×390), en un teléfono bajo (375×568) y con el texto al 200 %. Detalle del platillo
  * (T-2.6): detalle-foto (con calorías y picante), detalle-ilustracion, detalle-agotado,
- * detalle-no-encontrado, detalle-cargando, detalle-horizontal (844×390) y detalle-zoom200.
+ * detalle-no-encontrado, detalle-cargando, detalle-horizontal (844×390) y detalle-zoom200. T-2.7:
+ * menu-copia-sin-conexion (la última copia guardada, sin mesa) y menu-banner-sin-conexion (sin red, menú fresco).
  *
  * También **comprueba** y sale con código ≠ 0 si: algún control tocable del menú o de la hoja mide menos
  * de 44 px de alto, el botón «Ver N platillos» queda fuera de la ventana al abrir la hoja, o el detalle del platillo
@@ -84,7 +85,7 @@ try {
     const almacen = { leer: () => filtros, guardar: (f) => { filtros = f; } };
     const analitica = { registrar: () => undefined, vaciar: () => undefined, detener: () => undefined };
     createRoot(document.getElementById('app')!).render(
-      <Menu slug="la-ceiba" mesa={7} servicio={menuSim.servicio} analitica={analitica} almacen={almacen} onVolver={() => undefined} onAbrir={() => undefined} />,
+      <Menu slug="la-ceiba" mesa={p === 'menu-copia' ? null : 7} aviso={{ 'menu-copia': 'copia', 'menu-sin-red': 'sin_conexion' }[p] ?? null} servicio={menuSim.servicio} analitica={analitica} almacen={almacen} onVolver={() => undefined} onAbrir={() => undefined} />,
     );
   } else {
   const opciones = {
@@ -163,6 +164,13 @@ try {
   await pagina.getByRole('heading', { name: 'Pescado a la veracruzana' }).scrollIntoViewIfNeeded();
   await pagina.waitForTimeout(300);
   await pagina.screenshot({ path: join(salida, 'menu-agotado.png') });
+  // T-2.7: la última copia guardada (sin haber entrado a la mesa) y el aviso general de «sin conexión»: uno a la vez.
+  await ir('menu-copia', menu);
+  await pagina.getByText(/última copia del menú guardada/).waitFor();
+  await pagina.screenshot({ path: join(salida, 'menu-copia-sin-conexion.png') });
+  await ir('menu-sin-red', menu);
+  await pagina.getByText(/^Sin conexión\./).waitFor();
+  await pagina.screenshot({ path: join(salida, 'menu-banner-sin-conexion.png') });
   await ir('menu-busqueda', menu);
   await pagina.getByRole('searchbox', { name: 'Buscar en el menú' }).fill('PINA');
   await pagina.waitForTimeout(400);
@@ -194,6 +202,10 @@ try {
     );
     for (const c of chicos) fallos.push(`${etiqueta}: control de menos de 44 px de alto: ${c}`);
   };
+  const sinDesbordeAncho = async (etiqueta) => {
+    const [ancho, visible] = await pagina.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+    if (ancho > visible + 1) fallos.push(`${etiqueta}: la página se desborda a lo ancho (${ancho} > ${visible})`);
+  };
   const botonAplicarVisible = async (etiqueta) => {
     const caja = await pagina.getByRole('button', { name: /^Ver \d+ platillos?$/ }).boundingBox();
     const ventana = pagina.viewportSize();
@@ -203,6 +215,17 @@ try {
   };
   await ir('menu-inicio', menu);
   await medir('menu 390×844');
+  for (const [modo, texto, etiqueta] of [
+    ['menu-copia', /última copia del menú guardada/, 'menu con aviso de copia'],
+    ['menu-sin-red', /^Sin conexión\./, 'menu con banner sin conexión'],
+  ]) {
+    await ir(modo, menu);
+    await pagina.getByText(texto).waitFor();
+    await medir(etiqueta);
+    const avisos = await pagina.locator('p[role="status"]').filter({ hasText: /conexión|copia/ }).count();
+    if (avisos !== 1) fallos.push(`${etiqueta}: debe haber un solo aviso de conexión y hay ${avisos}`);
+    await sinDesbordeAncho(etiqueta);
+  }
   const configuraciones = [
     { nombre: 'menu-filtros-390', ancho: 390, alto: 844 },
     { nombre: 'menu-filtros-horizontal', ancho: 844, alto: 390 },

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Avatar, AvatarGrupo, Boton, Tarjeta } from '../../compartido/componentes';
 import { Pantalla, estilosPantalla as e } from '../../compartido/pantalla/Pantalla';
 import estilos from './Entrada.module.css';
-import { AvisoConexion } from './AvisoConexion';
+import { AvisoConexion, type AvisoSondeo } from './AvisoConexion';
 import { HojaAlias } from './HojaAlias';
 import { useFocoEnTitulo } from './useFocoEnTitulo';
 import type { DatosMesa, ResultadoAlias } from './useEntrada';
@@ -39,14 +39,16 @@ const VISIBLES = 5;
 
 export interface PropsBienvenida {
   datos: DatosMesa;
+  /** El único aviso a pintar (por defecto el del sondeo de la mesa): `SesionMesa` lo elige entre varios. */
+  aviso?: AvisoSondeo;
   onCambiarAlias: (alias: string) => Promise<ResultadoAlias>;
   /** Abre el menú de la mesa. */
   onVerMenu: () => void;
 }
 
 /** Tarjeta de bienvenida: restaurante, mesa, alias editable y aviso de privacidad. */
-export function Bienvenida({ datos, onCambiarAlias, onVerMenu }: PropsBienvenida) {
-  const { sesion, yo, estado, regresa, aviso } = datos;
+export function Bienvenida({ datos, aviso = datos.aviso, onCambiarAlias, onVerMenu }: PropsBienvenida) {
+  const { sesion, yo, estado, regresa } = datos;
   const titulo = useFocoEnTitulo();
   const [editando, setEditando] = useState(false);
   const restaurante = sesion.restaurante;

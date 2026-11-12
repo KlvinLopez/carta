@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ErrorApi } from '../../compartido/http';
 import { claseDeError, type ClaseError } from './errores';
-import { espejoLocal, type Espejo } from './espejo';
+import { espejoLocal, marcaDeMesa, type Espejo } from './espejo';
 import type { EntrarRespuesta, MiembroRespuesta, ServicioEntrada, SesionEstado, SesionResumen } from './servicio';
 
 /** Sondeo del estado de la mesa (ADR-004): 3 s, con retroceso si falla, pausado en segundo plano. */
 export const INTERVALO_SONDEO_MS = 3000;
 const ESPERA_MAXIMA_MS = 30_000;
+/** Entre dos eventos `online` seguidos sólo el primero adelanta el sondeo. */
+export const ESPERA_MINIMA_ONLINE_MS = 1000;
 /**
  * Una sola reentrada automática tras un 401 (cubre el token de 6 h vencido). Cada `entrar` sin
  * cookie crea un comensal: si el 401 vuelve enseguida, el navegador no guarda la cookie y no se
@@ -104,7 +106,7 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
   const aplicar = useCallback(
     (r: EntrarRespuesta) => {
       const previo = espejo.leer();
-      espejo.guardar({ miembro: r.miembro.id, sesion: r.sesion.id });
+      espejo.guardar({ miembro: r.miembro.id, sesion: r.sesion.id, slug: r.sesion.restaurante.slug, mesa: marcaDeMesa(codigo) });
       restaurante.current = r.sesion.restaurante.nombre;
       yoActual.current = r.miembro.id;
       setVista({
@@ -116,7 +118,7 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
         aviso: null,
       });
     },
-    [espejo],
+    [espejo, codigo],
   );
 
   const entrar = useCallback(async () => {
@@ -230,15 +232,24 @@ export function useEntrada(codigo: string, servicio: ServicioEntrada, espejo: Es
     const alVolver = () => {
       if (!document.hidden) programar(0);
     };
+    // Una red que parpadea manda muchos `online`: el primero pide enseguida y los que llegan en el siguiente segundo
+    // se descartan (el cupo del servidor es de 120 peticiones por minuto por comensal).
+    let ultimoOnline = Number.NEGATIVE_INFINITY;
+    const alVolverLaRed = () => {
+      const ahora = Date.now();
+      if (ahora - ultimoOnline < ESPERA_MINIMA_ONLINE_MS) return;
+      ultimoOnline = ahora;
+      alVolver();
+    };
     document.addEventListener('visibilitychange', alVolver);
-    window.addEventListener('online', alVolver);
+    window.addEventListener('online', alVolverLaRed);
     programar(0);
     return () => {
       parar = true;
       clearTimeout(timer);
       control.abort();
       document.removeEventListener('visibilitychange', alVolver);
-      window.removeEventListener('online', alVolver);
+      window.removeEventListener('online', alVolverLaRed);
     };
   }, [clave, ciclo, servicio, fallar, reentrar]);
 
