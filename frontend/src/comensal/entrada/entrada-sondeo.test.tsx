@@ -116,3 +116,25 @@ describe('sondeo del estado de la mesa', () => {
     expect(llamadasA(sim, 'entrar')).toHaveLength(1);
   });
 });
+
+describe('una red que parpadea (eventos online)', () => {
+  it('diez eventos online en medio segundo adelantan el sondeo una sola vez; pasado el segundo, otro sí cuenta', async () => {
+    const sim = await montar();
+    await avanzar(100);
+    const antes = llamadasA(sim, 'estado').length;
+    for (let i = 0; i < 10; i += 1) {
+      act(() => {
+        window.dispatchEvent(new Event('online'));
+      });
+      await avanzar(50); // cada uno con su sondeo ya resuelto: sin la espera mínima serían diez peticiones
+    }
+    expect(llamadasA(sim, 'estado').length).toBe(antes + 1);
+    await avanzar(1000);
+    const medio = llamadasA(sim, 'estado').length;
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    await avanzar(50);
+    expect(llamadasA(sim, 'estado').length).toBe(medio + 1);
+  });
+});

@@ -20,8 +20,8 @@ export { ESPERA_BUSQUEDA_MS } from './useControladorMenu';
 
 export interface PropsMenuVista {
   controlador: ControladorMenu;
-  /** Número de la mesa en la que está el comensal. */
-  mesa: number;
+  /** Número de la mesa en la que está el comensal; `null` cuando se ve la copia guardada sin haber entrado a la mesa. */
+  mesa: number | null;
   /** El último sondeo de la mesa falló (`useEntrada`): se avisa sin tapar la lista. */
   aviso?: AvisoSondeo;
   onVolver: () => void;
@@ -142,7 +142,7 @@ function MenuListo({ menu, controlador, mesa, aviso = null, onVolver, onAbrir }:
         <div className={estilos.cabecera}>
           <div className={estilos.marca}>
             <Logo nombre={menu.restaurante.nombre} url={menu.restaurante.logo_url} />
-            <p className={e.sobretitulo}>Mesa {mesa}</p>
+            {mesa !== null && <p className={e.sobretitulo}>Mesa {mesa}</p>}
           </div>
           <Boton variante="secundario" compacto onClick={onVolver}>
             Mi mesa

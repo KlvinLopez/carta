@@ -17,6 +17,8 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { archivosDeLaPrecarga, calcularArmazon, listarDist } from './armazon.mjs';
+
 const LIMITE_BYTES = 250 * 1024;
 const MINIMO_TROZOS_AREA = 3;
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -151,6 +153,40 @@ for (const [pantalla, prefijo] of [
     fallar(`\nCode splitting roto: index.html carga de inicio ${trozos.join(', ')}.`);
   }
 }
+
+// Guarda del trozo del comensal (T-2.7): lo que el worker precarga en el teléfono de cada comensal. Ni el panel
+// del operador, ni el SDK de Firebase, ni los datos simulados pueden colarse en ese grafo (ni en el bundle inicial,
+// ni en `Area-comensal-*.js` y sus dependencias): con 4G el comensal no debe bajar nada de eso.
+const MARCAS_MOCKS = ['Jx3k9QwLmN2pR7sT4vY8zA', 'req-simulado'];
+const DEL_PANEL = /(?:^|\/)(?:Area-admin|Area-personal|Pantalla[A-Z]\w*|Asistente|index\.esm)-/;
+const archivosDist = listarDist(dist);
+const comensal = archivosDist.filter((a) => /^assets\/Area-comensal-[\w-]+\.js$/.test(a));
+if (comensal.length !== 1) {
+  fallar(`\nFalta el trozo del comensal: se esperaba un dist/assets/Area-comensal-*.js y hay ${comensal.length}.`);
+}
+const grafoComensal = calcularArmazon(dist, archivosDist);
+const intrusos = [];
+for (const ruta of [...grafoComensal.js, ...grafoComensal.css]) {
+  if (DEL_PANEL.test(ruta)) intrusos.push(`${ruta} (trozo de otra área)`);
+  if (!ruta.endsWith('.js')) continue;
+  const codigo = readFileSync(join(dist, ruta), 'utf8');
+  if (MARCAS_SDK.some((marca) => codigo.includes(marca))) intrusos.push(`${ruta} (SDK de Firebase)`);
+  if (MARCAS_MOCKS.some((marca) => codigo.includes(marca))) intrusos.push(`${ruta} (datos simulados)`);
+}
+if (intrusos.length > 0) {
+  fallar(`\nEl grafo del comensal arrastra lo que no es suyo: ${intrusos.join('; ')}.`);
+}
+
+// Lo que el service worker precarga (armazón del comensal): peso comprimido de cada archivo, para vigilarlo.
+const precarga = archivosDeLaPrecarga(dist, archivosDist);
+let precargaCruda = 0;
+let precargaGzip = 0;
+for (const ruta of precarga) {
+  const contenido = readFileSync(join(dist, ruta));
+  precargaCruda += contenido.length;
+  precargaGzip += gzip(contenido);
+}
+console.log(`Precarga del service worker: ${precarga.length} archivos, ${kb(precargaCruda).trim()} crudo, ${kb(precargaGzip).trim()} gzip (sin los trozos de /admin ni Firebase)`);
 
 if (totalGzip > LIMITE_BYTES) {
   fallar(`\nPresupuesto excedido: ${kb(totalGzip)} gzip > ${kb(LIMITE_BYTES)}.`);

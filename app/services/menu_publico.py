@@ -74,7 +74,7 @@ def _etag(cuerpo: bytes) -> str:
 
 @dataclass(frozen=True)
 class FotoMenu:
-    """El menú ya serializado. `construido` es el reloj de `cache_menu` al armarlo.
+    """El menú ya serializado. `construido` es el reloj de `cache_menu` justo antes de leerlo.
     `almacenable = False`: una escritura confirmó mientras se leía, así que esta copia ya es
     vieja y ni el borde ni el navegador deben guardarla."""
 
@@ -184,10 +184,14 @@ _vuelos: dict[str, asyncio.Future[FotoMenu | None]] = {}
 
 async def _armar_y_guardar(sesion: AsyncSession, slug: str) -> FotoMenu:
     generacion = cache_menu.generacion(slug)
+    # El reloj se toma **antes** de leer la base: la edad de la copia cuenta desde el dato, no
+    # desde que terminó de armarse. Con un armado lento, contarla desde el final dejaba servir
+    # el menú más de 30 s desde la lectura y se comía el margen de AC-04.4.
+    leido = cache_menu.reloj()
     armado = await _armar(sesion, slug)
     cuerpo = armado.model_dump_json().encode()
-    foto = FotoMenu(cuerpo=cuerpo, etag=_etag(cuerpo), construido=cache_menu.reloj())
-    if not cache_menu.guardar(slug, foto, generacion):
+    foto = FotoMenu(cuerpo=cuerpo, etag=_etag(cuerpo), construido=leido)
+    if not cache_menu.guardar(slug, foto, generacion, desde=leido):
         return replace(foto, almacenable=False)
     return foto
 

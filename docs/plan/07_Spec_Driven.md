@@ -187,3 +187,27 @@ Una fase o una sesión maestra se cierra **limpia** o no se cierra. «Limpia» s
 3. Comprueba el entorno: hook de sesión en verde, `uv run pytest -q` y la puerta del frontend pasan sobre `master`; staging responde.
 4. Confirma el modelo y el presupuesto: `rate_limit_info` de cualquier sesión (`allowed_warning` = una hija a la vez) y los modelos por rol de README §Decisiones.
 5. Sólo entonces: elige la ola con `/orquestar` y lanza la primera hija.
+
+## 9. Quién fusiona: staging la maestra, producción Calvin
+
+Decisión de Calvin del 12 de noviembre de 2026: él no debe ser el cuello de botella de cada tarea. Lo que entra a `master` se despliega solo en **staging**, un ambiente controlado; ahí valida el trabajo usándolo. El código lo revisa **antes de producción**, con una guía que le diga qué mirar y por qué.
+
+### 9.1 A staging: la sesión maestra, sin esperar
+
+1. Todo sigue entrando por PR: uno por tarea integrada (o por corrección), desde la rama de la maestra, con `.github/pull_request_template.md` completo. Nunca un push directo a `master`, nunca un push forzado.
+2. La maestra **fusiona su propio PR** (commit de fusión, no *squash*: las ramas `agente/*` y su historia son el registro) cuando se cumple todo: la tarea pasó su revisión (tres lentes, hallazgos reproducidos, ronda aplicada y verificada), las puertas dan código 0, `/code-review` no deja nada abierto y **la CI del PR está en verde**. Con la CI en rojo o sin terminar, no se fusiona.
+3. Después de fusionar: espera el despliegue de staging (`scripts/railway.py estado`), prueba de humo, archiva a la hija y reinicia su rama desde `master`. Si staging se rompe, se revierte el PR o se corrige enseguida con otro; no se deja roto.
+4. Avisa a Calvin en una nota corta: qué quedó en staging y qué puede probar. Es un aviso, no una petición de permiso.
+5. La rama de una hija nunca entra a `master` sin revisar. Si Calvin fusiona algo por su cuenta, la maestra lo verifica sobre `master` y corrige hacia delante.
+
+### 9.2 Lo que sigue esperando a Calvin
+
+- **Producción:** el PR de `VERSION` sólo se abre cuando él dice la versión, sólo lo fusiona él y el despliegue espera su aprobación en GitHub. La maestra no toca `deploy.yml`, `publicar.yml` ni nada del environment `produccion` sin pedírselo.
+- **Decisiones de producto y de alcance:** lo que contradice un documento, lo de «Qué NO construir», una regla dura o un ADR. Se anota como «Pendiente de Calvin» y el comportamiento actual no cambia.
+- **Migraciones que no son compatibles hacia atrás** (rompen el rollback de producción), secretos, servicios de pago y cambios en los paneles (Railway, Cloudflare, Firebase, GitHub).
+
+### 9.3 La revisión antes de producción
+
+Cada PR lleva la sección **«Para la revisión antes de producción»**: qué mirar primero, por qué se hizo así, qué riesgo tiene y cómo se comprobó. Un PR es una tarea: cambios de un tamaño que una persona puede leer.
+
+Cuando Calvin pide una versión, el PR de `VERSION` es la **guía de revisión**: la lista de los PR fusionados desde la última etiqueta de producción, en el orden en que conviene leerlos, cada uno con una línea de qué cambia, por qué y su nivel de riesgo (leer con cuidado · hojear · sólo documentos); el enlace de comparación `v<anterior>...master`; lo que se validó en staging y lo que queda pendiente. Calvin comenta ahí o en los PR de cada tarea (GitHub admite comentarios en un PR ya fusionado); la maestra responde cada comentario y corrige con PR nuevos a staging. Cuando él queda conforme, fusiona el PR de `VERSION` y aprueba el despliegue.

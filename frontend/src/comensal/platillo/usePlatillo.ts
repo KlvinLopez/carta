@@ -78,7 +78,11 @@ export function usePlatillo({ id, servicio, enMemoria = null }: OpcionesPlatillo
   let estado: EstadoPlatillo;
   // Un id que no es un UUID no puede ser un platillo: el mismo 404, sin llamar a la API.
   if (!idValido || respuesta?.tipo === 'no_existe') estado = { fase: 'no_existe' };
-  else if (respuesta?.tipo === 'detalle') estado = { fase: 'listo', platillo: respuesta.detalle, confirmado: true, aviso: null };
+  // El menú se vuelve a leer mientras se ve (AC-04.4): su `disponible` es más reciente que el del detalle ya pedido.
+  else if (respuesta?.tipo === 'detalle') {
+    const platillo = enMemoria ? { ...respuesta.detalle, disponible: enMemoria.disponible } : respuesta.detalle;
+    estado = { fase: 'listo', platillo, confirmado: true, aviso: null };
+  }
   else if (enMemoria) {
     estado = {
       fase: 'listo',

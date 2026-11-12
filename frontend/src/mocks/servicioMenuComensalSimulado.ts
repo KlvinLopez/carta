@@ -140,7 +140,8 @@ export interface OpcionesMenuSimulado {
 
 /** Servicio del menú en memoria. `retener()` deja la respuesta pendiente hasta llamar a lo que devuelve. */
 export function crearServicioMenuSimulado(opciones: OpcionesMenuSimulado = {}) {
-  const menu = opciones.menu ?? crearMenuSemilla();
+  let menu = opciones.menu ?? crearMenuSemilla();
+  let deCopia = false;
   const llamadas: { slug: string }[] = [];
   const senales: AbortSignal[] = [];
   let espera: Promise<void> | null = null;
@@ -154,14 +155,24 @@ export function crearServicioMenuSimulado(opciones: OpcionesMenuSimulado = {}) {
       const unaVez = pendientes.shift();
       if (unaVez) throw unaVez;
       if (opciones.error) throw opciones.error;
-      return structuredClone(menu);
+      return deCopia ? { ...structuredClone(menu), deCopia: true } : structuredClone(menu);
     },
   };
   return {
     servicio,
     llamadas,
     senales,
-    menu,
+    get menu() {
+      return menu;
+    },
+    /** Lo que el servidor devuelve de aquí en adelante (un platillo agotado, uno que ya no está…). */
+    reemplazar(nuevo: MenuPublico) {
+      menu = nuevo;
+    },
+    /** Las respuestas que siguen salen de la copia del service worker (la red falló). */
+    servirDeCopia(si: boolean) {
+      deCopia = si;
+    },
     /** La próxima petición falla con este error; las siguientes responden bien. */
     fallarUnaVez(error: ErrorApi) {
       pendientes.push(error);

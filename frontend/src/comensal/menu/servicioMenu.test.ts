@@ -83,3 +83,17 @@ describe('servicio del menú', () => {
     expect(esMenuPublico(con({ etiquetas: [1] }))).toBe(false);
   });
 });
+
+describe('servicio del menú: la señal de copia del service worker', () => {
+  it.each([
+    ['1', true],
+    ['0', undefined],
+    [null, undefined],
+    ['true', undefined],
+  ])('X-Carta-Copia: %s → deCopia %s', async (valor, esperado) => {
+    const cabeceras: Record<string, string> = valor === null ? {} : { 'X-Carta-Copia': valor };
+    const buscar = vi.fn(async () => json(crearMenuSemilla(), 200, cabeceras));
+    const menu = await crearServicioMenu(buscar as unknown as typeof fetch).menu('la-ceiba');
+    expect(menu.deCopia).toBe(esperado);
+  });
+});
