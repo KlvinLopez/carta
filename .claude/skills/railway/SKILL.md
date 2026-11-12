@@ -107,6 +107,12 @@ cambia el esquema, se lee por introspección (`{ __schema { queryType { fields {
   `VITE_FIREBASE_*` se hornean al construir: tras cambiarlas hace falta el redespliegue.
   Después, compara la CSP con la de producción (`/desplegar`).
 - **`redesplegar` no es un rollback:** repite el último despliegue con las variables de ahora.
+- **`respaldo` es un servicio programado:** desplegarlo o `redesplegar respaldo` sólo construye
+  la imagen (`SUCCESS` con «0 líneas» de ejecución no es un fallo ni una corrida). El contenedor
+  corre a su hora (`0 4 * * *`, 04:00 UTC) o con **Run now** en el panel, que es de Calvin. Un
+  arreglo del respaldo se comprueba con `logs respaldo` después de las 04:00 UTC (deja un
+  check-in con `send_later`), no al fusionar. Sólo se redespliega solo cuando cambia
+  `deploy/respaldo/` (*Watch Paths*).
 
 ## Lecciones (11 de noviembre de 2026, primera corrida contra staging y su revisión)
 
