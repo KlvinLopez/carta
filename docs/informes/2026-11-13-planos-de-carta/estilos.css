@@ -145,3 +145,9 @@ section.salto > .tarjeta + .tarjeta { margin-top: 3mm; }
 table.matriz td { white-space: nowrap; }
 em { font-style: normal; font-family: "DM Serif Display", serif; color: var(--vino); }
 .fu { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 1.6px dashed var(--vino); vertical-align: -1px; }
+
+.cita { color: var(--carbon-suave); font-size: 0.86em; white-space: normal; }
+.cifra .cita, .cifra span .cita { display: inline; font-size: 7.4pt; }
+ul.refs { font-size: 7.2pt; line-height: 1.28; padding-left: 4mm; }
+ul.refs li { margin-bottom: 1.2mm; }
+ul.refs code { font-size: 7pt; word-break: break-all; }
