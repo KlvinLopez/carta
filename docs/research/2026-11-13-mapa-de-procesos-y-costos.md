@@ -1,6 +1,6 @@
 # Mapa de procesos, costo de alta y simulación de uso por plan
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/mapa-de-procesos-y-simulador` · **Estado:** investigación y modelo (**ronda 2 del 13 de noviembre: plan Hobby, dos entornos, eventos medidos, foto y 3D, auditoría de fuentes**); no toca código, contrato ni documentos de plan (salvo una fila en `04 §11`). No se mandó carga a staging ni a producción. El simulador es `2026-11-13-simulador-de-uso.py` (junto a este informe); todas las tablas de la sección 4 salen de él (`python3 docs/research/2026-11-13-simulador-de-uso.py`, ~20 s, semilla fija).
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/mapa-de-procesos-y-simulador` · **Estado:** investigación y modelo (**ronda 2 del 13 de noviembre: plan Hobby, dos entornos, eventos medidos, foto y 3D, auditoría de fuentes; ronda 3: memoria de PostgreSQL deducida de la factura real de Railway**); no toca código, contrato ni documentos de plan (salvo una fila en `04 §11`). No se mandó carga a staging ni a producción. El simulador es `2026-11-13-simulador-de-uso.py` (junto a este informe); todas las tablas de la sección 4 salen de él (`python3 docs/research/2026-11-13-simulador-de-uso.py`, ~20 s, semilla fija).
 
 Cada cifra lleva su marca: **[medida aquí]** (la medí hoy en un contenedor local de 4 núcleos), **[documento]** (la dice un documento del repositorio; se nombra), **[fuente externa]** (página leída hoy, con enlace) o **[estimada]** (con su supuesto). **[PENDIENTE]** = lo medirá otra rama o la T-4.4; se usó un valor conservador. **Margen de error general: ±2×** en todo lo que depende del CPU de Railway (no medido allí) y en lo que depende de qué parte de los comensales abre la app y deja la pantalla encendida (nadie lo ha medido).
 
@@ -8,7 +8,7 @@ Cada cifra lleva su marca: **[medida aquí]** (la medí hoy en un contenedor loc
 
 ## 0. Para Calvin
 
-**Es un modelo, no una prueba.** Predice hasta dónde llegan los servicios que pagas hoy: **Railway Hobby, dos entornos encendidos (staging y producción), Cloudflare gratuito y 25 USD al año del dominio.** Tu factura real del mes es **dato pendiente de Calvin**; mientras llega, la sección 4.12 da la curva al revés: cuántos restaurantes caben si la factura no pasa de 5, 10, 15, 20 o 40 USD.
+**Es un modelo, no una prueba.** Predice hasta dónde llegan los servicios que pagas hoy: **Railway Hobby, dos entornos encendidos (staging y producción), Cloudflare gratuito y 25 USD al año del dominio.** Tu factura real llegó el 13 de noviembre (0.6422 USD acumulados; ronda 3) y con ella la sección 4.12 da la curva al revés: cuántos restaurantes caben si la factura no pasa de 5, 10, 15, 20 o 40 USD.
 
 ### Qué está medido o documentado y qué es supuesto
 
@@ -17,7 +17,7 @@ Cada cifra lleva su marca: **[medida aquí]** (la medí hoy en un contenedor loc
 | CPU por petición de sondeo, escritura y entrar (3.3 / 6 ms, medido local) | CPU real en Railway (±2×), CPU de la vista del personal (10 ms) |
 | Costo de un PIN: 131 ms de CPU y 64 MiB (medido hoy con el servicio real) | Cuántos comensales abren la app (60 %) y cuántos tienen la pantalla encendida por fase |
 | Eventos: respaldo 60 s, latido 25 s, 0.09 ms y 4.2 ms (medido, informe de eventos) | Tamaño de los restaurantes (mesas, comensales por mesa, visitas, horarios) y su coincidencia |
-| Precios y límites de Railway Hobby, Cloudflare, R2, Firebase y la API de Claude (leídos el 13 de noviembre) | Memoria de PostgreSQL en Railway y `max_connections` (la página no los da) |
+| Precios y límites de Railway Hobby, Cloudflare, R2, Firebase y la API de Claude (leídos el 13 de noviembre) | Reparto de la memoria entre servicios (la factura real da el total por entorno) y `max_connections` |
 | Tamaño de fotos (medido) y presupuesto del `.glb` de 4 MB (documento) | Tamaño del original de una foto de teléfono (3 MB), bytes por visita en la base (12 KB) |
 | Platillos por carta: 148 cartas, mediana 44, p90 82 (rama de estadística) | Personal y mesas por tamaño de negocio (modelo con supuestos) |
 | Topes de plan, lecturas de PDF y retención (decididos por ti) | Cuántos restaurantes se registran y cuántos operan cada día (60 %) |
@@ -40,7 +40,7 @@ Con Railway Hobby y **2 procesos** de la API, con 95 % de probabilidad de que la
 
 **Lo que de verdad cabe es el menor de las dos columnas:** con la forma de hoy, **65 en el peor caso, 148 gratuitos típicos y 17 de paga** (el caso base lo frena el disco, no el procesador, porque en paga se guardan 12 meses de historial). Con retención de 30 días también en paga el caso base subiría a ≈ 212 por el disco, y entonces manda el CPU (55).
 
-**La factura:** con la memoria de PostgreSQL desconocida, **el piso es 6.40 USD al mes** (sólo la RAM medida de la API en dos entornos); con 0.5 GB de PostgreSQL por entorno (ilustrativo) sería 16.40. En ambos casos **el tráfico suma poco**: ≈ 0.08–0.24 USD por restaurante al mes con la forma de hoy. **Si Postgres pesa casi nada (cota), con 10 USD de tope caben entre 3 y 44 y con 20 USD caben todos los que el CPU y el disco dejan; si pesa 0.5 GB por entorno, eso mismo pasa con 20 y 40 USD** (sección 4.12). Pasado el piso, el dinero no es el límite en Hobby; los muros son el CPU y el disco.
+**La factura (ronda 3, con el dato real de Railway):** la captura de «Usage» del 13 de noviembre (0.6422 USD acumulados) proyecta **≈ 8.5 USD al mes (7.6–9.5)** sin tráfico con los dos entornos, y deja deducir la memoria de PostgreSQL y el respaldo: **≈ 0.085 GB por entorno (0.045–0.135)**, que sustituye al supuesto (antes cota 0 o ilustrativo 0.5). El piso del simulador queda en **8.10 USD**. **El tráfico suma poco**: ≈ 0.08–0.24 USD por restaurante al mes con la forma de hoy y 0.01–0.07 con eventos. Con 10 USD de tope caben 8–23 con la forma de hoy y 17–145 con eventos; **con 20 USD caben casi todos los que el CPU y el disco dejan** (sección 4.12). Pasado el piso, el dinero no es el límite en Hobby; los muros son el CPU y el disco.
 
 **Qué se rompe primero:** (1) el procesador de la API; (2) el disco de 5 GB en cuanto hay restaurantes de paga con 12 meses de historial; (3) la regla de Cloudflare sólo con el plan de paga al tope.
 
@@ -49,7 +49,7 @@ Con Railway Hobby y **2 procesos** de la API, con 95 % de probabilidad de que la
 - **Un proceso de la API es un cajero.** Atiende las peticiones de una en una y sólo usa un núcleo del servidor. Hoy hay **2 cajeros** (`WORKERS=2`); cuando los dos están ocupados, la gente hace fila y las respuestas tardan segundos.
 - **Subir a 4 es contratar 2 cajeros más** en la misma ventanilla: es una variable en Railway (`WORKERS=4`), no código. No cambia lo que hace la app, sólo cuántas peticiones atiende a la vez.
 - **Cuánto sube el tope:** de ≈ 2 a ≈ 3.6 núcleos útiles, **+85 %** en el modelo (148 → 272 gratuitos típicos, 55 → 100 de paga). El 3.6 sale del ×1.8 del documento de capacidad, que **es estimado**: no se ha medido en Railway ni se sabe cuántos núcleos entrega Hobby a un servicio.
-- **Cuánto sube la factura en Hobby:** sólo la memoria de los 2 procesos nuevos, 0.32 GB × 10 USD = **≈ 3.2 USD al mes** (el CPU se cobra por uso y el trabajo total es el mismo). Es parte del uso: mientras el uso no pase de 5 USD, Hobby no cobra de más; con dos entornos ya se pasa (piso 6.40 USD).
+- **Cuánto sube la factura en Hobby:** sólo la memoria de los 2 procesos nuevos, 0.32 GB × 10 USD = **≈ 3.2 USD al mes** (el CPU se cobra por uso y el trabajo total es el mismo). Es parte del uso: mientras el uso no pase de 5 USD, Hobby no cobra de más; con dos entornos ya se pasa (piso 8.10 USD con la memoria deducida de la factura real).
 - **Por qué no hace falta hoy:** sin restaurantes reales la carga es ≈ 0. **Sí antes del primer restaurante real,** porque cambiar procesos obliga a bajar el conjunto de conexiones a la base (de 10+10 a 5+5 por proceso, para no pasar de ≈ 100 conexiones, que además **no está verificado**) y conviene probarlo con tiempo, no el día que llega el tráfico.
 
 ### Costo de alta por actor (una vez; §3)
@@ -67,7 +67,7 @@ Con todos los platillos de cada plan en su tope (80 gratuito, 300 paga): **un re
 
 ### Dinero (lo que cuesta sostener)
 
-Con Hobby, sostener lo que cabe hoy es **la factura Hobby mínima más pocos dólares** (piso 6.40 USD; el tráfico de hasta 148 gratuitos suma ≈ 12 USD). Sostener 500 o 1,000 requiere salir del disco de 5 GB (Pro, 20 USD) y más procesos (§4.9): 1,000 gratuitos típicos ≈ 29 USD de uso con eventos o ≈ 117 USD con el sondeo de hoy; 1,000 de paga ≈ 89 USD con eventos o ≈ 304 USD hoy (con PostgreSQL de 0.5 GB ilustrativo). **Un restaurante de paga a 349 pesos (18.7 USD) cubre a ≈ 100 gratuitos.**
+Con Hobby, sostener lo que cabe hoy es **la factura Hobby mínima más pocos dólares** (piso 8.10 USD con la memoria deducida de la factura real; con 148 gratuitos la factura llega a ≈ 20 USD). Sostener 500 o 1,000 requiere salir del disco de 5 GB (Pro, 20 USD) y más procesos (§4.9): 1,000 gratuitos típicos ≈ 29 USD de uso con eventos o ≈ 117 USD con el sondeo de hoy; 1,000 de paga ≈ 89 USD con eventos o ≈ 304 USD hoy (con PostgreSQL de 0.5 GB ilustrativo; con los 0.085 GB deducidos de la factura real son ≈ 8 USD menos). **Un restaurante de paga a 349 pesos (18.7 USD) cubre a ≈ 100 gratuitos.**
 
 ### Eventos (medidos)
 
@@ -196,7 +196,7 @@ Convertido a pesos con 18.6188 MXN por USD (FIX Banxico del 12 de noviembre **[d
 | **PDF de QR** | 46 ms (8 mesas) a 0.77 s (150) | 5.3 KB por mesa; no se guarda | ≈ 0 | ≈ 0 | segundos | [medida] |
 | Personal (3 en gratuito, 20 en paga) | **0.4 s (3) a 2.6 s (20)** de CPU: 131 ms por PIN | 1 fila por persona | ≈ 0.000003–0.00002 | ≈ 0 | segundos por persona | [medida aquí] |
 | Almacenamiento inicial (base + fotos) | — | ≈ 18 MB (chico) a ≈ 170 MB (grande/formal) | 0.0003–0.003 /mes en R2 | ≈ 0.005–0.05 | — | [documento: planes §2.2] |
-| **Su parte de la base fija** | — | — | con Hobby, el piso de 6.40 USD (RAM de la API en 2 entornos, medida) entre los restaurantes registrados: 0.06 USD con 100 (la planes §6.3 usaba Pro y 54 USD) | ≈ 1.2 | — | [medida] + [externa: Railway Hobby]; memoria de PostgreSQL: **dato pendiente** |
+| **Su parte de la base fija** | — | — | con Hobby, el piso de 8.10 USD (RAM de API y PostgreSQL en 2 entornos, deducida de la factura real del 13 de noviembre) entre los restaurantes registrados: 0.08 USD con 100 (la planes §6.3 usaba Pro y 54 USD) | ≈ 1.2 | — | [dato de Calvin] + [externa: Railway Hobby]; desglose por servicio: **dato pendiente** |
 | **Total de alta típico (gratuito)** | ≈ 3–15 s | ≈ 20–100 MB | **≈ 0.4–0.5** | **≈ 8–10** | **< 10 min** [documento] | |
 
 Casi todo el costo de alta es **una cosa: la lectura del PDF con IA** (≥ 95 % del dólar). El resto es centavos de milésima.
@@ -361,7 +361,7 @@ Del simulador (Opus 5.5, 6 páginas medias, ×1.3 por reintentos): lecturas **de
 
 ### 4.9 Si se necesitaran 500 o 1,000 restaurantes (por forma de entrega)
 
-Más allá de los muros de Hobby: 500 gratuitos típicos guardan ≈ 8 GB y los de paga con 12 meses de historial ≈ 143 GB por cada 500, así que **hay que pasar a Pro (volumen hasta 1 TB)**. Núcleos (p95) y **uso de Railway al mes** (staging se queda en 2 procesos; PostgreSQL de 0.5 GB por entorno, **ilustrativo: dato pendiente**); la factura Pro es 20 USD + el exceso sobre 20 USD de uso. Si el uso pasa de ≈ 24 vCPU habría que repartir en réplicas (la página de planes sólo da máximos por servicio que incluyen réplicas).
+Más allá de los muros de Hobby: 500 gratuitos típicos guardan ≈ 8 GB y los de paga con 12 meses de historial ≈ 143 GB por cada 500, así que **hay que pasar a Pro (volumen hasta 1 TB)**. Núcleos (p95) y **uso de Railway al mes** (staging se queda en 2 procesos; PostgreSQL de 0.5 GB por entorno, **ilustrativo**; ronda 3: la factura real da ≈ 0.085 GB sin tráfico, así que a escala la cifra útil es la de una base con datos, que sigue sin medirse); la factura Pro es 20 USD + el exceso sobre 20 USD de uso. Si el uso pasa de ≈ 24 vCPU habría que repartir en réplicas (la página de planes sólo da máximos por servicio que incluyen réplicas).
 
 | N | Escenario | Hoy | Por fase + palancas | Eventos medidos |
 |---|---|---|---|---|
@@ -374,7 +374,7 @@ Más allá de los muros de Hobby: 500 gratuitos típicos guardan ≈ 8 GB y los 
 
 Comensales por día con 1,000 gratuitos típicos ≈ 114,000 (3.4 millones al mes), 9,575 mesas, 40,000 platillos; con 1,000 de paga ≈ 190,000 (5.7 millones), 25,600 mesas, 72,000 platillos.
 
-**¿Dan los números?** Ingreso del caso base: 349 pesos antes de IVA = 18.74 USD por restaurante. Con Hobby, lo que cabe hoy cuesta de 6.40 a ≈ 20 USD al mes en total. **Un restaurante de paga cubre a ≈ 100 gratuitos** (planes §6.4). El servidor de hoy aguanta un piloto serio (≈ 17–50 de paga o ≈ 65–148 gratuitos a la vez); para cientos hacen falta 4 procesos, Pro (disco) y el sondeo por fase o los eventos.
+**¿Dan los números?** Ingreso del caso base: 349 pesos antes de IVA = 18.74 USD por restaurante. Con Hobby, lo que cabe hoy cuesta de 8.10 a ≈ 21 USD al mes en total. **Un restaurante de paga cubre a ≈ 100 gratuitos** (planes §6.4). El servidor de hoy aguanta un piloto serio (≈ 17–50 de paga o ≈ 65–148 gratuitos a la vez); para cientos hacen falta 4 procesos, Pro (disco) y el sondeo por fase o los eventos.
 
 ### 4.10 Sensibilidad: qué supuesto mueve más el resultado
 
@@ -406,93 +406,105 @@ La T-4.4 confirmaría, en orden de efecto sobre el resultado: (1) `S_MS` real en
 
 ### 4.12 Curva inversa: cuántos caben si la factura no pasa de B USD al mes
 
-Dos versiones según la memoria de PostgreSQL y el respaldo en Railway, que es **dato pendiente de Calvin** (la factura real y las métricas de staging la dan). La **primera es cota inferior** (PostgreSQL = 0 GB: sólo cuenta la RAM medida de la API); la **segunda es ilustrativa** (0.5 GB por entorno). Cada celda: N y el muro que manda (C = procesador, D = disco de 5 GB, $ = la factura).
+Ronda 3 (13 de noviembre): la memoria de PostgreSQL ya no es supuesto libre; se deduce de la factura real (antes había dos versiones, cota 0 GB e ilustrativa 0.5 GB, que esta sustituye). Cada celda: N y el muro que manda (C = procesador, D = disco de 5 GB, $ = la factura).
 
-**A. Cota inferior (PostgreSQL = 0 GB)**
+**Memoria deducida de la factura real de Railway** (captura de Calvin, «Usage by Project», 13 de noviembre ≈ 04:35 UTC, acumulado 0.6422 USD) **[dato de Calvin + estimada]**:
 
-Hobby: 5 USD de suscripción que incluyen 5 USD de uso; factura = 5 + exceso de uso sobre 5. 2 entornos encendidos. Memoria de PostgreSQL y respaldo en Railway = 0.0 GB por entorno (**dato pendiente de Calvin**: la factura real). Muros que no dependen del dinero: CPU de 2 procesos y disco de 5 GB.
+Suma de las partidas: 0.6409 USD (la captura dice 0.6422 USD).
 
-Piso sin tráfico: uso 6.40 USD (RAM de 2 × 2 procesos de API) → factura 6.40 USD. Si B < piso, no cabe ninguno.
+| Producción desde | Minutos-entorno | Memoria media por entorno GB | PostgreSQL + respaldo GB (menos la API medida) | Volumen medio GB | vCPU medio | Proyección USD/mes (2 entornos, 30 días) |
+|---|---|---|---|---|---|---|
+| 11-nov 00:00 | 7,260 | 0.365 | 0.045 | 0.263 | 0.0061 | 7.64 |
+| 11-nov 12:00 (central) | 6,540 | 0.405 | 0.085 | 0.292 | 0.0067 | 8.48 |
+| 11-nov 23:59 | 5,821 | 0.455 | 0.135 | 0.328 | 0.0076 | 9.53 |
+
+Supuestos: el ciclo de cobro empezó antes del 10-nov (si empezó después, la ventana es más corta y la memoria por entorno sale mayor); los dos entornos pesan lo mismo sin tráfico; la API pesa en Railway lo que se midió en local (0.16 GB por proceso). **Dato por conseguir:** inicio del ciclo y costo por servicio (panel de Railway → Usage, desglose por servicio).
+
+**A. Central (PostgreSQL y respaldo = 0.085 GB por entorno)**
+
+Hobby: 5 USD de suscripción que incluyen 5 USD de uso; factura = 5 + exceso de uso sobre 5. 2 entornos encendidos. Memoria de PostgreSQL y respaldo en Railway = 0.085 GB por entorno (deducida de la factura real del 13-nov; ver la tabla anterior). Muros que no dependen del dinero: CPU de 2 procesos y disco de 5 GB.
+
+Piso sin tráfico: uso 8.10 USD (RAM de 2 entornos: API y PostgreSQL) → factura 8.10 USD. Si B < piso, no cabe ninguno.
 
 **Hoy (sondeo de 3 s)** — N (muro que manda: C = CPU, D = disco, $ = factura)
 
 | Escenario | ≤ 5 USD | ≤ 10 USD | ≤ 15 USD | ≤ 20 USD | ≤ 40 USD | USD marginal por restaurante |
 |---|---|---|---|---|---|---|
-| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 21 ($) | 51 ($) | 65 (C) | 65 (C) | 0.166 |
-| Peor caso + todos coinciden a la vez | 0 ($) | 12 ($) | 30 ($) | 41 (C) | 41 (C) | 0.278 |
-| Todos gratuitos, típicos | 0 ($) | 44 ($) | 105 ($) | 148 (C) | 148 (C) | 0.081 |
-| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 37 ($) | 89 ($) | 126 (C) | 126 (C) | 0.096 |
-| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 32 ($) | 77 ($) | 85 (D) | 85 (D) | 0.111 |
-| Caso base: todos de paga, típicos | 0 ($) | 15 ($) | 17 (D) | 17 (D) | 17 (D) | 0.237 |
-| Todos de paga al tope (40 mesas × 12) | 0 ($) | 3 ($) | 7 ($) | 8 (C) | 8 (C) | 1.143 |
+| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 11 ($) | 41 ($) | 65 (C) | 65 (C) | 0.166 |
+| Peor caso + todos coinciden a la vez | 0 ($) | 6 ($) | 24 ($) | 41 (C) | 41 (C) | 0.278 |
+| Todos gratuitos, típicos | 0 ($) | 23 ($) | 84 ($) | 146 ($) | 148 (C) | 0.081 |
+| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 19 ($) | 72 ($) | 124 ($) | 126 (C) | 0.096 |
+| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 17 ($) | 62 ($) | 85 (D) | 85 (D) | 0.111 |
+| Caso base: todos de paga, típicos | 0 ($) | 8 ($) | 17 (D) | 17 (D) | 17 (D) | 0.237 |
+| Todos de paga al tope (40 mesas × 12) | 0 ($) | 1 ($) | 6 ($) | 8 (C) | 8 (C) | 1.143 |
 
 **Sondeo por fase + palancas de CPU** — N (muro que manda: C = CPU, D = disco, $ = factura)
 
 | Escenario | ≤ 5 USD | ≤ 10 USD | ≤ 15 USD | ≤ 20 USD | ≤ 40 USD | USD marginal por restaurante |
 |---|---|---|---|---|---|---|
-| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 33 ($) | 80 ($) | 126 ($) | 147 (C) | 0.107 |
-| Peor caso + todos coinciden a la vez | 0 ($) | 20 ($) | 47 ($) | 75 ($) | 89 (C) | 0.180 |
-| Todos gratuitos, típicos | 0 ($) | 62 ($) | 150 ($) | 237 ($) | 299 (D) | 0.057 |
-| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 53 ($) | 127 ($) | 135 (D) | 135 (D) | 0.067 |
-| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 46 ($) | 85 (D) | 85 (D) | 85 (D) | 0.078 |
-| Caso base: todos de paga, típicos | 0 ($) | 17 (D) | 17 (D) | 17 (D) | 17 (D) | 0.169 |
-| Todos de paga al tope (40 mesas × 12) | 0 ($) | 5 ($) | 9 (D) | 9 (D) | 9 (D) | 0.708 |
+| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 17 ($) | 64 ($) | 110 ($) | 147 (C) | 0.107 |
+| Peor caso + todos coinciden a la vez | 0 ($) | 10 ($) | 38 ($) | 66 ($) | 89 (C) | 0.180 |
+| Todos gratuitos, típicos | 0 ($) | 33 ($) | 120 ($) | 207 ($) | 299 (D) | 0.057 |
+| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 28 ($) | 102 ($) | 135 (D) | 135 (D) | 0.067 |
+| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 24 ($) | 85 (D) | 85 (D) | 85 (D) | 0.078 |
+| Caso base: todos de paga, típicos | 0 ($) | 11 ($) | 17 (D) | 17 (D) | 17 (D) | 0.169 |
+| Todos de paga al tope (40 mesas × 12) | 0 ($) | 2 ($) | 9 (D) | 9 (D) | 9 (D) | 0.708 |
 
 **Eventos con respaldo (medidos, sin palancas)** — N (muro que manda: C = CPU, D = disco, $ = factura)
 
 | Escenario | ≤ 5 USD | ≤ 10 USD | ≤ 15 USD | ≤ 20 USD | ≤ 40 USD | USD marginal por restaurante |
 |---|---|---|---|---|---|---|
-| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 124 ($) | 240 (D) | 240 (D) | 240 (D) | 0.029 |
-| Peor caso + todos coinciden a la vez | 0 ($) | 75 ($) | 146 (D) | 146 (D) | 146 (D) | 0.048 |
-| Todos gratuitos, típicos | 0 ($) | 275 ($) | 299 (D) | 299 (D) | 299 (D) | 0.013 |
-| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 135 (D) | 135 (D) | 135 (D) | 135 (D) | 0.018 |
+| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 65 ($) | 239 ($) | 240 (D) | 240 (D) | 0.029 |
+| Peor caso + todos coinciden a la vez | 0 ($) | 39 ($) | 144 ($) | 146 (D) | 146 (D) | 0.048 |
+| Todos gratuitos, típicos | 0 ($) | 145 ($) | 299 (D) | 299 (D) | 299 (D) | 0.013 |
+| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 108 ($) | 135 (D) | 135 (D) | 135 (D) | 0.018 |
 | Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 85 (D) | 85 (D) | 85 (D) | 85 (D) | 0.022 |
 | Caso base: todos de paga, típicos | 0 ($) | 17 (D) | 17 (D) | 17 (D) | 17 (D) | 0.068 |
-| Todos de paga al tope (40 mesas × 12) | 0 ($) | 9 (D) | 9 (D) | 9 (D) | 9 (D) | 0.237 |
+| Todos de paga al tope (40 mesas × 12) | 0 ($) | 8 ($) | 9 (D) | 9 (D) | 9 (D) | 0.237 |
 
-**B. Ilustrativa (PostgreSQL de 0.5 GB por entorno)**
+**B. Alta (0.135 GB por entorno: producción desplegada al final del 11 de noviembre)**
 
-Hobby: 5 USD de suscripción que incluyen 5 USD de uso; factura = 5 + exceso de uso sobre 5. 2 entornos encendidos. Memoria de PostgreSQL y respaldo en Railway = 0.5 GB por entorno (**dato pendiente de Calvin**: la factura real). Muros que no dependen del dinero: CPU de 2 procesos y disco de 5 GB.
+Hobby: 5 USD de suscripción que incluyen 5 USD de uso; factura = 5 + exceso de uso sobre 5. 2 entornos encendidos. Memoria de PostgreSQL y respaldo en Railway = 0.135 GB por entorno (deducida de la factura real del 13-nov; ver la tabla anterior). Muros que no dependen del dinero: CPU de 2 procesos y disco de 5 GB.
 
-Piso sin tráfico: uso 16.40 USD (RAM de 2 × 2 procesos de API) → factura 16.40 USD. Si B < piso, no cabe ninguno.
+Piso sin tráfico: uso 9.10 USD (RAM de 2 entornos: API y PostgreSQL) → factura 9.10 USD. Si B < piso, no cabe ninguno.
 
 **Hoy (sondeo de 3 s)** — N (muro que manda: C = CPU, D = disco, $ = factura)
 
 | Escenario | ≤ 5 USD | ≤ 10 USD | ≤ 15 USD | ≤ 20 USD | ≤ 40 USD | USD marginal por restaurante |
 |---|---|---|---|---|---|---|
-| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 0 ($) | 0 ($) | 21 ($) | 65 (C) | 0.166 |
-| Peor caso + todos coinciden a la vez | 0 ($) | 0 ($) | 0 ($) | 12 ($) | 41 (C) | 0.278 |
-| Todos gratuitos, típicos | 0 ($) | 0 ($) | 0 ($) | 44 ($) | 148 (C) | 0.081 |
-| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 0 ($) | 0 ($) | 37 ($) | 126 (C) | 0.096 |
-| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 0 ($) | 0 ($) | 32 ($) | 85 (D) | 0.111 |
-| Caso base: todos de paga, típicos | 0 ($) | 0 ($) | 0 ($) | 15 ($) | 17 (D) | 0.237 |
-| Todos de paga al tope (40 mesas × 12) | 0 ($) | 0 ($) | 0 ($) | 3 ($) | 8 (C) | 1.143 |
+| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 5 ($) | 35 ($) | 65 (C) | 65 (C) | 0.166 |
+| Peor caso + todos coinciden a la vez | 0 ($) | 3 ($) | 21 ($) | 39 ($) | 41 (C) | 0.278 |
+| Todos gratuitos, típicos | 0 ($) | 11 ($) | 72 ($) | 134 ($) | 148 (C) | 0.081 |
+| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 9 ($) | 61 ($) | 113 ($) | 126 (C) | 0.096 |
+| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 8 ($) | 53 ($) | 85 (D) | 85 (D) | 0.111 |
+| Caso base: todos de paga, típicos | 0 ($) | 3 ($) | 17 (D) | 17 (D) | 17 (D) | 0.237 |
+| Todos de paga al tope (40 mesas × 12) | 0 ($) | 0 ($) | 5 ($) | 8 (C) | 8 (C) | 1.143 |
 
 **Sondeo por fase + palancas de CPU** — N (muro que manda: C = CPU, D = disco, $ = factura)
 
 | Escenario | ≤ 5 USD | ≤ 10 USD | ≤ 15 USD | ≤ 20 USD | ≤ 40 USD | USD marginal por restaurante |
 |---|---|---|---|---|---|---|
-| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 0 ($) | 0 ($) | 33 ($) | 147 (C) | 0.107 |
-| Peor caso + todos coinciden a la vez | 0 ($) | 0 ($) | 0 ($) | 20 ($) | 89 (C) | 0.180 |
-| Todos gratuitos, típicos | 0 ($) | 0 ($) | 0 ($) | 62 ($) | 299 (D) | 0.057 |
-| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 0 ($) | 0 ($) | 53 ($) | 135 (D) | 0.067 |
-| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 0 ($) | 0 ($) | 46 ($) | 85 (D) | 0.078 |
-| Caso base: todos de paga, típicos | 0 ($) | 0 ($) | 0 ($) | 17 (D) | 17 (D) | 0.169 |
-| Todos de paga al tope (40 mesas × 12) | 0 ($) | 0 ($) | 0 ($) | 5 ($) | 9 (D) | 0.708 |
+| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 8 ($) | 54 ($) | 101 ($) | 147 (C) | 0.107 |
+| Peor caso + todos coinciden a la vez | 0 ($) | 5 ($) | 32 ($) | 60 ($) | 89 (C) | 0.180 |
+| Todos gratuitos, típicos | 0 ($) | 15 ($) | 103 ($) | 190 ($) | 299 (D) | 0.057 |
+| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 13 ($) | 87 ($) | 135 (D) | 135 (D) | 0.067 |
+| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 11 ($) | 75 ($) | 85 (D) | 85 (D) | 0.078 |
+| Caso base: todos de paga, típicos | 0 ($) | 5 ($) | 17 (D) | 17 (D) | 17 (D) | 0.169 |
+| Todos de paga al tope (40 mesas × 12) | 0 ($) | 1 ($) | 8 ($) | 9 (D) | 9 (D) | 0.708 |
 
 **Eventos con respaldo (medidos, sin palancas)** — N (muro que manda: C = CPU, D = disco, $ = factura)
 
 | Escenario | ≤ 5 USD | ≤ 10 USD | ≤ 15 USD | ≤ 20 USD | ≤ 40 USD | USD marginal por restaurante |
 |---|---|---|---|---|---|---|
-| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 0 ($) | 0 ($) | 124 ($) | 240 (D) | 0.029 |
-| Peor caso + todos coinciden a la vez | 0 ($) | 0 ($) | 0 ($) | 75 ($) | 146 (D) | 0.048 |
-| Todos gratuitos, típicos | 0 ($) | 0 ($) | 0 ($) | 275 ($) | 299 (D) | 0.013 |
-| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 0 ($) | 0 ($) | 135 (D) | 135 (D) | 0.018 |
-| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 0 ($) | 0 ($) | 85 (D) | 85 (D) | 0.022 |
-| Caso base: todos de paga, típicos | 0 ($) | 0 ($) | 0 ($) | 17 (D) | 17 (D) | 0.068 |
-| Todos de paga al tope (40 mesas × 12) | 0 ($) | 0 ($) | 0 ($) | 9 (D) | 9 (D) | 0.237 |
+| Peor caso: todos gratuitos al tope (10 mesas × 6) | 0 ($) | 31 ($) | 204 ($) | 240 (D) | 240 (D) | 0.029 |
+| Peor caso + todos coinciden a la vez | 0 ($) | 18 ($) | 123 ($) | 146 (D) | 146 (D) | 0.048 |
+| Todos gratuitos, típicos | 0 ($) | 68 ($) | 299 (D) | 299 (D) | 299 (D) | 0.013 |
+| Mezcla 90 % gratuitos / 10 % paga | 0 ($) | 51 ($) | 135 (D) | 135 (D) | 135 (D) | 0.018 |
+| Mezcla 80 % gratuitos / 20 % paga | 0 ($) | 40 ($) | 85 (D) | 85 (D) | 85 (D) | 0.022 |
+| Caso base: todos de paga, típicos | 0 ($) | 13 ($) | 17 (D) | 17 (D) | 17 (D) | 0.068 |
+| Todos de paga al tope (40 mesas × 12) | 0 ($) | 3 ($) | 9 (D) | 9 (D) | 9 (D) | 0.237 |
 
-**Cómo leerlo con tu factura real.** Si tu factura actual sin tráfico es F USD, caben N = (B − F + 5) / c restaurantes (c = la última columna, USD marginales por restaurante; el +5 es el uso que Hobby ya incluye si F > 5 por su suscripción), topado por las columnas C y D de la sección 0. Para llenarla: factura del mes (Calvin) y memoria de PostgreSQL (métricas de staging).
+**Cómo leerlo.** Con la factura sin tráfico F ≈ 8.1–9.1 USD (piso de arriba), caben N = (B − F + 5) / c restaurantes (c = la última columna, USD marginales por restaurante; el +5 es el uso que Hobby ya incluye si F > 5 por su suscripción), topado por las columnas C y D de la sección 0. Para llenarla: factura del mes (Calvin) y memoria de PostgreSQL (métricas de staging).
 
 ### 4.13 Foto y modelo 3D por platillo
 
@@ -604,7 +616,7 @@ Regla de Calvin: **toda cifra con fuente.** Lo que sigue es el mismo contenido q
 | Hobby: 5 USD, 5 USD de uso incluido, volumen 5 GB |  | externa | docs.railway.com/reference/pricing/plans y /faqs y /reference/volumes, 13-nov-2026 |
 | Hard limit de gasto | mínimo 10 USD | externa | docs.railway.com/reference/usage-limits (Cost Control), 13-nov-2026: al alcanzarlo, todo se apaga |
 | RAM_API_GB_PROCESO | 0.16 GB | medida | capacidad M5 (≈160 MB por proceso en reposo, local) |
-| PG_RAM_GB (y servicio de respaldo) | 0 (cota) o ilustrativo | sin dato | la página de Railway no da el consumo de la plantilla; falta la métrica real |
+| PG_RAM_GB (y servicio de respaldo) | 0.085 GB por entorno (0.045–0.135) | Calvin + estimada | deducida de la factura real de Railway del 13-nov (2,649 GB-min de memoria): memoria media por entorno menos la API medida; falta el desglose por servicio y el inicio del ciclo |
 | PG_MAX_CONEXIONES | 100 | sin dato | no figura en docs.railway.com/databases/postgresql; falta SHOW max_connections |
 | DB_POOL | 20 por proceso | documento | app/core/config.py: DB_POOL_SIZE 10 + DB_MAX_OVERFLOW 10 |
 | Precios R2 | 0.015 / 4.50 / 0.36 | externa | developers.cloudflare.com/r2/pricing, 13-nov-2026 (10 GB, 1 M clase A y 10 M clase B gratis; salida gratis) |
@@ -624,7 +636,7 @@ Regla de Calvin: **toda cifra con fuente.** Lo que sigue es el mismo contenido q
 
 | Dato | Cómo conseguirlo | Costo | Quién |
 |---|---|---|---|
-| Memoria y CPU reales de API y PostgreSQL por entorno, y factura real del mes | Métricas de Railway de staging y producción (panel o `scripts/railway.py estado`) y la factura de Calvin | 0 USD; 10 min | Calvin (factura) y la sesión maestra (métricas de staging) |
+| **Inicio del ciclo de cobro y costo por servicio** (API, PostgreSQL, respaldo; la factura total ya llegó: 0.6422 USD al 13-nov) | Panel de Railway → Usage, desglose por servicio y fecha del ciclo | 0 USD; 10 min | Calvin |
 | `max_connections` de PostgreSQL de Railway | `SHOW max_connections` en staging, sólo lectura | 0 USD; 5 min | sesión maestra |
 | CPU real por petición en Railway (S_MS) y por palanca | T-4.4 contra staging con k6 | ≈ 0.3-0.5 USD de Railway; 1 sesión | sesión hija de la T-4.4 |
 | Costo de `GET /op/mesas` (S_PERSONAL_MS) | Medición local cuando exista la vista (T-3.6), con 3, 10 y 20 mesas | 0 USD; media sesión | sesión de la T-3.6 |
