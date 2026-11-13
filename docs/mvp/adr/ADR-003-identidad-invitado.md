@@ -1,6 +1,6 @@
 # ADR-003 — Identidad de invitado con token firmado, sin cuenta
 
-**Estado:** aceptada · **Fecha:** 2026-08-30
+**Estado:** aceptada; enmendada por [ADR-017](ADR-017-el-personal-lleva-el-ciclo.md) (2026-11-13: el pase no tiene vigencia fija mientras la mesa siga abierta, caduca tras 24 h sin usarse y queda sin efecto con la mesa limpia; cambia en T-3.12) · **Fecha:** 2026-08-30
 
 ## Contexto
 Capa 0 requiere que el comensal use todo el producto sin registrarse (AC-22.3), pero el sistema necesita distinguir "quién pidió qué" dentro de una mesa y evitar que un comensal modifique la orden de otro (AC-09.2).

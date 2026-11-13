@@ -1,6 +1,6 @@
 # ADR-013 — El personal entra con nombre y PIN; el capitán es un mesero con opciones extra
 
-**Estado:** aceptada · **Fecha:** 2026-11-02 · **Decide:** Calvin · **Sustituye:** la "Vista de Comandas con token de dispositivo" del TDD §6 y la tabla `dispositivo_restaurante`
+**Estado:** aceptada; enmendada por [ADR-017](ADR-017-el-personal-lleva-el-ciclo.md) (2026-11-13: permisos por rol con una tabla fija comprobada en un solo punto del servidor, que sustituye a la lista del punto 3; el dueño opera desde su panel; el sondeo de 5 s de las consecuencias lo sustituye el aviso del ADR-018) · **Fecha:** 2026-11-02 · **Decide:** Calvin · **Sustituye:** la "Vista de Comandas con token de dispositivo" del TDD §6 y la tabla `dispositivo_restaurante`
 
 ## Contexto
 El MVP de agosto no tenía rol de mesero: una tableta en la barra con un token de dispositivo mostraba las comandas. La corrección de mercado de septiembre estableció que el restaurante no necesita computadora y que Carta corre en el teléfono del personal. El prototipo diseñó un mesero con perfil portable (modelo Airbnb) y un capitán con ocho pantallas propias. Para la v1 el mesero es indispensable, pero el perfil portable y las pantallas del capitán no.

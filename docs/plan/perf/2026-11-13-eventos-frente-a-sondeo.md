@@ -2,6 +2,8 @@
 
 **Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/medicion-eventos-frente-a-sondeo` · **Estado:** prototipo desechable y mediciones **locales**. Nada se mandó a staging ni a producción. El ADR-004 sigue vigente hasta que Calvin decida.
 
+> **Actualización del 13 de noviembre de 2026:** Calvin adoptó la opción B. El borrador de §7 es ahora el [ADR-018](../../mvp/adr/ADR-018-entrega-por-eventos.md) (aceptado; sustituye al ADR-004) y las tareas T-3.20 y T-3.21 están en `04_Fases_y_Tareas.md` §7. Este informe queda como evidencia con la fecha en que se escribió.
+
 Cada cifra lleva su marca. **[medida aquí]** es de esta sesión, en un contenedor de 4 vCPU con la API fijada a 2 núcleos. **[documento]** sale del repositorio. **[fuente externa]** sale de una página oficial leída el 13 de noviembre de 2026, con su enlace en §6. **[estimada]** es un cálculo con el supuesto escrito al lado. El margen de error de todo lo que se traduce a Railway es de **±2×**, como en el modelo de capacidad (`2026-11-13-modelo-de-capacidad.md`), hasta medirlo allá.
 
 ---

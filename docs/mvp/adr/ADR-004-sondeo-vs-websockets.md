@@ -1,6 +1,6 @@
 # ADR-004 — Sondeo con ETag en lugar de WebSockets
 
-**Estado:** aceptada · **Fecha:** 2026-08-30
+**Estado:** sustituida por [ADR-018](ADR-018-entrega-por-eventos.md) (2026-11-13; el sondeo queda como respaldo y modo degradado) · **Fecha:** 2026-08-30
 
 ## Contexto
 Dos pantallas necesitan datos casi en vivo: el progreso de la sesión grupal ("3 de 4 listos", AC-02.3, ≤ 3 s) y la Vista de Comandas (AC-13.4, ≤ 5 s). La red dentro de un restaurante es irregular.
