@@ -169,7 +169,7 @@ Se agregan:
 
 #### US-29 a US-39 — Ciclo de la mesa y del comensal (Spec 001)
 
-El texto EARS vigente, con sus escenarios, está en [`docs/specs/001-ciclo-de-la-mesa/spec.md` §6](../specs/001-ciclo-de-la-mesa/spec.md) (aprobada por Calvin el 13 de noviembre de 2026; ADR-017). Aquí sólo se listan los criterios **de la v1** para que la trazabilidad los cuente; los de la v1.1 (US-32, US-31b, US-36b, US-38b, en la sección 8 de la spec) no son vigentes. Si este índice y la spec no coinciden, manda la spec.
+El texto EARS vigente, con sus escenarios, está en [`docs/specs/001-ciclo-de-la-mesa/spec.md` §6](../specs/001-ciclo-de-la-mesa/spec.md) (aprobada por Calvin el 13 de noviembre de 2026; ADR-017). Aquí sólo se listan los criterios **de la v1**, uno por uno, para que la trazabilidad los cuente (`verificar_trazabilidad.py` expande rangos sólo en los briefs de 04, no en este documento ni en el PRD); los de la v1.1 (US-32, US-31b, US-36b, US-38b, en la sección 8 de la spec) no son vigentes. Si este índice y la spec no coinciden, manda la spec.
 
 | Historia | Criterios de la v1 | De qué trata |
 |---|---|---|
