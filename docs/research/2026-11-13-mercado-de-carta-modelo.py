@@ -163,7 +163,7 @@ PRECIO_SERVICIO_MXN = (
 CAPACIDAD_HOY = 299  # gratuitos típicos con la forma de hoy + eventos, Hobby (disco 5 GB): docs/research/2026-11-13-anuncios-y-capa-del-comensal.md §0
 CAPACIDAD_TOPE = 2116  # gratuitos típicos, eventos + Pro + 8 procesos: manda el límite de 10,000 conexiones de Railway (mismo documento)
 ESCENARIOS_ACTIVOS = {  # SUPUESTO: restaurantes activos (gratuitos + de paga) a 12 y 24 meses; ver informe §2.4
-    "bajo": {"12": 100, "24": 300},
+    "bajo": {"12": 100, "24": 200},
     "medio": {"12": 300, "24": 1000},
     "alto": {"12": 1000, "24": 2116},
 }
@@ -180,6 +180,12 @@ def embudo(t: dict) -> dict:
     web_11 = sum(web[e] for e in ESTRATOS[2:])
     cad = t["cadenas_posibles_nucleo"]
     servible = {u: n_nuc - v["establecimientos"] for u, v in cad.items()}
+    hasta_250 = n_nuc - est[ESTRATOS[-1]]  # criterio «hasta 250 personas»
+    servible_min = (
+        hasta_250 - cad[">=5"]["establecimientos"]
+    )  # si todos los nombres repetidos >= 5 fueran cadenas
+    servible_max = hasta_250  # si ninguno lo fuera (lectura mía: casi ninguno lo es)
+    servible_central = 100_000  # redondeo mío, cerca del punto medio
     zonas = t["por_zona_nucleo"]
     n_zonas = sum(v["n"] for z, v in zonas.items() if z != "(resto del país)")
     web_zonas = sum(v.get("con_sitio", 0) for z, v in zonas.items() if z != "(resto del país)")
@@ -190,7 +196,7 @@ def embudo(t: dict) -> dict:
             esc[nombre][plazo] = {
                 "activos": activos,
                 "pct_del_nucleo": round(100 * activos / n_nuc, 2),
-                "pct_del_servible_10": round(100 * activos / servible[">=10"], 2),
+                "pct_del_servible": round(100 * activos / servible_central, 2),
                 "mrr_mxn": {
                     f"{c:.0%}": round(activos * c * PRECIO_SERVICIO_MXN) for c in CONVERSION
                 },
@@ -206,7 +212,10 @@ def embudo(t: dict) -> dict:
         "nucleo_hasta_50_personas": hasta_50,
         "nucleo_de_11_personas_o_mas": de_11_en_adelante,
         "nucleo_de_11_o_mas_con_sitio": web_11,
-        "servible_sin_cadenas_posibles": servible,
+        "nucleo_hasta_250_personas": hasta_250,
+        "servible_central": servible_central,
+        "servible_rango": [servible_min, servible_max],
+        "servible_sin_cadenas_posibles_por_umbral": servible,
         "nucleo_en_17_zonas": n_zonas,
         "nucleo_en_17_zonas_con_sitio": web_zonas,
         "expansion": t["expansion"]["n"],

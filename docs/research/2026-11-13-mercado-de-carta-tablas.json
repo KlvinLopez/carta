@@ -479,7 +479,13 @@
   "nucleo_hasta_50_personas": 104120,
   "nucleo_de_11_personas_o_mas": 13834,
   "nucleo_de_11_o_mas_con_sitio": 3733,
-  "servible_sin_cadenas_posibles": {
+  "nucleo_hasta_250_personas": 104855,
+  "servible_central": 100000,
+  "servible_rango": [
+   96021,
+   104855
+  ],
+  "servible_sin_cadenas_posibles_por_umbral": {
    ">=5": 96048,
    ">=10": 100202,
    ">=25": 103191,
@@ -497,7 +503,7 @@
     "12": {
      "activos": 100,
      "pct_del_nucleo": 0.1,
-     "pct_del_servible_10": 0.1,
+     "pct_del_servible": 0.1,
      "mrr_mxn": {
       "1%": 349,
       "3%": 1047
@@ -508,16 +514,16 @@
      }
     },
     "24": {
-     "activos": 300,
-     "pct_del_nucleo": 0.29,
-     "pct_del_servible_10": 0.3,
+     "activos": 200,
+     "pct_del_nucleo": 0.19,
+     "pct_del_servible": 0.2,
      "mrr_mxn": {
-      "1%": 1047,
-      "3%": 3141
+      "1%": 698,
+      "3%": 2094
      },
      "anual_mxn": {
-      "1%": 12564,
-      "3%": 37692
+      "1%": 8376,
+      "3%": 25128
      }
     }
    },
@@ -525,7 +531,7 @@
     "12": {
      "activos": 300,
      "pct_del_nucleo": 0.29,
-     "pct_del_servible_10": 0.3,
+     "pct_del_servible": 0.3,
      "mrr_mxn": {
       "1%": 1047,
       "3%": 3141
@@ -538,7 +544,7 @@
     "24": {
      "activos": 1000,
      "pct_del_nucleo": 0.95,
-     "pct_del_servible_10": 1.0,
+     "pct_del_servible": 1.0,
      "mrr_mxn": {
       "1%": 3490,
       "3%": 10470
@@ -553,7 +559,7 @@
     "12": {
      "activos": 1000,
      "pct_del_nucleo": 0.95,
-     "pct_del_servible_10": 1.0,
+     "pct_del_servible": 1.0,
      "mrr_mxn": {
       "1%": 3490,
       "3%": 10470
@@ -566,7 +572,7 @@
     "24": {
      "activos": 2116,
      "pct_del_nucleo": 2.02,
-     "pct_del_servible_10": 2.11,
+     "pct_del_servible": 2.12,
      "mrr_mxn": {
       "1%": 7385,
       "3%": 22155

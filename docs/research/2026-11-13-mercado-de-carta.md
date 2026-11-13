@@ -2,7 +2,7 @@
 
 **Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/mercado-y-planos-v3` · **Estado:** análisis de investigación; no cambia código, contrato ni plan (sólo una fila en `04 §11`). La v1 sigue cerrada: lo de §4 son candidatas para después.
 
-**Marcas de cada cifra:** **[medida aquí]** la calculé yo sobre el archivo oficial · **[documento]** la dice un documento del repositorio (se nombra) · **[fuente externa]** página que **abrí y leí** (enlace y fecha de lectura) · **[supuesto]** juicio mío, con la forma de comprobarlo en §6. Aritmética mía: lo digo. Lo que sólo vi en un resultado de buscador y **no abrí** no se usa como dato: se anota como «sin leer».
+**Marcas de cada cifra:** **[medida aquí]** la calculé yo sobre el archivo oficial · **[documento]** la dice un documento del repositorio (se nombra) · **[fuente externa]** página leída (enlace y fecha de lectura): las que cito como «leída por un ayudante» (F5 a F7 del CSV) las leyó un ayudante `haiku`, y la lente de fuentes de la maestra las comprobó el 13 de noviembre (todas las cifras externas coincidieron); el resto las leí yo · **[supuesto]** juicio mío, con la forma de comprobarlo en §6. Aritmética mía: lo digo. Lo que sólo vi en un resultado de buscador y **no abrí** no se usa como dato: se anota como «sin leer».
 
 **Archivos:** guion [`…-mercado-de-carta-modelo.py`](2026-11-13-mercado-de-carta-modelo.py) (reproduce todo desde el DENUE), tablas agregadas [`…-mercado-de-carta-tablas.json`](2026-11-13-mercado-de-carta-tablas.json) (sólo conteos: sin nombres, razones sociales, direcciones, teléfonos ni correos) y [`…-mercado-de-carta-fuentes.csv`](2026-11-13-mercado-de-carta-fuentes.csv).
 
@@ -25,8 +25,8 @@
 **Las tres palabras que pediste, en llano** (sus siglas en inglés, una sola vez):
 
 - **Mercado total** *(TAM, total addressable market)*: todos los negocios que algún día podrían usar algo como Carta. Aquí: restaurantes y bares de México, **773,860** (ramas 7225 y 7224).
-- **Mercado servible** *(SAM, serviceable available market)*: los que Carta puede atender **con el producto que tiene** y que **tú quieres**: el núcleo (restaurantes a la carta o de comida corrida, más bares y cantinas) **sin cadenas grandes**. Aquí: **≈ 100,000** (96,048 a 104,019 según qué tan estricto sea el filtro de cadenas).
-- **Mercado ganable** *(SOM, serviceable obtainable market)*: los que Carta puede **conseguir de verdad** en un plazo. **No es un dato: es un escenario.** Con lo que mide la infraestructura y lo que cuesta llegar a cada dueño: **100 a 1,000 restaurantes activos a 12 meses y 300 a 2,116 a 24 meses** **[supuesto]**, o sea **0.1 % a 2 %** del núcleo.
+- **Mercado servible** *(SAM, serviceable available market)*: los que Carta puede atender **con el producto que tiene** y que **tú quieres**: el núcleo (restaurantes a la carta o de comida corrida, más bares y cantinas) **sin cadenas grandes**. Aquí: **≈ 100,000, entre 96,000 y 104,900** según cuántos de los nombres repetidos sean de verdad cadenas (el DENUE no las marca; ver §2.2).
+- **Mercado ganable** *(SOM, serviceable obtainable market)*: los que Carta puede **conseguir de verdad** en un plazo. **No es un dato: es un escenario.** Con lo que mide la infraestructura y lo que cuesta llegar a cada dueño: **100 a 1,000 restaurantes activos a 12 meses [supuesto]** (0.1 % a 1 % del núcleo). A 24 meses el rango es 200 a 2,116, donde **2,116 es un tope de servidor sin medir** (lo que el servidor aguantaría, no lo que el mercado pediría).
 
 **El embudo, con cifras:**
 
@@ -34,17 +34,17 @@
 |---|---|---|
 | Mercado total | **773,860** | ramas 7225 + 7224 |
 | **Núcleo** (el tuyo) | **104,882** | clase 722511 + bares (722412) y centros nocturnos (722411) |
-| **Servible** | **≈ 100,202** | núcleo menos nombres que se repiten ≥ 10 veces en ≥ 3 estados (≈ cadenas) |
+| **Servible** | **≈ 100,000** (96,021 a 104,855) | núcleo de hasta 250 personas, restando entre 0 y 8,834 «posibles cadenas» según el umbral (casi ninguna lo es: §2.2) |
 | Primera ola geográfica | 40,872 | núcleo dentro de las 17 zonas metropolitanas (Puebla, subestimada) |
-| **Ganable a 24 meses** | **300 a 2,116** | escenario; tope de la infraestructura medida |
+| **Ganable a 12 meses** | **100 a 1,000** | escenario **[supuesto]**; a 24 meses 200 a 2,116, con 2,116 = tope de servidor sin medir (§2.4) |
 | Expansión (fondas chicas, mariscos, tacos, cafeterías) | 438,848 | 722512 + 722513 + 722514 + 722515; **no** se promete |
 
 **Lo que más importa de estas cifras.**
 
-1. **El núcleo casi no está en línea: 94 % (98,712 de 104,882) no declara sitio web.** Para esos negocios, Carta no les quita un cliente: **les da su primera presencia en línea.** Los 6,170 que sí la tienen son los únicos que la herramienta de lectura puede alcanzar (§5).
+1. **El 94 % del núcleo (98,712 de 104,882) no declara sitio web en el DENUE.** Ojo: el DENUE **no ve Facebook, Instagram ni WhatsApp**, así que no es lo mismo que «no tiene presencia en línea» (§6 #3). Para esos negocios, Carta no les quita un cliente: **sería su primer sitio propio.** Los 6,170 que sí la tienen son los únicos que la herramienta de lectura puede alcanzar (§5).
 2. **La parte que paga es más chica y más digital.** Los de 11 personas o más son **13,834** (13 %); 3,733 (27 %) declaran sitio web. Con el plan Servicio a 349 pesos, si **todos** esos pagaran sería un techo de **≈ 58 millones de pesos al año**; con el 1 % o el 3 % que usamos en el informe, el escenario de 1,000 restaurantes activos deja **3,490 a 10,470 pesos al mes**. **Dicho claro:** el negocio de Carta no se decide por el tamaño del mercado (sobra) sino por **cuántos dueños aceptan probar y cuántos pagan**, que nadie ha medido.
 3. **El problema está documentado con fuentes oficiales**, pero **«cuántos restaurantes quieren esto» y «cuánto pagarían» no tienen fuente abierta**. Van a «datos por conseguir» (§6).
-4. **Lo que sí está libre:** pedir **en grupo** desde la mesa. En lo que leí de México y del mundo, quien ofrece pedido por QR lo hace **por persona**; el pedido compartido no aparece (§3). Esa afirmación viene de la revisión de septiembre y **no la releí hoy en cada competidor**.
+4. **Posible hueco, sin comprobar:** pedir **en grupo** desde la mesa. **No encontramos en México quien lo ofrezca** (revisión del 19 de septiembre de 2026, **sin releer competidor por competidor**). Dos matices que no se pueden pasar por alto: (a) en septiembre apareció, en un buscador, un fragmento de una página de OlaClick ya borrada que hablaba de una «mesa virtual» donde todos añaden productos; no hay copia, no está en su ayuda ni en sus planes y **no se hizo la prueba con dos teléfonos** (`2026-09-20-olaclick-a-fondo.md` §4.1); hoy sus páginas de preguntas frecuentes y de punto de venta (leídas por un ayudante el 13 de noviembre) **tampoco la mencionan**; (b) el `robots.txt` de Uber Eats lista `*/group-orders/` (pedido en grupo, de **reparto**; `muestra-500-cartas.md` §9). Hasta hacer la prueba (§6 #14 y #15), «nadie lo hace» no se puede afirmar.
 
 **Qué te toca decidir:** (a) si «ganable» se reporta como el rango de §2.4 o con una sola cifra; (b) si la expansión a fondas y puestos entra al discurso o sólo al mapa; (c) cuáles de las candidatas de §4 piden spec primero.
 
@@ -60,7 +60,7 @@
 |---|---|---|---|
 | H1 | **El comensal ya está listo:** usuarios de internet en México | **100.2 millones = 83.1 %** de la población de 6 años y más (2024); **97.2 %** de ellos se conecta con **celular inteligente**; **90.6 %** de los usuarios de smartphone usó mensajería y **77.9 %** redes sociales | INEGI, ENDUTIH 2024, reporte de resultados 9/25 (6 de mayo de 2025), <https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/endutih/ENDUTIH_24_RR.pdf> **[fuente externa]**, leído el 13 de noviembre de 2026 (texto extraído con `pdftotext`; ver líneas «En 2024, la ENDUTIH estimó 100.2 millones…», «97.2 %», «90.6 %») |
 | H2 | **El comensal compra por internet** | **35.8 %** reportó compras por internet; **33.0 %** de ellos compró **alimentos y bebidas** (2024) | misma ENDUTIH 2024 |
-| H3 | **El negocio chico casi no está en línea (visión general)** | De **5,468,180** unidades económicas censadas (2023): **26.4 %** usó internet para sus actividades, **25.4 %** equipo de cómputo o tableta; sólo **5.6 %** vendió por internet y las **micro (0 a 10 personas) 4.4 %** (las pymes 28.7 %, las grandes 33.0 %). Todas las actividades, no sólo restaurantes | INEGI, Censos Económicos 2024, reporte de resultados 22/25 (24 de julio de 2025), <https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/ce/CE2024_def_RR.pdf> **[fuente externa]**, leído el 13 de noviembre de 2026 (INEGI marca algunas cifras como «corregidas»; es la versión vigente) |
+| H3 | **El negocio chico casi no está en línea (visión general)** | De **5,468,180** unidades económicas censadas (2023): **26.4 %** usó internet para sus actividades, **25.4 %** equipo de cómputo o tableta; sólo **5.6 %** vendió por internet y las **micro (0 a 10 personas) 4.4 %** (ventas por internet de las pymes 28.7 % y de las grandes 33.0 %). Todas las actividades, no sólo restaurantes | INEGI, Censos Económicos 2024, reporte de resultados 22/25 (24 de julio de 2025), <https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/ce/CE2024_def_RR.pdf> **[fuente externa]**, leído el 13 de noviembre de 2026 (INEGI marca algunas cifras como «corregidas»; es la versión vigente) |
 | H4 | **El negocio chico de comida casi no declara sitio web** | **0.8 %** de los 657,347 establecimientos de hasta 5 personas (rama 7225); **7.7 %** en la clase de restaurantes a la carta o comida corrida; 4.2 % en cafeterías; 0.4 % a 0.7 % en tacos, antojitos y comida para llevar | DENUE 05_2026 **[medida aquí]** (§2.1) |
 | H5 | **Los restaurantes a la carta emplean a mucha gente** | **516,894 personas** (1.8 % del personal ocupado del país), la 2.ª actividad más grande tras las tiendas de abarrotes | CE 2024, mismo reporte |
 | H6 | **La pandemia cerró negocios** | La Canirac estimó que la crisis «acabó con el 20 % de los restaurantes y negocios de comida» (≈ 120,000 pymes del ramo) | Expansión, 7 de septiembre de 2021, <https://expansion.mx/empresas/2021/09/07/pandemia-acelero-digitalizacion-pequenos-negocios> **[fuente externa]**, leído el 13 de noviembre de 2026. La nota habla de «migrar a menús digitales» pero **no da un porcentaje de digitalización** |
@@ -85,7 +85,7 @@ Aquí la evidencia es **de Estados Unidos y de segunda mano**. No hay encuesta m
 |---|---|---|
 | **P1. La carta en QR es un PDF** | La pandemia aceleró el QR (H6); el mercado de menús QR gratis es amplio (§3); el PDF sin precio ni alérgenos estructurados no se busca, no se filtra y no se actualiza | No hay estudio abierto de **qué fracción de los QR de México apunta a un PDF o a una foto**. Observación propia: de 148 cartas leídas para otro fin, 147 eran de reparto; no sirve para esto |
 | **P2. Pedir sigue igual** | La comanda en papel sigue siendo la norma entre fondas y restaurantes chicos (hipótesis); los POS con comanda móvil cuestan 652 a 1,099 pesos al mes (§3) | No hay medición de **minutos por mesa** ni de **errores de comanda** en México (`estrategia-de-precios` §1.1: «supuesta») |
-| **P3. La mesa no ordena junta** | Revisión de septiembre: nadie ofrece que varios comensales armen **una** orden desde sus teléfonos; los demás dividen la cuenta al pagar (`2026-09-19-competencia-real-mexico.md` §8, punto 2) | Hay que comprobar que el comensal **quiere** eso: es el supuesto central del piloto |
+| **P3. La mesa no ordena junta** | **No encontramos en México quien ofrezca** que varios comensales armen **una** orden desde sus teléfonos; los demás dividen la cuenta al pagar (revisión de septiembre, `2026-09-19-competencia-real-mexico.md` §8, punto 2; **sin releer**). Hay un indicio sin comprobar de OlaClick (una «mesa virtual» en una página borrada, `2026-09-20-olaclick-a-fondo.md` §4.1) y Uber Eats tiene pedido en grupo de reparto (`robots.txt`) | Hay que comprobar que el comensal **quiere** eso: es el supuesto central del piloto |
 | **P4. El negocio chico no tiene presencia en línea** | **H4 con el DENUE**: 94 % del núcleo sin sitio web declarado; **H3**: 4.4 % de las micro vende por internet | Redes sociales y WhatsApp **no están en el DENUE**: probablemente muchos sí tienen Facebook o WhatsApp. §6 #3 |
 
 **Lectura honesta:** P4 es el único con dato oficial y es el más fuerte; P1 y P2 son **observaciones de campo** que el piloto debe comprobar; P3 es una **ventaja competitiva a validar**, no un dolor demostrado.
@@ -148,7 +148,7 @@ El DENUE no marca cadenas. **Método** (guion, función `normalizar` y `es_marca
 - **Por qué importa poco:** las cadenas grandes (hamburguesas, pizzas, cafeterías) están sobre todo **en clases que el núcleo no incluye** (722515, 722516, 722517). En el núcleo, el nombre más repetido tiene **205 establecimientos**; la tabla de todo 7225 + 7224 con N ≥ 50 (34,016) está llena de nombres comunes de tacos y antojitos y **no sirve como conteo de cadenas**.
 - **Otra forma de decirlo sin nombres:** los establecimientos de **51 personas o más** en el núcleo son **762** (542 + 193 + 27 = 0.7 % del núcleo) [medida aquí]; son los más probables a ser grandes cadenas o salones de banquetes. Es un corte **medido**, sin el problema de los nombres.
 
-**Decisión para el embudo:** el servible resta la cota superior de **N ≥ 10** (4,680) y muestra el rango por umbral: **96,048 a 104,019**; la lectura mía apunta al extremo alto.
+**Decisión para el embudo:** no resto como «medida» las posibles cadenas, porque casi ninguna lo es. El servible es **≈ 100,000, entre 96,021 y 104,855** [medida + supuesto del método]: el extremo bajo supone que **todos** los 8,834 nombres repetidos ≥ 5 veces fueran cadenas; el alto, que **ninguno** lo fuera; mi lectura apunta al extremo alto. Ambos extremos parten del núcleo de **hasta 250 personas** (104,855; quedan fuera los 27 de 251 o más).
 
 ### 2.3 Los tres mercados, cada uno con su criterio escrito
 
@@ -156,7 +156,7 @@ El DENUE no marca cadenas. **Método** (guion, función `normalizar` y `es_marca
 |---|---|---|---|
 | **Total** (TAM) | Todo México · cualquier tamaño · restaurantes y bares (7225 + 7224) · con cadenas | **773,860** | medida aquí |
 | **Núcleo** | Todo México · cualquier tamaño · 722511 + 722411 + 722412 · con cadenas | **104,882** | medida aquí |
-| **Servible** (SAM) | Todo México · hasta 250 personas · el núcleo · **sin cadenas posibles** (≥ 10 locales en ≥ 3 estados) | **100,202** (96,048 a 104,019) | medida aquí + método de §2.2 |
+| **Servible** (SAM) | Todo México · **hasta 250 personas** (104,855 del núcleo) · el núcleo · sin las cadenas que haya entre los nombres repetidos (de 0 a 8,834: §2.2) | **≈ 100,000** (96,021 a 104,855) | medida aquí + supuesto del método de §2.2 |
 | **Servible con pago probable** | el servible con **11 personas o más** (proxy de «más de 10 mesas», que es lo que cobra el plan Servicio: **supuesto**; el DENUE no da mesas) | **13,834** (sin restar cadenas) | medida aquí + supuesto |
 | **Primera ola** | las 17 zonas metropolitanas ya usadas para la muestra | **40,872** (Puebla-Tlaxcala **subestimada**: lista incompleta, `muestra-500` §8.1) | medida aquí |
 | **Ganable** (SOM) | restaurantes activos con Carta | **ver §2.4** | **supuesto** |
@@ -170,25 +170,27 @@ El DENUE no marca cadenas. **Método** (guion, función `normalizar` y `es_marca
 | Palanca | Qué se sabe | Fuente |
 |---|---|---|
 | **1. Contactos para empezar** | El piloto planeado es de **10 restaurantes** (prueba de sí o no, «no se mide una curva con 10»). **No hay lista de contactos más allá** | `estrategia-de-precios.md` §5 **[documento]**; §6 #1 |
-| **2. Capacidad de la infraestructura** | Con la forma de hoy + eventos, Hobby: **≈ 299 restaurantes gratuitos típicos** (manda el disco de 5 GB). Con eventos, Pro y 8 procesos: **2,116** (manda el límite de ≈ 10,000 conexiones abiertas de Railway). **Cada restaurante de paga ocupa el lugar de 2.4 a 2.7 gratuitos** | `anuncios-y-capa-del-comensal.md` §0 y §5 **[documento]**, ±2× en procesador hasta medir en Railway |
+| **2. Capacidad de la infraestructura** | **Hoy** (sondeo cada 3 s, Hobby): **≈ 148 restaurantes gratuitos típicos** en el pico (manda el procesador). **Con eventos, que llegan con la Fase 3** (decisión del 13 de noviembre, aún sin construir), Hobby: **≈ 299** (manda el disco de 5 GB). **2,116** es un escalón **sin medir** (eventos, Pro y 8 procesos; manda el límite de ≈ 10,000 conexiones abiertas de Railway) y es **un tope de servidor, es decir, oferta y no demanda**. **Cada restaurante de paga ocupa el lugar de 2.4 a 2.7 gratuitos** | `anuncios-y-capa-del-comensal.md` §0 y §5 y `planos-de-carta` §4 **[documento]**, ±2× en procesador hasta medir en Railway |
 | **3. Conversión de gratuito a paga** | Calvin fijó topes (10 mesas gratis, 40 de paga; 3 lecturas de PDF gratis, una vez) para la futura Spec 002; **no hay conversión medida**. El informe usa **1 % y 3 %** | `04 §11` (posturas del 13 de noviembre) y `planes-y-costo-por-restaurante.md` **[documento]**. Referencia externa: mediana de **2.18 %** de instalación a pago a 35 días en apps freemium con suscripción (RevenueCat, 2025), **no de menús** (citada en `anuncios-y-capa-del-comensal.md`, que **no leí yo**) |
 | **4. Lo que publican los competidores** | **OlaClick: «más de 40,000 restaurantes en LATAM»** (su página, 20 de septiembre de 2026; cifra propia, no auditada, **no es sólo México**; entró a Y Combinator en el lote W21). Con ≈ 6 años desde 2021, son **≈ 6,700 por año en toda Latinoamérica** (aritmética mía, **supuesto** de que todos están activos). **Uber Eats México: 50,000 restaurantes registrados** (declaración en el foro de 2023, DPL News) | `2026-09-20-olaclick-a-fondo.md` línea 90 y ficha de Y Combinator **[documento]**; DPL News **[fuente externa]** |
 
-**Escenarios [supuesto]** (restaurantes **activos**, gratuitos y de paga; el guion `embudo()` los recalcula):
+**Escenarios [supuesto]** (restaurantes **activos**, gratuitos y de paga; el guion `embudo()` los recalcula). Cada uno dice **qué exige**; las altas por mes son aritmética mía (los 12 meses se cuentan desde el piloto de 10):
 
-| Escenario | A 12 meses | % del núcleo | A 24 meses | % del núcleo | Cómo se llegaría |
+| Escenario | A 12 meses | % del núcleo | Altas por mes | A 24 meses | Qué exige |
 |---|---|---|---|---|---|
-| **Bajo** | 100 | 0.10 % | 300 | 0.29 % | Venta uno a uno (piloto de 10 + ≈ 7 altas al mes el primer año); dentro del cupo de hoy (299) |
-| **Medio** | 300 | 0.29 % | 1,000 | 0.95 % | Recomendación de dueño a dueño y alta autoservida desde el PDF (el alta tarda menos de 10 min, medido en staging el 11 de noviembre): exige pasar a Pro y a eventos |
-| **Alto** | 1,000 | 0.95 % | **2,116** | 2.02 % | Un canal que traiga restaurantes en bloque (asociación, proveedor, POS); es el **tope documentado de la infraestructura**: más allá hay que medir de nuevo |
+| **Bajo** | **100** | 0.10 % | ≈ 8 (constante) | 200 | Venta uno a uno por el equipo. **Cabe hoy** (148 con el sondeo actual); a 24 meses 200 **ya exige eventos** (299 con la Fase 3) |
+| **Medio** | **300** | 0.29 % | ≈ 25 | 1,000 | Recomendación de dueño a dueño y alta autoservida desde el PDF (el alta tarda menos de 10 min, medido en staging el 11 de noviembre). **Exige eventos y, por encima de 299, el plan Pro** y un escalón de procesos que el modelo da en ≈ 1,064 típicos con 2 procesos (sin medir en Railway) |
+| **Alto** | **1,000** | 0.95 % | ≈ 83 | 2,116 | Un canal que traiga restaurantes en bloque (asociación, proveedor, POS). **Exige un escalón de servidor sin medir**; 2,116 es el **tope de servidor** (límite de conexiones de Railway), **no una predicción de demanda**: más allá hay que medir de nuevo |
 
-**Contra el competidor:** el escenario alto a 12 meses (1,000) es **la sexta parte** de lo que OlaClick promedia por año en toda Latinoamérica (aritmética mía): es ambicioso pero no absurdo; **el bajo es el que hoy tiene sustento** (10 contactos, 299 cupos).
+**Por qué el bajo sube parejo:** 100 a 12 meses son ≈ 8 altas al mes (10 del piloto más ≈ 8 al mes), y 200 a 24 meses mantienen **el mismo ritmo** (se igualó: la versión anterior saltaba de ≈ 7 a ≈ 17 altas al mes sin razón). El medio y el alto **sí** aceleran, porque suponen un canal distinto (autoservicio o canal en bloque).
+
+**Contra el competidor:** el escenario alto a 12 meses (1,000) es **la sexta parte** de lo que OlaClick promedia por año (aritmética mía sobre «más de 40,000 restaurantes en LATAM», una **cifra propia, no auditada, de toda Latinoamérica**, no de México): es una comparación de orden de magnitud, no un dato de mercado. **El bajo es el que hoy tiene sustento** (10 contactos del piloto y cupo para 148).
 
 **Cualquier cifra más alta** exige conseguir antes los datos de §6 #1 y #2.
 
 ### 2.5 En dinero
 
-**Lo que es dato:** precio de lista **349 pesos al mes antes de IVA** (hipótesis heredada de septiembre; los 33 planes leídos el 13 de noviembre lo ubican en el percentil 40 de los planes de entrada; `comparativo-de-precios-y-anuncios.md`). Costo de infraestructura: **≈ 10.6 USD al mes (Railway y dominio)** hoy (`planos-de-carta`, factura real) **[documento]**. **Lo que es supuesto:** cuántos pagan.
+**Lo que es dato:** precio de lista **349 pesos al mes antes de IVA** (hipótesis heredada de septiembre; los 33 planes leídos el 13 de noviembre lo ubican en el percentil 40 de los planes de entrada; `comparativo-de-precios-y-anuncios.md`). Costo de infraestructura: **≈ 10 a 12 USD al mes** (Railway y dominio) hoy: 10.2 USD en `anuncios-y-capa-del-comensal.md` §0 y 11.6 USD en `comparativo-de-precios-y-anuncios.md` §6.1 **[documento]**. **Lo que es supuesto:** cuántos pagan.
 
 | Cálculo (aritmética mía) | Pesos |
 |---|---|
@@ -196,7 +198,7 @@ El DENUE no marca cadenas. **Método** (guion, función `normalizar` y `es_marca
 | Ídem si sólo pagaran los de **11 personas o más** (13,834) | **57.9 millones al año** |
 | 1,000 restaurantes activos con **1 %** de paga | 3,490 al mes · 41,880 al año |
 | 1,000 restaurantes activos con **3 %** de paga | 10,470 al mes · 125,640 al año |
-| 2,116 activos (tope) con 1 % / 3 % | 7,385 / 22,155 al mes |
+| 2,116 activos (tope de servidor, sin medir) con 1 % / 3 % | 7,385 / 22,155 al mes |
 
 **Lectura franca: la suscripción del restaurante, sola, con 1 % a 3 % de conversión, apenas paga la infraestructura y no es un negocio todavía.** Un restaurante de paga cubre toda la operación de hoy; para que sea negocio hace falta **que la conversión suba** (más valor por el que se paga), **o** otro ingreso (la capa del comensal de 29 pesos, anuncios no personalizados), **o** más restaurantes por encima del tope. Esas tres palancas están en `anuncios-y-capa-del-comensal.md` y siguen sin dato real.
 
@@ -213,14 +215,14 @@ Precios en **pesos al mes antes de IVA** salvo lo marcado, leídos de la página
 | Trabajo | Quién lo cubre en México | Precio de entrada | Quién lo cubre en el mundo | Lo que le falta |
 |---|---|---|---|---|
 | **Mostrar la carta** (QR) | OlaClick (gratis, con publicidad; Advanced 9.90 USD ≈ 184 pesos), Neolo (157; gratis hasta 200 visitas), Meniu (225), MenuTiger (gratis; Regular 17 USD ≈ 317), generador QR gratuito de Soft Restaurant; más una decena de menús mexicanos gratis (`competencia-real-mexico` §3) | **0 a 317** | MenuTiger y Waitry (Lite gratis, 3 % de comisión) | Es un producto de **captación**: «el menú QR es gratis en al menos cinco lugares» (septiembre). **Aquí no se compite por precio** |
-| **Pedir al mesero** (comanda) | Soft Restaurant e-Menu QR (Lite 799, Pro 1,099; add-on sin precio público), Fudo (35 USD ≈ 652 y 45 USD ≈ 838), Last.app (1,000 a 2,900 **por sucursal**), OlaClick (vista de mesero) | **652 a 1,000** (POS completo) | Toast, Shift4 y otros POS (Estados Unidos) | Son **POS**: el restaurante debe cambiar de sistema; la comanda «sólo lectura» de Parrot y Soft Restaurant obliga a recapturar (`competencia-real-mexico` §8) |
-| **Pedir en grupo** (una orden, varios teléfonos) | **No encontré ninguno** (revisión de septiembre; **no releí hoy a cada competidor**) | — | Sunday (Francia, Estados Unidos, Reino Unido; «dividir y pagar», no pedir juntos); Yumminn (España) | **Hueco libre** a validar con el comensal |
+| **Pedir al mesero** (comanda) | Soft Restaurant e-Menu QR (Lite 799, Pro 1,099; add-on sin precio público), Fudo (35 USD ≈ 652 y 45 USD ≈ 838), Last.app (1,000 a 2,900 **por sucursal**), OlaClick (vista de mesero) | **184 a 465** (pedir por QR: OlaClick Advanced y Premium, «Menú QR + pedidos», CSV de 33 planes) y **652 a 1,099** (comanda integrada, dentro de un POS completo) | Toast, Shift4 y otros POS (Estados Unidos) | Son **POS**: el restaurante debe cambiar de sistema; la comanda «sólo lectura» de Parrot y Soft Restaurant obliga a recapturar (`competencia-real-mexico` §8) |
+| **Pedir en grupo** (una orden, varios teléfonos) | **No encontramos ninguno en México** (revisión del 19 de septiembre, **sin releer**). **Indicios sin comprobar:** una página de OlaClick ya borrada hablaba de una «mesa virtual» (sin copia; sin prueba con dos teléfonos); sus FAQ y su página de punto de venta de hoy no la mencionan | — | Sunday (Francia, EE. UU., Reino Unido; «dividir y pagar», no pedir juntos); Yumminn (España); Uber Eats tiene «pedido en grupo» **de reparto** (en su `robots.txt`: `*/group-orders/`); Toast y Sunday: **sin leer** | **Hueco posible, no probado**: hace falta la prueba con dos teléfonos (§6 #14) y validar con el comensal |
 | **Pagar** (en mesa, por QR) | Soft Restaurant e-Menu QR (menú, pedido y pago); Getnet (propina y división de cuenta en terminal); Clip (2.99 % + 1 peso); Mercado Pago (3.5 % + IVA) | comisión 2.9 % a 3.6 % | Sunday (Francia, Estados Unidos, Reino Unido; sin precio público en septiembre), Toast (sin leer hoy) y Yumminn (0.9 % a 1.9 %, secundaria) | Exige **CFDI** y, para custodiar dinero, el marco de la Ley Fintech (`2026-09-23-checkout-y-ley-fintech.md`). **Fuera de la v1** |
 | **Reservar** | **Last.app The Book** (parte del plan), **Mesa 24/7** (Perú, Chile, Ecuador, Colombia; **no México**); OpenTable (existe la red; **precio en México sin leer**) | OpenTable en **EE. UU.**: 149 / 299 / 499 USD (≈ 2,774 / 5,567 / 9,291 pesos) más 1 a 1.50 USD por cubierto | **OpenTable, TheFork** (precio por porcentaje del ticket medio, sin leer), Resy, Tock | **OpenTable: no pude abrir la página oficial (503 el 13 de noviembre)**; los precios son de una **fuente secundaria** (blog de Eat App, competidor) y se declaran «sólo en EE. UU.». No es base para decidir |
 | **Descubrir y recomendar** | **Rappi, Uber Eats, DiDi Food** (reparto: 50,000 restaurantes en Uber Eats México, 2023); Google Maps (sin leer) | comisión por pedido: Uber Eats Lite 25 %, Plus 27 %, Premium 29 % (septiembre); DiDi y Rappi **no publican** | TripAdvisor, Yelp, TheFork (**sin leer hoy**) | Descubren al restaurante, **no a la mesa**; ninguno ayuda a **elegir platillo** dentro del restaurante |
 | **Punto de venta** | Soft Restaurant (799 / 1,099), Fudo, Parrot, Wansoft (de Clip; **sin precio oficial**), Poster (495 a 1,179 con pago anual), Loyverse (gratis), Last.app | **0 a 1,099** | Toast, Square, Lightspeed (EE. UU.; sin leer hoy) | Cobran por **terminal o sucursal**; no son «presencia en línea» del restaurante chico |
 
-**Lo que ya sé que no pude leer** (y por eso no lo uso): OpenTable oficial (503), TheFork, Toast y Sunday (sólo resultados de búsqueda, no abrí sus páginas), la página de Ipsos (sin contenido) y la de NielsenIQ (404). Todo va a §6.
+**Lo que ya sé que no pude leer** (y por eso no lo uso): OpenTable oficial (503), TheFork, Toast y Sunday (sólo resultados de búsqueda, no se abrieron sus páginas), la página de Ipsos (sin contenido) y la de NielsenIQ (404). Todo va a §6.
 
 ### 3.2 Por qué «no resuelve esto»
 
@@ -255,7 +257,7 @@ Precios en **pesos al mes antes de IVA** salvo lo marcado, leídos de la página
 
 ## 5. Lo alcanzable
 
-[`muestra-500-cartas.md` §8.3](2026-11-13-muestra-500-cartas.md) concluye que **≈ 3,000 cartas** se pueden leer por sitio web (**0.4 %** del universo 7225, rango 1,400 a 5,500). Aquí sólo lo que eso significa para el mercado:
+[`muestra-500-cartas.md` §8.3](2026-11-13-muestra-500-cartas.md) concluyó primero que **≈ 3,000 cartas** se podían leer por sitio web; **la medición más reciente (§11 de ese informe, punto de control del 13 de noviembre en la rama de la muestra, 102 intentos) baja la tasa de carta contable a 10 ÷ 102 = 0.098 (intervalo de 90 %: 0.06 a 0.16)**, así que se corrige: **≈ 1,750 cartas (1,070 a 2,850)** de los 17,827 sitios declarados de la rama 7225 (**≈ 0.24 %** del universo; aritmética mía). La tasa se midió en restaurantes con muchas reseñas: aplicarla a todos los sitios declarados es un **[supuesto]**. Aquí sólo lo que eso significa para el mercado:
 
 | | Núcleo | Con sitio web declarado | Sin sitio web |
 |---|---|---|---|
@@ -267,7 +269,7 @@ Precios en **pesos al mes antes de IVA** salvo lo marcado, leídos de la página
 
 **Lectura:**
 
-1. **La lectura de sitios alcanza a lo más 6,170 del núcleo (y con la tasa de carta contable de la muestra, 0.17, a ≈ 1,000):** una pieza útil para **medir** (precios, tamaño de carta), **no para vender**. Es **la parte que ya está en línea**.
+1. **La lectura de sitios alcanza a lo más 6,170 del núcleo (con la tasa de 0.098, a ≈ 600; intervalo 370 a 990):** una pieza útil para **medir** (precios, tamaño de carta), **no para vender**. Es **la parte que ya declara sitio web**.
 2. **Para Carta el negocio está en la otra parte: los 98,712 sin sitio.** Su carta, si existe en línea, está en Instagram, en un PDF de WhatsApp o en el reparto; **Carta sería su primera página**. Ésos no se «alcanzan» leyendo un sitio: **se alcanzan visitándolos o recibiendo la carta de ellos mismos** (el piloto y el alta desde PDF).
 3. **Los 3,733 de 11 personas o más con sitio** son los primeros candidatos a **pagar** (ya invirtieron en presencia en línea y tienen más mesas): una lista corta y medible para el piloto. Cruzarla con las 17 zonas da la primera ola.
 4. **Meta progresiva mes a mes:** es tuya; este informe sólo fija **lo que no puede pasar**: que el 5 % del universo (37,075) **se lea** por sitios propios (es imposible: los sitios declarados son 17,827 en total).
@@ -291,6 +293,8 @@ Precios en **pesos al mes antes de IVA** salvo lo marcado, leídos de la página
 | 11 | **Competidores: restaurantes en México** (OlaClick, Soft Restaurant, Fudo, Parrot, Last.app) | Sólo hay cifra propia de OlaClick (LATAM) | Páginas «Nosotros» o notas de prensa de cada uno, con fecha |
 | 12 | **Edad de los datos del DENUE** (estado de cada establecimiento, sitio web vigente) | El DENUE tiene altas hasta mayo de 2026; un sitio declarado puede estar caído | Comprobar a mano 30 sitios de la muestra; la siguiente edición sale el 25 de noviembre de 2026 (`muestra-500` §5) |
 | 13 | **Puebla-Tlaxcala completa** (lista de municipios) | La zona está incompleta: 40,872 del núcleo en 17 zonas la **subestima** | Completar a mano con la tabla de «Metrópolis de México 2020» (`muestra-500` #14) |
+| 14 | **Prueba de «mesa compartida» con dos teléfonos** en una cuenta gratuita de OlaClick (activar «En el local» y escanear el mismo QR desde dos teléfonos) | Es la única forma de afirmar o descartar que ya exista el pedido compartido (`olaclick-a-fondo` §4.1); implica crear una cuenta, y la hace una persona | Una persona con dos teléfonos, 20 minutos |
+| 15 | **Pedido en grupo de Toast, Sunday y Uber Eats** (páginas de ayuda) | Sólo se vieron en resultados de buscador y en el `robots.txt` de Uber Eats | Abrir una o dos páginas de ayuda de cada uno con la herramienta normal de lectura |
 
 ---
 

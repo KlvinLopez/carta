@@ -144,3 +144,4 @@ section.salto > .tarjeta + .tarjeta { margin-top: 3mm; }
 .md { background: linear-gradient(90deg, var(--vino) 50%, transparent 50%); }
 table.matriz td { white-space: nowrap; }
 em { font-style: normal; font-family: "DM Serif Display", serif; color: var(--vino); }
+.fu { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 1.6px dashed var(--vino); vertical-align: -1px; }
