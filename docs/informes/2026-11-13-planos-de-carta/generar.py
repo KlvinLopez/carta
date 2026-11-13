@@ -1482,7 +1482,7 @@ def construir() -> str:
     <li><code>docs/research/2026-11-13-mapa-de-procesos-y-costos.md</code> y <code>2026-11-13-simulador-de-uso.py</code> (ronda 3: memoria de PostgreSQL deducida de la factura).</li>
     <li><code>docs/research/2026-11-13-planes-y-costo-por-restaurante.md</code> y su guion.</li>
     <li><code>docs/research/2026-11-13-estadistica-de-cartas-y-personal.md</code>, sus datos (148 cartas) y su guion.</li>
-    <li><code>docs/research/2026-11-13-estrategia-de-precios.md</code>; <code>2026-11-13-comparativo-de-precios-y-anuncios.md</code> (rama <code>agente/comparativo-de-precios</code>, commit 2bdcc60: precios de hoy, anuncios, oferta del piloto); <code>2026-09-19-modelo-de-negocio-y-pagos.md</code>; <code>2026-09-19-competencia-real-mexico.md</code>; <code>2026-09-20-olaclick-a-fondo.md</code>.</li>
+    <li><code>docs/research/2026-11-13-estrategia-de-precios.md</code>; <code>2026-11-13-comparativo-de-precios-y-anuncios.md</code> (en master desde el PR 33: precios de hoy, anuncios, oferta del piloto); <code>2026-09-19-modelo-de-negocio-y-pagos.md</code>; <code>2026-09-19-competencia-real-mexico.md</code>; <code>2026-09-20-olaclick-a-fondo.md</code>.</li>
     <li><code>docs/plan/04_Fases_y_Tareas.md</code> §11 (decisiones de Calvin del 13 de noviembre).</li>
   </ul>
   <h3>Externas (leídas el 13 de noviembre de 2026 salvo donde se dice)</h3>

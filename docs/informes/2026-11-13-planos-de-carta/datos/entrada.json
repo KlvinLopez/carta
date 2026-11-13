@@ -290,7 +290,7 @@
   ]
  },
  "competidores": {
-  "fuente": "docs/research/2026-11-13-comparativo-de-precios-y-anuncios.md §1 (rama agente/comparativo-de-precios, commit 2bdcc60): planes de entrada leídos en la página de cada proveedor el 13-nov-2026, pesos al mes antes de IVA a 18.6188",
+  "fuente": "docs/research/2026-11-13-comparativo-de-precios-y-anuncios.md §1 (en master desde el PR 33): planes de entrada leídos en la página de cada proveedor el 13-nov-2026, pesos al mes antes de IVA a 18.6188",
   "filas": [
    [
     "Neolo menú QR (Plan 0)",
