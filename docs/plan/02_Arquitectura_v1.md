@@ -109,6 +109,7 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 | `POST /sesion/entrar` `{codigo_mesa}` | Crea o reanuda sesión y miembro; emite cookie | US-01, US-02 |
 | `GET /sesion` | Estado de la mesa: miembros, estados, mi orden, comandas y su estado. ETag | US-02, US-11, US-12 |
 | `GET /sesion/eventos` | Línea de avisos de la mesa (`text/event-stream`, §6) | US-40 |
+| `GET /solicitud` | Estado de mi solicitud de entrada, con la cookie `carta_solicitud` (10 min); al aprobarse emite la cookie de invitado. ETag; la pantalla de espera pregunta cada 5 s (excepción del ADR-018) | US-33 |
 | `PATCH /miembro` `{alias}` | Cambiar alias | US-03 |
 | `GET /menu/{slug}` | Menú activo por categorías. Público, cacheable | US-04 |
 | `GET /platillos/{id}` | Detalle | US-04 |
@@ -149,7 +150,7 @@ Las rutas del ciclo de la mesa de la Spec 001 (cerrar mi cuenta, propina declara
 | `GET/POST /restaurantes/{rid}/mesas` · `POST /mesas/{id}/regenerar-codigo` · `GET /restaurantes/{rid}/mesas/qr.pdf` | Mesas y QR | US-21 |
 | `GET/POST /restaurantes/{rid}/personal` · `PATCH /personal/{id}` · `POST /personal/{id}/pin` | Personal y PIN | US-26 |
 | `GET /restaurantes/{rid}/resumen` | Escaneos y órdenes de hoy y de la semana | US-24 |
-| `GET /restaurantes/{rid}/mesas-vivo` | Misma vista que `/op/mesas`, con permisos de operador; desde la Spec 001 el dueño también actúa desde aquí (T-3.7) y la vista pregunta cada 5 s (excepción del ADR-018: `EventSource` no manda la cabecera `Authorization`) | US-13, US-36 |
+| `GET /restaurantes/{rid}/mesas-vivo` | Misma vista que `/op/mesas`, con permisos de operador; desde la Spec 001 el dueño también actúa desde aquí (T-3.7). Cómo se entera de los cambios (línea con cookie de línea o sondeo de 5 s): [ACLARAR-F3-2], ADR-018 punto 9 | US-13, US-36 |
 
 ### 5.4 Infraestructura
 
@@ -174,14 +175,14 @@ sequenceDiagram
   O->>A: escritura (otro worker)
   A->>D: UPDATE … + disparador pg_notify('carta_mesa', sesion_id) en la misma transacción
   D-->>A: NOTIFY al confirmar (a todos los workers)
-  A-->>T: event: cambio
+  A-->>T: event: cambio (ETag nuevo de T)
   T->>A: GET /p/sesion con If-None-Match
   A-->>T: 200 con el estado nuevo
 ```
 
 1. **Aviso.** Un disparador de la migración (T-3.0) emite `NOTIFY carta_mesa '<sesion_id>'` o `NOTIFY carta_restaurante '<restaurante_id>'` en la misma transacción que la escritura; el aviso no lleva datos.
-2. **Escucha.** Cada worker tiene una conexión con `LISTEN` en los dos canales (`app/services/avisos.py`, T-3.20). Al recibir un aviso invalida su memoria de estados y manda `event: cambio` a sus líneas abiertas de esa mesa o restaurante.
-3. **Estado.** El teléfono pide `GET /p/sesion` o `GET /op/mesas` con su ETag; el contrato de esas rutas no cambia. El ETag se calcula como hoy (versión de sesión, miembros, órdenes y comandas de esa mesa) y se guarda en memoria **60 s** (antes 2 s): ya no hace falta caducar pronto porque todos los workers la invalidan con el aviso.
+2. **Escucha.** Cada worker tiene una conexión con `LISTEN` en los dos canales (`app/services/avisos.py`, T-3.20). Al recibir un aviso invalida su memoria de estados, lee el estado de esa mesa una vez y manda `event: cambio` con el ETag nuevo de cada línea abierta de esa mesa o restaurante; de paso revalida la identidad de cada línea y cierra con `event: fin` la que ya no vale (expulsado, mesa limpia, persona dada de baja o PIN reasignado). Mientras su escucha está caída, la memoria vuelve a vivir 2 s.
+3. **Estado.** El teléfono pide `GET /p/sesion` o `GET /op/mesas` con su ETag; el contrato de esas rutas no cambia. Si la respuesta no trae el ETag anunciado (otro worker aún no procesó el aviso), repite una vez a los ≈ 300 ms. El ETag se calcula como hoy (versión de sesión, miembros, órdenes y comandas de esa mesa) y se guarda en memoria **60 s** (antes 2 s): ya no hace falta caducar pronto porque todos los workers la invalidan con el aviso.
 4. **Lo que queda por tiempo, guiado por la actividad:**
 
 | Qué | Cuándo | Por qué |
@@ -202,9 +203,10 @@ sequenceDiagram
 | | Comanda servida | 45 s |
 | | Su cuenta pagada | sólo al volver a primer plano |
 | Personal `GET /op/mesas` | Siempre | 5 s |
-| Panel del dueño `GET /admin/…/mesas-vivo` | Siempre (excepción del ADR-018, sin línea) | 5 s |
+| Panel del dueño `GET /admin/…/mesas-vivo` | Siempre, si Calvin elige la opción (a) de [ACLARAR-F3-2]; con la (b) tiene línea propia | 5 s |
+| Espera de una solicitud de entrada `GET /p/solicitud` | Mientras la pantalla está visible, ≤ 10 min (excepción del ADR-018) | 5 s |
 
-7. **Resiliencia:** reconexión con azar de 0–20 s tras un corte masivo; la app recrea el `EventSource` si queda `CLOSED`; al recuperar la escucha, los avisos se reparten en ≈ 30 s; `/ready` responde 503 si la escucha lleva caída más de 15 s [supuesto]; `--timeout-graceful-shutdown 3`; `--limit-concurrency` sin fijar.
+7. **Resiliencia:** reconexión con azar dentro de la ventana que fija el servidor en el `hola` (según las líneas abiertas, mínimo 5 s) sólo tras un corte masivo con la página visible, e inmediata al volver a primer plano; antes de recrear una línea `CLOSED`, una lectura (410 o 401 la detienen); topes de líneas por miembro, IP, restaurante y worker con 429 [supuestos, ADR-018 punto 3]; la memoria de generaciones se purga por antigüedad; al recuperar la escucha, los avisos se reparten en ≈ 30 s; `/ready` responde 503 si la escucha lleva caída más de 15 s [supuesto]; `--timeout-graceful-shutdown 3` y `RAILWAY_DEPLOYMENT_DRAINING_SECONDS` = 5 en Railway; `--limit-concurrency` sin fijar.
 
 **Lo que no cambia:** el menú se vuelve a pedir cada 25 s mientras se ve (ADR-016; es público y cacheable en el borde) y el panel del operador pregunta cada 3 s por su importación mientras espera (§7).
 
@@ -325,7 +327,7 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 | Escrituras (ítems, confirmaciones, eventos) | ~10 por comensal por visita en ~40 min | 0.5 rps | 5 rps | 50 rps |
 | Fotos | ~2 MB por sesión, desde R2 | 0 al origen | 0 | 0 |
 
-> **Desde el ADR-018** las filas de sondeo de esta tabla describen el modelo anterior y el modo degradado; con avisos, cada comensal hace ≈ 165 peticiones en 90 min en lugar de ≈ 1,800 y el tope medido en local con 2 workers pasa de ≈ 1,200–1,600 a ≈ 8,000–10,000 comensales con la app abierta ([`perf/2026-11-13-eventos-frente-a-sondeo.md`](perf/2026-11-13-eventos-frente-a-sondeo.md) §2 y §3; local, sin Cloudflare ni Railway, ±2×). El costo medido del sondeo de hoy está en [`perf/2026-11-13-modelo-de-capacidad.md`](perf/2026-11-13-modelo-de-capacidad.md). Las cifras de esta sección no se cambian aquí: las sustituye T-4.4 al medir en Railway.
+> **Desde el ADR-018** las filas de sondeo de esta tabla describen el modelo anterior y el modo degradado; con avisos, cada comensal hace ≈ 165 peticiones en 90 min en lugar de ≈ 1,800 y con 2 workers caben ≈ 5,000 comensales con la app abierta con margen y 10,000 es el techo medido en local (frente a ≈ 1,200–1,600 con el sondeo; el pico de toda la sala no se midió y lo mide T-4.4) ([`perf/2026-11-13-eventos-frente-a-sondeo.md`](perf/2026-11-13-eventos-frente-a-sondeo.md) §2 y §3; local, sin Cloudflare ni Railway, ±2×). El costo medido del sondeo de hoy está en [`perf/2026-11-13-modelo-de-capacidad.md`](perf/2026-11-13-modelo-de-capacidad.md). Las cifras de esta sección no se cambian aquí: las sustituye T-4.4 al medir en Railway.
 
 **Costo de un `304`:** verificar la cookie, leer el ETag en memoria o hacer una consulta por índice. ~0.3–0.5 ms de CPU. Una API en uvicorn con 2 *workers* en 2 vCPU sostiene ≈ 1,500–2,500 rps de este tipo, es decir, **unos 40–60 restaurantes en pico simultáneo en una VM de $10**. Con 4 vCPU, ~100. Son estimaciones: la tarea T-4.4 las sustituye por mediciones.
 

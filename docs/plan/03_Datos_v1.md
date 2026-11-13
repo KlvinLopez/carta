@@ -158,7 +158,21 @@ Una tarea periódica en proceso borra las filas de más de 24 h.
 | **Reparto del cargo** (una fila por cargo y persona con su parte; en la v1 una fila al 100 %) y **registro de movimientos** (quién propuso, quién aceptó, cuándo) | Costura de traspasos para la v1.1; «pasar la cuenta» y la cuenta flotante | AC-31.7, 31.8; Spec 001 §7 |
 | `item_orden`: quién lo pidió, origen, «cancelado por el personal» con autor y hora | Costura de la edición por el personal | AC-31.5 |
 | `restaurante`: `horarios` como lista de tramos por día con versión, zona horaria IANA, ajuste «fuera de horario» | Horario | AC-38.x |
-| **Disparador de avisos** (ADR-018): en la misma transacción que la escritura, `pg_notify('carta_mesa', sesion_id)` en toda escritura que cambia lo que ve una mesa y `pg_notify('carta_restaurante', restaurante_id)` en toda escritura que ve el personal (sesión, miembros, órdenes, ítems, comandas, llamadas, solicitudes, reparto). El aviso no lleva datos del negocio y mide < 8,000 bytes (límite de PostgreSQL) | Que ninguna escritura se olvide de avisar | AC-40.1 |
+| **Disparador de avisos** (ADR-018): en la misma transacción que la escritura, `pg_notify('carta_mesa', <sesion_id>::text)` y `pg_notify('carta_restaurante', <restaurante_id>::text)` según la tabla (lista cerrada abajo). El aviso no lleva datos del negocio y mide < 8,000 bytes (límite de PostgreSQL) | Que ninguna escritura se olvide de avisar | AC-40.1, AC-40.11 |
+| **Marcas de autor en cada transición del ciclo**: quién (personal u operador) y cuándo en cerrar la cuenta (por el comensal o por el personal, también el atajo de toda la mesa), validar, «pagada», «mesa limpia», reabrir, liberar con cargos y cada corrección | Registro de quién hizo qué (Spec 001 §9) | AC-29.8, AC-29.9, AC-29.12, AC-31.3, AC-35.1 |
+
+**Tablas que observa el disparador** (lista cerrada; T-3.0 la fija en la migración y en `tests/integration/test_disparador_avisos.py`, que **falla si una tabla que leen `leer_estado` o el estado del personal no avisa** y no está en la lista de excepciones con su porqué):
+
+| Tabla | Canal | Por qué |
+|---|---|---|
+| `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden`, `llamada_mesero`, reparto del cargo y su registro, solicitud de entrada, marcas de tiempo | mesa (la sesión de la fila) y restaurante | Lo que ven la mesa y el personal |
+| `mesa` (`activa`, `numero`, capacidad, código) | restaurante; y mesa de la sesión viva de esa mesa | `leer_estado` lee la mesa; dar de baja una mesa cierra la mesa para el comensal (410) |
+| `restaurante` (`activo`, horarios, zona, ajuste fuera de horario) y ajustes por restaurante | restaurante; y mesa de cada sesión viva del restaurante | `leer_estado` lee `Restaurante.activo`; los ajustes cambian el estatus |
+| `personal_restaurante` (`activo`, rol, `sesiones_desde`) | restaurante | La línea del personal revalida la identidad (AC-40.11) |
+| `platillo`, `categoria_menu` | **excepción** | El menú no viaja por la línea: es público y cacheable en el borde y se refresca cada 25 s (ADR-016) |
+| `evento_analitica`, `clave_idempotencia`, `importacion_menu`, `usuario`, `operador_restaurante` | **excepción** | No cambian lo que ve una mesa ni el personal (si T-3.7 adopta la línea del operador, `operador_restaurante` avisa para revalidarla) |
+
+**Seguridad del disparador:** la función es `SECURITY INVOKER` (por defecto; nunca `DEFINER`) con `SET search_path = pg_catalog, public`; sólo llama a `pg_notify(canal, id::text)` con ids de la propia fila (`NEW` u `OLD`), nunca con texto calculado de otra fuente. Los canales `carta_mesa` y `carta_restaurante` son de toda la base: cualquier sesión con permiso de conexión podría emitir un `NOTIFY` en ellos. Un aviso falso sólo provoca una lectura con ETag (que da `304` si nada cambió) porque el aviso no lleva datos y la versión se recalcula de la base; el usuario de la aplicación es el único que se conecta (03 §6) y la escucha ignora lo que no tenga forma de UUID.
 
 ## 3. Alteraciones a tablas existentes
 
