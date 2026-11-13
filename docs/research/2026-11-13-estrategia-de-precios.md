@@ -24,9 +24,9 @@ Por qué la mesa y no el uso: es lo que el dueño puede contar sin pensar, no ca
 |---|---|---|---|
 | **Gratuito** | fonda, taquería, cafetería chica: hasta 10 mesas | 0 | cruzar 10 mesas; quitar la marca «Hecho con Carta» |
 | **Servicio** (**central**) | restaurante o cafetería de 11 a 25 mesas | **349 pesos al mes antes de IVA** (≈ 405 con IVA) | pasar de 25 mesas o querer atención y reportes de más valor |
-| **A medida** | salón grande, hotel, 26 a 40 mesas o más | sin precio de lista; se habla | tamaño y servicio especial (alta hecha por nosotros, imágenes con prioridad) |
+| **A medida** | salón grande, hotel, 26 a 40 mesas o más | sin precio de lista; se habla | tamaño y servicio especial (alta hecha por nosotros, imágenes con prioridad, a futuro) |
 
-Lo que tú dijiste (10 mesas / 6 por mesa / 3 lecturas / 3 personas, y de paga 40 / 12 / 20) se respeta. Lo que añado: el de paga **no necesita ser uno solo para siempre**; el tercer nivel es una puerta para hablar con los grandes, no algo que se vende en el piloto.
+Lo que tú dijiste (10 mesas / 6 por mesa / 3 lecturas de PDF por dueño / 3 personas, y de paga 40 / 12 / 20 con fila prioritaria de lecturas, y el historial de 30 días / 12 meses) se respeta. Lo que añado: el de paga **no necesita ser uno solo para siempre**; el tercer nivel es una puerta para hablar con los grandes, no algo que se vende en el piloto.
 
 **Qué se sabe y qué es supuesto**
 
@@ -39,7 +39,7 @@ Lo que tú dijiste (10 mesas / 6 por mesa / 3 lecturas / 3 personas, y de paga 4
 
 **Antes del piloto, gratis:** 5 a 10 entrevistas sin vender (§1.3) y unas consultas de lectura a la base para ver dónde chocarían los topes (§5.1).
 
-**Lo que te toca decidir** (§6, con recomendación): 1. ¿cobrar en el piloto con transferencia o sólo carta de compromiso? 2. ¿Precio central 349 antes de IVA, y se muestra con o sin IVA? 3. ¿Existe el nivel «A medida»? 4. ¿Cuánto necesitas que ingrese al mes para que valga la pena (fija la meta de conversión)? 5. Personal: ¿3 o 5? 6. ¿Qué hacer con la mesa de 7 personas? 7. Tope de platillos: ¿después de la estadística? 8. Lecturas de PDF en paga. 9. Fila de espera para imágenes: ¿sí como razón de pago? 10. Anuncios, comisión y Carta+: fuera. 11. Descuento de «fundador»: no durante la prueba. 12. ¿Spec 002 ahora o después de la prueba?
+**Lo que te toca decidir** (§6, con recomendación): 1. ¿cobrar en el piloto con transferencia o sólo carta de compromiso? 2. ¿Precio central 349 antes de IVA, y se muestra con o sin IVA? 3. ¿Existe el nivel «A medida»? 4. ¿Cuánto necesitas que ingrese al mes para que valga la pena (fija la meta de conversión)? 5. Personal: ¿3 o 5? 6. ¿Qué hacer con la mesa de 7 personas? 7. Tope de platillos: ¿después de la estadística? 8. Qué pasa si la fila de lecturas de PDF se llena (la regla ya la fijaste). 9. Fila de imágenes: ya la dejaste para después. 10. Anuncios, comisión y Carta+: fuera. 11. Descuento de «fundador»: no durante la prueba. 12. ¿Spec 002 ahora o después de la prueba?
 
 ---
 
@@ -168,7 +168,7 @@ El **comprador** y el **trabajo** son distintos en cada plan. Los precios son hi
 | **Comensales por mesa** | 6 | 12 | 12 |
 | **Personal activo** | 3 | 20 | 20 o más |
 | **Platillos activos** | a definir con la estadística de cartas en curso | más | a definir |
-| **Lecturas de PDF** | 3 en total, por dueño, una sola vez | a definir (propuesta: 10 al mes) | las que haga falta |
+| **Lecturas de PDF** | 3 en total, **por dueño**, una sola vez *(decisión de Calvin, 13 nov)* | sin número al mes: **fila prioritaria, sujeta a disponibilidad** *(decisión de Calvin)* | igual que el central |
 | **Producto** | completo (orden compartida, alérgenos, comanda, mesero, ciclo de la mesa) | el mismo + sin marca «Hecho con Carta» + historial más largo + atención por WhatsApp | el mismo + alta hecha por nosotros + imágenes con prioridad (cuando existan) |
 | **Precio** | 0 | **349 pesos al mes antes de IVA** *(≈ 405 con IVA)* | por hablar; **no se publica** |
 | **Razón para subir** | Cruzar 10 mesas; o querer que su carta se vea «de él» (sin marca) | Cruzar 25 mesas; quiere que Carta le arme y le atienda | — (es el techo) |
@@ -184,15 +184,15 @@ Un tope es **razón de pago** si el dueño lo siente como «estoy creciendo y es
 | **Mesas activas** | 10 → 25 (y 40+) | **Sí, la mejor** | Mide tamaño, valor y costo a la vez; el dueño lo cuenta sin pensar | Conservarla como motor. **El dato que más pesa es cuántos restaurantes objetivo pasan de 10 mesas**: no se conoce (§4.4). Si pocos pasan, no habrá ingresos |
 | **Personal activo** | 3 → 20 | **No** | Un restaurante de 10 mesas con dos turnos tiene 4 o 5 meseros distintos; la **rotación de personal es alta** y el cupo de 3 se topa por turnos, no por crecimiento. No cuesta nada y Calvin dijo que meseros y capitanes no pagan | Mantener 3 hasta oír 5 entrevistas (pregunta 1). Si la mitad dice 4 o más, subir el gratuito a 5. Que **dar de baja** a alguien libere el cupo (ya es baja lógica) |
 | **Comensales por mesa** | 6 → 12 | **No** | Castiga al **comensal** (el séptimo ve «mesa llena») en el momento en que el grupo grande es el mejor caso de uso de la orden compartida. Con 2.3 a 3 personas por mesa [supuesta, `2026-11-13-planes...` §1.3], pocas mesas pasan de 6 | Medir en el piloto cuántas sesiones llegan a 6 (§5.1). Si son < 5 %, el tope es inocuo; si son más, subir a 8 |
-| **Lecturas de PDF** | 3 en total, por dueño → 10 al mes | **No como razón recurrente; sí como guarda de costo** | Es el **único costo directo** (0.11 a 0.64 USD con Opus 5.5, `2026-11-13-planes...` §3.5) y hoy no tiene tope mensual. El dueño sano lee su PDF una vez | Tope por dueño (no por restaurante) para que crear otro restaurante no sea el truco. Razón de pago futura: **«te cargamos la carta nueva»** (servicio, no cuota) |
+| **Lecturas de PDF** | 3 por dueño → fila prioritaria sin número | **No como razón de pago; sí como guarda de costo** | Es el **único costo directo** (0.11 a 0.64 USD con Opus 5.5, `2026-11-13-planes...` §3.5). Con «fila prioritaria, sujeta a disponibilidad» el costo queda acotado por la capacidad de la fila, no por un número al mes | Decidido por Calvin. Vigilar el gasto real de la API en el piloto (dato por conseguir, §9) |
 | **Platillos activos** | a definir | **Depende** | Un restaurante de 80 renglones no es «más serio» que uno de 40; en las 12 cartas leídas el rango era de 14 a 65 sin bebidas, hasta ≈ 100 con bebidas (`planes` §1.2). Un tope bajo **corta la importación del PDF**, que es el momento mágico del producto (alta en < 10 min) | **No cortar la importación**: dejar importar todo y limitar sólo cuántos platillos pueden estar **activos** en el gratuito. Fijar el número con la estadística (el percentil 80 a 90 de las cartas del piloto) |
-| **Historial** | 30 días → 12 meses | **Todavía no** | Hoy no hay reporte alguno que lo use (los analytics del restaurante están fuera de la v1); un historial que nadie ve no es razón de pago. Sí es guarda de costo (volumen de la base: 20 a 50 MB al mes por restaurante) | Mantener como guarda. **Cuando exista un reporte semanal** (hoy se hace con SQL en el piloto, `01_Alcance` §4), el historial se vuelve la razón natural del nivel de paga |
+| **Historial** | 30 días → 12 meses | **Todavía no** *(aceptado por Calvin: 30 días / 12 meses)* | Hoy no hay reporte alguno que lo use (los analytics del restaurante están fuera de la v1); un historial que nadie ve no es razón de pago. Sí es guarda de costo (volumen de la base: 20 a 50 MB al mes por restaurante) | Mantener como guarda. **Cuando exista un reporte semanal** (hoy se hace con SQL en el piloto, `01_Alcance` §4), el historial se vuelve la razón natural del nivel de paga |
 | **Fotos propias** | todas | **No** | Casi cero costo (≈ 0.005 USD por 100 fotos al mes) | No limitar |
 | **Marca «Hecho con Carta» / dominio propio** | marca en el gratuito | **Sí** | Es orgullo y confianza: el dueño formal no quiere ajena su carta. OlaClick lo hace con el dominio y el menú sin publicidad (`olaclick-a-fondo` §3.2) | Conservarla como razón de pago |
 | **Alta hecha por nosotros / soporte por WhatsApp** | no / sí | **Sí, y es la de más valor** | Ahorra tiempo **del dueño**, que es su recurso más escaso; pero cuesta tiempo de Calvin | Probar en el piloto si lo piden. Es el primer candidato a justificar el precio |
-| **Imágenes generadas con prioridad** (tu idea de la fila de espera) | cola normal / prioridad | **Sí, y encaja** | Es el único lugar donde el costo por uso **es real** (≈ 10.5 pesos por modelo 3D en la nube, `modelo-de-negocio` §1) y a la vez algo que el dueño ve | Para v1.1. En el piloto se prueba preguntando (§5.1), sin construir |
+| **Imágenes y modelos 3D generados, con fila prioritaria** (idea de Calvin) | cola normal / prioridad | **Posible razón futura; fuera de la v1** | Se evalúa después (decisión de Calvin). Es el único lugar donde el costo por uso sería real (≈ 10.5 pesos por modelo 3D en la nube, `modelo-de-negocio` §1) | Dejar mencionada; no diseñar ni probar ahora |
 
-**Conclusión de la revisión:** las razones correctas para pagar son **tamaño (mesas), imagen propia (sin marca), tiempo del dueño (alta asistida, soporte) y capacidad creativa (imágenes con prioridad)**. El resto (platillos, PDF, historial, comensales por mesa) son **topes de protección** y deben fijarse para que un restaurante normal **nunca los sienta**.
+**Conclusión de la revisión:** las razones correctas para pagar son **tamaño (mesas), imagen propia (sin marca), tiempo del dueño (alta asistida, soporte) y capacidad creativa (imágenes con prioridad, a futuro)**. El resto (platillos, PDF, historial, comensales por mesa) son **topes de protección** y deben fijarse para que un restaurante normal **nunca los sienta**.
 
 ---
 
@@ -219,7 +219,7 @@ Costo en dólares al mes por restaurante, de `2026-11-13-planes-y-costo-por-rest
 |---|---|---|---|
 | Escala de 500 a 1,000 restaurantes (costo total ÷ restaurantes + 0.10 de lecturas) | ≈ 0.24 a 0.28 | ≈ 18.5 | **99 %** |
 | Escala de hoy (≈ 55 restaurantes de paga caben en 2 procesos, `mapa` §4.9) | ≈ 1.12 | ≈ 17.6 | **94 %** |
-| Peor caso razonable: restaurante grande + 10 lecturas de PDF al mes con Opus 5.5 | ≈ 6.95 | ≈ 11.8 | **63 %** |
+| Peor caso razonable: restaurante grande + 10 lecturas de PDF en un mes con Opus 5.5 (ya no hay número al mes en paga: es el escenario si la fila no se acota) | ≈ 6.95 | ≈ 11.8 | **63 %** |
 
 Lo que **no** incluyen estos márgenes: soporte, tu tiempo, el costo de vender (CAC), el IVA (16 %, tasa general; los precios de este documento son **antes** de IVA) y la comisión de cobro. Con tarjeta por Stripe (3.6 % + 3 pesos, `modelo-de-negocio` §3) la comisión sería ≈ 4.5 % de 349 pesos; con transferencia manual, 0. **El peor caso enseña dónde está el riesgo de costo: las lecturas de PDF sin tope, no el servidor.** Con Haiku 5.5 serían 40 a 50 veces menos (la precisión no está medida; ADR-014).
 
@@ -267,7 +267,7 @@ Ingreso mensual por **plan Servicio a 349 pesos**, con 150 y 1,000 restaurantes 
 | **Dónde chocarían los topes** | Consultas de **sólo lectura** sobre la base del piloto: mesas activas por restaurante, personal activo y personas distintas por mes, platillos por restaurante, el máximo de miembros por sesión (cuántas sesiones llegan a 6 y a 12), importaciones por dueño | La elección de 10 / 25 mesas, 3 / 5 de personal, 6 / 8 por mesa, el tope de platillos |
 | **El valor (V1–V5)** | Entrevistas de §1.3 antes y a las 2 semanas; M1–M4 y G1 de la analítica ya prevista (`01_Alcance` §1) | Cuáles cifras de valor pasan de supuestas a conocidas |
 | **¿Pagarían?** | La oferta con precio de §5.2 | El sí/no y las razones |
-| **Imágenes con prioridad** | En la entrevista final, sin demostrarlas: «¿Pagarías algo extra si tus fotos se hacen más rápido?» | Si es razón de pago o solo un deseo |
+| **Imágenes y 3D con prioridad** | Fuera de la v1 y fuera de esta prueba (Calvin la evaluará después) | — |
 
 ### 5.2 El experimento: «precio revelado» al final de las 6 semanas
 
@@ -313,8 +313,8 @@ Cada una trae mi recomendación primero.
 5. **Personal: ¿3 o 5 en el gratuito?** *Recomendado: dejar 3 y decidir tras 5 entrevistas* (pregunta 1 de §1.3). Los turnos y la rotación topan el cupo antes que el crecimiento; si la mitad tiene 4 o más meseros, 5.
 6. **Seis por mesa: ¿qué se le muestra al séptimo comensal?** *Recomendado: «esta mesa llegó a su límite», con el menú visible* (que vea la carta sin entrar a la orden), y medir en el piloto cuántas sesiones llegan a 6; si son > 5 %, subir a 8.
 7. **Tope de platillos: ¿después de la estadística?** *Recomendado: sí.* No cortar la importación del PDF; limitar sólo los platillos **activos** en el gratuito, con el percentil 80 a 90 de las cartas del piloto.
-8. **Lecturas de PDF en paga: ¿10 al mes por dueño?** *Recomendado: sí,* con las 3 de gratuito contadas por dueño (correo de Firebase), no por restaurante. Evita que crear otro restaurante sea el truco.
-9. **Fila de espera de imágenes y modelos: ¿razón de pago del plan central o extra aparte?** *Recomendado: razón de pago del central (prioridad) cuando exista en v1.1;* sin construir, se pregunta en la entrevista final.
+8. **Lecturas de PDF: decidido por Calvin** (3 en gratuito por dueño; en paga, fila prioritaria sujeta a disponibilidad). *Pendiente solo:* ¿qué pasa si la fila se llena? *Recomendado: mostrar el tiempo de espera estimado y nunca rechazar la lectura de un restaurante de paga.*
+9. **Fila de espera de imágenes y modelos: ya decidido que se evalúa después.** Queda solo como posible razón futura para subir de plan (§3.2). *Recomendado: no tocarlo hasta tener un costo real por imagen.*
 10. **¿Dejamos fuera anuncios, comisión por pago y Carta+?** *Recomendado: sí, los tres.* Razones en §2.2 y §2.3. «Hecho con Carta» sí, como marca discreta en el gratuito.
 11. **¿Hay precio de «fundador» para los primeros que paguen?** *Recomendado: no durante la prueba* (ensucia el precio que se mide). Después de aprobar, ofrecer 3 meses al precio de lista gratis a los primeros 10 como agradecimiento.
 12. **¿Abrimos la Spec 002 «Planes» ahora o tras la prueba?** *Recomendado: después de la prueba de §5,* con los topes que salgan de las consultas de §5.1. Antes sólo las tareas chicas de protección que ya recomendó `planes` §8 (tope mensual de lecturas de PDF).
@@ -341,6 +341,26 @@ Cada una trae mi recomendación primero.
 4. **Fuera de la Spec 002:** cobro con tarjeta (v2), cuenta del comensal y Carta+ (otra spec), comisión por pago (ADR de pagos).
 
 ---
+
+## 9. Datos por conseguir (regla de Calvin: toda cifra con fuente)
+
+Lo que sigue **no tiene dato** y por eso no se usa como si lo tuviera en ninguna decisión; está en el documento sólo como hipótesis o como umbral de decisión.
+
+| Dato por conseguir | Dónde aparece | Cómo conseguirlo |
+|---|---|---|
+| Valor del minuto del mesero, errores de comanda, mesas perdidas por rotación, costo y frecuencia de reimpresión, ticket real | §1.1, §1.4 | Entrevistas de §1.3 (preguntas 2 a 5) |
+| Cuántos restaurantes objetivo pasan de 10 mesas | §3.2, §4.4 | Pregunta 1 de §1.3 y consulta de mesas activas del piloto |
+| Cuántas sesiones llegan a 6 y a 12 miembros | §3.2 | Consulta de lectura sobre `miembro_sesion` del piloto |
+| Cuántos meseros distintos tiene un restaurante al mes | §3.2 | Pregunta 1 de §1.3 |
+| Percentil de platillos por carta | §3.2 | Las cartas del piloto (en las 12 leídas: 14 a 65 sin bebidas) |
+| Disposición a pagar por tipo de negocio (los rangos de §4.1 son sólo los precios de la alternativa más cercana) | §4.1 | Pregunta 6 de §1.3 y las cuatro preguntas de precio de §5.2 |
+| Conversión de gratuito a paga | §4.4 | La prueba de §5; los porcentajes de la tabla son un barrido, no una predicción |
+| CAC, abandono y vida de un cliente (heredados de `Carta_Market_Analysis.md` §4.3 como supuestos de septiembre) | §4.4 | Piloto: horas de Calvin por cliente; retención M5 |
+| Gasto real de la API de Claude por lecturas de PDF | §3.2, §4.2 | Registro de importaciones del piloto × precio de la API |
+| Precio real de impresión de una carta | §1.2 | Pregunta 2 de §1.3 |
+| Capacidad con el servidor de hoy | §4.3 | **Ya con dato** (`mapa-de-procesos-y-costos.md`, en `master`): ≈ 148 gratuitos típicos, ≈ 65 gratuitos al tope (10 × 6) y ≈ 55 de paga típicos con la forma de hoy; sustituye a las cifras del informe de planes |
+
+**Plan de Calvin hoy:** Railway **Hobby** y Cloudflare **gratuito** (dominio pagado: 25 USD, decisión de Calvin del 13 de noviembre). Mis tablas de costo parten de los precios y supuestos del informe de planes y de `mapa`; el **volumen de 5 GB del plan Hobby** (`planes` §6.3) es lo primero que limitaría el historial y apoya la retención de 30 días / 12 meses.
 
 ## Fuentes
 
