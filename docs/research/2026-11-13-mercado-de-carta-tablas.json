@@ -1,0 +1,583 @@
+{
+ "fuente": "INEGI, DENUE 05_2026; agregados y agrupaciones nuestros",
+ "total_7224_7225": 773860,
+ "nucleo": {
+  "clases": [
+   "722511",
+   "722411",
+   "722412"
+  ],
+  "n": 104882,
+  "con_sitio": 6170,
+  "por_estrato": {
+   "0 a 5 personas": 73193,
+   "6 a 10 personas": 17855,
+   "11 a 30 personas": 10809,
+   "31 a 50 personas": 2263,
+   "51 a 100 personas": 542,
+   "101 a 250 personas": 193,
+   "251 y más personas": 27
+  },
+  "con_sitio_por_estrato": {
+   "0 a 5 personas": 1136,
+   "6 a 10 personas": 1301,
+   "11 a 30 personas": 2138,
+   "31 a 50 personas": 1127,
+   "51 a 100 personas": 336,
+   "101 a 250 personas": 114,
+   "251 y más personas": 18
+  }
+ },
+ "expansion": {
+  "clases": [
+   "722512",
+   "722513",
+   "722514",
+   "722515"
+  ],
+  "n": 438848,
+  "con_sitio": 6335,
+  "por_estrato": {
+   "0 a 5 personas": 399289,
+   "6 a 10 personas": 30348,
+   "11 a 30 personas": 8467,
+   "31 a 50 personas": 523,
+   "51 a 100 personas": 111,
+   "101 a 250 personas": 77,
+   "251 y más personas": 33
+  },
+  "con_sitio_por_estrato": {
+   "0 a 5 personas": 2389,
+   "6 a 10 personas": 1439,
+   "11 a 30 personas": 2242,
+   "31 a 50 personas": 161,
+   "51 a 100 personas": 62,
+   "101 a 250 personas": 31,
+   "251 y más personas": 11
+  }
+ },
+ "para_llevar": {
+  "clases": [
+   "722516",
+   "722517",
+   "722518",
+   "722519"
+  ],
+  "n": 230130,
+  "con_sitio": 5877,
+  "por_estrato": {
+   "0 a 5 personas": 211498,
+   "6 a 10 personas": 11950,
+   "11 a 30 personas": 5477,
+   "31 a 50 personas": 920,
+   "51 a 100 personas": 255,
+   "101 a 250 personas": 26,
+   "251 y más personas": 4
+  },
+  "con_sitio_por_estrato": {
+   "0 a 5 personas": 1645,
+   "6 a 10 personas": 1310,
+   "11 a 30 personas": 2179,
+   "31 a 50 personas": 546,
+   "51 a 100 personas": 184,
+   "101 a 250 personas": 10,
+   "251 y más personas": 3
+  }
+ },
+ "por_clase": {
+  "722411": {
+   "clases": [
+    "722411"
+   ],
+   "n": 1910,
+   "con_sitio": 68,
+   "por_estrato": {
+    "0 a 5 personas": 858,
+    "6 a 10 personas": 483,
+    "11 a 30 personas": 488,
+    "31 a 50 personas": 65,
+    "51 a 100 personas": 8,
+    "101 a 250 personas": 7,
+    "251 y más personas": 1
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 10,
+    "6 a 10 personas": 16,
+    "11 a 30 personas": 27,
+    "31 a 50 personas": 8,
+    "51 a 100 personas": 3,
+    "101 a 250 personas": 3,
+    "251 y más personas": 1
+   }
+  },
+  "722412": {
+   "clases": [
+    "722412"
+   ],
+   "n": 30451,
+   "con_sitio": 487,
+   "por_estrato": {
+    "0 a 5 personas": 25775,
+    "6 a 10 personas": 3227,
+    "11 a 30 personas": 1322,
+    "31 a 50 personas": 110,
+    "51 a 100 personas": 13,
+    "101 a 250 personas": 1,
+    "251 y más personas": 3
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 167,
+    "6 a 10 personas": 142,
+    "11 a 30 personas": 138,
+    "31 a 50 personas": 31,
+    "51 a 100 personas": 8,
+    "101 a 250 personas": 0,
+    "251 y más personas": 1
+   }
+  },
+  "722511": {
+   "clases": [
+    "722511"
+   ],
+   "n": 72521,
+   "con_sitio": 5615,
+   "por_estrato": {
+    "0 a 5 personas": 46560,
+    "6 a 10 personas": 14145,
+    "11 a 30 personas": 8999,
+    "31 a 50 personas": 2088,
+    "51 a 100 personas": 521,
+    "101 a 250 personas": 185,
+    "251 y más personas": 23
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 959,
+    "6 a 10 personas": 1143,
+    "11 a 30 personas": 1973,
+    "31 a 50 personas": 1088,
+    "51 a 100 personas": 325,
+    "101 a 250 personas": 111,
+    "251 y más personas": 16
+   }
+  },
+  "722512": {
+   "clases": [
+    "722512"
+   ],
+   "n": 28902,
+   "con_sitio": 643,
+   "por_estrato": {
+    "0 a 5 personas": 21873,
+    "6 a 10 personas": 4764,
+    "11 a 30 personas": 1965,
+    "31 a 50 personas": 228,
+    "51 a 100 personas": 41,
+    "101 a 250 personas": 29,
+    "251 y más personas": 2
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 166,
+    "6 a 10 personas": 154,
+    "11 a 30 personas": 221,
+    "31 a 50 personas": 59,
+    "51 a 100 personas": 22,
+    "101 a 250 personas": 19,
+    "251 y más personas": 2
+   }
+  },
+  "722513": {
+   "clases": [
+    "722513"
+   ],
+   "n": 168295,
+   "con_sitio": 794,
+   "por_estrato": {
+    "0 a 5 personas": 159352,
+    "6 a 10 personas": 7606,
+    "11 a 30 personas": 1217,
+    "31 a 50 personas": 40,
+    "51 a 100 personas": 19,
+    "101 a 250 personas": 35,
+    "251 y más personas": 26
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 370,
+    "6 a 10 personas": 289,
+    "11 a 30 personas": 102,
+    "31 a 50 personas": 12,
+    "51 a 100 personas": 7,
+    "101 a 250 personas": 7,
+    "251 y más personas": 7
+   }
+  },
+  "722514": {
+   "clases": [
+    "722514"
+   ],
+   "n": 147589,
+   "con_sitio": 978,
+   "por_estrato": {
+    "0 a 5 personas": 134831,
+    "6 a 10 personas": 10639,
+    "11 a 30 personas": 1979,
+    "31 a 50 personas": 109,
+    "51 a 100 personas": 25,
+    "101 a 250 personas": 5,
+    "251 y más personas": 1
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 469,
+    "6 a 10 personas": 259,
+    "11 a 30 personas": 207,
+    "31 a 50 personas": 27,
+    "51 a 100 personas": 14,
+    "101 a 250 personas": 2,
+    "251 y más personas": 0
+   }
+  },
+  "722515": {
+   "clases": [
+    "722515"
+   ],
+   "n": 94062,
+   "con_sitio": 3920,
+   "por_estrato": {
+    "0 a 5 personas": 83233,
+    "6 a 10 personas": 7339,
+    "11 a 30 personas": 3306,
+    "31 a 50 personas": 146,
+    "51 a 100 personas": 26,
+    "101 a 250 personas": 8,
+    "251 y más personas": 4
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 1384,
+    "6 a 10 personas": 737,
+    "11 a 30 personas": 1712,
+    "31 a 50 personas": 63,
+    "51 a 100 personas": 19,
+    "101 a 250 personas": 3,
+    "251 y más personas": 2
+   }
+  },
+  "722516": {
+   "clases": [
+    "722516"
+   ],
+   "n": 16605,
+   "con_sitio": 3338,
+   "por_estrato": {
+    "0 a 5 personas": 10237,
+    "6 a 10 personas": 2308,
+    "11 a 30 personas": 3027,
+    "31 a 50 personas": 767,
+    "51 a 100 personas": 240,
+    "101 a 250 personas": 24,
+    "251 y más personas": 2
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 356,
+    "6 a 10 personas": 554,
+    "11 a 30 personas": 1744,
+    "31 a 50 personas": 498,
+    "51 a 100 personas": 177,
+    "101 a 250 personas": 8,
+    "251 y más personas": 1
+   }
+  },
+  "722517": {
+   "clases": [
+    "722517"
+   ],
+   "n": 79622,
+   "con_sitio": 1873,
+   "por_estrato": {
+    "0 a 5 personas": 71369,
+    "6 a 10 personas": 6215,
+    "11 a 30 personas": 1912,
+    "31 a 50 personas": 114,
+    "51 a 100 personas": 8,
+    "101 a 250 personas": 2,
+    "251 y más personas": 2
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 814,
+    "6 a 10 personas": 638,
+    "11 a 30 personas": 378,
+    "31 a 50 personas": 35,
+    "51 a 100 personas": 4,
+    "101 a 250 personas": 2,
+    "251 y más personas": 2
+   }
+  },
+  "722518": {
+   "clases": [
+    "722518"
+   ],
+   "n": 60421,
+   "con_sitio": 261,
+   "por_estrato": {
+    "0 a 5 personas": 57613,
+    "6 a 10 personas": 2431,
+    "11 a 30 personas": 350,
+    "31 a 50 personas": 25,
+    "51 a 100 personas": 2,
+    "101 a 250 personas": 0,
+    "251 y más personas": 0
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 159,
+    "6 a 10 personas": 62,
+    "11 a 30 personas": 29,
+    "31 a 50 personas": 10,
+    "51 a 100 personas": 1,
+    "101 a 250 personas": 0,
+    "251 y más personas": 0
+   }
+  },
+  "722519": {
+   "clases": [
+    "722519"
+   ],
+   "n": 73482,
+   "con_sitio": 405,
+   "por_estrato": {
+    "0 a 5 personas": 72279,
+    "6 a 10 personas": 996,
+    "11 a 30 personas": 188,
+    "31 a 50 personas": 14,
+    "51 a 100 personas": 5,
+    "101 a 250 personas": 0,
+    "251 y más personas": 0
+   },
+   "con_sitio_por_estrato": {
+    "0 a 5 personas": 316,
+    "6 a 10 personas": 56,
+    "11 a 30 personas": 28,
+    "31 a 50 personas": 3,
+    "51 a 100 personas": 2,
+    "101 a 250 personas": 0,
+    "251 y más personas": 0
+   }
+  }
+ },
+ "cadenas_posibles_nucleo": {
+  ">=5": {
+   "nombres": 919,
+   "establecimientos": 8834
+  },
+  ">=10": {
+   "nombres": 250,
+   "establecimientos": 4680
+  },
+  ">=25": {
+   "nombres": 37,
+   "establecimientos": 1691
+  },
+  ">=50": {
+   "nombres": 10,
+   "establecimientos": 863
+  }
+ },
+ "cadenas_posibles_todo": {
+  ">=5": {
+   "nombres": 10731,
+   "establecimientos": 142997
+  },
+  ">=10": {
+   "nombres": 4020,
+   "establecimientos": 100440
+  },
+  ">=25": {
+   "nombres": 1007,
+   "establecimientos": 56852
+  },
+  ">=50": {
+   "nombres": 329,
+   "establecimientos": 34016
+  }
+ },
+ "por_zona_nucleo": {
+  "(resto del país)": {
+   "n": 64010,
+   "con_sitio": 1904
+  },
+  "Aguascalientes": {
+   "n": 950,
+   "con_sitio": 67
+  },
+  "Cancún": {
+   "n": 757,
+   "con_sitio": 127
+  },
+  "Chihuahua": {
+   "n": 813,
+   "con_sitio": 81
+  },
+  "Guadalajara": {
+   "n": 4139,
+   "con_sitio": 417
+  },
+  "Hermosillo": {
+   "n": 528,
+   "con_sitio": 82
+  },
+  "León": {
+   "n": 1159,
+   "con_sitio": 93
+  },
+  "Monterrey": {
+   "n": 3192,
+   "con_sitio": 417
+  },
+  "Morelia": {
+   "n": 1079,
+   "con_sitio": 66
+  },
+  "Mérida": {
+   "n": 1279,
+   "con_sitio": 149
+  },
+  "Oaxaca": {
+   "n": 1571,
+   "con_sitio": 85
+  },
+  "Puebla-Tlaxcala": {
+   "n": 3149,
+   "con_sitio": 244
+  },
+  "Querétaro": {
+   "n": 1416,
+   "con_sitio": 200
+  },
+  "San Luis Potosí": {
+   "n": 1060,
+   "con_sitio": 81
+  },
+  "Tijuana": {
+   "n": 1888,
+   "con_sitio": 159
+  },
+  "Toluca": {
+   "n": 1651,
+   "con_sitio": 109
+  },
+  "Valle de México": {
+   "n": 15457,
+   "con_sitio": 1835
+  },
+  "Veracruz": {
+   "n": 784,
+   "con_sitio": 54
+  }
+ },
+ "embudo": {
+  "mercado_total": 773860,
+  "nucleo": 104882,
+  "nucleo_con_sitio": 6170,
+  "nucleo_sin_sitio": 98712,
+  "nucleo_hasta_50_personas": 104120,
+  "nucleo_de_11_personas_o_mas": 13834,
+  "nucleo_de_11_o_mas_con_sitio": 3733,
+  "servible_sin_cadenas_posibles": {
+   ">=5": 96048,
+   ">=10": 100202,
+   ">=25": 103191,
+   ">=50": 104019
+  },
+  "nucleo_en_17_zonas": 40872,
+  "nucleo_en_17_zonas_con_sitio": 4266,
+  "expansion": 438848,
+  "techo_teorico_anual_mxn_si_todo_el_nucleo_pagara": 439245816,
+  "techo_teorico_anual_mxn_nucleo_11_o_mas": 57936792,
+  "capacidad_hoy": 299,
+  "capacidad_tope_documentado": 2116,
+  "escenarios": {
+   "bajo": {
+    "12": {
+     "activos": 100,
+     "pct_del_nucleo": 0.1,
+     "pct_del_servible_10": 0.1,
+     "mrr_mxn": {
+      "1%": 349,
+      "3%": 1047
+     },
+     "anual_mxn": {
+      "1%": 4188,
+      "3%": 12564
+     }
+    },
+    "24": {
+     "activos": 300,
+     "pct_del_nucleo": 0.29,
+     "pct_del_servible_10": 0.3,
+     "mrr_mxn": {
+      "1%": 1047,
+      "3%": 3141
+     },
+     "anual_mxn": {
+      "1%": 12564,
+      "3%": 37692
+     }
+    }
+   },
+   "medio": {
+    "12": {
+     "activos": 300,
+     "pct_del_nucleo": 0.29,
+     "pct_del_servible_10": 0.3,
+     "mrr_mxn": {
+      "1%": 1047,
+      "3%": 3141
+     },
+     "anual_mxn": {
+      "1%": 12564,
+      "3%": 37692
+     }
+    },
+    "24": {
+     "activos": 1000,
+     "pct_del_nucleo": 0.95,
+     "pct_del_servible_10": 1.0,
+     "mrr_mxn": {
+      "1%": 3490,
+      "3%": 10470
+     },
+     "anual_mxn": {
+      "1%": 41880,
+      "3%": 125640
+     }
+    }
+   },
+   "alto": {
+    "12": {
+     "activos": 1000,
+     "pct_del_nucleo": 0.95,
+     "pct_del_servible_10": 1.0,
+     "mrr_mxn": {
+      "1%": 3490,
+      "3%": 10470
+     },
+     "anual_mxn": {
+      "1%": 41880,
+      "3%": 125640
+     }
+    },
+    "24": {
+     "activos": 2116,
+     "pct_del_nucleo": 2.02,
+     "pct_del_servible_10": 2.11,
+     "mrr_mxn": {
+      "1%": 7385,
+      "3%": 22155
+     },
+     "anual_mxn": {
+      "1%": 88618,
+      "3%": 265854
+     }
+    }
+   }
+  },
+  "pct_alcanzable_3000_del_universo_7225": 0.4
+ }
+}
