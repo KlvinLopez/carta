@@ -1,6 +1,6 @@
 # Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; el marco corrió; **en espera de que la maestra decida seguir con la lectura de cartas** (etapas 2–3 pendientes). No cambia código, contrato ni planes.
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; tanda 1 **detenida a los 11 intentos por rendimiento bajo** (1 contable); etapas 2–3 en espera de decisión de la maestra. No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
@@ -114,6 +114,36 @@ Sustituciones que son supuesto: la zona del Valle de México usa el gasto de la 
 - En el repositorio queda sólo [`…-muestra-500-marco-ids.csv`](2026-11-13-muestra-500-marco-ids.csv): `place_id` y ciudad de los 914 (lo único guardable). Nombre, reseñas, sitio web y nivel de precio **no se guardaron**; la lista de trabajo vive en la sesión (pregunta 12 abierta, sección 1).
 - **Riesgo de la regla «sólo en memoria»:** la salida con nombres y sitios quedó en esta sesión; si se reinicia antes de leer las cartas, se pierde y rehacer el marco costaría otras 81 solicitudes (el tope diario deja 17 hoy).
 
+### 6.1 Cierre del marco con las 8 solicitudes restantes [medida aquí]
+
+Se usaron las 8 solicitudes que quedaban (90 de 90) en 4 consultas de 2 páginas: taquería y mariscos en Tijuana, taquería y cafetería en Toluca. Resultado: **61 candidatos nuevos** (33 Tijuana, 28 Toluca; ya con el filtro de cerrados y «muy caro»), que se sumaron al CSV de ids (975 filas). Con eso Tijuana queda con 66 candidatos para 35 plazas y Toluca con 56 para 27. **La cuota de Google de este marco está agotada**; más candidatos exigen otro día.
+
+## 7. Tanda 1: parada por rendimiento bajo [medida aquí]
+
+**Qué se hizo.** Cola de la tanda 1: rebanada proporcional (~20 % de cada plaza; 99 contables) con los candidatos que traen sitio web, en orden de reseñas dentro de cada ciudad y una sola vez por marca (287 intentos máximos; los 193 candidatos sin sitio **no se intentaron**: sesgo hacia negocios con sitio propio, que reduce a los que sólo viven en redes sociales). Lectura con ayudantes `haiku`, uno a la vez, 6 sitios por lote, máximo 3 páginas por negocio, sin reintentar 403/429/503.
+
+**Resultado de los primeros 11 intentos (2 lotes): 1 contable, 10 descartes → 0.09 contables por intento (9 intentos por contable si siguiera igual).** Me detuve antes de los 30 intentos de la regla (freno: < 0.30): con 1 de 11 haría falta que 8 de los 19 siguientes salieran contables (42 %) para llegar a 0.30, y cada lote cuesta ~80 mil unidades de lectura del ayudante.
+
+| Motivo de descarte | Intentos | Qué es |
+|---|---|---|
+| Contable | 1 | Taquería Orinoco: carta de la marca en su página de pedidos en línea (32 de comida, 4 de bebidas) |
+| Sitio caído o bloqueo del sitio (503 ×2, 403 ×1) | 3 | La lectura recibió el error y no se reintentó |
+| Límite de peticiones del sitio (429, «reintentar en 3600 s») | 2 | Una de ellas (Coco Canela) alcanzó a leer 53 renglones de comida pero no las bebidas: **no se estima** |
+| PDF «ilegible» para la herramienta | 2 | **Limitación del lector, no del PDF:** con `pdftotext` los dos PDF (La Parroquia de Veracruz y Villa Marina Península) sí extraen texto (≈ 120 y ≈ 230 líneas con precio) |
+| Carta repartida en muchas subpáginas | 1 | Café de Tacuba: 14 subpáginas de categoría, el tope de 3 páginas no alcanza |
+| Sin enlace a la carta en el texto de la página (probable JavaScript) | 2 | Animal; Trattoria La Pasta |
+
+Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lote 1 y no cuenta: una fila por marca.
+
+**Lectura.** El cuello de botella es **la herramienta de lectura**, no la falta de cartas: de 10 descartes, 5 son sitios que bloquean o limitan peticiones automáticas y 5 son cartas que sí existen pero que el lector no resume bien (PDF con texto, subpáginas, JavaScript). Los PDF con texto cuestan mucho contarlos con una herramienta que resume: en `pdftotext` los precios quedan separados de los nombres y un conteo por guion no es fiable (se probó con La Parroquia). Opciones para decidir (cada una con costo de uso):
+1. Dejar al ayudante abrir hasta 6 páginas y leer los PDF completos con `pdftotext` (yo hago el conteo línea por línea): rendimiento esperable mayor, costo por negocio ≈ 3–5 veces mayor [supuesto, sin medir].
+2. Cambiar la fuente a las fichas de reparto (Rappi, Uber Eats): la primera pasada rindió 1 contable por 1.7 intentos **[documento]**, pero sesgadas a reparto, y la ficha de Google no trae la dirección de Rappi: habría que buscar cada negocio.
+3. Aceptar la muestra chica: con 1 contable no hay estadística; con 30–50 sí hay intervalos amplios (mediana ±15 % aprox. de la primera pasada con n = 148) [supuesto].
+
+**Datos de la parada** (entran al mensaje a la maestra): contables acumulados 1 · intentos por contable 11 · ancho del intervalo de 90 % de la mediana y del p90: **no existe con n = 1**.
+
+**Archivos de esta tanda:** [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (1 fila; `negocio` y `url` tal como aparecen en la página leída, no los de la ficha de Google) y [`…-muestra-500-descartes.csv`](2026-11-13-muestra-500-descartes.csv) (`place_id`, ciudad, tanda, motivo; sin nombre). **Nota de transparencia:** la salida del marco, con nombres y sitios web de Google, se redirigió a un archivo del directorio temporal de la sesión (fuera del repositorio; no se subió) y no solo a pantalla: sirve para reanudar sin repetir las solicitudes; se borra al cerrar la sesión o cuando la maestra lo pida.
+
 ---
 
-*Etapas 2 y 3 (lectura de cartas, estadística e informe completo) se agregan cuando la maestra autorice la primera tanda.*
+*Etapa 3 (estadística e informe completo) se agrega cuando haya contables suficientes.*

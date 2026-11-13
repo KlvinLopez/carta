@@ -158,10 +158,12 @@ def solicitar(cuerpo: dict, mascara: str, detalle: str) -> dict:
         raise Detenido(f"HTTP {e.code}: {texto}") from e
 
 
-def consulta_completa(texto: str, etiqueta: str, pausa=time.sleep) -> list[dict]:
+def consulta_completa(
+    texto: str, etiqueta: str, pausa=time.sleep, paginas: int = PAGINAS_MAX
+) -> list[dict]:
     lugares: list[dict] = []
     token = None
-    for pagina in range(PAGINAS_MAX):
+    for pagina in range(paginas):
         cuerpo = {"textQuery": texto, "languageCode": "es", "regionCode": "MX", "pageSize": 20}
         if token:
             cuerpo["pageToken"] = token
@@ -277,6 +279,13 @@ def main() -> int:
     g.add_argument("--sonda", action="store_true")
     g.add_argument("--correr", action="store_true")
     g.add_argument("--estado", action="store_true")
+    g.add_argument(
+        "--extra",
+        nargs="+",
+        metavar="CIUDAD|TEXTO|PAGINAS",
+        help="consultas adicionales (misma regla de presupuesto); nuevos candidatos a la salida de la sesión",
+    )
+    ap.add_argument("--ya", help="CSV place_id,ciudad con los ids ya vistos (se omiten)")
     ap.add_argument(
         "--salida", help="CSV con sólo place_id y ciudad (lo único que se puede guardar)"
     )
@@ -303,6 +312,37 @@ def main() -> int:
             print("sonda: ok,", len(r.get("places", [])), "resultado(s)")
             return 0
         por_ciudad: dict[str, list[dict]] = defaultdict(list)
+        if a.extra:
+            for item in a.extra:
+                ciudad, texto, paginas = item.split("|")
+                por_ciudad[ciudad] += consulta_completa(
+                    texto, f"extra {ciudad}: {texto}", paginas=int(paginas)
+                )
+                print(f"[{leer_estado()['solicitudes']}/{PRESUPUESTO}] {texto}", flush=True)
+            vistos = set()
+            if a.ya:
+                with open(a.ya) as f:
+                    vistos = {r["place_id"] for r in csv.DictReader(f)}
+            nuevos = {
+                c: [p for p in ls if p["id"] not in vistos] for c, ls in por_ciudad.items()
+            }
+            for c, ls in elegir(nuevos).items():
+                print(f"## {c}: {len(ls)} nuevos")
+                for p in ls:
+                    print(
+                        json.dumps(
+                            {
+                                "id": p["id"],
+                                "n": p.get("displayName", {}).get("text"),
+                                "res": p.get("userRatingCount"),
+                                "web": p.get("websiteUri"),
+                                "cad": p["_cadena"],
+                                "caro": p["_caro"],
+                            },
+                            ensure_ascii=False,
+                        )
+                    )
+            return 0
         for ciudad, texto in CONSULTAS:
             por_ciudad[ciudad] += consulta_completa(texto, f"{ciudad}: {texto}")
             print(

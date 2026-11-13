@@ -1,0 +1,11 @@
+place_id,ciudad,tanda,motivo
+ChIJL0UaXyv50YURNyz05p6HsQg,CDMX y Estado de México,1,bloqueo_403
+ChIJ5S7RDfa0KIQRYIUIQ6QN-2w,Guadalajara y Zapopan,1,sitio_caido_503
+ChIJh3TykGP_0YURSoX5QW6l5zs,CDMX y Estado de México,1,sitio_caido_503
+ChIJ2eDdbzNH2YARKrJnAQZSUMY,Tijuana,1,carta_pdf_texto_no_legible_por_la_herramienta (pdftotext sí extrae texto: limite del lector)
+ChIJI5uOPQyuKIQRYOSFjcZBNxs,Guadalajara y Zapopan,1,bloqueo_otro:429_retry_after_3600
+ChIJxU8a_-SLzYURxKZbGiFlVlY,Toluca,1,bloqueo_otro:429_retry_after_3600 (comida 53 leída; bebidas bloqueadas; no se estima)
+ChIJR1gZsYO9YoYRbDLnWdFfczQ,Monterrey,1,sin_carta_en_sitio
+ChIJ___D_iz50YURnlo8sopE6ss,CDMX y Estado de México,1,otro:carta_en_14_subpaginas_excede_limite_de_lectura
+ChIJHziM9r5Gw4URIqgAQwdrP2c,Veracruz,1,carta_pdf_texto_no_legible_por_la_herramienta (pdftotext sí extrae texto: limite del lector)
+ChIJR33LdlxxVo8RPf3JvNpr96M,Mérida,1,otro:home_sin_contenido_ni_enlace_a_carta
