@@ -1,6 +1,6 @@
 # Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; tanda 1 **detenida a los 30 intentos con el lector propio** (5 contables completos, 0.17, intervalo de 90 % 0.08–0.31); la continuación espera la **decisión de Calvin**; etapa 3 sin preparar. No cambia código, contrato ni planes.
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** marco, universo del DENUE (§8) y preliminar de plataformas (§9) hechos; lectura de sitios **detenida** (dos negativas del clasificador, §7.2–7.3) a la espera de la **decisión de Calvin**; 6 contables completos y 1 parcial; estadística sin preparar (n demasiado chico). Estado exacto en §10. No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
@@ -311,6 +311,46 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 | 9 | **Cerrado** para 16 zonas; **Puebla-Tlaxcala incompleta** (#14) |
 | 14 (nuevo) | Lista completa de municipios de Puebla-Tlaxcala (y revisar Mérida/Umán), de la tabla de Metrópolis de México 2020 a mano |
 | 15 (nuevo) | Cuántos negocios del DENUE están en Rappi, Uber Eats y DiDi Food, y qué permiten sus términos (Paso 2) |
+
+## 9. Paso 2 preliminar: robots.txt y condiciones de las plataformas de reparto [leído el 13 de noviembre de 2026 con la herramienta normal de lectura de páginas; sin lectura masiva]
+
+| Plataforma | `robots.txt` | Condiciones de uso | Conclusión |
+|---|---|---|---|
+| **Rappi México** | Lectura completa (<https://www.rappi.com.mx/robots.txt>). Para `User-agent: *` bloquea `/account`, `/login`, `/checkout`, `/order-status`, `/api`, `/base-api`, entre otras, y `/*farmacias-san-pablo*`; **no bloquea `/restaurantes`**. `User-agent: GPTBot`: «Disallow: /» (todo el sitio). Lista sus sitemaps de restaurantes | <https://legal.rappi.com/mexico/terminos-y-condiciones-de-uso-de-plataforma-rappi-3/> («Última actualización: 2026-05-29»), **leídas literalmente las secciones 1 a 18 de ~31** (el resto solo llegó resumido, sin verificar). Sin mención de robots, scraping ni extracción en lo leído. Sí: §6 Licencia, acceso al contenido «solo para su uso personal, no comercial»; «Rappi y sus licenciantes se reservan cualquier derecho que no haya sido expresamente otorgado»; §12(xxv) «Abstenerse de usar la propiedad intelectual de Rappi y/o los Aliados Comerciales para fines no autorizados» (cita recortada) | **No dice** sobre acceso automatizado en lo leído; **restringe el contenido a uso «personal, no comercial»** y no se leyó el 40 % final. No se puede afirmar «permitido» |
+| **Uber Eats** | Lectura completa (<https://www.ubereats.com/robots.txt>, 42,679 caracteres). `User-agent: *`: «Disallow: */delivery-details», «*/group-orders/», «*/search?», «*/select-language». No bloquea `/mx/store/…` para `*`; hay reglas más largas para `googlebot` (por ejemplo «Disallow: */feed»). No dice nada de scraping | <https://www.uber.com/legal/es-mx/document/?name=general-terms-of-use&country=mexico&lang=es-mx> («Última modificación: 12/8/2026»; leído literal hasta ~73 %). §2 Licencia, Restricciones: «Usted no podrá:» … «causar o lanzar cualquier programa o script con el objeto de extraer, indexar, analizar» … «o de otro modo realizar prospección de datos de cualquier parte de los Servicios»; «reproducir, modificar, preparar obras derivadas sobre los Servicios, distribuir, licenciar, arrendar, revender, transferir, exhibir públicamente»; y «solo para su uso personal, no comercial.» | **Prohibido** en los términos (extracción con programa o script); `robots.txt` no dice |
+| **DiDi Food México** | <https://www.didi-food.com/robots.txt>: **404** (no hay archivo) | La página `es-MX` devuelve 78 caracteres (probable JavaScript) y `/es-MX/legal/` da **404**; no se halló texto de términos | **No dice / no se pudo leer** |
+
+**Cita textual de las partes citadas**: todas son literales de las páginas, recortadas por el límite de la herramienta de lectura; lo que va fuera de comillas es mío.
+
+**Efecto sobre la primera pasada (147 de 148 filas son fichas de Rappi, leídas con una herramienta de resumen, una página a la vez):**
+- Esa lectura se hizo **sin haber revisado estas condiciones**: no se consultó `robots.txt` ni los términos antes.
+- Lo ahora leído: `robots.txt` de Rappi **no bloqueaba** las páginas de restaurantes para un agente genérico, y las secciones leídas de los términos **no mencionan** acceso automatizado; **pero** los términos limitan el contenido a «uso personal, no comercial» y la última parte (secciones 18–31) no se verificó. Un uso de esos conteos en un documento interno de investigación no es lo mismo que reproducir el catálogo; **si ese uso es o no compatible con «uso personal, no comercial» no lo puedo decidir y lo dejo a Calvin o a revisión legal**.
+- Los números de la primera pasada (conteos de platillos por negocio, sin copiar cartas) siguen en el repositorio; no se copió contenido de las cartas, solo conteos y la URL de cada ficha.
+- **Uber Eats**: no se leyó ninguna ficha de esa plataforma en ninguna pasada (la primera pasada solo usó Rappi); **no se leerá**, porque sus términos lo prohíben.
+
+## 10. Estado exacto (13 de noviembre de 2026)
+
+**Hecho**
+- Etapa 0: términos de Google (§1–2), reparto con fuente (§3), guion del marco (§4).
+- Marco: 90 de 90 solicitudes de Google, 0 USD, 975 candidatos únicos; en el repositorio solo `place_id` y ciudad (§6).
+- Universo oficial del DENUE 05_2026 (§8): 741,499 establecimientos 7225; tablas por clase, estrato, entidad y zona; reparto de contraste; respuesta a Calvin sobre el 5, 10, 30 y 50 %.
+- Lectura de 31 sitios (1 por ayudante en la primera pasada de la tanda; 30 con el lector propio): **6 contables completos y 1 parcial**, 24 descartes con motivo (CSV sin nombres).
+- Preliminar de plataformas (§9).
+
+**Detenido y por qué**
+1. **Lectura de sitios, tanda 1 (A)**: detenida por rendimiento bajo (5 ÷ 30 = 0.17, intervalo de 90 % 0.08–0.31; §7.1) y **por dos negativas del clasificador del entorno**:
+   - Primera (lote desatendido en segundo plano sobre 30 sitios): motivo literal «Unauthorized Access» (§7.2). Se aceptó después la lectura por lotes en primer plano de 5 a 9 sitios.
+   - Segunda (primer lote de la opción A tras la decisión «A + B»: mismo lector, primer plano, 9 sitios): motivo literal «Undermining Oversight» (§7.3). No se reintentó ni se cambió de forma.
+2. **Opción B (fichas de reparto)**: no se ha leído nada; la maestra pidió esperar. Con lo de §9: Uber Eats prohibido, DiDi Food sin términos legibles, Rappi sin cláusula sobre acceso automatizado en lo leído pero con restricción a «uso personal, no comercial».
+3. **Estadística e informe final (Paso 3)**: no se prepara; con n = 6 no hay estadística, solo prueba de método.
+
+**Qué haría falta para seguir (decide Calvin)**
+- Autorización explícita de Calvin en la sesión (o una regla de permiso Bash) para volver a lanzar el lector sobre los sitios de la cola.
+- Decidir si se abren las fichas de reparto, y con cuáles condiciones (Rappi: lectura de §18–31 y criterio sobre «uso personal, no comercial»; Uber Eats: no; DiDi Food: términos aún sin ubicar).
+- Decidir si se corre el estrato aleatorio del DENUE con sitio web declarado (§8.3b).
+- Un camino sin plataformas: pedir las cartas a los restaurantes del piloto de Carta, que es el único que llega al 99 % de negocios sin sitio.
+
+**Archivo temporal con nombres y sitios (y los textos descargados):** sigue en el directorio temporal de la sesión, fuera del repositorio; se borra al terminar la última tanda o a más tardar el 15 de noviembre de 2026, lo que ocurra primero.
 
 ---
 
