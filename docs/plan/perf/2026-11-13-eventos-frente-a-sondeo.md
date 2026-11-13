@@ -19,7 +19,7 @@ Cada cifra lleva su marca. **[medida aquí]** es de esta sesión, en un contened
 Las tres filas están [medidas aquí], salvo la última, que es [estimada].
 
 - **Capacidad.** Con los 2 workers de hoy, el tope cómodo pasa de **≈ 1,200–1,600 comensales** (10–13 restaurantes llenos a la vez) a **≈ 8,000–10,000** (70–80 restaurantes) [medida aquí]. Un límite nuevo aparece antes que el del procesador: Railway admite unas 10,000 conexiones abiertas a la vez [fuente externa].
-- **Dinero** [estimada, ±2×]. Lo que varía de la factura a 100 restaurantes baja de ≈ 140 a ≈ 25 USD al mes, y a 500 restaurantes de ≈ 680 a ≈ 110. Lo fijo (Postgres y plan, ≈ 46 USD) no cambia.
+- **Dinero** [estimada, ±2×]. Lo que varía de la factura a 100 restaurantes baja de ≈ 140 a ≈ 22 USD al mes, y a 500 restaurantes de ≈ 680 a ≈ 110. Lo fijo (Postgres y plan, ≈ 46 USD) no cambia.
 - **Rapidez.** El comensal ve al instante lo que hacen los demás, y el mesero ve la comanda al instante, no hasta 5 s después.
 
 **Qué se queda «por tiempo» y por qué:**
@@ -37,12 +37,7 @@ Las tres filas están [medidas aquí], salvo la última, que es [estimada].
 4. **Con el teléfono bloqueado no llega nada**, ni hoy ni con eventos. Para el mesero, la única solución es la notificación push con la app instalada (alternativa D), y es otra decisión.
 5. **Más piezas que hoy:** una escucha por worker, un canal por mesa y otro por restaurante, y el respaldo. Son dos tareas nuevas en la Fase 3.
 
-**Recomendación: B, eventos por conexión abierta (SSE) con escucha de PostgreSQL y una pregunta de respaldo cada 60 s.** Se construye en dos pasos:
-
-1. La escucha de la base, que por sí sola ya duplica la capacidad del sondeo de hoy [medida aquí].
-2. La conexión de eventos.
-
-Si la conexión falla, la app vuelve sola al sondeo según la fase de la mesa (A), así que nunca queda peor que hoy. Es la única opción que da a la vez lo que pides (que nadie pregunte entre eventos), 5–8 veces más capacidad y cambios al instante, sin Redis ni colas.
+**Recomendación: B, eventos por conexión abierta (SSE) con escucha de PostgreSQL y una pregunta de respaldo cada 60 s.** Se construye en dos pasos: (1) la escucha de la base, que por sí sola ya duplica la capacidad del sondeo de hoy [medida aquí]; (2) la conexión de eventos. Si la conexión falla, la app vuelve sola al sondeo según la fase de la mesa (A), así que nunca queda peor que hoy. Es la única opción que da a la vez lo que pides (que nadie pregunte entre eventos), 5–8 veces más capacidad y cambios al instante, sin Redis ni colas.
 
 **Para el simulador** `docs/research/2026-11-13-simulador-de-uso.py`: sus cuatro parámetros de eventos están marcados `[PENDIENTE]` con valores conservadores. Estas cifras los sustituyen:
 
