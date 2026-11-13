@@ -1,0 +1,187 @@
+{
+ "fuente": "docs/research/2026-11-13-simulador-de-uso.py, semilla fija, 364 días",
+ "pg_ram_gb": 0.085,
+ "escenarios": [
+  {
+   "nombre": "Peor caso: todos gratuitos al tope (10 mesas × 6)",
+   "cpu_hoy": 65,
+   "cpu_hoy_p50": 105,
+   "cpu_eventos": 420,
+   "cpu_eventos_p50": 644,
+   "disco": 240,
+   "disco_retencion_30": 240,
+   "por_restaurante": {
+    "comensales_dia": 345.075360761982,
+    "mesas": 10.0,
+    "platillos": 80.0,
+    "fotos": 25.81333333333333,
+    "disco_gb": 0.02079252164571891
+   },
+   "usd_marginal_hoy": 0.16639666027244698,
+   "usd_marginal_eventos": 0.02880760465429745,
+   "con_eventos": {
+    "n": 240,
+    "frente_p95": 3323.37284348519,
+    "comensales_dia": 82818.08658287568,
+    "comensales_mes": 2484542.5974862706,
+    "factura_usd": 15.013825117031391
+   }
+  },
+  {
+   "nombre": "Peor caso + todos coinciden a la vez",
+   "cpu_hoy": 41,
+   "cpu_hoy_p50": 63,
+   "cpu_eventos": 249,
+   "cpu_eventos_p50": 386,
+   "disco": 146,
+   "disco_retencion_30": 146,
+   "por_restaurante": {
+    "comensales_dia": 568.0182669311232,
+    "mesas": 10.0,
+    "platillos": 80.0,
+    "fotos": 25.33333333333333,
+    "disco_gb": 0.034169096015867415
+   },
+   "usd_marginal_hoy": 0.27815022724198935,
+   "usd_marginal_eventos": 0.04787367904287821,
+   "con_eventos": {
+    "n": 146,
+    "frente_p95": 3374.2498299631816,
+    "comensales_dia": 82930.66697194398,
+    "comensales_mes": 2487920.0091583193,
+    "factura_usd": 15.08955714026022
+   }
+  },
+  {
+   "nombre": "Todos gratuitos, típicos",
+   "cpu_hoy": 148,
+   "cpu_hoy_p50": 234,
+   "cpu_eventos": 1064,
+   "cpu_eventos_p50": 1632,
+   "disco": 299,
+   "disco_retencion_30": 299,
+   "por_restaurante": {
+    "comensales_dia": 113.92102550090104,
+    "mesas": 9.574666666666667,
+    "platillos": 43.10466666666666,
+    "fotos": 16.676133333333347,
+    "disco_gb": 0.016697279702415947
+   },
+   "usd_marginal_hoy": 0.08122393013100491,
+   "usd_marginal_eventos": 0.01307990944966349,
+   "con_eventos": {
+    "n": 299,
+    "frente_p95": 1403.6707190600048,
+    "comensales_dia": 34062.38662476941,
+    "comensales_mes": 1021871.5987430823,
+    "factura_usd": 12.010892925449385
+   }
+  },
+  {
+   "nombre": "Mezcla 90 % gratuitos / 10 % paga",
+   "cpu_hoy": 126,
+   "cpu_hoy_p50": 203,
+   "cpu_eventos": 944,
+   "cpu_eventos_p50": 1444,
+   "disco": 135,
+   "disco_retencion_30": 285,
+   "por_restaurante": {
+    "comensales_dia": 122.33253975384866,
+    "mesas": 11.1264,
+    "platillos": 46.361999999999995,
+    "fotos": 19.174373333333335,
+    "disco_gb": 0.037013051556922
+   },
+   "usd_marginal_hoy": 0.09578354852383328,
+   "usd_marginal_eventos": 0.01757511920481104,
+   "con_eventos": {
+    "n": 135,
+    "frente_p95": 796.1854810372073,
+    "comensales_dia": 16514.89286676957,
+    "comensales_mes": 495446.78600308707,
+    "factura_usd": 10.472641092649493
+   }
+  },
+  {
+   "nombre": "Mezcla 80 % gratuitos / 20 % paga",
+   "cpu_hoy": 110,
+   "cpu_hoy_p50": 177,
+   "cpu_eventos": 840,
+   "cpu_eventos_p50": 1288,
+   "disco": 85,
+   "disco_retencion_30": 274,
+   "por_restaurante": {
+    "comensales_dia": 129.94792942599352,
+    "mesas": 12.6888,
+    "platillos": 49.26000000000001,
+    "fotos": 21.51681333333333,
+    "disco_gb": 0.058707052610816365
+   },
+   "usd_marginal_hoy": 0.11079267673654612,
+   "usd_marginal_eventos": 0.022286304316845095,
+   "con_eventos": {
+    "n": 85,
+    "frente_p95": 595.267859222643,
+    "comensales_dia": 11045.57400120945,
+    "comensales_mes": 331367.2200362835,
+    "factura_usd": 9.994335866931834
+   }
+  },
+  {
+   "nombre": "Caso base: todos de paga, típicos",
+   "cpu_hoy": 55,
+   "cpu_hoy_p50": 89,
+   "cpu_eventos": 450,
+   "cpu_eventos_p50": 692,
+   "disco": 17,
+   "disco_retencion_30": 212,
+   "por_restaurante": {
+    "comensales_dia": 190.4759219282795,
+    "mesas": 25.643999999999995,
+    "platillos": 72.29333333333334,
+    "fotos": 39.86633333333329,
+    "disco_gb": 0.2850624995968442
+   },
+   "usd_marginal_hoy": 0.23675717263674378,
+   "usd_marginal_eventos": 0.0676709748241862,
+   "con_eventos": {
+    "n": 17,
+    "frente_p95": 302.1819865660975,
+    "comensales_dia": 3238.0906727807514,
+    "comensales_mes": 97142.72018342254,
+    "factura_usd": 9.250406572011167
+   }
+  },
+  {
+   "nombre": "Todos de paga al tope (40 mesas × 12)",
+   "cpu_hoy": 8,
+   "cpu_hoy_p50": 15,
+   "cpu_eventos": 66,
+   "cpu_eventos_p50": 107,
+   "disco": 9,
+   "disco_retencion_30": 110,
+   "por_restaurante": {
+    "comensales_dia": 1493.3821716601033,
+    "mesas": 40.0,
+    "platillos": 300.0,
+    "fotos": 158.16,
+    "disco_gb": 0.545414492655938
+   },
+   "usd_marginal_hoy": 1.1432990335233955,
+   "usd_marginal_eventos": 0.23718101948011497,
+   "con_eventos": {
+    "n": 9,
+    "frente_p95": 1125.921905931193,
+    "comensales_dia": 13440.43954494093,
+    "comensales_mes": 403213.1863482279,
+    "factura_usd": 10.234629175321036
+   }
+  }
+ ],
+ "usd_lectura_pdf_6_paginas_50_platillos": 0.1924,
+ "piso_factura_usd": 8.100000000000001,
+ "lecturas_gratis_medias": 1.6,
+ "lecturas_paga_mes": 0.5,
+ "rotacion_mes": 0.04,
+ "uso_app": 0.6
+}

@@ -100,9 +100,12 @@ class Supuestos:
     HOBBY_INCLUIDO: float = 5.0
     ENTORNOS: int = 2  # staging y producción encendidos [dato de Calvin, 13-nov]
     RAM_API_GB_PROCESO: float = 0.16  # [medida] ≈ 160 MB por proceso en reposo (capacidad M5)
-    # Memoria real de PostgreSQL y del servicio de respaldo en Railway: DATO PENDIENTE (métricas de
-    # staging). 0.0 = cota inferior (sólo la API medida); los valores >0 son ilustrativos.
-    PG_RAM_GB: float = 0.0
+    # Memoria de PostgreSQL y del servicio de respaldo en Railway por entorno: DEDUCIDA de la
+    # factura real (Usage by Project, 13-nov-2026 ≈ 04:35 UTC; ver `deducir_de_la_factura`):
+    # memoria media por entorno ≈ 0.405 GB (0.365-0.455) menos la API medida (2 × 0.16 GB).
+    # Supuesto: el ciclo de cobro cubre todo el tiempo desplegado; producción desde el 11-nov 12:00.
+    PG_RAM_GB: float = 0.085
+    PG_RAM_GB_ALTO: float = 0.135  # producción desplegada al final del 11-nov (rango alto)
     DOMINIO_USD_ANIO: float = 25.0  # [dato de Calvin, 13-nov]; no entra en la factura de Railway
     # Medios por platillo con foto y modelo 3D (sin realidad aumentada)
     FOTO_ORIGINAL_MB: float = 3.0  # [estimada ±2×] foto de teléfono 12 MP; no hay original real
@@ -812,13 +815,13 @@ def curva_factura(sup: Supuestos, resultados: dict) -> None:
         f"Hobby: {sup.HOBBY_SUSCRIPCION:.0f} USD de suscripción que incluyen {sup.HOBBY_INCLUIDO:.0f} USD "
         f"de uso; factura = 5 + exceso de uso sobre 5. {sup.ENTORNOS} entornos encendidos. "
         f"Memoria de PostgreSQL y respaldo en Railway = {sup.PG_RAM_GB} GB por entorno "
-        "(**dato pendiente de Calvin**: la factura real). Muros que no dependen del dinero: "
+        "(deducida de la factura real del 13-nov; ver la tabla anterior). Muros que no dependen del dinero: "
         f"CPU de {sup.NUCLEOS:.0f} procesos y disco de {sup.VOLUMEN_MAX_GB_HOBBY:.0f} GB.\n"
     )
     f_piso = costos_railway(sup, sup.WORKERS, 0.0, 0.0, 0.0)
     print(
-        f"Piso sin tráfico: uso {f_piso['uso']:.2f} USD (RAM de {sup.ENTORNOS} × {sup.WORKERS} procesos "
-        f"de API) → factura {f_piso['factura']:.2f} USD. Si B < piso, no cabe ninguno.\n"
+        f"Piso sin tráfico: uso {f_piso['uso']:.2f} USD (RAM de {sup.ENTORNOS} entornos: API y PostgreSQL"
+        f") → factura {f_piso['factura']:.2f} USD. Si B < piso, no cabe ninguno.\n"
     )
     for forma in FORMAS:
         print(
@@ -1086,9 +1089,10 @@ AUDITORIA = [
     ),
     (
         "PG_RAM_GB (y servicio de respaldo)",
-        "0 (cota) o ilustrativo",
-        "sin dato",
-        "la página de Railway no da el consumo de la plantilla; falta la métrica real",
+        "0.085 GB por entorno (0.045-0.135)",
+        "Calvin + estimada",
+        "deducida de la factura real de Railway del 13-nov (2,649 GB-min de memoria): memoria media "
+        "por entorno menos la API medida; falta el desglose por servicio y el inicio del ciclo",
     ),
     (
         "PG_MAX_CONEXIONES",
@@ -1248,6 +1252,58 @@ def auditoria() -> None:
         print(f"| {a} | {b} | {c} | {d} |")
 
 
+# Factura real de Railway (captura de Calvin, «Usage by Project», proyecto `carta`, plan Hobby,
+# 13-nov-2026 ≈ 04:35 UTC) [dato de Calvin]. Cantidades y precios unitarios de la propia captura.
+FACTURA_RAILWAY = dict(
+    memoria_gb_min=(2649.07, 0.000231),
+    cpu_vcpu_min=(44.00, 0.000463),
+    red_gb=(0.04, 0.05),
+    volumen_gb_min=(1909.54, 0.00000347),
+)
+FACTURA_TOTAL_USD = 0.6422
+CORTE = (2026, 11, 13, 4, 35)  # hora de la captura (UTC)
+STAGING_DESDE = (2026, 11, 10, 8, 10)  # [documento: 04 §11] staging desplegado
+PRODUCCION_DIA = (2026, 11, 11)  # [dato de Calvin] sin hora: se barre 00:00, 12:00 y 23:59
+
+
+def deducir_de_la_factura(sup: Supuestos) -> None:
+    """Memoria media por entorno y costo mensual proyectado a partir de la factura real."""
+    from datetime import datetime, timedelta
+
+    corte = datetime(*CORTE)
+    stg = (corte - datetime(*STAGING_DESDE)).total_seconds() / 60
+    print("\n## Lo que dice la factura real de Railway (13-nov-2026)\n")
+    suma = sum(c * p for c, p in FACTURA_RAILWAY.values())
+    print(f"Suma de las partidas: {suma:.4f} USD (la captura dice {FACTURA_TOTAL_USD} USD).\n")
+    print(
+        "| Producción desde | Minutos-entorno | Memoria media por entorno GB | PostgreSQL + respaldo GB "
+        "(menos la API medida) | Volumen medio GB | vCPU medio | Proyección USD/mes (2 entornos, 30 días) |"
+    )
+    print("|---|---|---|---|---|---|---|")
+    for etiqueta, horas in (
+        ("11-nov 00:00", 0.0),
+        ("11-nov 12:00 (central)", 12.0),
+        ("11-nov 23:59", 23.98),
+    ):
+        inicio = datetime(*PRODUCCION_DIA) + timedelta(hours=horas)
+        prod = (corte - inicio).total_seconds() / 60
+        t = stg + prod
+        mem = FACTURA_RAILWAY["memoria_gb_min"][0] / t
+        api = sup.WORKERS * sup.RAM_API_GB_PROCESO
+        vol = FACTURA_RAILWAY["volumen_gb_min"][0] / t
+        cpu = FACTURA_RAILWAY["cpu_vcpu_min"][0] / t
+        mes = FACTURA_TOTAL_USD / t * sup.ENTORNOS * 30 * 24 * 60
+        print(
+            f"| {etiqueta} | {t:,.0f} | {mem:.3f} | {mem - api:.3f} | {vol:.3f} | {cpu:.4f} | {mes:.2f} |"
+        )
+    print(
+        "\nSupuestos: el ciclo de cobro empezó antes del 10-nov (si empezó después, la ventana es más "
+        "corta y la memoria por entorno sale mayor); los dos entornos pesan lo mismo sin tráfico; la "
+        "API pesa en Railway lo que se midió en local (0.16 GB por proceso). **Dato por conseguir:** "
+        "inicio del ciclo y costo por servicio (panel de Railway → Usage, desglose por servicio).\n"
+    )
+
+
 def supuestos_a_texto(sup: Supuestos) -> None:
     print("## Supuestos usados\n")
     for campo in sup.__dataclass_fields__:
@@ -1267,7 +1323,8 @@ def main() -> None:
     dias, tam = (120, 400) if args.rapido else (364, 1500)
     sup = Supuestos()
     resultados = informe(sup, dias, tam)
-    for pg in (0.0, 0.5):  # 0.0 = cota inferior; 0.5 GB por entorno = ilustrativo (dato pendiente)
+    deducir_de_la_factura(sup)
+    for pg in (sup.PG_RAM_GB, sup.PG_RAM_GB_ALTO):  # deducida de la factura: central y alta
         curva_factura(replace(sup, PG_RAM_GB=pg), resultados)
     medios(sup, resultados)
     if not args.sin_sensibilidad:
