@@ -126,10 +126,13 @@ DOMINIO_MES = E["dominio_usd_anio"]["valor"] / 12
 PRECIO_USD = E["precio"]["servicio_mxn"] / TC
 LECTURA = S["usd_lectura_pdf_6_paginas_50_platillos"]
 RAM_WORKER_USD = 0.16 * 10.0  # 0.16 GB por proceso [medida, capacidad M5] × 10 USD/GB-mes [externa]
-AD = E["anuncios"]
-RPM_BAJO = AD["usd_por_mil_visitas"]["bajo"]
-RPM_MEDIO = AD["usd_por_mil_visitas"]["medio"]
-RPM_ALTO = AD["usd_por_mil_visitas"]["alto"]
+# Versión 2: escaleras y anuncios (los escribe docs/research/2026-11-13-anuncios-y-capa-del-comensal-modelo.py)
+A = json.loads((AQUI / "datos" / "anuncios.json").read_text(encoding="utf-8"))
+AE = A["economia"]
+TAR = AE["tarifas"]  # anuncios NO personalizados, USD por mil visitas
+RPM_BAJO = TAR["bajo"]["usd_por_mil_visitas"]
+RPM_MEDIO = TAR["medio"]["usd_por_mil_visitas"]
+RPM_ALTO = TAR["alto"]["usd_por_mil_visitas"]
 VISITAS_APP_MES_GRATIS = GT["por_restaurante"]["comensales_dia"] * 30 * S["uso_app"]
 
 
@@ -166,8 +169,9 @@ def equilibrio(conv: float, rpm: float = 0.0) -> int | None:
 
 
 ADS_RESTAURANTE = [VISITAS_APP_MES_GRATIS * r / 1000 for r in (RPM_BAJO, RPM_MEDIO, RPM_ALTO)]
-EQ_ADS_BAJO = equilibrio(0.0, RPM_BAJO)
-EQ_ADS_MEDIO = equilibrio(0.0, RPM_MEDIO)
+EQ_ADS_BAJO = AE["equilibrio_solo_anuncios"]["eventos/npa/bajo"]["primero"]
+EQ_ADS_MEDIO = AE["equilibrio_solo_anuncios"]["eventos/npa/medio"]["primero"]
+EQ_ADS_ALTO = AE["equilibrio_solo_anuncios"]["eventos/npa/alto"]["primero"]
 
 
 # ---------------------------------------------------------------------------------------------
@@ -661,9 +665,9 @@ def g_equilibrio() -> str:
         )
     )
     series = [
-        ("Gratuito sin ingresos", 0.0, 0.0, GRIS),
-        ("Con anuncios (medio)", 0.0, RPM_MEDIO, DORADO),
-        ("Con anuncios (bajo)", 0.0, RPM_BAJO, GRIS),
+        ("Sin ningún ingreso (referencia)", 0.0, 0.0, GRIS),
+        ("Gratuito con anuncios (medio)", 0.0, RPM_MEDIO, DORADO),
+        ("Gratuito con anuncios (bajo)", 0.0, RPM_BAJO, "#8F7A4A"),
         ("1 % paga 349 pesos", 0.01, 0.0, AZUL),
         ("3 % paga 349 pesos", 0.03, 0.0, VINO),
     ]
@@ -714,6 +718,238 @@ def g_equilibrio() -> str:
 # ---------------------------------------------------------------------------------------------
 # Texto del informe
 # ---------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
+# Versión 2: escaleras de capacidad y de conversión, y escenario «sólo anuncios»
+# (datos de datos/anuncios.json, que escribe docs/research/2026-11-13-anuncios-y-capa-del-comensal-modelo.py)
+# ---------------------------------------------------------------------------------------------
+MURO_CORTO = {
+    "procesador": "procesador",
+    "disco de 5 GB": "disco 5 GB",
+    "10,000 conexiones abiertas": "conexiones",
+}
+NOMBRES_ESCALON = [
+    "E0 · Hoy (sondeo, 2 procesos, Hobby)",
+    "E1 · Eventos, 2 procesos, Hobby",
+    "E2 · Eventos, 2 procesos, Pro",
+    "E3 · Eventos, 4 procesos, Pro",
+    "E4 · Eventos, 8 procesos, Pro",
+]
+
+
+def g_escalera_capacidad() -> str:
+    """Barras agrupadas: gratuitos y de paga típicos que caben en cada escalón."""
+    filas = [(NOMBRES_ESCALON[i], e["gratuito"], e["paga"]) for i, e in enumerate(A["escalones"])]
+    rep = A["replicas"]
+    filas.append(
+        (
+            "E5 · Réplicas (×2 o ×4 de 8 procesos)",
+            {"n": rep[0]["n"], "muro": "10,000 conexiones abiertas"},
+            {"n": A["escalones"][-1]["paga"]["n"], "muro": "10,000 conexiones abiertas"},
+        )
+    )
+    izq, der, grupo = 196, 110, 46
+    alto = 24 + grupo * len(filas) + 40
+    maximo = 2400
+    au = ANCHO - izq - der
+    out = [svg_abre(alto, "escalera de capacidad")]
+    xm = izq + au * A["muro_conexiones_n_gratuitos"] / maximo
+    out.append(
+        f'<line x1="{xm:.1f}" y1="10" x2="{xm:.1f}" y2="{alto - 34}" stroke="{TINTA2}" '
+        'stroke-dasharray="4 3" stroke-width="1.3"/>'
+    )
+    out.append(texto(xm - 4, 20, "muro de 10,000 conexiones abiertas", 9.5, TINTA2, "end", 600))
+    for v in (0, 500, 1000, 1500, 2000):
+        x = izq + au * v / maximo
+        out.append(f'<line x1="{x:.1f}" y1="26" x2="{x:.1f}" y2="{alto - 34}" stroke="{REJILLA}"/>')
+        out.append(texto(x, alto - 20, n(v), 10, TINTA2, "middle"))
+    out.append(
+        texto(izq + au / 2, alto - 5, "restaurantes típicos que caben", 10, TINTA2, "middle")
+    )
+    for i, (etq, g, p) in enumerate(filas):
+        y = 30 + i * grupo
+        out.append(texto(izq - 8, y + 24, etq, 10.5, TINTA, "end", 600))
+        for j, (d, color, quien) in enumerate(((g, VINO, "gratuitos"), (p, DORADO, "de paga"))):
+            yy = y + j * 17
+            w = au * d["n"] / maximo
+            out.append(barra(izq, yy + 2, w, 14, color))
+            out.append(
+                texto(
+                    izq + w + 5,
+                    yy + 13,
+                    f"{n(d['n'])} · {MURO_CORTO[d['muro']]}",
+                    10,
+                    TINTA,
+                    "start",
+                    600 if j == 0 else 400,
+                )
+            )
+    out.append("</svg>")
+    return "".join(out) + (
+        '<p class="fuente" style="margin-top:0">'
+        f'<span style="color:{VINO}">■</span> gratuitos típicos &nbsp; '
+        f'<span style="color:{DORADO}">■</span> de paga típicos (12 meses de historial)</p>'
+    )
+
+
+def g_escalera_conversion() -> str:
+    """Gratuitos que sostiene el costo según cuántos restaurantes de paga hay (k = 0 a 10)."""
+    izq, der, arriba, alto = 52, 18, 14, 318
+    au, ah = ANCHO - izq - der, alto - arriba - 82
+    ymax, kmax = 2200, 10
+    conv = AE["escalera_conversion"]
+
+    def X(k):
+        return izq + au * k / kmax
+
+    def Y(v):
+        return arriba + ah * (1 - v / ymax)
+
+    out = [svg_abre(alto, "escalera de conversión")]
+    for v in range(0, ymax + 1, 500):
+        out.append(
+            f'<line x1="{izq}" y1="{Y(v):.1f}" x2="{izq + au}" y2="{Y(v):.1f}" stroke="{REJILLA}"/>'
+        )
+        out.append(texto(izq - 6, Y(v) + 3, n(v), 10, TINTA2, "end"))
+    for k in range(0, kmax + 1, 2):
+        out.append(texto(X(k), alto - 64, str(k), 10, TINTA2, "middle"))
+    out.append(texto(izq + au / 2, alto - 50, "restaurantes de paga", 10, TINTA2, "middle"))
+    out.append(
+        texto(13, arriba + ah / 2, "gratuitos que sostiene el costo", 10, TINTA2, "middle").replace(
+            "<text ", f'<text transform="rotate(-90 13 {arriba + ah / 2:.0f})" '
+        )
+    )
+    series = [
+        (
+            "Cupo con eventos (se achica 2.4 por cada de paga)",
+            "eventos/349",
+            "g_cap",
+            TINTA2,
+            "5 4",
+        ),
+        ("Con eventos, a 449", "eventos/449", "g_costo", DORADO, ""),
+        ("Con eventos, a 349", "eventos/349", "g_costo", VINO, ""),
+        ("Con eventos, a 249", "eventos/249", "g_costo", AZUL, ""),
+        ("Forma de hoy, a 349", "hoy/349", "g_costo", GRIS, ""),
+    ]
+    for _etq, clave, campo, color, dash in series:
+        filas = [f for f in conv[clave]["filas"] if f["k"] <= kmax]
+        pts = " ".join(f"{X(f['k']):.1f},{Y(f[campo]):.1f}" for f in filas)
+        extra = f' stroke-dasharray="{dash}"' if dash else ""
+        out.append(
+            f'<polyline points="{pts}" fill="none" stroke="{color}" stroke-width="2.2"{extra}/>'
+        )
+        for f in filas:
+            out.append(
+                f'<circle cx="{X(f["k"]):.1f}" cy="{Y(f[campo]):.1f}" r="2.6" fill="{color}"/>'
+            )
+    x0, y0 = 8, alto - 30
+    out.append(leyenda(x0, y0, [(s[0], s[3]) for s in series[:2]]))
+    out.append(leyenda(x0, y0 + 16, [(s[0], s[3]) for s in series[2:]]))
+    out.append("</svg>")
+    return "".join(out)
+
+
+def _interp(curva, g):
+    """Costo mínimo (USD al mes) de sostener g gratuitos, por interpolación lineal de la curva."""
+    for (g0, c0, _), (g1, c1, _) in zip(curva, curva[1:], strict=False):
+        if g0 <= g <= g1:
+            return c0 + (c1 - c0) * (g - g0) / max(g1 - g0, 1)
+    return curva[-1][1]
+
+
+def g_solo_anuncios() -> str:
+    """Ingreso por anuncios no personalizados contra el costo mínimo, de 0 a 60 gratuitos."""
+    izq, der, arriba, alto = 52, 150, 14, 300
+    au, ah = ANCHO - izq - der, alto - arriba - 56
+    xmax, ymax = 60, 40
+
+    def X(g):
+        return izq + au * g / xmax
+
+    def Y(v):
+        return arriba + ah * (1 - min(v, ymax * 1.05) / ymax)
+
+    out = [svg_abre(alto, "sólo anuncios")]
+    out.append(
+        f'<defs><clipPath id="areaA"><rect x="{izq}" y="{arriba - 4}" width="{au}" height="{ah + 8}"/>'
+        "</clipPath></defs>"
+    )
+    for v in range(0, ymax + 1, 10):
+        out.append(
+            f'<line x1="{izq}" y1="{Y(v):.1f}" x2="{izq + au}" y2="{Y(v):.1f}" stroke="{REJILLA}"/>'
+        )
+        out.append(texto(izq - 6, Y(v) + 3, n(v), 10, TINTA2, "end"))
+    for g in range(0, xmax + 1, 10):
+        out.append(texto(X(g), alto - 34, str(g), 10, TINTA2, "middle"))
+    out.append(
+        texto(
+            izq + au / 2,
+            alto - 18,
+            "restaurantes gratuitos típicos (sin ninguno de paga)",
+            10,
+            TINTA2,
+            "middle",
+        )
+    )
+    out.append(
+        texto(13, arriba + ah / 2, "USD al mes", 10, TINTA2, "middle").replace(
+            "<text ", f'<text transform="rotate(-90 13 {arriba + ah / 2:.0f})" '
+        )
+    )
+    visitas = AE["parametros"]["visitas_app_mes"]["gratuito"]
+    curva_hoy = AE["curva_costo"]["hoy"]
+    curva_ev = AE["curva_costo"]["eventos"]
+    gs = list(range(0, xmax + 1))
+    pts_c = " ".join(f"{X(g):.1f},{Y(_interp(curva_hoy, g)):.1f}" for g in gs)
+    out.append(
+        f'<polyline clip-path="url(#areaA)" points="{pts_c}" fill="none" stroke="{TINTA}" stroke-width="2.4"/>'
+    )
+    pts_e = " ".join(f"{X(g):.1f},{Y(_interp(curva_ev, g)):.1f}" for g in gs)
+    out.append(
+        f'<polyline clip-path="url(#areaA)" points="{pts_e}" fill="none" stroke="{TINTA2}" '
+        'stroke-width="1.6" stroke-dasharray="5 4"/>'
+    )
+    etiquetas = []
+    for nivel, color in (("alto", DORADO), ("medio", VINO), ("bajo", AZUL)):
+        tasa = TAR[nivel]["usd_por_mil_visitas"]
+        pts = " ".join(f"{X(g):.1f},{Y(g * visitas * tasa / 1000):.1f}" for g in gs)
+        out.append(
+            f'<polyline clip-path="url(#areaA)" points="{pts}" fill="none" stroke="{color}" stroke-width="2.2"/>'
+        )
+        eq = AE["equilibrio_solo_anuncios"][f"hoy/npa/{nivel}"]["primero"]
+        if eq <= xmax:
+            out.append(
+                f'<circle cx="{X(eq):.1f}" cy="{Y(_interp(curva_hoy, eq)):.1f}" r="5" fill="{color}" '
+                'stroke="#FEF9F1" stroke-width="2"/>'
+            )
+        fin = xmax * visitas * tasa / 1000
+        yfin = Y(min(fin, ymax))
+        etiquetas.append([yfin, f"Anuncios {nivel}", f"equilibrio con {eq}", color])
+    etiquetas.sort()
+    for i in range(1, len(etiquetas)):
+        etiquetas[i][0] = max(etiquetas[i][0], etiquetas[i - 1][0] + 28)
+    for y, t1, t2, color in etiquetas:
+        out.append(
+            f'<rect x="{izq + au + 6}" y="{y - 6}" width="10" height="3" rx="1.5" fill="{color}"/>'
+        )
+        out.append(texto(izq + au + 20, y - 1, t1, 10, TINTA, "start", 600))
+        out.append(texto(izq + au + 20, y + 11, t2, 9.5, TINTA2))
+    yc = Y(_interp(curva_hoy, xmax)) - 6
+    out.append(
+        texto(
+            izq + au + 20,
+            max(yc, etiquetas[-1][0] + 34),
+            "Costo mínimo (hoy)",
+            10,
+            TINTA,
+            "start",
+            600,
+        )
+    )
+    out.append("</svg>")
+    return "".join(out)
+
+
 def tabla(cab, filas, clase="") -> str:
     th = "".join(f"<th>{c}</th>" for c in cab)
     tr = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in f) + "</tr>" for f in filas)
@@ -734,6 +970,12 @@ def construir() -> str:
     e1000_3 = economia(1000, 0.03)
     e300_0 = economia(299, 0.0)
     e300_ads = economia(299, 0.0, RPM_MEDIO)
+    e300_ads_b = economia(299, 0.0, RPM_BAJO)
+    e300_ads_a = economia(299, 0.0, RPM_ALTO)
+    e1000_ads = {
+        k: economia(1000, 0.0, r)
+        for k, r in (("bajo", RPM_BAJO), ("medio", RPM_MEDIO), ("alto", RPM_ALTO))
+    }
     e1000_0 = economia(1000, 0.0)
     e100_3 = economia(100, 0.03)
 
@@ -806,15 +1048,15 @@ def construir() -> str:
                 "Hobby",
             ],
             [
-                "Todo gratuito, sin ingresos",
+                "<b>Gratuito con anuncios no personalizados</b>, tarifa baja<br><small>derivada de fuentes débiles (sección 9)</small>",
                 "299 (muro de disco)",
-                f"{e300_0['costo']:.2f}",
-                "0",
-                f"<b>{e300_0['excedente']:.2f}</b>",
+                f"{e300_ads_b['costo']:.2f}",
+                f"{e300_ads_b['ingreso']:.2f}",
+                f"<b>{e300_ads_b['excedente']:.2f}</b>",
                 "Hobby",
             ],
             [
-                "Todo gratuito con anuncios, escenario medio<br><small><b>fuente débil, sin verificar</b></small>",
+                "<b>Gratuito con anuncios no personalizados</b>, tarifa media",
                 "299",
                 f"{e300_ads['costo']:.2f}",
                 f"{e300_ads['ingreso']:.2f}",
@@ -822,7 +1064,31 @@ def construir() -> str:
                 "Hobby",
             ],
             [
-                "Todo gratuito, sin ingresos",
+                "<b>Gratuito con anuncios no personalizados</b>, tarifa alta",
+                "299",
+                f"{e300_ads_a['costo']:.2f}",
+                f"{e300_ads_a['ingreso']:.2f}",
+                f"<b>{e300_ads_a['excedente']:.2f}</b>",
+                "Hobby",
+            ],
+            [
+                "Gratuito sin ningún ingreso (referencia: «no se sostiene nunca»)",
+                "299 (muro de disco)",
+                f"{e300_0['costo']:.2f}",
+                "0",
+                f"<b>{e300_0['excedente']:.2f}</b>",
+                "Hobby",
+            ],
+            [
+                "<b>Gratuito con anuncios</b>, tarifa media",
+                "1,000",
+                f"{e1000_ads['medio']['costo']:.2f}",
+                f"{e1000_ads['medio']['ingreso']:.2f}",
+                f"<b>{e1000_ads['medio']['excedente']:.2f}</b>",
+                "Pro" if e1000_ads["medio"]["pro"] else "Hobby",
+            ],
+            [
+                "Gratuito sin ningún ingreso (referencia)",
                 "1,000",
                 f"{e1000_0['costo']:.2f}",
                 "0",
@@ -854,15 +1120,16 @@ def construir() -> str:
     # ---- Portada ----
     secciones.append(f"""
 <section class="portada">
-  <p class="sobre">Carta · informe para Calvin · 13 de noviembre de 2026</p>
+  <p class="sobre">Carta · informe para Calvin · 13 de noviembre de 2026 · versión 2</p>
   <h1>Planos de Carta</h1>
   <p class="bajada">Cuánto cuesta, cuánto aguanta y de qué viviría: la historia de los análisis del 13 de noviembre, con sus fuentes, y las decisiones que te tocan.</p>
   <div class="tarjeta destacada">
     <p class="pregunta">La pregunta del millón</p>
     <p>Con lo que pagas hoy de Cloudflare y Railway, y con todo en la capa gratuita, ¿el negocio se sostiene solo y puede escalar?</p>
-    <p class="respuesta">Todo gratis no se sostiene solo, pero cuesta poco: <b>≈ {mes_total:.1f} USD al mes</b> (≈ {n(mes_total * TC)} pesos) más centavos por restaurante. <b>Un solo restaurante de paga a 349 pesos cubre toda la operación de hoy.</b> Con eventos, el servidor de hoy aguanta <b>≈ 300 restaurantes gratuitos típicos</b>; el límite pasa a ser el disco de 5 GB, no el dinero, y se quita con el plan Pro (20 USD). A 1,000 restaurantes basta con que pague <b>1 de cada 100</b> para no perder dinero. Los anuncios, cuando los actives, también podrían cubrirlo (con ≈ {EQ_ADS_MEDIO} a {EQ_ADS_BAJO} gratuitos), pero su tarifa en México no está medida.</p>
+    <p class="respuesta">Todo gratis no se sostiene solo, pero cuesta poco: <b>≈ {mes_total:.1f} USD al mes</b> (≈ {n(mes_total * TC)} pesos) más centavos por restaurante. <b>Un solo restaurante de paga a 349 pesos cubre toda la operación de hoy.</b> Con eventos, el servidor de hoy aguanta <b>≈ 300 restaurantes gratuitos típicos</b>; el límite pasa a ser el disco de 5 GB, no el dinero, y se quita con el plan Pro (20 USD). A 1,000 restaurantes basta con que pague <b>1 de cada 100</b> para no perder dinero. <b>Con anuncios no personalizados</b> (lo que entiendes por gratuito) la infraestructura de hoy se pagaría con ≈ {EQ_ADS_ALTO} a {EQ_ADS_BAJO} restaurantes gratuitos, pero esa tarifa se derivó de fuentes débiles y no está medida (sección 9).</p>
   </div>
   <p class="nota">Cómo leer las marcas: {marca("medida")} lo midió una sesión en un contenedor local · {marca("documento")} lo dice un documento del repositorio · {marca("externa")} página leída con fecha · {marca("calvin")} lo dio Calvin · {marca("supuesto")} juicio o cálculo con supuestos, que va a «datos por conseguir». Las cifras de procesador tienen un margen de <b>±2×</b> hasta medir en Railway.</p>
+  <p class="aviso"><b>Qué cambió en la versión 2.</b> Sección 9 nueva: escalera de capacidad, escalera de conversión y el escenario «sólo anuncios», con sus gráficas y fuentes nuevas (AdSense, Google 2019, ley de datos personales, comisión de cobro). Sección 8 corregida: «gratuito» es ahora gratuito <b>con anuncios no personalizados</b>, y se ve qué tarifa es dato y cuál supuesto. Las secciones 9 y 10 anteriores pasan a ser la 10 y la 11. Las demás cifras no cambian.</p>
   <p class="nota">Fuente reproducible: <code>docs/informes/2026-11-13-planos-de-carta/</code> (datos, guiones y HTML). Este PDF se genera con <code>generar.py</code> y <code>pdf.mjs</code>.</p>
 </section>""")
 
@@ -920,13 +1187,13 @@ def construir() -> str:
                 ],
                 [
                     "5",
-                    "Anuncios en gratuito sólo al 70 % del muro que mande",
-                    f"Pagarían lo fijo con ≈ {EQ_ADS_MEDIO}–{EQ_ADS_BAJO} gratuitos, pero la tarifa no está medida, rastrean al comensal y chocan con la marca.",
+                    "Anuncios no personalizados en gratuito sólo al 70 % del muro que mande, y antes medir con una prueba pequeña",
+                    f"Pagarían lo fijo con ≈ {EQ_ADS_ALTO}–{EQ_ADS_BAJO} gratuitos, pero la tarifa se derivó de fuentes débiles y falta la aprobación de AdSense (sección 9.3).",
                 ],
                 [
                     "6",
-                    "Subir la regla de Cloudflare de 300 a 1,500 peticiones por 10 s antes de restaurantes grandes",
-                    "Un local con WiFi compartido la dispara con ≈ 90 teléfonos.",
+                    "Dejar la regla de Cloudflare en 300 por 10 s y medirla en la prueba de carga (T-4.4), ya con eventos (decisión de Calvin del 13 de noviembre)",
+                    "Con el sondeo, un local con WiFi compartido la dispara con ≈ 90 teléfonos; con eventos hay que medirlo.",
                 ],
                 [
                     "7",
@@ -936,7 +1203,7 @@ def construir() -> str:
             ],
         )
     }
-  <p class="fuente">Detalle, porqué y fuente de cada una en la sección 10.</p>
+  <p class="fuente">Detalle, porqué y fuente de cada una en la sección 11.</p>
 </section>""")
 
     # ---- 2. Lo que cuesta hoy ----
@@ -1030,7 +1297,7 @@ def construir() -> str:
         )
     }
   <h3>Por qué decidiste eventos</h3>
-  <p>Lo pediste («que nadie pregunte entre eventos») y los números lo respaldan: 5–7 veces más comensales por núcleo, cambios en milisegundos y ≈ 10 veces menos tráfico. La Spec 001 quitó el cierre por inactividad: las mesas viven más y, con la pregunta de cada 3 s, cada teléfono olvidado seguiría gastando. La alternativa más simple (preguntar según la fase de la mesa) da 3–5× pero los cambios tardan de 3 a 45 s. Otra sesión escribe el ADR-018.</p>
+  <p>Lo pediste («que nadie pregunte entre eventos») y los números lo respaldan: 5–7 veces más comensales por núcleo, cambios en milisegundos y ≈ 10 veces menos tráfico. La Spec 001 quitó el cierre por inactividad: las mesas viven más y, con la pregunta de cada 3 s, cada teléfono olvidado seguiría gastando. La alternativa más simple (preguntar según la fase de la mesa) da 3–5× pero los cambios tardan de 3 a 45 s. El ADR-018, aceptado por Calvin el 13 de noviembre, sustituye al ADR-004.</p>
   <h3>Qué queda «por tiempo» y por qué</h3>
   <ul>
     <li><b>Un latido cada 25 s</b>: un byte para que Cloudflare (125 s) y Railway (5 min sin datos) no corten la línea {
@@ -1164,7 +1431,7 @@ def construir() -> str:
                     "más adelante, al llegar a la meta",
                     "no",
                     "Ingreso",
-                    f"≈ {ADS_RESTAURANTE[0]:.1f}–{ADS_RESTAURANTE[2]:.1f} USD por gratuito al mes; rastreo y marca",
+                    f"≈ {ADS_RESTAURANTE[0]:.1f}–{ADS_RESTAURANTE[2]:.1f} USD por gratuito al mes, no personalizados; falta aprobación y tarifa medida",
                     "Calvin; comparativo §5 " + marca("supuesto"),
                 ],
             ],
@@ -1241,23 +1508,421 @@ def construir() -> str:
     secciones.append(f"""
 <section>
   <h2><span>8</span> ¿Es negocio?</h2>
+  <p class="aviso"><b>Versión 2:</b> aquí «gratuito» es lo que entiende Calvin: <b>gratuito con anuncios no personalizados</b> (no se venden datos), con sus restaurantes sin pagar. El gratuito sin ningún ingreso queda sólo como referencia, porque «no se va a sostener nunca». <b>La tarifa de los anuncios es supuesto derivado de fuentes débiles</b> (tabla de la sección 9.3); lo que es dato son el RPM de la calculadora de AdSense y la pérdida medida por Google en 2019.</p>
   <p>Modelo de este informe {marca("supuesto")}: con eventos, cada restaurante gratuito típico cuesta ≈ {gratis_costo:.3f} USD al mes (tráfico y disco {GT["usd_marginal_eventos"]:.3f} + lecturas de PDF de altas nuevas), más ≈ {alta_gratis:.2f} USD una sola vez al darse de alta. Uno de paga típico cuesta ≈ {PT["usd_marginal_eventos"] + S["lecturas_paga_mes"] * LECTURA:.2f} USD al mes y paga {PRECIO_USD:.2f} USD (349 pesos antes de IVA). Lo fijo son los ≈ {mes_total:.1f} USD de hoy. Si el disco pasa de 5 GB, Railway pasa a Pro (mínimo 20 USD).</p>
-  {figura(g_equilibrio(), "Excedente mensual según cuántos se registran y cuántos pagan", "cálculo de <code>generar.py</code> (función <code>economia</code>) con el costo por restaurante del simulador " + marca("supuesto") + ", la proyección sobre la captura de Railway de Calvin " + marca("supuesto") + ", precio 349 " + marca("documento") + " y anuncios a 0.20 (bajo) y 1.09 (medio) USD por mil visitas, del comparativo §5.2 " + marca("supuesto") + ". El escalón de las líneas de paga es el paso a Pro.", num)}
+  {figura(g_equilibrio(), "Excedente mensual según cuántos se registran y cuántos pagan", "cálculo de <code>generar.py</code> (función <code>economia</code>) con el costo por restaurante del simulador " + marca("supuesto") + ", la proyección sobre la captura de Railway de Calvin " + marca("supuesto") + ", precio 349 " + marca("documento") + f" y anuncios no personalizados a {RPM_BAJO:.2f} (bajo), {RPM_MEDIO:.2f} (medio) y {RPM_ALTO:.2f} (alto) USD por mil visitas, derivados en la sección 9.3 " + marca("supuesto") + ". El escalón de las líneas de paga es el paso a Pro.", num)}
   {escenarios_negocio}
   <h3>Lo que dicen los números</h3>
   <ul>
     <li><b>Todo gratuito, sin ingresos:</b> pagas ≈ {mes_total:.0f}–{-e1000_0["excedente"]:.0f} USD al mes de 0 a 1,000 restaurantes. No se sostiene solo, pero el agujero es chico.</li>
-    <li><b>Con anuncios (cuando llegues a la meta):</b> ≈ {ADS_RESTAURANTE[0]:.2f} (bajo), {ADS_RESTAURANTE[1]:.2f} (medio) y {ADS_RESTAURANTE[2]:.2f} (alto) USD por restaurante gratuito al mes ({n(VISITAS_APP_MES_GRATIS)} visitas con la app). La base gratuita se pagaría sola desde ≈ {EQ_ADS_MEDIO} restaurantes (medio) o ≈ {EQ_ADS_BAJO} (bajo). Pero la tarifa de México viene de una fuente débil y las impresiones son supuestos; el comparativo recomienda no ponerlos en el piloto y, después, patrocinio directo sin rastreo.</li>
+    <li><b>Gratuito con anuncios no personalizados:</b> ≈ {ADS_RESTAURANTE[0]:.2f} (bajo), {ADS_RESTAURANTE[1]:.2f} (medio) y {ADS_RESTAURANTE[2]:.2f} (alto) USD por restaurante gratuito al mes ({n(VISITAS_APP_MES_GRATIS)} visitas con la app). <b>Sin nadie de paga, la infraestructura se pagaría sola desde ≈ {EQ_ADS_ALTO} (alto), {EQ_ADS_MEDIO} (medio) o {EQ_ADS_BAJO} (bajo) restaurantes gratuitos</b>, con eventos. Pero la tarifa de México no tiene fuente primaria, hace falta que AdSense apruebe el sitio y que se abra la política de seguridad; <b>y no cubre tu ingreso</b>: la sección 9.3 dice cuántos hacen falta para 10,000 pesos al mes.</li>
     <li><b>Punto de equilibrio con paga:</b> con 1 % de conversión, desde ≈ <b>{eq1}</b> restaurantes; con 3 %, desde ≈ <b>{eq3}</b>. A 1,000 restaurantes con 3 % quedan ≈ <b>{n(e1000_3["excedente"])} USD</b> (≈ {n(e1000_3["excedente"] * TC)} pesos) al mes antes de impuestos, soporte y tu tiempo.</li>
     <li><b>El costo no es la restricción; tu ingreso sí.</b> Para 10,000 pesos al mes hacen falta ≈ 30 restaurantes de paga a 349. Lo que decide es cuántos restaurantes de más de 10 mesas alcanzas.</li>
   </ul>
   <p>A mayor escala (Pro y eventos), el informe de mapa de procesos da ≈ 23 USD de uso con 500 gratuitos típicos y ≈ 29 con 1,000; ≈ 52 con 500 de paga y ≈ 89 con 1,000 {marca("supuesto")} (con PostgreSQL de 0.5 GB ilustrativo; con lo deducido hoy, ≈ 8 USD menos).</p>
 </section>""")
 
-    # ---- 9. Riesgos y datos por conseguir ----
+    # ---- 9 (versión 2). Escaleras y anuncios ----
+    esc_ = A["escalones"]
+    conv = AE["escalera_conversion"]
+    eqs = AE["equilibrio_solo_anuncios"]
+    meta = AE["meta_calvin"]
+    m10 = AE["meta_10000_mxn_solo_anuncios"]
+    com29 = AE["comensal29"]
+    neto_rest = AE["restaurante_neto_mxn"]
+    capa = AE["capa_comensal"]
+
+    def celda_escalon(e, tipo):
+        d = e[tipo]
+        return f"<b>{n(d['n'])}</b> <small>({MURO_CORTO[d['muro']]})</small>"
+
+    filas_escalera = []
+    for i, e in enumerate(esc_):
+        filas_escalera.append(
+            [
+                f"<b>{NOMBRES_ESCALON[i].split(' · ')[0]}</b> · {NOMBRES_ESCALON[i].split(' · ')[1]}",
+                celda_escalon(e, "gratuito"),
+                celda_escalon(e, "paga"),
+                n(e["gratuito"]["comensales_dia"]),
+                f"{e['gratuito']['factura_usd']:.0f}",
+                f"{e['peso_paga_en_gratuitos']:.1f}",
+            ]
+        )
+    rep = A["replicas"]
+    filas_escalera.append(
+        [
+            "<b>E5</b> · Réplicas: 2 × 8 procesos (16) o 4 × 8 (32)",
+            f"<b>{n(rep[0]['n'])}</b> <small>(el mismo muro; el procesador daría {n(rep[0]['n_cpu_gratuito'])} y {n(rep[1]['n_cpu_gratuito'])})</small>",
+            f"<b>{n(esc_[-1]['paga']['n'])}</b> <small>(conexiones)</small>",
+            n(rep[0]["n"] * esc_[0]["gratuito"]["comensales_dia"] / esc_[0]["gratuito"]["n"]),
+            f"{rep[0]['factura_usd']:.0f} / {rep[1]['factura_usd']:.0f}",
+            "—",
+        ]
+    )
+    tabla_escalera = tabla(
+        [
+            "Escalón",
+            "Gratuitos típicos que caben",
+            "De paga típicos que caben",
+            "Comensales al día (gratuitos)",
+            "USD al mes (gratuitos)",
+            "Un de paga pesa (gratuitos)",
+        ],
+        filas_escalera,
+        "chica junta",
+    )
+    h48 = A["hoy_4_8"]
+
+    def k_fila(clave, k):
+        return next(f for f in conv[clave]["filas"] if f["k"] == k)
+
+    def nc(clave, k):
+        f = k_fila(clave, k)
+        return n(f["g_costo"]) + (" <small>(cupo)</small>" if f["g_costo"] >= f["g_cap"] else "")
+
+    filas_conv = []
+    for k in (1, 2, 3, 5, 10):
+        filas_conv.append(
+            [str(k)]
+            + [nc(f"hoy/{p}", k) for p in (249, 349, 449)]
+            + [nc(f"eventos/{p}", k) for p in (249, 349, 449)]
+        )
+    tabla_conv = tabla(
+        [
+            "Restaurantes de paga",
+            "Hoy · 249",
+            "Hoy · 349",
+            "Hoy · 449",
+            "Eventos · 249",
+            "Eventos · 349",
+            "Eventos · 449",
+        ],
+        filas_conv,
+        "chica junta",
+    )
+    mg = AE["marginal"]
+
+    def var_cubre(forma, precio):
+        neto_usd = neto_rest[str(precio)] / TC
+        return (neto_usd - mg[forma]["paga"]["usd_marginal"]) / mg[forma]["gratuito"][
+            "usd_marginal"
+        ]
+
+    filas_var = [
+        ["Gratuitos que cubre el costo variable de cada restaurante de paga, forma de hoy"]
+        + [n(var_cubre("hoy", p)) for p in (249, 349, 449)],
+        ["Ídem, con eventos"] + [n(var_cubre("eventos", p)) for p in (249, 349, 449)],
+        ["Neto por restaurante tras la comisión del cobro, pesos al mes"]
+        + [n(neto_rest[str(p)]) for p in (249, 349, 449)],
+    ]
+    tabla_var = tabla(["", "A 249", "A 349", "A 449"], filas_var, "chica junta")
+    filas_tarifa = [
+        [
+            "RPM de Américas, comida y bebida (USD por mil vistas)",
+            "2.62 (los tres)",
+            "Calculadora de AdSense, 19 de septiembre (hoy el resultado es JavaScript y no se pudo leer). Un blog da 2.50 con 1,500 USD al año por 50,000 vistas al mes",
+            marca("documento") + marca("externa"),
+        ],
+        [
+            "Multiplicador de México frente a EE. UU.",
+            "0.2&nbsp;·&nbsp;0.3&nbsp;·&nbsp;0.4",
+            "WeForAds, abril de 2026: «Brazil/Mexico: 0.2–0.4x». Blog de proveedor, sin metodología; el 0.3 es el punto medio",
+            marca("externa") + " débil · " + marca("supuesto"),
+        ],
+        [
+            "Pérdida por no personalizar",
+            "64&nbsp;%&nbsp;·&nbsp;52&nbsp;%&nbsp;·&nbsp;37.5&nbsp;%",
+            "Google, 2019: sin cookies el ingreso cae 52 % en promedio y 64 % en la mediana (500 mayores publicadores de Ad Manager); 37.5 % es el mínimo de otro estudio que cita. Es sin cookies, no AdSense «no personalizado»: cota alta",
+            marca("externa"),
+        ],
+        [
+            "Impresiones por visita",
+            "1&nbsp;·&nbsp;2&nbsp;·&nbsp;3",
+            "Mías: espera de la orden (P04b del prototipo), más el fondo del menú (P03), más el detalle de platillo (P02). El prototipo no dibuja anuncios",
+            marca("supuesto"),
+        ],
+        [
+            "Visitas con la app por restaurante gratuito al mes",
+            n(VISITAS_APP_MES_GRATIS),
+            "Simulador de uso (113.9 comensales al día × 30 × 0.6 que abre la app); el 0.6 es supuesto",
+            marca("medida") + marca("supuesto"),
+        ],
+        [
+            "<b>Resultado: USD por mil visitas</b>",
+            f"<b>{TAR['bajo']['usd_por_mil_visitas']:.2f}&nbsp;·&nbsp;{TAR['medio']['usd_por_mil_visitas']:.2f}&nbsp;·&nbsp;{TAR['alto']['usd_por_mil_visitas']:.2f}</b>",
+            f"= {TAR['bajo']['mxn_por_mil_visitas']:.1f} · {TAR['medio']['mxn_por_mil_visitas']:.1f} · {TAR['alto']['mxn_por_mil_visitas']:.1f} pesos. Con anuncios personalizados serían {TAR['bajo']['usd_por_mil_visitas_personalizado']:.2f} · {TAR['medio']['usd_por_mil_visitas_personalizado']:.2f} · {TAR['alto']['usd_por_mil_visitas_personalizado']:.2f} USD",
+            marca("supuesto"),
+        ],
+    ]
+    tabla_tarifa = tabla(
+        ["Eslabón", "Bajo · medio · alto", "De dónde sale", "Marca"], filas_tarifa, "chica"
+    )
+    filas_eq = []
+    for nivel, etq in (("bajo", "Baja"), ("medio", "Media"), ("alto", "Alta")):
+        h = eqs[f"hoy/npa/{nivel}"]
+        ev = eqs[f"eventos/npa/{nivel}"]
+        filas_eq.append(
+            [
+                f"{etq} ({TAR[nivel]['mxn_por_mil_visitas']:.1f} pesos por mil visitas)",
+                f"<b>{h['primero']}</b>",
+                f"<b>{ev['primero']}</b>",
+                n(h["visitas_mes"]),
+                f"{n(m10[f'hoy/{nivel}']['n']) if m10[f'hoy/{nivel}']['n'] else 'no cabe'}",
+                n(m10[f"eventos/{nivel}"]["n"]),
+            ]
+        )
+    tabla_eq = tabla(
+        [
+            "Tarifa (no personalizada)",
+            "Gratuitos que pagan la infraestructura, forma de hoy",
+            "Ídem, con eventos",
+            "Visitas con la app al mes (hoy)",
+            "Gratuitos para dejar 10,000 pesos al mes: hoy",
+            "Ídem, con eventos",
+        ],
+        filas_eq,
+        "chica junta",
+    )
+    diez = meta["10000_visitas_mes_usd"]
+    filas_meta = [
+        [
+            "10,000 usuarios leídos como 10,000 visitas al mes",
+            f"≈ {meta['restaurantes_para_10000_visitas']:.0f} gratuitos típicos",
+            f"{diez['bajo'] + 1e-9:.1f} · {diez['medio'] + 1e-9:.1f} · {diez['alto'] + 1e-9:.1f}",
+            f"{AE['curva_costo']['hoy'][0][1]:.1f}",
+            "Sólo con tarifa alta",
+        ],
+        [
+            "70 % de la capacidad de hoy",
+            f"{meta['hoy']['G70']} gratuitos · {n(meta['hoy']['visitas_mes_70'])} visitas",
+            " · ".join(f"{meta['hoy']['ads_70_usd'][k]:.0f}" for k in ("bajo", "medio", "alto")),
+            f"{meta['hoy']['costo_70']:.1f}",
+            "Las tres tarifas",
+        ],
+        [
+            "70 % del muro de disco con eventos (E1)",
+            f"{meta['eventos']['G70']} gratuitos · {n(meta['eventos']['visitas_mes_70'])} visitas",
+            " · ".join(
+                f"{meta['eventos']['ads_70_usd'][k]:.0f}" for k in ("bajo", "medio", "alto")
+            ),
+            f"{meta['eventos']['costo_70']:.1f}",
+            "Las tres tarifas",
+        ],
+    ]
+    tabla_meta = tabla(
+        [
+            "Tu meta",
+            "En este modelo",
+            "Anuncios USD al mes (bajo · medio · alto)",
+            "Costo USD",
+            "¿Cubre?",
+        ],
+        filas_meta,
+        "chica junta",
+    )
     secciones.append(f"""
 <section>
-  <h2><span>9</span> Riesgos y datos por conseguir</h2>
+  <h2><span>9</span> Escaleras de capacidad y de conversión, y qué pasa sólo con anuncios</h2>
+  <p class="aviso">Sección nueva de la versión 2. Responde tres preguntas de Calvin del 13 de noviembre: <b>cuántos restaurantes caben en cada escalón</b> y qué cambia en cada uno; <b>cuántos gratuitos más</b> se pueden recibir por cada restaurante de paga (y por cada 100 comensales de 29 pesos); y si <b>con anuncios y sin nadie de paga</b> el negocio se sostiene. Todo sale del simulador de uso (misma semilla) y de <code>docs/research/2026-11-13-anuncios-y-capa-del-comensal.md</code>. <b>La v1 no tiene cuenta del comensal, anuncios ni cobro</b>: aquí se modela una visión, no se construye.</p>
+
+  <h3>9.1 La escalera de capacidad</h3>
+  {
+        figura(
+            g_escalera_capacidad(),
+            "Cuántos restaurantes típicos caben en cada escalón, y qué muro manda",
+            "simulador de uso (<code>2026-11-13-simulador-de-uso.py</code>), CPU a 70 % en la hora más cargada con 95 % de probabilidad; 4 procesos = 3.6 núcleos (×1.8) "
+            + marca("documento")
+            + ", 8 procesos = 6.6 (×3.3) "
+            + marca("supuesto")
+            + "; conexiones abiertas 10,000 por dominio "
+            + marca("externa")
+            + " con la pantalla encendida "
+            + marca("supuesto"),
+            num,
+        )
+    }
+  {tabla_escalera}
+  <ul>
+    <li><b>El primer paso que más rinde es pasar a eventos (E1):</b> de {
+        n(esc_[0]["gratuito"]["n"])
+    } a {n(esc_[1]["gratuito"]["n"])} gratuitos y <b>más barato</b> ({
+        esc_[1]["gratuito"]["factura_usd"]:.0f} contra {
+        esc_[0]["gratuito"][
+            "factura_usd"
+        ]:.0f} USD), porque deja de gastarse procesador en preguntar. El muro pasa del procesador al <b>disco de 5 GB</b>.</li>
+    <li><b>Pro (E2) cuesta ≈ 18 USD más</b> y lleva el cupo a {
+        n(esc_[2]["gratuito"]["n"])
+    }; sin Pro no se pasa de {
+        n(esc_[1]["gratuito"]["n"])
+    }. Cuatro y ocho procesos suman ≈ 1.6 USD por proceso, pero exigen bajar el conjunto de conexiones a PostgreSQL (hoy 40; Railway permite ≈ 100 {
+        marca("supuesto")
+    }).</li>
+    <li><b>El muro de las 10,000 conexiones abiertas de Railway llega en ≈ {
+        n(A["muro_conexiones_n_gratuitos"])
+    } gratuitos o ≈ {
+        n(A["muro_conexiones_n_paga"])
+    } de paga.</b> Las réplicas no lo mueven (el límite es por dominio). Pasarlo pide cambiar la entrega (sondeo por fase para el exceso), otro dominio o otra plataforma: <b>nada de eso está medido ni diseñado</b>.</li>
+    <li>Sin eventos, sólo con más procesos: 4 procesos = {n(h48[0]["n_cpu_gratuito"])} gratuitos y {
+        n(h48[0]["n_cpu_paga"])
+    } de paga ({h48[0]["factura_hobby"]:.0f} USD en Hobby); 8 procesos = {
+        n(h48[1]["n_cpu_gratuito"])
+    } y {n(h48[1]["n_cpu_paga"])} (el disco frena a {n(h48[1]["n_hobby"])} en Hobby; {
+        h48[1]["factura_pro"]:.0f} USD en Pro).</li>
+    <li><b>Lo que no está medido:</b> el procesador de Railway (±2×), los núcleos que da Hobby, la pantalla encendida y la memoria por conexión abierta. Los pasos E1 a E5 usan las cifras de eventos medidas en local, no en Railway; la decisión de adoptarlos ya está tomada (ADR-018, aceptado el 13 de noviembre; sustituye al ADR-004).</li>
+  </ul>
+
+  <h3>9.2 La escalera de conversión</h3>
+  <p>Por cada restaurante de paga que entra, hay dos respuestas distintas: <b>cuánto costo cubre</b> (mucho) y <b>cuánta capacidad ocupa</b> (más que un gratuito). Neto = lo que queda del precio tras la comisión de cobro (Stripe México, 3.6 % + 3 pesos, más IVA {
+        marca("externa")
+    }), con el precio más IVA cobrado al restaurante {marca("supuesto")}.</p>
+  {tabla_var}
+  {
+        figura(
+            g_escalera_conversion(),
+            "Gratuitos que sostiene el costo según cuántos restaurantes de paga hay",
+            "script de cálculo <code>2026-11-13-anuncios-y-capa-del-comensal-modelo.py</code>: el costo mínimo del escalón que alcance (lo fijo, procesos y plan), contra el neto de cada de paga tras la comisión de Stripe México "
+            + marca("externa")
+            + " (3.6 % + 3 pesos, más IVA). Cuando el costo ya no frena, manda el cupo: un restaurante de paga ocupa el lugar de ≈ 2.4 gratuitos con eventos.",
+            num,
+        )
+    }
+  {tabla_conv}
+  <ul>
+    <li><b>Costo:</b> el primer restaurante de paga a 349 cubre lo fijo y <b>{
+        n(k_fila("hoy/349", 1)["g_costo"])
+    } gratuitos más</b> con la forma de hoy ({
+        n(k_fila("eventos/349", 1)["g_costo"])
+    } con eventos); cada uno siguiente cubre ≈ {n(var_cubre("hoy", 349))} ({
+        n(var_cubre("eventos", 349))
+    } con eventos) en costo variable. Con <b>3 a 5 de paga</b> el costo deja de ser el límite.</li>
+    <li><b>Capacidad:</b> entra con signo contrario. Un restaurante de paga típico <b>ocupa el lugar de {
+        AE["peso_paga"]["hoy/hobby2"]:.1f} gratuitos</b> con la forma de hoy y {
+        AE["peso_paga"][
+            "eventos/pro2"
+        ]:.1f} con eventos en procesador (y 17.6 en el disco de Hobby, por los 12 meses de historial). <b>No agranda el cupo: paga el escalón siguiente.</b></li>
+    <li>Cambiar el precio de 349 a 249 o 449 mueve el tamaño del primer salto ({
+        n(k_fila("hoy/249", 1)["g_costo"])
+    } a {n(k_fila("hoy/449", 1)["g_costo"])} con la forma de hoy; {
+        n(k_fila("eventos/249", 1)["g_costo"])
+    } a {n(k_fila("eventos/449", 1)["g_costo"])} con eventos), no el tope de capacidad.</li>
+    <li><b>Por cada 100 comensales de paga a 29 pesos:</b> entran <b>{
+        n(100 * com29["neto_mxn_con_iva_incluido"])
+    } pesos al mes</b> ({n(100 * com29["neto_mxn_con_iva_incluido"] / TC)} USD; {
+        n(100 * com29["neto_mxn_mas_iva"])
+    } si los 29 son antes de IVA) tras IVA y comisión. Eso paga <b>toda la infraestructura hasta el tope de cada escalón</b> ({
+        n(AE["g_max"]["hoy"])
+    } gratuitos con la forma de hoy, {n(AE["g_max"]["eventos"])} con eventos). Equivalen a {
+        100
+        * com29["neto_mxn_con_iva_incluido"]
+        / neto_rest["349"]:.1f} restaurantes de paga a 349; un restaurante de paga equivale a {
+        capa[
+            "comensales_29_por_restaurante_349"
+        ]:.0f} comensales de paga. No ocupan cupo: ya iban a escanear.</li>
+  </ul>
+
+  <h3>9.3 ¿Se sostiene sin nadie de paga, sólo con anuncios?</h3>
+  <p>Calvin lo dijo así: gratuito sin que entre un peso «no se va a sostener nunca». Se modelan <b>anuncios no personalizados</b> (no se venden datos). <b>Aquí la tarifa es lo más débil del informe:</b> ninguna fuente primaria da el ingreso por mil impresiones para México. Cada eslabón, con su marca:</p>
+  {
+        figura(
+            g_solo_anuncios(),
+            "Cuántos gratuitos pagan la infraestructura con sólo anuncios no personalizados",
+            "ingreso = gratuitos × 2,050 visitas con la app × tarifa "
+            + marca("supuesto")
+            + "; costo mínimo del simulador de uso con la factura de Railway deducida de la captura de Calvin "
+            + marca("calvin")
+            + " y el dominio de 25 USD al año. Línea punteada: costo con eventos. Los puntos marcan el equilibrio con la forma de hoy.",
+            num,
+        )
+    }
+  {tabla_tarifa}
+  <p><b>Dato</b> es la cifra de la calculadora de AdSense (de septiembre) y la pérdida medida por Google en 2019. <b>Supuesto</b> son las impresiones por visita, el 0.3 de México y el 0.6 de uso de la app. El multiplicador por país viene de un blog sin metodología; el resultado queda en el mismo orden de magnitud que la guía débil de CPM de compra (0.60–1.50 USD × 68 % × 80 %) del comparativo.</p>
+  {tabla_eq}
+  {tabla_meta}
+  <ul>
+    <li><b>La infraestructura sí se paga con anuncios desde pocos restaurantes:</b> {
+        eqs["hoy/npa/alto"]["primero"]
+    } a {eqs["hoy/npa/bajo"]["primero"]} gratuitos típicos ({
+        n(eqs["hoy/npa/alto"]["visitas_mes"])
+    } a {
+        n(eqs["hoy/npa/bajo"]["visitas_mes"])
+    } visitas con la app al mes), según la tarifa. <b>Con la tarifa media, 10,000 visitas al mes casi la cubren</b> ({
+        diez[
+            "medio"
+        ]:.1f} USD contra ≈ 10); tu meta de 70 % de la capacidad la cubre con las tres.</li>
+    <li><b>Tu ingreso no.</b> Para que los anuncios dejen 10,000 pesos al mes netos de infraestructura hacen falta {
+        n(m10["eventos/alto"]["n"])
+    } gratuitos con la tarifa alta, {n(m10["eventos/medio"]["n"])} con la media y {
+        n(m10["eventos/bajo"]["n"])
+    } con la baja (con la forma de hoy la baja ni cabe: el tope es {
+        n(AE["g_max"]["hoy"])
+    }). Con restaurantes de paga a 349 serían ≈ 30.</li>
+    <li><b>Por restaurante gratuito los anuncios son poco dinero:</b> {
+        AE["ads_por_restaurante_mes_mxn"]["bajo"]:.0f} · {
+        AE["ads_por_restaurante_mes_mxn"]["medio"]:.0f} · {
+        AE["ads_por_restaurante_mes_mxn"][
+            "alto"
+        ]:.0f} pesos al mes (bajo · medio · alto), contra 329 netos de uno de paga: <b>uno de paga vale lo que {
+        neto_rest["349"]
+        / AE["ads_por_restaurante_mes_mxn"][
+            "medio"
+        ]:.0f} gratuitos con anuncios</b> (caso medio).</li>
+    <li><b>Lo que puede tumbarlo antes de la tarifa:</b> que AdSense no apruebe una carta detrás de un código de mesa casi sin texto; que la política de seguridad (<code>script-src 'self'</code>) deba abrirse a un tercero; un aviso de violación por clics accidentales junto a los botones de la orden; y que la regla 10 pida un ADR. Meta Audience Network no es opción: dejó de servir en web móvil el 11 de abril de 2020.</li>
+    <li><b>Cómo medirlo de verdad, a costo cero:</b> correr la calculadora a mano, pedir la aprobación de AdSense con una página pública, y después un solo bloque no personalizado en la pantalla de espera de un restaurante del piloto (con aviso al dueño) durante 2 a 4 semanas; el pago no sale (empieza en Mex$1,200) pero el informe da impresiones y RPM.</li>
+  </ul>
+
+  <h3>9.4 La capa del comensal, en cifras</h3>
+  {
+        tabla(
+            ["Nivel", "Qué guarda Carta", "Ingreso", "Marca"],
+            [
+                [
+                    "Anónimo",
+                    "Lo de hoy; nada del comensal",
+                    f"Anuncios: {TAR['bajo']['mxn_por_mil_visitas']:.1f} a {TAR['alto']['mxn_por_mil_visitas']:.0f} pesos por mil visitas",
+                    marca("supuesto"),
+                ],
+                [
+                    "Registrado gratis",
+                    "Cuenta, historial y preferencias: datos personales; las alergias, sólo en el teléfono",
+                    "Anuncios no personalizados (iguales al anónimo)",
+                    marca("supuesto"),
+                ],
+                [
+                    "De paga, 29 al mes",
+                    "Lo anterior; el cobro lo guarda el procesador",
+                    f"{com29['neto_mxn_con_iva_incluido']:.1f} pesos netos si los 29 llevan IVA ({com29['neto_mxn_mas_iva']:.1f} si no); el cobro anual deja ≈ {com29['neto_anual_mxn_a'] / 12:.1f} al mes",
+                    marca("externa") + marca("supuesto"),
+                ],
+            ],
+            "chica",
+        )
+    }
+  <ul>
+    <li><b>Guardar y recomendar casi no cuesta:</b> el historial es ≈ {
+        capa["gb_por_registrado_anio"]
+        * 1000:.2f} MB por registrado al año (menos de 5 USD al mes con 100,000 {
+        marca("supuesto")
+    }). Recomendar con Opus 5.5 cuesta {
+        capa[
+            "opus_mxn_por_recomendacion"
+        ]:.2f} pesos por recomendación, <b>17 veces lo que un anuncio deja por visita</b> ({
+        capa["anuncios_mxn_por_visita"]["medio"]:.3f} pesos); con un modelo chico o con SQL cabe ({
+        capa["haiku_mxn_por_recomendacion"]:.3f} pesos).</li>
+    <li><b>Un comensal de paga vale ≈ 700 veces lo que dejan sus anuncios</b> (20.3 pesos contra 0.03 al mes con 2 visitas). Los anuncios de un restaurante gratuito equivalen a ≈ 1.4 comensales de paga.</li>
+    <li><b>Tasas necesarias:</b> cubrir la infraestructura con el pago del comensal pide 18 pagadores con 104 gratuitos (0.017 % de las personas) o 40 con 1,000 (0.004 %); dejar 10,000 pesos pide ≈ {
+        capa[
+            "pagan_para_10000_mxn"
+        ]:.0f}. La mediana de conversión de apps freemium con suscripción es 2.18 % (RevenueCat, 2025; no es de menús) {
+        marca("externa")
+    }; la tasa de registro (2 a 10 %) es {marca("supuesto")}.</li>
+    <li><b>Lo que habría que cambiar para construirlo:</b> la regla dura 10 (ADR nuevo), «Qué NO construir» y <code>01_Alcance_v1.md</code>, la política de cabeceras de <code>02_Arquitectura_v1.md</code> §12, el aviso de privacidad y una Spec nueva. <b>Ley:</b> la LFPDPPP nueva (DOF del 20 de marzo de 2025, texto vigente al 14 de noviembre de 2025; autoridad: Secretaría Anticorrupción y Buen Gobierno) pide consentimiento expreso y por escrito para datos sensibles como la salud (art. 8; por eso las alergias siguen en el teléfono), consentimiento expreso para datos financieros (art. 7) y una cláusula de transferencia si se ceden datos a un tercero (art. 35); multas de 100 a 320,000 UMA (art. 59). La ley no menciona cookies ni publicidad; el valor de la UMA, los lineamientos de la autoridad y el reglamento son datos por conseguir. La suscripción se rige además por la Ley Federal de Protección al Consumidor, art. 76 Bis (cobros recurrentes con consentimiento expreso, aviso de renovación con cinco días y cancelación inmediata).</li>
+  </ul>
+</section>""")
+
+    # ---- 10. Riesgos y datos por conseguir ----
+    secciones.append(f"""
+<section>
+  <h2><span>10</span> Riesgos y datos por conseguir</h2>
   <h3>Riesgos</h3>
   {
         tabla(
@@ -1281,7 +1946,7 @@ def construir() -> str:
                 [
                     "Regla de Cloudflare de 300 por 10 s",
                     "Corta a locales con WiFi compartido y ≈ 90 teléfonos",
-                    "Subirla a 1,500 o excluir la ruta de eventos",
+                    "Dejarla en 300 y medirla en la T-4.4 con eventos (decisión de Calvin, 13-nov)",
                 ],
                 [
                     "Límite duro de gasto en Railway",
@@ -1351,7 +2016,7 @@ def construir() -> str:
                 ],
                 [
                     "Tarifa real de anuncios en México e impresiones por visita",
-                    "Cuenta de prueba o cotización de una red",
+                    "Correr la calculadora de AdSense, pedir la aprobación del sitio y abrir el Planificador de alcance de Google Ads (cuenta sin gasto)",
                     "Calvin",
                     "0",
                 ],
@@ -1388,7 +2053,7 @@ def construir() -> str:
     # ---- 10. Decisiones ----
     secciones.append(f"""
 <section>
-  <h2><span>10</span> Decisiones</h2>
+  <h2><span>11</span> Decisiones</h2>
   {
         tabla(
             ["Decisión", "Recomendación", "Por qué", "Fuente"],
@@ -1443,15 +2108,15 @@ def construir() -> str:
                 ],
                 [
                     "Anuncios",
-                    "Más adelante, como quieres; meta = 10,000 visitas al mes medidas con <code>scan</code> o 70 % del muro (≈ 210 gratuitos típicos); antes, patrocinio directo sin rastreo",
-                    f"Pagarían lo fijo con ≈ {EQ_ADS_MEDIO}–{EQ_ADS_BAJO} gratuitos; «usuarios» no se mide hoy, visitas sí. Una red de anuncios rastrea al comensal y abre la política de seguridad",
-                    "Calvin; comparativo §5 y §7 " + marca("supuesto"),
+                    "Más adelante, como quieres, y no personalizados; antes, pedir la aprobación de AdSense con una página pública y medir la tarifa con un bloque en un restaurante del piloto; meta = 10,000 visitas al mes medidas con <code>scan</code> o 70 % del muro (≈ 210 gratuitos típicos)",
+                    f"Pagarían lo fijo con ≈ {EQ_ADS_ALTO}–{EQ_ADS_BAJO} gratuitos, pero no tu ingreso; «usuarios» no se mide hoy, visitas sí. Abre la política de seguridad y la regla 10 pide ADR",
+                    "Calvin; sección 9.3 e informe de anuncios " + marca("supuesto"),
                 ],
                 [
                     "Regla de Cloudflare",
-                    "Subir a 1,500 por 10 s o excluir la ruta de eventos",
-                    "5 min en el panel; evita cortar locales grandes",
-                    "capacidad, palanca 0",
+                    "Dejarla en 300 por 10 s y medirla en la prueba de carga (T-4.4), ya con eventos",
+                    "Decisión de Calvin del 13 de noviembre; no se sube ahora",
+                    "capacidad, palanca 0; 04 §11",
                 ],
                 [
                     "Límite de gasto de Railway",
@@ -1483,6 +2148,7 @@ def construir() -> str:
     <li><code>docs/research/2026-11-13-planes-y-costo-por-restaurante.md</code> y su guion.</li>
     <li><code>docs/research/2026-11-13-estadistica-de-cartas-y-personal.md</code>, sus datos (148 cartas) y su guion.</li>
     <li><code>docs/research/2026-11-13-estrategia-de-precios.md</code>; <code>2026-11-13-comparativo-de-precios-y-anuncios.md</code> (en master desde el PR 33: precios de hoy, anuncios, oferta del piloto); <code>2026-09-19-modelo-de-negocio-y-pagos.md</code>; <code>2026-09-19-competencia-real-mexico.md</code>; <code>2026-09-20-olaclick-a-fondo.md</code>.</li>
+    <li><code>docs/research/2026-11-13-anuncios-y-capa-del-comensal.md</code>, su guion y sus datos (versión 2: anuncios, capa del comensal y escaleras).</li>
     <li><code>docs/plan/04_Fases_y_Tareas.md</code> §11 (decisiones de Calvin del 13 de noviembre).</li>
   </ul>
   <h3>Externas (leídas el 13 de noviembre de 2026 salvo donde se dice)</h3>
@@ -1493,7 +2159,9 @@ def construir() -> str:
     <li>INEGI, ENIGH 2024: inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados_tab.pdf (y por entidad).</li>
     <li>Data México (DENUE, mayo de 2026): economia.gob.mx/datamexico/es/profile/industry/restaurants-and-other-eating-places.</li>
     <li>Precios (13-nov, en el comparativo): neolo.com/mexico/menu-qr, pricing.olaclick.app, meniuapp.com/es/plans, menutiger.com/es/pricing, waitry.net/es-mx/precios, joinposter.com/mx/pricing, fu.do/precios, softrestaurant.com/cloud, softrestaurant.com/soft-restaurant-precio, last.app/mx/precios, loyverse.com/pricing.</li>
-    <li>Anuncios: guía de CPM por país (adscalculator.xyz, débil) y reparto de AdSense 68 % (support.google.com/adsense/answer/180195), leídas el 13-nov en el comparativo.</li>
+    <li>Anuncios (versión 2, todas leídas el 13-nov; enlaces en <code>docs/research/2026-11-13-anuncios-y-capa-del-comensal-datos.csv</code>): AdSense, reparto 68 % (support.google.com/adsense/answer/180195), anuncios no personalizados (/9007336, /15450188, /7670312), umbral de pago (/1709871), elegibilidad (/9724), ubicación de anuncios (/1346295), menores de 13 (/10502938); Google, «Effect of disabling third-party cookies on publisher revenue», 27-ago-2019 (services.google.com/fh/files/misc/disabling_third-party_cookies_publisher_revenue.pdf); WeForAds, «Ad Revenue Benchmarks 2026» (weforads.com); guía de CPM por país (adscalculator.xyz, débil); Marketing Dive y AdExchanger sobre Meta Audience Network (feb 2020); Estudio Valor Total Media 2024 por prensa (marketing4ecommerce.mx, expansion.mx; el PDF de cim.mx dio 404); RevenueCat, State of Subscription Apps 2025.</li>
+    <li>Cobro y ley (versión 2): Stripe México, stripe.com/mx/pricing (3.6 % + 3 pesos, sin IVA); LFPDPPP, texto vigente en diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf (DOF 20-mar-2025, última reforma 14-nov-2025); Ley Federal de Protección al Consumidor, art. 76 Bis, diputados.gob.mx/LeyesBiblio/pdf/LFPC.pdf; ECIJA sobre cookies (31-oct-2025, secundaria).</li>
+    <li>No abrieron: PDF de Valor Total Media en cim.mx (404), EMARKETER y WordStream (403), Mercado Pago, Conekta y Clip (403/404), resultado de la calculadora de AdSense (JavaScript) y el Planificador de alcance de Google Ads (pide cuenta).</li>
     <li>Tipo de cambio: FIX de Banxico del 12-nov-2026, 18.6188 pesos por dólar.</li>
   </ul>
   <h3>Dato de Calvin</h3>
@@ -1514,6 +2182,9 @@ def construir() -> str:
     <dt>Capa gratuita</dt><dd>Lo que un proveedor da sin cobrar: R2 10 GB, Firebase 50,000 usuarios al mes, Cloudflare Free.</dd>
     <dt>Conversión</dt><dd>De cada 100 restaurantes registrados, cuántos pagan.</dd>
     <dt>Punto de equilibrio</dt><dd>El número de restaurantes a partir del cual los ingresos cubren los costos.</dd>
+    <dt>RPM</dt><dd>Lo que recibe el sitio por cada mil páginas vistas con anuncios. Distinto del CPM, que es lo que paga el anunciante por mil impresiones.</dd>
+    <dt>Anuncio no personalizado</dt><dd>Se elige por la página que se ve, no por el historial de la persona; no usa datos personales. Rinde menos que uno personalizado.</dd>
+    <dt>Escalera</dt><dd>La lista de cambios (eventos, plan Pro, más procesos…) que suben el cupo, con lo que cuesta cada uno y el muro que llega después.</dd>
     <dt>Muro</dt><dd>Un límite que no se quita pagando un poco más dentro del plan: el procesador de 2 procesos o el disco de 5 GB.</dd>
   </dl>
 </section>""")

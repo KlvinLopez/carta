@@ -372,13 +372,13 @@
   "marca": "documento"
  },
  "anuncios": {
-  "fuente": "docs/research/2026-11-13-comparativo-de-precios-y-anuncios.md §5.2: USD por mil visitas = impresiones por visita × CPM de compra × 0.68 de reparto de AdSense × relleno. CPM de México 0.60–1.50 USD (adscalculator.xyz, fuente débil); reparto 68 % (support.google.com/adsense/answer/180195); impresiones y relleno supuestos",
+  "fuente": "Versión 2: docs/research/2026-11-13-anuncios-y-capa-del-comensal.md §2.1 y datos/anuncios.json (lo calcula el guion de docs/research/…-modelo.py). USD por mil visitas NO personalizadas = impresiones por visita × RPM de Américas 2.62 (calculadora de AdSense, 19-sep, documento) × multiplicador de México 0.2/0.3/0.4 (WeForAds, débil) × (1 − pérdida por no personalizar 64/52/37.5 %, Google 2019). Impresiones por visita 1/2/3 supuestas.",
   "usd_por_mil_visitas": {
-   "bajo": 0.2,
-   "medio": 1.09,
-   "alto": 3.06
+   "bajo": 0.1886,
+   "medio": 0.7546,
+   "alto": 1.965
   },
-  "nota": "Sustituye a la cifra de septiembre (AdSense Américas 2.62 ÷ 5), que no era de México"
+  "nota": "Sustituye a 0.20/1.09/3.06 de la versión 1 (CPM de compra débil × 0.68 × relleno). El informe ya no lee este bloque: usa datos/anuncios.json."
  },
  "escala_pro": {
   "fuente": "docs/research/2026-11-13-mapa-de-procesos-y-costos.md §4.9 (uso de Railway con eventos, PostgreSQL de 0.5 GB ilustrativo por entorno)",
