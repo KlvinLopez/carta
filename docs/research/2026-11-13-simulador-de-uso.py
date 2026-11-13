@@ -52,15 +52,21 @@ class Supuestos:
     INTERVALO_HOY: tuple = (3, 3, 3, 3, 3, 3, 0)  # [documento] INTERVALO_SONDEO_MS = 3000
     INTERVALO_FASE: tuple = (5, 3, 10, 20, 3, 5, 0)  # [documento] planes §5 alternativa A
     # Eventos con respaldo [PENDIENTE: rama medicion-eventos-frente-a-sondeo]; valores conservadores
-    EV_RESPALDO_S: float = 30.0  # sondeo de respaldo cada 30 s
-    EV_LATIDO_S: float = 20.0  # latido de la conexión abierta
-    EV_LATIDO_MS: float = 0.25  # CPU por latido [PENDIENTE]
-    EV_AVISOS_MIN: float = 1.0  # avisos empujados por minuto por teléfono al frente [PENDIENTE]
-    EV_AVISO_MS: float = 0.5  # CPU por aviso [PENDIENTE]
+    # [medida] docs/plan/perf/2026-11-13-eventos-frente-a-sondeo.md (rama medicion-eventos-frente-a-sondeo,
+    # commit 41b2608, primera página); avisos por minuto: [estimada] de su mapa de eventos §1
+    EV_RESPALDO_S: float = 60.0  # pregunta de respaldo cada 60 s [medida]
+    EV_LATIDO_S: float = 25.0  # latido de la conexión abierta [medida]
+    EV_LATIDO_MS: float = 0.09  # CPU por latido [medida]
+    EV_AVISOS_MIN: float = (
+        1.0  # avisos por minuto por teléfono al frente (0.7-1 promedio, 2-3 pico)
+    )
+    EV_AVISO_MS: float = (
+        4.2  # CPU por aviso con la lectura 200 que provoca, sin la escritura [medida]
+    )
     EV_CONEXIONES_MAX: int = 10_000  # [externa] Railway: 10,000 conexiones simultáneas
     # --- Personal ---
     PERSONAL_INTERVALO_S: float = 5.0  # [documento] 02 §6
-    PERSONAL_INTERVALO_EV_S: float = 30.0
+    PERSONAL_INTERVALO_EV_S: float = 60.0  # el personal usa el mismo respaldo de 60 s [supuesto]
     MESAS_POR_MESERO: float = 6.0  # [estimada]
     DUENO_PANEL: float = 0.3  # parte de las horas con el panel del dueño abierto [estimada]
     # --- Comensales ---
@@ -88,8 +94,24 @@ class Supuestos:
     USD_GB_VOL_MES: float = 0.15
     USD_GB_R2_MES: float = 0.015  # developers.cloudflare.com/r2/pricing (10 GB gratis)
     R2_GRATIS_GB: float = 10.0
-    SUSCRIPCION_USD: float = 20.0  # Railway Pro [externa]; el plan real lo ve Calvin
-    STAGING_USD: float = 10.0  # [estimada]
+    # Railway Hobby [externa: docs.railway.com/reference/pricing/plans y /faqs, 13-nov-2026]:
+    # 5 USD de suscripción que incluyen 5 USD de uso; el excedente se cobra; volumen de 5 GB.
+    HOBBY_SUSCRIPCION: float = 5.0
+    HOBBY_INCLUIDO: float = 5.0
+    ENTORNOS: int = 2  # staging y producción encendidos [dato de Calvin, 13-nov]
+    RAM_API_GB_PROCESO: float = 0.16  # [medida] ≈ 160 MB por proceso en reposo (capacidad M5)
+    # Memoria real de PostgreSQL y del servicio de respaldo en Railway: DATO PENDIENTE (métricas de
+    # staging). 0.0 = cota inferior (sólo la API medida); los valores >0 son ilustrativos.
+    PG_RAM_GB: float = 0.0
+    DOMINIO_USD_ANIO: float = 25.0  # [dato de Calvin, 13-nov]; no entra en la factura de Railway
+    # Medios por platillo con foto y modelo 3D (sin realidad aumentada)
+    FOTO_ORIGINAL_MB: float = 3.0  # [estimada ±2×] foto de teléfono 12 MP; no hay original real
+    FOTO_DETALLE_KB: float = 81.0  # [medida] 35-81 KB; se toma el máximo medido
+    FOTO_MINIATURA_KB: float = 16.0  # [medida] 7-16 KB
+    GLB_MB: float = 4.0  # [documento] docs/mvp/05_3D_Pipeline.md §4: presupuesto duro del .glb
+    POSTER_KB: float = 81.0  # póster WebP 1200 px ≈ foto de detalle [documento + medida]
+    R2_CLASE_B_GRATIS: float = 10e6  # [externa] 10 millones al mes
+    USD_CLASE_B_M: float = 0.36  # [externa] por millón
     USD_OPUS_IN: float = 4 / 1e6  # platform.claude.com/docs/en/about-claude/pricing
     USD_OPUS_OUT: float = 20 / 1e6
     MXN_USD: float = 18.6188  # FIX Banxico 12-nov-2026
@@ -179,7 +201,7 @@ MEZCLAS = {
 # Topes por plan. Gratuito: 10 mesas × 6 [Calvin 13-nov]; personal 3. Paga: 40 mesas × 12,
 # personal 20 [Calvin 13-nov]. Platillos: 60 / 300 [propuesta anterior; la decide la estadística].
 TOPES = {
-    "gratuito": dict(mesas=10, ppm_max=6, platillos=60, personal=3),
+    "gratuito": dict(mesas=10, ppm_max=6, platillos=80, personal=3),
     "paga": dict(mesas=40, ppm_max=12, platillos=300, personal=20),
 }
 
@@ -235,7 +257,9 @@ ESCENARIOS = [
 FORMAS = {
     "hoy": dict(entrega="hoy", s="S_MS", nombre="Hoy (sondeo de 3 s)"),
     "optimizada": dict(entrega="fase", s="S_MS_OPT", nombre="Sondeo por fase + palancas de CPU"),
-    "eventos": dict(entrega="eventos", s="S_MS_OPT", nombre="Eventos con respaldo + palancas"),
+    "eventos": dict(
+        entrega="eventos", s="S_MS", nombre="Eventos con respaldo (medidos, sin palancas)"
+    ),
 }
 
 # ============================================================================================
@@ -510,6 +534,49 @@ def lectura_pdf_usd(sup: Supuestos, paginas: float, platillos: float) -> float:
     return (ent * sup.USD_OPUS_IN + sal * sup.USD_OPUS_OUT) * sup.REINTENTO_MEDIO
 
 
+def costos_railway(sup: Supuestos, workers: int, cpu_s_mes: float, gb_red: float, vol_gb: float):
+    """Uso de Railway (staging + producción) y factura Hobby = 5 USD + exceso sobre 5 USD de uso."""
+    # producción con `workers` procesos; los demás entornos (staging) se quedan en 2
+    procesos = workers + (sup.ENTORNOS - 1) * 2
+    ram_gb = procesos * sup.RAM_API_GB_PROCESO + sup.ENTORNOS * sup.PG_RAM_GB
+    usd = dict(
+        ram=ram_gb * sup.USD_GB_RAM_MES,
+        cpu=cpu_s_mes / (30 * 24 * 3600) * sup.USD_VCPU_MES,
+        red=gb_red * sup.USD_GB_RED,
+        volumen=vol_gb * sup.USD_GB_VOL_MES,
+    )
+    usd["uso"] = sum(usd.values())
+    usd["factura"] = sup.HOBBY_SUSCRIPCION + max(0.0, usd["uso"] - sup.HOBBY_INCLUIDO)
+    return usd
+
+
+def medias_por_restaurante(escenario: Escenario, fondos, mom, forma: str, sup: Supuestos):
+    """Por restaurante registrado: peticiones equivalentes/día, visitas/día, platillos, fotos..."""
+    idx = {m: i for i, m in enumerate(MEDIDAS)}
+    clave = {"hoy": "eq_hoy", "optimizada": "eq_fase", "eventos": "eq_eventos"}[forma]
+    eq_dia = sum(mom[h][idx[clave]][0] for h in range(24)) * 3600.0
+    vis_dia = sum(mom[h][idx["visitas"]][0] for h in range(24))
+    peso = {p: w for p, w, _ in escenario.partes}
+    ret = sum(
+        w * (sup.RETENCION_DIAS_GRATIS if p == "gratuito" else sup.RETENCION_DIAS_PAGA)
+        for p, w in peso.items()
+    )
+    platillos = sum(w * f.platillos_medios for (w, f) in fondos)
+    return eq_dia, vis_dia, ret, platillos
+
+
+def uso_para_n(escenario, fondos, mom, n: int, forma: str, sup: Supuestos) -> dict:
+    """Costos y volumen de N restaurantes sin simular días (sólo medias)."""
+    eq_dia, vis_dia, ret, platillos = medias_por_restaurante(escenario, fondos, mom, forma, sup)
+    s_ms = getattr(sup, FORMAS[forma]["s"])
+    cpu_s_mes = n * eq_dia * 30 * s_ms / 1000.0
+    gb_red = n * eq_dia * 30 * sup.BYTES_PETICION / 1e9
+    vol_gb = n * (vis_dia * ret * sup.KB_VISITA / 1e6 + platillos * sup.KB_PLATILLO / 1e6)
+    usd = costos_railway(sup, sup.WORKERS, cpu_s_mes, gb_red, vol_gb)
+    usd["vol_gb"] = vol_gb
+    return usd
+
+
 def detalle(escenario: Escenario, fondos, mom, n: int, forma: str, sup: Supuestos, dias: int):
     idx = {m: i for i, m in enumerate(MEDIDAS)}
     clave = {"hoy": "eq_hoy", "optimizada": "eq_fase", "eventos": "eq_eventos"}[forma]
@@ -534,17 +601,8 @@ def detalle(escenario: Escenario, fondos, mom, n: int, forma: str, sup: Supuesto
     vol_gb = n * (vis_dia * ret * sup.KB_VISITA / 1e6 + platillos * sup.KB_PLATILLO / 1e6)
     r2_gb = n * fotos * sup.FOTO_MB_PLATILLO / 1024.0
     workers = sup.WORKERS
-    ram_gb = workers * 0.17 + (1.5 if n <= 100 else 3.0 if n <= 500 else 4.5 if n <= 1500 else 8.0)
-    usd = dict(
-        suscripcion=sup.SUSCRIPCION_USD,
-        staging=sup.STAGING_USD,
-        ram=ram_gb * sup.USD_GB_RAM_MES,
-        cpu=cpu_s_mes / (30 * 24 * 3600) * sup.USD_VCPU_MES,
-        red=gb_red * sup.USD_GB_RED,
-        volumen=vol_gb * sup.USD_GB_VOL_MES,
-        r2=max(0.0, r2_gb - sup.R2_GRATIS_GB) * sup.USD_GB_R2_MES,
-    )
-    usd["total"] = sum(usd.values())
+    usd = costos_railway(sup, workers, cpu_s_mes, gb_red, vol_gb)
+    usd["r2"] = max(0.0, r2_gb - sup.R2_GRATIS_GB) * sup.USD_GB_R2_MES
     # lecturas de PDF
     n_paga = n * peso.get("paga", 0.0)
     lect_gratis = sum(p * (i + 1) for i, p in enumerate(sup.LECTURAS_GRATIS_USO))
@@ -619,11 +677,11 @@ def informe(sup: Supuestos, dias: int, tam: int) -> dict:
             fila[f] = max_n(mom, f, sup, dias, SEMILLA, sup.NUCLEOS)
         resultados[esc.nombre] = (fondos, mom, fila)
         print(f"| {esc.nombre} | " + " | ".join(fmt(fila[f]) for f in FORMAS) + " |")
-    for forma in ("hoy", "optimizada"):
+    for forma in ("hoy", "optimizada", "eventos"):
         print(f"\n## Detalle con N máximo, forma «{FORMAS[forma]['nombre']}»\n")
         print(
             "| Escenario | N | Frente p50 / p95 / p99 | Núcleos p95 (tope 2) | Comensales/día | /mes | "
-            "Mesas | Platillos | USD/mes | USD/rest. |"
+            "Mesas | Platillos | Factura Hobby USD/mes | USD/rest. |"
         )
         print("|---|---|---|---|---|---|---|---|---|---|")
         for esc in ESCENARIOS:
@@ -636,8 +694,8 @@ def informe(sup: Supuestos, dias: int, tam: int) -> dict:
             print(
                 f"| {esc.nombre} | {fmt(n)} | {fmt(d['p50'])} / {fmt(d['p95'])} / {fmt(d['p99'])} | "
                 f"{d['nuc_p95']:.2f} | {fmt(d['comensales_dia'])} | {fmt(d['comensales_mes'])} | "
-                f"{fmt(d['mesas'])} | {fmt(d['platillos'])} | {fmt(d['usd']['total'], 0)} | "
-                f"{d['usd']['total'] / n:.2f} |"
+                f"{fmt(d['mesas'])} | {fmt(d['platillos'])} | {fmt(d['usd']['factura'], 0)} | "
+                f"{d['usd']['factura'] / n:.2f} |"
             )
         print(
             "\n| Escenario | Red GB/mes | Volumen GB | R2 GB | PDF alta USD | PDF mes USD | Regla CF excedida |"
@@ -725,6 +783,471 @@ def sensibilidad(sup: Supuestos, dias: int, tam: int) -> None:
         print()
 
 
+# ============================================================================================
+# CURVA INVERSA: cuántos caben si la factura de Railway no pasa de B USD al mes
+# ============================================================================================
+PRESUPUESTOS = (5, 10, 15, 20, 40)
+
+
+def bisecar(f, tope: int = 1_000_000) -> int:
+    """Mayor n entero con f(n) verdadero (f monótona decreciente), 0 si ni n=1 cabe."""
+    if not f(1):
+        return 0
+    lo, hi = 1, 2
+    while f(hi) and hi < tope:
+        lo, hi = hi, hi * 2
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        if f(mid):
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
+def curva_factura(sup: Supuestos, resultados: dict) -> None:
+    """Tres tablas (una por forma): N que cabe por tope de factura, con el muro que manda."""
+    print("\n## Cuántos caben si la factura de Railway no pasa de B USD al mes\n")
+    print(
+        f"Hobby: {sup.HOBBY_SUSCRIPCION:.0f} USD de suscripción que incluyen {sup.HOBBY_INCLUIDO:.0f} USD "
+        f"de uso; factura = 5 + exceso de uso sobre 5. {sup.ENTORNOS} entornos encendidos. "
+        f"Memoria de PostgreSQL y respaldo en Railway = {sup.PG_RAM_GB} GB por entorno "
+        "(**dato pendiente de Calvin**: la factura real). Muros que no dependen del dinero: "
+        f"CPU de {sup.NUCLEOS:.0f} procesos y disco de {sup.VOLUMEN_MAX_GB_HOBBY:.0f} GB.\n"
+    )
+    f_piso = costos_railway(sup, sup.WORKERS, 0.0, 0.0, 0.0)
+    print(
+        f"Piso sin tráfico: uso {f_piso['uso']:.2f} USD (RAM de {sup.ENTORNOS} × {sup.WORKERS} procesos "
+        f"de API) → factura {f_piso['factura']:.2f} USD. Si B < piso, no cabe ninguno.\n"
+    )
+    for forma in FORMAS:
+        print(
+            f"**{FORMAS[forma]['nombre']}** — N (muro que manda: C = CPU, D = disco, $ = factura)\n"
+        )
+        print(
+            "| Escenario | "
+            + " | ".join(f"≤ {b} USD" for b in PRESUPUESTOS)
+            + " | USD marginal por restaurante |"
+        )
+        print("|---|" + "---|" * (len(PRESUPUESTOS) + 1))
+        for esc in ESCENARIOS:
+            fondos, mom, fila = resultados[esc.nombre]
+            n_cpu = fila[forma]
+            n_disco = bisecar(
+                lambda n, e=esc, fo=fondos, m=mom, f=forma: (
+                    uso_para_n(e, fo, m, n, f, sup)["vol_gb"] <= sup.VOLUMEN_MAX_GB_HOBBY
+                )
+            )
+            marg = (
+                uso_para_n(esc, fondos, mom, 100, forma, sup)["uso"]
+                - uso_para_n(esc, fondos, mom, 0, forma, sup)["uso"]
+            ) / 100
+            celdas = []
+            for b in PRESUPUESTOS:
+                n_b = bisecar(
+                    lambda n, e=esc, fo=fondos, m=mom, f=forma, bb=b: (
+                        uso_para_n(e, fo, m, n, f, sup)["factura"] <= bb
+                    )
+                )
+                n = min(n_cpu, n_disco, n_b)
+                muro = "C" if n == n_cpu else "D" if n == n_disco else "$"
+                celdas.append(f"{fmt(n)} ({muro})")
+            print(f"| {esc.nombre} | " + " | ".join(celdas) + f" | {marg:.3f} |")
+        print()
+
+
+# ============================================================================================
+# FOTO Y MODELO 3D POR PLATILLO (dimensionamiento; el 3D sigue fuera de la v1, ADR-011)
+# ============================================================================================
+def medios(sup: Supuestos, resultados: dict) -> None:
+    """Almacenamiento en R2 con TODOS los platillos de cada plan en su tope, con foto y con 3D."""
+    foto_mb = sup.FOTO_ORIGINAL_MB + (sup.FOTO_DETALLE_KB + sup.FOTO_MINIATURA_KB) / 1024
+    glb_mb = sup.GLB_MB + sup.POSTER_KB / 1024
+    print("\n## Foto y modelo 3D por platillo (todos los platillos en el tope del plan)\n")
+    print(
+        f"Por platillo: foto = original {sup.FOTO_ORIGINAL_MB} MB [estimada] + detalle {sup.FOTO_DETALLE_KB:.0f} KB "
+        f"+ miniatura {sup.FOTO_MINIATURA_KB:.0f} KB [medidas] = {foto_mb:.2f} MB; modelo 3D = .glb de "
+        f"{sup.GLB_MB} MB [documento: presupuesto duro de 05_3D_Pipeline.md] + póster {sup.POSTER_KB:.0f} KB "
+        f"= {glb_mb:.2f} MB (el .usdz es para realidad aumentada y no cuenta).\n"
+    )
+    print(
+        "| Plan | Platillos (tope) | GB por restaurante: sólo fotos | fotos + 3D | Restaurantes que llenan los 10 GB gratis (fotos / fotos+3D) | USD/mes de R2 por restaurante (fuera de la capa gratuita) |"
+    )
+    print("|---|---|---|---|---|---|")
+    for plan, t in TOPES.items():
+        gb_f = t["platillos"] * foto_mb / 1024
+        gb_3 = t["platillos"] * (foto_mb + glb_mb) / 1024
+        print(
+            f"| {plan} | {t['platillos']} | {gb_f:.2f} | {gb_3:.2f} | "
+            f"{sup.R2_GRATIS_GB / gb_f:.0f} / {sup.R2_GRATIS_GB / gb_3:.0f} | "
+            f"{gb_f * sup.USD_GB_R2_MES:.3f} / {gb_3 * sup.USD_GB_R2_MES:.3f} |"
+        )
+    print(
+        "\n| Escenario (N de «hoy») | R2 GB sólo fotos | R2 GB fotos + 3D | R2 USD/mes (fotos / fotos+3D) | N donde se acaba la capa gratuita (fotos+3D) |"
+    )
+    print("|---|---|---|---|---|")
+    for esc in ESCENARIOS:
+        _, _, fila = resultados[esc.nombre]
+        n = fila["hoy"]
+        gb_f = gb_3 = 0.0
+        por_n = 0.0
+        for plan, peso, _ in esc.partes:
+            t = TOPES[plan]
+            gb_f += n * peso * t["platillos"] * foto_mb / 1024
+            gb_3 += n * peso * t["platillos"] * (foto_mb + glb_mb) / 1024
+            por_n += peso * t["platillos"] * (foto_mb + glb_mb) / 1024
+        print(
+            f"| {esc.nombre} | {gb_f:.1f} | {gb_3:.1f} | "
+            f"{max(0, gb_f - sup.R2_GRATIS_GB) * sup.USD_GB_R2_MES:.2f} / "
+            f"{max(0, gb_3 - sup.R2_GRATIS_GB) * sup.USD_GB_R2_MES:.2f} | {sup.R2_GRATIS_GB / por_n:.0f} |"
+        )
+    print(
+        f"\nBytes que baja un comensal: ver un platillo = detalle {sup.FOTO_DETALLE_KB:.0f} KB; ver un "
+        f"modelo 3D = {glb_mb:.2f} MB ({glb_mb / 1.5:.1f} s a 1.5 MB/s [documento: NFR-04]). Los sirven "
+        "Cloudflare y R2, **no la API**: salida de R2 gratis [externa], la caché de Cloudflare Free "
+        "los guarda; nada de eso entra en la factura de Railway. Lo único que cuenta son las "
+        f"operaciones clase B de R2 (10 millones gratis al mes, {sup.USD_CLASE_B_M} USD por millón después): "
+        "una vista que no encuentra la copia en el borde es una operación. "
+        "**Pendiente: diseñar el proceso que genera los modelos.**"
+    )
+
+
+# ============================================================================================
+# AUDITORÍA DE FUENTES (regla de Calvin: toda cifra con fuente)
+# ============================================================================================
+# (parámetro, valor, marca, fuente o por qué no la tiene)
+AUDITORIA = [
+    (
+        "S_MS",
+        "3.3 ms",
+        "medida",
+        "docs/plan/perf/2026-11-13-modelo-de-capacidad.md M3 (mezcla realista, contenedor local de 4 vCPU)",
+    ),
+    (
+        "S_MS_OPT",
+        "2.0 ms",
+        "estimada",
+        "mismo documento, palancas 0-5: ganancia estimada sin probar por palanca",
+    ),
+    (
+        "S_ESCRITURA_MS",
+        "6 ms",
+        "medida",
+        "mismo documento: entrar 5.7-10 ms, evento 1.1-4.2 ms (6 es un punto dentro del rango)",
+    ),
+    (
+        "S_PERSONAL_MS",
+        "10 ms",
+        "estimada",
+        "mismo documento M4 lo usa como ejemplo («aun a 10 ms»); no hay medición: la vista no existe",
+    ),
+    (
+        "BYTES_PETICION",
+        "640 B",
+        "medida",
+        "mismo documento: 304 = 580 B, 200 = 1.7 KB, mezcla 93 % 304",
+    ),
+    ("PETICIONES_POR_COMENSAL_VISITA", "14", "estimada", "planes-y-costo §3.2, sin origen medido"),
+    (
+        "NUCLEOS / WORKERS",
+        "2",
+        "documento",
+        "WORKERS=2 en deploy/railway/README.md; 3.6 núcleos con 4 workers es ×1.8 estimado (palanca 1)",
+    ),
+    ("UTILIZACION_MAX", "0.70", "documento", "capacidad §3: tope de diseño"),
+    ("INTERVALO_HOY", "3 s", "documento", "frontend/src/comensal/entrada/useEntrada.ts:9"),
+    (
+        "INTERVALO_FASE",
+        "5/3/10/20/3/5 s",
+        "propuesta",
+        "planes-y-costo §5, alternativa A: no está decidida ni construida",
+    ),
+    ("PERSONAL_INTERVALO_S", "5 s", "documento", "02_Arquitectura §6"),
+    (
+        "EV_* (cinco valores)",
+        "60 s, 25 s, 0.09 ms, 4.2 ms, 1/min",
+        "medida",
+        "docs/plan/perf/2026-11-13-eventos-frente-a-sondeo.md, primera página (rama medicion-eventos-frente-a-sondeo, commit 41b2608); avisos/min estimada de su mapa de eventos",
+    ),
+    (
+        "PERSONAL_INTERVALO_EV_S",
+        "60 s",
+        "supuesto",
+        "se asume el mismo respaldo que los teléfonos; el informe de eventos no lo mide para el personal",
+    ),
+    ("MESAS_POR_MESERO", "6", "estimada", "sin origen"),
+    ("DUENO_PANEL", "0.3", "estimada", "sin origen"),
+    (
+        "USO_APP",
+        "0.6",
+        "estimada",
+        "sin origen; la analítica del piloto puede darlo (scan frente a mesas atendidas)",
+    ),
+    (
+        "FASE_TIEMPO",
+        "7 fracciones",
+        "estimada",
+        "sin origen; la Spec 001 (US-35) guarda las horas de cada paso: el piloto las dará",
+    ),
+    (
+        "FASE_FRENTE",
+        "7 fracciones",
+        "estimada",
+        "sin origen: es el supuesto más débil; el evento de visibilidad aceptado por Calvin lo medirá",
+    ),
+    ("ACTIVOS", "0.6", "estimada", "sin origen"),
+    (
+        "WIFI_COMPARTIDO",
+        "0.7",
+        "estimada",
+        "sin origen; ip_hash de la analítica ya permite contarlo",
+    ),
+    (
+        "CF_REGLA_RPS",
+        "30 rps",
+        "documento",
+        "300 peticiones por 10 s por IP: deploy/railway/README.md; Cloudflare Free admite 1 regla, ventana 10 s, por IP [externa: developers.cloudflare.com/waf/rate-limiting-rules]",
+    ),
+    ("DIA_SEMANA, SIGMA_DIA", "0.8-1.35; 0.15", "estimada", "sin origen"),
+    (
+        "PERFILES: mesas, ppm, personal, minutos, visitas_dia, pico_ocup, con_foto",
+        "ver tabla",
+        "estimada",
+        "sin estadística de mesas ni comensales (planes-y-costo §1.1). Personal y mesas: rama agente/estadistica-de-cartas-y-personal (modelo con supuestos)",
+    ),
+    (
+        "PERFILES: platillos",
+        "15-140",
+        "medida (parcial)",
+        "rama agente/estadistica-de-cartas-y-personal: 148 cartas, mediana 44, media 51, p90 82 (147 de 148 son de reparto)",
+    ),
+    (
+        "PERFILES: picos de ocupación",
+        "14:30 y 21:00",
+        "externa (horas)",
+        "chilango.com/general/988-la-hora-de-la-comida (comida 14-16, cena 20-22), planes-y-costo §1.1; los pesos son estimados",
+    ),
+    (
+        "MEZCLAS",
+        "ver tabla",
+        "estimada",
+        "96 % microempresas [externa: INEGI-CANIRAC 2021]; el reparto por tamaño es juicio",
+    ),
+    (
+        "TOPES",
+        "10×6/80/3 · 40×12/300/20",
+        "Calvin",
+        "decisiones del 13-nov (mesas, personal, 6 y 12 por mesa); platillos 80/300 son la propuesta de la rama de estadística, sin decidir",
+    ),
+    ("KB_VISITA", "12 KB", "estimada", "planes-y-costo §2.1; ±2×, sin medir"),
+    ("KB_PLATILLO", "1.1 KB", "medida", "planes-y-costo §2.1 (865 B medidos + URLs de R2)"),
+    ("RETENCION_DIAS", "30 / 365", "Calvin", "aceptado en la ronda 2 (13-nov)"),
+    (
+        "FOTO_ORIGINAL_MB",
+        "3 MB",
+        "estimada",
+        "foto de teléfono de 12 MP; no hay originales reales de ningún restaurante",
+    ),
+    (
+        "FOTO_DETALLE_KB / MINIATURA_KB",
+        "81 / 16 KB",
+        "medida",
+        "planes-y-costo §2.1 (35-81 y 7-16 KB, material gráfico real)",
+    ),
+    (
+        "GLB_MB / POSTER_KB",
+        "4 MB / 81 KB",
+        "documento",
+        "docs/mvp/05_3D_Pipeline.md §4 (presupuesto duro del .glb); el póster se iguala a la foto de detalle",
+    ),
+    (
+        "Precios Railway",
+        "10 / 20 / 0.05 / 0.15",
+        "externa",
+        "docs.railway.com/reference/pricing/plans, 13-nov-2026",
+    ),
+    (
+        "Hobby: 5 USD, 5 USD de uso incluido, volumen 5 GB",
+        "",
+        "externa",
+        "docs.railway.com/reference/pricing/plans y /faqs y /reference/volumes, 13-nov-2026",
+    ),
+    (
+        "Hard limit de gasto",
+        "mínimo 10 USD",
+        "externa",
+        "docs.railway.com/reference/usage-limits (Cost Control), 13-nov-2026: al alcanzarlo, todo se apaga",
+    ),
+    (
+        "RAM_API_GB_PROCESO",
+        "0.16 GB",
+        "medida",
+        "capacidad M5 (≈160 MB por proceso en reposo, local)",
+    ),
+    (
+        "PG_RAM_GB (y servicio de respaldo)",
+        "0 (cota) o ilustrativo",
+        "sin dato",
+        "la página de Railway no da el consumo de la plantilla; falta la métrica real",
+    ),
+    (
+        "PG_MAX_CONEXIONES",
+        "100",
+        "sin dato",
+        "no figura en docs.railway.com/databases/postgresql; falta SHOW max_connections",
+    ),
+    (
+        "DB_POOL",
+        "20 por proceso",
+        "documento",
+        "app/core/config.py: DB_POOL_SIZE 10 + DB_MAX_OVERFLOW 10",
+    ),
+    (
+        "Precios R2",
+        "0.015 / 4.50 / 0.36",
+        "externa",
+        "developers.cloudflare.com/r2/pricing, 13-nov-2026 (10 GB, 1 M clase A y 10 M clase B gratis; salida gratis)",
+    ),
+    (
+        "Firebase",
+        "50,000 MAU",
+        "externa",
+        "firebase.google.com/pricing, 13-nov-2026; cuota del enlace por correo: no figura",
+    ),
+    ("OPERADORES_POR_RESTAURANTE", "1.5", "estimada", "sin origen"),
+    (
+        "Precios Claude (Opus 5.5)",
+        "4 / 20 USD por M",
+        "externa",
+        "platform.claude.com/docs/en/about-claude/pricing, 13-nov-2026",
+    ),
+    (
+        "TOKENS_PAGINA, TOKENS_BASE, TOKENS_SALIDA",
+        "3,500 / 1,000 / 60",
+        "estimada",
+        "±30 %; la documentación de PDF da 1,500-3,000 tokens de texto por página más la imagen",
+    ),
+    ("REINTENTO_MEDIO", "1.3", "estimada", "MAX_CORRIDAS = 3 [documento]; la media no está medida"),
+    ("LECTURAS_GRATIS_TOPE", "3 por dueño", "Calvin", "ronda 2 (13-nov)"),
+    ("LECTURAS_GRATIS_USO", "55/30/15 %", "estimada", "sin origen"),
+    (
+        "LECTURAS_PAGA_MES_USO",
+        "0.5",
+        "estimada",
+        "Calvin: en paga, sin número, fila prioritaria sujeta a disponibilidad; el gasto sólo se acota por disponibilidad",
+    ),
+    ("ROTACION_MES", "4 %", "estimada", "sin origen"),
+    ("MXN_USD", "18.6188", "externa", "FIX Banxico 12-nov-2026 (planes-y-costo)"),
+    (
+        "Dominio",
+        "25 USD al año",
+        "Calvin",
+        "dato de Calvin (ronda 2); fuera de la factura de Railway",
+    ),
+]
+
+# (dato por conseguir, cómo, costo, quién)
+DATOS_POR_CONSEGUIR = [
+    (
+        "Memoria y CPU reales de API y PostgreSQL por entorno, y factura real del mes",
+        "Métricas de Railway de staging y producción (panel o `scripts/railway.py estado`) y la factura de Calvin",
+        "0 USD; 10 min",
+        "Calvin (factura) y la sesión maestra (métricas de staging)",
+    ),
+    (
+        "`max_connections` de PostgreSQL de Railway",
+        "`SHOW max_connections` en staging, sólo lectura",
+        "0 USD; 5 min",
+        "sesión maestra",
+    ),
+    (
+        "CPU real por petición en Railway (S_MS) y por palanca",
+        "T-4.4 contra staging con k6",
+        "≈ 0.3-0.5 USD de Railway; 1 sesión",
+        "sesión hija de la T-4.4",
+    ),
+    (
+        "Costo de `GET /op/mesas` (S_PERSONAL_MS)",
+        "Medición local cuando exista la vista (T-3.6), con 3, 10 y 20 mesas",
+        "0 USD; media sesión",
+        "sesión de la T-3.6",
+    ),
+    (
+        "Parte que abre la app y parte con pantalla encendida por fase",
+        "Evento de visibilidad en la analítica del piloto (aceptado por Calvin) + scans frente a mesas atendidas",
+        "0 USD; una tarea chica",
+        "sesión hija; datos del piloto",
+    ),
+    (
+        "Mesas, comensales por mesa, visitas por día, duración y horarios reales",
+        "Datos de los primeros 10-20 restaurantes del piloto (la base ya los tiene: mesas, sesiones, miembros, horas de cada paso de la Spec 001); estadística de consumo fuera del hogar (INEGI ENIGH/DENUE) para el universo",
+        "0 USD; 1 sesión",
+        "sesión hija con acceso de lectura a producción, tras el piloto",
+    ),
+    (
+        "Cartas y personal por tamaño de negocio",
+        "Rama agente/estadistica-de-cartas-y-personal (148 cartas de reparto) + microdatos de INEGI (Censos Económicos 2024, SCIAN 722511/722412) + 30-40 cartas de salón",
+        "0-? USD; lo de INEGI es gratuito",
+        "sesión hija; Calvin si se compra una fuente",
+    ),
+    (
+        "Teléfonos por IP en un local (WIFI_COMPARTIDO) y simultáneos reales",
+        "Contar miembros por `ip_hash` y restaurante en la analítica (ya existe)",
+        "0 USD; media sesión",
+        "sesión hija",
+    ),
+    (
+        "Restaurantes activos por día, día de la semana, variación (ACTIVOS, DIA_SEMANA, SIGMA_DIA)",
+        "Scans por día del piloto durante ≥ 4 semanas",
+        "0 USD",
+        "sesión hija tras el piloto",
+    ),
+    (
+        "Bytes por visita en la base (KB_VISITA)",
+        "Medición local: crear una visita con el seed y medir `pg_total_relation_size`",
+        "0 USD; media sesión",
+        "sesión hija",
+    ),
+    (
+        "Tamaño real de las fotos originales",
+        "Mirar el bucket R2 privado del piloto",
+        "0 USD",
+        "sesión maestra",
+    ),
+    (
+        "Tokens reales de una lectura de PDF y reintentos medios",
+        "Prueba `live` con 2-3 cartas reales (`pytest -m live`)",
+        "≈ 0.5-1 USD de la API de Claude",
+        "sesión hija; autoriza Calvin",
+    ),
+    (
+        "Cuota diaria del enlace por correo de Firebase y plan de Resend",
+        "Leer la documentación de Auth y la cuenta de Resend",
+        "0 USD",
+        "Calvin / sesión maestra",
+    ),
+    (
+        "Tiempo y costo de generar un modelo 3D o una imagen (si algún día se hace)",
+        "Probar un modelo en una máquina de prueba y leer el precio por hora de la GPU el día de la decisión",
+        "pocos USD",
+        "sesión hija; fuera de la v1",
+    ),
+]
+
+
+def auditoria() -> None:
+    print("\n## Auditoría de fuentes: cada parámetro del simulador\n")
+    print("| Parámetro | Valor | Marca | Fuente |")
+    print("|---|---|---|---|")
+    for a, b, c, d in AUDITORIA:
+        print(f"| {a} | {b} | {c} | {d} |")
+    print("\n## Datos por conseguir (lo que hoy es juicio)\n")
+    print("| Dato | Cómo conseguirlo | Costo | Quién |")
+    print("|---|---|---|---|")
+    for a, b, c, d in DATOS_POR_CONSEGUIR:
+        print(f"| {a} | {b} | {c} | {d} |")
+
+
 def supuestos_a_texto(sup: Supuestos) -> None:
     print("## Supuestos usados\n")
     for campo in sup.__dataclass_fields__:
@@ -743,9 +1266,13 @@ def main() -> None:
         cargar_distribuciones(args.distribuciones)
     dias, tam = (120, 400) if args.rapido else (364, 1500)
     sup = Supuestos()
-    informe(sup, dias, tam)
+    resultados = informe(sup, dias, tam)
+    for pg in (0.0, 0.5):  # 0.0 = cota inferior; 0.5 GB por entorno = ilustrativo (dato pendiente)
+        curva_factura(replace(sup, PG_RAM_GB=pg), resultados)
+    medios(sup, resultados)
     if not args.sin_sensibilidad:
         sensibilidad(sup, dias if args.rapido else 200, tam if args.rapido else 800)
+    auditoria()
     supuestos_a_texto(sup)
 
 
