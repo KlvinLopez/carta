@@ -4,7 +4,7 @@ Aquí viven las specs de lo que **no está** en `docs/plan/04_Fases_y_Tareas.md`
 
 | Spec | Nombre | Estado | Entró al plan como |
 |---|---|---|---|
-| — | (ninguna todavía: la v1 completa está especificada en `01_Alcance_v1.md` y el PRD) | — | — |
+| [001](001-ciclo-de-la-mesa/spec.md) | Ciclo de vida de la mesa y del comensal | aprobada (13-nov-2026) | pendiente: la siguiente sesión maestra lo lleva a 04 con las tareas de la sección 12 |
 
 Convenciones:
 - Carpeta `NNN-nombre-en-espanol/` con `spec.md` (numeración consecutiva desde `001`).
