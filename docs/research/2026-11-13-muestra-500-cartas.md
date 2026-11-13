@@ -381,6 +381,10 @@ Al revisar mi registro de intentos encontré **registros duplicados** (un intent
 
 **Sensibilidades que se reportarán en la estadística:** (a) quitar las cadenas; (b) quitar las filas de dominio `.shop`/`.store` (posibles páginas generadas por un tercero: Merendero San Pancho, La Guarecita); (c) con y sin parciales para la comida sola.
 
+### 11.2 Punto de control (200 intentos) [medida aquí]
+
+**200 intentos con el lector: 20 contables completos (0.100; intervalo de 90 % 0.07 a 0.14), 7 parciales, 5 de misma marca y 168 descartes.** Motivos de los 173 registros de descarte y misma marca (CSV por `place_id`, sin nombre): sin carta en el sitio 77 · **`robots.txt` lo prohíbe 33 (16.5 % de los intentos)** · carta solo en imagen 11 (5.5 %) · sitio caído 9 · misma marca 5 · carta sin precios 4 · sin carta en el texto 4 · ficha de tercero 3 · el resto de a 1 a 3. Quedan **≈ 85 sitios de la cola de la tanda 1** y el resto del marco (sitios más abajo en reseñas). Con esta tasa, el marco completo (≈ 700 sitios) daría unos 70 contables completos: **500 no se alcanza con el marco de Google**.
+
 ---
 
 *Etapa 3 (estadística e informe completo) se agrega cuando haya contables suficientes.*
