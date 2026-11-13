@@ -1,6 +1,6 @@
 # Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapa 0 hecha; **en espera de la cuota de Google** (etapas 1–3 pendientes). No cambia código, contrato ni planes.
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; el marco corrió; **en espera de que la maestra decida seguir con la lectura de cartas** (etapas 2–3 pendientes). No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
@@ -47,7 +47,7 @@ Ningún paso del encargo queda prohibido de forma expresa, por eso **no cierro B
 
 **Presupuesto del guion:** tope duro 90 (contador persistente en `~/.carta-marco/contador.json`, fuera del repositorio; antes de enviar cada solicitud se cuenta, y se niega a pasar de 90). Plan de consultas: **27 consultas × 3 páginas = 81 solicitudes + 1 sonda = 82** (8 de holgura). Si todas se cobran como Enterprise: 81 ÷ 1,000 × 35 = **2.84 USD brutos, 0 USD** dentro de las 1,000 gratis al mes **[medida aquí: aritmética sobre el precio de la tabla]**.
 
-**Sonda (una solicitud gastada de 90) [medida aquí]:** `POST places:searchText`, `pageSize` 1, máscara `places.id` → **429** `RESOURCE_EXHAUSTED`, `RATE_LIMIT_EXCEEDED`, métrica `SearchTextRequest`, límite «SearchTextRequest per minute per user», `quota_limit_value` **«0»**. Calvin aún no sube esa cuota: **espero el aviso de la maestra**.
+**Sonda (una solicitud gastada de 90) [medida aquí]:** `POST places:searchText`, `pageSize` 1, máscara `places.id` → **429** `RESOURCE_EXHAUSTED`, `RATE_LIMIT_EXCEEDED`, métrica `SearchTextRequest`, límite «SearchTextRequest per minute per user», `quota_limit_value` **«0»**. Calvin aún no subía esa cuota; la maestra avisó después y el marco corrió (sección 6).
 
 ## 3. Reparto de los 500
 
@@ -98,4 +98,15 @@ Aguascalientes, Morelia y Veracruz no están en la tabla de §8 (sin dato de gas
 
 ---
 
-*Etapas 1 a 3 (marco, cartas, estadística e informe completo) se agregan a este documento cuando la cuota esté lista.*
+## 6. Etapa 1: el marco corrió [medida aquí]
+
+- **Solicitudes de Google gastadas: 82 de 90** (1 sonda con 429 + 81 de las 27 consultas; contador del guion). Más 1 de la maestra el mismo día: 83 de las 100 diarias. Nivel cobrado: Text Search Enterprise, dentro de las 1,000 gratis al mes: **0 USD** (suponiendo que no se usaron otras antes este mes; la consola de facturación de Calvin lo confirma).
+- **Candidatos tras quitar cerrados, «muy caro» y marcas repetidas en la misma ciudad: 914** para 500 plazas (1.83 por plaza). De ellos **673 (74 %) traen sitio web propio** en la ficha (donde se podrá buscar la carta), **45 son de una marca que aparece más de una vez** (cadenas) y **66 son de nivel «caro»** (estrato aparte).
+- Por ciudad (candidatos / plazas): CDMX y Edomex 226/125 · Guadalajara 136/75 · Monterrey 118/65 · Puebla 42/23 · Querétaro 40/22 · León 33/18 · Mérida 33/18 · Tijuana 33/18 · Cancún 29/16 · las otras 8 ciudades 28/15 cada una. La holgura es pareja (≈ 1.8) y no hay forma de saber de antemano si alcanza: depende de cuántos tengan carta legible.
+- Cada consulta devolvió las 60 posibles (excepto Guadalajara y Monterrey en «fonda», 44 y 43): el límite de Google de 60 por consulta fue el tope, no la oferta de negocios.
+- En el repositorio queda sólo [`…-muestra-500-marco-ids.csv`](2026-11-13-muestra-500-marco-ids.csv): `place_id` y ciudad de los 914 (lo único guardable). Nombre, reseñas, sitio web y nivel de precio **no se guardaron**; la lista de trabajo vive en la sesión (pregunta 12 abierta, sección 1).
+- **Riesgo de la regla «sólo en memoria»:** la salida con nombres y sitios quedó en esta sesión; si se reinicia antes de leer las cartas, se pierde y rehacer el marco costaría otras 81 solicitudes (el tope diario deja 17 hoy).
+
+---
+
+*Etapas 2 y 3 (lectura de cartas, estadística e informe completo) se agregan cuando la maestra autorice la primera tanda.*
