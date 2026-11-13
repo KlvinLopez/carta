@@ -52,15 +52,16 @@ Todas las respuestas de error usan la misma envoltura. Nunca se devuelven trazas
 
 Los `POST` que crean recursos con efectos visibles para el personal (`/p/orden/confirmar`, `/p/llamar-mesero`) aceptan la cabecera `Idempotency-Key`. La clave se guarda en Redis 24 h junto a la respuesta; una repetición devuelve la respuesta original con `Idempotent-Replay: true`.
 
-### 1.4 Caché y sondeo
+### 1.4 Caché, avisos y sondeo de respaldo
 
 | Endpoint | Estrategia |
 |---|---|
 | `GET /p/menu` | `ETag` + `Cache-Control: private, max-age=30` |
-| `GET /p/sesion` | `ETag`, sondeo cliente cada 3 s con `If-None-Match` |
-| `GET /op/comandas` | `ETag`, sondeo cliente cada 5 s con `If-None-Match` |
+| `GET /p/sesion` | `ETag` con `If-None-Match`; el cliente la pide al recibir un aviso de `GET /p/sesion/eventos` (ADR-018), al reconectar, al volver a primer plano y de respaldo; en modo degradado, sondeo según la fase de la mesa (3–45 s) |
+| `GET /op/comandas`, `GET /op/mesas` | `ETag` con `If-None-Match`; al recibir un aviso de `GET /op/eventos`; en modo degradado, cada 5 s |
+| `GET /p/sesion/eventos`, `GET /op/eventos` | `text/event-stream`, `Cache-Control: no-store, no-transform`: `hola` con el ETag, `cambio` por aviso, latido tras 25 s de silencio, cierre a los 10 min ± 20 % (ADR-018, [02 §6](../plan/02_Arquitectura_v1.md)) |
 
-El `ETag` se deriva de `max(actualizado_en)` de las filas implicadas y se cachea en Redis con TTL de 5 s.
+> **Desde el 13 de noviembre de 2026 (ADR-018, que sustituye al ADR-004)** el sondeo fijo de 3 s y 5 s dejó de ser el mecanismo: queda como respaldo y modo degradado. El `ETag` se deriva de la versión de las filas implicadas y se guarda **en memoria del proceso** (60 s, invalidado por `NOTIFY` en todos los workers), no en Redis (v1 sin Redis, [02 §6](../plan/02_Arquitectura_v1.md)).
 
 ### 1.5 Límites de tasa
 
@@ -166,7 +167,7 @@ Sólo mientras la sesión no haya generado comanda. 409 `SESION_YA_ENVIADA` en c
 ### 2.4 Sesión y coordinación
 
 #### `GET /p/sesion`
-Estado de la sesión para el sondeo de 3 s. Soporta `If-None-Match` → `304`.
+Estado de la sesión; el cliente lo pide al recibir un aviso (ADR-018; antes, sondeo de 3 s). Soporta `If-None-Match` → `304`.
 
 ```json
 {
