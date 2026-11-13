@@ -22,7 +22,7 @@ await pagina.pdf({
   headerTemplate: '<span></span>',
   footerTemplate:
     '<div style="width:100%;font-size:7px;color:#5B4A3D;font-family:sans-serif;padding:0 15mm;display:flex;justify-content:space-between">' +
-    '<span>Planos de Carta · 13 de noviembre de 2026</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>',
+    '<span>Planos de Carta · 13 de noviembre de 2026 · versión 2</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>',
 });
 await navegador.close();
 console.log(`escrito ${salida}`);

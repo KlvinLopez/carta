@@ -126,3 +126,5 @@ tbody tr:nth-child(even) td { background: #fcf6ec; }
 .glosario dt { font-weight: 600; color: var(--vino); }
 .glosario dd { margin: 0; }
 table.chica td:first-child { min-width: 30mm; }
+
+table.junta { break-inside: avoid; }
