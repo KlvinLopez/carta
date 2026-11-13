@@ -295,6 +295,13 @@ Con los mismos topes (mínimo 15, máximo 125). **Qué cambia:** por número de 
 
 Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió por popularidad y por tener sitio), por lo que **el margen real es mayor y hay sesgo que ningún tamaño corrige**. Sin recomendar un tamaño: con 500 al azar ya se estima un porcentaje con ± 3.7 puntos; lo caro no es el tamaño sino **conseguir la carta** de un negocio que no está en línea.
 
+### 8.3b Notas de la maestra incorporadas
+
+- **Cifra del universo de aquí en adelante: 741,499** establecimientos de la rama 7225 (archivo del DENUE 05_2026). Difiere de los 740,231 de Data México (mismo corte, mayo de 2026) en 1,268 (0.17 %); los tres estados que Data México desglosa coinciden exacto con el archivo, así que la diferencia no se explica ahí y no se pudo ubicar sin el desglose de Data México de las otras 29 entidades; se usa el archivo por ser la fuente primaria.
+- **El reparto principal sigue siendo gasto × población** (el criterio que pidió Calvin: dónde más se consume); el de establecimientos 7225 es **contraste**.
+- **Puebla-Tlaxcala:** se intentó completar sus municipios con el mismo PDF; las filas que faltan no se pueden asignar a la zona sin población legible (aparecen otros municipios de Puebla, como Tehuacán o San Martín Texmelucan, que pertenecen a otras zonas), así que **no se completa de memoria** y queda anotado (#14).
+- **Propuesta sin ejecutar (la decide Calvin después de ver el rendimiento de A y B):** un **estrato aleatorio sacado del DENUE** entre los **17,827 establecimientos 7225 con sitio web declarado** (12,077 dentro de las 17 zonas; 555 más en bares). Es marco oficial (se puede guardar con sus términos) y permitiría comparar «populares» (los de más reseñas) contra «cualquiera con sitio». No se ha corrido.
+
 ### 8.4 Datos por conseguir (actualización)
 
 | # | Estado |
