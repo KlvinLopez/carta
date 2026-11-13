@@ -12,6 +12,10 @@ Cada cifra lleva una marca: **[medida aquí]** (la midió esta tarea en un conte
 
 **Qué es «pico» aquí:** un restaurante con 40 mesas ocupadas y 3 comensales por mesa, todos con la app abierta (120 teléfonos, cada uno preguntando «¿cambió algo?» cada 3 s) más 6 dispositivos del personal. Es el escenario de 02 §10.1; un restaurante normal está lejos de eso casi todo el día.
 
+### 0. Sobre el video del reto de «cuántos usuarios aguanta un servidor de 12 dólares»
+
+Dato de **reseña de terceros, no verificado en la fuente**: el reto cuenta *personas simuladas* con pausas entre acciones, y aprueba el mayor número que se sostiene 5 minutos con p95 < 500 ms, p99 < 1 s y errores < 1 % en 1 vCPU y 2 GB. Su primer lugar (≈ 310,000 usuarios, Rust con io_uring y SQLite, sin PostgreSQL ni Redis) **no se traslada a Carta**: aquello era leer un feed; Carta usa PostgreSQL con transacciones, escribe comandas y corre en Python (1.8–3.5 ms por sondeo). **Lo que sí se toma:** medir el tope como usuarios simulados sostenidos varios minutos. Por eso las tablas de abajo dan el tope también en **comensales simulados** (cada uno sondea cada 3 s: comensales ≈ 3 × peticiones/s), y el aprobado de la T-4.4 se define así (última sección).
+
 ### 1. ¿Cuál es el tope con lo que se paga hoy?
 
 Hoy la API corre con **2 workers** (`WORKERS=2`), es decir, usa como mucho 2 núcleos aunque Railway permitiría más **[documento]**.
@@ -215,6 +219,8 @@ Del total de una petición de sondeo: ≈ 15 % verificar el JWT (`PyJWT`), ≈ 1
 ---
 
 ## Lo que la T-4.4 debe medir en staging para confirmar o corregir este modelo
+
+**Definición de «aprobado» (a la manera del reto, con los objetivos propios de 02 §10.2):** el mayor número de **comensales simulados** (sondeo cada 3 s, acciones con pausas humanas, carga generada desde otra máquina) que se **sostiene al menos 5 minutos** (la prueba de sondeo de 02 §10.3 ya dura 10) con sondeo `304` p95 ≤ 30 ms y p99 ≤ 80 ms en el origen, lecturas con cuerpo p95 ≤ 150 ms, escrituras p95 ≤ 300 ms / p99 ≤ 800 ms y errores 5xx < 0.1 %. Ese número, en comensales y en restaurantes en pico (÷ 120), es el tope que se publica; con 70 % de CPU como margen de diseño.
 
 1. **`s` real en Railway:** ms de CPU por petición de `GET /p/sesion` (`304` con y sin estado en memoria) y de la mezcla; confirma o corrige el factor ×0.6–×1.5.
 2. **Cuántos vCPU recibe de verdad el servicio** con `WORKERS=2` y con 4; si el CPU es compartido o dedicado, y si el límite del plan aparece antes.
