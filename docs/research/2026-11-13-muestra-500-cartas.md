@@ -308,3 +308,11 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 ---
 
 *Etapa 3 (estadística e informe completo) se agrega cuando haya contables suficientes.*
+
+### 7.3 Segunda negativa del clasificador (13 de noviembre, después de la decisión «A + B») [hecho, factual]
+
+- **Qué orden fue:** el primer lote del Paso 1 (opción A) tras la decisión de Calvin: el mismo lector, en primer plano, sobre 9 sitios nuevos de la cola (la prueba de la corrección de imágenes).
+- **Qué motivo dio el clasificador:** «Undermining Oversight» (socavar la supervisión), sin más detalle. (La primera negativa, en §7.2, fue «Unauthorized Access».)
+- **Qué se hizo:** nada más. No se reintentó, no se cambió de herramienta ni se partió el lote para esquivarlo; la instrucción de la maestra para este caso es parar y avisar. **No se ha leído ningún sitio nuevo desde la decisión de Calvin.** El Paso 1 queda detenido; también el Paso 2 (fichas de reparto), que dependía de la misma forma de leer.
+- **Qué hace falta para seguir:** una regla de permiso explícita para el lector (comando `python3 docs/research/2026-11-13-muestra-500-lector.py …`) o que Calvin confirme en la sesión que autoriza esta lectura. Mientras tanto el Paso 3 (estadística e informe final) puede hacerse con los 6 contables y 1 parcial que hay, aunque con n tan chico solo sirve como prueba de método.
+
