@@ -225,7 +225,7 @@ La regla de Cloudflare de 300 peticiones por 10 s **por IP** corta antes que el 
 | Memoria | 10 USD/GB-mes; **siempre encendida, no depende del uso** | 0 variable (fija) |
 | Fotos y respaldos en R2 | 0.015 USD/GB-mes; 10 GB gratis; salida gratis **[fuente externa: developers.cloudflare.com/r2/pricing, 13 nov 2026]** | ≈ 0.002 |
 
-**Qué cuesta más, por orden:** (1) la **base fija** (memoria de la API y de PostgreSQL, suscripción), que es ≈ 90 % de la factura con 100 restaurantes y ≈ 70 % con 500 (§6.3); (2) **salida de red**, que pesa tanto o más que el CPU (cada `304` sale con ≈ 580 bytes de cabeceras: más de la mitad son cabeceras de seguridad pensadas para HTML); (3) CPU; (4) volumen de la base; (5) R2. **Por tiempo, el orden es otro:** el CPU se acaba primero.
+**Qué cuesta más, por orden:** (1) la **base fija** (memoria de la API y de PostgreSQL, suscripción), que es ≈ 90 % de la factura con 100 restaurantes y ≈ 70 % con 500 (§6.3); (2) **salida de red**, que pesa tanto o más que el CPU (cada `304` sale con ≈ 580 bytes de cabeceras: la mitad son cabeceras de seguridad que sólo sirven en páginas HTML, §3.7); (3) CPU; (4) volumen de la base; (5) R2. **Por tiempo, el orden es otro:** el CPU se acaba primero.
 
 ### 3.5 Lo de una sola vez: importar el PDF con la API de Claude
 
@@ -242,6 +242,70 @@ La regla de Cloudflare de 300 peticiones por 10 s **por IP** corta antes que el 
 Coincide con lo que dice el ADR-014 («≈ 0.15–0.25 USD con Opus 5.5, ≈ 0.01 con Haiku») para una carta de 8 páginas. **Margen ±30 %**, y hasta ×3 si el procesador reintenta (hasta 3 corridas por importación **[documento: `MAX_CORRIDAS`]**). El costo es lineal: entrada = 3,500 × páginas + 1,000; salida = 60 × platillos.
 
 **Lo que importa para los planes:** (a) es el **único costo directo por restaurante** (0.1–0.6 USD cada una, equivalente a 2–10 meses de todo el costo variable de un restaurante chico); (b) **hoy no hay tope mensual**: sólo 3 importaciones en curso a la vez, 30 páginas y 20 MB por archivo **[documento]**; alguien que suba 100 cartas de 20 páginas gasta ≈ 64 USD; (c) Haiku 5.5 costaría 40–50 veces menos, pero la precisión no está medida (el ADR-014 pide ≥ 90 % de precios correctos con las 5 cartas reales; ninguna se ha probado con Haiku).
+
+### 3.6 Inventario de «relojes»: lo que ocurre por tiempo y no por evento
+
+Todo lo que hoy corre cada cierto tiempo, aunque nadie haya hecho nada. Por orden de peso.
+
+| Reloj | Intervalo | Quién lo hace | Cuánto pesa | Marca |
+|---|---|---|---|---|
+| **Sondeo de la sesión** (`GET /p/sesion`) | **3 s** al frente (con fallo, hasta 30 s); pausado en segundo plano | cada teléfono del comensal con la app al frente | **≈ 95 % de las peticiones** y de la salida de red; 3.3 ms de CPU y 0.6 KB cada una (§3.1) | [documento: `INTERVALO_SONDEO_MS`, `useEntrada.ts:9`] |
+| Relectura del menú | 25 s mientras se ve, y al volver la pestaña o la red | cada teléfono, sólo en la pantalla del menú | ≈ 2.4 por minuto por teléfono, pero **casi toda la absorbe Cloudflare** (`s-maxage` 30 s); al origen llega ≈ 1 por restaurante cada 30 s a 0.65–0.9 ms | [documento: T-2.7 y T-2.2] |
+| Lotes de analítica (`POST /p/eventos`) | 5 s si hay eventos, y al ocultarse la página; hasta 50 por lote | cada teléfono | 1.1–4.2 ms por lote; lo que no cabe se descarta (120 por minuto por teléfono) | [documento: T-2.5 y capacidad M3] |
+| Sondeo del personal (`/op/mesas`) | **5 s**, constante | 6 dispositivos por restaurante (**Fase 3, sin construir**) | ≈ 1.2 peticiones por segundo por restaurante en pico (menos del 10 % del total), pero más caras: la vista de estatus calcula minutos sin acciones | [documento: 02 §6 y capacidad M4] |
+| Estado de la importación en el panel | 3 s, hasta 10 min | el operador, sólo mientras se lee su PDF | ≈ 200 peticiones por carta, una vez por restaurante: despreciable | [documento: `useSondeo.ts`, `INTERVALO_MS = 3000`] |
+| Cierre por inactividad de sesiones | 300 s | cada worker del servidor | 1 consulta con `SKIP LOCKED` cada 5 min por worker; **desaparece cuando T-3.12 lo sustituya** | [documento: `INTERVALO_CIERRE_SEGUNDOS`, `sesion.py:79`] |
+| Procesador de importaciones | 10 s (o al instante si se sube un PDF) | cada worker | con la cola vacía, 1 consulta por 10 s por worker (0.2 por segundo con 2): despreciable | [documento: `INTERVALO_SEGUNDOS`, `procesador.py:74`] |
+| Sonda de R2 de `/ready` | una real cada 20 s como mucho | el servidor, cuando alguien llama a `/ready` | ≤ 4,320 `HEAD` al día ≈ 130,000 al mes ≈ 0.05 USD al mes (0.36 USD por millón de operaciones clase B) | [documento: `VIGENCIA_SONDA_SEGUNDOS`] + [fuente externa: R2, 13 nov] |
+| Respaldo a R2 | servicio con horario de Railway | contenedor aparte | un `pg_dump` por ejecución; la frecuencia **no consta aquí** (`deploy/respaldo`), **la ve Calvin** | [documento: `deploy/railway/README.md`] |
+| *Vencimientos (no son relojes)*: estado de la mesa en memoria 2 s, menú en memoria 30 s, ventana de purga de Cloudflare 0.2 s | — | — | deciden cuántos sondeos tocan la base (§3.7) | [documento: `VIDA_ESTADO_SEGUNDOS`, `VIGENCIA_SEGUNDOS`] |
+
+**Conclusión del inventario:** de todos los relojes, **sólo el sondeo de la sesión crece con los comensales**; el resto es por restaurante o por servidor y casi no pesa. Eso es lo que hace que el sondeo sea «lo que más cuesta» y que la mejora (§5) se concentre en él.
+
+### 3.7 En qué se va cada pregunta («¿cambió algo?»)
+
+Reparto del tiempo de CPU de un sondeo `304` con el estado en memoria (≈ 1.9 ms), según el perfil de CPU del modelo de capacidad **[documento: capacidad, «Perfil de CPU»; proporciones, no valores absolutos]**. Las milésimas son mi aplicación de esos porcentajes a 1.9 ms **[estimada]**.
+
+| Parte de la petición | Porcentaje | ≈ ms | Qué es |
+|---|---|---|---|
+| **Comprobar si cambió algo** (`estado()`: ETag y comparación) | 7 % | 0.13 | lo único que es «la pregunta» |
+| **Verificar el pase** (JWT de invitado, `PyJWT`) | 15 % | 0.29 | identificar al teléfono en cada sondeo |
+| **Límite de tasa** (analizar la IP y los rangos de Cloudflare) | 10 % | 0.19 | contar 120 por minuto por teléfono |
+| Resolver dependencias de FastAPI | 12 % | 0.23 | inyección por petición |
+| Emparejar la ruta | 8 % | 0.15 | |
+| Línea de acceso del registro (JSON) | 4 % | 0.08 | |
+| Armazón ASGI, middlewares y **cabeceras de seguridad** | ≈ 40 % | 0.76 | lo que se hace por cualquier respuesta |
+| (sin asignar) | ≈ 4 % | 0.08 | |
+
+**Lectura:** «comprobar si cambió algo» es **7 %** del trabajo; el otro 93 % es el costo de atender una petición HTTP en Python. Por eso el sondeo es caro aunque la respuesta sea vacía y por eso las ganancias (§5) vienen de **hacer menos preguntas**, no de hacerlas más rápidas. Cuando el estado en memoria venció (mesas chicas, casi siempre), se suman 3 consultas y +0.8–1.5 ms más (mezcla ≈ 3.3 ms).
+
+**Bytes por respuesta vacía [medida aquí]** (un `304` local del menú, con las cabeceras reales de la API): **606 B** en total (los ≈ 580 B del modelo de capacidad más `date` y `server`):
+
+| Cabecera | Bytes | ¿Sirve en un JSON? |
+|---|---|---|
+| `content-security-policy` | 217 | **Sólo para páginas HTML** |
+| `permissions-policy` | 62 | Sólo para páginas |
+| `x-frame-options` | 23 | Sólo para páginas |
+| `referrer-policy` | 50 | Casi nunca en JSON (aplica a páginas que enlazan) |
+| `x-content-type-options` | 33 | Sí (evita que un navegador adivine el tipo) |
+| `etag`, `cache-control`, `x-request-id` | 42 + 48 + 48 | Sí |
+| línea de estado, `date`, `server` | 27 + 37 + 17 | Sí (obligatorias o de bajo valor) |
+
+Las cuatro primeras suman **352 B (58 %)**; las tres que sólo sirven en páginas HTML, **302 B (50 %)**. Quitarlas de `/api` bajaría un `304` a ≈ 300 B (alternativa G en §5): ahorra salida de red (≈ 0.05 USD por GB), casi nada de CPU, y cambia la política exacta de `02 §12`.
+
+### 3.8 Operaciones pesadas de una sola vez (cuánto tarda para el operador)
+
+Ninguna ocurre por comensal; cada una la hace un operador a veces. **Van de una en una por worker** (semáforo o cola propia), así que con 2 workers hay como mucho 2 a la vez en todo el servicio, y una tercera espera o recibe 503.
+
+| Operación | Cuánto espera el operador | Cuánto CPU del worker | Concurrencia | Marca |
+|---|---|---|---|---|
+| **Leer un PDF con IA** (importación) | **No medido**: la API real no se llamó. Tope de **170 s** por corrida (plazo del procesador 180 s); el asistente espera hasta 10 min; el alta completa de una carta tomó **menos de 10 min** en staging el 11 de nov | casi ninguno: la espera es de la API de Claude y el worker no retiene la conexión a la base | una por worker (`procesador.py`); **3 en curso por restaurante** (409 al cuarto); costo en dólares: §3.5 | [documento: ADR-014, `importaciones.py:91`, 04] |
+| **Subir una foto** | procesar: **0.21 s** una foto de teléfono de 12 MP en JPEG, **0.6 s** una de 48 MP en HEIC, 0.05 s una chica; más 3 subidas a R2 (plazo 25 s) | 0.05–0.6 s de un núcleo | `PROCESOS_SIMULTANEOS = 1` por worker; espera máxima 15 s en cola y luego 503 | [medida aquí] 1 núcleo local ±2× + [documento: `assets.py`] |
+| **Generar el PDF de QR** | **46 ms** para 8 mesas, 0.1 s para 20, 0.33 s para 60, **0.77 s para 150** | igual que la espera (hilo propio) | un turno por worker; 503 `SERVICIO_OCUPADO` al segundo | [medida aquí] + [documento: `qr_pdf.py`] |
+| Confirmar una importación | no medido (transacción única bajo `FOR UPDATE` del restaurante, hasta 1,000 platillos) | — | una por restaurante a la vez | [documento] |
+| Alta o cambio de PIN | no medido aquí (Argon2id con t=3, m=64 MiB, p=4 en un pool propio) | — | cola acotada, 503 si se llena | [documento: T-1.6] |
+
+**Qué significa para los planes:** subir 100 fotos de golpe son ≈ 21–60 s de un núcleo que, mientras tanto, atiende sondeos más lento; un alta en la que 10 restaurantes suben su carta a la vez tapa los 2 workers de importación. Son razones para limitar las subidas por mes (§7.2) además del costo de la IA.
 
 ---
 
@@ -277,22 +341,20 @@ Lo que consta en el repositorio (`deploy/railway/README.md`, `06_Hosting.md`, `S
 
 ## 5. Alternativas para lo que más cuesta (el sondeo)
 
-**Qué se quiere ahorrar.** Cada teléfono con la app al frente pregunta «¿cambió algo?» cada 3 s en **todas** las fases **[documento: `INTERVALO_SONDEO_MS = 3000` fijo en `frontend/src/comensal/entrada/useEntrada.ts`]**. Cuesta ≈ 3.3 ms de CPU y ≈ 640 bytes de salida cada vez, y más del 95 % de las respuestas dicen «nada nuevo». Las cifras de abajo toman como base 100 el sondeo de hoy.
+**Qué se quiere ahorrar:** las preguntas de «¿cambió algo?» (§3.6, §3.7): 95 % de las peticiones, 93 % de cada una es costo de HTTP y no de la comprobación. Base 100 = sondeo de hoy. **No se midieron aquí** las alternativas de conexión abierta: las mide otra sesión en `docs/plan/perf/2026-11-13-eventos-frente-a-sondeo.md` (rama `agente/medicion-eventos-frente-a-sondeo`); esta tabla sólo las enumera.
 
-**Dos maneras de medir la ganancia**, porque no se sabe cuántos teléfonos siguen con la pantalla encendida mientras esperan: «según fase» (supuesto de §3: la pantalla se apaga y el sondeo se pausa en la espera y al comer) y «todos al frente» (el supuesto conservador del modelo de capacidad). La verdad estará en medio; **la T-4.4 y la analítica de visibilidad deberían medirlo** (propuesta en §8, pregunta 6).
+| # | Alternativa | Ganancia estimada [estimada] | Costo y riesgo | Documento que cambiaría |
+|---|---|---|---|---|
+| A | **Sondeo por fase de la mesa:** 3 s al armar la orden y en la cuenta, 5 s al entrar, 10 s en la espera, 20 s tras servir, detenido al quedar pagada | −30 % según fase (9.4 → 6.5 sondeos activos por minuto de visita); −55 % si todos están al frente | Frontend (tabla fase→intervalo); depende del ciclo de la Fase 3. Se ve un cambio hasta 10–20 s tarde en la espera | `02 §6` (la tabla pasa a ser por fase), Spec 001 |
+| B | **Sondeo adaptativo por inactividad** (10 s tras 2 min sin cambios; `02 §6` ya lo promete y el código tiene 3 s fijos) | −20 % según fase; −35 % todos al frente | Tarea chica de frontend; sin dependencias | ninguno: cierra la brecha entre 02 §6 y el código |
+| A+B | Ambos | −35 % / −58 % | — | — |
+| C | **Estado de la mesa en memoria más de 2 s, invalidado con `LISTEN/NOTIFY` de PostgreSQL** (sin Redis) | −30 a −40 % de CPU por petición (≈ 3.3 → ≈ 2.0 ms: lo medido entre «estado en memoria» y «estado que hay que leer») | Código nuevo y una conexión por worker; un aviso perdido se acota con TTL de 10 s | `ADR-004`, `02 §6` («vida máxima 2 s»), `02 §10` |
+| D | **Eventos con conexión abierta (SSE) / WebSockets** | **la mide el informe `eventos-frente-a-sondeo`**; no se estima aquí | `ADR-004` los descartó («se comporta mal tras proxies de redes de restaurante»); necesitaría C para avisar entre workers | `ADR-004` (uno nuevo), `02 §6`, `02 §10`, `02 §12` |
+| E | **Notificaciones push para «tu orden está lista»** | quita el sondeo de la espera sólo para quien las acepte (≈ −15 % según fase) | Medio. **iPhone: sólo iOS/iPadOS 16.4+ y sólo con la app agregada a la pantalla de inicio, con permiso pedido por un toque** [fuente externa: webkit.org/blog/13878, 13 nov]; un comensal anónimo casi nunca la instala (sin dato); guardar la suscripción ligada a una persona **choca con la regla dura 10** | `CLAUDE.md` regla 10, ADR nuevo |
+| F | **Menos bytes por `304`:** quitar de `/api` las tres cabeceras sólo-HTML (302 de 606 B, §3.7) | −50 % de salida de red; CPU casi igual | Una condición en `app/core/cabeceras.py`; ahorro en dinero muy pequeño (≈ 0.05 USD por GB) | `02 §12`, `tests/unit/test_cabeceras.py` |
+| G | Palancas 0–5 del modelo de capacidad (más workers, JWT una vez, ruta cruda…) | independientes y se multiplican con A–C | ver ese documento | — |
 
-| # | Alternativa | Qué hace | Ganancia estimada (CPU y bytes) | Costo de hacerla | Riesgo | Qué documento cambiaría |
-|---|---|---|---|---|---|---|
-| A | **Sondeo por fase de la mesa** | 3 s al armar la orden y en la cuenta; 5 s al entrar; 10 s en la espera; 20 s después de servir; se **detiene** al quedar pagada o con la mesa limpia | **−30 %** según fase (9.4 → 6.5 sondeos activos por minuto de visita); **−55 %** si todos están al frente | Frontend: una tabla fase→intervalo en `useEntrada`; el servidor ya manda el estado. Casi todo depende de que exista el ciclo de la Fase 3 | Ver un cambio hasta 10–20 s tarde en la espera (no afecta cobrar ni la comanda); un teléfono que se queda en «fase vieja» sondea de más, no de menos | `02 §6` (la tabla pasa a ser por fase), Spec 001 (una línea), AC de latencia de la entrada |
-| B | **Sondeo adaptativo por inactividad** (lo que `02 §6` promete: 10 s tras 2 min sin cambios) | El intervalo crece solo si nada cambia | **−20 %** según fase; **−35 %** todos al frente | Una tarea chica de frontend (`INTERVALO_SONDEO_MS` deja de ser fijo) | Igual que A, pero sin depender del ciclo de la mesa; **ya está prometido y no implementado** | Ninguno: ya es la regla; sólo cierra la brecha entre `02 §6` y el código |
-| A+B juntos | Fase y también inactividad | El más corto de los dos | **−35 %** según fase; **−58 %** todos al frente | — | — | — |
-| C | **Estado de la mesa en memoria más de 2 s, invalidado con `LISTEN/NOTIFY` de PostgreSQL** (sin Redis) | Cuando alguien escribe, se avisa a todos los workers; si no hay aviso, el `304` ni toca la base | **−30 a −40 % de CPU por petición** (de ≈ 3.3 a ≈ 2.0 ms: la diferencia medida entre «estado en memoria» y «estado que hay que leer») | Código nuevo en el servicio de estado + un hilo que escucha por worker (una conexión más a Postgres por worker) | Un aviso perdido deja el estado viejo hasta que vence un TTL de 10 s; hay que probarlo con 2+ workers | `ADR-004` y `02 §6` («vida máxima 2 s»), `02 §10` |
-| D | **Server-Sent Events (SSE)** | El teléfono abre una conexión y el servidor le empuja el cambio; keepalive cada ≈ 25 s | **−80 a −90 %** de peticiones mientras la pantalla está encendida (un evento por cambio en vez de un sondeo cada 3 s) | Alto: ruta de streaming, el aviso entre workers (necesita **C**), reconexión y *fallback* a sondeo, límites de Cloudflare/Railway por conexión larga, nuevas pruebas de carga | `ADR-004` lo descartó: «se comporta mal tras proxies de redes de restaurante»; 5,000 conexiones abiertas son memoria que hoy no se usa (≈ 20–50 KB cada una **[estimada]**, ≈ 100–250 MB); Cloudflare gratis corta conexiones inactivas (hay que mandar latido) **[no verificado aquí]** | Un ADR nuevo que sustituya al 004, `02 §6`, `02 §10`, `02 §12` (CSP `connect-src`), el hook de frontend |
-| E | **WebSockets** | Igual que D, pero en las dos direcciones | Igual que D | Más que D (estado por conexión, afinidad a un worker) | Todo lo de D más lo que el ADR-004 ya dijo; las escrituras ya son POST y no lo necesitan | `ADR-004`, `02 §5/§6/§10` |
-| F | **Notificaciones push para «tu orden está lista»** | El teléfono recibe el aviso aunque la pantalla esté apagada; permite **no sondear** en la espera y al comer | Quita el resto del sondeo de las fases 3 y 4 **sólo para quien acepte** (≈ −15 % según fase) y mejora la experiencia más que el costo | Medio: claves VAPID, tabla de suscripciones, envío desde el servidor, pantalla de permiso | **iPhone: sólo iOS/iPadOS 16.4 o superior y sólo si la app está agregada a la pantalla de inicio**, con permiso pedido por un toque del usuario **[fuente externa: webkit.org, leído el 13 nov 2026]**. Un comensal anónimo que escanea un QR casi nunca la instala (no hay dato; se puede medir con `display-mode` en la analítica). En Android sí funciona desde el navegador. La dirección de la suscripción identifica al aparato → **choca con la regla dura 10** si se guarda ligada a la persona | `CLAUDE.md` regla 10 (si se guarda), `01 §` alcance, `ADR` nuevo; Spec 001 si el aviso es parte del ciclo |
-| G | **Menos bytes por `304`** | Quitar de las respuestas `/api` las cabeceras de seguridad pensadas para HTML (CSP, `Permissions-Policy`, `X-Frame-Options`) | −40 % de salida de red (≈ 580 → ≈ 300 B por `304`); el CPU casi no cambia | Una condición en `app/core/cabeceras.py` | Rompe la política exacta de `02 §12` y `tests/unit/test_cabeceras.py`; ganancia en dinero muy pequeña (§3.4) | `02 §12`, `tests/unit/test_cabeceras.py` |
-
-**Recomendación (ordenada por ganancia por esfuerzo):** B ahora (ya está prometido y es barato), A cuando exista el ciclo de la mesa (Fase 3), C si la medición de la T-4.4 confirma que el CPU por petición es lo que limita, y **no** hacer D ni E hasta que haya cientos de restaurantes activos o un cambio en `ADR-004`. F es una mejora de experiencia que además ahorra algo; su valor depende de cuántos comensales instalen la app, que hoy no se sabe. Las palancas de §4 de `perf/2026-11-13-modelo-de-capacidad.md` (más workers, verificar el JWT una vez, ruta cruda) son **independientes** y se multiplican con estas: ver §6.
+**Recomendación:** B ahora, A con la Fase 3, C si la T-4.4 confirma que el CPU por petición es el límite. D y E, después de leer el informe de eventos y de medir cuántos teléfonos quedan con la pantalla encendida (pregunta 6 de §8).
 
 ---
 
