@@ -181,6 +181,130 @@ Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lot
 - **Qué se hizo después:** no insistí con la misma orden. Corrí el mismo lector **en primer plano, por lotes supervisados de 5 a 9 sitios**, y el entorno aceptó cada lote uno por uno (30 intentos en 5 lotes). El lector respeta `robots.txt` y los bloqueos 403/429/503, sin evasión.
 - **Qué queda pendiente:** leer el marco completo (≈ 700 sitios con web) en decenas de lotes pequeños sería, en conjunto, la lectura automática masiva a la que apunta esa negativa. **La continuación a esa escala espera la decisión de Calvin**; hasta entonces no se lee ningún sitio más ni se prepara el guion de estadística (sería uso gastado si Calvin decide parar).
 
+## 8. Paso 0: el universo oficial (DENUE, mayo de 2026) [medida aquí, salvo lo marcado]
+
+**Fuente:** INEGI, DENUE 05_2026 (modificado el 20 de mayo de 2026), descarga masiva del sector 72 (dos archivos CSV, 806,496 registros), <https://www.inegi.org.mx/app/descarga/?ti=6>. **Términos de uso** (<https://www.inegi.org.mx/inegi/terminos.html>, leídos el 13 de noviembre de 2026): «Puede extraer total o parcialmente la información», «Puede adaptar y reordenar la información», «Puede explotar comercialmente la información»; obliga a dar crédito («Fuente: INEGI, nombre del producto […] fecha de actualización») y a avisar de que los análisis son nuestros y no del INEGI. **Fuente: INEGI, DENUE 05_2026.** Los cálculos y agrupaciones son nuestros y no representan una postura del INEGI. El archivo crudo quedó en el scratchpad de la sesión, no en el repositorio; en el repositorio solo hay el guion [`…-universo-denue.py`](2026-11-13-universo-denue.py) y las tablas agregadas [`…-universo-denue-tablas.json`](2026-11-13-universo-denue-tablas.json) (sin nombres, razones sociales, direcciones, teléfonos ni correos).
+
+### 8.1 Cuántos son
+
+| Rama | Establecimientos | Qué es |
+|---|---|---|
+| **7225** | **741,499** | Preparación de alimentos y bebidas (restaurantes, antojitos, tacos, cafeterías, comida para llevar…) |
+| 7224 | 32,361 | Bares, cantinas, centros nocturnos (722412: 30,451; 722411: 1,910) |
+| 7223 | 4,338 | Comedores para empresas, ocasiones especiales, unidades móviles |
+| 7211, 7212, 7213 | 28,298 | Alojamiento, campamentos, pensiones (fuera de alcance) |
+
+**Frente al 740,231 del informe anterior (Data México, DENUE de mayo de 2026):** el total de la rama 7225 del archivo es **741,499** (1,268 más, 0.17 %). Los tres estados que daba Data México **coinciden exactamente** con el archivo (Estado de México 89,408; Ciudad de México 55,753; Jalisco 48,957), así que la diferencia no está en esos estados; **queda el del archivo**, que es la fuente primaria y trae el detalle por clase.
+
+**Por clase de 6 dígitos de la rama 7225** (el mercado de Carta es sobre todo 722511 y 722512, y parte de 722513/722514/722515):
+
+| Clase | Establecimientos | Con sitio web declarado | % con sitio |
+|---|---|---|---|
+| 722511 a la carta o comida corrida | 72,521 | 5,615 | 7.7 % |
+| 722512 pescados y mariscos | 28,902 | 643 | 2.2 % |
+| 722513 antojitos | 168,295 | 794 | 0.5 % |
+| 722514 tacos y tortas | 147,589 | 978 | 0.7 % |
+| 722515 cafeterías, neverías, refresquerías | 94,062 | 3,920 | 4.2 % |
+| 722516 autoservicio | 16,605 | 3,338 | 20.1 % |
+| 722517 pizzas, hamburguesas, pollos para llevar | 79,622 | 1,873 | 2.4 % |
+| 722518 otros alimentos para llevar | 60,421 | 261 | 0.4 % |
+| 722519 otros alimentos de consumo inmediato | 73,482 | 405 | 0.6 % |
+| **Rama 7225** | **741,499** | **17,827** | **2.4 %** |
+| 7224 bares y similares | 32,361 | 555 | 1.7 % |
+
+**Por estrato de personal ocupado (rama 7225)** y proporción con sitio web:
+
+| Estrato | Establecimientos | % del total | Con sitio web | % con sitio |
+|---|---|---|---|---|
+| 0 a 5 personas | 657,347 | 88.7 % | 4,993 | 0.8 % |
+| 6 a 10 | 56,443 | 7.6 % | 3,892 | 6.9 % |
+| 11 a 30 | 22,943 | 3.1 % | 6,394 | 27.9 % |
+| 31 a 50 | 3,531 | 0.5 % | 1,795 | 50.8 % |
+| 51 a 100 | 887 | 0.1 % | 571 | 64.4 % |
+| 101 a 250 | 288 | 0.04 % | 152 | 52.8 % |
+| 251 o más | 60 | 0.01 % | 30 | 50.0 % |
+
+Lectura: **9 de cada 10 negocios tienen hasta 5 personas y casi ninguno declara sitio web** (0.8 %); el sitio web crece con el tamaño. Esto cierra con dato los pendientes #3 (mezcla real por clase) y #4 (estratos de la clase 722511: 46,560 / 14,145 / 8,999 / 2,088 / 521 / 185 / 23 en los siete estratos); #7 queda **parcial** (el DENUE da estratos de personal, no la media exacta).
+
+**Por zona metropolitana (rama 7225 y 7224, con sitio web declarado en 7225):**
+
+| Zona | 7225 | 7224 | 7225 con sitio web |
+|---|---|---|---|
+| Valle de México (63 municipios) | 121,210 | 3,525 | 4,958 (4.1 %) |
+| Guadalajara | 27,151 | 823 | 1,289 (4.7 %) |
+| Monterrey | 24,220 | 534 | 1,477 (6.1 %) |
+| Puebla-Tlaxcala (**lista incompleta**) | 22,086 | 1,096 | 678 (3.1 %) |
+| Toluca | 13,748 | 524 | 279 (2.0 %) |
+| León | 12,743 | 244 | 375 (2.9 %) |
+| Querétaro | 9,848 | 216 | 588 (6.0 %) |
+| Mérida | 9,788 | 261 | 435 (4.4 %) |
+| Aguascalientes | 8,703 | 372 | 251 (2.9 %) |
+| Oaxaca | 8,501 | 447 | 167 (2.0 %) |
+| Tijuana | 7,772 | 394 | 444 (5.7 %) |
+| San Luis Potosí | 7,692 | 406 | 229 (3.0 %) |
+| Veracruz | 7,198 | 275 | 148 (2.1 %) |
+| Morelia | 6,997 | 312 | 170 (2.4 %) |
+| Cancún | 4,572 | 105 | 303 (6.6 %) |
+| Chihuahua | 4,499 | 205 | 266 (5.9 %) |
+| Hermosillo | 3,894 | 83 | 280 (7.2 %) |
+| **Las 17 zonas** | **300,622** | | **12,077 (4.0 %)** |
+
+**Cómo se armaron las zonas:** por municipio, con los cuadros de población de «Metrópolis de México 2020» (SEDATU, CONAPO, INEGI), <https://www.gob.mx/cms/uploads/sedatu/MM2020_06022024.pdf>, extraídos con un guion y comprobados contra el total de población de cada zona: **coinciden exactamente en 15 de 17** (el Valle de México con 63 municipios; Hermosillo es una sola metrópoli municipal). Dos casos **no** son exactos y los digo: (1) **Mérida:** el municipio de Umán no se leyó del PDF (su fila viene partida) y se agregó por diferencia contra el total de la zona (73,196 personas); (2) **Puebla-Tlaxcala: la lista está incompleta** (27 municipios; las filas de varios, entre ellos el de Puebla, no se extraen del PDF; el de Puebla se agregó por su presencia en la lista de municipios de la zona y faltan al menos 1.7 millones de habitantes de filas ilegibles): el conteo de Puebla-Tlaxcala (22,086) **subestima** y no debe usarse sin completar la lista a mano. Es un dato por conseguir (#14).
+
+### 8.2 Reparto de contraste (establecimientos 7225 por zona contra gasto × población)
+
+| Zona | 7225 | % de las 17 zonas | Plazas por 7225 | Plazas por gasto × población (§3) | Diferencia |
+|---|---|---|---|---|---|
+| Valle de México | 121,210 | 40.3 % | 125 | 125 | 0 |
+| Guadalajara | 27,151 | 9.0 % | 54 | 76 | −22 |
+| Monterrey | 24,220 | 8.1 % | 49 | 57 | −8 |
+| Puebla-Tlaxcala | 22,086 | 7.3 % | 44 | 15 | +29 |
+| Toluca | 13,748 | 4.6 % | 28 | 27 | +1 |
+| León | 12,743 | 4.2 % | 25 | 15 | +10 |
+| Mérida | 9,788 | 3.3 % | 20 | 15 | +5 |
+| Querétaro | 9,848 | 3.3 % | 20 | 15 | +5 |
+| San Luis Potosí, Morelia, Cancún, Chihuahua, Aguascalientes, Oaxaca, Veracruz, Hermosillo | 3,894–8,703 | 1.3–2.9 % | 15 cada una | 15 cada una | 0 |
+| Tijuana | 7,772 | 2.6 % | 15 | 35 | −20 |
+| **Total** | **300,622** | 100 % | **500** | **500** | |
+
+Con los mismos topes (mínimo 15, máximo 125). **Qué cambia:** por número de establecimientos pesan menos Guadalajara (−22), Tijuana (−20) y Monterrey (−8) y más Puebla (+29, **pero su conteo está subestimado**), León (+10), Mérida y Querétaro (+5). El orden de las tres grandes no cambia. Es la diferencia entre «dónde se gasta más por persona» y «dónde hay más negocios»; la estadística se pondera con los dos y se reporta la sensibilidad.
+
+### 8.3 Respuesta a Calvin: ¿se puede «mapear» el 5, 10, 30 o 50 % de las cartas del país?
+
+**Cuántos son (fuente: DENUE 05_2026, rama 7225 = 741,499):** 5 % = **37,075** negocios; 10 % = **74,150**; 30 % = **222,450**; 50 % = **370,750**. Con bares (7224) el universo sube a 773,860.
+
+**Lo que es técnicamente posible hoy:**
+1. **La lista de negocios, sí y gratis:** el DENUE es público, trae clase, tamaño, ubicación y, cuando lo declararon, su sitio web. No hace falta Google para el marco.
+2. **Leer la carta en línea, solo para una minoría:** declaran sitio web **17,827** de los 741,499 (**2.4 %**), y 555 de los bares. Con la tasa de carta contable que medí con sitios propios (**5 de 30 = 0.17**, intervalo de 90 %: 0.08 a 0.31, [medida aquí], en negocios populares con sitio, así que probablemente sea optimista para el universo), alcanzables ≈ 17,827 × 0.17 = **≈ 3,000** (rango **1,400 a 5,500**), o sea **0.4 % del universo** (0.2 % a 0.7 %). **Ni siquiera el 5 % (37,075) es alcanzable por sitios propios**, y el sitio declarado en el DENUE puede estar desactualizado o ya no existir [supuesto].
+3. **Fichas de reparto (Rappi, Uber Eats, DiDi Food):** pueden llegar a más negocios, pero **cuántos del DENUE están ahí y qué dicen sus términos sobre leerlas automáticamente no está medido** (Paso 2); sin esos dos datos no se puede decir un porcentaje. Dato por conseguir (#15).
+4. **Visitar locales o recibir cartas de los propios restaurantes** (el piloto de Carta) es el camino para la mayoría restante: los 657,347 negocios de hasta 5 personas casi no tienen presencia en línea (0.8 %).
+
+**Lo que costaría el marco en Google a esa escala** (Text Search Enterprise, 35.00 USD por 1,000 solicitudes del tramo 1,001 a 100,000, 1,000 gratis al mes, [fuente externa] ver §2): medí **975 candidatos únicos en 89 solicitudes de datos ≈ 11 por solicitud** [medida aquí; baja al crecer la repetición, así que es cota inferior del costo]. Para 5 % (37,075): ≈ 3,370 solicitudes ≈ **83 USD**; 10 %: ≈ 6,740 ≈ **201 USD**; 30 %: ≈ 20,200 ≈ **673 USD**; 50 %: ≈ 33,700 ≈ **1,144 USD** [aritmética mía]. Pero **Google no es necesario para el marco (el DENUE ya es el universo) y sus términos no permiten guardar nombre, reseñas ni sitio** (§1): solo serviría para ordenar por popularidad.
+
+**Qué precisión da cada tamaño de muestra** (margen de error al 90 % de un porcentaje, 1.645·√(0.25/n), el peor caso p = 50 %; con corrección por población finita sobre 741,499 entre paréntesis):
+
+| Tamaño n | Margen de error del 90 % |
+|---|---|
+| 500 | ± 3.7 puntos |
+| 1,000 | ± 2.6 puntos |
+| 5,000 | ± 1.2 puntos |
+| 5 % del universo (37,075) | ± 0.43 puntos (0.42) |
+| 10 % (74,150) | ± 0.30 puntos (0.29) |
+| 30 % (222,450) | ± 0.17 puntos (0.15) |
+| 50 % (370,750) | ± 0.14 puntos (0.10) |
+
+Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió por popularidad y por tener sitio), por lo que **el margen real es mayor y hay sesgo que ningún tamaño corrige**. Sin recomendar un tamaño: con 500 al azar ya se estima un porcentaje con ± 3.7 puntos; lo caro no es el tamaño sino **conseguir la carta** de un negocio que no está en línea.
+
+### 8.4 Datos por conseguir (actualización)
+
+| # | Estado |
+|---|---|
+| 3, 4 | **Cerrados** con el DENUE (tabla de clase y estrato) |
+| 7 | **Parcial**: estratos, no la media exacta |
+| 9 | **Cerrado** para 16 zonas; **Puebla-Tlaxcala incompleta** (#14) |
+| 14 (nuevo) | Lista completa de municipios de Puebla-Tlaxcala (y revisar Mérida/Umán), de la tabla de Metrópolis de México 2020 a mano |
+| 15 (nuevo) | Cuántos negocios del DENUE están en Rappi, Uber Eats y DiDi Food, y qué permiten sus términos (Paso 2) |
+
 ---
 
 *Etapa 3 (estadística e informe completo) se agrega cuando haya contables suficientes.*

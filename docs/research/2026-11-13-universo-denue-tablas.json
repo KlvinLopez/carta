@@ -1,0 +1,1005 @@
+{
+ "fuente": "INEGI, DENUE 05_2026 (modificado 2026-05-20), sector 72; agregados nuestros",
+ "total_sector_72": 806496,
+ "por_rama": {
+  "7211": 24598,
+  "7212": 146,
+  "7213": 3554,
+  "7223": 4338,
+  "7224": 32361,
+  "7225": 741499
+ },
+ "por_clase": {
+  "721111": {
+   "nombre": "Hoteles con otros servicios integrados",
+   "n": 7598,
+   "con_sitio_web": 3788
+  },
+  "721112": {
+   "nombre": "Hoteles sin otros servicios integrados",
+   "n": 11742,
+   "con_sitio_web": 1245
+  },
+  "721113": {
+   "nombre": "Moteles",
+   "n": 3637,
+   "con_sitio_web": 191
+  },
+  "721190": {
+   "nombre": "Cabañas, villas y similares",
+   "n": 1621,
+   "con_sitio_web": 314
+  },
+  "721210": {
+   "nombre": "Campamentos y albergues recreativos",
+   "n": 146,
+   "con_sitio_web": 38
+  },
+  "721311": {
+   "nombre": "Pensiones y casas de huéspedes",
+   "n": 2800,
+   "con_sitio_web": 120
+  },
+  "721312": {
+   "nombre": "Departamentos y casas amueblados con servicios de hotelería",
+   "n": 754,
+   "con_sitio_web": 186
+  },
+  "722310": {
+   "nombre": "Servicios de comedor para empresas e instituciones",
+   "n": 1012,
+   "con_sitio_web": 140
+  },
+  "722320": {
+   "nombre": "Servicios de preparación de alimentos para ocasiones especiales",
+   "n": 2029,
+   "con_sitio_web": 161
+  },
+  "722330": {
+   "nombre": "Servicios de preparación de alimentos en unidades móviles",
+   "n": 1297,
+   "con_sitio_web": 26
+  },
+  "722411": {
+   "nombre": "Centros nocturnos, discotecas y similares",
+   "n": 1910,
+   "con_sitio_web": 68
+  },
+  "722412": {
+   "nombre": "Bares, cantinas y similares",
+   "n": 30451,
+   "con_sitio_web": 487
+  },
+  "722511": {
+   "nombre": "Restaurantes con servicio de preparación de alimentos a la carta o de comida corrida",
+   "n": 72521,
+   "con_sitio_web": 5615
+  },
+  "722512": {
+   "nombre": "Restaurantes con servicio de preparación de pescados y mariscos",
+   "n": 28902,
+   "con_sitio_web": 643
+  },
+  "722513": {
+   "nombre": "Restaurantes con servicio de preparación de antojitos",
+   "n": 168295,
+   "con_sitio_web": 794
+  },
+  "722514": {
+   "nombre": "Restaurantes con servicio de preparación de tacos y tortas",
+   "n": 147589,
+   "con_sitio_web": 978
+  },
+  "722515": {
+   "nombre": "Cafeterías, fuentes de sodas, neverías, refresquerías y similares",
+   "n": 94062,
+   "con_sitio_web": 3920
+  },
+  "722516": {
+   "nombre": "Restaurantes de autoservicio",
+   "n": 16605,
+   "con_sitio_web": 3338
+  },
+  "722517": {
+   "nombre": "Restaurantes con servicio de preparación de pizzas, hamburguesas, hot dogs y pollos rostizados para llevar",
+   "n": 79622,
+   "con_sitio_web": 1873
+  },
+  "722518": {
+   "nombre": "Restaurantes que preparan otro tipo de alimentos para llevar",
+   "n": 60421,
+   "con_sitio_web": 261
+  },
+  "722519": {
+   "nombre": "Servicios de preparación de otros alimentos para consumo inmediato",
+   "n": 73482,
+   "con_sitio_web": 405
+  }
+ },
+ "por_clase_y_estrato": {
+  "721111": {
+   "0 a 5 personas": 660,
+   "6 a 10 personas": 1770,
+   "11 a 30 personas": 3212,
+   "31 a 50 personas": 677,
+   "51 a 100 personas": 628,
+   "101 a 250 personas": 356,
+   "251 y más personas": 295
+  },
+  "721112": {
+   "0 a 5 personas": 8301,
+   "6 a 10 personas": 2456,
+   "11 a 30 personas": 901,
+   "31 a 50 personas": 73,
+   "51 a 100 personas": 4,
+   "101 a 250 personas": 4,
+   "251 y más personas": 3
+  },
+  "721113": {
+   "0 a 5 personas": 1863,
+   "6 a 10 personas": 863,
+   "11 a 30 personas": 782,
+   "31 a 50 personas": 112,
+   "51 a 100 personas": 13,
+   "101 a 250 personas": 4,
+   "251 y más personas": 0
+  },
+  "721190": {
+   "0 a 5 personas": 1269,
+   "6 a 10 personas": 236,
+   "11 a 30 personas": 99,
+   "31 a 50 personas": 6,
+   "51 a 100 personas": 8,
+   "101 a 250 personas": 3,
+   "251 y más personas": 0
+  },
+  "721210": {
+   "0 a 5 personas": 102,
+   "6 a 10 personas": 18,
+   "11 a 30 personas": 16,
+   "31 a 50 personas": 4,
+   "51 a 100 personas": 4,
+   "101 a 250 personas": 0,
+   "251 y más personas": 2
+  },
+  "721311": {
+   "0 a 5 personas": 2626,
+   "6 a 10 personas": 149,
+   "11 a 30 personas": 23,
+   "31 a 50 personas": 1,
+   "51 a 100 personas": 1,
+   "101 a 250 personas": 0,
+   "251 y más personas": 0
+  },
+  "721312": {
+   "0 a 5 personas": 490,
+   "6 a 10 personas": 157,
+   "11 a 30 personas": 84,
+   "31 a 50 personas": 18,
+   "51 a 100 personas": 3,
+   "101 a 250 personas": 1,
+   "251 y más personas": 1
+  },
+  "722310": {
+   "0 a 5 personas": 430,
+   "6 a 10 personas": 184,
+   "11 a 30 personas": 213,
+   "31 a 50 personas": 83,
+   "51 a 100 personas": 24,
+   "101 a 250 personas": 39,
+   "251 y más personas": 39
+  },
+  "722320": {
+   "0 a 5 personas": 1551,
+   "6 a 10 personas": 324,
+   "11 a 30 personas": 130,
+   "31 a 50 personas": 17,
+   "51 a 100 personas": 2,
+   "101 a 250 personas": 3,
+   "251 y más personas": 2
+  },
+  "722330": {
+   "0 a 5 personas": 1175,
+   "6 a 10 personas": 95,
+   "11 a 30 personas": 26,
+   "31 a 50 personas": 1,
+   "51 a 100 personas": 0,
+   "101 a 250 personas": 0,
+   "251 y más personas": 0
+  },
+  "722411": {
+   "0 a 5 personas": 858,
+   "6 a 10 personas": 483,
+   "11 a 30 personas": 488,
+   "31 a 50 personas": 65,
+   "51 a 100 personas": 8,
+   "101 a 250 personas": 7,
+   "251 y más personas": 1
+  },
+  "722412": {
+   "0 a 5 personas": 25775,
+   "6 a 10 personas": 3227,
+   "11 a 30 personas": 1322,
+   "31 a 50 personas": 110,
+   "51 a 100 personas": 13,
+   "101 a 250 personas": 1,
+   "251 y más personas": 3
+  },
+  "722511": {
+   "0 a 5 personas": 46560,
+   "6 a 10 personas": 14145,
+   "11 a 30 personas": 8999,
+   "31 a 50 personas": 2088,
+   "51 a 100 personas": 521,
+   "101 a 250 personas": 185,
+   "251 y más personas": 23
+  },
+  "722512": {
+   "0 a 5 personas": 21873,
+   "6 a 10 personas": 4764,
+   "11 a 30 personas": 1965,
+   "31 a 50 personas": 228,
+   "51 a 100 personas": 41,
+   "101 a 250 personas": 29,
+   "251 y más personas": 2
+  },
+  "722513": {
+   "0 a 5 personas": 159352,
+   "6 a 10 personas": 7606,
+   "11 a 30 personas": 1217,
+   "31 a 50 personas": 40,
+   "51 a 100 personas": 19,
+   "101 a 250 personas": 35,
+   "251 y más personas": 26
+  },
+  "722514": {
+   "0 a 5 personas": 134831,
+   "6 a 10 personas": 10639,
+   "11 a 30 personas": 1979,
+   "31 a 50 personas": 109,
+   "51 a 100 personas": 25,
+   "101 a 250 personas": 5,
+   "251 y más personas": 1
+  },
+  "722515": {
+   "0 a 5 personas": 83233,
+   "6 a 10 personas": 7339,
+   "11 a 30 personas": 3306,
+   "31 a 50 personas": 146,
+   "51 a 100 personas": 26,
+   "101 a 250 personas": 8,
+   "251 y más personas": 4
+  },
+  "722516": {
+   "0 a 5 personas": 10237,
+   "6 a 10 personas": 2308,
+   "11 a 30 personas": 3027,
+   "31 a 50 personas": 767,
+   "51 a 100 personas": 240,
+   "101 a 250 personas": 24,
+   "251 y más personas": 2
+  },
+  "722517": {
+   "0 a 5 personas": 71369,
+   "6 a 10 personas": 6215,
+   "11 a 30 personas": 1912,
+   "31 a 50 personas": 114,
+   "51 a 100 personas": 8,
+   "101 a 250 personas": 2,
+   "251 y más personas": 2
+  },
+  "722518": {
+   "0 a 5 personas": 57613,
+   "6 a 10 personas": 2431,
+   "11 a 30 personas": 350,
+   "31 a 50 personas": 25,
+   "51 a 100 personas": 2,
+   "101 a 250 personas": 0,
+   "251 y más personas": 0
+  },
+  "722519": {
+   "0 a 5 personas": 72279,
+   "6 a 10 personas": 996,
+   "11 a 30 personas": 188,
+   "31 a 50 personas": 14,
+   "51 a 100 personas": 5,
+   "101 a 250 personas": 0,
+   "251 y más personas": 0
+  }
+ },
+ "sitio_web_por_clase_y_estrato": {
+  "721111|0 a 5 personas": [
+   221,
+   660
+  ],
+  "721111|101 a 250 personas": [
+   276,
+   356
+  ],
+  "721111|11 a 30 personas": [
+   1545,
+   3212
+  ],
+  "721111|251 y más personas": [
+   231,
+   295
+  ],
+  "721111|31 a 50 personas": [
+   462,
+   677
+  ],
+  "721111|51 a 100 personas": [
+   458,
+   628
+  ],
+  "721111|6 a 10 personas": [
+   595,
+   1770
+  ],
+  "721112|0 a 5 personas": [
+   490,
+   8301
+  ],
+  "721112|101 a 250 personas": [
+   2,
+   4
+  ],
+  "721112|11 a 30 personas": [
+   265,
+   901
+  ],
+  "721112|251 y más personas": [
+   2,
+   3
+  ],
+  "721112|31 a 50 personas": [
+   33,
+   73
+  ],
+  "721112|51 a 100 personas": [
+   2,
+   4
+  ],
+  "721112|6 a 10 personas": [
+   451,
+   2456
+  ],
+  "721113|0 a 5 personas": [
+   20,
+   1863
+  ],
+  "721113|101 a 250 personas": [
+   3,
+   4
+  ],
+  "721113|11 a 30 personas": [
+   91,
+   782
+  ],
+  "721113|31 a 50 personas": [
+   26,
+   112
+  ],
+  "721113|51 a 100 personas": [
+   7,
+   13
+  ],
+  "721113|6 a 10 personas": [
+   44,
+   863
+  ],
+  "721190|0 a 5 personas": [
+   175,
+   1269
+  ],
+  "721190|101 a 250 personas": [
+   3,
+   3
+  ],
+  "721190|11 a 30 personas": [
+   50,
+   99
+  ],
+  "721190|31 a 50 personas": [
+   6,
+   6
+  ],
+  "721190|51 a 100 personas": [
+   6,
+   8
+  ],
+  "721190|6 a 10 personas": [
+   74,
+   236
+  ],
+  "721210|0 a 5 personas": [
+   20,
+   102
+  ],
+  "721210|11 a 30 personas": [
+   5,
+   16
+  ],
+  "721210|251 y más personas": [
+   2,
+   2
+  ],
+  "721210|31 a 50 personas": [
+   3,
+   4
+  ],
+  "721210|51 a 100 personas": [
+   3,
+   4
+  ],
+  "721210|6 a 10 personas": [
+   5,
+   18
+  ],
+  "721311|0 a 5 personas": [
+   87,
+   2626
+  ],
+  "721311|11 a 30 personas": [
+   9,
+   23
+  ],
+  "721311|31 a 50 personas": [
+   0,
+   1
+  ],
+  "721311|51 a 100 personas": [
+   1,
+   1
+  ],
+  "721311|6 a 10 personas": [
+   23,
+   149
+  ],
+  "721312|0 a 5 personas": [
+   68,
+   490
+  ],
+  "721312|101 a 250 personas": [
+   1,
+   1
+  ],
+  "721312|11 a 30 personas": [
+   48,
+   84
+  ],
+  "721312|251 y más personas": [
+   0,
+   1
+  ],
+  "721312|31 a 50 personas": [
+   10,
+   18
+  ],
+  "721312|51 a 100 personas": [
+   2,
+   3
+  ],
+  "721312|6 a 10 personas": [
+   57,
+   157
+  ],
+  "722310|0 a 5 personas": [
+   28,
+   430
+  ],
+  "722310|101 a 250 personas": [
+   10,
+   39
+  ],
+  "722310|11 a 30 personas": [
+   31,
+   213
+  ],
+  "722310|251 y más personas": [
+   25,
+   39
+  ],
+  "722310|31 a 50 personas": [
+   17,
+   83
+  ],
+  "722310|51 a 100 personas": [
+   5,
+   24
+  ],
+  "722310|6 a 10 personas": [
+   24,
+   184
+  ],
+  "722320|0 a 5 personas": [
+   77,
+   1551
+  ],
+  "722320|101 a 250 personas": [
+   1,
+   3
+  ],
+  "722320|11 a 30 personas": [
+   32,
+   130
+  ],
+  "722320|251 y más personas": [
+   1,
+   2
+  ],
+  "722320|31 a 50 personas": [
+   3,
+   17
+  ],
+  "722320|51 a 100 personas": [
+   2,
+   2
+  ],
+  "722320|6 a 10 personas": [
+   45,
+   324
+  ],
+  "722330|0 a 5 personas": [
+   22,
+   1175
+  ],
+  "722330|11 a 30 personas": [
+   1,
+   26
+  ],
+  "722330|31 a 50 personas": [
+   0,
+   1
+  ],
+  "722330|6 a 10 personas": [
+   3,
+   95
+  ],
+  "722411|0 a 5 personas": [
+   10,
+   858
+  ],
+  "722411|101 a 250 personas": [
+   3,
+   7
+  ],
+  "722411|11 a 30 personas": [
+   27,
+   488
+  ],
+  "722411|251 y más personas": [
+   1,
+   1
+  ],
+  "722411|31 a 50 personas": [
+   8,
+   65
+  ],
+  "722411|51 a 100 personas": [
+   3,
+   8
+  ],
+  "722411|6 a 10 personas": [
+   16,
+   483
+  ],
+  "722412|0 a 5 personas": [
+   167,
+   25775
+  ],
+  "722412|101 a 250 personas": [
+   0,
+   1
+  ],
+  "722412|11 a 30 personas": [
+   138,
+   1322
+  ],
+  "722412|251 y más personas": [
+   1,
+   3
+  ],
+  "722412|31 a 50 personas": [
+   31,
+   110
+  ],
+  "722412|51 a 100 personas": [
+   8,
+   13
+  ],
+  "722412|6 a 10 personas": [
+   142,
+   3227
+  ],
+  "722511|0 a 5 personas": [
+   959,
+   46560
+  ],
+  "722511|101 a 250 personas": [
+   111,
+   185
+  ],
+  "722511|11 a 30 personas": [
+   1973,
+   8999
+  ],
+  "722511|251 y más personas": [
+   16,
+   23
+  ],
+  "722511|31 a 50 personas": [
+   1088,
+   2088
+  ],
+  "722511|51 a 100 personas": [
+   325,
+   521
+  ],
+  "722511|6 a 10 personas": [
+   1143,
+   14145
+  ],
+  "722512|0 a 5 personas": [
+   166,
+   21873
+  ],
+  "722512|101 a 250 personas": [
+   19,
+   29
+  ],
+  "722512|11 a 30 personas": [
+   221,
+   1965
+  ],
+  "722512|251 y más personas": [
+   2,
+   2
+  ],
+  "722512|31 a 50 personas": [
+   59,
+   228
+  ],
+  "722512|51 a 100 personas": [
+   22,
+   41
+  ],
+  "722512|6 a 10 personas": [
+   154,
+   4764
+  ],
+  "722513|0 a 5 personas": [
+   370,
+   159352
+  ],
+  "722513|101 a 250 personas": [
+   7,
+   35
+  ],
+  "722513|11 a 30 personas": [
+   102,
+   1217
+  ],
+  "722513|251 y más personas": [
+   7,
+   26
+  ],
+  "722513|31 a 50 personas": [
+   12,
+   40
+  ],
+  "722513|51 a 100 personas": [
+   7,
+   19
+  ],
+  "722513|6 a 10 personas": [
+   289,
+   7606
+  ],
+  "722514|0 a 5 personas": [
+   469,
+   134831
+  ],
+  "722514|101 a 250 personas": [
+   2,
+   5
+  ],
+  "722514|11 a 30 personas": [
+   207,
+   1979
+  ],
+  "722514|251 y más personas": [
+   0,
+   1
+  ],
+  "722514|31 a 50 personas": [
+   27,
+   109
+  ],
+  "722514|51 a 100 personas": [
+   14,
+   25
+  ],
+  "722514|6 a 10 personas": [
+   259,
+   10639
+  ],
+  "722515|0 a 5 personas": [
+   1384,
+   83233
+  ],
+  "722515|101 a 250 personas": [
+   3,
+   8
+  ],
+  "722515|11 a 30 personas": [
+   1712,
+   3306
+  ],
+  "722515|251 y más personas": [
+   2,
+   4
+  ],
+  "722515|31 a 50 personas": [
+   63,
+   146
+  ],
+  "722515|51 a 100 personas": [
+   19,
+   26
+  ],
+  "722515|6 a 10 personas": [
+   737,
+   7339
+  ],
+  "722516|0 a 5 personas": [
+   356,
+   10237
+  ],
+  "722516|101 a 250 personas": [
+   8,
+   24
+  ],
+  "722516|11 a 30 personas": [
+   1744,
+   3027
+  ],
+  "722516|251 y más personas": [
+   1,
+   2
+  ],
+  "722516|31 a 50 personas": [
+   498,
+   767
+  ],
+  "722516|51 a 100 personas": [
+   177,
+   240
+  ],
+  "722516|6 a 10 personas": [
+   554,
+   2308
+  ],
+  "722517|0 a 5 personas": [
+   814,
+   71369
+  ],
+  "722517|101 a 250 personas": [
+   2,
+   2
+  ],
+  "722517|11 a 30 personas": [
+   378,
+   1912
+  ],
+  "722517|251 y más personas": [
+   2,
+   2
+  ],
+  "722517|31 a 50 personas": [
+   35,
+   114
+  ],
+  "722517|51 a 100 personas": [
+   4,
+   8
+  ],
+  "722517|6 a 10 personas": [
+   638,
+   6215
+  ],
+  "722518|0 a 5 personas": [
+   159,
+   57613
+  ],
+  "722518|11 a 30 personas": [
+   29,
+   350
+  ],
+  "722518|31 a 50 personas": [
+   10,
+   25
+  ],
+  "722518|51 a 100 personas": [
+   1,
+   2
+  ],
+  "722518|6 a 10 personas": [
+   62,
+   2431
+  ],
+  "722519|0 a 5 personas": [
+   316,
+   72279
+  ],
+  "722519|11 a 30 personas": [
+   28,
+   188
+  ],
+  "722519|31 a 50 personas": [
+   3,
+   14
+  ],
+  "722519|51 a 100 personas": [
+   2,
+   5
+  ],
+  "722519|6 a 10 personas": [
+   56,
+   996
+  ]
+ },
+ "por_entidad": {
+  "7224|Aguascalientes": 488,
+  "7224|Baja California": 698,
+  "7224|Baja California Sur": 216,
+  "7224|Campeche": 193,
+  "7224|Chiapas": 2485,
+  "7224|Chihuahua": 802,
+  "7224|Ciudad de México": 1114,
+  "7224|Coahuila de Zaragoza": 737,
+  "7224|Colima": 125,
+  "7224|Durango": 404,
+  "7224|Guanajuato": 1150,
+  "7224|Guerrero": 1024,
+  "7224|Hidalgo": 1147,
+  "7224|Jalisco": 2360,
+  "7224|Michoacán de Ocampo": 1452,
+  "7224|Morelos": 552,
+  "7224|México": 3395,
+  "7224|Nayarit": 370,
+  "7224|Nuevo León": 659,
+  "7224|Oaxaca": 2265,
+  "7224|Puebla": 2532,
+  "7224|Querétaro": 348,
+  "7224|Quintana Roo": 405,
+  "7224|San Luis Potosí": 1026,
+  "7224|Sinaloa": 354,
+  "7224|Sonora": 333,
+  "7224|Tabasco": 348,
+  "7224|Tamaulipas": 564,
+  "7224|Tlaxcala": 592,
+  "7224|Veracruz de Ignacio de la Llave": 3176,
+  "7224|Yucatán": 611,
+  "7224|Zacatecas": 436,
+  "7225|Aguascalientes": 10580,
+  "7225|Baja California": 15586,
+  "7225|Baja California Sur": 5658,
+  "7225|Campeche": 6115,
+  "7225|Chiapas": 28910,
+  "7225|Chihuahua": 15521,
+  "7225|Ciudad de México": 55753,
+  "7225|Coahuila de Zaragoza": 14206,
+  "7225|Colima": 7240,
+  "7225|Durango": 10713,
+  "7225|Guanajuato": 33392,
+  "7225|Guerrero": 22938,
+  "7225|Hidalgo": 18942,
+  "7225|Jalisco": 48957,
+  "7225|Michoacán de Ocampo": 33499,
+  "7225|Morelos": 14774,
+  "7225|México": 89408,
+  "7225|Nayarit": 12881,
+  "7225|Nuevo León": 26151,
+  "7225|Oaxaca": 35759,
+  "7225|Puebla": 44719,
+  "7225|Querétaro": 14630,
+  "7225|Quintana Roo": 10308,
+  "7225|San Luis Potosí": 17356,
+  "7225|Sinaloa": 17318,
+  "7225|Sonora": 13799,
+  "7225|Tabasco": 12536,
+  "7225|Tamaulipas": 17512,
+  "7225|Tlaxcala": 10221,
+  "7225|Veracruz de Ignacio de la Llave": 48430,
+  "7225|Yucatán": 18919,
+  "7225|Zacatecas": 8768
+ },
+ "por_zona": {
+  "Aguascalientes": {
+   "7224": 372,
+   "7225": 8703,
+   "web_7225": 251
+  },
+  "Tijuana": {
+   "7225": 7772,
+   "web_7225": 444,
+   "7224": 394
+  },
+  "Chihuahua": {
+   "7225": 4499,
+   "web_7225": 266,
+   "7224": 205
+  },
+  "Valle de México": {
+   "7225": 121210,
+   "web_7225": 4958,
+   "7224": 3525
+  },
+  "León": {
+   "7225": 12743,
+   "web_7225": 375,
+   "7224": 244
+  },
+  "Guadalajara": {
+   "7225": 27151,
+   "web_7225": 1289,
+   "7224": 823
+  },
+  "Toluca": {
+   "7225": 13748,
+   "web_7225": 279,
+   "7224": 524
+  },
+  "Morelia": {
+   "7225": 6997,
+   "web_7225": 170,
+   "7224": 312
+  },
+  "Monterrey": {
+   "7225": 24220,
+   "web_7225": 1477,
+   "7224": 534
+  },
+  "Oaxaca": {
+   "7225": 8501,
+   "web_7225": 167,
+   "7224": 447
+  },
+  "Puebla-Tlaxcala": {
+   "7225": 22086,
+   "web_7225": 678,
+   "7224": 1096
+  },
+  "Querétaro": {
+   "7225": 9848,
+   "web_7225": 588,
+   "7224": 216
+  },
+  "Cancún": {
+   "7225": 4572,
+   "web_7225": 303,
+   "7224": 105
+  },
+  "San Luis Potosí": {
+   "7225": 7692,
+   "web_7225": 229,
+   "7224": 406
+  },
+  "Hermosillo": {
+   "7225": 3894,
+   "web_7225": 280,
+   "7224": 83
+  },
+  "Veracruz": {
+   "7225": 7198,
+   "web_7225": 148,
+   "7224": 275
+  },
+  "Mérida": {
+   "7224": 261,
+   "7225": 9788,
+   "web_7225": 435
+  }
+ }
+}
