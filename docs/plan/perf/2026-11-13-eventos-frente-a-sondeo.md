@@ -44,6 +44,15 @@ Las tres filas están [medidas aquí], salvo la última, que es [estimada].
 
 Si la conexión falla, la app vuelve sola al sondeo según la fase de la mesa (A), así que nunca queda peor que hoy. Es la única opción que da a la vez lo que pides (que nadie pregunte entre eventos), 5–8 veces más capacidad y cambios al instante, sin Redis ni colas.
 
+**Para el simulador** `docs/research/2026-11-13-simulador-de-uso.py`: sus cuatro parámetros de eventos están marcados `[PENDIENTE]` con valores conservadores. Estas cifras los sustituyen:
+
+| Parámetro | Valor | Origen |
+|---|---|---|
+| `EV_LATIDO_MS` (con `EV_LATIDO_S` = 25) | **0.09** | [medida aquí] |
+| `EV_AVISOS_MIN` | **0.7–1** de promedio, **2–3** en el pico al armar la orden | [estimada a partir del mapa de eventos, §1] |
+| `EV_AVISO_MS` | **≈ 4.2**: el aviso más la lectura `200` que provoca, sin la escritura, que el simulador ya cuenta en `escrituras_rps` | [medida aquí: 16.5 ms por evento en una mesa de 3, §3.3] |
+| `EV_RESPALDO_S` | **60** | [medida aquí] |
+
 **Lo que te toca decidir:**
 
 1. **Si se adopta B** antes de arrancar la Fase 3, con el ADR-018 de §7 y dos tareas nuevas, **o si nos quedamos con el sondeo por fase** (A): más simple, ≈ 3–5 veces más capacidad, pero los cambios tardan de 3 a 45 s según la fase.
