@@ -151,19 +151,19 @@ Comensal escanea QR de mesa
 > Como comensal, quiero abrir el menú escaneando el QR de mi mesa, para no tener que instalar nada ni escribir una dirección.
 
 - **AC-01.1** — CUANDO un dispositivo abre la URL `/m/{codigo_mesa}` con un código válido, EL sistema DEBERÁ responder la app del comensal con el menú del restaurante correspondiente en ≤ 3 s (p75, red 4G).
-- **AC-01.2** — CUANDO un dispositivo abre `/m/{codigo_mesa}`, EL sistema DEBERÁ emitir un token de invitado firmado con vigencia de 6 h, sin solicitar datos personales.
+- **AC-01.2** — CUANDO un dispositivo abre `/m/{codigo_mesa}`, EL sistema DEBERÁ emitir un token de invitado firmado con vigencia de 6 h, sin solicitar datos personales. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* el pase no tiene vigencia fija mientras la mesa siga abierta; caduca tras 24 h sin usarse y queda sin efecto con la mesa limpia (AC-30.1, AC-30.5). **Rige 6 h hasta T-3.12**, que hace el cambio.
 - **AC-01.3** — SI el código de mesa no existe o la mesa está inactiva, ENTONCES EL sistema DEBERÁ mostrar una pantalla de error legible con el nombre del restaurante si se conoce, y no revelar si el código existe en otro restaurante.
-- **AC-01.4** — CUANDO un dispositivo con token de invitado vigente vuelve a abrir la misma URL, EL sistema DEBERÁ reutilizar su identidad de invitado y restaurar su orden en curso.
+- **AC-01.4** — CUANDO un dispositivo con token de invitado vigente vuelve a abrir la misma URL, EL sistema DEBERÁ reutilizar su identidad de invitado y restaurar su orden en curso. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* igual, mientras la mesa siga abierta y el pase no haya caducado.
 - **AC-01.5** — EL sistema DEBERÁ funcionar sin cookies de terceros y sin ningún identificador publicitario.
 
 #### US-02 — Unirse a la sesión de mesa junto con mis acompañantes
 > Como comensal, quiero ver que mis acompañantes están en la misma sesión, para coordinar el pedido.
 
-- **AC-02.1** — CUANDO un invitado abre una mesa que ya tiene una sesión `activa`, EL sistema DEBERÁ agregarlo como miembro de esa sesión.
-- **AC-02.2** — CUANDO un invitado abre una mesa sin sesión activa, EL sistema DEBERÁ crear una sesión nueva y marcarlo como `host`.
-- **AC-02.3** — MIENTRAS una sesión esté activa, EL sistema DEBERÁ mostrar a cada miembro el avatar y el estado (`armando` / `listo`) de todos los demás miembros, con una latencia de actualización ≤ 3 s.
-- **AC-02.4** — CUANDO una sesión no registre actividad de ningún miembro durante 3 h, EL sistema DEBERÁ cerrarla automáticamente.
-- **AC-02.5** — EL sistema DEBERÁ permitir un máximo de 12 miembros por sesión.
+- **AC-02.1** — CUANDO un invitado abre una mesa que ya tiene una sesión `activa`, EL sistema DEBERÁ agregarlo como miembro de esa sesión. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* con la cuenta cerrada o después (candado), la entrada cerrada, 2 h en rojo o fuera de horario, la persona queda en solicitud o se rechaza (AC-29.5, AC-33.2, AC-38.2; T-3.10).
+- **AC-02.2** — CUANDO un invitado abre una mesa sin sesión activa, EL sistema DEBERÁ crear una sesión nueva y marcarlo como `host`. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* la mesa se abre con el primer escaneo y guarda su hora (AC-29.1); fuera de horario rige AC-38.2.
+- **AC-02.3** — MIENTRAS una sesión esté activa, EL sistema DEBERÁ mostrar a cada miembro el avatar y el estado (`armando` / `listo`) de todos los demás miembros, con una latencia de actualización ≤ 3 s. *Desde el ADR-018 (13 de noviembre de 2026) el estado llega por aviso y no por sondeo; el ≤ 3 s sigue siendo el criterio (AC-40.x).*
+- **AC-02.4** — CUANDO una sesión no registre actividad de ningún miembro durante 3 h, EL sistema DEBERÁ cerrarla automáticamente. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* **se elimina** cuando T-3.18 retire el cierre por inactividad (sólo el personal cierra la mesa; entran el estatus, el recordatorio y la aprobación tras 2 h en rojo, AC-30.2, AC-30.6–AC-30.9). **Rige hasta T-3.18**, para que en todo momento exista el cierre de 3 h o el flujo del personal (Spec 001 §12).
+- **AC-02.5** — EL sistema DEBERÁ permitir un máximo de 12 miembros por sesión. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* el máximo es un ajuste por restaurante con valor 12 en el piloto (AC-33.7).
 
 #### US-03 — Elegir un nombre para que me identifiquen
 > Como comensal, quiero aparecer con un nombre reconocible para mis acompañantes.
@@ -237,10 +237,10 @@ Comensal escanea QR de mesa
 - **AC-11.4** — CUANDO se confirme una orden, EL sistema DEBERÁ actualizar el indicador de progreso de todos los miembros en ≤ 3 s.
 
 #### US-12 — Que se avise al mesero cuando todos estemos listos
-- **AC-12.1** — CUANDO todos los miembros activos de una sesión tengan su orden en estado `confirmada`, EL sistema DEBERÁ transicionar la sesión a `lista_para_enviar` y crear una comanda.
+- **AC-12.1** — CUANDO todos los miembros activos de una sesión tengan su orden en estado `confirmada`, EL sistema DEBERÁ transicionar la sesión a `lista_para_enviar` y crear una comanda. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* «activos» excluye a los retirados y a las cuentas flotantes; la mesa pide en rondas sucesivas, cada una con su comanda (AC-29.2).
 - **AC-12.2** — CUANDO se cree una comanda, EL sistema DEBERÁ mostrarla en la Vista de Comandas del restaurante en ≤ 5 s con alerta sonora y visual.
 - **AC-12.3** — EL sistema DEBERÁ permitir a cualquier miembro llamar al mesero manualmente en cualquier momento, con un máximo de 1 llamada por minuto por sesión.
-- **AC-12.4** — SI un miembro se une después de que la sesión pasó a `lista_para_enviar`, ENTONCES EL sistema DEBERÁ permitirle crear una orden adicional que aparece como comanda separada vinculada a la misma mesa.
+- **AC-12.4** — SI un miembro se une después de que la sesión pasó a `lista_para_enviar`, ENTONCES EL sistema DEBERÁ permitirle crear una orden adicional que aparece como comanda separada vinculada a la misma mesa. *Enmienda del 13 de noviembre de 2026 (Spec 001, ADR-017):* es el caso general de las rondas de AC-29.2.
 - **AC-12.5** — EL sistema DEBERÁ garantizar que ninguna comanda creada se pierda: toda comanda persiste hasta ser marcada como atendida por el personal.
 
 ---
@@ -251,7 +251,7 @@ Comensal escanea QR de mesa
 - **AC-13.1** — EL sistema DEBERÁ mostrar las comandas abiertas ordenadas por antigüedad, con número de mesa, hora, número de comensales e ítems por comensal.
 - **AC-13.2** — CUANDO llegue una comanda nueva, EL sistema DEBERÁ emitir una alerta sonora y destacar visualmente la tarjeta durante 10 s.
 - **AC-13.3** — EL sistema DEBERÁ permitir marcar una comanda como `atendida` con un solo toque y registrar quién y cuándo si hay usuario identificado.
-- **AC-13.4** — MIENTRAS la vista esté abierta, EL sistema DEBERÁ refrescar el listado al menos cada 5 s sin intervención del usuario.
+- **AC-13.4** — MIENTRAS la vista esté abierta, EL sistema DEBERÁ refrescar el listado al menos cada 5 s sin intervención del usuario. *Enmienda del 13 de noviembre de 2026 (ADR-018):* se cumple reflejando cada cambio en ≤ 5 s por aviso, sin preguntar periódicamente; preguntar cada 5 s queda como modo degradado (AC-28.3, AC-40.5).
 - **AC-13.5** — SI se pierde la conexión, ENTONCES EL sistema DEBERÁ mostrar un indicador visible de "sin conexión" y reintentar automáticamente.
 
 #### US-14 — Ver una llamada de mesero
