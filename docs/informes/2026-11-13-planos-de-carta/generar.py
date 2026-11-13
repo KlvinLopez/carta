@@ -1192,8 +1192,8 @@ def construir() -> str:
                 ],
                 [
                     "6",
-                    "Subir la regla de Cloudflare de 300 a 1,500 peticiones por 10 s antes de restaurantes grandes",
-                    "Un local con WiFi compartido la dispara con ≈ 90 teléfonos.",
+                    "Dejar la regla de Cloudflare en 300 por 10 s y medirla en la prueba de carga (T-4.4), ya con eventos (decisión de Calvin del 13 de noviembre)",
+                    "Con el sondeo, un local con WiFi compartido la dispara con ≈ 90 teléfonos; con eventos hay que medirlo.",
                 ],
                 [
                     "7",
@@ -1297,7 +1297,7 @@ def construir() -> str:
         )
     }
   <h3>Por qué decidiste eventos</h3>
-  <p>Lo pediste («que nadie pregunte entre eventos») y los números lo respaldan: 5–7 veces más comensales por núcleo, cambios en milisegundos y ≈ 10 veces menos tráfico. La Spec 001 quitó el cierre por inactividad: las mesas viven más y, con la pregunta de cada 3 s, cada teléfono olvidado seguiría gastando. La alternativa más simple (preguntar según la fase de la mesa) da 3–5× pero los cambios tardan de 3 a 45 s. Otra sesión escribe el ADR-018.</p>
+  <p>Lo pediste («que nadie pregunte entre eventos») y los números lo respaldan: 5–7 veces más comensales por núcleo, cambios en milisegundos y ≈ 10 veces menos tráfico. La Spec 001 quitó el cierre por inactividad: las mesas viven más y, con la pregunta de cada 3 s, cada teléfono olvidado seguiría gastando. La alternativa más simple (preguntar según la fase de la mesa) da 3–5× pero los cambios tardan de 3 a 45 s. El ADR-018, aceptado por Calvin el 13 de noviembre, sustituye al ADR-004.</p>
   <h3>Qué queda «por tiempo» y por qué</h3>
   <ul>
     <li><b>Un latido cada 25 s</b>: un byte para que Cloudflare (125 s) y Railway (5 min sin datos) no corten la línea {
@@ -1768,7 +1768,7 @@ def construir() -> str:
         n(h48[1]["n_cpu_gratuito"])
     } y {n(h48[1]["n_cpu_paga"])} (el disco frena a {n(h48[1]["n_hobby"])} en Hobby; {
         h48[1]["factura_pro"]:.0f} USD en Pro).</li>
-    <li><b>Lo que no está medido:</b> el procesador de Railway (±2×), los núcleos que da Hobby, la pantalla encendida y la memoria por conexión abierta. Los pasos E3 a E5 dependen de supuestos de eventos que Calvin aún no decide (ADR-004 sigue vigente).</li>
+    <li><b>Lo que no está medido:</b> el procesador de Railway (±2×), los núcleos que da Hobby, la pantalla encendida y la memoria por conexión abierta. Los pasos E1 a E5 usan las cifras de eventos medidas en local, no en Railway; la decisión de adoptarlos ya está tomada (ADR-018, aceptado el 13 de noviembre; sustituye al ADR-004).</li>
   </ul>
 
   <h3>9.2 La escalera de conversión</h3>
@@ -1946,7 +1946,7 @@ def construir() -> str:
                 [
                     "Regla de Cloudflare de 300 por 10 s",
                     "Corta a locales con WiFi compartido y ≈ 90 teléfonos",
-                    "Subirla a 1,500 o excluir la ruta de eventos",
+                    "Dejarla en 300 y medirla en la T-4.4 con eventos (decisión de Calvin, 13-nov)",
                 ],
                 [
                     "Límite duro de gasto en Railway",
@@ -2114,9 +2114,9 @@ def construir() -> str:
                 ],
                 [
                     "Regla de Cloudflare",
-                    "Subir a 1,500 por 10 s o excluir la ruta de eventos",
-                    "5 min en el panel; evita cortar locales grandes",
-                    "capacidad, palanca 0",
+                    "Dejarla en 300 por 10 s y medirla en la prueba de carga (T-4.4), ya con eventos",
+                    "Decisión de Calvin del 13 de noviembre; no se sube ahora",
+                    "capacidad, palanca 0; 04 §11",
                 ],
                 [
                     "Límite de gasto de Railway",

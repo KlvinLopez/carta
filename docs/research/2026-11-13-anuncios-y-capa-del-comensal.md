@@ -250,7 +250,7 @@ Nada de esto se toca ahora. La lista, con la fuente de cada cambio:
 | Escalón | Qué cambia | Gratuitos típicos que caben | De paga típicos | Comensales al día (gratuitos) | Muro que manda | USD/mes (gratuitos) | Marca |
 |---|---|---|---|---|---|---|---|
 | **E0 · Hoy** | Sondeo de 3 s, 2 procesos, Hobby | **148** | **17** (disco; 55 por CPU) | 16,900 | procesador (gratuitos); **disco de 5 GB** (paga, 12 meses) | 20 | [documento: `mapa` §0] |
-| **E1 · Con eventos** | Entrega por eventos (ADR-018, **sin decidir**), 2 procesos, Hobby | **299** | 17 | 34,100 | **disco de 5 GB** (el procesador daría 1,064) | 12 | [documento + medida de eventos] |
+| **E1 · Con eventos** | Entrega por eventos (ADR-018, **aceptado el 13 de noviembre**; sustituye al ADR-004), 2 procesos, Hobby | **299** | 17 | 34,100 | **disco de 5 GB** (el procesador daría 1,064) | 12 | [documento + medida de eventos] |
 | **E2 · Eventos y Pro** | Plan Pro (20 USD); disco hasta 1 TB | **1,064** | **450** | 121,000 | procesador | 30 | [supuesta: Pro no probado] |
 | **E3 · 4 procesos** | `WORKERS=4`; pool 5+5 | **1,896** | 691 (CPU daría 812) | 216,000 | procesador / conexiones (paga) | 44 | [supuesta: ×1.8 sin medir] |
 | **E4 · 8 procesos** | `WORKERS=8`; pool 3+2 | **2,116** | 687 | 241,000 | **10,000 conexiones abiertas** (el procesador daría 3,456) | 54 | [supuesta: ×3.3 sin medir] |
@@ -263,7 +263,7 @@ Nada de esto se toca ahora. La lista, con la fuente de cada cambio:
 - **E2 (Pro) cuesta 18 USD más** y multiplica por 3.6 el cupo; sin Pro no se pasa de ≈ 299.
 - **E3 y E4** suman ≈ 1.6 USD por proceso (0.16 GB × 10 USD) y tienen dos pendientes: la memoria de cada proceso sube y hay que bajar el *pool* de conexiones a PostgreSQL (hoy 2 × 20 = 40; Railway permite ≈ 100 **[estimada, sin verificar]**).
 - **El muro de 10,000 conexiones abiertas de Railway** llega en **≈ 2,100 gratuitos** o **≈ 690 de paga** (aquí sí sube, porque los de paga tienen más teléfonos al frente: 14 contra 4.7). **Réplicas no lo mueven**: el límite es por dominio. Pasarlo requiere **cambiar la entrega** (p. ej. pasar al sondeo por fase para el exceso, como modo degradado), **otro dominio para los eventos** o **otra plataforma**. **Nada de esto está medido ni diseñado.**
-- **No medido y con ±2×:** el costo de procesador en Railway, cuántos núcleos entrega Hobby a un servicio, la pantalla encendida, y la memoria por conexión abierta con miles de teléfonos.
+- **No medido y con ±2×:** el costo de procesador en Railway, cuántos núcleos entrega Hobby a un servicio, la pantalla encendida, y la memoria por conexión abierta con miles de teléfonos. La entrega por eventos ya está decidida (ADR-018); lo que falta es medirla en Railway. El panel del dueño y las vistas del personal también irán por eventos (decisión del 13 de noviembre): el simulador las cuenta con el respaldo de 60 s **[supuesta]**.
 
 ---
 
