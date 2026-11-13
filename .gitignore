@@ -90,4 +90,4 @@ cookie.json
 **/cookie.json
 
 # Códigos de mesa de la medición local (pruebas/carga/local), aunque sean de una base local
-pruebas/carga/local/codigos*.txt
+pruebas/carga/local/codigos*
