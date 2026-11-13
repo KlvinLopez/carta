@@ -1,6 +1,6 @@
 # Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** marco, universo del DENUE (§8) y preliminar de plataformas (§9) hechos; lectura de sitios **detenida** (dos negativas del clasificador, §7.2–7.3) a la espera de la **decisión de Calvin**; 6 contables completos y 1 parcial; estadística sin preparar (n demasiado chico). Estado exacto en §10. No cambia código, contrato ni planes.
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** marco, universo del DENUE (§8) y preliminar de plataformas (§9) hechos; lectura de sitios **reanudada con autorización de Calvin** (§11: 102 intentos, 11 contables completos y 5 parciales); §10 es el estado antes de esa autorización. Estadística al cerrar el marco de Google. No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
@@ -351,6 +351,29 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 - Un camino sin plataformas: pedir las cartas a los restaurantes del piloto de Carta, que es el único que llega al 99 % de negocios sin sitio.
 
 **Archivo temporal con nombres y sitios (y los textos descargados):** sigue en el directorio temporal de la sesión, fuera del repositorio; se borra al terminar la última tanda o a más tardar el 15 de noviembre de 2026, lo que ocurra primero.
+
+## 11. Pasada autorizada del marco de Google: punto de control de 100 intentos [medida aquí; 13 de noviembre de 2026]
+
+**Autorización:** Calvin autorizó en la sesión la lectura de sitios propios con el lector («Autorizo la lectura, continúa con el lote de prueba»); el lote de prueba y los siguientes corrieron como orden simple desde la raíz del repositorio, **sin ninguna negativa del clasificador**. Reglas: `robots.txt`, una página a la vez por dominio con ≥ 2 s, 20 subpáginas, bloqueos respetados, lotes de 9 sitios en primer plano, conteo con ayudante `haiku` uno a la vez.
+
+**Resultado acumulado (cola ordenada por reseñas dentro de cada ciudad, 102 intentos de sitio con el lector):**
+
+| | Intentos |
+|---|---|
+| **Contable (comida y bebidas)** | **10** |
+| Parcial (comida contada; bebidas no legibles, vacías, no estimadas) | 5 |
+| Misma marca que otra fila | 2 |
+| Descartes | 85 |
+
+**Tasa de contables completos: 10 ÷ 102 = 0.098; intervalo de 90 % (Wilson) 0.06 a 0.16** [aritmética mía]. Con los parciales (15 ÷ 102 = 0.15). Un contable cuesta ≈ 10 intentos.
+
+**Por qué se descartan (87 descartes registrados por `place_id`, sin nombre; el CSV de descartes):** sin carta en el sitio 45 · `robots.txt` lo prohíbe 10 · carta solo en imagen 7 · ficha de un tercero sin platillos 3 · sitio caído 3 · carta sin precios 3 · bloqueo 403 2 · precios no asociables al nombre (PDF en columnas) 2 · misma marca 2 · el resto, 1 cada uno (JavaScript, anti-bot, solo «recomendados», precio «desde», precios codificados, dominio vencido…). **«Carta solo en imagen» (que se mide a petición de la maestra): 7 de 102 intentos (6.9 %)**, 8 si se cuenta el PDF con precios codificados.
+
+**Filas hoy:** 16 en [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (11 completas, 5 parciales con bebidas y total vacíos). Hay filas de cadenas (Villa Marina, Sonora Grill, Cabanna, Madre Café…): la estadística se reporta con y sin cadenas.
+
+**Control de calidad:** recuenté yo 2 filas (Tomate Taquería, Los Foquitos): **diferencia 0 en comida y en bebidas** en ambas; las otras filas son del ayudante (`herramienta`). Fallos de lectura que el ayudante declaró y que **no se estimaron**: Red Texas (texto con «…» que sugiere truncado: conteo posiblemente bajo, anotado en la fila), Cabanna (un precio máximo de 944 a revisar).
+
+**Lo que sigue:** el resto del marco de Google (≈ 620 sitios con web), en lotes de 9; con esta tasa saldrían unos 60 contables más. La estadística (mediana, p90 con intervalo de 90 %) se corre al cerrar el marco de Google.
 
 ---
 
