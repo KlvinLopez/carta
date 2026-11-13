@@ -956,6 +956,384 @@ def tabla(cab, filas, clase="") -> str:
     return f'<table class="{clase}"><thead><tr>{th}</tr></thead><tbody>{tr}</tbody></table>'
 
 
+# ---------------------------------------------------------------------------------------------
+# Versión 3: Parte I «para vender» (8 páginas) y el mercado del DENUE
+# (datos de docs/research/2026-11-13-mercado-de-carta-tablas.json, que escribe …-mercado-de-carta-modelo.py)
+# ---------------------------------------------------------------------------------------------
+MERCADO = json.loads(
+    (RAIZ / "docs" / "research" / "2026-11-13-mercado-de-carta-tablas.json").read_text(
+        encoding="utf-8"
+    )
+)
+EMB = MERCADO["embudo"]
+NUC = MERCADO["nucleo"]
+ESTRATOS_ROT = (
+    "0 a 5 personas",
+    "6 a 10 personas",
+    "11 a 30 personas",
+    "31 a 50 personas",
+    "51 a 100 personas",
+    "101 a 250 personas",
+    "251 y más personas",
+)
+
+
+def figura_p1(svg: str, titulo: str, fuente: str, k: int) -> str:
+    return (
+        f"<figure><figcaption><b>Figura I.{k}.</b> {titulo}</figcaption>{svg}"
+        f'<p class="fuente"><b>Fuente:</b> {fuente}</p></figure>'
+    )
+
+
+def g_precios_p1() -> str:
+    quedan = {
+        "Neolo menú QR (Plan 0)",
+        "OlaClick Advanced",
+        "MenuTiger Regular",
+        "Carta Servicio (propuesta)",
+        "OlaClick Premium",
+        "Fudo Avanzado",
+        "Soft Restaurant Cloud Lite",
+        "Last.app Starter",
+    }
+    filas = []
+    for nombre, precio, cuando, _ in E["competidores"]["filas"]:
+        if nombre in quedan:
+            color = DORADO if cuando == "carta" else (VINO if cuando == "nov" else GRIS)
+            filas.append((nombre, precio, color, n(precio) + (" (sep)" if cuando == "sep" else "")))
+    return barras_h(
+        filas,
+        1200,
+        lambda v: n(v),
+        alto_fila=19,
+        izq=200,
+        der=70,
+        titulo_eje="pesos al mes (sin IVA donde el proveedor lo dice)",
+        marcas_eje=[0, 300, 600, 900, 1200],
+    )
+
+
+def g_problema() -> str:
+    pct_nucleo = 100 * NUC["con_sitio"] / NUC["n"]
+    web05 = NUC["con_sitio_por_estrato"][ESTRATOS_ROT[0]]
+    pct05 = 100 * web05 / NUC["por_estrato"][ESTRATOS_ROT[0]]
+    filas = [
+        ("Personas que usan internet (2024)", 83.1, AZUL, "83.1 %"),
+        ("Negocios de todo tipo que usan internet (2023)", 26.4, GRIS, "26.4 %"),
+        ("Micronegocios que venden por internet (2023)", 4.4, GRIS, "4.4 %"),
+        ("Restaurantes y bares con sitio web", pct_nucleo, VINO, f"{pct_nucleo:.1f} %"),
+        ("…los de hasta 5 personas", pct05, VINO, f"{pct05:.1f} %"),
+    ]
+    return barras_h(
+        filas,
+        100,
+        lambda v: f"{v:.0f} %",
+        alto_fila=30,
+        izq=250,
+        der=60,
+        titulo_eje="% de cada grupo (azul: personas · gris: todos los negocios · vino: restaurantes y bares)",
+        marcas_eje=[0, 25, 50, 75, 100],
+    )
+
+
+def _x_log(v: float, izq: float, w: float) -> float:
+    return izq + w * (math.log10(v) - 1) / 5  # de 10 a 1,000,000
+
+
+def g_embudo() -> str:
+    izq, der, alto_fila = 175, 85, 38
+    w = ANCHO - izq - der
+    filas = [
+        ("Mercado total", EMB["mercado_total"], None, GRIS, n(EMB["mercado_total"])),
+        ("Núcleo", EMB["nucleo"], None, VINO, n(EMB["nucleo"])),
+        (
+            "Servible (sin cadenas)",
+            EMB["servible_sin_cadenas_posibles"][">=10"],
+            None,
+            VINO,
+            "≈ " + n(EMB["servible_sin_cadenas_posibles"][">=10"]),
+        ),
+        ("Ganable a 12 meses", 100, (100, 300, 1000), DORADO, "100 a 1,000"),
+        ("Ganable a 24 meses", 300, (300, 1000, 2116), DORADO, "300 a 2,116"),
+    ]
+    alto = 20 + alto_fila * len(filas) + 40
+    out = [svg_abre(alto, "embudo del mercado en escala logarítmica")]
+    for m in (10, 100, 1000, 10000, 100000, 1000000):
+        x = _x_log(m, izq, w)
+        out.append(f'<line x1="{x:.1f}" y1="12" x2="{x:.1f}" y2="{alto - 32}" stroke="{REJILLA}"/>')
+        out.append(texto(x, alto - 18, n(m), 10, TINTA2, "middle"))
+    for i, (etq, val, rango, color, tv) in enumerate(filas):
+        y = 16 + i * alto_fila
+        out.append(texto(izq - 8, y + alto_fila / 2 + 3, etq, 11.5, TINTA, "end", 600))
+        if rango is None:
+            x1 = _x_log(val, izq, w)
+            out.append(barra(izq, y + 6, x1 - izq, alto_fila - 12, color))
+            out.append(texto(x1 + 6, y + alto_fila / 2 + 4, tv, 12, TINTA, "start", 700))
+        else:
+            lo, medio, hi = rango
+            xl, xm, xh = (_x_log(v, izq, w) for v in (lo, medio, hi))
+            out.append(barra(xl, y + 6, xh - xl, alto_fila - 12, color))
+            out.append(
+                f'<circle cx="{xm:.1f}" cy="{y + alto_fila / 2:.1f}" r="5" fill="{VINO}" stroke="#fff" stroke-width="1.5"/>'
+            )
+            out.append(texto(xh + 6, y + alto_fila / 2 + 4, tv, 12, TINTA, "start", 700))
+    out.append(
+        texto(
+            izq + w / 2,
+            alto - 2,
+            "establecimientos (escala logarítmica: cada marca vale diez veces la anterior; el punto es el escenario medio)",
+            9.5,
+            TINTA2,
+            "middle",
+        )
+    )
+    out.append("</svg>")
+    return "".join(out)
+
+
+def g_estratos() -> str:
+    izq, der, alto_fila = 190, 120, 28
+    w = ANCHO - izq - der
+    alto = 20 + alto_fila * 7 + 40
+    out = [svg_abre(alto, "restaurantes y bares con y sin sitio web por tamaño")]
+    for m in (0, 25, 50, 75, 100):
+        x = izq + w * m / 100
+        out.append(f'<line x1="{x:.1f}" y1="12" x2="{x:.1f}" y2="{alto - 32}" stroke="{REJILLA}"/>')
+        out.append(texto(x, alto - 18, f"{m} %", 10, TINTA2, "middle"))
+    for i, e in enumerate(ESTRATOS_ROT):
+        tot, web = NUC["por_estrato"][e], NUC["con_sitio_por_estrato"][e]
+        p = 100 * web / tot
+        y = 16 + i * alto_fila
+        out.append(texto(izq - 8, y + alto_fila / 2 + 3, f"{e.replace(' personas', '')} · {n(tot)}", 11, TINTA, "end"))
+        out.append(barra(izq, y + 5, w, alto_fila - 10, "#E4DACB"))
+        out.append(barra(izq, y + 5, w * p / 100, alto_fila - 10, VINO))
+        out.append(texto(izq + w + 8, y + alto_fila / 2 + 3, f"{p:.1f} % con sitio", 11, TINTA, "start", 600))
+    out.append(
+        texto(
+            izq + w / 2,
+            alto - 2,
+            "% de los restaurantes y bares de cada tamaño (vino: declara sitio web; claro: no declara)",
+            9.5,
+            TINTA2,
+            "middle",
+        )
+    )
+    out.append("</svg>")
+    return "".join(out)
+
+
+def parte_uno() -> list[str]:
+    """Portada y 7 páginas de una idea cada una."""
+    nuc = EMB["nucleo"]
+    sin_sitio = EMB["nucleo_sin_sitio"]
+    serv = EMB["servible_sin_cadenas_posibles"][">=10"]
+    p = []
+    mes_total = FACT_MES + DOMINIO_MES
+
+    # ---- 1. Portada
+    p.append(f"""
+<section class="portada">
+  <p class="sobre">Carta · informe para Calvin · 13 de noviembre de 2026 · versión 3</p>
+  <h1>Planos de Carta</h1>
+  <p class="bajada">Un restaurante sube su carta en PDF y en minutos tiene un menú visual por QR. La mesa pide junta desde sus teléfonos y el mesero la recibe en el suyo. Sin app, sin cuenta, sin pagos.</p>
+  <div class="tarjeta destacada">
+    <p class="pregunta">La idea en una frase</p>
+    <p class="respuesta">Casi todos los restaurantes y bares de México <b>no tienen presencia en línea</b> ({n(sin_sitio)} de {n(nuc)} no declaran sitio web). Carta les da <b>su primer menú visual</b> y, con la Fase 3, <b>la mesa que pide junta</b>. La visión de Calvin: ser la presencia en línea del negocio chico y, con el tiempo, <b>el motor de recomendaciones de la comida</b>.</p>
+  </div>
+  <p class="nota"><b>Cómo leer este informe.</b> <b>Parte I (8 páginas): para vender.</b> El problema, el mercado, a quién vamos primero, qué existe, qué hace Carta, cómo gana dinero y qué sigue; una idea por página. <b>Parte II: los números por dentro.</b> Capacidad, costos, cartas, planes, precios, anuncios y escaleras, con sus fuentes. Marcas: {marca("medida")} calculada aquí · {marca("documento")} la dice un documento del repositorio · {marca("externa")} página leída con fecha · {marca("calvin")} lo dio Calvin · {marca("supuesto")} juicio o escenario, que va a «datos por conseguir».</p>
+  <p class="nota">Fuente reproducible: <code>docs/informes/2026-11-13-planos-de-carta/</code>. El análisis de mercado completo, con cada corte del DENUE y sus fuentes, está en <code>docs/research/2026-11-13-mercado-de-carta.md</code>.</p>
+</section>""")
+
+    # ---- 2. El problema
+    p.append(f"""
+<section class="salto">
+  <p class="eyebrow">1 · El problema</p>
+  <h2 class="idea">Todos tienen teléfono. Casi ningún restaurante tiene presencia en línea.</h2>
+  <div class="tres">
+    <div class="cifra gigante"><b>83.1 %</b><span>de los mexicanos de 6 años o más usa internet (100.2 millones, 2024) {marca("externa")}</span></div>
+    <div class="cifra gigante"><b>97.2 %</b><span>de ellos se conecta con celular inteligente {marca("externa")}</span></div>
+    <div class="cifra gigante"><b>{100 * sin_sitio / nuc:.0f} %</b><span>de los restaurantes a la carta y bares no declara sitio web ({n(sin_sitio)} de {n(nuc)}) {marca("medida")}</span></div>
+  </div>
+  {figura_p1(g_problema(), "El comensal ya está en línea; el negocio chico, no", "INEGI, ENDUTIH 2024 (reporte 9/25); INEGI, Censos Económicos 2024 (reporte 22/25; todas las actividades, no sólo restaurantes); INEGI, DENUE 05_2026, cálculo propio " + marca("medida") + ". El DENUE sólo ve el sitio web declarado: no ve Facebook, Instagram ni WhatsApp.", 1)}
+  <h3>Lo que dejó la pandemia</h3>
+  <ul>
+    <li><b>La carta en QR es un PDF.</b> No se busca, no se filtra por alérgeno, no se actualiza sola {marca("supuesto")}.</li>
+    <li><b>Pedir sigue igual.</b> El mesero apunta y repite; el POS que lo evita cuesta 652 a 1,099 pesos al mes y obliga a cambiar de sistema {marca("documento")}.</li>
+    <li><b>La mesa no ordena junta.</b> Quien ofrece pedir por QR lo hace por persona; el pedido compartido no apareció en lo revisado {marca("documento")}.</li>
+    <li><b>El negocio chico no existe en línea.</b> Es el único punto con dato oficial {marca("medida")}.</li>
+  </ul>
+  <p class="fuente">Lo que no se pudo leer: ninguna encuesta mexicana de aceptación del menú por QR (las que hay son de Estados Unidos y de segunda mano). Va a «datos por conseguir», Parte II.</p>
+</section>""")
+
+    # ---- 3. El mercado
+    p.append(f"""
+<section class="salto">
+  <p class="eyebrow">2 · El mercado</p>
+  <h2 class="idea">Cien mil negocios que podemos servir; cientos o pocos miles que podemos ganar en dos años.</h2>
+  <div class="dos">
+    <div class="cifra"><b>{n(EMB["mercado_total"])}</b><span>restaurantes y bares de México (mercado total) {marca("medida")}</span></div>
+    <div class="cifra"><b>{n(nuc)}</b><span>a la carta, comida corrida y bares (núcleo) {marca("medida")}</span></div>
+    <div class="cifra"><b>≈ {n(serv)}</b><span>sin cadenas grandes (mercado servible) {marca("medida")}</span></div>
+    <div class="cifra"><b style="font-size:19pt">300 a 2,116</b><span>activos a 24 meses (mercado ganable) {marca("supuesto")}</span></div>
+  </div>
+  {figura_p1(g_embudo(), "Del universo a lo que se puede ganar", "INEGI, DENUE 05_2026 (ramas 7225 y 7224), cálculo propio " + marca("medida") + ". Ganable: escenario (bajo, medio y alto) con la capacidad documentada de la infraestructura (299 y 2,116 restaurantes gratuitos típicos) " + marca("supuesto") + ".", 2)}
+  <table class="chica">
+    <thead><tr><th>Capa</th><th>Criterio</th></tr></thead>
+    <tbody>
+      <tr><td><b>Total</b></td><td>ramas 7225 y 7224 del SCIAN: preparación de alimentos y bebidas, más bares (741,499 + 32,361)</td></tr>
+      <tr><td><b>Núcleo</b></td><td>restaurantes a la carta o de comida corrida (722511; <b>incluye las fondas con comida corrida</b>) y bares, cantinas y centros nocturnos (722411 y 722412)</td></tr>
+      <tr><td><b>Servible</b></td><td>el núcleo sin nombres comerciales que se repiten en 10 o más locales y 3 o más estados (aproximación de cadenas; error en la Parte II)</td></tr>
+      <tr><td><b>Ganable</b></td><td>restaurantes activos con Carta: un <b>escenario</b>, no un dato; sus palancas son los contactos del piloto, la capacidad y la conversión</td></tr>
+    </tbody>
+  </table>
+  <p class="fuente">Con 11 personas o más son {n(EMB["nucleo_de_11_personas_o_mas"])} negocios; si todos pagaran 349 pesos al mes serían ≈ {EMB["techo_teorico_anual_mxn_nucleo_11_o_mas"] / 1e6:.0f} millones de pesos al año: un techo teórico, no un pronóstico.</p>
+</section>""")
+
+    # ---- 4. A quién primero
+    p.append(f"""
+<section class="salto">
+  <p class="eyebrow">3 · A quién vamos primero</p>
+  <h2 class="idea">Primero el restaurante a la carta y el bar. Después, la fonda y el negocio chico. Las cadenas, no.</h2>
+  <div class="tres">
+    <div class="cifra gigante"><b>{n(EMB["nucleo_de_11_o_mas_con_sitio"])}</b><span>negocios de 11 personas o más que ya tienen sitio: los primeros candidatos a pagar {marca("medida")}</span></div>
+    <div class="cifra gigante"><b>{n(sin_sitio)}</b><span>del núcleo sin sitio web: Carta sería su <em>primera</em> presencia en línea {marca("medida")}</span></div>
+    <div class="cifra gigante"><b>{n(EMB["nucleo_en_17_zonas"])}</b><span>del núcleo en las 17 zonas metropolitanas: la primera ola (Puebla, subestimada) {marca("medida")}</span></div>
+  </div>
+  {figura_p1(g_estratos(), "A más tamaño, más presencia en línea; el grueso está abajo", "INEGI, DENUE 05_2026, cálculo propio sobre el núcleo (722511, 722411 y 722412) " + marca("medida") + ".", 3)}
+  <ul>
+    <li><b>Núcleo ({n(nuc)}).</b> Lo que pediste: restaurantes a la carta o de comida corrida, más bares y cantinas.</li>
+    <li><b>Expansión ({n(EMB["expansion"])}, no prometida).</b> Mariscos, antojitos, tacos y tortas, cafeterías: 91 % tiene hasta 5 personas y sólo 1.4 % declara sitio {marca("medida")}.</li>
+    <li><b>Fuera.</b> Cadenas grandes (no necesitan este servicio) y comida para llevar o autoservicio (230,130).</li>
+  </ul>
+  <p class="fuente">Las fondas con menú del día ya están en el núcleo: el SCIAN mete la «comida corrida» en la clase 722511. El DENUE no marca cadenas y no da mesas: ambos cortes son aproximaciones (Parte II, sección 5).</p>
+</section>""")
+
+    # ---- 5. Qué existe
+    punto = '<span class="pt"></span>'
+    medio = '<span class="md"></span>'
+    nada = "—"
+    filas = [
+        ["Mostrar la carta (QR)", punto, medio, nada, nada, medio, punto],
+        ["Pedir al mesero (comanda)", medio, punto, nada, nada, nada, f'{punto} <small>Fase 3</small>'],
+        ["<b>Pedir en grupo</b>", nada, nada, nada, nada, nada, f'{punto} <small>Fase 3</small>'],
+        ["Pagar en la mesa", nada, medio, punto, nada, punto, nada],
+        ["Reservar", nada, medio, nada, punto, nada, nada],
+        ["Descubrir y recomendar", nada, nada, nada, medio, medio, nada],
+        ["Punto de venta", nada, punto, nada, nada, nada, nada],
+    ]
+    p.append(f"""
+<section class="salto">
+  <p class="eyebrow">4 · Qué existe y qué le falta</p>
+  <h2 class="idea">Hay menús QR gratis y sistemas caros. Nadie deja que la mesa pida junta.</h2>
+  <table class="chica matriz">
+    <thead><tr><th>Trabajo</th><th>Menús QR<br><small>gratis a 317</small></th><th>POS con comanda<br><small>652 a 1,099</small></th><th>Pagos en mesa<br><small>2.9 a 3.6 %</small></th><th>Reservas<br><small>OpenTable, TheFork</small></th><th>Reparto<br><small>Rappi, Uber Eats, DiDi</small></th><th>Carta</th></tr></thead>
+    <tbody>{"".join("<tr>" + "".join(f"<td>{c}</td>" for c in f) + "</tr>" for f in filas)}</tbody>
+  </table>
+  <p class="fuente"><b><span class="pt"></span> lo hace · <span class="md"></span> lo hace en parte · — no lo hace.</b> Precios en pesos al mes antes de IVA, leídos de la página de cada proveedor el 13 de noviembre de 2026 (33 planes) {marca("externa")}. La matriz por trabajo viene de la revisión de septiembre y no se volvió a verificar competidor por competidor {marca("documento")}.</p>
+  <div class="dos" style="grid-template-columns: repeat(3, 1fr)">
+    <div class="cifra"><b>0 a 317</b><span>pesos: el menú QR es un gancho gratis; no se cobra por eso {marca("externa")}</span></div>
+    <div class="cifra"><b>652 a 1,099</b><span>pesos al mes: la comanda móvil viene dentro de un POS completo {marca("externa")}</span></div>
+    <div class="cifra"><b>0</b><span>competidores con pedido compartido de la mesa en lo revisado {marca("documento")}</span></div>
+  </div>
+  <h3>Lo que le falta a lo que existe</h3>
+  <ul>
+    <li><b>Para el dueño chico:</b> la comanda a su teléfono sin cambiar de punto de venta, a 349 pesos y con un nivel gratuito.</li>
+    <li><b>Para la mesa:</b> armar la orden entre varios, cada quien desde su teléfono; los demás dividen la cuenta al pagar, no al pedir.</li>
+    <li><b>En el mundo</b> hay pago en mesa por QR (Sunday, Yumminn) y reservas (OpenTable: 149, 299 y 499 dólares en Estados Unidos según una fuente secundaria; su página oficial no abrió). Ninguno cubre a un restaurante chico mexicano sin POS {marca("supuesto")}.</li>
+  </ul>
+</section>""")
+
+    # ---- 6. Qué hace Carta hoy
+    p.append(f"""
+<section class="salto">
+  <p class="eyebrow">5 · Qué hace Carta hoy</p>
+  <h2 class="idea">El menú ya funciona en producción. La mesa que pide junta llega con la Fase 3.</h2>
+  <div class="dos">
+    <div class="cifra"><b>&lt; 10 min</b><span>para dar de alta una carta desde su PDF (dos cartas en staging, 11 de nov.) {marca("documento")}</span></div>
+    <div class="cifra"><b>2.31 s</b><span>menú visible, p75, con red lenta (AC-01.1; objetivo 3 s) {marca("documento")}</span></div>
+    <div class="cifra"><b>v0.1.0</b><span>en producción desde el 13 de noviembre de 2026 {marca("documento")}</span></div>
+    <div class="cifra"><b>19</b><span>tareas en 7 olas para la Fase 3 (por eventos, no por sondeo) {marca("documento")}</span></div>
+  </div>
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 2mm">
+    <div class="tarjeta">
+      <h3 style="margin-top:0">Hoy, en producción</h3>
+      <ul>
+        <li>El dueño <b>sube su carta en PDF</b>, la revisa y la confirma: nada entra al menú sin su visto bueno.</li>
+        <li><b>Un QR por mesa</b>, en un PDF de tarjetas listo para imprimir.</li>
+        <li>El comensal escanea y ve un <b>menú visual</b> con foto o ilustración, búsqueda y <b>filtros de alérgenos que viven en su teléfono</b>.</li>
+        <li>Funciona <b>sin conexión</b> (PWA) y un platillo agotado se ve en menos de un minuto.</li>
+        <li>Panel del dueño: menú, mesas, personal con PIN y ajustes.</li>
+      </ul>
+    </div>
+    <div class="tarjeta">
+      <h3 style="margin-top:0">Entra con la Fase 3</h3>
+      <ul>
+        <li><b>La orden de la mesa, entre todos:</b> cada quien arma lo suyo y se envía junta.</li>
+        <li><b>La comanda llega al teléfono del mesero</b>, sin papel ni repetir.</li>
+        <li><b>El ciclo de la mesa:</b> abierta, cuenta cerrada, pagada, limpia; el mesero lo lleva.</li>
+        <li><b>Todo por eventos:</b> los cambios llegan al instante y sin sondeo.</li>
+        <li>El panel del dueño en vivo.</li>
+      </ul>
+      <p class="fuente" style="margin-top:2mm"><b>Fuera de la v1:</b> pagos, 3D o realidad aumentada, cuenta del comensal.</p>
+    </div>
+  </div>
+  <p class="fuente">Fuente: <code>CLAUDE.md</code> (estado del código), <code>docs/plan/04_Fases_y_Tareas.md</code> §7 y §11, <code>docs/plan/perf/2026-11-12-ac-01-1-staging.md</code>. Más de 3,000 pruebas automáticas (2,188 de backend y 1,047 de frontend, 04 §11).</p>
+</section>""")
+
+    # ---- 7. Cómo gana dinero
+    e1000_1 = economia(1000, 0.01)
+    p.append(f"""
+<section class="salto">
+  <p class="eyebrow">6 · Cómo gana dinero</p>
+  <h2 class="idea">Gratis para empezar. 349 pesos al mes cuando el restaurante crece.</h2>
+  <div class="dos">
+    <div class="cifra"><b>349</b><span>pesos al mes antes de IVA, plan Servicio {marca("supuesto")}</span></div>
+    <div class="cifra"><b>≈ {mes_total:.1f} USD</b><span>cuesta operar Carta hoy al mes (≈ {n(mes_total * TC)} pesos) {marca("documento")}</span></div>
+    <div class="cifra"><b>1</b><span>restaurante de paga cubre toda la operación de hoy {marca("supuesto")}</span></div>
+    <div class="cifra"><b>94–99 %</b><span>de margen por restaurante de paga, antes de soporte {marca("documento")}</span></div>
+  </div>
+  {figura_p1(g_precios_p1(), "349 pesos queda entre el menú QR y el punto de venta", "docs/research/2026-11-13-comparativo-de-precios-y-anuncios.md: planes de entrada leídos en la página de cada proveedor el 13-nov-2026; dorado, Carta (propuesta); vino, leído en noviembre; gris, leído en septiembre " + marca("externa") + ".", 4)}
+  <table class="chica">
+    <thead><tr><th>Plan</th><th>Para quién</th><th>Precio</th><th>De dónde sale el ingreso</th></tr></thead>
+    <tbody>
+      <tr><td><b>Gratuito</b></td><td>fonda, taquería, cafetería chica: hasta 10 mesas, 3 cuentas de personal</td><td>0</td><td>anuncios <b>no personalizados</b> (tarifa sin medir) {marca("supuesto")}</td></tr>
+      <tr><td><b>Servicio</b></td><td>de 11 a 40 mesas, 20 cuentas de personal</td><td>349 pesos al mes</td><td>suscripción fija por tamaño; no por comanda, mesero ni comisión</td></tr>
+      <tr><td><b>Comensal de paga</b> (no está en la v1)</td><td>quien quiere más allá de lo gratis</td><td>29 pesos al mes</td><td>un restaurante de paga equivale a 16 comensales de paga {marca("supuesto")}</td></tr>
+    </tbody>
+  </table>
+  <div class="aviso"><b>Dicho con franqueza.</b> Con 1,000 restaurantes activos y 1 % a 3 % de paga, la suscripción deja <b>3,490 a 10,470 pesos al mes</b> {marca("supuesto")}: cubre la infraestructura (≈ {n(mes_total * TC)} pesos) y <b>no es todavía un negocio</b>. Para serlo hace falta que la conversión suba, que los anuncios o la capa del comensal rindan, o llegar a más restaurantes; ninguna de las tres está medida. La prueba de precio del piloto (semana 6; meta: 3 de 10 pagan o firman) es lo que lo dirá.</div>
+</section>""")
+
+    # ---- 8. Qué sigue
+    p.append(f"""
+<section class="salto">
+  <p class="eyebrow">7 · Qué sigue</p>
+  <h2 class="idea">Terminar la mesa, probar con diez restaurantes y medir lo que hoy es supuesto.</h2>
+  <table class="chica">
+    <thead><tr><th>Paso</th><th>Qué es</th><th>Qué lo cierra</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. Fase 3</b></td><td>La mesa que pide junta, la comanda al mesero y el ciclo de la mesa; el canal de eventos va antes que cualquier pantalla (T-3.20, T-3.21)</td><td>19 tareas en 7 olas; una sesión por tarea</td></tr>
+      <tr><td><b>2. Antes del primer restaurante real</b></td><td>La cabecera secreta del borde (T-2.8): hoy quien entra directo a Railway elige su cubo de límite</td><td>Aprobada por Calvin el 12 de nov.</td></tr>
+      <tr><td><b>3. Piloto de 10 restaurantes</b></td><td>6 semanas; al final, la hoja con el plan Servicio a 349 pesos</td><td>3 de 10 pagan o firman {marca("supuesto")}</td></tr>
+      <tr><td><b>4. Candidatas para después de la v1</b></td><td>Página pública del negocio, recomendación dentro del restaurante (sin cuenta), integración con el POS; reservas y pagos sólo con ADR</td><td>Una spec cada una; ninguna cambia el plan hoy</td></tr>
+    </tbody>
+  </table>
+  <h3>Lo que hay que conseguir antes de prometer una cifra</h3>
+  <ul>
+    <li><b>Contactos y ritmo de altas del piloto:</b> sostienen el escenario bajo, el único con fuente.</li>
+    <li><b>La conversión de gratuito a paga:</b> hoy sólo hay 1 % y 3 % como supuesto.</li>
+    <li><b>Presencia en Facebook y WhatsApp</b> del negocio chico: el DENUE sólo ve el sitio web.</li>
+    <li><b>Una encuesta mexicana sobre menús QR</b> y la página oficial de OpenTable y TheFork.</li>
+  </ul>
+  <div class="tarjeta destacada" style="margin-top:3mm">
+    <p class="pregunta">Lo que te toca decidir</p>
+    <p class="respuesta">1) ¿Se reporta el mercado ganable como rango (100–1,000 a 12 meses; 300–2,116 a 24) o con una sola cifra? 2) ¿La fonda y el negocio chico entran al discurso o sólo al mapa? 3) ¿Cuáles candidatas se especifican primero? <b>Sugiero la página pública del negocio y la recomendación sin cuenta.</b></p>
+  </div>
+  <p class="fuente">La lista completa de datos por conseguir y las 13 formas concretas de obtenerlos están en <code>docs/research/2026-11-13-mercado-de-carta.md</code> §6. Parte II: los números por dentro.</p>
+</section>""")
+    return p
+
+
 def construir() -> str:
     num = [0]
     cartas = cargar_cartas()
@@ -1116,21 +1494,29 @@ def construir() -> str:
     )
 
     secciones = []
+    secciones.extend(parte_uno())
 
-    # ---- Portada ----
+    # ---- Parte II: apertura y qué cambió ----
     secciones.append(f"""
-<section class="portada">
-  <p class="sobre">Carta · informe para Calvin · 13 de noviembre de 2026 · versión 2</p>
-  <h1>Planos de Carta</h1>
-  <p class="bajada">Cuánto cuesta, cuánto aguanta y de qué viviría: la historia de los análisis del 13 de noviembre, con sus fuentes, y las decisiones que te tocan.</p>
+<section class="salto">
+  <p class="eyebrow">Parte II</p>
+  <h1 style="font-size:34pt; margin:2mm 0 3mm">Los números por dentro</h1>
+  <p class="bajada" style="font-size:11.5pt; color: var(--carbon-suave)">Capacidad, costos, cartas, planes, precios, anuncios y escaleras, con sus fuentes. Son los capítulos de la versión 2, corregidos donde los datos nuevos los cambian.</p>
   <div class="tarjeta destacada">
     <p class="pregunta">La pregunta del millón</p>
     <p>Con lo que pagas hoy de Cloudflare y Railway, y con todo en la capa gratuita, ¿el negocio se sostiene solo y puede escalar?</p>
     <p class="respuesta">Todo gratis no se sostiene solo, pero cuesta poco: <b>≈ {mes_total:.1f} USD al mes</b> (≈ {n(mes_total * TC)} pesos) más centavos por restaurante. <b>Un solo restaurante de paga a 349 pesos cubre toda la operación de hoy.</b> Con eventos, el servidor de hoy aguanta <b>≈ 300 restaurantes gratuitos típicos</b>; el límite pasa a ser el disco de 5 GB, no el dinero, y se quita con el plan Pro (20 USD). A 1,000 restaurantes basta con que pague <b>1 de cada 100</b> para no perder dinero. <b>Con anuncios no personalizados</b> (lo que entiendes por gratuito) la infraestructura de hoy se pagaría con ≈ {EQ_ADS_ALTO} a {EQ_ADS_BAJO} restaurantes gratuitos, pero esa tarifa se derivó de fuentes débiles y no está medida (sección 9).</p>
   </div>
-  <p class="nota">Cómo leer las marcas: {marca("medida")} lo midió una sesión en un contenedor local · {marca("documento")} lo dice un documento del repositorio · {marca("externa")} página leída con fecha · {marca("calvin")} lo dio Calvin · {marca("supuesto")} juicio o cálculo con supuestos, que va a «datos por conseguir». Las cifras de procesador tienen un margen de <b>±2×</b> hasta medir en Railway.</p>
-  <p class="aviso"><b>Qué cambió en la versión 2.</b> Sección 9 nueva: escalera de capacidad, escalera de conversión y el escenario «sólo anuncios», con sus gráficas y fuentes nuevas (AdSense, Google 2019, ley de datos personales, comisión de cobro). Sección 8 corregida: «gratuito» es ahora gratuito <b>con anuncios no personalizados</b>, y se ve qué tarifa es dato y cuál supuesto. Las secciones 9 y 10 anteriores pasan a ser la 10 y la 11. Las demás cifras no cambian.</p>
-  <p class="nota">Fuente reproducible: <code>docs/informes/2026-11-13-planos-de-carta/</code> (datos, guiones y HTML). Este PDF se genera con <code>generar.py</code> y <code>pdf.mjs</code>.</p>
+  <h3>Qué cambió frente a la versión 2</h3>
+  <ul>
+    <li><b>Portada y Parte I nuevas</b> (8 páginas, para vender): el problema, el mercado, a quién primero, qué existe, qué hace Carta, cómo gana dinero y qué sigue. La versión 2 empezaba por la pregunta del costo; ahora esa pregunta es la apertura de esta parte.</li>
+    <li><b>Universo oficial: 741,499 establecimientos</b> de la rama 7225 (DENUE 05_2026, archivo de descarga masiva), más 32,361 bares: <b>773,860</b>. Sustituye a los 740,231 de Data México y a los 736,367 de septiembre; la diferencia con Data México es de 0.17 %. {marca("medida")}</li>
+    <li><b>Sección 5 corregida y ampliada:</b> el mercado de abajo hacia arriba (total, núcleo, servible, ganable) con su tabla de criterios, las cadenas y su error, y lo alcanzable por lectura de sitios (≈ 3,000 cartas, 0.4 % del universo). Las 148 cartas se conservan, con la salvedad de términos de la primera pasada (sección 5.3).</li>
+    <li><b>El problema con fuentes oficiales</b> (ENDUTIH 2024, Censos Económicos 2024, DENUE) y lo que no se pudo leer (NielsenIQ 404, Ipsos sin contenido, OpenTable 503).</li>
+    <li><b>Lo ganable enlaza con las escaleras de la sección 9:</b> 299 restaurantes gratuitos típicos hoy; 2,116 con eventos, Pro y 8 procesos. Un restaurante activo más no se paga solo: la suscripción con 1 % a 3 % de paga deja 3,490 a 10,470 pesos al mes con 1,000 activos.</li>
+    <li><b>Sin cambios:</b> capacidad, costos, planes, precios, anuncios y decisiones de la versión 2 (las cifras de procesador siguen con margen de ±2× hasta medir en Railway).</li>
+  </ul>
+  <p class="nota">Fuente reproducible: <code>docs/informes/2026-11-13-planos-de-carta/</code> (datos, guiones y HTML), generado con <code>generar.py</code> y <code>pdf.mjs</code>. Mercado: <code>docs/research/2026-11-13-mercado-de-carta-modelo.py</code>.</p>
 </section>""")
 
     # ---- 1. Respuesta y decisiones ----
@@ -1338,7 +1724,27 @@ def construir() -> str:
     secciones.append(f"""
 <section>
   <h2><span>5</span> El mercado</h2>
+  <h3>5.1 De abajo hacia arriba, con el DENUE</h3>
+  <p>Universo: INEGI, DENUE 05_2026 (publicado el 20 de mayo de 2026; INEGI corrigió 13 registros en nombre y razón social sin tocar el universo), descarga masiva del sector 72 {marca("externa")}. Los cortes son nuestros y no representan una postura del INEGI. Cada capa dice su criterio, para que se pueda verificar:</p>
+  {tabla(
+      ["Capa", "Criterio", "Establecimientos"],
+      [
+          ["Total", "ramas 7225 + 7224 (todo México, cualquier tamaño, con cadenas)", f"<b>{n(EMB['mercado_total'])}</b> {marca('medida')}"],
+          ["Núcleo", "722511 (a la carta o comida corrida) + 722411 y 722412 (bares, cantinas, centros nocturnos)", f"<b>{n(EMB['nucleo'])}</b> {marca('medida')}"],
+          ["Servible", "núcleo sin nombres repetidos en ≥ 10 locales y ≥ 3 estados (rango por umbral: 96,048 a 104,019)", f"<b>≈ {n(EMB['servible_sin_cadenas_posibles']['>=10'])}</b> {marca('medida')}"],
+          ["Con pago probable", "servible de 11 personas o más (proxy de «más de 10 mesas»; el DENUE no da mesas)", f"{n(EMB['nucleo_de_11_personas_o_mas'])} {marca('supuesto')}"],
+          ["Primera ola", "núcleo en las 17 zonas metropolitanas (Puebla-Tlaxcala, subestimada)", f"{n(EMB['nucleo_en_17_zonas'])} {marca('medida')}"],
+          ["Expansión (no prometida)", "722512 + 722513 + 722514 + 722515 (mariscos, antojitos, tacos y tortas, cafeterías)", f"{n(EMB['expansion'])} {marca('medida')}"],
+          ["Ganable a 12 y 24 meses", "restaurantes activos: escenario bajo / medio / alto (100 / 300 / 1,000 y 300 / 1,000 / 2,116); mismas palancas que la sección 9", f"<b>100 a 1,000</b> y <b>300 a 2,116</b> {marca('supuesto')}"],
+      ],
+      "chica",
+  )}
+  <div class="aviso"><b>Cadenas: cómo se aproximaron y cuánto error tiene.</b> El DENUE no las marca. Se normalizó el nombre comercial, se descartaron los hechos sólo de palabras genéricas del giro y se contaron los que se repiten en ≥ N locales de ≥ 3 estados. Conteo en el núcleo: <b>8,834</b> con N = 5, <b>4,680</b> con N = 10, 1,691 con N = 25 y 863 con N = 50 {marca("medida")}. <b>Son cotas superiores</b>: «Fonda Lupita» o «Comida china» se repiten por ser nombres comunes, no marcas; a mi lectura sólo unos 6 de los 70 nombres más repetidos del núcleo parecen cadenas {marca("supuesto")}. Una cadena con nombres distintos por local no se detecta. Un corte sin nombres: los de 51 personas o más son 762 (0.7 % del núcleo) {marca("medida")}.</div>
+  <h3>5.2 Lo alcanzable por lectura de sitios</h3>
+  <p>De los 741,499 de la rama 7225, <b>17,827</b> declaran sitio web (2.4 %); con la tasa de carta contable de la muestra (0.17), la lectura alcanza ≈ <b>3,000 cartas</b> (rango 1,400 a 5,500), el <b>0.4 %</b> del universo {marca("supuesto")}. En el núcleo, <b>{n(EMB['nucleo_con_sitio'])}</b> tienen sitio (5.9 %) y <b>{n(EMB['nucleo_sin_sitio'])}</b> no: ésos son los que Carta pondría en línea por primera vez, y no se alcanzan leyendo sitios sino visitándolos o recibiendo su carta. De 11 personas o más, {n(EMB['nucleo_de_11_o_mas_con_sitio'])} de {n(EMB['nucleo_de_11_personas_o_mas'])} (27 %) declaran sitio {marca("medida")}.</p>
+  <h3>5.3 Las cartas leídas</h3>
   <p>Para fijar topes se leyó la carta pública de <b>148 negocios en 16 capitales</b>, de cinco tipos {marca("medida")}. Los conteos los hizo la herramienta de lectura (±5 %) y 147 de 148 son cartas de reparto (Rappi), no de salón.</p>
+  <p class="aviso"><b>Salvedad de términos (versión 3).</b> La primera pasada se hizo <b>sin revisar antes</b> el <code>robots.txt</code> ni los términos de Rappi. Revisados el 13 de nov.: <code>robots.txt</code> no bloquea las páginas de restaurantes y los términos no mencionan acceso automatizado, pero limitan el contenido a «uso personal, no comercial». Uber Eats <b>prohíbe</b> la extracción con programas (no se leyó ninguna ficha suya); DiDi Food no publica términos legibles. Se guardaron sólo conteos y direcciones de ficha. Si ese uso es compatible con «uso personal, no comercial» <b>lo decide Calvin o la revisión legal</b> (<code>muestra-500-cartas.md</code> §9).</p>
   {figura(g_histograma(cartas), "Tres de cada cuatro cartas tienen hasta 60 platillos; nueve de cada diez, hasta 82", "docs/research/2026-11-13-estadistica-de-cartas-y-personal-datos.csv (148 filas, columna <code>total</code> = comida + bebidas) " + marca("medida") + ".", num)}
   {figura(g_cobertura(), "Con un tope de 80 platillos cabe el 89 % de los negocios", "docs/research/2026-11-13-estadistica-de-cartas-y-personal.md §3.3: porcentaje acumulado con intervalo de confianza de 90 % por remuestreo (5,000) " + marca("medida") + ".", num)}
   <h3>Por qué los platillos separan mal gratuito de paga</h3>
@@ -2044,6 +2450,30 @@ def construir() -> str:
                     "Calvin / sesión hija",
                     "0",
                 ],
+                [
+                    "Versión 3: contactos del piloto y ritmo de altas (sostienen lo ganable)",
+                    "Lista de dueños con los que Calvin ya habló, con fecha",
+                    "Calvin",
+                    "0",
+                ],
+                [
+                    "Versión 3: presencia en Facebook, Instagram y WhatsApp del negocio chico (el DENUE sólo ve el sitio web)",
+                    "Entrevista a 10 dueños; o 100 negocios del DENUE vistos a mano en Google Maps y Facebook",
+                    "sesión hija / Calvin",
+                    "0",
+                ],
+                [
+                    "Versión 3: encuesta mexicana sobre menús por QR; páginas oficiales de OpenTable y TheFork",
+                    "Preguntar a la Canirac; tres preguntas a los comensales del piloto; reintentar la lectura de OpenTable",
+                    "sesión hija",
+                    "0",
+                ],
+                [
+                    "Versión 3: cadenas reales (para medir el error de la aproximación por nombre)",
+                    "Directorio público de franquicias cruzado con el DENUE, sin guardar nombres",
+                    "sesión hija",
+                    "0",
+                ],
             ],
             "chica",
         )
@@ -2149,6 +2579,7 @@ def construir() -> str:
     <li><code>docs/research/2026-11-13-estadistica-de-cartas-y-personal.md</code>, sus datos (148 cartas) y su guion.</li>
     <li><code>docs/research/2026-11-13-estrategia-de-precios.md</code>; <code>2026-11-13-comparativo-de-precios-y-anuncios.md</code> (en master desde el PR 33: precios de hoy, anuncios, oferta del piloto); <code>2026-09-19-modelo-de-negocio-y-pagos.md</code>; <code>2026-09-19-competencia-real-mexico.md</code>; <code>2026-09-20-olaclick-a-fondo.md</code>.</li>
     <li><code>docs/research/2026-11-13-anuncios-y-capa-del-comensal.md</code>, su guion y sus datos (versión 2: anuncios, capa del comensal y escaleras).</li>
+    <li><code>docs/research/2026-11-13-mercado-de-carta.md</code>, su guion y sus tablas (versión 3: el mercado con el DENUE); <code>2026-11-13-muestra-500-cartas.md</code> §8 y §9 (universo y términos de las plataformas).</li>
     <li><code>docs/plan/04_Fases_y_Tareas.md</code> §11 (decisiones de Calvin del 13 de noviembre).</li>
   </ul>
   <h3>Externas (leídas el 13 de noviembre de 2026 salvo donde se dice)</h3>
@@ -2157,7 +2588,9 @@ def construir() -> str:
     <li>Cloudflare: developers.cloudflare.com/r2/pricing, /waf/rate-limiting-rules, /fundamentals/reference/connection-limits.</li>
     <li>Firebase: firebase.google.com/pricing. Claude: platform.claude.com/docs/en/about-claude/pricing.</li>
     <li>INEGI, ENIGH 2024: inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados_tab.pdf (y por entidad).</li>
-    <li>Data México (DENUE, mayo de 2026): economia.gob.mx/datamexico/es/profile/industry/restaurants-and-other-eating-places.</li>
+    <li>INEGI, DENUE 05_2026, descarga masiva del sector 72 (inegi.org.mx/contenidos/masiva/denue/denue_00_72_1_csv.zip y _2_), con su nota técnica de corrección (inegi.org.mx/app/mapa/denue/nota.pdf). Sustituye a Data México (740,231), que ya no se usa.</li>
+    <li>INEGI, ENDUTIH 2024, reporte 9/25 (inegi.org.mx/contenidos/saladeprensa/boletines/2025/endutih/ENDUTIH_24_RR.pdf) y Censos Económicos 2024, reporte 22/25 (…/boletines/2025/ce/CE2024_def_RR.pdf), leídos el 13-nov con <code>pdftotext</code>.</li>
+    <li>Versión 3: Expansión (7-sep-2021), DPL News (22-sep-2023) y la recopilación de Duck-Hub (22-jul-2026) sobre menús QR; no abrieron NielsenIQ (404), Ipsos (sin contenido) ni OpenTable (503). Detalle en <code>docs/research/2026-11-13-mercado-de-carta-fuentes.csv</code>.</li>
     <li>Precios (13-nov, en el comparativo): neolo.com/mexico/menu-qr, pricing.olaclick.app, meniuapp.com/es/plans, menutiger.com/es/pricing, waitry.net/es-mx/precios, joinposter.com/mx/pricing, fu.do/precios, softrestaurant.com/cloud, softrestaurant.com/soft-restaurant-precio, last.app/mx/precios, loyverse.com/pricing.</li>
     <li>Anuncios (versión 2, todas leídas el 13-nov; enlaces en <code>docs/research/2026-11-13-anuncios-y-capa-del-comensal-datos.csv</code>): AdSense, reparto 68 % (support.google.com/adsense/answer/180195), anuncios no personalizados (/9007336, /15450188, /7670312), umbral de pago (/1709871), elegibilidad (/9724), ubicación de anuncios (/1346295), menores de 13 (/10502938); Google, «Effect of disabling third-party cookies on publisher revenue», 27-ago-2019 (services.google.com/fh/files/misc/disabling_third-party_cookies_publisher_revenue.pdf); WeForAds, «Ad Revenue Benchmarks 2026» (weforads.com); guía de CPM por país (adscalculator.xyz, débil); Marketing Dive y AdExchanger sobre Meta Audience Network (feb 2020); Estudio Valor Total Media 2024 por prensa (marketing4ecommerce.mx, expansion.mx; el PDF de cim.mx dio 404); RevenueCat, State of Subscription Apps 2025.</li>
     <li>Cobro y ley (versión 2): Stripe México, stripe.com/mx/pricing (3.6 % + 3 pesos, sin IVA); LFPDPPP, texto vigente en diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf (DOF 20-mar-2025, última reforma 14-nov-2025); Ley Federal de Protección al Consumidor, art. 76 Bis, diputados.gob.mx/LeyesBiblio/pdf/LFPC.pdf; ECIJA sobre cookies (31-oct-2025, secundaria).</li>
