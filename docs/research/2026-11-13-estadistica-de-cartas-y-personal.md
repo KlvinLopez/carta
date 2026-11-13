@@ -167,3 +167,99 @@ Cómo se lee: **3 cuentas gratuitas dejan fuera a 1 de cada 3 restaurantes de se
 3. **Más cartas de salón** (PDF o visita a los locales), 30–40 formales y casuales; es lo que corregiría el sesgo de reparto.
 4. **Interfaz oficial de lugares de Google**, si Calvin la quiere pagar: da el universo de negocios y su tipo para muestrear al azar, **no** los platillos.
 5. Medir un **par reparto/salón** en 10–15 negocios para estimar el factor de sesgo.
+
+---
+
+## 7. Primera pasada y cómo escalar a 500–1,000 negocios (adenda pedida por la maestra)
+
+**Estado honesto.** Lo anterior es una **primera pasada**: 148 negocios, reparto de **conveniencia** (lo que cada lector pudo abrir), no proporcional, y **sin número de reseñas ni calificación** (no se recolectaron; las columnas `resenas`, `calificacion`, `asientos_o_mesas`, `horario` y `rango_precio` ya existen en el CSV y están **vacías: no se estimaron**). La foto por platillo está en «desconocido» en 147 de 148 filas.
+
+### 7.1 Reparto proporcional de la muestra (regla y lo que se sabe)
+
+Regla: `n_zona = N × U_zona / ΣU`, con U = establecimientos de la rama 7225 en la zona metropolitana (DENUE), un mínimo de 15 por ciudad y un máximo de 25 % de N para una sola. Alternativa: ponderar por el gasto fuera del hogar (§8). **No se puede escribir la tabla completa hoy**: sólo se consiguió el nivel entidad para tres entidades.
+
+| Unidad | Establecimientos 7225 | Corte | Fuente |
+|---|---|---|---|
+| Nacional | 740,231 | DENUE, mayo de 2026 | [fuente externa] Data México <https://www.economia.gob.mx/datamexico/es/profile/industry/restaurants-and-other-eating-places> (lectura vía herramienta) |
+| Estado de México | 89,408 | ídem | ídem |
+| Ciudad de México | 55,753 | ídem | ídem |
+| Jalisco | 48,957 | ídem | ídem |
+| Todo lo demás (Monterrey, Puebla, Querétaro, Mérida, León, Tijuana…) | **dato por conseguir** | — | DENUE interactivo de INEGI con filtro 7225 por municipio (no se probó) |
+
+Hay cifras distintas para la misma rama en otros resúmenes de búsqueda (p. ej. 736,367 en 2025; 772,442 en 2025): **no se usan** sin abrir la fuente. El comunicado del DENUE de mayo de 2026 (<https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2026/denue/DENUE2026_05.pdf>) sólo da el total de todos los sectores (6,138,075); **la próxima publicación del DENUE es el 25 de noviembre de 2026** [fuente externa].
+
+**Lo que ya muestra la primera pasada frente a esa regla:** CDMX, Guadalajara y Monterrey suman 34 de 148 (23 %) — Chetumal (16) pesa más que Guadalajara (9). Con la regla, CDMX, Guadalajara/Zapopan y Monterrey y sus áreas metropolitanas llevarían el grueso. **Los percentiles de §3 no se reponderan por ciudad** (no hay pesos con fuente).
+
+### 7.2 Protocolo para que 2 o 3 sesiones lleven la muestra a 500 sin pisarse
+
+1. **Reparto por región, no por ciudad:** (A) CDMX y Edomex, (B) Guadalajara y occidente, (C) Monterrey y norte, (D) bajío y centro, (E) sur, sureste y costa. Cada sesión toma su región; el archivo de salida se nombra `region-X.csv` y se une al final con el guion (deduplica por ciudad + negocio + tipo de carta).
+2. **Esquema del CSV** (20 columnas): `ciudad, negocio, tipo, tipo_carta, fuente, url, fecha, comida, bebidas, total, categorias, foto_por_platillo, descripcion, conteo, notas` más `resenas, calificacion, asientos_o_mesas, horario, rango_precio` (vacías si la página no las trae; nunca estimadas).
+3. **Reglas de conteo:** renglones con nombre y precio; sin tamaños ni extras ni repetidos; comida y bebidas por separado; menú degustación = 1; combos fuera. Si se leyó el texto, `conteo=propio`; si lo resumió la herramienta, `herramienta` (±5 %).
+4. **Fuentes que sí abren con normalidad (lo observado en la primera pasada):** fichas de Rappi y de Uber Eats (aunque a menudo devuelven sólo la portada), algunos PDF de carta en sitios propios. **Se negaron:** carta.menu (403), pos.do (402), OpenTable (503), PDF mayores de 10 MB; se dejan sin reintento.
+5. **Dónde está el cuello de botella:** la primera pasada dejó 148 negocios contables y ≈ 110 descartes (≈ 43 % de los intentos), así que **un negocio contable cuesta ≈ 1.7 intentos**; para 500 se estiman unos 870 intentos y para 1,000, unos 1,740 [estimada: extrapola ese cociente; en las ciudades con menos reparto el descarte fue mayor].
+6. **Reseñas y calificación:** ninguna ficha de Rappi las trajo en la lectura. Para ordenar por popularidad hace falta otra fuente (§7.3). Anotar el número de reseñas y su fuente con la URL.
+7. **Cartas de salón:** ver la carta en el sitio propio (PDF) o la carta física: es lo que corrige el sesgo de reparto.
+
+### 7.3 Interfaz oficial de lugares de Google para armar el marco de muestreo
+
+Lo que da y cuesta, de las páginas oficiales de Google (lectura del 13 de nov de 2026; el ayudante no pudo leer las Condiciones Específicas del Servicio, la página llegó truncada dos veces):
+
+| Qué | Dato | Fuente |
+|---|---|---|
+| Campos por nivel (Text Search y Nearby Search) | **Essentials:** id. **Pro:** nombre, dirección, tipos, ubicación, estado. **Enterprise:** `rating`, `userRatingCount`, `priceLevel`/`priceRange`, horario, sitio web. **Enterprise + Atmosphere:** `dineIn`, `delivery`, `servesBeer`/`servesCocktails`… | <https://developers.google.com/maps/documentation/places/web-service/text-search> · <https://developers.google.com/maps/documentation/places/web-service/nearby-search> |
+| Orden y filtros | **No ordena por número de reseñas.** Text Search: `RELEVANCE` o `DISTANCE`, `minRating` (calificación, no conteo). Nearby: `POPULARITY` (la popularidad según Google, no el conteo). El conteo se filtra en el cliente | ídem |
+| Tope por consulta | Text Search: 20 por página, **60 en total**. Nearby: 20 | ídem |
+| Precio (USD por 1,000 solicitudes) | Text Search Enterprise **35.00** (0–100 mil), 1,000 gratis al mes; Pro 32.00 (5,000 gratis); Enterprise + Atmosphere 40.00 | <https://developers.google.com/maps/billing-and-pricing/pricing> |
+| Guardar resultados | `place_id` sí, sin límite; coordenadas hasta 30 días; **no se encontró permiso de guardar `rating` ni `userRatingCount`** (queda bajo la regla general «sólo lo expresamente permitido») | <https://developers.google.com/maps/documentation/places/web-service/policies> |
+
+**Consultas necesarias [estimada]** (supuesto de traslape: 50 % de resultados únicos, o 30 % en el caso pesimista; cada página de 20 cuenta como una solicitud): para **500 negocios** ≈ 50–84 solicitudes (≈ 1.75–2.92 USD brutos, **0 USD con el uso gratis mensual**); para **1,000**, ≈ 100–167 (3.50–5.83 USD brutos, 0 con lo gratis). **El costo es despreciable; el límite es de cobertura** (60 por consulta, hay que dividir la ciudad en celdas y repetir por tipo) y de **términos** (no se puede conservar el conteo de reseñas). Esto aplica al **marco**, no a los platillos: la carta sigue leyéndose en páginas públicas. **Decisión de Calvin:** pagar la llave resuelve el universo y el muestreo al azar; **no** resuelve los platillos ni el almacenamiento del conteo. Recomiendo revisión legal antes de guardar reseñas.
+
+## 8. Lado de la demanda: cuánto se come fuera de casa
+
+**Gasto fuera del hogar, ENIGH 2024** (INEGI; promedio trimestral por hogar, gasto corriente monetario, pesos de 2024). Fuente nacional: <https://www.inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados_tab.pdf>; por entidad: el mismo nombre con `_cdmx`, `_jal`, `_nl`… en lugar de `_tab` (el sufijo `tab` es el **nacional**, no Tabasco, y no se encontró el de Tabasco). Las cifras nacionales (2,249 fuera del hogar; 15,614 en alimentos, bebidas y tabaco; hogar de 3.37) las verifiqué yo en el PDF; **las de entidad las leyó un ayudante con `pdftotext` y no tienen doble revisión**. Las columnas de proporción las calculé yo dividiendo cifras de INEGI [estimada: es aritmética mía, no dato publicado].
+
+| Entidad | Fuera del hogar | Alimentos, bebidas y tabaco | Gasto monetario total | Fuera ÷ alimentos | Fuera ÷ gasto total | Personas por hogar |
+|---|---|---|---|---|---|---|
+| **Nacional** | **2,249** (1,628 en 2022: +38.1 %) | 15,614 | 39,508 | 14.4 % | 5.7 % | 3.37 |
+| CDMX | 7,915 | 24,389 | 66,383 | 32.5 % | 11.9 % | 3.03 |
+| Jalisco | 5,267 | 21,442 | 56,015 | 24.6 % | 9.4 % | 3.27 |
+| Nuevo León | 3,828 | 20,556 | 59,192 | 18.6 % | 6.5 % | 3.30 |
+| Querétaro | 6,051 | 21,446 | 61,593 | 28.2 % | 9.8 % | 3.34 |
+| Puebla | 3,088 | 15,542 | 41,720 | 19.9 % | 7.4 % | 3.51 |
+| Yucatán | 3,845 | 18,874 | 51,255 | 20.4 % | 7.5 % | 3.32 |
+| Guanajuato | 2,870 | 17,126 | 45,570 | 16.8 % | 6.3 % | 3.54 |
+| Baja California | 5,790 | 19,444 | 55,269 | 29.8 % | 10.5 % | 3.17 |
+| Sonora | 3,556 | 16,530 | 51,336 | 21.5 % | 6.9 % | 3.22 |
+| Chihuahua | 3,460 | 15,461 | 46,881 | 22.4 % | 7.4 % | 3.18 |
+| San Luis Potosí | 3,035 | 15,711 | 47,045 | 19.3 % | 6.5 % | 3.37 |
+| Campeche | 2,831 | 16,620 | 41,574 | 17.0 % | 6.8 % | 3.44 |
+| Baja California Sur | 4,412 | 18,559 | 55,939 | 23.8 % | 7.9 % | 3.14 |
+| Quintana Roo | 4,567 | 20,067 | 53,667 | 22.8 % | 8.5 % | 3.22 |
+| Colima | 5,491 | 19,275 | 52,016 | 28.5 % | 10.6 % | 2.97 |
+| Oaxaca | 2,212 | 13,791 | 34,107 | 16.0 % | 6.5 % | 3.52 |
+| Estado de México | 4,398 | 21,158 | 49,595 | 20.8 % | 8.9 % | 3.48 |
+
+**Lectura:** el hogar mexicano gasta **14 % de su gasto en alimentos fuera de casa** (5.7 % del gasto total); **CDMX gasta 3.5 veces el promedio nacional** (7,915 contra 2,249) y destina un tercio de su gasto en alimentos a comer fuera; Querétaro, Colima y Baja California rondan 28–30 %; Oaxaca, Guanajuato y Campeche, 16–17 %. Las notas de prensa citan otra cifra (3,896 pesos trimestrales; Milenio y el análisis del IMCO): **no se pudo reconciliar** con los 2,249 de INEGI (puede ser otro concepto) y no se usa. La ENIGH **no desglosa por ciudad** en estos tabulados (sólo entidad); Hermosillo, Villahermosa y Chetumal quedan con la cifra de su entidad (Tabasco: sin dato).
+
+**Frecuencia de comer fuera: no hay cifra oficial en veces al mes** (la ENIGH mide gasto, no frecuencia). Lo más citable es una encuesta en línea de la UVM (700 internautas, junio–julio de 2017, **sin representatividad nacional**; <https://opinionpublica.uvm.mx/sites/default/files/presentaciones/15.%20BoomGastronomico_0.pdf>, leída del PDF): una o dos veces al mes 27 %, una vez por semana 27 %, dos o tres veces por semana 25 %, cada tres meses 6 %, todos los días 4 %, no acostumbra ir 5 %. Otras cifras (40 % «al menos una o dos veces por semana», 53 % «come fuera») sólo se vieron como extractos de búsqueda, sin fecha ni muestra: **no se usan**.
+
+**Tamaño del grupo en mesa: no se encontró estudio.** Sólo el tamaño del hogar (tabla). OpenTable reporta que las reservas de 6 o más crecieron 15 % en 2025, sin promedio (extracto de búsqueda, no verificado).
+
+## 9. Datos por conseguir (lo que en este informe es estimación sin fuente)
+
+Regla de Calvin: toda cifra lleva fuente. Estas piezas del informe **no la tienen**; se listan aquí con la forma de conseguirla.
+
+| # | Qué falta | Dónde se usa | Cómo conseguirlo | Quién |
+|---|---|---|---|---|
+| 1 | Conteo de platillos de cartas de **salón** y su diferencia con el reparto | §3, sesgo 1 | Leer 30–40 cartas en PDF o en el local; 10–15 pares reparto/salón | sesión recolectora o Calvin en visita |
+| 2 | **Número de reseñas y calificación** por negocio | §7 | Fichas públicas que lo muestren, o la interfaz de Google (con la salvedad de términos) | recolectoras / Calvin decide la llave |
+| 3 | **Mezcla real** de tipos de negocio (fonda, casual, café, bar, formal) | §3.4 (mezclas A y B son supuestos) | DENUE por clase SCIAN 722511/722512/722513/722514/722412 por zona metropolitana | recolectora con el DENUE interactivo |
+| 4 | **Personal por estrato dentro de la clase 722511** y por capital (0–5, 6–10, 11–30…) | §4 | DENUE interactivo (filtro por clase y estrato) o microdatos de los Censos Económicos 2024 | recolectora / INEGI |
+| 5 | **Qué parte del personal atiende mesas** (35–50 % es supuesto) | §4.2 | Encuesta a 10–20 restaurantes del piloto, o ocupaciones de la ENOE (meseros contra el total de la rama) | piloto / recolectora |
+| 6 | **Mesas por cuenta de personal** (2.5–4: sale de perfiles propios, no de estadística) | §4.2 | Pedir mesas y personal a los restaurantes del piloto (la base ya los guarda) | piloto |
+| 7 | **Media y dispersión del personal de 722511** (8.7 mezcla CE 2024 con CE 2019) | §4.2 | Mismo cuadro de INEGI de personal y unidades del mismo año (CE 2024) | recolectora |
+| 8 | **Frecuencia de comer fuera** (veces al mes) y **tamaño de grupo** | §8 | Encuesta propia o estudio de CANIRAC/Observa Restaurantes (los PDF dieron 503; reintentar más tarde) | recolectora / Calvin |
+| 9 | **Establecimientos 7225 por zona metropolitana** | §7.1 | DENUE interactivo (la actualización sale el 25 de noviembre de 2026) | recolectora |
+| 10 | **Foto por platillo** | §2 | Visitar la carta en el sitio propio; Rappi no la muestra en la lectura | recolectoras |
+
+Los topes recomendados del §0 son por eso una **primera pasada con margen ancho**: la parte de platillos descansa en la muestra (147 de reparto), y la de personal y mesas en los supuestos 4–7 de esta tabla.
