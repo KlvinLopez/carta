@@ -12,7 +12,8 @@ Produce una spec que un agente pueda convertir en tareas sin adivinar. **No toca
 
 1. Lee `docs/plan/01_Alcance_v1.md` (§2 roles, §4 qué NO entra) y busca si la feature ya está cubierta, pospuesta o prohibida. Si está en "Qué NO construir" de `CLAUDE.md`, dilo y detente: requiere decisión de Calvin, no una spec.
 2. Busca criterios existentes relacionados (`grep -n "AC-" docs/plan/01_Alcance_v1.md docs/mvp/01_PRD.md`) para no duplicar IDs ni historias.
-3. Haz **hasta 5 preguntas** con `AskUserQuestion`, sólo las que cambian la spec (quién la usa, cuándo ocurre, qué pasa si falla, qué métrica mueve, qué queda fuera). Lo que no se pueda resolver se marca `[ACLARAR]` en la spec.
+3. Mira primero el **prototipo navegable** (`prototipo/js/`: `comensal-*.jsx`, `checkout-v2.jsx`, `mesero.jsx`, `capitan.jsx`, `admin-*.jsx`), la referencia de flujo más refinada (`stitch/` es la primera versión). Cada pregunta a Calvin cita la pantalla revisada; donde el prototipo va más allá del alcance de la v1, dilo.
+4. Haz **hasta 5 preguntas** con `AskUserQuestion`, sólo las que cambian la spec (quién la usa, cuándo ocurre, qué pasa si falla, qué métrica mueve, qué queda fuera). Lo que no se pueda resolver se marca `[ACLARAR]` en la spec.
 
 ## 2. Escribir la spec
 
@@ -59,3 +60,4 @@ Reglas: nada de tablas, endpoints, librerías ni pantallas concretas en los crit
 2. Si toca 02/03 o es una decisión costosa, propón el ADR antes de las tareas.
 3. Con la spec aprobada, el siguiente paso es agregar las tareas a `docs/plan/04_Fases_y_Tareas.md` citando sus criterios, y una fila en el registro de cambios. Hasta entonces, **nadie implementa**.
 4. Commit: `spec NNN: <nombre>`.
+5. Si Calvin no está, no uses `AskUserQuestion`: deja `[ACLARAR-n]` con escenario y recomendación, una sección 0 de una página (decidido, abierto, tamaño) y, al final, la lista de «lecturas que Calvin aprueba al fusionar»; el PR de la spec lo fusiona Calvin o la maestra cuando él lo diga.
