@@ -12,9 +12,17 @@ Cada cifra lleva una marca: **[medida aquí]** (la midió esta tarea en un conte
 
 **Qué es «pico» aquí:** un restaurante con 40 mesas ocupadas y 3 comensales por mesa, todos con la app abierta (120 teléfonos, cada uno preguntando «¿cambió algo?» cada 3 s) más 6 dispositivos del personal. Es el escenario de 02 §10.1; un restaurante normal está lejos de eso casi todo el día.
 
-### 0. Sobre el video del reto de «cuántos usuarios aguanta un servidor de 12 dólares»
+### 0. Sobre el reto «¿cuántos usuarios aguanta un servidor de 12 dólares?» (el video que vio Calvin)
 
-Dato de **reseña de terceros, no verificado en la fuente**: el reto cuenta *personas simuladas* con pausas entre acciones, y aprueba el mayor número que se sostiene 5 minutos con p95 < 500 ms, p99 < 1 s y errores < 1 % en 1 vCPU y 2 GB. Su primer lugar (≈ 310,000 usuarios, Rust con io_uring y SQLite, sin PostgreSQL ni Redis) **no se traslada a Carta**: aquello era leer un feed; Carta usa PostgreSQL con transacciones, escribe comandas y corre en Python (1.8–3.5 ms por sondeo). **Lo que sí se toma:** medir el tope como usuarios simulados sostenidos varios minutos. Por eso las tablas de abajo dan el tope también en **comensales simulados** (cada uno sondea cada 3 s: comensales ≈ 3 × peticiones/s), y el aprobado de la T-4.4 se define así (última sección).
+**[documento]** (README y `bench/load.js` del repositorio público `arjaythedev/twelve-dollar-server-challenge` y su tabla de posiciones, leídos el 13 de noviembre por la sesión maestra; ni ella ni esta tarea vieron el video):
+
+- **Servidor:** 1 vCPU, 2 GB, sin swap, Ubuntu 24.04 (el README dice DigitalOcean Basic; la tabla de posiciones, un VPS de Synteq: no coinciden). Generador k6 en máquinas aparte de 16 núcleos en el mismo centro de datos.
+- **Carga:** una API fija sobre SQLite obligatorio (50 mil usuarios, 500 mil publicaciones, 2 millones de «me gusta»); prohibidas las cachés de respuestas y de consultas.
+- **El «usuario»:** k6 con `ramping-vus`: «GET /feed → pensar 3–7 s → GET /posts/:id → pensar 3–8 s → me gusta (15 %) → publicar (2 %) → reposo 5–15 s → repetir» ≈ 6 peticiones por minuto (≈ 0.1/s; cálculo a partir de las pausas). Rampa de 60 s, 5 min sostenidos, 30 s de bajada.
+- **Aprobado:** `p(95) < 500 ms`, `p(99) < 1000 ms`, errores < 1 %, sostenido 5 min. Búsqueda del tope: calentamiento, empieza en 2,500 usuarios, duplica hasta fallar, afina y confirma con 5 min.
+- **Resultados** (tabla del 25 de octubre de 2026, 220 implementaciones): 1.º Rust con io_uring, 310,000 usuarios, 29,284 peticiones/s, p95 62 ms, 82 % de CPU; 10.º **Lean 4** (genera C, con io_uring), 280,000 usuarios. No hay cifras de Python ni FastAPI en lo leído.
+
+**Traducción a Carta [estimada].** (a) El usuario del reto pide ≈ 6 veces por minuto y un comensal de Carta 20 (sondeo de 3 s): **un comensal pesa ≈ 3.3 usuarios del reto**. (b) El primero gasta ≈ 0.03 ms de CPU por petición y Carta 1.8–3.3 ms: **50–100 veces más**, que es la diferencia entre Rust a mano sobre SQLite con un feed de lectura y Python + FastAPI + JWT + PostgreSQL con transacciones. (c) **Con la vara del reto** (su usuario y sus umbrales de 500 ms / 1 s) y mis curvas medidas, Carta con 2 workers aprobaría **≈ 5,000 usuarios del reto** (400–700 peticiones/s con p95 < 500 ms; rango 4,000–7,000 local, **±2×** hasta medir en Railway), unas 60 veces menos que el primer lugar. **No es el objetivo de Carta:** los objetivos de 02 §10.2 (`304` p95 ≤ 30 ms, p99 ≤ 80 ms, 5xx < 0.1 %) son mucho más estrictos y dan el tope de la sección 1 (≈ 10 restaurantes con holgura). Lo que sí se toma de la idea: medir el tope como **usuarios simulados sostenidos varios minutos**; las tablas de abajo lo dan también en comensales simulados (comensales ≈ 3 × peticiones/s) y el aprobado de la T-4.4 se define así (última sección).
 
 ### 1. ¿Cuál es el tope con lo que se paga hoy?
 
@@ -37,6 +45,8 @@ Hoy la API corre con **2 workers** (`WORKERS=2`), es decir, usa como mucho 2 nú
 | Núcleos de pico para 100 restaurantes | ≈ 14 (≈ 20 con 70 % de holgura) | ≈ 5–6 (≈ 8 con holgura) |
 | Qué hay que cambiar | `WORKERS` ≈ 20 y bajar el pool de conexiones por worker (Postgres de Railway admite ≈ 100 conexiones) | `WORKERS` ≈ 8, pool reducido, y cuatro cambios de código (palancas 2–5) |
 | Costo mensual **[estimada]** (Railway: CPU 20 USD/vCPU-mes, RAM 10 USD/GB-mes, salida de red 0.05 USD/GB **[documento]**) | ≈ 180 USD | ≈ 90 USD |
+
+**Supuesto de los dólares [estimada]:** CPU de pico × 20 % (≈ 5 h al día equivalentes de uso en pico, casi nada fuera de pico) × 20 USD/vCPU-mes; RAM siempre encendida (≈ 0.17 GB por worker + 1.5 GB de Postgres) × 10 USD/GB-mes; salida de red con el mismo 20 % de pico; Postgres ≈ 26 USD. Railway cobra por uso: con otro perfil horario hay que rehacer la cuenta.
 
 Los 90 USD coinciden con lo que ya decía `06_Hosting.md` (60–90) **sólo con las palancas**; sin ellas la factura casi se duplica. Un detalle que 06 no contaba: cada `304` de sondeo sale con ≈ 580 bytes de cabeceras **[medida aquí]**; a 100 restaurantes son ≈ 1 TB al mes de salida de red (≈ 60 USD) sin palancas. Más allá de ~3 instancias de API (réplicas) sí haría falta Redis (disparador de 02 §11.3); con un solo servicio de muchos workers, no.
 
@@ -202,9 +212,13 @@ Del total de una petición de sondeo: ≈ 15 % verificar el JWT (`PyJWT`), ≈ 1
 | **TLA+ (modelo pequeño)** | Explora *todos* los entrelazados de unos pocos procesos: confirmar con `FOR UPDATE`, idempotencia, dos workers; prueba «ninguna comanda se pierde» en el modelo | 3–5 días (curva de aprendizaje) y el modelo puede divergir del código | Sólo si aparece un error de concurrencia que Hypothesis no encuentre |
 | **Lean** | Demostración matemática de propiedades del modelo | Semanas, y no demuestra el código Python ni la base | No para v1 |
 
+**Sobre el «lenguaje matemático» del reto:** lo que Calvin recordaba es la entrada de **Lean 4** del reto (10.º lugar, 280,000 usuarios). Es rápida porque compila a C y usa io_uring, **no porque esté demostrada**: la página leída no dice que demuestre nada. La recomendación no cambia.
+
 **Recomendación:** Hypothesis con estados (≈ 2 días). Es lo que el video logra a menor escala: «exprimir» el sistema buscando la secuencia que lo rompe.
 
 ## Usuarios simulados antes de la alfa (propuesta, sin construir)
+
+**Aclaración sobre el creador del reto:** su «simulador de usuarios» es k6 con pausas humanas (`bench/load.js`), no una skill de agentes (el repositorio no trae ninguna). Los escenarios de la T-4.4 copian esa forma: rampa, 5 min sostenidos, pausas por personaje, umbrales dentro del propio script y búsqueda del tope duplicando y afinando. Los agentes de QA de la capa 3 son aparte y son propuesta nuestra.
 
 **Tres capas, un mismo guion de personajes** (todo contra staging con restaurante de prueba, nunca producción):
 
