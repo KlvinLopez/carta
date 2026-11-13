@@ -172,7 +172,7 @@ Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lot
 
 **Diagnóstico.** De los 24 intentos que no dieron fila, 5 son `robots.txt`, 3 son verificación anti-bot (no se evade), 11 son cartas que no existen en el sitio y el resto son formatos que el lector no resuelve (precios en imágenes, JavaScript, ficha de tercero). **El techo con sitios propios, respetando bloqueos, parece ≈ 17–30 % de los negocios con sitio web** (intervalo de arriba; n = 30). Con 914 candidatos (193 sin sitio) se esperarían ≈ 120–215 contables **en el mejor caso, leyéndolos todos**: **500 no se alcanza sólo con sitios propios y este marco.** Opciones, para decidir: (1) seguir con el lector sobre la cola (decisión pendiente de Calvin, §7.2); (2) abrir la segunda fuente (fichas de reparto: la primera pasada rindió 1 contable por cada 1.7 intentos [documento], con sesgo de reparto y sin la dirección de Rappi en la ficha de Google); (3) cerrar con lo que hay como prueba de método, no como estadística.
 
-**Borrado del archivo temporal.** La salida del marco con nombres y sitios (y los textos descargados) se borra **al terminar la última tanda o a las 48 horas de haberse creado (13 de noviembre de 2026, ≈ 06:00 UTC; no más tarde del 15 de noviembre), lo que ocurra primero**; se confirma a la maestra por mensaje.
+**Borrado del archivo temporal.** La salida del marco con nombres y sitios (y los textos descargados) se borra **al terminar la última tanda o a las 48 horas de haberse creado (13 de noviembre de 2026, ≈ 06:00 UTC; no más tarde del 20 de noviembre de 2026 [plazo ampliado, ver §11.3]), lo que ocurra primero**; se confirma a la maestra por mensaje.
 
 ### 7.2 La negativa del clasificador y lo que queda pendiente [hecho, factual]
 
@@ -350,7 +350,7 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 - Decidir si se corre el estrato aleatorio del DENUE con sitio web declarado (§8.3b).
 - Un camino sin plataformas: pedir las cartas a los restaurantes del piloto de Carta, que es el único que llega al 99 % de negocios sin sitio.
 
-**Archivo temporal con nombres y sitios (y los textos descargados):** sigue en el directorio temporal de la sesión, fuera del repositorio; se borra al terminar la última tanda o a más tardar el 15 de noviembre de 2026, lo que ocurra primero.
+**Archivo temporal con nombres y sitios (y los textos descargados):** sigue en el directorio temporal de la sesión, fuera del repositorio; se borra al terminar la última tanda o a más tardar el 20 de noviembre de 2026 (plazo ampliado, §11.3), lo que ocurra primero.
 
 ## 11. Pasada autorizada del marco de Google: punto de control de 100 intentos [medida aquí; 13 de noviembre de 2026]
 
@@ -384,6 +384,18 @@ Al revisar mi registro de intentos encontré **registros duplicados** (un intent
 ### 11.2 Punto de control (200 intentos) [medida aquí]
 
 **200 intentos con el lector: 20 contables completos (0.100; intervalo de 90 % 0.07 a 0.14), 7 parciales, 5 de misma marca y 168 descartes.** Motivos de los 173 registros de descarte y misma marca (CSV por `place_id`, sin nombre): sin carta en el sitio 77 · **`robots.txt` lo prohíbe 33 (16.5 % de los intentos)** · carta solo en imagen 11 (5.5 %) · sitio caído 9 · misma marca 5 · carta sin precios 4 · sin carta en el texto 4 · ficha de tercero 3 · el resto de a 1 a 3. Quedan **≈ 85 sitios de la cola de la tanda 1** y el resto del marco (sitios más abajo en reseñas). Con esta tasa, el marco completo (≈ 700 sitios) daría unos 70 contables completos: **500 no se alcanza con el marco de Google**.
+
+### 11.3 Pausa por el límite semanal de uso y cómo retomar [hecho, factual]
+
+**Pausa (13 de noviembre de 2026):** la maestra ordenó pausar la lectura porque el registro de la sesión marca aviso del límite semanal de uso de la cuenta (`seven_day`, `allowed_warning`; se reinicia hacia el 16 de noviembre a las 10:00 UTC) y lo que queda de la semana se reserva para el análisis de mercado y la versión 3 del informe «Planos de Carta». La muestra es progresiva por decisión de Calvin. No había lote en curso al pausar; **no se calculó estadística** (mediana y p90 quedan para cuando se cierre el marco).
+
+**Cola pendiente del marco de Google (el archivo de trabajo está en el directorio temporal de la sesión):**
+- Candidatos del marco: **975** (705 con sitio web declarado, 270 sin sitio; los sin sitio nunca se intentaron).
+- **Intentos hechos con el lector: 200** (más la lectura previa del primer sitio): 20 contables completos, 7 parciales, 5 misma marca, 168 descartes.
+- **Pendientes: ≈ 504 sitios con web**: 86 de la cola de la tanda 1 (rebanada proporcional; orden de reseñas dentro de cada ciudad) y 418 más abajo en el orden de reseñas (de estos, algunos son de marcas ya leídas y se omiten por la regla de una fila por marca).
+- **Por dónde retomar:** el orden es el de la cola de la tanda 1 (por `place_id`; los ya intentados están en los CSV de datos y de descartes: `…-muestra-500-datos.csv` y `…-muestra-500-descartes.csv`), luego los candidatos con sitio fuera de la cola, ordenados por reseñas dentro de cada ciudad. Procedimiento que se siguió: el lector (`…-lector.py`) por lotes de 9 en primer plano, un registro automático que descarta lo que no tiene señal de precios (menos de 10 renglones con número) y conteo con ayudante `haiku` (uno a la vez, 3 a 7 sitios por llamada) del resto; recuento propio del 10 %. **Si el archivo de trabajo se pierde** (sesión nueva), el marco se puede reconstruir restando al CSV de ids los `place_id` ya intentados, pero **los nombres y sitios de Google no están en el repositorio**: habría que repetir las 81 solicitudes de Google (cuota diaria de 100, un día de espera).
+
+**Plazo del archivo temporal** (nombres y sitios del marco de Google y textos descargados): se **amplía** a «al terminar el marco de Google o el 20 de noviembre de 2026, lo que ocurra primero» (antes: 15 de noviembre), **por la pausa por límite semanal**: borrarlo el 15 obligaría a repetir las 81 solicitudes para retomar el 16. Se sigue guardando solo en el directorio temporal de la sesión, fuera del repositorio.
 
 ---
 
