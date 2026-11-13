@@ -422,10 +422,22 @@ def g_histograma(cartas) -> str:
         )
         if c:
             out.append(
-                texto(x + bw / 2 - 1, arriba + ah - h - 4, str(c), 9.5, TINTA, "middle", 600)
+                texto(
+                    x + bw * (0.78 if i < len(bins) and bins[i] <= 44 < bins[i] + 10 else 0.5) - 1,
+                    arriba + ah - h - 4,
+                    str(c),
+                    9.5,
+                    TINTA,
+                    "middle",
+                    600,
+                )
             )
         etq = f"{bins[i]}" if i < len(bins) else "160+"
-        out.append(texto(x + bw / 2 - 1, arriba + ah + 14, etq, 9.5, TINTA2, "middle"))
+        out.append(
+            texto(
+                x - 1 if i < len(bins) else x + bw / 2, arriba + ah + 14, etq, 9.5, TINTA2, "middle"
+            )
+        )
     for valor, etq, color in ((44, "mediana 44", AZUL), (82, "p90 ≈ 82", DORADO)):
         x = izq + (valor / 10) * bw
         out.append(
@@ -665,6 +677,18 @@ def g_equilibrio() -> str:
         )
         fin = economia(1000, c, rpm)["excedente"]
         if fin > ymax:
+            k = next(k for k in range(0, 1001, 5) if economia(k, c, rpm)["excedente"] > ymax)
+            out.append(
+                texto(
+                    X(k) + 4,
+                    Y(ymax) + 12,
+                    f"sigue ↑ hasta ≈ {n(fin)} USD con 1,000",
+                    9.5,
+                    TINTA,
+                    "start",
+                    600,
+                )
+            )
             etq = f"{etq}: ≈ {n(fin)} USD con 1,000"
         etiquetas.append([Y(min(fin, ymax)) + 4, etq, color])
     etiquetas.sort()
@@ -790,7 +814,7 @@ def construir() -> str:
                 "Hobby",
             ],
             [
-                "Todo gratuito con anuncios, escenario medio",
+                "Todo gratuito con anuncios, escenario medio<br><small><b>fuente débil, sin verificar</b></small>",
                 "299",
                 f"{e300_ads['costo']:.2f}",
                 f"{e300_ads['ingreso']:.2f}",
@@ -847,8 +871,9 @@ def construir() -> str:
 <section>
   <h2><span>1</span> La respuesta en una página</h2>
   <div class="dos">
-    <div class="cifra"><b>{mes_total:.1f} USD</b><span>al mes cuesta Carta hoy, sin restaurantes {
-        marca("calvin")
+    <div class="cifra"><b>{
+        mes_total:.1f} USD</b><span>al mes cuesta Carta hoy, sin restaurantes: proyección sobre la captura de Calvin {
+        marca("supuesto")
     }</span></div>
     <div class="cifra"><b>1</b><span>restaurante de paga a 349 pesos cubre eso y deja ≈ {
         PRECIO_USD - mes_total:.0f} USD {marca("supuesto")}</span></div>
@@ -1217,7 +1242,7 @@ def construir() -> str:
 <section>
   <h2><span>8</span> ¿Es negocio?</h2>
   <p>Modelo de este informe {marca("supuesto")}: con eventos, cada restaurante gratuito típico cuesta ≈ {gratis_costo:.3f} USD al mes (tráfico y disco {GT["usd_marginal_eventos"]:.3f} + lecturas de PDF de altas nuevas), más ≈ {alta_gratis:.2f} USD una sola vez al darse de alta. Uno de paga típico cuesta ≈ {PT["usd_marginal_eventos"] + S["lecturas_paga_mes"] * LECTURA:.2f} USD al mes y paga {PRECIO_USD:.2f} USD (349 pesos antes de IVA). Lo fijo son los ≈ {mes_total:.1f} USD de hoy. Si el disco pasa de 5 GB, Railway pasa a Pro (mínimo 20 USD).</p>
-  {figura(g_equilibrio(), "Excedente mensual según cuántos se registran y cuántos pagan", "cálculo de <code>generar.py</code> (función <code>economia</code>) con el costo por restaurante del simulador " + marca("supuesto") + ", la factura real proyectada " + marca("calvin") + ", precio 349 " + marca("documento") + " y anuncios a 0.20 (bajo) y 1.09 (medio) USD por mil visitas, del comparativo §5.2 " + marca("supuesto") + ". El escalón de las líneas de paga es el paso a Pro.", num)}
+  {figura(g_equilibrio(), "Excedente mensual según cuántos se registran y cuántos pagan", "cálculo de <code>generar.py</code> (función <code>economia</code>) con el costo por restaurante del simulador " + marca("supuesto") + ", la proyección sobre la captura de Railway de Calvin " + marca("supuesto") + ", precio 349 " + marca("documento") + " y anuncios a 0.20 (bajo) y 1.09 (medio) USD por mil visitas, del comparativo §5.2 " + marca("supuesto") + ". El escalón de las líneas de paga es el paso a Pro.", num)}
   {escenarios_negocio}
   <h3>Lo que dicen los números</h3>
   <ul>

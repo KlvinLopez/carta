@@ -49,8 +49,12 @@ body {
   line-height: 1.45;
 }
 
-section { break-before: page; }
-section:first-child { break-before: auto; }
+section { break-before: auto; margin-top: 7mm; }
+section:first-child { margin-top: 0; }
+/* salto forzado sólo tras la portada y antes de las decisiones finales */
+section.portada + section, section.salto { break-before: page; margin-top: 0; }
+h2 { break-after: avoid; }
+tr { break-inside: avoid; }
 
 h1, h2, h3 { font-family: "DM Serif Display", serif; font-weight: 400; color: var(--vino); }
 h1 { font-size: 46pt; margin: 18mm 0 4mm; line-height: 1; }
@@ -98,7 +102,7 @@ svg { display: block; }
 table {
   width: 100%; border-collapse: separate; border-spacing: 0; margin: 2mm 0 3mm;
   background: var(--superficie); border-radius: 20px; overflow: hidden;
-  box-shadow: var(--sombra); break-inside: avoid; font-size: 8.8pt;
+  box-shadow: var(--sombra); font-size: 8.8pt;
 }
 table.chica { font-size: 8pt; }
 th { background: var(--crema-baja); text-align: left; font-weight: 600; color: var(--carbon-suave); padding: 2mm 2.5mm; vertical-align: bottom; }
