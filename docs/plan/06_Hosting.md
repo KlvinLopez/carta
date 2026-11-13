@@ -128,6 +128,34 @@ Lo que es: una máquina virtual tuya con Docker; Caddy, la API, PostgreSQL y el 
 
 ---
 
+## 5. Comparación ampliada frente a la visión de plataforma (13 de noviembre de 2026)
+
+Calvin pidió, con la Fase 2 ya en producción, una tabla como la de un bróker hipotecario: las opciones en columnas y las variables en filas, pensando en lo que Carta quiere llegar a ser (una plataforma que conecta comensales y restaurantes, con recomendaciones, como Spotify, Uber o Airbnb en su terreno). Los precios son los de las secciones anteriores (noviembre de 2026, USD al mes). **Replit y Lovable no se cotizaron**: lo que se dice de ellos es por cómo funcionan, sin cifras verificadas.
+
+| | **Railway + Cloudflare (hoy)** | Google Cloud | AWS | Vercel | Replit | Lovable |
+|---|---|---|---|---|---|---|
+| Qué es | Servidor administrado + borde | Nube completa | Nube completa | Frontend + funciones cortas | Taller de IA con hosting | Generador de apps con IA |
+| ¿Corre Carta tal cual? | Sí | Sí, misma imagen | Sí, misma imagen | No, hay que rediseñar | Sólo prototipos | No, otro tipo de app |
+| Costo al arrancar | 5–10 | 15–35 | Igual o más que Google | 20 + base aparte | Suscripción + uso | Suscripción + créditos |
+| Costo con 100 restaurantes | 60–90 | 150+ | 150+ | Sin estimar: cobra por petición | No está pensado para eso | No está pensado para eso |
+| Trabajo de operarlo | Mínimo | Medio | Medio o más | Poco | Ninguno | Ninguno |
+| Techo de escala | Medio | Muy alto | Muy alto | Alto en frontend | Bajo | Bajo |
+| Región en México | No | Sí, Querétaro | Sí, Querétaro | No | No | No |
+| Amarre al proveedor | Bajo | Bajo | Bajo | Alto | Alto | Muy alto |
+| Datos e IA para recomendar | Se conecta a cualquiera | La más completa | Muy completa | Pensada para chat | Para construir, no para operar | Igual |
+| Papel para Carta | Elegido | Destino de escala | Si llega un crédito | Sólo una página de marketing | Prototipar ideas | Prototipar ideas |
+
+**Lo que se dejó pasar con cada una (el costo de oportunidad).**
+- **Google Cloud y AWS:** servidores en Querétaro (respuesta más rápida), base de datos administrada con recuperación a cualquier momento, escala automática, las mejores herramientas de datos para un motor de recomendaciones y programas de créditos para startups. A cambio: dos o tres veces más caro desde el primer día y semanas de configuración (permisos, redes, facturación) para una sola persona.
+- **Vercel:** vista previa automática por cada cambio y la mejor experiencia de frontend. A cambio: rehacer el servidor (Carta es un proceso que vive todo el tiempo, con el procesador de PDF, las copias en memoria y los contadores contra abusos) y pagar por cada consulta de cada teléfono, que preguntan cada 3 s.
+- **Replit y Lovable:** velocidad para llegar a un primer prototipo, que Carta ya tiene (el prototipo navegable y un producto con más de 3 200 pruebas). No están hechas para operar una plataforma con varios restaurantes, límites de seguridad y despliegues controlados.
+
+**Por qué el costo de oportunidad es bajo.** La app es una imagen portable: mudarla a Google Cloud o a AWS es cuestión de días, no de rehacerla. Empezar en Railway no cierra ninguna puerta; empezar en una nube grande habría sido fricción cuando todavía no hay restaurantes. Los disparadores para moverse están en [02 §11.3](02_Arquitectura_v1.md). El motor de recomendaciones, cuando llegue, puede vivir en Google Cloud o AWS como un sistema aparte que lee los datos de Carta, sin mover la app; ése es el momento natural para pedir créditos de startup.
+
+**Decisión de Calvin (13 de noviembre):** se queda Railway con Cloudflare; el análisis se guarda aquí para tenerlo en cuenta.
+
+---
+
 ## Fuentes consultadas (noviembre de 2026)
 
 Railway: [MakerKit calculadora](https://makerkit.dev/pricing-calculator/railway), [Server Compass](https://servercompass.app/blog/railway-pricing-what-youll-actually-pay), [FrontDesk Review](https://frontdeskreview.com/software/managed-postgres/railway/), [DEV: reseña 2026](https://dev.to/build996/railway-app-review-2026-the-best-heroku-alternative-for-developers-1j8o). Comparativas PaaS: [DEV: Fly vs Railway vs Render 2026](https://dev.to/whoffagents/flyio-vs-railway-vs-render-in-2026-where-to-deploy-your-ai-saas-with-real-numbers-3b0f), [DEV: para desarrolladores solos](https://dev.to/devtoolpicks/railway-vs-render-vs-flyio-for-solo-developers-in-2026-5ddf), [Encore: Render vs Railway](https://encore.dev/articles/render-vs-railway), [sota.io: comparación de precios](https://sota.io/blog/railway-vs-render-vs-fly-pricing-2026). Vercel: [límites de funciones](https://vercel.com/docs/functions/limitations?from=graph), [plataformas serverless](https://vercel.com/i/serverless-computing-platforms), [Kuberns: Python en Vercel](https://kuberns.com/blogs/vercel-python/) (competidor; leer con cautela). VPS: [Bitdoze: DO vs Vultr vs Hetzner](https://www.bitdoze.com/digitalocean-vs-vultr-vs-hetzner/), [DEV: Hetzner vs DigitalOcean 2026 tras el alza](https://dev.to/dmaxdev/hetzner-vs-digitalocean-2026-real-numbers-after-the-price-hike-35g0), [apicalculators: comparación VPS 2026](https://apicalculators.com/blog/cloud-vps-cost-comparison-2026). Cloud Run y Cloud SQL: análisis del 26 de octubre en `docs/propuestas/`.
