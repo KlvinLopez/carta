@@ -1,11 +1,26 @@
-place_id,ciudad,tanda,motivo
-ChIJL0UaXyv50YURNyz05p6HsQg,CDMX y Estado de México,1,bloqueo_403
-ChIJ5S7RDfa0KIQRYIUIQ6QN-2w,Guadalajara y Zapopan,1,sitio_caido_503
-ChIJh3TykGP_0YURSoX5QW6l5zs,CDMX y Estado de México,1,sitio_caido_503
-ChIJ2eDdbzNH2YARKrJnAQZSUMY,Tijuana,1,carta_pdf_texto_no_legible_por_la_herramienta (pdftotext sí extrae texto: limite del lector)
-ChIJI5uOPQyuKIQRYOSFjcZBNxs,Guadalajara y Zapopan,1,bloqueo_otro:429_retry_after_3600
-ChIJxU8a_-SLzYURxKZbGiFlVlY,Toluca,1,bloqueo_otro:429_retry_after_3600 (comida 53 leída; bebidas bloqueadas; no se estima)
-ChIJR1gZsYO9YoYRbDLnWdFfczQ,Monterrey,1,sin_carta_en_sitio
-ChIJ___D_iz50YURnlo8sopE6ss,CDMX y Estado de México,1,otro:carta_en_14_subpaginas_excede_limite_de_lectura
-ChIJHziM9r5Gw4URIqgAQwdrP2c,Veracruz,1,carta_pdf_texto_no_legible_por_la_herramienta (pdftotext sí extrae texto: limite del lector)
-ChIJR33LdlxxVo8RPf3JvNpr96M,Mérida,1,otro:home_sin_contenido_ni_enlace_a_carta
+place_id,ciudad,tanda,intentos,motivo
+ChIJL0UaXyv50YURNyz05p6HsQg,CDMX y Estado de México,1,2 (helper haiku + lector propio),robots_txt_lo_prohibe
+ChIJh3TykGP_0YURSoX5QW6l5zs,CDMX y Estado de México,1,2 (helper haiku + lector propio),dominio_vencido
+ChIJI5uOPQyuKIQRYOSFjcZBNxs,Guadalajara y Zapopan,1,2 (helper haiku + lector propio),menu_carga_con_javascript_sin_platillos_en_texto
+ChIJxU8a_-SLzYURxKZbGiFlVlY,Toluca,1,2 (helper haiku + lector propio),paginas_con_verificacion_anti_bot_comida_incompleta
+ChIJR1gZsYO9YoYRbDLnWdFfczQ,Monterrey,1,2 (helper haiku + lector propio),sin_carta_en_sitio
+ChIJ___D_iz50YURnlo8sopE6ss,CDMX y Estado de México,1,2 (helper haiku + lector propio),sin_carta_en_sitio
+ChIJHziM9r5Gw4URIqgAQwdrP2c,Veracruz,1,2 (helper haiku + lector propio),texto_extraido_sin_contar_por_tamano
+ChIJR33LdlxxVo8RPf3JvNpr96M,Mérida,1,2 (helper haiku + lector propio),solo_recomendados_sin_carta_completa
+ChIJ13W7ydpC6oYRe7sTWEk77lc,Chihuahua,1,1 (lector propio),sin_carta_en_sitio
+ChIJjxt6NXvuKYQRWibmmZP2uMM,Aguascalientes,1,1 (lector propio),sin_carta_en_sitio
+ChIJPTwzS5qaNw0Rf8lyHHkTMOM,León,1,1 (lector propio),sin_carta_en_sitio
+ChIJkx3cKObAz4URJ1mhV73E_jk,Puebla,1,1 (lector propio),sin_carta_en_sitio
+ChIJCzisuB5b04URvDmfy2FBl2E,Querétaro,1,1 (lector propio),texto_extraido_sin_contar_por_tamano
+ChIJAXxOOowoTI8RHqzlMEC0bMo,Cancún,1,1 (lector propio),precio_solo_desde_por_seccion
+ChIJzf-7LwCiKoQRpxkfSIykOM8,San Luis Potosí,1,1 (lector propio),robots_txt_lo_prohibe
+ChIJMwuW4D4ix4URr6IVHMhfOtQ,Oaxaca,1,1 (lector propio),texto_extraido_sin_contar_por_tamano
+ChIJQ43YlB6iXRQRbbBAgpzfpzY,Hermosillo,1,1 (lector propio),sin_carta_en_sitio
+ChIJy7iacy8MLYQR9tCQUBOS8a8,Morelia,1,1 (lector propio),sin_carta_en_sitio
+ChIJQYiGqtL-0YURAmYK1TVRDpQ,CDMX y Estado de México,1,1 (lector propio),ficha_de_tercero_sin_platillos
+ChIJh3D2US350YURVW0T-_DRdsA,CDMX y Estado de México,1,1 (lector propio),sin_carta_en_sitio
+ChIJc5_0UhO-YoYR6c7sGd1Tu-E,Monterrey,1,1 (lector propio),sin_carta_en_sitio
+ChIJafyuGN-tKIQR24rD8BjP_RA,Guadalajara y Zapopan,1,1 (lector propio),sin_carta_en_sitio
+ChIJOw1ZRC350YUR9g47BGXQoPM,CDMX y Estado de México,1,1 (lector propio),robots_txt_lo_prohibe
+ChIJqwZcyWf50YURXTybfZV6Rwc,CDMX y Estado de México,1,1 (lector propio),robots_txt_lo_prohibe
+ChIJO92cI26uKIQRzk3yBRzRaCo,Guadalajara y Zapopan,1,1 (lector propio),robots_txt_lo_prohibe

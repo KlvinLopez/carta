@@ -1,6 +1,6 @@
 # Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; tanda 1 **detenida a los 11 intentos por rendimiento bajo** (1 contable); etapas 2–3 en espera de decisión de la maestra. No cambia código, contrato ni planes.
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; tanda 1 **detenida con el lector propio a los 30 intentos por rendimiento bajo** (5 contables, 0.17; cota 0.27); etapas 2–3 en espera de decisión de la maestra. No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
@@ -128,14 +128,14 @@ Se usaron las 8 solicitudes que quedaban (90 de 90) en 4 consultas de 2 páginas
 |---|---|---|
 | Contable | 1 | Taquería Orinoco: carta de la marca en su página de pedidos en línea (32 de comida, 4 de bebidas) |
 | Sitio caído o bloqueo del sitio (503 ×2, 403 ×1) | 3 | La lectura recibió el error y no se reintentó |
-| Límite de peticiones del sitio (429, «reintentar en 3600 s») | 2 | Una de ellas (Coco Canela) alcanzó a leer 53 renglones de comida pero no las bebidas: **no se estima** |
-| PDF «ilegible» para la herramienta | 2 | **Limitación del lector, no del PDF:** con `pdftotext` los dos PDF (La Parroquia de Veracruz y Villa Marina Península) sí extraen texto (≈ 120 y ≈ 230 líneas con precio) |
-| Carta repartida en muchas subpáginas | 1 | Café de Tacuba: 14 subpáginas de categoría, el tope de 3 páginas no alcanza |
-| Sin enlace a la carta en el texto de la página (probable JavaScript) | 2 | Animal; Trattoria La Pasta |
+| Límite de peticiones del sitio (429, «reintentar en 3600 s») | 2 | Uno de los dos alcanzó a leer 53 renglones de comida pero no las bebidas: **no se estima** |
+| PDF «ilegible» para la herramienta | 2 | **Limitación del lector, no del PDF:** con `pdftotext` los dos PDF sí extraen texto (≈ 120 y ≈ 230 líneas con precio) |
+| Carta repartida en muchas subpáginas | 1 | Una carta de 14 subpáginas de categoría, el tope de 3 páginas no alcanza |
+| Sin enlace a la carta en el texto de la página (probable JavaScript) | 2 | Dos sitios (Ciudad de México y Mérida) |
 
 Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lote 1 y no cuenta: una fila por marca.
 
-**Lectura.** El cuello de botella es **la herramienta de lectura**, no la falta de cartas: de 10 descartes, 5 son sitios que bloquean o limitan peticiones automáticas y 5 son cartas que sí existen pero que el lector no resume bien (PDF con texto, subpáginas, JavaScript). Los PDF con texto cuestan mucho contarlos con una herramienta que resume: en `pdftotext` los precios quedan separados de los nombres y un conteo por guion no es fiable (se probó con La Parroquia). Opciones para decidir (cada una con costo de uso):
+**Lectura.** El cuello de botella es **la herramienta de lectura**, no la falta de cartas: de 10 descartes, 5 son sitios que bloquean o limitan peticiones automáticas y 5 son cartas que sí existen pero que el lector no resume bien (PDF con texto, subpáginas, JavaScript). Los PDF con texto cuestan mucho contarlos con una herramienta que resume: en `pdftotext` los precios quedan separados de los nombres y un conteo por guion no es fiable (se probó con un PDF de Veracruz). Opciones para decidir (cada una con costo de uso):
 1. Dejar al ayudante abrir hasta 6 páginas y leer los PDF completos con `pdftotext` (yo hago el conteo línea por línea): rendimiento esperable mayor, costo por negocio ≈ 3–5 veces mayor [supuesto, sin medir].
 2. Cambiar la fuente a las fichas de reparto (Rappi, Uber Eats): la primera pasada rindió 1 contable por 1.7 intentos **[documento]**, pero sesgadas a reparto, y la ficha de Google no trae la dirección de Rappi: habría que buscar cada negocio.
 3. Aceptar la muestra chica: con 1 contable no hay estadística; con 30–50 sí hay intervalos amplios (mediana ±15 % aprox. de la primera pasada con n = 148) [supuesto].
@@ -143,6 +143,34 @@ Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lot
 **Datos de la parada** (entran al mensaje a la maestra): contables acumulados 1 · intentos por contable 11 · ancho del intervalo de 90 % de la mediana y del p90: **no existe con n = 1**.
 
 **Archivos de esta tanda:** [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (1 fila; `negocio` y `url` tal como aparecen en la página leída, no los de la ficha de Google) y [`…-muestra-500-descartes.csv`](2026-11-13-muestra-500-descartes.csv) (`place_id`, ciudad, tanda, motivo; sin nombre). **Nota de transparencia:** la salida del marco, con nombres y sitios web de Google, se redirigió a un archivo del directorio temporal de la sesión (fuera del repositorio; no se subió) y no solo a pantalla: sirve para reanudar sin repetir las solicitudes; se borra al cerrar la sesión o cuando la maestra lo pida.
+
+### 7.1 Segunda pasada con lector propio (30 intentos) [medida aquí]
+
+**Lector** ([`…-lector.py`](2026-11-13-muestra-500-lector.py) y [`…-lector-chromium.mjs`](2026-11-13-muestra-500-lector-chromium.mjs), sin candidatos dentro): descarga directa con agente de usuario genérico y respeto de `robots.txt`; si la página viene vacía o sin enlace a la carta, una carga con el Chromium instalado (sin disfraces); sigue hasta 20 subpáginas del mismo dominio con ≥ 2 s entre peticiones; PDF ≤ 10 MB con `pdftotext -layout`; 403, 429 y 503 se respetan. Los textos extraídos quedan en el directorio temporal de la sesión (fuera del repositorio, tratados como datos no confiables). El conteo lo hace el ayudante `haiku` (uno a la vez, sólo sobre texto ya extraído); yo recuento.
+
+**Hallazgo del primer intento:** el `.mjs` era un módulo ES y fallaba en silencio; con ese fallo 8 sitios con JavaScript parecían «sin carta». Corregido y reprocesados esos 8 (no cuentan como intentos nuevos).
+
+**Resultado de los 30 intentos (10 reintentos de los descartes + 20 nuevos; rebanada proporcional, orden de reseñas):**
+
+| Resultado | Intentos | Detalle |
+|---|---|---|
+| **Contable** | **5** | Dos taquerías (Guadalajara, Toluca), una cafetería-casual de Guadalajara y dos casuales/formales de Tijuana (mismo grupo, cartas distintas). Cuatro leídas con el lector (HTML y PDF con texto); una HTML directa |
+| Texto extraído, **sin contar por tamaño** | 3 | Textos de 260–650 KB (cartas de cadenas con muchas páginas repetidas): contarlos con el ayudante costaría ≈ 65–160 mil unidades de lectura cada uno. No se descartan por ser grandes: **quedan pendientes** y son justo la cola alta de platillos |
+| `robots.txt` lo prohíbe | 5 | Respetado, sin evasión |
+| Sin carta en el sitio (ni con Chromium) | 11 | 3 con páginas de verificación anti-bot («Un momento…»), el resto sin carta enlazada o con carta sólo en imagen o redes |
+| Sitio con la carta pero no contable | 5 | Menú que carga con JavaScript sin platillos en el texto (1), sólo «recomendados» sin carta completa (1), precio sólo como «desde» por sección (1), ficha de un tercero sin platillos (1), páginas de comida con verificación anti-bot (1) |
+| Dominio vencido | 1 | Página de registro de dominio |
+| **Total** | **30** | 5 + 3 + 5 + 11 + 5 + 1 = 30 |
+
+**Rendimiento: 5 contables ÷ 30 intentos = 0.17**; **si los 3 textos grandes resultaran contables, 8 ÷ 30 = 0.27: aun así queda bajo el umbral de 0.30.** Comparación: la lectura por ayudante de la sección 7 rindió 1 de 11 (0.09). Contables acumulados con el Orinoco de la primera pasada: **6**.
+
+**Control de calidad.** Recontado por mí 1 de las 5 filas (20 %, el mínimo de 10 % de este tramo no es posible con 5 filas): Tomate Taquería, comida 43 y bebidas 20, **diferencia absoluta 0 contra el ayudante (0 %)**; la fila queda `conteo = propio`. Las otras 4 son `herramienta` y quedan sin recuento propio.
+
+**Datos de la parada:** contables acumulados 6 · intentos por contable ≈ 6 (30 ÷ 5) · intervalos de 90 % de la mediana y del p90: **no se calculan con n = 5** (el bootstrap con 5 valores no es informativo: la comida va de 43 a 105 y el total de 58 a 248).
+
+**Lo que dice el diagnóstico:** de 25 descartes, **sólo 8 son del lector** (3 sin contar por tamaño y 5 por motivos de formato del sitio); 5 son `robots.txt`, 3 son verificación anti-bot (no se evade), 11 son cartas que no existen en el sitio. **El techo con sitios propios, respetando bloqueos, parece ≈ 25–30 % de los negocios con sitio web** en esta muestra [medida aquí, n = 30, con los sesgos de la sección 7]. Para 500 contables harían falta ≈ 1,700–2,000 intentos (hay 914 candidatos, de los cuales 193 sin sitio): **500 no se alcanza sólo con sitios propios y este marco.** Opciones, para decidir: (1) contar los 3 textos grandes y seguir otra tanda con el lector sobre el resto de la cola (≈ 99 contables sólo si el rendimiento sube; no lo hará con estos números); (2) abrir la segunda fuente (fichas de reparto: la primera pasada rindió 1 contable por cada 1.7 intentos [documento], con el sesgo de reparto y sin la dirección de Rappi en la ficha de Google); (3) cerrar con la muestra que haya (≈ 6–9 contables) y repartir el informe como prueba de método, no como estadística.
+
+**Borrado del archivo temporal.** La salida del marco con nombres y sitios (y los textos descargados) se borrarán **al terminar la última tanda o a las 48 horas de haberse creado (13 de noviembre de 2026, ≈ 06:00 UTC; es decir, no más tarde del 15 de noviembre), lo que ocurra primero**; se confirma a la maestra por mensaje.
 
 ---
 
