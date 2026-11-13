@@ -53,31 +53,38 @@ Ningún paso del encargo queda prohibido de forma expresa, por eso **no cierro B
 
 **Lo que se pidió:** pesar por el consumo de ir a restaurantes = gasto fuera del hogar de la entidad × número de hogares, contrastado con los establecimientos de la rama 7225; las tres zonas metropolitanas grandes primero; mínimo 15 por ciudad; máximo 25 % de N para una.
 
-**Lo que se consiguió hoy:**
+**Camino con fuente (a petición de la maestra): gasto fuera del hogar por persona de la entidad × población de la zona metropolitana.** Es aritmética mía sobre dos cifras oficiales:
 
-| Pieza | Estado |
-|---|---|
-| Gasto fuera del hogar por hogar, ENIGH 2024, 18 entidades | **Hecho**, tabla en [`2026-11-13-estadistica-de-cartas-y-personal.md` §8](2026-11-13-estadistica-de-cartas-y-personal.md) [documento] |
-| **Número de hogares por entidad** | **No encontrado.** Ni la presentación nacional ni las 4 por entidad leídas lo traen (<https://www.inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados.pdf>); la página del programa carga con JavaScript y los tabulados no se pudieron abrir. Dato por conseguir #11 |
-| Establecimientos 7225 por zona metropolitana | **No encontrado.** Data México sólo da entidad (Estado de México 89,408; CDMX 55,753; Jalisco 48,957; DENUE de mayo de 2026) <https://www.economia.gob.mx/datamexico/es/profile/industry/restaurants-and-other-eating-places>; su API no respondió (60 s, dos intentos) y la API del DENUE pide clave («No autorizado. Utilice una clave válida.»). Dato por conseguir #9 |
+- Gasto fuera del hogar por hogar y personas por hogar de la entidad: ENIGH 2024 de INEGI (tabla de [`…estadistica-de-cartas-y-personal.md` §8](2026-11-13-estadistica-de-cartas-y-personal.md); por hogar ÷ personas por hogar) [documento].
+- Población de la zona metropolitana: Censo de Población y Vivienda 2020 tal como la publica «Metrópolis de México 2020» (SEDATU, CONAPO, INEGI), cuadro de población por metrópoli, <https://www.gob.mx/cms/uploads/sedatu/MM2020_06022024.pdf> (descargada el 13 de noviembre de 2026) [fuente externa].
+- Regla: reparto proporcional al peso, mínimo 15 por ciudad y máximo 25 % de 500 (125), iterado hasta que se cumpla [medida aquí].
 
-Sin hogares por entidad no se puede escribir la regla del encargo con fuente en cada celda. **El reparto de abajo es, por lo tanto, un supuesto** que sigue la instrucción de Calvin del 13 de noviembre (más peso a Ciudad de México, Guadalajara y Monterrey, y luego capitales y ciudades de mayor consumo). Los dos órdenes de magnitud que sí tienen fuente apoyan el sentido: Ciudad de México gasta 7,915 pesos por hogar al trimestre fuera de casa, 3.5 veces los 2,249 nacionales; el Estado de México, Ciudad de México y Jalisco suman 194,118 de los 740,231 establecimientos 7225 (26.2 %) [documento + fuente externa; suma mía].
+Lo que **no** se consiguió: número de hogares por entidad (no hizo falta con este camino) y establecimientos 7225 por zona metropolitana (dato #9: la API de Data México no respondió y la del DENUE pide clave; sólo hay entidad: Estado de México 89,408, CDMX 55,753, Jalisco 48,957, DENUE de mayo de 2026, <https://www.economia.gob.mx/datamexico/es/profile/industry/restaurants-and-other-eating-places>). **El contraste con la rama 7225 queda pendiente.**
 
-| Ciudad (zona) | Plazas | Gasto fuera del hogar, pesos por hogar al trimestre (ENIGH 2024) | Fuente de la plaza |
-|---|---|---|---|
-| CDMX y Estado de México (zona metropolitana del Valle de México) | 125 (25 %, el máximo) | 7,915 CDMX · 4,398 Edomex | [supuesto]: tope de 25 % |
-| Guadalajara y Zapopan | 75 | 5,267 (Jalisco) | [supuesto] |
-| Monterrey y San Pedro | 65 | 3,828 (Nuevo León) | [supuesto] |
-| Puebla | 23 | 3,088 | [supuesto] |
-| Querétaro | 22 | 6,051 | [supuesto] |
-| León | 18 | 2,870 (Guanajuato) | [supuesto] |
-| Mérida | 18 | 3,845 (Yucatán) | [supuesto] |
-| Tijuana | 18 | 5,790 (Baja California) | [supuesto] |
-| Cancún | 16 | 4,567 (Quintana Roo) | [supuesto] |
-| Chihuahua, Hermosillo, San Luis Potosí, Toluca, Aguascalientes, Morelia, Veracruz, Oaxaca | 15 cada una (120) | 3,460 · 3,556 · 3,035 · 4,398 · sin dato · sin dato · sin dato · 2,212 | mínimo de la regla |
-| **Total** | **500** | | suma comprobada en el guion |
+Sustituciones que son supuesto: la zona del Valle de México usa el gasto de la **entidad Ciudad de México** (la zona incluye Estado de México e Hidalgo, de menor gasto: sobrestima); Toluca usa el del Estado de México; Puebla-Tlaxcala, el de Puebla; Cancún, el de Quintana Roo; Hermosillo, el de Sonora; Chihuahua, Mérida, Tijuana, León, Querétaro y Oaxaca, el de su entidad. **Aguascalientes, Morelia y Veracruz no tienen cifra de entidad en §8: se les puso el promedio nacional (2,249 ÷ 3.37 = 667 pesos por persona al trimestre) [supuesto].**
 
-Aguascalientes, Morelia y Veracruz no están en la tabla de §8 (sin dato de gasto): quedan en el mínimo de 15 por la regla, no por su consumo. Cuando aparezcan los hogares y el DENUE por zona (#9, #11), se recalcula la columna «Plazas» con la fórmula del encargo y se reporta cuánto cambia.
+| Ciudad (zona) | Población 2020 | Gasto por persona (pesos al trimestre) | Peso | Plazas |
+|---|---|---|---|---|
+| Valle de México | 21,436,911 | 2,612 (CDMX) | 60.6 % | **125** (tope de 25 %) |
+| Guadalajara | 5,110,617 | 1,611 (Jalisco) | 8.9 % | **76** |
+| Monterrey | 5,322,117 | 1,160 (Nuevo León) | 6.7 % | **57** |
+| Tijuana | 2,049,413 | 1,827 (Baja California) | 4.0 % | **35** |
+| Toluca | 2,353,924 | 1,264 (Edomex) | 3.2 % | **27** |
+| Querétaro | 1,530,820 | 1,812 | 3.0 % | 15 (mínimo) |
+| Puebla-Tlaxcala | 2,776,893 | 880 | 2.6 % | 15 (mínimo) |
+| León | 1,935,928 | 811 (Guanajuato) | 1.7 % | 15 (mínimo) |
+| Mérida | 1,324,771 | 1,158 (Yucatán) | 1.7 % | 15 (mínimo) |
+| Cancún | 934,189 | 1,418 (Quintana Roo) | 1.4 % | 15 (mínimo) |
+| Chihuahua | 988,065 | 1,088 | 1.2 % | 15 (mínimo) |
+| San Luis Potosí | 1,243,980 | 901 | 1.2 % | 15 (mínimo) |
+| Hermosillo | 936,263 | 1,104 (Sonora) | 1.1 % | 15 (mínimo) |
+| Aguascalientes | 1,140,916 | 667 (nacional, supuesto) | 0.8 % | 15 (mínimo) |
+| Morelia | 988,704 | 667 (nacional, supuesto) | 0.7 % | 15 (mínimo) |
+| Oaxaca | 744,912 | 628 | 0.5 % | 15 (mínimo) |
+| Veracruz | 882,011 | 667 (nacional, supuesto) | 0.6 % | 15 (mínimo) |
+| **Total** | | | 100 % | **500** |
+
+**Cambio frente al primer supuesto (el que usó el marco):** Tijuana sube de 18 a 35 y Toluca de 15 a 27; Puebla baja de 23 a 15, Querétaro de 22 a 15, León y Mérida de 18 a 15, Cancún de 16 a 15, y Monterrey de 65 a 57. **El marco ya corrió con el reparto anterior** (82 solicitudes, otras 8 disponibles hoy): le faltan candidatos a Tijuana (33 para 35 plazas) y a Toluca (28 para 27), y sobran en Puebla y Querétaro. Por eso la estadística se reporta **ponderada con esta tabla y sin ponderar**; si Tijuana y Toluca no llegan a su plaza, se dice cuántas faltaron y se pide otro día de cuota. Los pesos de la tabla (60.6 % para el Valle de México) están topados por la regla de 25 %: sin el tope, esa zona llevaría 300 de 500; el tope es decisión de Calvin del encargo.
 
 ## 4. Guion del marco (resumen)
 
@@ -91,8 +98,8 @@ Aguascalientes, Morelia y Veracruz no están en la tabla de §8 (sin dato de gas
 
 | # | Qué falta | Cómo conseguirlo |
 |---|---|---|
-| 9 (se mantiene) | Establecimientos 7225 por zona metropolitana | DENUE interactivo (<https://www.inegi.org.mx/app/mapa/denue/>) o descarga masiva (<https://www.inegi.org.mx/app/descarga/?ti=6>) filtrando 7225 por municipio; la actualización del DENUE sale el 25 de noviembre de 2026 |
-| 11 (nuevo) | Número de hogares por entidad (ENIGH 2024) | Tabulados o microdatos de la ENIGH 2024 en <https://www.inegi.org.mx/programas/enigh/nc/2024/>; respaldo: hogares del Censo de Población y Vivienda 2020 por entidad |
+| 9 (se mantiene; ya no bloquea el reparto, que usa población y gasto) | Establecimientos 7225 por zona metropolitana | DENUE interactivo (<https://www.inegi.org.mx/app/mapa/denue/>) o descarga masiva (<https://www.inegi.org.mx/app/descarga/?ti=6>) filtrando 7225 por municipio; la actualización del DENUE sale el 25 de noviembre de 2026 |
+| 11 (nuevo) | Gasto fuera del hogar de Aguascalientes, Morelia (Michoacán) y Veracruz | Presentaciones por entidad de la ENIGH 2024 (mismo nombre de archivo con el sufijo de la entidad; no se encontró el de Michoacán, Veracruz ni Aguascalientes); mientras tanto, promedio nacional |
 | 12 (nuevo) | Si guardar `estrato` y `cadena` derivados de campos de Google es aceptable | Calvin o revisión legal (sección 1, punto 2) |
 | 13 (nuevo) | Cuota de Google para `SearchTextRequest` (hoy 0 por minuto por usuario) | Calvin la sube en la consola de Google Cloud; la maestra avisa |
 
