@@ -88,3 +88,6 @@ frontend/.vite/
 # Cookie del comensal que deja scripts/medir-ac-01-1.mjs si alguien apunta la salida aquí (nunca debe commitearse)
 cookie.json
 **/cookie.json
+
+# Códigos de mesa de la medición local (pruebas/carga/local), aunque sean de una base local
+pruebas/carga/local/codigos*
