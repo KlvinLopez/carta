@@ -1,6 +1,6 @@
 # Carta v1 — Arquitectura
 
-**Versión:** 1.0 · **Fecha:** 2 de noviembre de 2026 · **ADRs:** [012](../mvp/adr/ADR-012-un-servidor-portable.md), [013](../mvp/adr/ADR-013-personal-con-pin.md), [014](../mvp/adr/ADR-014-importacion-menu-con-llm.md); siguen vigentes [001](../mvp/adr/ADR-001-monolito.md), [002](../mvp/adr/ADR-002-pwa-vs-nativa.md), [003](../mvp/adr/ADR-003-identidad-invitado.md), [004](../mvp/adr/ADR-004-sondeo-vs-websockets.md), [008](../mvp/adr/ADR-008-esquema-espanol.md), [009](../mvp/adr/ADR-009-driver-async.md), [010](../mvp/adr/ADR-010-hosting-frontend.md).
+**Versión:** 1.0 · **Fecha:** 2 de noviembre de 2026 · **ADRs:** [012](../mvp/adr/ADR-012-un-servidor-portable.md), [013](../mvp/adr/ADR-013-personal-con-pin.md), [014](../mvp/adr/ADR-014-importacion-menu-con-llm.md); [017](../mvp/adr/ADR-017-el-personal-lleva-el-ciclo.md) (ciclo de la mesa) y [018](../mvp/adr/ADR-018-entrega-por-eventos.md) (entrega por eventos; sustituye a [004](../mvp/adr/ADR-004-sondeo-vs-websockets.md) desde el 13 de noviembre de 2026); siguen vigentes [001](../mvp/adr/ADR-001-monolito.md), [002](../mvp/adr/ADR-002-pwa-vs-nativa.md), [003](../mvp/adr/ADR-003-identidad-invitado.md) (enmendada por 017), [008](../mvp/adr/ADR-008-esquema-espanol.md), [009](../mvp/adr/ADR-009-driver-async.md), [010](../mvp/adr/ADR-010-hosting-frontend.md).
 
 ---
 
@@ -8,7 +8,7 @@
 
 1. **Un servidor, una imagen, una base.** Todo corre en una máquina virtual con Docker Compose. Lo que se agrega después se agrega porque un número lo pidió (§11).
 2. **Portable.** La aplicación no usa ningún SDK propietario de nube: PostgreSQL, almacenamiento compatible con S3 y variables de entorno. La misma imagen corre en la VM, en Cloud Run o en ECS.
-3. **Las lecturas no tocan el servidor.** El menú es público y cacheable en el borde (Cloudflare); los sondeos responden `304` sin ir a la base. Una ola de tráfico (el video viral de Alerta Roja MX) la absorbe el borde; las escrituras están acotadas por las mesas físicas.
+3. **Las lecturas no tocan el servidor.** El menú es público y cacheable en el borde (Cloudflare); el estado de la mesa llega por aviso (ADR-018) y el teléfono sólo lo pide cuando cambió; esa lectura responde `304` sin ir a la base si ya está al día. Una ola de tráfico (el video viral de Alerta Roja MX) la absorbe el borde; las escrituras están acotadas por las mesas físicas.
 4. **Costo determinista.** Una VM cuesta lo mismo con 10 que con 10,000 visitas. Nada de facturas sorpresa en una fase donde no hay ingresos.
 5. **Operable por una persona desde el teléfono.** Panel de administración, monitoreo y despliegue accesibles sin computadora.
 6. **Confianza desde el primer día.** Dominio propio con HTTPS, página de quién está detrás, aviso de privacidad.
@@ -87,8 +87,10 @@ flowchart LR
 | PWA y estáticos | `/`, `/m/*`, `/staff/*`, `/admin/*`, `/assets/*` | Caddy desde `frontend/dist` | Cloudflare 1 año (nombres con hash); `index.html` sin caché |
 | Menú público | `GET /api/v1/p/menu/{slug}` | API, **sin cookie**, `Cache-Control: public, max-age=30, s-maxage=30` + `ETag` | Cloudflare 30 s (AC-04.4: ninguna copia anterior a un cambio vive más de 30 s, y el comensal vuelve a pedir el menú cada 25 s); purga por API al editar el menú (en segundo plano, agrupada; T-1.3). El `ETag` lleva la versión del contenido y la ruta no rellena el borde con caché local de otra generación |
 | Fotos de platillos | `https://img.<dominio>/...` | R2 detrás de Cloudflare | 1 año, nombres inmutables por hash |
-| Sondeo del comensal | `GET /api/v1/p/sesion` cada 3 s con `If-None-Match` | API; `304` si el ETag coincide (ETag en memoria, invalidado al escribir) | Nunca en el borde (`Cache-Control: private, no-store`) |
-| Sondeo del personal | `GET /api/v1/op/mesas` cada 5 s | API; igual | Igual |
+| Línea de avisos del comensal | `GET /api/v1/p/sesion/eventos` (`text/event-stream`, abierta mientras se ve la página) | API; `hola` con la versión, `cambio` por cada aviso de `LISTEN/NOTIFY`, latido tras 25 s de silencio, cierre a los 10 min ± 20 % (§6) | Nunca en el borde (`no-store, no-transform`); regla de Cloudflare sin búfer si hace falta (ADR-018) |
+| Línea de avisos del personal | `GET /api/v1/op/eventos` | API; igual, por restaurante | Igual |
+| Estado del comensal | `GET /api/v1/p/sesion` con `If-None-Match`, **al recibir un aviso**, al reconectar, al volver a primer plano y como respaldo (§6) | API; `304` si el ETag coincide (ETag en memoria 60 s, invalidado por `NOTIFY` en todos los workers) | Nunca en el borde (`Cache-Control: private, no-store`) |
+| Estado del personal | `GET /api/v1/op/mesas` con `If-None-Match`, igual | API; igual | Igual |
 | Escrituras | `POST/PATCH/DELETE` | API → PostgreSQL | — |
 | Importación de PDF | `POST /api/v1/admin/.../importaciones` | API encola en `importacion_menu`; un *task* en proceso llama a la API de Claude | — |
 
@@ -106,13 +108,16 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 |---|---|---|
 | `POST /sesion/entrar` `{codigo_mesa}` | Crea o reanuda sesión y miembro; emite cookie | US-01, US-02 |
 | `GET /sesion` | Estado de la mesa: miembros, estados, mi orden, comandas y su estado. ETag | US-02, US-11, US-12 |
+| `GET /sesion/eventos` | Línea de avisos de la mesa (`text/event-stream`, §6) | US-40 |
 | `PATCH /miembro` `{alias}` | Cambiar alias | US-03 |
 | `GET /menu/{slug}` | Menú activo por categorías. Público, cacheable | US-04 |
 | `GET /platillos/{id}` | Detalle | US-04 |
 | `POST /orden/items` · `PATCH /orden/items/{id}` · `DELETE /orden/items/{id}` | Mi orden | US-10 |
 | `POST /orden/confirmar` · `POST /orden/deshacer` | `Idempotency-Key` | US-11, US-12 |
 | `POST /llamar-mesero` | 1 por minuto por sesión | US-12 |
-| `POST /eventos` | Lotes de hasta 50 eventos | US-24 |
+| `POST /eventos` | Lotes de hasta 50 eventos **de analítica** (no confundir con la línea de avisos) | US-24 |
+
+Las rutas del ciclo de la mesa de la Spec 001 (cerrar mi cuenta, propina declarada, «ya pagué», salir de la mesa, solicitud de entrada) las fija el contrato de T-3.0.
 
 ### 5.2 Personal `/api/v1/op` (cookie `carta_personal`)
 
@@ -121,12 +126,13 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 | `GET /personal/{slug}` | Lista de nombres activos para la pantalla de entrada (sin PIN) | US-26 |
 | `POST /entrar` `{slug, personal_id, pin}` | Cookie de 12 h. Límite 5/min | US-26 |
 | `POST /salir` | Cierra sesión | US-26 |
-| `GET /mesas` | Mesas con estado y tiempos. ETag | US-28 |
+| `GET /mesas` | Mesas con estado y tiempos (y la hora de la última acción, para los relojes del teléfono). ETag | US-28, US-30 |
+| `GET /eventos` | Línea de avisos del restaurante (`text/event-stream`, §6; T-3.4) | US-40 |
 | `GET /mesas/{id}` | Comanda(s) de la mesa por comensal, llamadas | US-13 |
 | `GET /comandas?estado=abierta` | Comandas y llamadas pendientes. ETag | US-13, US-14 |
 | `POST /comandas/{id}/atender` · `POST /comandas/{id}/servir` | Transiciones | US-13 |
 | `POST /llamadas/{id}/atender` | | US-14 |
-| `POST /mesas/{id}/liberar` | Cierra la sesión de la mesa | US-28 |
+| `POST /mesas/{id}/liberar` | Cierra la sesión de la mesa; desde la Spec 001, «mesa limpia» sobre una mesa pagada y la liberación con cargos sólo con permiso. Las rutas del ciclo, la entrada y las correcciones las fija el contrato de T-3.0 | US-28, US-29, US-31, US-33 |
 | `GET /platillos?q=` · `POST /platillos/{id}/disponible` `{disponible}` | Agotado / de vuelta | US-27 |
 | `GET /resumen` | Sólo capitán: métricas del turno | US-26 |
 
@@ -143,7 +149,7 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 | `GET/POST /restaurantes/{rid}/mesas` · `POST /mesas/{id}/regenerar-codigo` · `GET /restaurantes/{rid}/mesas/qr.pdf` | Mesas y QR | US-21 |
 | `GET/POST /restaurantes/{rid}/personal` · `PATCH /personal/{id}` · `POST /personal/{id}/pin` | Personal y PIN | US-26 |
 | `GET /restaurantes/{rid}/resumen` | Escaneos y órdenes de hoy y de la semana | US-24 |
-| `GET /restaurantes/{rid}/mesas-vivo` | Misma vista que `/op/mesas`, con permisos de operador | US-13 |
+| `GET /restaurantes/{rid}/mesas-vivo` | Misma vista que `/op/mesas`, con permisos de operador; desde la Spec 001 el dueño también actúa desde aquí (T-3.7) y la vista pregunta cada 5 s (excepción del ADR-018: `EventSource` no manda la cabecera `Authorization`) | US-13, US-36 |
 
 ### 5.4 Infraestructura
 
@@ -151,16 +157,56 @@ Convenciones (prefijos, envoltura de error, idempotencia, versionado) como en [`
 
 ---
 
-## 6. Tiempo real: sondeo con ETag, adaptativo
+## 6. Tiempo real: avisos por eventos, sondeo de respaldo
 
-Se mantiene el ADR-004 (sin WebSockets) con una mejora: el intervalo se adapta.
+Decisión en el [ADR-018](../mvp/adr/ADR-018-entrega-por-eventos.md) (aceptado por Calvin el 13 de noviembre de 2026; sustituye al ADR-004). Evidencia y fuentes en [`perf/2026-11-13-eventos-frente-a-sondeo.md`](perf/2026-11-13-eventos-frente-a-sondeo.md). Criterios: AC-40.1 a AC-40.10 ([01 §6](01_Alcance_v1.md)).
 
-| Pantalla | Visible y activa | Visible sin cambios > 2 min | Pestaña oculta |
-|---|---|---|---|
-| Comensal `/sesion` | 3 s | 10 s | pausa; al volver, una petición inmediata |
-| Personal `/mesas` | 5 s | 5 s | pausa; al volver, inmediata + aviso si hubo comandas nuevas |
+```mermaid
+sequenceDiagram
+  participant T as Teléfono
+  participant A as API (cualquier worker)
+  participant D as PostgreSQL
+  participant O as Otro comensal o el personal
+  T->>A: GET /p/sesion/eventos (cookie)
+  A->>D: LISTEN (una conexión por worker, ya abierta)
+  A-->>T: event: hola (ETag vigente)
+  Note over T: si el ETag no es el suyo, pide GET /p/sesion
+  O->>A: escritura (otro worker)
+  A->>D: UPDATE … + disparador pg_notify('carta_mesa', sesion_id) en la misma transacción
+  D-->>A: NOTIFY al confirmar (a todos los workers)
+  A-->>T: event: cambio
+  T->>A: GET /p/sesion con If-None-Match
+  A-->>T: 200 con el estado nuevo
+```
 
-El ETag de la sesión se calcula con `max(actualizado_en)` de sesión, miembros, órdenes y comandas de esa mesa, y se guarda en un diccionario en memoria por `sesion_id`, invalidado por el propio servicio al escribir. Con un solo proceso de API (varios *workers* de uvicorn comparten la base pero no la memoria) el diccionario puede estar desactualizado como mucho un ciclo de sondeo: por eso el ETag en memoria tiene vida máxima de 2 s y después se recalcula con una consulta por índice (< 1 ms).
+1. **Aviso.** Un disparador de la migración (T-3.0) emite `NOTIFY carta_mesa '<sesion_id>'` o `NOTIFY carta_restaurante '<restaurante_id>'` en la misma transacción que la escritura; el aviso no lleva datos.
+2. **Escucha.** Cada worker tiene una conexión con `LISTEN` en los dos canales (`app/services/avisos.py`, T-3.20). Al recibir un aviso invalida su memoria de estados y manda `event: cambio` a sus líneas abiertas de esa mesa o restaurante.
+3. **Estado.** El teléfono pide `GET /p/sesion` o `GET /op/mesas` con su ETag; el contrato de esas rutas no cambia. El ETag se calcula como hoy (versión de sesión, miembros, órdenes y comandas de esa mesa) y se guarda en memoria **60 s** (antes 2 s): ya no hace falta caducar pronto porque todos los workers la invalidan con el aviso.
+4. **Lo que queda por tiempo, guiado por la actividad:**
+
+| Qué | Cuándo | Por qué |
+|---|---|---|
+| Latido | Sólo tras 25 s sin ningún mensaje por la línea; cualquier mensaje reinicia la cuenta | Cloudflare corta a los 125 s sin datos (524) y Railway a los 5 min [fuente externa, informe §6]. No comprueba que la persona siga ahí |
+| Versión en el latido | Si la medición de T-3.20/T-3.21 lo confirma (regla del ADR-018, decisión 4.2) | El teléfono detecta que se quedó atrás sin preguntar; entonces el respaldo fijo desaparece mientras la línea vive |
+| Respaldo | Una pregunta al reconectar, al volver a primer plano o a la red; mientras la línea vive, como mucho una cada 60 s sin aviso (o ninguna con 4.2) | Por si un aviso se perdió (escucha caída, teléfono desconectado) |
+| Reconexión | Cada 10 min ± 20 %, con `retry: 3000` | Railway corta toda petición a los 15 min [fuente externa]. El `hola` con versión la abarata |
+| Relojes del ciclo | En el teléfono, con la hora de la última acción | Estatus verde/amarillo/rojo, recordatorio y minutos (AC-30.6, 30.7, AC-40.9) |
+
+5. **Segundo plano.** Con la página oculta o el teléfono bloqueado no hay línea ni preguntas; al volver, reconecta y se pone al día (AC-40.6). Sin push en la v1.
+6. **Modo degradado** (AC-40.5): si la línea no conecta en 3 intentos o el navegador la cierra, el teléfono pregunta según la fase de la mesa y reintenta la línea cada 60 s:
+
+| Pantalla | Fase | Intervalo |
+|---|---|---|
+| Comensal `GET /p/sesion` | Armando la orden; cuenta cerrada | 3 s |
+| | Esperando la comanda | 12 s |
+| | Comanda servida | 45 s |
+| | Su cuenta pagada | sólo al volver a primer plano |
+| Personal `GET /op/mesas` | Siempre | 5 s |
+| Panel del dueño `GET /admin/…/mesas-vivo` | Siempre (excepción del ADR-018, sin línea) | 5 s |
+
+7. **Resiliencia:** reconexión con azar de 0–20 s tras un corte masivo; la app recrea el `EventSource` si queda `CLOSED`; al recuperar la escucha, los avisos se reparten en ≈ 30 s; `/ready` responde 503 si la escucha lleva caída más de 15 s [supuesto]; `--timeout-graceful-shutdown 3`; `--limit-concurrency` sin fijar.
+
+**Lo que no cambia:** el menú se vuelve a pedir cada 25 s mientras se ve (ADR-016; es público y cacheable en el borde) y el panel del operador pregunta cada 3 s por su importación mientras espera (§7).
 
 ---
 
@@ -222,14 +268,14 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 |---|---|---|
 | Cliente / servidor | PWA (SPA) + API JSON; el servidor nunca renderiza HTML de negocio | — |
 | Bases de datos | Una PostgreSQL 16; esquema en español; migraciones Alembic | — |
-| Caché | Menú en Cloudflare (60 s) y en proceso (30 s, con generación por `slug`: lo leído antes de una escritura no se guarda); invalidar borra sólo la caché del worker que escribió, los demás caducan en ≤ 30 s; ETags en memoria (2 s); sin Redis | > 3 instancias de API → Redis |
+| Caché | Menú en Cloudflare (60 s) y en proceso (30 s, con generación por `slug`: lo leído antes de una escritura no se guarda); invalidar borra sólo la caché del worker que escribió, los demás caducan en ≤ 30 s; ETags de la sesión en memoria 60 s, invalidados en todos los workers por `NOTIFY` (ADR-018, T-3.20; hasta entonces 2 s); sin Redis | > 3 instancias de API → Redis sólo para los límites de tasa (§11.3) |
 | Colas | Tabla `importacion_menu` + tarea en proceso; sin broker | > 500 trabajos/día o trabajos > 5 min → worker aparte (tabla con `SKIP LOCKED` ya diseñada) |
 | Escalar | Vertical primero (2 → 4 → 8 vCPU); horizontal después (§11) | p95 > 300 ms sostenido con CPU > 70 % |
 | Consistencia vs disponibilidad | Consistencia fuerte en órdenes y comandas (transacciones, `FOR UPDATE`); el menú tolera 60 s de desfase | — |
 | Diseño de API | REST, `/api/v1`, envoltura de error única, `Idempotency-Key` en escrituras visibles para el personal | — |
 | Replicación y sharding | Ninguno. Respaldos diarios + PITR por WAL archivado en R2 | SLA contractual → réplica administrada |
 | Límites de tasa | Cloudflare (por IP, en el borde: 300 por 10 s) + en proceso, ventana móvil en la memoria de cada worker (`app/api/publico/limites.py`, T-2.3; con N workers hasta N × el nominal): comensal por miembro o por IP; `/op` y `/admin` con la misma `VentanaMovil` en T-3.4 y T-4.1 | > 3 instancias de API → Redis |
-| Tiempo real | Sondeo adaptativo con ETag (§6) | Latencia pedida < 1 s → SSE |
+| Tiempo real | Avisos por SSE con `LISTEN/NOTIFY` y sondeo de respaldo (§6, ADR-018) | > ≈ 10,000 líneas abiertas por servicio → réplicas (tope de Railway [fuente externa, informe §6]); push para el mesero con la pantalla bloqueada → spec aparte |
 | CDN y borde | Cloudflare gratis para estáticos, menú y fotos (R2) | — |
 | Búsqueda | En el cliente (menú ≤ 300 platillos, sin acentos); en el servidor `ILIKE` con `unaccent` para el personal | — |
 | Microservicios vs monolito | Monolito modular (ADR-001) | — |
@@ -241,12 +287,12 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 | Generación de IDs | UUID v4 en la base; `codigo_publico` de mesa con 128 bits (`secrets.token_urlsafe(16)`) | — |
 | Feed / timeline | No aplica | — |
 | Búsqueda geoespacial | No aplica en v1 | Directorio de restaurantes (v3) |
-| Notificaciones | Ninguna *push*: el sondeo cubre al comensal y al personal; sonido en el navegador del personal | Push web para el personal (v2) |
+| Notificaciones | Ninguna *push*: la línea de avisos cubre al comensal y al personal con la app en primer plano; sonido en el navegador del personal; con el teléfono bloqueado no llega nada y al volver se pone al día (ADR-018) | Push web para el personal (spec futura) |
 | Almacenamiento de objetos | R2 público (variantes, nombres por hash) y privado (originales, PDFs, respaldos) con URLs firmadas 15 min | — |
 | Procesamiento de flujos | No aplica; analítica por consultas SQL diarias | > 10 M eventos → BigQuery/ClickHouse |
 | Consenso distribuido | No aplica (una base) | — |
 | Multi-región y DR | Una región; RPO ≤ 24 h con `pg_dump` diario (≤ 5 min con WAL a R2), RTO ≤ 2 h con `cloud-init` + restauración | — |
-| Estrategias de despliegue | Imagen inmutable por commit; `compose pull && up` con `--wait`; migraciones compatibles hacia atrás (expandir → usar → contraer); *rollback* = etiqueta anterior | — |
+| Estrategias de despliegue | Imagen inmutable por commit; `compose pull && up` con `--wait`; migraciones compatibles hacia atrás (expandir → usar → contraer); *rollback* = etiqueta anterior; las líneas de avisos se cierran con `--timeout-graceful-shutdown 3` y los teléfonos reconectan con azar de 0–20 s (ADR-018) | — |
 | Resiliencia | Tiempos de espera en toda llamada externa (Claude 120 s, R2 10 s, Firebase 5 s); reintentos con pausa; el menú y la sesión siguen funcionando si Claude o Firebase caen | — |
 | Estructuras probabilísticas | No aplica | — |
 | Idempotencia y reintentos | `Idempotency-Key` 24 h en PostgreSQL; comanda única por `(sesion_id, secuencia)`; el cliente reintenta `POST` sólo con la misma clave | — |
@@ -279,6 +325,8 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 | Escrituras (ítems, confirmaciones, eventos) | ~10 por comensal por visita en ~40 min | 0.5 rps | 5 rps | 50 rps |
 | Fotos | ~2 MB por sesión, desde R2 | 0 al origen | 0 | 0 |
 
+> **Desde el ADR-018** las filas de sondeo de esta tabla describen el modelo anterior y el modo degradado; con avisos, cada comensal hace ≈ 165 peticiones en 90 min en lugar de ≈ 1,800 y el tope medido en local con 2 workers pasa de ≈ 1,200–1,600 a ≈ 8,000–10,000 comensales con la app abierta ([`perf/2026-11-13-eventos-frente-a-sondeo.md`](perf/2026-11-13-eventos-frente-a-sondeo.md) §2 y §3; local, sin Cloudflare ni Railway, ±2×). El costo medido del sondeo de hoy está en [`perf/2026-11-13-modelo-de-capacidad.md`](perf/2026-11-13-modelo-de-capacidad.md). Las cifras de esta sección no se cambian aquí: las sustituye T-4.4 al medir en Railway.
+
 **Costo de un `304`:** verificar la cookie, leer el ETag en memoria o hacer una consulta por índice. ~0.3–0.5 ms de CPU. Una API en uvicorn con 2 *workers* en 2 vCPU sostiene ≈ 1,500–2,500 rps de este tipo, es decir, **unos 40–60 restaurantes en pico simultáneo en una VM de $10**. Con 4 vCPU, ~100. Son estimaciones: la tarea T-4.4 las sustituye por mediciones.
 
 ### 10.2 Objetivos (SLOs)
@@ -287,7 +335,8 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 |---|---|---|
 | Menú visible (p75, 4G, teléfono medio) | ≤ 3 s | Lighthouse móvil + campo |
 | `GET /p/menu` desde el borde (p95) | ≤ 100 ms | k6 desde fuera |
-| Sondeo `304` en el origen (p95 / p99) | ≤ 30 ms / ≤ 80 ms | k6 + logs de Caddy |
+| Lectura condicional `304` en el origen (tras un aviso, de respaldo o en modo degradado) (p95 / p99) | ≤ 30 ms / ≤ 80 ms | k6 + logs de Caddy |
+| Cambio visible tras una escritura, a través de Cloudflare (p95) | ≤ 1 s (AC-40.10) | generador del informe o k6 en staging |
 | Lecturas con cuerpo en el origen (p95 / p99) | ≤ 150 ms / ≤ 400 ms | k6 |
 | Escrituras (confirmar, agregar) (p95 / p99) | ≤ 300 ms / ≤ 800 ms | k6 |
 | Tasa de error 5xx | < 0.1 % | Sentry + Caddy |
@@ -299,12 +348,15 @@ Los 44 temas del mazo "System Design Basics", con la decisión de la v1 y qué l
 | Escenario | Carga | Lo que prueba |
 |---|---|---|
 | Ráfaga de escaneos | 100 `entrar` en 60 s | Creación de sesión, cookies, caché del menú |
-| Sondeo sostenido | 1,000 clientes `GET /p/sesion` cada 3 s durante 10 min | p95/p99 de `304`, CPU, conexiones |
+| Líneas sostenidas | Las líneas que permita el plan, 1 evento por minuto por mesa, 10 min (ADR-018, verificación 4) | Cambio visible p95, CPU, memoria por línea |
+| Despliegue con líneas abiertas | 2,000 líneas y un despliegue (verificación 3) | Reconexión en ≤ 30 s, 5xx, CPU |
+| Pérdida de la escucha | Matar el `LISTEN` de un worker (verificación 5) | Ola repartida, ningún teléfono > 60 s atrasado |
+| Modo degradado | 1,000 clientes `GET /p/sesion` cada 3 s durante 10 min (el sondeo de antes) | p95/p99 de `304`, CPU, conexiones |
 | Confirmaciones | 50 `confirmar` por minuto con 20 % de reintentos con la misma clave | Idempotencia, `FOR UPDATE`, creación única de comanda |
-| Personal | 100 dispositivos `GET /op/mesas` cada 5 s | ETag con consultas por restaurante |
+| Personal | 100 dispositivos con su línea y `GET /op/mesas` al aviso (y cada 5 s en modo degradado) | ETag con consultas por restaurante |
 | Mixto realista | 10 restaurantes en pico, 30 min | Todo junto; se registra en `docs/plan/perf/` |
 
-Se corre contra staging **antes del primer restaurante** y se repite cada vez que cambie algo del camino crítico. Palancas en orden: `workers` de uvicorn = vCPU, `pool_size` 10 por worker, índices de 03 §5, sondeo adaptativo, ETag en memoria, VM más grande.
+Se corre contra staging **antes del primer restaurante** y se repite cada vez que cambie algo del camino crítico. Palancas en orden: `workers` de uvicorn = vCPU, `pool_size` 10 por worker, índices de 03 §5, ETag en memoria invalidado por `NOTIFY`, réplicas al acercarse a ≈ 10,000 líneas, VM más grande. (El sondeo adaptativo dejó de ser palanca con el ADR-018.)
 
 ---
 
@@ -339,7 +391,8 @@ Análisis completo, con pros, contras y precios de Vercel, Netlify, Railway, Ren
 | CPU > 70 % sostenido en pico o p95 fuera de objetivo | VM más grande (minutos, sin cambiar nada) | +10–40 USD |
 | > 60 restaurantes activos | Segunda VM de API + PostgreSQL administrado (Neon, Supabase, Cloud SQL) + balanceador | +50–100 USD |
 | Primer contrato con SLA | PostgreSQL administrado con alta disponibilidad; alertas 24/7 | +50 USD |
-| > 3 instancias de API | Redis para ETags, caché y límites compartidos | +15 USD |
+| > 3 instancias de API | Redis para los límites de tasa compartidos (los ETags y la memoria de estados ya se invalidan entre instancias con `NOTIFY`, ADR-018) | +15 USD |
+| ≈ 10,000 líneas de avisos abiertas en un servicio | Réplicas de la API (el tope de Railway es ≈ 10,000 conexiones simultáneas [fuente externa, informe §6]); `NOTIFY` ya llega a todas | según réplicas |
 | Importaciones > 500/día o trabajos largos (3D) | Worker aparte con la tabla `SKIP LOCKED` del TDD | +10 USD |
 | Operación cansa a una persona | Mudar la imagen a Cloud Run + Cloud SQL con el Terraform existente | 40–80 USD |
 | Pagos (v2) | Procesador con tokenización; los datos de tarjeta nunca tocan el servidor | comisión |
@@ -354,7 +407,8 @@ El modelo de amenazas A1–A12 de [`08_Security_Compliance.md`](../mvp/08_Securi
 |---|---|
 | PIN del personal | 4–6 dígitos, Argon2id, 5 intentos/min por restaurante+IP, bloqueo progresivo, mensaje uniforme; el operador desactiva a la persona para revocar |
 | PDF subido | Validación por contenido, límite de tamaño y páginas, bucket privado, nunca se ejecuta ni se renderiza en el servidor; el modelo recibe instrucciones de tratarlo como datos |
-| Datos sensibles del comensal | Ninguno en el servidor: los filtros de alérgenos viven en `localStorage` |
+| Datos sensibles del comensal | Ninguno en el servidor: los filtros de alérgenos y la propina por defecto viven en `localStorage`; la propina declarada llega sin nada del comensal (US-37) |
+| Líneas de avisos | Autenticadas con la cookie de su audiencia (otra mesa u otro restaurante: no hay línea); abrir una cuenta en el límite de tasa como cualquier petición; el aviso no lleva datos del negocio; `no-store`; ningún log con el código de mesa (T-2.3) |
 | Multi-tenant | `restaurante_id` del token; prueba parametrizada "otro restaurante → 404" sobre **todos** los endpoints; usuario de base sin permiso de alterar esquema |
 | Registros | Cloudflare y Caddy guardan IPs 30 días para investigar abusos; se declara en el aviso de privacidad |
 | Cabeceras | Las pone la propia API en toda respuesta (`app/core/cabeceras.py`, T-0.6), sin proxy. HSTS (un año, `includeSubDomains`, sin `preload`; sólo en `staging` y `produccion`: en desarrollo y pruebas la aplicación va por HTTP), CSP sin `unsafe-inline` **por `'self'`, sin nonces** (`default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' <dominio público de R2>; manifest-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`; `default-src` **no** cubre `frame-ancestors`, `base-uri` ni `form-action`, y sin `frame-ancestors 'none'` la pantalla de PIN de `/staff/<slug>` se podría embeber en un iframe ajeno): la build de Vite de T-0.5 no inyecta `<style>` ni scripts en línea ni `modulepreload` en el HTML inicial, así que los nonces no aportan nada y complicarían el servidor; se añadirían sólo si algún día hiciera falta inline. `X-Frame-Options: DENY` (navegadores sin `frame-ancestors`), `nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` sin cámara, micrófono ni ubicación. Toda envoltura de error lleva `Cache-Control: no-store` (Cloudflare cachea por defecto los 404 de `.js`, `.css` y `.woff2`: en el solape de un despliegue un 404 cacheado en el borde dejaría a todos sin ese trozo). Dos límites conocidos: (a) los 400 de protocolo (URL > 64 KB, petición malformada) los emite uvicorn/h11 en texto plano, sin cabeceras ni envoltura; Cloudflare absorbe la mayoría y no se arregla en la aplicación; (b) T-1.2 abre `connect-src`, `script-src` y `frame-src` a los orígenes de Firebase Auth (`identitytoolkit.googleapis.com`, `securetoken.googleapis.com`, `apis.google.com`, el *popup* de `<proyecto>.firebaseapp.com`) desde `Settings`, no a mano (`FIREBASE_CSP_CONNECT_SRC`, `FIREBASE_CSP_SCRIPT_SRC`, `FIREBASE_CSP_FRAME_SRC`; vacías, la política queda como arriba). **Riesgo aceptado:** `apis.google.com` en `script-src` es un host amplio (sirve JSONP y scripts de Google: vector conocido para saltarse una CSP) y lo exige el *redirect* de Firebase Auth con Google (cargador gapi). Se acepta en la v1 porque no hay HTML de terceros ni contenido del comensal interpolado en el panel. Alternativa: `authDomain` propio que haga de proxy de `/__/auth/` en el dominio de la app (entonces `frame-src 'self'` y sin `<proyecto>.firebaseapp.com`); `apis.google.com` sigue haciendo falta mientras se use el *redirect* de Google. Si sólo se dejara el enlace por correo, bastan los dos `connect-src` |

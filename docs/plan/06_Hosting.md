@@ -11,7 +11,7 @@
 | Necesidad | Por qué | Qué descarta |
 |---|---|---|
 | **Un proceso que vive todo el tiempo** | El procesador de importaciones, la limpieza de idempotencia y el cierre de sesiones por inactividad corren dentro de la API (sin cola externa) | Funciones serverless que mueren al responder |
-| **Muchas peticiones pequeñas y constantes** | Sondeo cada 3 s por comensal y cada 5 s por mesero: cientos de peticiones por segundo que responden `304` en menos de 1 ms | Cobro por invocación |
+| **Muchas peticiones pequeñas y constantes** | Sondeo cada 3 s por comensal y cada 5 s por mesero: cientos de peticiones por segundo que responden `304` en menos de 1 ms. *(Desde el ADR-018, 13 de noviembre de 2026: conexiones largas de avisos y pocas lecturas; sigue descartando lo serverless, que tampoco sostiene conexiones de 10 min)* | Cobro por invocación |
 | **PostgreSQL con transacciones** | `FOR UPDATE` al confirmar, índices parciales, triggers | Bases "serverless" que facturan por consulta cuando se sondea |
 | **Costo fijo y bajo, sin sorpresas** | No hay ingresos; una persona paga de su bolsillo | Cobro por uso sin tope |
 | **Operable sin ser experto en nube** | Una persona; despliegue desde el teléfono si hace falta | Kubernetes y redes privadas |

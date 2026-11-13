@@ -1,6 +1,6 @@
 # Carta v1 — Datos
 
-**Versión:** 1.0 · **Fecha:** 2 de noviembre de 2026 · **Base:** [`03_Data_Model.md`](../mvp/03_Data_Model.md) (agosto). Este documento sólo dice qué cambia; el DDL de `comanda`, `comanda_orden`, `llamada_mesero`, `operador_restaurante` y `evento_analitica` es el de agosto salvo lo indicado.
+**Versión:** 1.1 · **Fecha:** 2 de noviembre de 2026 · **Actualizado:** 13 de noviembre de 2026 con la Spec 001 (ADR-017) y la entrega por eventos (ADR-018), §2.4 · **Base:** [`03_Data_Model.md`](../mvp/03_Data_Model.md) (agosto). Este documento sólo dice qué cambia; el DDL de `comanda`, `comanda_orden`, `llamada_mesero`, `operador_restaurante` y `evento_analitica` es el de agosto salvo lo indicado.
 
 ---
 
@@ -8,14 +8,14 @@
 
 | Grupo | Tabla | Origen | Cambios en v1 |
 |---|---|---|---|
-| Catálogo | `restaurante` | Fase 1 | + `slug` único (ya existe), + `logo_url`, + `tema` (ya existe); `plan` se queda pero sin uso |
+| Catálogo | `restaurante` | Fase 1 | + `slug` único (ya existe), + `logo_url`, + `tema` (ya existe); `plan` se queda pero sin uso. **Fase 3 (T-3.0):** `horarios` deja de estar «sin uso» y guarda una lista de tramos por día con versión; + zona horaria; + ajuste «fuera de horario» (`pedir_aprobacion` · `rechazar`) (§2.4) |
 | | `categoria_menu` | Fase 1 | sin cambios |
 | | `platillo` | Fase 1 | − `modelo_3d_url`; + `disponible BOOLEAN NOT NULL DEFAULT true`; + `foto_thumb_url`, `foto_detalle_url`, `foto_original_url`; + `imagen_tipo` (`foto` · `ilustracion_categoria` · `ilustracion_generada`); + `ilustracion_clave VARCHAR(40)`; + `no_disponible_desde TIMESTAMPTZ`, `no_disponible_por UUID`; + `orden INTEGER NOT NULL DEFAULT 0` (posición dentro de la categoría; lo exige el índice `(categoria_id, orden)` de §5) |
 | Mesa y sesión | `mesa` | Fase 1 | `qr_code` → `codigo_publico` (≥ 22 caracteres), + `codigo_revocado_en` |
-| | `sesion_grupal` | Fase 1 | estados `activa` · `lista_para_enviar` · `cerrada` · `cancelada`; + `ultima_actividad_en`; + `cerrada_por_personal_id UUID NULL` |
-| | `miembro_sesion` | Fase 1 | + `alias VARCHAR(24)`, + `color_avatar VARCHAR(7)`; `usuario_id` siempre nulo en v1 |
+| | `sesion_grupal` | Fase 1 | estados `activa` · `lista_para_enviar` · `cerrada` · `cancelada`; + `ultima_actividad_en`; + `cerrada_por_personal_id UUID NULL`. **Fase 3 (T-3.0):** + estados **vivos** «cuenta cerrada» y «pagada» (INV-1 y `uq_sesion_viva_por_mesa` los cubren); + entrada cerrada; + marca «liberada sin pago verificado»; sin cierre automático desde T-3.18 (§2.4) |
+| | `miembro_sesion` | Fase 1 | + `alias VARCHAR(24)`, + `color_avatar VARCHAR(7)`; `usuario_id` siempre nulo en v1. **Fase 3 (T-3.0):** estado del miembro y de su cuenta (`activo` · `cuenta_cerrada` · `pagada` · `flotante` · `retirado`), propina declarada, quién validó el pago y cuándo (§2.4) |
 | Orden | `orden_personal` | Fase 1 | + `bloqueada BOOLEAN NOT NULL DEFAULT false`, + `confirmada_en` |
-| | `item_orden` | Fase 1 | sin cambios; trigger de inmutabilidad (INV-3) |
+| | `item_orden` | Fase 1 | trigger de inmutabilidad (INV-3). **Fase 3 (T-3.0):** + quién lo pidió, + origen (`comensal` · `personal`), + estado «cancelado por el personal» con autor y hora (INV-3 ajustada, §5) |
 | | `comanda` | Agosto | estados `abierta` · `atendida` · `servida` · `cancelada`; + `servida_en`; `atendida_por` pasa a `atendida_por_personal_id UUID NULL REFERENCES personal_restaurante` |
 | | `comanda_orden` | Agosto | sin cambios |
 | | `llamada_mesero` | Agosto | + `atendida_por_personal_id UUID NULL` |
@@ -24,6 +24,7 @@
 | | `personal_restaurante` | **Nueva** | §2.1 |
 | Importación | `importacion_menu` | **Nueva** | §2.2 |
 | Soporte | `clave_idempotencia` | **Nueva** | §2.3 |
+| Ciclo de la mesa | solicitudes de entrada, marcas de tiempo, ajustes por restaurante, permisos por rol, reparto del cargo y registro de movimientos | **Nuevas (Fase 3, T-3.0)** | §2.4 |
 | Analítica | `evento_analitica` | Agosto | tipos de evento de [01 §7](01_Alcance_v1.md) |
 
 **No se crean en la v1:** `modelo_3d`, `trabajo_modelo_3d` (3D, v2), `dispositivo_restaurante` (el PIN lo sustituye), `ad_restaurante`, `escaneo`, `vista_platillo` (sustituidas por `evento_analitica`).
@@ -141,6 +142,23 @@ CREATE INDEX idx_idempotencia_purga ON clave_idempotencia (creada_en);
 Una tarea periódica en proceso borra las filas de más de 24 h.
 
 ---
+
+### 2.4 Fase 3: ciclo de la mesa (Spec 001, ADR-017) y avisos (ADR-018)
+
+**Propuesta para T-3.0**, que fija nombres, columnas, CHECK, índices y `downgrade()` con el skill `/migracion`. Lo que pide cada fila sale de la [Spec 001](../specs/001-ciclo-de-la-mesa/spec.md) §6 y §7; aquí no se repite el DDL hasta que exista la migración.
+
+| Qué | Para qué | Criterios |
+|---|---|---|
+| Estados vivos de `sesion_grupal`: abierta (hoy `activa` y `lista_para_enviar`), «cuenta cerrada», «pagada»; termina en «limpia» (hoy `cerrada`) o «liberada sin pago verificado». Entrada cerrada (booleano) | Ciclo y candado | AC-29.x, AC-33.1 |
+| Estado del miembro y de su cuenta; propina declarada (centavos, ≥ 0), quién validó el pago (personal u operador) y cuándo | Cuenta por comensal y propina | AC-29.3–29.8, AC-31.x, AC-37.5–37.8 |
+| **Solicitud de entrada** (mesa, alias, motivo: entrada cerrada · rojo 2 h · fuera de horario, estado, creada, resuelta por, caducidad de 10 min) | Entrada sin ocupar lugar | AC-33.2–33.4, AC-38.2–38.3 |
+| **Marcas de tiempo** del ciclo (paso, hora, autor: comensal · personal · operador · sistema; sin alias, IP ni cookie) | Tiempos de la mesa, sin sobrescribir | AC-35.x |
+| **Ajustes por restaurante** con los valores del piloto (máximo de comensales 12, umbrales 20/40 min, recordatorio 30 min, rojo 2 h, solicitudes 5/20, vigencia 10 min) | Topes que Calvin cambia sin migración | Spec 001 §3 |
+| **Permisos por rol** sembrados con la tabla de la Spec 001 §5, con migración para los restaurantes existentes | Un solo punto `puede(persona, permiso)` | AC-36.3, 36.4 |
+| **Reparto del cargo** (una fila por cargo y persona con su parte; en la v1 una fila al 100 %) y **registro de movimientos** (quién propuso, quién aceptó, cuándo) | Costura de traspasos para la v1.1; «pasar la cuenta» y la cuenta flotante | AC-31.7, 31.8; Spec 001 §7 |
+| `item_orden`: quién lo pidió, origen, «cancelado por el personal» con autor y hora | Costura de la edición por el personal | AC-31.5 |
+| `restaurante`: `horarios` como lista de tramos por día con versión, zona horaria IANA, ajuste «fuera de horario» | Horario | AC-38.x |
+| **Disparador de avisos** (ADR-018): en la misma transacción que la escritura, `pg_notify('carta_mesa', sesion_id)` en toda escritura que cambia lo que ve una mesa y `pg_notify('carta_restaurante', restaurante_id)` en toda escritura que ve el personal (sesión, miembros, órdenes, ítems, comandas, llamadas, solicitudes, reparto). El aviso no lleva datos del negocio y mide < 8,000 bytes (límite de PostgreSQL) | Que ninguna escritura se olvide de avisar | AC-40.1 |
 
 ## 3. Alteraciones a tablas existentes
 
@@ -273,14 +291,14 @@ erDiagram
 |---|---|
 | INV-1 · una sesión viva por mesa | `uq_sesion_viva_por_mesa` |
 | INV-2 · una orden viva por miembro | `uq_orden_viva_por_miembro` |
-| INV-3 · ítems inmutables tras confirmar | `ck_orden_bloqueada_coherente` (`bloqueada = (estado <> 'armando')`); trigger `tr_item_orden_inmutable` (INSERT, UPDATE y DELETE; mira la orden de NEW **y** la de OLD, y toma `FOR SHARE` sobre la orden para que una confirmación concurrente lo haga esperar); trigger `tr_orden_bloqueada_no_se_borra` (BEFORE DELETE en `orden_personal`) |
+| INV-3 · ítems inmutables tras confirmar (**ajustada una vez en T-3.0, ADR-017:** se admite pasar un ítem a «cancelado por el personal» con autor y hora mientras su comanda no la empezó la cocina; ninguna otra columna cambia; una corrección es cancelar y agregar; el reparto del cargo cambia sin tocar lo que ve la cocina) | `ck_orden_bloqueada_coherente` (`bloqueada = (estado <> 'armando')`); trigger `tr_item_orden_inmutable` (INSERT, UPDATE y DELETE; mira la orden de NEW **y** la de OLD, y toma `FOR SHARE` sobre la orden para que una confirmación concurrente lo haga esperar); trigger `tr_orden_bloqueada_no_se_borra` (BEFORE DELETE en `orden_personal`) |
 | INV-4 · sin borrado físico con historial | `activo = false`; revisión de código; ningún `DELETE` sobre `platillo` en `app/services/` |
 | INV-6 · comanda con estado terminal | `ck_comanda_terminal` ampliado con `servida` |
 | INV-7 · el PIN nunca se guarda en claro | columna `pin_hash` única; prueba que inspecciona la fila tras crear |
 | INV-8 · una comanda sólo agrupa órdenes de su sesión | trigger `tr_comanda_orden_misma_sesion` (INSERT y UPDATE en `comanda_orden`); `sesion_id` inmutable en `comanda` y `orden_personal` (`tr_comanda_sesion_inmutable`, `tr_orden_sesion_inmutable`); `UNIQUE (orden_id)` en `comanda_orden`: una orden se cobra en una sola comanda |
 | INV-9 · nada entra al menú sin confirmación del operador | `importacion_menu.estado = 'confirmado'` sólo lo escribe el endpoint `confirmar`; el *task* de IA no tiene ese permiso en código; `ck_importacion_confirmada` exige `confirmado_en` y `resultado` |
 | INV-10 · ninguna fila mezcla restaurantes (ni sesiones) | Migración `0002_consistencia_inquilino` (T-1.1). `UNIQUE (id, restaurante_id)` en `sesion_grupal`, `mesa`, `categoria_menu`, `personal_restaurante` y `platillo`, y `UNIQUE (id, sesion_id)` en `miembro_sesion`; FK compuestas `(x_id, clave) → padre(id, clave)` (mismo nombre y `ON DELETE` que la simple que sustituyen; las `SET NULL` con lista de columnas de PostgreSQL 15+, `SET NULL (x_id)`, para no anular la clave compartida): con `restaurante_id` desde `sesion_grupal.mesa_id`/`cerrada_por_personal_id`, `platillo.categoria_id`/`no_disponible_por`, `comanda.sesion_id`/`mesa_id`/`atendida_por_personal_id`, `llamada_mesero.sesion_id`/`mesa_id`/`atendida_por_personal_id` y `evento_analitica.mesa_id`/`sesion_id`/`platillo_id`; con `sesion_id` (el miembro está atado a su sesión) desde `orden_personal.miembro_id` y `llamada_mesero.miembro_id` (`evento_analitica.miembro_id` sigue simple: con `sesion_id` también `SET NULL`, una compuesta dejaría el id colgando al borrar la sesión). `item_orden`, que no tiene `restaurante_id`: trigger `tr_item_orden_mismo_restaurante` (INSERT y UPDATE de `orden_id`/`platillo_id`). Ningún padre rompe la relación desde su lado: `restaurante_id` inmutable en `platillo` y `sesion_grupal` (`tr_platillo_restaurante_inmutable`, `tr_sesion_restaurante_inmutable`: sin comandas ni llamadas, cambiar a la vez `mesa_id` y `restaurante_id` mudaría la sesión con sus ítems), `sesion_id` inmutable en `miembro_sesion` (`tr_miembro_sesion_inmutable`); `mesa`, `categoria_menu` y `personal_restaurante` no cambian de restaurante mientras tengan hijos (las FK compuestas lo impiden). Lo que la base no exige: que `comanda.mesa_id` sea la mesa de su sesión (lo deriva el servicio, T-3.x). Las reglas duras 5 y 6 siguen viviendo en los servicios; la prueba parametrizada "otro restaurante → 404" de T-4.1 cubre la API |
-| INV-11 · nadie se une ni pide en una sesión cerrada (**servicio, T-2.1 y T-3.x**) | La base acepta miembros, órdenes y comandas en una sesión `cerrada`. El servicio toma `SELECT … FOR NO KEY UPDATE` de la sesión al unirse (T-2.1: el tope de 12 necesita serializar las uniones; no choca con el `FOR KEY SHARE` de las FK), `FOR SHARE` al agregar ítems, y `FOR UPDATE` al confirmar y al cerrar (el cierre por inactividad, una sola sentencia con `FOR NO KEY UPDATE SKIP LOCKED`); la condición «viva» se vuelve a comprobar después de esperar el candado. Una sesión no viva responde 410 `SESION_CERRADA` |
+| INV-11 · nadie se une ni pide en una sesión cerrada (**servicio, T-2.1 y T-3.x**); **extendida por ADR-017:** nadie nuevo se une con el candado (cuenta cerrada o después) y nadie agrega con su cuenta cerrada | La base acepta miembros, órdenes y comandas en una sesión `cerrada`. El servicio toma `SELECT … FOR NO KEY UPDATE` de la sesión al unirse (T-2.1: el tope de 12 necesita serializar las uniones; no choca con el `FOR KEY SHARE` de las FK), `FOR SHARE` al agregar ítems, y `FOR UPDATE` al confirmar y al cerrar (el cierre por inactividad, una sola sentencia con `FOR NO KEY UPDATE SKIP LOCKED`); la condición «viva» se vuelve a comprobar después de esperar el candado. Una sesión no viva responde 410 `SESION_CERRADA` |
 
 INV-5 (modelo 3D publicado exige aprobación) se retira con el 3D y vuelve en v2.
 

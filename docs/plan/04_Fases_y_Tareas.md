@@ -30,14 +30,14 @@ Para que varios agentes trabajen en paralelo sin conflictos, cada carril es due�
 
 | Carril | Carpetas | Fases |
 |---|---|---|
-| **A · Backend catálogo** | `app/db/`, `app/services/{menu,assets,mesas,personal}.py`, `app/api/admin/`, `migrations/`, `scripts/seed.py` | 1 |
+| **A · Backend catálogo** | `app/db/`, `app/services/{menu,assets,mesas,personal}.py`, `app/api/admin/`, `migrations/`, `scripts/seed.py` | 1, 3 (T-3.0, T-3.19, rutas de T-3.7) |
 | **B · Importación IA** | `app/services/importacion_menu.py`, `app/schemas/importacion.py`, `app/api/admin/importaciones.py`, `tests/fixtures/menus/` | 1 |
-| **C · Frontend operador** | `frontend/src/admin/`, `frontend/src/compartido/` (con D/E/H coordinados) | 1 |
-| **D · Backend comensal** | `app/core/seguridad.py` (invitado), `app/services/{sesion,analitica}.py`, `app/api/publico/` | 2 |
-| **E · Frontend comensal** | `frontend/src/comensal/` | 2 |
-| **F · Backend orden** | `app/services/{orden,comanda}.py`, `app/api/publico/orden.py` | 3 |
-| **G · Backend personal** | `app/core/seguridad.py` (personal), `app/api/operacion/` | 3 |
-| **H · Frontend personal y orden** | `frontend/src/personal/`, `frontend/src/comensal/orden/` | 3 |
+| **C · Frontend operador** | `frontend/src/admin/` (salvo `admin/pedidos/`), `frontend/src/compartido/` (con D/E/H coordinados) | 1, 3 (T-3.19) |
+| **D · Backend comensal** | `app/core/seguridad.py` (invitado), `app/services/{sesion,analitica,avisos,entrada}.py`, `app/api/publico/` (salvo lo de F) | 2, 3 (T-3.20, T-3.10, T-3.12, T-3.18) |
+| **E · Frontend comensal** | `frontend/src/comensal/` (incluidos `orden/` y `cuenta/` desde la Fase 3), `frontend/src/compartido/eventos/` | 2, 3 (T-3.21, T-3.5, T-3.15) |
+| **F · Backend orden** | `app/services/{orden,ciclo}.py`, `app/api/publico/{orden,cuenta}.py`, `app/core/idempotencia.py` | 3 |
+| **G · Backend personal** | `app/core/seguridad.py` (personal), `app/services/{comanda,permisos,correcciones}.py`, `app/api/operacion/` | 3 |
+| **H · Frontend personal y dueño** | `frontend/src/personal/`, `frontend/src/admin/pedidos/` | 3 |
 | **I · Plataforma** | `deploy/`, `.github/`, `Dockerfile`, `Caddyfile`, `pruebas/carga/`, `scripts/` (salvo `seed.py`), `.claude/` | 0, 4 |
 
 **Contrato primero.** La primera tarea de backend de cada fase publica los esquemas Pydantic de respuesta en `app/schemas/` y deja `/openapi.json` sirviendo aunque los endpoints devuelvan datos de ejemplo. El frontend corre `npm --prefix frontend run tipos` (openapi-typescript) y trabaja contra ese contrato con datos simulados (`frontend/src/mocks/`). Así C, E y H no esperan a que A, D, F y G terminen.
@@ -70,10 +70,22 @@ flowchart LR
     D["Carril D · T-2.1→2.3"]
     E["Carril E · T-2.4→2.7"]
   end
-  subgraph Ola3["Ola 3 · Fase 3 (3 agentes)"]
-    F["Carril F · T-3.1→3.3"]
-    G["Carril G · T-3.4"]
-    H["Carril H · T-3.5→3.7"]
+  subgraph Ola3["Ola 3 · Fase 3 (hasta 3 agentes; detalle en §7)"]
+    T30["T-3.0 modelo, contrato y disparador"]
+    F["Carril F · T-3.1→3.2→3.8→3.3"]
+    D3["Carril D · T-3.20→3.10→3.12"]
+    G["Carril G · T-3.4→3.13→3.11"]
+    E3["Carril E · T-3.21→3.5→3.15"]
+    H["Carril H · T-3.6→3.16→3.7"]
+    T318["T-3.18 al final"]
+    T30 --> F
+    T30 --> D3
+    T30 --> E3
+    F --> G
+    D3 --> G
+    E3 --> H
+    G --> T318
+    H --> T318
   end
   subgraph Ola4["Ola 4 · Fase 4 (1–2 agentes)"]
     I["T-4.1→4.8"]
@@ -313,9 +325,235 @@ Dentro de una ola, el orden de integración es: backend (A, D, F+G) primero, fro
 
 ---
 
-## 7. Fase 3 — Orden en grupo, comandas y personal
+## 7. Fase 3 — Orden en grupo, comandas, ciclo de la mesa y personal
 
-> **Entregable observable:** tres teléfonos en una mesa arman su orden, ven "2 de 3 listos", confirman, y la comanda aparece con sonido en el teléfono del mesero, que la atiende, la marca servida y libera la mesa.
+> **Entregable observable:** tres teléfonos en una mesa arman su orden y ven al instante "2 de 3 listos", confirman, y la comanda aparece con sonido en el teléfono del mesero en ≤ 1 s; el mesero la atiende y la marca servida; cada comensal cierra su cuenta con su propina, el mesero valida los pagos y marca la mesa limpia, y el siguiente grupo no ve nada del anterior. Con el teléfono bloqueado no llega nada; al volver, la pantalla se pone al día sola.
+
+> **Base de la fase (13 de noviembre de 2026):** la [Spec 001](../specs/001-ciclo-de-la-mesa/spec.md) (aprobada por Calvin; [ADR-017](../mvp/adr/ADR-017-el-personal-lleva-el-ciclo.md)) y la entrega por eventos ([ADR-018](../mvp/adr/ADR-018-entrega-por-eventos.md), aceptada por Calvin el mismo día: «quiero que sea así, porque así va a ser escalable»; sustituye al ADR-004). La fase pasa de 7 a **19 tareas**: las 7 de siempre puestas al día, 10 de la sección 12 de la spec (sus IDs se conservan: no hay T-3.9, T-3.14 ni T-3.17) y 2 de eventos (T-3.20 y T-3.21, informe [`perf/2026-11-13-eventos-frente-a-sondeo.md`](perf/2026-11-13-eventos-frente-a-sondeo.md) §7). Los criterios están en [01 §6](01_Alcance_v1.md) (US-29 a US-39 indexados desde la spec, y US-40 para los eventos) y en el PRD con las enmiendas del 13 de noviembre.
+>
+> **Regla de la fase (para no rehacer nada):** ninguna pantalla nueva construye un sondeo fijo. Toda pantalla que se entera de cambios (T-3.5, T-3.6, T-3.7, T-3.15, T-3.16) usa el cliente del canal de T-3.21, y el sondeo existe sólo dentro de ese módulo, como respaldo y modo degradado. En el servidor, el aviso lo emite el disparador de T-3.0: ningún servicio nuevo llama a mano a `pg_notify` (llamar a `cache_estados.invalidar` después del `commit()` sigue siendo correcto y barato hasta que T-3.20 lo haga automático).
+>
+> **Amparos durante la transición (Spec 001 §12):** el cierre de 3 h por inactividad (`CierreInactivas`) y el pase de 6 h siguen vivos hasta que los sustituyen T-3.12 (pase de 24 h sin usarse, con el cierre de 3 h todavía activo) y T-3.18 (retira el cierre, sólo después de una mesa real limpiada por el personal en staging). En todo momento existe uno de los dos amparos.
+>
+> **Historia de esta fase:** las decisiones de Calvin del 12 y 13 de noviembre que llevaron a la spec están al final de esta sección y en §11; donde difieran, manda la spec.
+
+### Orden y olas
+
+```mermaid
+flowchart LR
+  T30["T-3.0 🔴 modelo, contrato,<br/>costuras y disparador"]
+  subgraph O2["Ola 3·2"]
+    T31["F · T-3.1 🔴 orden"]
+    T320["D · T-3.20 🔴 canal (servidor)"]
+    T321["E · T-3.21 🔴 canal (teléfono)"]
+  end
+  subgraph O3["Ola 3·3"]
+    T32["F · T-3.2 🔴 confirmar y comanda"]
+    T310["D · T-3.10 entrada de la mesa"]
+    T35["E · T-3.5 mi orden"]
+  end
+  subgraph O4["Ola 3·4"]
+    T34["G · T-3.4 🔴 PIN, piso y canal del personal"]
+    T38["F · T-3.8 🔴 ciclo de la mesa"]
+    T36["H · T-3.6 app del personal"]
+  end
+  subgraph O5["Ola 3·5"]
+    T313["G · T-3.13 permisos"]
+    T312["D · T-3.12 pase y estatus"]
+    T315["E · T-3.15 cuenta y propina"]
+  end
+  subgraph O6["Ola 3·6"]
+    T311["G · T-3.11 correcciones"]
+    T33["F · T-3.3 llamada"]
+    T316["H · T-3.16 ciclo en el personal"]
+  end
+  subgraph O7["Ola 3·7"]
+    T319["A/C · T-3.19 horario"]
+    T37["H · T-3.7 el dueño opera"]
+  end
+  T318["D/I · T-3.18 sin cierre por inactividad<br/>(tras una mesa real en staging)"]
+  T30 --> O2 --> O3 --> O4 --> O5 --> O6 --> O7 --> T318
+```
+
+Máximo tres hijas a la vez (`/orquestar`). Las olas respetan las dependencias de cada brief; la maestra puede adelantar una tarea si su dependencia ya está integrada y hay lugar (T-3.19 sólo depende de T-3.0 y puede entrar en cualquier ola con hueco; T-3.3 en cuanto esté T-3.2). Dentro de una ola se integra primero el backend (D, F, G) y después el frontend (E, H), que trabaja contra el contrato de T-3.0 con datos simulados (`frontend/src/mocks/`).
+
+**Por qué este orden.** El canal (T-3.20 y T-3.21) va en la primera ola después del modelo para que nada se construya sobre el sondeo: T-3.21 sustituye el sondeo fijo de `comensal/entrada` (T-2.4) antes de que T-3.5 haga la orden en grupo, y T-3.4 abre la línea del personal sobre la escucha de T-3.20 antes de que T-3.6 haga sus pantallas. El ciclo (T-3.8) va antes que su interfaz (T-3.15, T-3.16) y que las correcciones (T-3.11), que lo necesitan. T-3.18 cierra la fase.
+
+| Tarea | Carril | Depende de | Modelo |
+|---|---|---|---|
+| 🔴 T-3.0 | A | T-2.1 | Opus |
+| 🔴 T-3.1 | F | T-3.0 | Opus |
+| 🔴 T-3.20 | D | T-3.0 | Opus |
+| 🔴 T-3.21 | E | T-3.0 (contrato) | Opus |
+| 🔴 T-3.2 | F | T-3.1 | Opus |
+| T-3.10 | D | T-3.0 | Opus |
+| T-3.5 | E | T-2.6, T-3.21 (contrato de T-3.2) | Sonnet |
+| 🔴 T-3.4 | G | T-3.2, T-3.20, T-1.6 | Opus |
+| 🔴 T-3.8 | F | T-3.2, T-3.0 | Opus |
+| T-3.6 | H | T-3.21 (contrato de T-3.4) | Sonnet |
+| T-3.13 | G | T-3.0, T-3.4 | Opus |
+| T-3.12 | D | T-3.8, T-3.10 | Opus |
+| T-3.15 | E | T-3.5 (contrato de T-3.8 y T-3.10) | Sonnet |
+| T-3.11 | G | T-3.4, T-3.8, T-3.13 | Opus |
+| T-3.3 | F | T-3.2 | Sonnet |
+| T-3.16 | H | T-3.6 (contrato de T-3.8, T-3.10, T-3.11) | Sonnet |
+| T-3.19 | A/C | T-3.0 | Sonnet |
+| T-3.7 | H (y A para sus rutas) | T-3.16, T-3.13 | Sonnet |
+| T-3.18 | D/I | T-3.12, T-3.16 y una mesa real limpiada en staging | Sonnet |
+
+«Modelo» es la recomendación para la hija (skill `/orquestar` §1: Opus para 🔴, migraciones, seguridad, concurrencia o dinero; Sonnet para el resto).
+
+### Carril A · Modelo y contrato de la fase
+
+### 🔴 T-3.0 — Modelo, contrato, costuras y disparador de avisos
+**Carril:** A · **Depende de:** T-2.1 · **Historias:** US-29 a US-38, US-40 · **Modelo:** Opus
+**Entregable:** migración `0004_ciclo_de_la_mesa` (skill `/migracion`) con lo de [03 §2.4](03_Datos_v1.md): estados vivos «cuenta cerrada» y «pagada» de la sesión (INV-1 y `uq_sesion_viva_por_mesa` los cubren) y su fin «limpia» o «liberada sin pago verificado»; entrada cerrada; estados del miembro y de su cuenta; propina declarada con quién validó y cuándo; solicitudes de entrada; marcas de tiempo; ajustes por restaurante con los valores del piloto; permisos por rol **sembrados** (también para los restaurantes existentes); reparto del cargo (una fila al 100 %) y registro de movimientos; `item_orden` con quién pidió, origen y «cancelado por el personal» (INV-3 ajustada una sola vez, ADR-017 punto 8); `restaurante.horarios` como tramos por día con versión, zona horaria y ajuste «fuera de horario»; **el disparador de avisos del ADR-018** (`pg_notify('carta_mesa', sesion_id)` y `pg_notify('carta_restaurante', restaurante_id)` en la misma transacción que toda escritura que ve una mesa o el personal); modelos en `app/db/models.py`; **contrato de toda la fase** en `app/schemas/` (estado de la mesa con el ciclo y la hora de la última acción, cuenta con partidas «pidió» y «responde», propina declarada, solicitudes, permisos de quien entra, horario) y las rutas nuevas declaradas en `/openapi.json` con datos de ejemplo, **incluidas `GET /p/sesion/eventos` y `GET /op/eventos`** (`text/event-stream`, con la forma de `hola`, `cambio` y latido); `npm --prefix frontend run sincronizar`.
+**Archivos:** `migrations/versions/0004_ciclo_de_la_mesa.py`, `app/db/models.py`, `app/schemas/{sesion,ciclo,personal_op,horario,eventos_linea}.py` (nombres a fijar), `frontend/src/compartido/api.d.ts` y `frontend/src/mocks/openapi.json` (regenerados), `tests/integration/test_migracion_ciclo.py`, `tests/integration/test_disparador_avisos.py`, `tests/unit/test_contrato_ciclo.py`.
+**Criterios:** AC-35.5, AC-36.4, AC-36.7, AC-37.9, AC-37.11.
+**Verificar:** `uv run pytest tests/integration/test_migracion_ciclo.py tests/integration/test_disparador_avisos.py tests/unit/test_contrato_ciclo.py tests/unit/test_modelos.py -q` y `uv run python scripts/verificar_trazabilidad.py --tarea T-3.0 --estricto` — `upgrade`/`downgrade`/`upgrade` limpios; `compare_metadata` sin diferencias; con `LISTEN` en otra conexión, cada tipo de escritura emite **un** aviso al confirmar y ninguno si se deshace; el aviso no contiene más que el id; un ítem confirmado sólo admite pasar a «cancelado por el personal» y nada más; ningún esquema de marca de tiempo ni de propina tiene alias, IP ni cookie (AC-35.5); el contrato no tiene ruta para editar permisos ni para cobrar, repartir o reportar propinas ni capturar descuentos (AC-36.7, AC-37.9, AC-37.11).
+**Notas:** el ADR-017 y el ADR-018 ya están escritos (13 de noviembre): esta tarea los implementa, no los redacta. Índice en toda FK con `CASCADE`/`SET NULL`, CHECK en la base, triggers con `SET search_path` y `FOR SHARE` donde haga falta (skill `/migracion`); la función del disparador avisa con `pg_notify` (no `NOTIFY` literal) para poder pasar el id como texto; si una escritura toca varias mesas (pasar una cuenta), un aviso por mesa. Contrato primero: las tareas de frontend E y H arrancan con este contrato y mocks validados con Ajv. Las pruebas del disparador necesitan datos **confirmados** (la transacción por prueba de `tests/conftest.py` no confirma): una fixture propia que confirma y limpia, como las de concurrencia de T-2.1 (skill `/pruebas`).
+
+### T-3.19 — Horario y zona horaria: API y editor en el panel
+**Carril:** A (backend) y C (`frontend/src/admin/ajustes/`) · **Depende de:** T-3.0 · **Historias:** US-38 · **Modelo:** Sonnet
+**Entregable:** `PATCH /admin/restaurantes/{rid}` acepta horario (un tramo por día en la v1, la estructura ya guarda una lista), zona horaria IANA validada y el ajuste «fuera de horario» (`pedir_aprobacion` por defecto · `rechazar`); editor en la pantalla de ajustes del panel con el diseño del prototipo (`prototipo/js/admin-onboarding.jsx`, editor por día con interruptor y horas; «Horario» de `admin-ops.jsx`); el cambio aplica en el siguiente escaneo.
+**Criterios:** AC-38.1, AC-38.4, AC-38.5, AC-38.7.
+**Verificar:** `uv run pytest tests/integration/test_horario.py -q` y `npm --prefix frontend test -- admin-horario` — un horario de 18:00 a 02:00 en `America/Mexico_City` admite a las 01:30; zona inválida → 422; otro restaurante → 404; el editor guarda con PATCH parcial y conserva lo que el servidor no aplicó.
+**Notas:** la evaluación del horario al escanear es de T-3.10, que lee la estructura de T-3.0; esta tarea sólo la configura. «Rechazar todas por esta noche» y fechas especiales son v1.1 (Spec 001, US-38b): no se construyen.
+
+### Carril F · Backend orden, comanda y ciclo
+
+### 🔴 T-3.1 — Servicio de orden
+**Carril:** F · **Depende de:** T-3.0 · **Historias:** US-10 · **Modelo:** Opus
+**Entregable:** `app/services/orden.py` (sin FastAPI): agregar (precio **leído de la base**, platillo activo y disponible, cantidad ≥ 1, nota ≤ 140), modificar, eliminar, recalcular subtotal, rechazar cambios si `bloqueada`; **(Spec 001)** cada cargo lleva quién lo pidió y su reparto (una fila al 100 % al agregarlo); la cuenta de un comensal se calcula siempre sobre el reparto, en centavos enteros, y excluye retirados; agregar está prohibido con la cuenta del comensal cerrada (INV-11 extendida). Los esquemas los publicó T-3.0.
+**Criterios:** AC-10.1, AC-10.2, AC-10.4.
+**Verificar:** `uv run pytest tests/unit/test_servicio_orden.py tests/integration/test_reparto_cargo.py -q` — el precio del cliente se ignora; un cargo nuevo tiene exactamente una fila de reparto al 100 %; la cuenta de 3 ítems de $33.33 suma 9999 centavos; con la cuenta cerrada, agregar → 409.
+**Notas (revisión de T-2.1, B2):** pedir exige, además de la sesión viva, la mesa activa y el restaurante activo: usa `app.services.sesion.unirse` (o la misma condición con `FOR SHARE`), que ya trata una sesión de una mesa dada de baja o de un restaurante inactivo como cerrada (410 `SESION_CERRADA`). Toda escritura invalida `sesion.cache_estados`. **Notas:** (revisión de T-1.1) **Interbloqueo heredado de INV-3:** dos transacciones que insertan un ítem en la misma orden toman `FOR SHARE` sobre ella (trigger `tr_item_orden_inmutable`) y, si después ambas confirman (`UPDATE orden_personal … bloqueada = true`), PostgreSQL aborta una con `DeadlockDetectedError` (40P01). Al confirmar (aquí o en T-3.2), toma `SELECT … FOR UPDATE` de la orden **antes** de tocar sus ítems, o reintenta una vez ante 40P01. **Comanda:** `comanda.mesa_id` se deriva de la sesión al crearla (la base sólo exige que mesa y sesión sean del mismo restaurante, no que la mesa sea la de la sesión).
+
+### 🔴 T-3.2 — Ítems, confirmación, comanda e idempotencia
+**Carril:** F · **Depende de:** T-3.1 · **Historias:** US-11, US-12, US-29 · **Modelo:** Opus
+**Entregable:** endpoints de ítems; `POST /p/orden/confirmar` en transacción con `SELECT … FOR UPDATE` sobre la sesión: congela precios y cantidades, `bloqueada=true`, miembro `listo`; si todos los miembros activos están listos → sesión `lista_para_enviar` y `comanda` (`secuencia` siguiente, `comanda_orden`, `total_estimado`, `num_comensales`); `POST /p/orden/deshacer` mientras no haya comanda; **rondas sucesivas** (AC-29.2): tras una comanda, quien pida de nuevo abre otra ronda que genera su propia comanda (comprueba que `uq_orden_viva_por_miembro` lo permite); «activos» excluye retirados y flotantes; `app/core/idempotencia.py` con la tabla `clave_idempotencia` (24 h, `Idempotent-Replay: true`); `GET /p/sesion` expone el estado de la comanda (`abierta` · `atendida` · `servida`).
+**Criterios:** AC-11.1–AC-11.4, AC-12.1, AC-12.4, AC-12.5, AC-29.2.
+**Verificar:** `uv run pytest tests/integration/test_orden_items.py tests/integration/test_confirmar.py tests/integration/test_comanda.py tests/integration/test_idempotencia.py tests/integration/test_rondas.py -q` — dos confirmaciones simultáneas (dos conexiones) crean **una** comanda; modificar un ítem bloqueado lanza `IntegrityError` por el trigger; orden vacía → 409; la misma clave devuelve la respuesta original; una `Idempotency-Key` de 500 caracteres no produce 500; entradas a las 21:05 y postres a las 22:30 dan dos comandas de la misma mesa.
+**Notas:** `comanda.secuencia` se calcula dentro de la transacción que ya tiene `FOR UPDATE` sobre la sesión (10 inserciones simultáneas con `max+1` ingenuo dan 4 `UniqueViolation`); la `Idempotency-Key` del cliente se guarda como hash SHA-256 (la columna admite 80 caracteres); agregar ítems toma `FOR SHARE` de la sesión (INV-11); las consultas filtran `estado` por el enum, nunca con `::text`, para que el planificador use los índices parciales. El `ck_orden_bloqueada_coherente` obliga a cambiar `estado` y `bloqueada` en la misma sentencia.
+
+### 🔴 T-3.8 — Servicio del ciclo de la mesa
+**Carril:** F · **Depende de:** T-3.2, T-3.0 · **Historias:** US-29, US-35, US-37 · **Modelo:** Opus
+**Entregable:** `app/services/ciclo.py` (sin FastAPI) y sus rutas en `app/api/publico/cuenta.py` (comensal) y en `app/api/operacion/` (personal, con el punto de permisos cuando exista T-3.13; hasta entonces, la tabla sembrada de T-3.0): cerrar mi cuenta (pide confirmar o descartar lo pendiente) y la de toda la mesa como atajo del personal; desglose (ítems, subtotal, propina declarada, total); «ya pagué» como aviso; validar el pago de una cuenta (anota la propina a quien valida: personal u operador); mesa «pagada» al validar la última; «mesa limpia» (termina la sesión, libera a la vez a cada comensal y la mesa) sólo sin comandas no terminales ni cuentas sin pagar o flotantes; reabrir antes de «pagada»; liberar con cargos (sólo con permiso, marca «liberada sin pago verificado»); propina declarada al cerrar y cambiable hasta la validación; marcas de tiempo de cada paso sin sobrescribir. Todo bajo `FOR UPDATE` de la sesión (INV-11).
+**Criterios:** AC-28.2, AC-29.3, AC-29.4, AC-29.6–AC-29.12, AC-35.1–AC-35.4, AC-37.5–AC-37.8.
+**Verificar:** `uv run pytest tests/integration/test_ciclo_mesa.py tests/integration/test_propina_declarada.py tests/integration/test_marcas_tiempo.py -q` — el escenario completo de La Ceiba de AC-35.1 da apertura, cuenta cerrada, pagada y limpia con autor; una comanda sin servir impide «mesa limpia» y dice cuál; con la mesa «pagada» reabrir → 409; cerrar la cuenta mientras otro miembro agrega deja el ítem fuera o la cuenta abierta, nunca un ítem en una cuenta cerrada; propina negativa → 422; cambiar la propina tras validar → 409; la propina queda anotada a quien validó.
+**Notas (heredadas de T-3.3, que sólo conserva la llamada):** cerrar toma `SELECT … FOR UPDATE` de la sesión (INV-11) y cierra en la misma transacción las órdenes `armando` (pasan a `cerrada` con `bloqueada=true`, como exige `ck_orden_bloqueada_coherente`). El cierre por inactividad (`app.services.sesion.cerrar_inactivas`, una sentencia con `FOR NO KEY UPDATE SKIP LOCKED` en `CierreInactivas`) **sigue vivo hasta T-3.18**: mientras exista, debe cerrar también las órdenes `armando` en la misma transacción, y no debe cerrar una mesa en «cuenta cerrada» o «pagada» (sólo sesiones abiertas sin actividad). `GET /p/sesion` responde 410 `SESION_CERRADA` con la mesa limpia para que la PWA muestre "la mesa se cerró". Toda escritura avisa por el disparador de T-3.0 (no llames a `pg_notify` a mano); `cache_estados.invalidar(sesion_id)` después del `commit()` sigue siendo correcto. `leer_estado` marca `listo` a quien tiene su orden viva `confirmada`: ajústalo con los estados nuevos del miembro. Pedir, confirmar, cerrar y validar son actividad: muevan `ultima_actividad_en` (los relojes de T-3.12 la leen).
+
+### T-3.3 — Llamada al mesero
+**Carril:** F · **Depende de:** T-3.2 · **Historias:** US-12, US-14 · **Modelo:** Sonnet
+**Entregable:** `POST /p/llamar-mesero` (1 por minuto por sesión, contando en `llamada_mesero`; `Idempotency-Key`). **El cierre de sesión que vivía aquí pasó a T-3.8** (Spec 001 §12).
+**Criterios:** AC-12.3.
+**Verificar:** `uv run pytest tests/integration/test_llamar_mesero.py -q` — segunda llamada en < 60 s → 429; la llamada emite el aviso del restaurante (prueba con `LISTEN`, como en T-3.0).
+**Notas:** atender la llamada es de T-3.4 (`POST /op/llamadas/{id}/atender`).
+
+### Carril D · Backend comensal: canal, entrada y pase
+
+### 🔴 T-3.20 — Canal de avisos: escucha de PostgreSQL y línea del comensal
+**Carril:** D (y I para `Dockerfile` y `deploy/`) · **Depende de:** T-3.0 · **Historias:** US-40 · **Modelo:** Opus
+**Entregable:** `app/services/avisos.py` (sin FastAPI): una escucha por worker (conexión `asyncpg` propia, fuera del pool, con `LISTEN carta_mesa, carta_restaurante`, reconexión con retroceso), registro en memoria de líneas por `sesion_id` y por `restaurante_id`, y al recibir un aviso: `cache_estados.invalidar` y `cambio` a las líneas de esa mesa o restaurante; al recuperar la escucha, invalida todo y reparte los avisos a sus líneas en ≈ 30 s; arranca y para en el lifespan; `/ready` responde 503 `ESCUCHA_DETENIDA` si lleva caída más de 15 s [supuesto: se ajusta con la medición]. La memoria de estados (`CacheEstados`) pasa de 2 s a 60 s. Ruta `GET /p/sesion/eventos` en `app/api/publico/sesion.py` con `invitado_actual` y `RutaComensal` (cuenta en el límite de tasa): `hola` con el ETag del miembro **después** de suscribirse, `cambio` por aviso, latido sólo tras 25 s sin ningún otro mensaje, cierre a los 10 min ± 20 % con `retry: 3000`, cabeceras `text/event-stream`, `Cache-Control: no-store, no-transform`, `X-Accel-Buffering: no`; una sesión cerrada responde 410 con la envoltura (no abre línea). Uvicorn con `--timeout-graceful-shutdown 3` y sin `--limit-concurrency`. El servicio expone lo que necesita T-3.4 para la línea del personal (suscribirse por `restaurante_id`).
+**Archivos:** `app/services/avisos.py`, `app/services/sesion.py` (memoria 60 s), `app/api/publico/sesion.py`, `app/api/salud.py`, `app/main.py` (lifespan), `Dockerfile` (comando de uvicorn, con aviso al carril I en el PR), `deploy/README.md` y `deploy/railway/README.md` (regla de Cloudflare «Response Body Buffering: None» para `/api/v1/*/eventos` si hace falta, `--timeout-graceful-shutdown`), `.claude/skills/pruebas/SKILL.md` §3a y `.claude/skills/carga/SKILL.md` (memoria de 60 s y escenarios de líneas), `tests/integration/test_avisos.py`, `tests/integration/test_linea_comensal.py`, `tests/integration/test_avisos_dos_workers.py`.
+**Criterios:** AC-40.1, AC-40.2, AC-40.3, AC-40.4, AC-40.8.
+**Verificar:** `uv run pytest tests/integration/test_avisos.py tests/integration/test_linea_comensal.py tests/integration/test_avisos_dos_workers.py -q` — con **uvicorn de dos workers reales** y datos confirmados, una escritura atendida por un worker llega como `cambio` a una línea abierta en el otro; el `hola` trae el ETag vigente; dos `cambio` seguidos no producen latido y 25 s de silencio sí (con reloj controlado); la línea se cierra entre 8 y 12 min; matar la conexión de la escucha la recupera, reparte los avisos y `/ready` da 503 mientras está caída; sin cookie o con cookie de otra mesa no hay línea; el log no contiene el código de mesa. Además, la medición con el generador de `pruebas/carga/local/eventos/` contra la ruta real, registrada en `docs/plan/perf/`.
+**Notas:** el prototipo desechable del informe (`pruebas/carga/local/eventos/app_eventos.py`) es la referencia de forma, no de código (no se monta en `app/`). **Medición obligatoria (ADR-018, decisión 4.2):** con 5,000 líneas en local, CPU en reposo de (a) latido con la versión del estado y sin respaldo frente a (b) latido de un byte con respaldo de 60 s; si (a) cuesta igual o menos, el latido lleva el ETag (`event: latido` con `data`), y lo anota en 04 §11 para que T-3.21 quite el respaldo fijo mientras la línea vive; si no, el latido es un comentario `: l` y se queda el respaldo. El `hola` lee el estado con la misma función que `GET /p/sesion`. Un fallo de la escucha nunca tumba una ruta: el respaldo del teléfono cubre. La verificación en staging (ADR-018, verificaciones 1, 2 y 5) se hace al desplegar esta tarea con el generador desde fuera de Railway, nunca en producción; si el borde guarda en búfer, la regla de Cloudflare la crea Calvin con el clic a clic de `deploy/railway/README.md`.
+
+### T-3.10 — Entrada de la mesa
+**Carril:** D · **Depende de:** T-3.0 · **Historias:** US-29, US-33, US-34, US-38 · **Modelo:** Opus
+**Entregable:** `app/services/entrada.py` y cambios en `app/services/sesion.py` (`entrar`): la mesa se abre con el primer escaneo y guarda su hora; candado (con la cuenta cerrada o después, un no miembro ve «habla con tu mesero», sin solicitud ni lugar); entrada cerrada → solicitud con su alias que no ocupa lugar; tope de 5 pendientes por mesa y 20 por restaurante, caducidad de 10 min, mismo límite de tasa del comensal; aprobar (se vuelve miembro) o rechazar (mensaje neutro); cerrar y abrir la entrada; mesa llena (12, ajuste por restaurante) sin solicitud; una mesa a la vez, también entre restaurantes («ya estás en la mesa N de <restaurante>» con salida de regreso, «salir de la mesa» sin cargos validados sin pagar); evaluación del horario en la zona del restaurante (solicitud o rechazo según su ajuste; sin horario, como hoy; el horario no afecta a una mesa ya abierta); regenerar el código conserva la sesión y el estado de la entrada. Las rutas del personal (aprobar, rechazar, cerrar entrada) llegan con la cookie de T-3.4: si aún no está, se exponen en el servicio y T-3.4 o T-3.16 las montan.
+**Criterios:** AC-29.1, AC-29.5, AC-33.1–AC-33.8, AC-34.1–AC-34.5, AC-38.1–AC-38.6.
+**Verificar:** `uv run pytest tests/integration/test_entrada_mesa.py tests/integration/test_una_mesa_a_la_vez.py tests/integration/test_horario_entrada.py -q` — con 5 pendientes el sexto ve «mesa ocupada» y no crea nada; a los 10 min una solicitud vence; 13.º comensal → «mesa llena» sin solicitud; con la entrada cerrada los seis miembros siguen pidiendo; Ana en la mesa 7 de La Ceiba escanea la 8 u otra de otro restaurante y no se mueve; fuera de horario con «rechazar» no queda solicitud y el menú sigue visible; regenerar con la entrada cerrada la deja cerrada.
+**Notas:** las tres razones (entrada cerrada, 2 h en rojo de T-3.12, fuera de horario) producen la misma solicitud; si coinciden, una sola. Serializa con `FOR NO KEY UPDATE` de la sesión como `entrar` hoy (INV-11 extendida). Un código sin forma válida sigue dando el mismo 404 sin consultar (T-2.1).
+
+### T-3.12 — Pase, estatus y recordatorio
+**Carril:** D · **Depende de:** T-3.8, T-3.10 · **Historias:** US-30 · **Modelo:** Opus
+**Entregable:** el pase del comensal deja de caducar a las 6 h: vale mientras la mesa siga abierta, caduca tras 24 h sin usarse (sello de último uso que se renueva al usarlo, sin consultar la base en cada petición más de lo necesario) y queda sin efecto con la mesa limpia; quien vuelve con el pase caducado entra como persona nueva y su cuenta anterior queda flotante; estatus de actividad (verde < 20 min sin acciones, amarillo 20–40, rojo > 40, umbrales por restaurante) y recordatorio de 30 min **calculados en el teléfono** a partir de la hora de la última acción que entregan `GET /op/mesas` y `GET /p/sesion` (ADR-018); «todo bien con la mesa» cuenta como acción; con 2 h en rojo, escanear deja solicitud (gancho en la evaluación de T-3.10). **El cierre de 3 h sigue vivo** (lo retira T-3.18).
+**Criterios:** AC-01.2, AC-30.1–AC-30.9, AC-40.9.
+**Verificar:** `uv run pytest tests/integration/test_pase_estatus.py tests/unit/test_token_invitado.py -q` — un pase usado a las 21:00 sigue valiendo a las 00:45; uno sin usar 25 h entra como «Comensal 3» y la cuenta anterior queda flotante; con la mesa limpia el pase viejo entra a una sesión nueva; «todo bien» mueve la hora de la última acción; con 2 h en rojo un no miembro deja solicitud y la mesa sigue igual; ningún reloj del servidor cierra nada ni manda avisos por tiempo.
+**Notas:** el JWT de T-2.1 lleva `exp`; el cambio a «24 h sin usarse» necesita el último uso del lado del servidor (en `miembro_sesion`) o un token que se renueva al usarse: decide con `/revisar` de seguridad y documéntalo en la enmienda del ADR-003 (ADR-017 punto 4). La hora de la última acción la pone el servidor; el teléfono sólo calcula colores y minutos.
+
+### T-3.18 — Retiro del cierre por inactividad
+**Carril:** D (servicio) e I (operación) · **Depende de:** T-3.12, T-3.16 y **una mesa real limpiada por el personal de punta a punta en staging** · **Historias:** US-30 · **Modelo:** Sonnet · pequeña
+**Entregable:** `CierreInactivas` y `sesion.cerrar_inactivas` retirados del lifespan y del código (y sus pruebas sustituidas por la prueba de que nada cierra por reloj); `INVITADO_VIGENCIA_HORAS` retirado si T-3.12 ya no lo usa; AC-02.4 marcado como eliminado en el PRD.
+**Criterios:** AC-30.2, AC-30.8.
+**Verificar:** `uv run pytest tests/integration/test_sin_cierre_inactividad.py -q` — una mesa sin actividad desde las 22:30 sigue abierta a las 02:00 (reloj simulado) con todo en su lugar; y la corrida en staging anotada en `docs/piloto/ensayo.md` antes de abrir el PR.
+**Notas:** es lo último de la fase (Spec 001 §12): mientras no se cumpla la dependencia de staging, el cierre de 3 h es el amparo.
+
+### Carril G · Backend del personal
+
+### 🔴 T-3.4 — Acceso con PIN, operación de piso y línea del personal
+**Carril:** G · **Depende de:** T-3.2, T-3.20, T-1.6 · **Historias:** US-13, US-14, US-26, US-27, US-28, US-39, US-40 · **Modelo:** Opus
+**Entregable:** `app/core/seguridad.py` (parte personal): `POST /op/entrar` (comprueba PIN con Argon2id, intentos y bloqueo progresivo, mensaje uniforme, cookie `carta_personal` 12 h), `POST /op/salir`, **cambiar de persona en una tablet compartida** (un toque y el PIN; cada acción se anota a quien la hizo, AC-39.4), dependencia `personal_actual` (consulta `activo` en cada petición) y `capitan_requerido` (que T-3.13 sustituye por el punto de permisos); `GET /op/personal/{slug}`; `app/services/comanda.py`: listar mesas con estado (incluidos los del ciclo, la entrada y las solicitudes de T-3.0), tiempos y **hora de la última acción**, detalle de mesa, atender, servir, atender llamada, marcar platillo no disponible / disponible (registra quién y cuándo, invalida caché del menú), resumen del turno (capitán); `GET /op/mesas` y `GET /op/comandas` con ETag; **`GET /op/eventos`** (línea del personal sobre la escucha de T-3.20, por `restaurante_id`, con las mismas reglas que la del comensal: `hola` con el ETag de `/op/mesas`, `cambio`, latido tras 25 s de silencio, cierre a los 10 min ± 20 %). **Liberar la mesa pasó a T-3.8** («mesa limpia» y liberación con permiso). Sin sondeo de 5 s: ADR-018.
+**Criterios:** AC-13.1, AC-13.3, AC-13.4 (servidor), AC-14.1, AC-26.1–AC-26.4, AC-27.1, AC-27.2, AC-28.1, AC-39.4, AC-40.1.
+**Verificar:** `uv run pytest tests/integration/test_op_entrar.py tests/integration/test_op_mesas.py tests/integration/test_op_comandas.py tests/integration/test_op_agotado.py tests/integration/test_linea_personal.py tests/integration/test_cambiar_persona.py -q` — 6.º intento de PIN en un minuto → 429; cookie de otro restaurante → 404 en todo `/op` (también en `/op/eventos`); mesero en `/op/resumen` → 404; marcar agotado se refleja en `GET /p/menu/{slug}` con ETag nuevo; una comanda creada por un comensal llega como `cambio` a la línea del personal del mismo restaurante y no a la de otro; tras cambiar de persona, la siguiente acción queda a nombre de la nueva.
+**Notas (T-2.1):** dar de baja una mesa o desactivar el restaurante ya deja sus sesiones inservibles para el comensal (410 en sondeo y alias, revisión B2), pero no las marca `cerradas`: si el personal ve la mesa, que la vista no la cuente como viva. Regenerar el código de una mesa (T-1.5) **no** cierra su sesión abierta: quienes ya entraron siguen y el código nuevo entra a la misma sesión (decisión de T-2.1, 04 §11). Para un QR filtrado, la Spec 001 da cerrar la entrada (T-3.10) y quitar al desconocido (T-3.11); liberar o «mesa limpia» (T-3.8) cierran la sesión bajo `FOR UPDATE` (INV-11) y los comensales reciben 410 `SESION_CERRADA` en su siguiente lectura, que llega por aviso (ADR-018). El inactivo (AC-02.4) lo cierra `CierreInactivas` hasta T-3.18.
+**Notas (T-1.6):** `personal_actual` debe usar `app.services.personal`: `personal_por_id_activo(sesion, restaurante_id, personal_id)` (otro restaurante, inexistente y baja dan `None` → 401/404 uniforme) y `sesion_vigente(persona, emitida_en)`; la cookie guarda su hora de emisión **con precisión de microsegundos o milisegundos** (no `iat` truncado a segundos: una cookie emitida justo después de un cambio de PIN se rechazaría) y vale sólo si `emitida_en >= sesiones_desde`. El sello lo pone la **base** (`clock_timestamp()`), no el reloj de la réplica: sella la cookie con la hora de la base (o deja margen de reloj) para que dos réplicas desfasadas no la dejen por delante del sello. Comprobar el `rol` contra la fila, no contra la cookie, o aceptar que cambiar el rol ya revocó. `verificar_pin(hash, pin)` es asíncrono y corre en el pool de Argon2 (también para el hash de relleno que iguala el tiempo cuando el nombre no existe); `intentos_fallidos` y `bloqueado_hasta` son suyos y `reasignar_pin` los pone a 0/NULL.
+**Notas (T-2.3):** el límite de tasa de `/op/**` no existe: 04_API_Spec §1.5 pide 600/min por IP y la entrada con PIN necesita su propio tope de intentos (por IP y por restaurante). Reutiliza `app.api.publico.limites.VentanaMovil` y `ip_de_peticion` (nunca `request.client.host`) y cuenta **antes** de leer el cuerpo, como `tope.RutaComensal`; en memoria de cada worker (con N workers, hasta N × el nominal). Hasta entonces sólo lo cubre el borde (300 por 10 s por IP).
+
+### T-3.13 — Permisos por rol (punto único)
+**Carril:** G · **Depende de:** T-3.0, T-3.4 · **Historias:** US-36 · **Modelo:** Opus · pequeña
+**Entregable:** `app/services/permisos.py` con `puede(persona, permiso)` contra la tabla sembrada en T-3.0 (valores de la Spec 001 §5); toda acción del personal y del dueño pasa por ahí; sin permiso → 404 como cualquier ruta del rol (ADR-013); el dueño opera desde su panel con todos los permisos (lo usa T-3.7); sin ruta para editar permisos.
+**Criterios:** AC-36.3, AC-36.4, AC-36.6, AC-36.7.
+**Verificar:** `uv run pytest tests/integration/test_permisos_personal.py -q` — prueba parametrizada sobre **todas** las rutas de `/op` con mesero, capitán y dueño contra la tabla de §5 (Marisol sin «liberar con cargos» → 404; Ernesto, capitán, cierra la entrada; un restaurante recién creado deja a Marisol marcar la mesa limpia).
+**Notas:** sustituye `capitan_requerido` de T-3.4; ninguna ruta decide permisos por su cuenta.
+
+### T-3.11 — Correcciones del personal
+**Carril:** G · **Depende de:** T-3.4, T-3.8, T-3.13 · **Historias:** US-31 · **Modelo:** Opus
+**Entregable:** `app/services/correcciones.py` y sus rutas en `/op`: quitar a un comensal sin ítems confirmados (pierde el acceso, se descartan sus ítems sin confirmar, queda su registro, «n de m listos» se recalcula); con cargos validados, ofrecer pasar su cuenta o marcarlo «perdió su lugar» (flotante); cerrar la cuenta de un comensal por él (queda quién y cuándo y él lo ve al volver); cancelar un pedido o ítem cuya comanda la cocina no empezó («cancelado por el personal», no desaparece); pasar la cuenta de un comensal a otro (mueve el reparto, avisa al destino, retira al origen, deja el movimiento); alias repetidos distinguibles; toda corrección sobre otro restaurante → 404.
+**Criterios:** AC-31.1, AC-31.2, AC-31.3, AC-31.5, AC-31.7, AC-31.8, AC-31.9, AC-31.10.
+**Verificar:** `uv run pytest tests/integration/test_correcciones_mesa.py -q` — los escenarios de la Spec 001 US-31 con La Ceiba; cancelar con la comanda ya atendida → 409; pasar la cuenta de «Comensal 2» a «Comensal 6» deja los cargos en el 6 y el 2 retirado; con una cuenta flotante, «cuenta cerrada» y «mesa limpia» → 409.
+**Notas:** todo bajo `FOR UPDATE` de la sesión; el reparto cambia sin tocar lo que ve la cocina (INV-3 ajustada en T-3.0). Agregar ítems por el personal y la persona sin teléfono son v1.1.
+
+### Carril E · Frontend del comensal: canal, orden y cuenta
+
+### 🔴 T-3.21 — Cliente del canal de avisos
+**Carril:** E · **Depende de:** T-3.0 (contrato) · **Historias:** US-40, US-02 · **Modelo:** Opus
+**Entregable:** `frontend/src/compartido/eventos/`: un módulo que toda pantalla usa para enterarse de cambios: abre `EventSource` sobre la ruta de su audiencia, atiende `hola` y `cambio` (y el latido con versión si T-3.20 lo adoptó) y, si la versión no es la suya, llama a la función de lectura de la pantalla con su ETag; recrea la línea si queda `CLOSED` (502, 524, 429); reconecta con espera al azar de 0–20 s tras un corte masivo; respaldo (una lectura al reconectar, al volver a primer plano o a la red; mientras la línea vive, como mucho una cada 60 s sin aviso, o ninguna si T-3.20 adoptó el latido con versión); **modo degradado** tras 3 intentos fallidos: sondeo por fase de la mesa (comensal: 3 s armando y con la cuenta cerrada, 12 s esperando la comanda, 45 s servida, nada con su cuenta pagada salvo al volver) o 5 s (personal), reintentando la línea cada 60 s; cierra la línea y no pregunta con la página oculta (`visibilitychange`, `pagehide`, `freeze`); **sustituye el sondeo fijo de 3 s de `frontend/src/comensal/entrada/`** (T-2.4) conservando su reentrada única tras un 401, el espejo `carta:invitado:v1` y las pantallas de fallo. Mock en `frontend/src/mocks/` (un `EventSource` simulado) validado contra el contrato.
+**Criterios:** AC-02.3, AC-40.2, AC-40.4, AC-40.5, AC-40.6, AC-40.7.
+**Verificar:** `npm --prefix frontend test -- eventos entrada` y `node frontend/scripts/verificar-eventos.mjs` contra uvicorn con dos workers (nuevo, como `verificar-pwa.mjs`; no corre en la CI) — un `cambio` provoca una sola lectura con `If-None-Match`; un `hola` con la misma versión no provoca ninguna; tres fallos pasan al modo degradado con el intervalo de la fase; un 403 de la ruta de eventos deja la mesa funcionando; al ocultar la página no queda línea ni temporizadores; al volver, una lectura inmediata.
+**Notas:** el comensal ya tiene una sola `useEntrada` por encima de las rutas (`comensal/SesionMesa.tsx`): el canal vive ahí, una línea por pestaña. Pruebas con reloj falso: `vi.useFakeTimers({ shouldAdvanceTime: true })` (skill `/diseno-visual`). Sin dependencias nuevas: `EventSource` es del navegador. El presupuesto de 250 KB lo vigila `presupuesto.mjs`. La verificación con el iPhone de Calvin (ADR-018, verificación 7) se hace con T-3.5 ya en staging.
+
+### T-3.5 — Mi orden, sesión grupal y estado (P04, P04b)
+**Carril:** E · **Depende de:** T-2.6, T-3.21 (contrato de T-3.2) · **Historias:** US-09 (modo consulta), US-10, US-11, US-12 · **Modelo:** Sonnet
+**Nota (T-2.6, C2 de la revisión):** el detalle del platillo (`comensal/platillo/Platillo.tsx`) deja «Agregar a mi orden · Pronto» deshabilitado al final del contenido, **bajo el pliegue** en 375×568, 320×568 y apaisado. **Decidido por Calvin el 12 de noviembre: queda fijo abajo (pie de la capa) en todas las pantallas, no sólo en las chicas**; mide con `capturas-comensal.mjs`; el detalle es una capa sobre el menú (`SesionMesa.tsx`), no una ruta que lo reemplace.
+**Entregable:** `frontend/src/comensal/orden/`: hoja "Mi orden" con cantidades, nota, subtotal recalculado en ≤ 300 ms, persistida en `localStorage` hasta confirmar (AC-10.3); botón confirmar con `Idempotency-Key`, deshacer; sesión grupal con avatares apilados, "3 de 4 listos", tocar un avatar muestra su orden en modo consulta sin controles de edición (AC-09.1, AC-09.2); estados tras confirmar: *enviada al mesero* → *en preparación* → *servida* con ilustración; rondas sucesivas (pedir otra vez tras una comanda, AC-29.2); botón "Llamar al mesero" con enfriamiento visible; **el estado de la mesa llega por el canal de T-3.21** (sin sondeo propio).
+**Criterios:** AC-09.1, AC-09.2, AC-10.1–AC-10.4 (UI), AC-11.1–AC-11.4 (UI), AC-12.3 (UI).
+**Verificar:** `npm --prefix frontend test -- orden sesion-grupal` + prueba manual con tres teléfonos contra staging: un ítem que agrega uno se ve en los otros dos en ≤ 1 s.
+**Notas:** el cierre de la cuenta, el desglose y la propina son de T-3.15. El prototipo deja ver la orden ajena ítem por ítem y el PRD sólo pide «armando/listo» (informe de eventos §1, nota para Calvin): se sigue el PRD (AC-02.3, AC-09.1) mientras Calvin no decida otra cosa.
+
+### T-3.15 — UI del comensal: cuenta, desglose, propina, solicitud y «ya estás en la mesa»
+**Carril:** E · **Depende de:** T-3.5 (contrato de T-3.8 y T-3.10) · **Historias:** US-29, US-34, US-37, US-39 · **Modelo:** Sonnet
+**Entregable:** `frontend/src/comensal/cuenta/` y ajustes del comensal: «cerrar mi cuenta» (confirmar o descartar lo pendiente), desglose (ítems, subtotal, propina, total) y la vista para enseñar al mesero; propina por defecto en sus ajustes (guardada en el teléfono, `carta:propina:v1`; sin preseleccionar mientras no la elija) con 10 %, 15 %, 20 %, sin propina u otra (monto o porcentaje), calculada sobre el consumo y cambiable hasta que el personal valide; «ya pagué»; pantallas de solicitud de entrada (esperando, aprobada, «no pudimos agregarte»), «mesa ocupada», «estamos cerrados» con el menú visible, «esta mesa está cerrando su cuenta», «ya estás en la mesa N de <restaurante>» con botón para volver y «salir de la mesa»; «Marisol cerró tu cuenta»; teléfono y tablet. Todo sobre el canal de T-3.21. Diseño del prototipo (`prototipo/js/checkout-v2.jsx` ~97–122 y `comensal-flow.jsx` `Checkout`), sin pago ni «invitar» (v1.1).
+**Criterios:** AC-29.6, AC-34.1–AC-34.5, AC-37.1–AC-37.4, AC-37.8, AC-37.10, AC-39.1.
+**Verificar:** `npm --prefix frontend test -- cuenta propina solicitud` y capturas en 375×667 y 820×1180 con `frontend/scripts/capturas-comensal.mjs` (sin scroll horizontal, controles ≥ 44 px).
+**Notas:** la propina nunca viaja al servidor antes de cerrar la cuenta (regla dura 10: sólo el dato declarado, sin nada del comensal). Ningún texto presenta «una mesa a la vez» como control de seguridad (AC-34.5).
+
+### Carril H · Frontend del personal y del dueño
+
+### T-3.6 — App del personal (P06, P07 simplificadas)
+**Carril:** H · **Depende de:** T-3.21 (contrato de T-3.4) · **Historias:** US-13, US-14, US-26, US-27, US-28, US-39 · **Modelo:** Sonnet
+**Entregable:** `frontend/src/personal/`: `/staff/:slug` con lista de nombres y teclado de PIN; lista de mesas con estado por color (libre · armando · lista · atendida, más los del ciclo que pinta T-3.16), tiempo desde la comanda, llamadas arriba con alerta sonora (`AudioContext` desbloqueado al primer toque) y resaltado 10 s; detalle de mesa con comanda por comensal y botones *Atender* y *Servida*; "Agotado" como búsqueda rápida con interruptor; indicador "sin conexión" y reintento; capitán: pestaña *Turno* con el resumen y las mismas pantallas con sus opciones extra; **el listado y la alerta sonora salen del aviso del canal de T-3.21** (`GET /op/eventos` → `GET /op/mesas`), con el modo degradado de 5 s del propio módulo; teléfono y tablet.
+**Criterios:** AC-12.2, AC-13.2, AC-13.4, AC-13.5, AC-26.1, AC-26.4 (UI), AC-27.1, AC-28.1–AC-28.3, AC-39.3.
+**Verificar:** `npm --prefix frontend test -- personal` + prueba manual: con el teléfono en modo avión aparece "sin conexión"; al volver, la comanda pendiente sigue ahí; con la app en primer plano la comanda suena en ≤ 1 s en staging.
+**Notas:** el ciclo, la entrada, el estatus y las correcciones son de T-3.16; aquí sólo la base de la app. Diseño del prototipo `prototipo/js/mesero.jsx`, sin «Mis mesas / Todas» (asignación de mesas: fuera de la v1).
+
+### T-3.16 — UI del personal: ciclo, entrada, estatus y correcciones
+**Carril:** H · **Depende de:** T-3.6 (contrato de T-3.8, T-3.10, T-3.11, T-3.12) · **Historias:** US-29, US-30, US-31, US-33, US-37, US-39 · **Modelo:** Sonnet
+**Entregable:** en `frontend/src/personal/`: estados del ciclo por mesa (cuenta cerrada, pagada) y botones cerrar cuentas, validar pago (con consumo, propina declarada y total a cobrar, nunca menos que el consumo), mesa limpia, reabrir y liberar con permiso; aviso «ya pagué»; estatus verde/amarillo/rojo y minutos **calculados en el teléfono** con la hora de la última acción, recordatorio de 30 min y «todo bien con la mesa»; solicitudes por mesa («Mesa 7 · 2 solicitudes») con aprobar y rechazar, y cerrar o abrir la entrada (capitán y dueño); correcciones (quitar, cerrar la cuenta por él, cancelar antes de la cocina, pasar la cuenta, perdió su lugar), alias repetidos como «Ana ●1»; «cambiar de persona» en una tablet compartida; las opciones que el permiso no da no se muestran.
+**Criterios:** AC-30.6, AC-30.7, AC-33.8, AC-37.6, AC-39.1, AC-39.3, AC-39.4.
+**Verificar:** `npm --prefix frontend test -- ciclo correcciones` y capturas en 375×667 y 820×1180 (sin scroll horizontal, controles ≥ 44 px).
+**Notas:** el estatus por inactividad se **suma** a la `alerta` del prototipo (llamada o demora), no la sustituye (Spec 001, lectura 10). Sin cobro parcial (lectura 11): validar es sí o no por cuenta.
+
+### T-3.7 — El dueño opera desde su panel (pedidos en vivo)
+**Carril:** H (pantalla) y A (rutas en `app/api/admin/`) · **Depende de:** T-3.16, T-3.13 · **Historias:** US-13, US-36, US-39 · **Modelo:** Sonnet
+**Entregable:** la misma vista de mesas, comandas y ciclo del personal montada en `/admin/pedidos`, **para ver y actuar** con el token del operador: `GET /admin/restaurantes/{rid}/mesas-vivo` y las acciones del personal en `app/api/admin/pedidos.py` sobre los mismos servicios (comanda, ciclo, entrada, correcciones), con el dueño como autor (su propina validada queda a su nombre) y todos los permisos (T-3.13); teléfono, tablet y computadora (dos columnas donde cabe). **Pregunta cada 5 s** con el modo degradado del cliente de T-3.21 (excepción del ADR-018: `EventSource` no manda `Authorization`).
+**Criterios:** AC-36.6, AC-39.2.
+**Verificar:** `npm --prefix frontend test -- admin-pedidos` y `uv run pytest tests/integration/test_admin_pedidos.py -q` — Doña Lupe sola atiende, valida pagos y limpia mesas desde `/admin/pedidos`; otro restaurante → 404; en 1440×900 se ve completo.
+**Notas:** sin PIN ni fila de dueño en el personal (Spec 001, [ACLARAR-6] decidido). Si una acción necesita un servicio nuevo (no sólo una ruta), pasa a Opus.
+
+#### Historia de las decisiones de la fase (12 y 13 de noviembre; la Spec 001 manda donde difieran)
 
 > **Antes de T-3.1 (decisión de Calvin, 12 de noviembre):** se escribe con `/especificar` la especificación del **ciclo de vida de la mesa y del comensal** (fila «Ciclo de la mesa» del 12 de noviembre en §11). Cambia AC-02.4 (cierre por inactividad), la vigencia del pase del comensal, T-3.3 y T-3.4, y toca el modelo de la orden de T-3.1 y T-3.2. Hasta que esa especificación esté aceptada, ninguna tarea de esta fase arranca.
 >
@@ -327,60 +565,7 @@ Dentro de una ola, el orden de integración es: backend (A, D, F+G) primero, fro
 >
 > **Decisiones de Calvin sobre la versión 2 de la Spec 001 (12 de noviembre; la versión 3 las aplica, PR 22):** (1) **Acepta dejar para la v1.1** lo de la tabla de recortes (traspasos entre comensales, permisos editables y su delegación, que el personal edite la orden, invitar a medida, persona sin teléfono) **con una condición: que cubrirlo después no obligue a rehacer** infraestructura ni desarrollo. La spec lleva por eso una sección de costuras (qué queda preparado en la v1 para que la v1.1 sólo añada) y esas costuras entran en T-3.0. (2) **La propina sí entra en la v1:** un cálculo en pantalla, con una propina por defecto que el comensal fija y puede cambiar; Carta no la cobra, no la guarda ni la reparte. Al aprobarse la spec se ajusta la línea «pagos, propinas o comisión» de «Qué NO construir». (3) **Bloqueo entre restaurantes: el mismo bloqueo siempre.** Su razón: es un candado de dos partes; si el restaurante no valida el pago, tampoco puede usar la mesa para clientes nuevos, así que tiene que cerrar el ciclo, y al cerrarlo se liberan a la vez la sesión del comensal y la mesa. La maestra había recomendado no bloquear entre restaurantes; queda como riesgo aceptado el caso de la mesa que pasa la noche abierta. (4) Acepta: sin mesas asignadas a meseros en la v1, la tabla de permisos por defecto, y que tras 2 h en rojo entrar exija aprobación. (5) **Idea nueva, el horario del restaurante:** en el horario configurado por el dueño los QR admiten comensales; fuera de él, escanear deja una solicitud al dueño, que puede bloquearlas todas o rechazar «todas por esta noche». La spec lo propone como historia propia sobre las solicitudes de entrada. (6) Sin contestar: desde dónde opera el dueño. **Versión de producción: `v0.1.0`** (PR de `VERSION`).
 >
-> **Spec 001 aprobada por Calvin el 13 de noviembre de 2026** (PR 22, fusionado por la maestra por indicación suya). Últimas decisiones: el dueño opera desde su panel; pantallas de teléfono y tablet para todos y además computadora para el dueño; la propina se **declara**: el comensal elige en sus ajustes un porcentaje por defecto, puede cambiarlo hasta el último momento en el checkout, llega al servidor sólo como dato (para llevar el registro de propina por mesero, anotada a quien valida el pago) y el personal ve consumo, propina y total a cobrar, nunca por debajo del consumo; fuera de horario, por defecto se pide aprobación; el capitán usa las pantallas del mesero con opciones extra. **Siguiente paso (primera tarea de la siguiente sesión maestra, por una hija):** llevar a este documento las tareas de la sección 12 de la spec, escribir el ADR-017 y aplicar los cambios de su sección 11 (PRD, `01_Alcance_v1.md`, `03_Datos_v1.md`, ADR-003 y ADR-013, «Qué NO construir»). Hasta entonces los briefs T-3.1 a T-3.7 de abajo **no están al día** con la spec.
-
-### Carril F · Backend orden y comanda
-
-### 🔴 T-3.1 — Servicio de orden
-**Depende de:** T-2.1 · **Historias:** US-10
-**Entregable:** `app/services/orden.py` (sin FastAPI): agregar (precio **leído de la base**, platillo activo y disponible, cantidad ≥ 1, nota ≤ 140), modificar, eliminar, recalcular subtotal, rechazar cambios si `bloqueada`; esquemas de respuesta de la fase publicados primero.
-**Criterios:** AC-10.1, AC-10.2, AC-10.4.
-**Verificar:** `uv run pytest tests/unit/test_servicio_orden.py -q`
-**Notas (revisión de T-2.1, B2):** pedir exige, además de la sesión viva, la mesa activa y el restaurante activo: usa `app.services.sesion.unirse` (o la misma condición con `FOR SHARE`), que ya trata una sesión de una mesa dada de baja o de un restaurante inactivo como cerrada (410 `SESION_CERRADA`). Toda escritura invalida `sesion.cache_estados`. **Notas:** (revisión de T-1.1) **Interbloqueo heredado de INV-3:** dos transacciones que insertan un ítem en la misma orden toman `FOR SHARE` sobre ella (trigger `tr_item_orden_inmutable`) y, si después ambas confirman (`UPDATE orden_personal … bloqueada = true`), PostgreSQL aborta una con `DeadlockDetectedError` (40P01). Al confirmar (aquí o en T-3.2), toma `SELECT … FOR UPDATE` de la orden **antes** de tocar sus ítems, o reintenta una vez ante 40P01. **Comanda:** `comanda.mesa_id` se deriva de la sesión al crearla (la base sólo exige que mesa y sesión sean del mismo restaurante, no que la mesa sea la de la sesión).
-
-### 🔴 T-3.2 — Ítems, confirmación, comanda e idempotencia
-**Depende de:** T-3.1 · **Historias:** US-11, US-12
-**Entregable:** endpoints de ítems; `POST /p/orden/confirmar` en transacción con `SELECT … FOR UPDATE` sobre la sesión: congela precios y cantidades, `bloqueada=true`, miembro `listo`; si todos los miembros activos están listos → sesión `lista_para_enviar` y `comanda` (`secuencia` siguiente, `comanda_orden`, `total_estimado`, `num_comensales`); `POST /p/orden/deshacer` mientras no haya comanda; miembros que llegan después crean una ronda nueva (AC-12.4); `app/core/idempotencia.py` con la tabla `clave_idempotencia` (24 h, `Idempotent-Replay: true`); `GET /p/sesion` expone el estado de la comanda (`abierta` · `atendida` · `servida`).
-**Criterios:** AC-11.1–AC-11.4, AC-12.1, AC-12.4, AC-12.5.
-**Verificar:** `uv run pytest tests/integration/test_orden_items.py tests/integration/test_confirmar.py tests/integration/test_comanda.py tests/integration/test_idempotencia.py -q` — dos confirmaciones simultáneas (dos conexiones) crean **una** comanda; modificar un ítem bloqueado lanza `IntegrityError` por el trigger; orden vacía → 409; la misma clave devuelve la respuesta original; una `Idempotency-Key` de 500 caracteres no produce 500.
-**Notas:** `comanda.secuencia` se calcula dentro de la transacción que ya tiene `FOR UPDATE` sobre la sesión (10 inserciones simultáneas con `max+1` ingenuo dan 4 `UniqueViolation`); la `Idempotency-Key` del cliente se guarda como hash SHA-256 (la columna admite 80 caracteres); agregar ítems toma `FOR SHARE` de la sesión (INV-11); las consultas filtran `estado` por el enum, nunca con `::text`, para que el planificador use los índices parciales. El `ck_orden_bloqueada_coherente` obliga a cambiar `estado` y `bloqueada` en la misma sentencia.
-
-### T-3.3 — Llamada al mesero y cierre de sesión
-**Depende de:** T-3.2 · **Historias:** US-12, US-28
-**Entregable:** `POST /p/llamar-mesero` (1 por minuto por sesión, contando en `llamada_mesero`); cierre de sesión (por el personal en T-3.4 o por inactividad) marca `cerrada`, y `GET /p/sesion` responde 410 `SESION_CERRADA` para que la PWA muestre "la mesa se cerró".
-**Criterios:** AC-12.3, AC-28.2.
-**Verificar:** `uv run pytest tests/integration/test_llamar_mesero.py tests/integration/test_sesion_cerrada.py -q` — segunda llamada en < 60 s → 429; cerrar la sesión mientras un miembro agrega un ítem deja el ítem fuera o la sesión abierta, nunca un ítem en una sesión cerrada.
-**Notas:** cerrar toma `SELECT … FOR UPDATE` de la sesión (INV-11) y cierra en la misma transacción las órdenes `armando` (pasan a `cerrada` con `bloqueada=true`, como exige `ck_orden_bloqueada_coherente`). **(T-2.1)** El cierre por inactividad ya existe: `app.services.sesion.cerrar_inactivas` (una sentencia con `FOR NO KEY UPDATE SKIP LOCKED`, la corre `CierreInactivas` en cada worker); hoy sólo marca la sesión `cerrada` con `fin`, porque en la Fase 2 no hay órdenes: esta tarea le añade el cierre de las órdenes `armando` en la misma transacción. Unirse, cambiar el alias y cerrar invalidan `sesion.cache_estados` (el sondeo en memoria, 2 s): toda escritura nueva sobre la sesión, sus miembros o sus órdenes también debe llamar a `cache_estados.invalidar(sesion_id)` después del `commit()`. `leer_estado` marca `listo` a quien tiene su orden viva `confirmada`: ajústalo si la comanda cambia ese criterio. Pedir y confirmar son actividad: muevan `ultima_actividad_en`.
-
-### Carril G · Backend del personal
-
-### 🔴 T-3.4 — Acceso con PIN y operación de piso
-**Depende de:** T-3.2, T-1.6 · **Historias:** US-13, US-14, US-26, US-27, US-28
-**Entregable:** `app/core/seguridad.py` (parte personal): `POST /op/entrar` (comprueba PIN con Argon2id, intentos y bloqueo progresivo, mensaje uniforme, cookie `carta_personal` 12 h), `POST /op/salir`, dependencia `personal_actual` (consulta `activo` en cada petición) y `capitan_requerido`; `GET /op/personal/{slug}`; `app/services/comanda.py`: listar mesas con estado y tiempos, detalle de mesa, atender, servir, atender llamada, liberar mesa (cierra sesión y registra `cerrada_por_personal_id`), marcar platillo no disponible / disponible (registra quién y cuándo, invalida caché del menú), resumen del turno (capitán); `GET /op/mesas` y `GET /op/comandas` con ETag.
-**Criterios:** AC-13.1, AC-13.3, AC-13.4 (servidor), AC-14.1, AC-26.1–AC-26.4, AC-27.1, AC-27.2, AC-28.1, AC-28.2.
-**Notas (T-2.1):** dar de baja una mesa o desactivar el restaurante ya deja sus sesiones inservibles para el comensal (410 en sondeo y alias, revisión B2), pero no las marca `cerradas`: si el personal ve la mesa, que la vista no la cuente como viva. Regenerar el código de una mesa (T-1.5) **no** cierra su sesión abierta: quienes ya entraron siguen y el código nuevo entra a la misma sesión (decisión de T-2.1, 04 §11). Para sacar a alguien que entró con un QR filtrado, el personal libera la mesa: liberar cierra la sesión bajo `FOR UPDATE` (INV-11) e invalida `app.services.sesion.cache_estados`; los comensales reciben 410 `SESION_CERRADA` en el siguiente sondeo. El inactivo (AC-02.4) ya lo cierra `CierreInactivas`.
-**Notas (T-1.6):** `personal_actual` debe usar `app.services.personal`: `personal_por_id_activo(sesion, restaurante_id, personal_id)` (otro restaurante, inexistente y baja dan `None` → 401/404 uniforme) y `sesion_vigente(persona, emitida_en)`; la cookie guarda su hora de emisión **con precisión de microsegundos o milisegundos** (no `iat` truncado a segundos: una cookie emitida justo después de un cambio de PIN se rechazaría) y vale sólo si `emitida_en >= sesiones_desde`. El sello lo pone la **base** (`clock_timestamp()`), no el reloj de la réplica: sella la cookie con la hora de la base (o deja margen de reloj) para que dos réplicas desfasadas no la dejen por delante del sello. Comprobar el `rol` contra la fila, no contra la cookie, o aceptar que cambiar el rol ya revocó. `verificar_pin(hash, pin)` es asíncrono y corre en el pool de Argon2 (también para el hash de relleno que iguala el tiempo cuando el nombre no existe); `intentos_fallidos` y `bloqueado_hasta` son suyos y `reasignar_pin` los pone a 0/NULL. **Verificar:** `uv run pytest tests/integration/test_op_entrar.py tests/integration/test_op_mesas.py tests/integration/test_op_comandas.py tests/integration/test_op_agotado.py -q` — 6.º intento de PIN en un minuto → 429; cookie de otro restaurante → 404 en todo `/op`; mesero en `/op/resumen` → 404; marcar agotado se refleja en `GET /p/menu/{slug}` con ETag nuevo.
-**Notas (T-2.3):** el límite de tasa de `/op/**` no existe: 04_API_Spec §1.5 pide 600/min por IP y la entrada con PIN necesita su propio tope de intentos (por IP y por restaurante). Reutiliza `app.api.publico.limites.VentanaMovil` y `ip_de_peticion` (nunca `request.client.host`) y cuenta **antes** de leer el cuerpo, como `tope.RutaComensal`; en memoria de cada worker (con N workers, hasta N × el nominal). Hasta entonces sólo lo cubre el borde (300 por 10 s por IP).
-
-### Carril H · Frontend del comensal (orden) y del personal
-
-### T-3.5 — Mi orden, sesión grupal y estado (P04, P04b)
-**Nota (T-2.6, C2 de la revisión):** el detalle del platillo (`comensal/platillo/Platillo.tsx`) deja «Agregar a mi orden · Pronto» deshabilitado al final del contenido, **bajo el pliegue** en 375×568, 320×568 y apaisado. **Decidido por Calvin el 12 de noviembre: queda fijo abajo (pie de la capa) en todas las pantallas, no sólo en las chicas**; mide con `capturas-comensal.mjs`; el detalle es una capa sobre el menú (`SesionMesa.tsx`), no una ruta que lo reemplace.
-**Depende de:** T-2.6 (contrato de T-3.2) · **Historias:** US-09 (modo consulta), US-10, US-11, US-12
-**Entregable:** `frontend/src/comensal/orden/`: hoja "Mi orden" con cantidades, nota, subtotal recalculado en ≤ 300 ms, persistida en `localStorage` hasta confirmar (AC-10.3); botón confirmar con `Idempotency-Key`, deshacer; sesión grupal con avatares apilados, "3 de 4 listos", tocar un avatar muestra su orden en modo consulta sin controles de edición (AC-09.1, AC-09.2); estados tras confirmar: *enviada al mesero* → *en preparación* → *servida* con ilustración; botón "Llamar al mesero" con enfriamiento visible; sondeo adaptativo (02 §6) con pausa en segundo plano.
-**Criterios:** AC-09.1, AC-09.2, AC-10.1–AC-10.4 (UI), AC-11.1–AC-11.4 (UI), AC-12.3 (UI).
-**Verificar:** `npm --prefix frontend test -- orden sesion-grupal` + prueba manual con tres teléfonos.
-
-### T-3.6 — App del personal (P06, P07 simplificadas)
-**Depende de:** T-0.5 (contrato de T-3.4) · **Historias:** US-13, US-14, US-26, US-27, US-28
-**Entregable:** `frontend/src/personal/`: `/staff/:slug` con lista de nombres y teclado de PIN; lista de mesas con estado por color (libre · armando · lista · atendida), tiempo desde la comanda, llamadas arriba con alerta sonora (`AudioContext` desbloqueado al primer toque) y resaltado 10 s; detalle de mesa con comanda por comensal y botones *Atender*, *Servida*, *Liberar mesa*; "Agotado" como búsqueda rápida con interruptor; indicador "sin conexión" y reintento; capitán: pestaña *Turno* con el resumen; sondeo 5 s con pausa en segundo plano y petición inmediata al volver.
-**Criterios:** AC-12.2, AC-13.2, AC-13.4, AC-13.5, AC-26.1, AC-26.4 (UI), AC-27.1, AC-28.1–AC-28.3.
-**Verificar:** `npm --prefix frontend test -- personal` + prueba manual: con el teléfono en modo avión aparece "sin conexión"; al volver, la comanda pendiente sigue ahí.
-
-### T-3.7 — Pedidos en vivo en el panel del operador
-**Depende de:** T-3.6 · **Historias:** US-13
-**Entregable:** la misma vista de mesas y comandas del personal montada en `/admin/pedidos`, con el token del operador (`GET /admin/restaurantes/{rid}/mesas-vivo`).
-**Verificar:** `npm --prefix frontend test -- admin-pedidos`.
+> **Spec 001 aprobada por Calvin el 13 de noviembre de 2026** (PR 22, fusionado por la maestra por indicación suya). Últimas decisiones: el dueño opera desde su panel; pantallas de teléfono y tablet para todos y además computadora para el dueño; la propina se **declara**: el comensal elige en sus ajustes un porcentaje por defecto, puede cambiarlo hasta el último momento en el checkout, llega al servidor sólo como dato (para llevar el registro de propina por mesero, anotada a quien valida el pago) y el personal ve consumo, propina y total a cobrar, nunca por debajo del consumo; fuera de horario, por defecto se pide aprobación; el capitán usa las pantallas del mesero con opciones extra. **Hecho el 13 de noviembre** (fila del mismo día en §11): las tareas de la sección 12 están arriba, el ADR-017 escrito y la sección 11 aplicada a los documentos vigentes, junto con el ADR-018.
 
 ---
 
@@ -403,8 +588,9 @@ Dentro de una ola, el orden de integración es: backend (A, D, F+G) primero, fro
 **Verificar:** `scripts/restaurar.sh <fecha> && TEST_DATABASE_URL=<temporal> uv run pytest tests/integration -q`
 
 ### T-4.4 — Pruebas de carga y ajuste
-**Depende de:** T-3.6 · **Entregable:** `pruebas/carga/*.js` (k6) con los cinco escenarios de [02 §10.3](02_Arquitectura_v1.md); `scripts/sembrar_carga.py`; resultados p50/p95/p99 y CPU en `docs/plan/perf/<fecha>.md`; ajustes aplicados (workers, pool, índices, sondeo adaptativo) hasta cumplir los SLOs de 02 §10.2; `EXPLAIN ANALYZE` de las consultas críticas con 10,000 platillos y 1,000 sesiones.
-**Verificar:** todos los SLOs en verde en el informe; ninguna consulta crítica > 20 ms.
+**Depende de:** T-3.6, T-3.20, T-3.21 · **Entregable:** `pruebas/carga/*.js` (k6, o el generador de `pruebas/carga/local/eventos/` para las líneas de avisos) con los escenarios de [02 §10.3](02_Arquitectura_v1.md), incluidos los de líneas sostenidas, despliegue con líneas abiertas y pérdida de la escucha del ADR-018; `scripts/sembrar_carga.py`; resultados p50/p95/p99 y CPU en `docs/plan/perf/<fecha>.md`; ajustes aplicados (workers, pool, índices, memoria de estados) hasta cumplir los SLOs de 02 §10.2; `EXPLAIN ANALYZE` de las consultas críticas con 10,000 platillos y 1,000 sesiones; 02 §10.1 corregida con lo medido en Railway.
+**Criterios:** AC-40.10.
+**Verificar:** todos los SLOs en verde en el informe; ninguna consulta crítica > 20 ms; las verificaciones 1 a 6 del ADR-018 anotadas con su resultado.
 **Nota (adelanto del 13 de noviembre):** el modelo de capacidad y la medición local del camino caliente están en [`perf/2026-11-13-modelo-de-capacidad.md`](perf/2026-11-13-modelo-de-capacidad.md) (generador en `pruebas/carga/local/`). Corrige 02 §10.1 (un sondeo cuesta 1.8–3.5 ms de CPU, no 0.4: ≈ 10 restaurantes en pico con 2 workers, no 40–60) y deja en su última sección **12 mediciones** que esta tarea debe hacer en staging; propone además la tarea T-4.10 «Usuarios simulados» (pendiente de Calvin).
 
 ### T-4.5 — Confianza y legal
@@ -441,8 +627,8 @@ En orden tentativo de valor: ilustración generada por IA para platillos sin fot
 
 ## 10. Criterio de terminado de la v1
 
-- [ ] Las 45 tareas de las Fases 0–4 tienen su comando de verificación en verde.
-- [ ] Las historias US-01–06, US-10–17, US-21, US-24–28 tienen al menos una prueba automatizada por criterio EARS (o un paso manual documentado en `docs/piloto/ensayo.md`).
+- [ ] Las 58 tareas de las Fases 0–4 tienen su comando de verificación en verde (la Fase 3 pasó de 7 a 19 el 13 de noviembre: Spec 001 y ADR-018).
+- [ ] Las historias US-01–06, US-09–17, US-21, US-24–31, US-33–40 tienen al menos una prueba automatizada por criterio EARS de la v1 (o un paso manual documentado en `docs/piloto/ensayo.md`).
 - [ ] `pytest` completo con cobertura ≥ 80 % en `app/services/`.
 - [ ] Los SLOs de 02 §10.2 medidos y en verde en staging.
 - [ ] Lista de seguridad de 05 §6 completa.
@@ -565,3 +751,4 @@ En orden tentativo de valor: ilustración generada por IA para platillos sin fot
 | 2026-11-13 | Medición: entrega por eventos frente a sondeo (pedido de Calvin: «todo por eventos») | Sesión hija con un prototipo desechable en `pruebas/carga/local/eventos/` (SSE + `LISTEN/NOTIFY` envolviendo la app real; disparador sólo en la base local; nada en `app/`, `frontend/src/` ni `migrations/`) y el mismo método del modelo de capacidad. **Medido en local, con 1,200 comensales y 1 evento/min/mesa:** sondeo de 3 s ≈ 1 núcleo y cambio visible p50 1.5 s / p95 2.8 s; por eventos ≈ 0.23 núcleos y 21 / 32 ms. Con 2 workers, el tope sube de ≈ 1,200–1,600 a ≈ 8,000–10,000 comensales. El tope de ≈ 10,000 conexiones de Railway llega antes que el del CPU. Cuesta ≈ 4.2 ms abrir una conexión, ≈ 25 KB por conexión y ≈ 0.09 ms por latido. **Riesgos medidos:** un despliegue con 5,000 conectados satura los 2 núcleos ≈ 9 s al reconectar, y avisar a todos tras perder la escucha los satura ≈ 13 s; los dos tienen remedio en el diseño. Además, la memoria de estado de 60 s invalidada por `NOTIFY` casi duplica la capacidad del sondeo actual (0.88 → 0.47 ms/s por comensal). **Fuentes oficiales leídas hoy:** Cloudflare corta a los 125 s sin respuesta; Railway corta a los 15 min (5 min sin datos) y da 0 s de gracia en despliegues; un no-200 cierra `EventSource` para siempre. Recomendación: B (SSE + `NOTIFY` + respaldo de 60 s, con el sondeo por fase como modo degradado). Hay un borrador del ADR-018 en el informe. Si se adopta, la Fase 3 pasa de 17 a 19 tareas (T-3.20 y T-3.21). **El ADR-004 sigue vigente.** Pendiente de Calvin: elegir B o A antes de T-3.0, aceptar el latido y el respaldo como lo único «por tiempo», y decidir si se evalúa aparte el push para el mesero con el teléfono bloqueado. | `docs/plan/perf/2026-11-13-eventos-frente-a-sondeo*.{md,jsonl}`, `pruebas/carga/local/eventos/`, este archivo |
 | 2026-11-13 | Estadística de cartas y personal por restaurante (muestra y topes de plan) | Sesión hija. Informe [`research/2026-11-13-estadistica-de-cartas-y-personal.md`](../research/2026-11-13-estadistica-de-cartas-y-personal.md), datos y guion de cálculo. **Hallazgos:** (1) 148 cartas de 16 capitales (147 de reparto en Rappi, conteo de la herramienta ±5 %): mediana 44 platillos con bebidas, p90 ≈ 82 (75–90), el 76 % (70–81) tiene hasta 60 y el 89 % (85–93) hasta 80; (2) el número de platillos separa mal gratuito de paga (los tipos se traslapan): conviene que lo ordenen mesas y cuentas de personal; (3) personal y mesas son un modelo con supuestos (no hay estadística por clase ni de mesas): 3 cuentas cubren ≈ 64 % (46–76) y 10 mesas ≈ 61 % (29–84) del servicio completo; 20 cuentas y 40 mesas, ≈ 97–99 %; (4) Google Maps no sirve como fuente (sin platillos, llave de pago, términos). | Ninguno al plan; la decisión de topes (80 en vez de 60 platillos; mesas y personal como separador) es de Calvin. |
 | 2026-11-13 | Respaldo verificado, regla «cifras con fuente» y lo que queda abierto antes de la Fase 3 | Sesión maestra. **Respaldo:** la primera corrida programada del servicio `respaldo` de staging con `pg_dump` 18 (PR 19) terminó bien el 13 de noviembre a las 04:03 UTC (volcado, cifrado con age, subida a R2 y poda; `scripts/railway.py logs respaldo --despliegue <id>`); falta que Calvin confirme en el panel de producción que `respaldo` sigue `master`. **Regla nueva de Calvin (en `CLAUDE.md`):** toda cifra con fuente; lo que es juicio va a «datos por conseguir». **Datos que dio Calvin:** Railway en plan Hobby; Cloudflare en plan gratuito (confirmado por la API: «Free Website») más 25 USD del dominio. **Confirmado en Cloudflare:** la regla de tasa es de 300 peticiones por 10 s por IP y centro de datos, bloqueo de 10 s, en todas las rutas menos `/health` y `/ready`. **Skills de terceros:** Founder OS instalada por Calvin y revisada (método en texto, sin guiones que se ejecuten); las sesiones hijas no la reciben, así que la estrategia de precios siguió su método citado; «caveman» y la de logo, descartadas; `watch-video` instalada pero las descargas de video quedaron bloqueadas por los permisos de la sesión (no se rodeó). **Abierto, con dueño:** (1) Calvin decide si se adopta la entrega por eventos (borrador del ADR-018 en `perf/2026-11-13-eventos-frente-a-sondeo.md` §7) antes de T-3.0; (2) Calvin da el total de «Usage» de Railway para fijar cuántos restaurantes caben sin que suba la factura; (3) Calvin decide si crea la llave de la interfaz oficial de lugares de Google para el marco de la muestra de 500 cartas (la primera pasada, de 148, fue de conveniencia y casi toda de una plataforma de reparto); (4) Calvin decide subir o no el umbral de la regla de Cloudflare y si la tarea T-4.10 «Usuarios simulados» entra al plan; (5) las 12 preguntas de `research/2026-11-13-estrategia-de-precios.md` §6; (6) la siguiente sesión maestra lleva a 04 las tareas de la sección 12 de la Spec 001, escribe el ADR-017 y, si Calvin aprueba el ADR-018, las tareas T-3.20 y T-3.21. |
+| 2026-11-13 | Fase 3 lista para arrancar: entrega por eventos decidida (ADR-018), ADR-017 y tareas de la Spec 001 | Sesión hija de documentación (sin código). **Decisiones de Calvin del 13 de noviembre:** (1) se adopta la entrega por eventos **antes** de la Fase 3 («así va a ser escalable»); (2) con el teléfono bloqueado no llega nada y al volver se pone al día; el push para el mesero queda como posible spec futura; (3) lo que quede por tiempo, mínimo y guiado por la actividad. **Cómo se tradujo (3), como diseño a verificar con medición:** cualquier mensaje reinicia el latido (sólo hay latido tras 25 s de silencio, AC-40.3); el latido lleva la versión del estado y quita el respaldo fijo de 60 s mientras la línea vive **sólo si** la medición de T-3.20 lo confirma (regla de decisión en el ADR-018, punto 4.2; AC-40.7 fija el tope de una pregunta por minuto en cualquier caso); la reconexión de ~10 min no se puede guiar por la actividad (Railway corta a los 15 min aunque fluyan datos) y se abarata con el `hola` con versión. **Cambios:** ADR-018 aceptado y ADR-004 marcado sustituido; ADR-017 escrito y ADR-003 y ADR-013 marcados enmendados; la Fase 3 pasa a 19 tareas en 7 olas (T-3.0; F/D/E con el canal primero para que nada se construya sobre el sondeo; G y H después; T-3.18 al final); **desviaciones respecto del informe de eventos:** la línea del personal (`GET /op/eventos`) va en T-3.4 y no en T-3.20, porque la cookie del personal nace en T-3.4; el panel del dueño (T-3.7) pregunta cada 5 s porque `EventSource` no manda `Authorization` (excepción escrita en el ADR-018). **Desviaciones respecto de la Spec 001 §12:** T-3.0 ya no redacta el ADR-017 (está escrito); el cierre de la mesa sale de T-3.3 a T-3.8 y la liberación de T-3.4 a T-3.8; carriles E (comensal: `orden/`, `cuenta/`, `compartido/eventos/`) y H (personal y `admin/pedidos/`) separados para repartir el frontend. **Criterios:** los de la spec (v1) quedan indexados en 01 §6 para que `verificar_trazabilidad.py` los cuente (154 vigentes, todos citados); US-40 nueva con AC-40.1–AC-40.10 (eventos); AC-28.1–28.3 de 01 y AC-01.2, 01.4, 02.1, 02.2, 02.4, 02.5, 12.1, 12.4 y 13.4 del PRD anotados con su enmienda y la tarea desde la que rige. **Modo degradado (interpretación de la hija):** «nada al pagar» del informe se lee como «con su cuenta pagada, sólo al volver a primer plano». | `docs/mvp/adr/ADR-017-*.md`, `ADR-018-*.md`, ADR-003, ADR-004, ADR-013, `adr/README.md`; `docs/mvp/01_PRD.md`, `docs/mvp/04_API_Spec.md` §1.4; `01_Alcance_v1.md` §2–§6; `02_Arquitectura_v1.md` §1, §4–§6, §9–§12; `03_Datos_v1.md` §1, §2.4, §5; este documento §2, §3, §7, §8 (T-4.4) y §10; `06_Hosting.md`; `CLAUDE.md`; `docs/plan/README.md` |
