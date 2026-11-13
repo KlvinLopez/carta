@@ -215,6 +215,8 @@ def enlaces_de_carta(base: str, enlaces: list[tuple[str, str]]) -> list[str]:
         if p.scheme not in ("http", "https"):
             continue
         es_pdf = p.path.lower().endswith(".pdf")
+        if p.path.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg")):
+            continue
         if p.netloc.removeprefix("www.") != dom and not es_pdf:
             continue
         sc = puntaje(u, txt)
@@ -261,6 +263,12 @@ def leer_negocio(nid: str, web: str, salida: Path) -> dict:
                     if codigo in BLOQUEOS
                     else (f"http_{codigo}" if codigo else "sitio_caido")
                 )
+            return []
+        if tipo.lower().startswith("image/") or url.lower().split("?")[0].endswith(
+            (".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg")
+        ):
+            reg["paginas"].append({"url": url, "codigo": codigo, "tipo": "imagen"})
+            reg["motivo_pdf"] = reg.get("motivo_pdf") or "carta_en_imagen"
             return []
         if url.lower().split("?")[0].endswith(".pdf") or "pdf" in tipo.lower():
             if len(cuerpo) > MAX_PDF_BYTES:

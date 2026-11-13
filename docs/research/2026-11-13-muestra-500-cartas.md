@@ -1,6 +1,6 @@
 # Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; tanda 1 **detenida con el lector propio a los 30 intentos por rendimiento bajo** (5 contables, 0.17; cota 0.27); etapas 2–3 en espera de decisión de la maestra. No cambia código, contrato ni planes.
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** etapas 0 y 1 hechas; tanda 1 **detenida a los 30 intentos con el lector propio** (5 contables completos, 0.17, intervalo de 90 % 0.08–0.31); la continuación espera la **decisión de Calvin**; etapa 3 sin preparar. No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
@@ -146,31 +146,40 @@ Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lot
 
 ### 7.1 Segunda pasada con lector propio (30 intentos) [medida aquí]
 
-**Lector** ([`…-lector.py`](2026-11-13-muestra-500-lector.py) y [`…-lector-chromium.mjs`](2026-11-13-muestra-500-lector-chromium.mjs), sin candidatos dentro): descarga directa con agente de usuario genérico y respeto de `robots.txt`; si la página viene vacía o sin enlace a la carta, una carga con el Chromium instalado (sin disfraces); sigue hasta 20 subpáginas del mismo dominio con ≥ 2 s entre peticiones; PDF ≤ 10 MB con `pdftotext -layout`; 403, 429 y 503 se respetan. Los textos extraídos quedan en el directorio temporal de la sesión (fuera del repositorio, tratados como datos no confiables). El conteo lo hace el ayudante `haiku` (uno a la vez, sólo sobre texto ya extraído); yo recuento.
+**Lector** ([`…-lector.py`](2026-11-13-muestra-500-lector.py) y [`…-lector-chromium.mjs`](2026-11-13-muestra-500-lector-chromium.mjs), sin candidatos dentro): descarga directa con agente de usuario genérico y respeto de `robots.txt`; si la página viene vacía o sin enlace a la carta, una carga con el Chromium instalado (sin disfraces); hasta 20 subpáginas del mismo dominio con ≥ 2 s entre peticiones; PDF ≤ 10 MB con `pdftotext -layout`; 403, 429 y 503 se respetan. Los textos quedan en el directorio temporal de la sesión (fuera del repositorio, tratados como datos no confiables). El conteo lo hace el ayudante `haiku` (uno a la vez, sólo sobre texto ya extraído); yo recuento.
 
-**Hallazgo del primer intento:** el `.mjs` era un módulo ES y fallaba en silencio; con ese fallo 8 sitios con JavaScript parecían «sin carta». Corregido y reprocesados esos 8 (no cuentan como intentos nuevos).
+**Dos fallos del lector, corregidos:** (1) el `.mjs` era un módulo ES y fallaba en silencio: 8 sitios con JavaScript parecían «sin carta» y se reprocesaron; (2) seguía enlaces a imágenes (`.jpg`) y guardaba sus bytes como «texto»: de ahí los textos de 260–650 KB. Ahora las imágenes se anotan como `carta_en_imagen` y no se descargan como página (cambio hecho, no probado contra red: el trabajo en red está detenido).
 
 **Resultado de los 30 intentos (10 reintentos de los descartes + 20 nuevos; rebanada proporcional, orden de reseñas):**
 
 | Resultado | Intentos | Detalle |
 |---|---|---|
-| **Contable** | **5** | Dos taquerías (Guadalajara, Toluca), una cafetería-casual de Guadalajara y dos casuales/formales de Tijuana (mismo grupo, cartas distintas). Cuatro leídas con el lector (HTML y PDF con texto); una HTML directa |
-| Texto extraído, **sin contar por tamaño** | 3 | Textos de 260–650 KB (cartas de cadenas con muchas páginas repetidas): contarlos con el ayudante costaría ≈ 65–160 mil unidades de lectura cada uno. No se descartan por ser grandes: **quedan pendientes** y son justo la cola alta de platillos |
+| **Contable (comida y bebidas)** | **5** | Dos taquerías (Guadalajara y Toluca), un casual de Guadalajara, un formal de Tijuana y un casual de Veracruz |
+| **Contable parcial** | 1 | Un formal de Querétaro: comida 129; las bebidas (cervezas, cócteles, vinos) no se leen en el texto: **bebidas y total vacíos, no se estiman** |
+| Misma marca que otra fila | 1 | Segundo restaurante del mismo grupo de Tijuana, con carta distinta (104 y 129): **se conserva una fila por marca**; sin él, el resultado no cambia el orden de magnitud |
 | `robots.txt` lo prohíbe | 5 | Respetado, sin evasión |
-| Sin carta en el sitio (ni con Chromium) | 11 | 3 con páginas de verificación anti-bot («Un momento…»), el resto sin carta enlazada o con carta sólo en imagen o redes |
-| Sitio con la carta pero no contable | 5 | Menú que carga con JavaScript sin platillos en el texto (1), sólo «recomendados» sin carta completa (1), precio sólo como «desde» por sección (1), ficha de un tercero sin platillos (1), páginas de comida con verificación anti-bot (1) |
+| Sin carta en el sitio (ni con Chromium) | 11 | 3 con páginas de verificación anti-bot («Un momento…»); el resto sin carta enlazada |
+| Carta con precios sólo en imágenes | 1 | Los nombres están en texto; los precios en fotos |
+| Carta que existe pero no se puede contar | 5 | Menú con JavaScript sin platillos en el texto (1), sólo «recomendados» (1), precio sólo como «desde» por sección (1), ficha de un tercero (1), páginas de comida con verificación anti-bot (1) |
 | Dominio vencido | 1 | Página de registro de dominio |
-| **Total** | **30** | 5 + 3 + 5 + 11 + 5 + 1 = 30 |
+| **Total** | **30** | 5 + 1 + 1 + 5 + 11 + 1 + 5 + 1 = 30 |
 
-**Rendimiento: 5 contables ÷ 30 intentos = 0.17**; **si los 3 textos grandes resultaran contables, 8 ÷ 30 = 0.27: aun así queda bajo el umbral de 0.30.** Comparación: la lectura por ayudante de la sección 7 rindió 1 de 11 (0.09). Contables acumulados con el Orinoco de la primera pasada: **6**.
+**Rendimiento y aritmética de la tasa [medida aquí; aritmética mía]:** contables completos 5 ÷ 30 = **0.17**; con el parcial 6 ÷ 30 = 0.20. Intervalo de 90 % de la tasa (método de Wilson): **5 de 30 → 0.08 a 0.31**; 6 de 30 → 0.10 a 0.34. El límite alto toca el umbral de 0.30, pero el estimado está claramente por debajo. Contables acumulados con la primera lectura (1): **6 completos y 1 parcial**.
 
-**Control de calidad.** Recontado por mí 1 de las 5 filas (20 %, el mínimo de 10 % de este tramo no es posible con 5 filas): Tomate Taquería, comida 43 y bebidas 20, **diferencia absoluta 0 contra el ayudante (0 %)**; la fila queda `conteo = propio`. Las otras 4 son `herramienta` y quedan sin recuento propio.
+**Control de calidad.** Recontado por mí 1 de 5 (Tomate Taquería): comida 43 y bebidas 20, **diferencia absoluta 0 (0 %)** contra el ayudante; esa fila queda `conteo = propio`. Las otras quedan `herramienta` sin recuento propio (el mínimo de 10 de este tramo no es posible con 5 filas).
 
-**Datos de la parada:** contables acumulados 6 · intentos por contable ≈ 6 (30 ÷ 5) · intervalos de 90 % de la mediana y del p90: **no se calculan con n = 5** (el bootstrap con 5 valores no es informativo: la comida va de 43 a 105 y el total de 58 a 248).
+**Datos de la parada:** contables acumulados 6 (+1 parcial) · intentos por contable ≈ 6 · intervalos de 90 % de la mediana y del p90 del total: **no se calculan con n = 6** (totales de 58, 36 y 104 hasta 248).
 
-**Lo que dice el diagnóstico:** de 25 descartes, **sólo 8 son del lector** (3 sin contar por tamaño y 5 por motivos de formato del sitio); 5 son `robots.txt`, 3 son verificación anti-bot (no se evade), 11 son cartas que no existen en el sitio. **El techo con sitios propios, respetando bloqueos, parece ≈ 25–30 % de los negocios con sitio web** en esta muestra [medida aquí, n = 30, con los sesgos de la sección 7]. Para 500 contables harían falta ≈ 1,700–2,000 intentos (hay 914 candidatos, de los cuales 193 sin sitio): **500 no se alcanza sólo con sitios propios y este marco.** Opciones, para decidir: (1) contar los 3 textos grandes y seguir otra tanda con el lector sobre el resto de la cola (≈ 99 contables sólo si el rendimiento sube; no lo hará con estos números); (2) abrir la segunda fuente (fichas de reparto: la primera pasada rindió 1 contable por cada 1.7 intentos [documento], con el sesgo de reparto y sin la dirección de Rappi en la ficha de Google); (3) cerrar con la muestra que haya (≈ 6–9 contables) y repartir el informe como prueba de método, no como estadística.
+**Diagnóstico.** De los 24 intentos que no dieron fila, 5 son `robots.txt`, 3 son verificación anti-bot (no se evade), 11 son cartas que no existen en el sitio y el resto son formatos que el lector no resuelve (precios en imágenes, JavaScript, ficha de tercero). **El techo con sitios propios, respetando bloqueos, parece ≈ 17–30 % de los negocios con sitio web** (intervalo de arriba; n = 30). Con 914 candidatos (193 sin sitio) se esperarían ≈ 120–215 contables **en el mejor caso, leyéndolos todos**: **500 no se alcanza sólo con sitios propios y este marco.** Opciones, para decidir: (1) seguir con el lector sobre la cola (decisión pendiente de Calvin, §7.2); (2) abrir la segunda fuente (fichas de reparto: la primera pasada rindió 1 contable por cada 1.7 intentos [documento], con sesgo de reparto y sin la dirección de Rappi en la ficha de Google); (3) cerrar con lo que hay como prueba de método, no como estadística.
 
-**Borrado del archivo temporal.** La salida del marco con nombres y sitios (y los textos descargados) se borrarán **al terminar la última tanda o a las 48 horas de haberse creado (13 de noviembre de 2026, ≈ 06:00 UTC; es decir, no más tarde del 15 de noviembre), lo que ocurra primero**; se confirma a la maestra por mensaje.
+**Borrado del archivo temporal.** La salida del marco con nombres y sitios (y los textos descargados) se borra **al terminar la última tanda o a las 48 horas de haberse creado (13 de noviembre de 2026, ≈ 06:00 UTC; no más tarde del 15 de noviembre), lo que ocurra primero**; se confirma a la maestra por mensaje.
+
+### 7.2 La negativa del clasificador y lo que queda pendiente [hecho, factual]
+
+- **Qué orden fue:** lanzar el lector sobre 30 sitios de terceros como proceso desatendido en segundo plano (`nohup … &`, salida a archivos), con una sola orden.
+- **Qué motivo dio el clasificador del entorno:** «Unauthorized Access» (acceso no autorizado), sin más detalle.
+- **Qué se hizo después:** no insistí con la misma orden. Corrí el mismo lector **en primer plano, por lotes supervisados de 5 a 9 sitios**, y el entorno aceptó cada lote uno por uno (30 intentos en 5 lotes). El lector respeta `robots.txt` y los bloqueos 403/429/503, sin evasión.
+- **Qué queda pendiente:** leer el marco completo (≈ 700 sitios con web) en decenas de lotes pequeños sería, en conjunto, la lectura automática masiva a la que apunta esa negativa. **La continuación a esa escala espera la decisión de Calvin**; hasta entonces no se lee ningún sitio más ni se prepara el guion de estadística (sería uso gastado si Calvin decide parar).
 
 ---
 

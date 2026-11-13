@@ -5,16 +5,14 @@ ChIJI5uOPQyuKIQRYOSFjcZBNxs,Guadalajara y Zapopan,1,2 (helper haiku + lector pro
 ChIJxU8a_-SLzYURxKZbGiFlVlY,Toluca,1,2 (helper haiku + lector propio),paginas_con_verificacion_anti_bot_comida_incompleta
 ChIJR1gZsYO9YoYRbDLnWdFfczQ,Monterrey,1,2 (helper haiku + lector propio),sin_carta_en_sitio
 ChIJ___D_iz50YURnlo8sopE6ss,CDMX y Estado de México,1,2 (helper haiku + lector propio),sin_carta_en_sitio
-ChIJHziM9r5Gw4URIqgAQwdrP2c,Veracruz,1,2 (helper haiku + lector propio),texto_extraido_sin_contar_por_tamano
 ChIJR33LdlxxVo8RPf3JvNpr96M,Mérida,1,2 (helper haiku + lector propio),solo_recomendados_sin_carta_completa
 ChIJ13W7ydpC6oYRe7sTWEk77lc,Chihuahua,1,1 (lector propio),sin_carta_en_sitio
 ChIJjxt6NXvuKYQRWibmmZP2uMM,Aguascalientes,1,1 (lector propio),sin_carta_en_sitio
 ChIJPTwzS5qaNw0Rf8lyHHkTMOM,León,1,1 (lector propio),sin_carta_en_sitio
 ChIJkx3cKObAz4URJ1mhV73E_jk,Puebla,1,1 (lector propio),sin_carta_en_sitio
-ChIJCzisuB5b04URvDmfy2FBl2E,Querétaro,1,1 (lector propio),texto_extraido_sin_contar_por_tamano
 ChIJAXxOOowoTI8RHqzlMEC0bMo,Cancún,1,1 (lector propio),precio_solo_desde_por_seccion
 ChIJzf-7LwCiKoQRpxkfSIykOM8,San Luis Potosí,1,1 (lector propio),robots_txt_lo_prohibe
-ChIJMwuW4D4ix4URr6IVHMhfOtQ,Oaxaca,1,1 (lector propio),texto_extraido_sin_contar_por_tamano
+ChIJMwuW4D4ix4URr6IVHMhfOtQ,Oaxaca,1,1 (lector propio),carta_en_imagen_precios_no_estan_en_texto
 ChIJQ43YlB6iXRQRbbBAgpzfpzY,Hermosillo,1,1 (lector propio),sin_carta_en_sitio
 ChIJy7iacy8MLYQR9tCQUBOS8a8,Morelia,1,1 (lector propio),sin_carta_en_sitio
 ChIJQYiGqtL-0YURAmYK1TVRDpQ,CDMX y Estado de México,1,1 (lector propio),ficha_de_tercero_sin_platillos
@@ -24,3 +22,4 @@ ChIJafyuGN-tKIQR24rD8BjP_RA,Guadalajara y Zapopan,1,1 (lector propio),sin_carta_
 ChIJOw1ZRC350YUR9g47BGXQoPM,CDMX y Estado de México,1,1 (lector propio),robots_txt_lo_prohibe
 ChIJqwZcyWf50YURXTybfZV6Rwc,CDMX y Estado de México,1,1 (lector propio),robots_txt_lo_prohibe
 ChIJO92cI26uKIQRzk3yBRzRaCo,Guadalajara y Zapopan,1,1 (lector propio),robots_txt_lo_prohibe
+ChIJRVD4n6lJ2YARF2JSxToOQPk,Tijuana,1,1 (lector propio),misma_marca_que_otra_fila_se_conserva_una (carta distinta: 104 comida y 129 bebidas)
