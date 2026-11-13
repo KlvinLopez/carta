@@ -375,6 +375,12 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 
 **Lo que sigue:** el resto del marco de Google (≈ 620 sitios con web), en lotes de 9; con esta tasa saldrían unos 60 contables más. La estadística (mediana, p90 con intervalo de 90 %) se corre al cerrar el marco de Google.
 
+### 11.1 Punto de control (183 intentos, tras reconciliar duplicados de registro) [medida aquí]
+
+Al revisar mi registro de intentos encontré **registros duplicados** (un intento anotado dos veces por un fallo mío al juntar dos pasos): se eliminaron y el conteo vigente es el que sigue; los números intermedios que di a la maestra (102 intentos) **eran correctos** (el duplicado apareció después). **183 intentos con el lector: 20 contables completos, 7 parciales, 5 de misma marca, 151 descartes.** Tasa de contables completos 20 ÷ 183 = **0.109, intervalo de 90 % 0.077 a 0.153** [aritmética mía]. El CSV de datos tiene **28 filas** (21 completas contando el Orinoco de la primera lectura, 7 parciales); el de descartes, 156 filas únicas por `place_id` (sin nombre). Ya hay filas de tipos grandes (formales de 100–150 platillos y 250–340 bebidas) y filas muy chicas (Los Parados: 11 + 1).
+
+**Sensibilidades que se reportarán en la estadística:** (a) quitar las cadenas; (b) quitar las filas de dominio `.shop`/`.store` (posibles páginas generadas por un tercero: Merendero San Pancho, La Guarecita); (c) con y sin parciales para la comida sola.
+
 ---
 
 *Etapa 3 (estadística e informe completo) se agrega cuando haya contables suficientes.*
