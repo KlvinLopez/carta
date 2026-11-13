@@ -140,13 +140,13 @@
   "mb_3d": 4.08
  },
  "enigh_2024": {
-  "fuente": "INEGI, ENIGH 2024, presentación de resultados (nacional: enigh2024_ns_presentacion_resultados_tab.pdf; entidades: mismo nombre con su sufijo), citada en docs/research/2026-11-13-estadistica-de-cartas-y-personal.md §8. Pesos de 2024, promedio trimestral por hogar. Las de entidad las leyó un ayudante sin doble revisión.",
+  "fuente": "INEGI, ENIGH 2024, presentación nacional (julio de 2025) y por entidad. Pesos de 2024, promedio trimestral por hogar. De las entidades, CDMX, Jalisco y Nuevo León se comprobaron contra su PDF; las demás las leyó un ayudante sin doble revisión. Antes de la corrección del 13 de nov. la fila «Nacional» era Tabasco.",
   "marca": "externa",
   "filas": [
    [
     "Nacional",
-    2249,
-    15614
+    3896,
+    17982
    ],
    [
     "CDMX",
@@ -232,6 +232,11 @@
     "Oaxaca",
     2212,
     13791
+   ],
+   [
+    "Tabasco",
+    2249,
+    15614
    ]
   ]
  },

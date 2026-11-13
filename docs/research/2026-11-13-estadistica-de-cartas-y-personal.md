@@ -216,14 +216,15 @@ Lo que da y cuesta, de las páginas oficiales de Google (lectura del 13 de nov d
 
 ## 8. Lado de la demanda: cuánto se come fuera de casa
 
-**Gasto fuera del hogar, ENIGH 2024** (INEGI; promedio trimestral por hogar, gasto corriente monetario, pesos de 2024). Fuente nacional: <https://www.inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados_tab.pdf>; por entidad: el mismo nombre con `_cdmx`, `_jal`, `_nl`… en lugar de `_tab` (el sufijo `tab` es el **nacional**, no Tabasco, y no se encontró el de Tabasco). Las cifras nacionales (2,249 fuera del hogar; 15,614 en alimentos, bebidas y tabaco; hogar de 3.37) las verifiqué yo en el PDF; **las de entidad las leyó un ayudante con `pdftotext` y no tienen doble revisión**. Las columnas de proporción las calculé yo dividiendo cifras de INEGI [estimada: es aritmética mía, no dato publicado].
+**Gasto fuera del hogar, ENIGH 2024** (INEGI; promedio trimestral por hogar, gasto corriente monetario, pesos de 2024). Fuente nacional: <https://www.inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados.pdf> (INEGI, julio de 2025); por entidad: el mismo nombre con `_cdmx`, `_jal`, `_nl`… (el sufijo `_tab` es **Tabasco**). **Corrección del 13 de noviembre de 2026 (tarde):** la versión anterior de esta sección llamó «nacional» al archivo `_tab`, que es el de **Tabasco** (lo dice su portada), y usó sus cifras (2,249; 15,614; 39,508; 3.37) como nacionales; la cifra de 3,896 de la prensa, que se descartó como «no reconciliable», **era la nacional**. Las cifras nacionales de abajo las leyó la maestra en el PDF nacional con `pdftotext -layout` (y las confirmé yo: 3,896 fuera del hogar en 2024 y 3,268 en 2022, +19.2 %); **de las entidades, tres (CDMX 7,915, Jalisco 5,267 y Nuevo León 3,828) se comprobaron el 13 de noviembre contra su propio PDF y coinciden; las demás las leyó un ayudante con `pdftotext` y no tienen doble revisión.** Las columnas de proporción las calculé yo dividiendo cifras de INEGI [estimada: es aritmética mía, no dato publicado].
 
 | Entidad | Fuera del hogar | Alimentos, bebidas y tabaco | Gasto monetario total | Fuera ÷ alimentos | Fuera ÷ gasto total | Personas por hogar |
 |---|---|---|---|---|---|---|
-| **Nacional** | **2,249** (1,628 en 2022: +38.1 %) | 15,614 | 39,508 | 14.4 % | 5.7 % | 3.37 |
+| **Nacional** | **3,896** (3,268 en 2022: +19.2 %) | 17,982 | 47,674 | 21.7 % | 8.2 % | 3.35 |
 | CDMX | 7,915 | 24,389 | 66,383 | 32.5 % | 11.9 % | 3.03 |
 | Jalisco | 5,267 | 21,442 | 56,015 | 24.6 % | 9.4 % | 3.27 |
 | Nuevo León | 3,828 | 20,556 | 59,192 | 18.6 % | 6.5 % | 3.30 |
+| Tabasco (rotulado antes «Nacional») | 2,249 (1,628 en 2022: +38.1 %) | 15,614 | 39,508 | 14.4 % | 5.7 % | 3.37 |
 | Querétaro | 6,051 | 21,446 | 61,593 | 28.2 % | 9.8 % | 3.34 |
 | Puebla | 3,088 | 15,542 | 41,720 | 19.9 % | 7.4 % | 3.51 |
 | Yucatán | 3,845 | 18,874 | 51,255 | 20.4 % | 7.5 % | 3.32 |
@@ -239,7 +240,7 @@ Lo que da y cuesta, de las páginas oficiales de Google (lectura del 13 de nov d
 | Oaxaca | 2,212 | 13,791 | 34,107 | 16.0 % | 6.5 % | 3.52 |
 | Estado de México | 4,398 | 21,158 | 49,595 | 20.8 % | 8.9 % | 3.48 |
 
-**Lectura:** el hogar mexicano gasta **14 % de su gasto en alimentos fuera de casa** (5.7 % del gasto total); **CDMX gasta 3.5 veces el promedio nacional** (7,915 contra 2,249) y destina un tercio de su gasto en alimentos a comer fuera; Querétaro, Colima y Baja California rondan 28–30 %; Oaxaca, Guanajuato y Campeche, 16–17 %. Las notas de prensa citan otra cifra (3,896 pesos trimestrales; Milenio y el análisis del IMCO): **no se pudo reconciliar** con los 2,249 de INEGI (puede ser otro concepto) y no se usa. La ENIGH **no desglosa por ciudad** en estos tabulados (sólo entidad); Hermosillo, Villahermosa y Chetumal quedan con la cifra de su entidad (Tabasco: sin dato).
+**Lectura:** el hogar mexicano gasta **21.7 % de su gasto en alimentos fuera de casa** (8.2 % del gasto monetario), **3,896 pesos al trimestre ≈ 1,299 al mes**, y esa cifra **creció 19.2 % de 2022 a 2024** (INEGI) [aritmética mía en las proporciones: 3,896 ÷ 17,982 y ÷ 47,674]; **CDMX gasta 2.0 veces el promedio nacional** (7,915 contra 3,896) y destina casi un tercio de su gasto en alimentos a comer fuera; Querétaro, Colima y Baja California rondan 28–30 %; Oaxaca, Guanajuato y Campeche, 16–17 %. Las notas de prensa que citaban 3,896 (Milenio y el análisis del IMCO) **tenían razón**: es la cifra nacional. La ENIGH **no desglosa por ciudad** en estos tabulados (sólo entidad); Hermosillo, Villahermosa y Chetumal quedan con la cifra de su entidad (Tabasco: 2,249, antes mal rotulada como nacional).
 
 **Frecuencia de comer fuera: no hay cifra oficial en veces al mes** (la ENIGH mide gasto, no frecuencia). Lo más citable es una encuesta en línea de la UVM (700 internautas, junio–julio de 2017, **sin representatividad nacional**; <https://opinionpublica.uvm.mx/sites/default/files/presentaciones/15.%20BoomGastronomico_0.pdf>, leída del PDF): una o dos veces al mes 27 %, una vez por semana 27 %, dos o tres veces por semana 25 %, cada tres meses 6 %, todos los días 4 %, no acostumbra ir 5 %. Otras cifras (40 % «al menos una o dos veces por semana», 53 % «come fuera») sólo se vieron como extractos de búsqueda, sin fecha ni muestra: **no se usan**.
 
