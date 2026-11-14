@@ -374,13 +374,13 @@ document.addEventListener("keydown", e => {
 });
 
 /* ===== arranque ===== */
-function actualizaCajas() { $$("#grid .box:not(.rec)").forEach((b, i) => { const c = CAJAS[i].c; $(".c", b).textContent = typeof c === "function" ? c() : c; }); }
-function todo() { pintaEscenario(); pintaKpis(); actualizaCajas(); refrescar(); }
-pintaCajas(); todo();
+function todo() { pintaEscenario(); pintaKpis(); refrescar(); }
+montaCaps(); todo();
 oyentes.push(todo);
 $("#verIntro").addEventListener("click", abrirIntro);
 $("#pantallaTop").innerHTML = BTN_PANTALLA;
 $("#verDecisiones").addEventListener("click", () => abre("recomendaciones"));
 const h0 = location.hash.slice(1);
-if (h0 && DET[h0]) abre(h0, false);
+if (h0 && CAPS.some(c => c.id === h0)) setTimeout(() => irCap(h0), 300);
+else if (h0 && DET[h0]) abre(h0, false);
 else { let visto = false; try { visto = localStorage.getItem("carta-v9-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }

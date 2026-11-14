@@ -167,6 +167,18 @@ main{padding-block:12px 28px}
 @media(max-width:600px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.box{min-height:170px}.viz{overflow-x:auto}.viz svg{min-width:760px}.desliza{display:block!important}.esc .fila{gap:6px}}
 .desliza{display:none;font-size:11.5px;color:var(--tinta2);margin:0 0 6px;font-weight:700}
 @media(prefers-reduced-motion:reduce){.box .gh,.box .gk,.fncard{animation:none}#det,.gk,.gh,#intro .sl>*,.pulso{animation:none}.rm,.box,.kpi,.chip,.btn,.pal,#intro .barras i.act b{transition:none}}
+
+/* historia con scroll */
+.cap{min-height:calc(100vh - 150px);padding:30px 0 40px;scroll-margin-top:140px}
+.capn{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--dorado);text-transform:uppercase}.capn small{color:var(--tinta2);font-weight:400;letter-spacing:0;text-transform:none}
+.capq{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(30px,4.2vw,54px);line-height:1.05;color:var(--vino);margin:6px 0 10px;text-wrap:balance}
+.cap .viz{padding:14px}.cap .viz svg{max-height:calc(100vh - 330px);min-height:360px}
+.caphall{margin:12px 0 8px}
+details.mas{margin-top:8px}details.mas summary{cursor:pointer;font-weight:700;color:var(--vino2);padding:6px 2px}
+.gp{transform-box:fill-box;transform-origin:center;animation:gpop .6s cubic-bezier(.34,1.5,.5,1) both}
+@keyframes gpop{from{transform:scale(0)}to{transform:none}}
+@media(prefers-reduced-motion:reduce){.gp{animation:none}}
+@media(max-width:700px){.kpis{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:44%;overflow-x:auto;gap:8px;padding:6px 0}.kpis .kpi{padding:6px 10px}.kpis .kpi .tx,.kpis .kpi .tri{display:none}.kpisDet{top:52px}.cap{scroll-margin-top:90px;min-height:auto}}
 </style>
 <div class="wrap">
   <header class="top">
@@ -176,8 +188,8 @@ main{padding-block:12px 28px}
   </header>
   <main>
     <div class="kpis" id="kpis"></div>
-    <div class="grid" id="grid"></div>
-    <p class="nota">Las cifras responden al escenario activo. Los supuestos llevan su etiqueta; planes y precios son propuesta; lo que la Fase 3 aún no construye está en futuro; no se venden datos.</p>
+    <div id="caps"></div>
+    <p class="nota">Las cifras responden a lo que muevas en cualquier capítulo. Los supuestos llevan su etiqueta; planes y precios son propuesta; lo que la Fase 3 aún no construye está en futuro; no se venden datos.</p>
   </main>
 </div>
 <div id="det" hidden role="dialog" aria-modal="true" aria-label="Detalle"></div>
@@ -4837,7 +4849,7 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
    "fuga": 0.393
   }
  ]
-}; const BAND = {
+}; const CLASES_D = [{"clave": "722513", "n": 168295}, {"clave": "722514", "n": 147589}, {"clave": "722515", "n": 94062}, {"clave": "722517", "n": 79622}, {"clave": "722519", "n": 73482}, {"clave": "722511", "n": 72521}, {"clave": "722518", "n": 60421}, {"clave": "722412", "n": 30451}, {"clave": "722512", "n": 28902}, {"clave": "722516", "n": 16605}, {"clave": "722411", "n": 1910}]; const BAND = {
  "version": "2026-11-14-r4",
  "banderas": [
   {
@@ -5070,10 +5082,11 @@ function abre(id, atras = true) {
   const t = typeof d.titulo === "function" ? d.titulo() : d.titulo;
   det.innerHTML = `<div class="esc" style="padding-inline:max(16px,env(safe-area-inset-left,0px))"><div class="fila" id="escDet"></div></div><div class="kpis kpisDet" id="kpisDet"></div><div class="dd"><h2 id="dt">${esc(t)}</h2><div class="leyenda" id="ley"></div><p class="desliza">Desliza la gráfica de lado →</p><div id="cuerpo"></div><div id="cif"></div><div class="insight" id="ins"></div>${d.nota ? `<p class="nota">${esc(d.nota)}</p>` : ""}${fuentes(d.fu)}</div>`;
   actual = d; pintaEscenario(); pintaKpis(); d.montar($("#cuerpo", det), det);
-  refrescar(); det.scrollTop = 0; $("[data-cierra]", det).focus();
+  refrescar(); if (d.arranca) d.arranca(); det.scrollTop = 0; $("[data-cierra]", det).focus();
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
 }
 function refrescar() {
+  if (typeof pintaCaps === "function") pintaCaps();
   if (!abierto || !actual) return;
   const out = actual.actualizar ? actual.actualizar() : null;
   if (out && out.cifras) $("#cif", det).innerHTML = cifras(out.cifras);
@@ -5088,8 +5101,8 @@ document.addEventListener("click", e => {
   const c = e.target.closest("[data-cierra]"); if (c) { cierra(); return; }
   const ir = e.target.closest("[data-ir]"); if (ir) { abre(ir.dataset.ir, false); return; }
   const ap = e.target.closest("[data-aplica]"); if (ap) { cambiar(JSON.parse(ap.dataset.aplica)); return; }
-  const k = e.target.closest("[data-kpi]"); if (k) { abre("k_" + k.dataset.kpi); return; }
-  const b = e.target.closest(".box"); if (b && !abierto) { abre(b.dataset.id); return; }
+  const k = e.target.closest("[data-kpi]"); if (k) { const ir = {potenciales: "mercado2", caben: "disco"}[k.dataset.kpi]; if (ir) irCap(ir); else abre("k_" + k.dataset.kpi); return; }
+  
   if (e.target.closest("[data-pantalla]")) { pantalla(); return; }
   const es = e.target.closest("[data-esc]"); if (es) { aplicar(es.dataset.esc); return; }
   const cu = e.target.closest("[data-cupo]"); if (cu) { fijaCupo(+cu.dataset.cupo); return; }
@@ -5190,6 +5203,16 @@ function dibujo(k, x = 0, y = 0, s = 1) {
   else if (k === "cadena") g += [0, 1].map(i => caja(8 + i * 78, 44, 66, 56) + toldo(6 + i * 78, 32, 70, 12, 6) + caja(18 + i * 78, 60, 16, 40, sombra, 3)).join("") + `<circle cx="80" cy="76" r="9" fill="#b8860b"/><rect x="74" y="74" width="12" height="4" rx="2" fill="#fff"/>`;
   else if (k === "puntos") { for (let i = 0; i < 60; i++) g += `<circle cx="${16 + (i % 12) * 12}" cy="${14 + Math.floor(i / 12) * 14}" r="4.4" fill="${i < 3 ? "#b8860b" : "#6b2d3e"}" opacity="${i < 3 ? 1 : 0.5}"/>`; }
   else g += caja(30, 46, 100, 54) + toldo(24, 34, 112, 14, 8);
+  const letrero = (cx, y, w, t) => `<rect x="${cx - w / 2}" y="${y}" width="${w}" height="16" rx="8" fill="#4f1728"/><text x="${cx}" y="${y + 12}" font-size="10" font-weight="700" fill="#f3d58a" text-anchor="middle">${t}</text>`;
+  const focos = (x0, x1, y) => { let o = ""; for (let xx = x0; xx <= x1; xx += 14) o += `<circle cx="${xx}" cy="${y + 3 * Math.sin(xx)}" r="2.6" fill="#f3d58a"/>`; return o; };
+  const planta = xx => `<rect x="${xx - 5}" y="88" width="10" height="12" rx="3" fill="#b9afa3"/><circle cx="${xx}" cy="82" r="8" fill="#7a9a4a"/><circle cx="${xx - 5}" cy="87" r="5" fill="#7a9a4a"/>`;
+  if (k === "puesto") g += letrero(80, 22, 70, "TACOS") + focos(26, 134, 62);
+  else if (k === "fonda") g += letrero(80, 12, 84, "FONDA") + focos(20, 140, 52) + planta(18) + `<rect x="106" y="62" width="26" height="14" rx="3" fill="#4f1728"/>`;
+  else if (k === "barrio") g += letrero(80, 4, 96, "TAQUERÍA") + focos(10, 150, 40) + planta(150);
+  else if (k === "restaurante") g += letrero(80, 0, 100, "RESTAURANTE") + `<g transform="translate(40,98)">${gente(0, 0, "#6b2d3e")}<rect x="4" y="-12" width="14" height="3" rx="1.5" fill="#b9afa3"/></g>` + planta(150);
+  else if (k === "salon") g += letrero(56, 0, 90, "TERRAZA") + focos(2, 108, 24);
+  else if (k === "hotel") g += `<rect x="78" y="-8" width="3" height="16" fill="#b9afa3"/><path d="M81 -8 l18 6 l-18 6z" fill="#b8860b"/>` + gente(20, 98) + gente(142, 98, "#6b2d3e");
+  else if (k === "grupo") g += T(80, 36, "× 3", 14, "#6b2d3e", "middle", 700);
   return `<g transform="translate(${x},${y}) scale(${s})">${g}</g>`;
 }
 /* un teléfono de 120×196 con la pantalla de cada función */
@@ -5211,6 +5234,49 @@ function fnDib(j) {
   else { c += [0, 1, 2, 3, 4].map(i => caja(18 + i * 18, 130 - (30 + ((i * 37) % 70)), 14, 30 + ((i * 37) % 70), i === 3 ? "#b8860b" : "#6b2d3e", 4)).join("") + caja(14, 20, 92, 16, "#f3eadb", 8) + `<rect x="22" y="26" width="30" height="5" rx="2.5" fill="#6b2d3e"/>`; }
   return `<svg viewBox="0 0 120 196" role="img" font-family="DM Sans, sans-serif">${TEL(c)}</svg>`;
 }
+
+/* ===== la historia con scroll: cada capítulo ocupa la pantalla (pregunta, una visual grande, el hallazgo); el detalle, en «ver más» ===== */
+const CAPS = [
+  {id: "mercado2", q: "¿Cuántos negocios hay en México?"},
+  {id: "linea", q: "¿Cuántos están en línea?"},
+  {id: "pagar", q: "¿Cuánto puede pagar un restaurante por software?"},
+  {id: "matriz", q: "¿Qué existe y a qué precio?"},
+  {id: "precio", q: "¿Cuánto cobran ellos frente a nosotros?"},
+  {id: "topes", q: "¿Qué damos nosotros por ese precio?"},
+  {id: "disco", q: "¿Qué nos limita?"},
+  {id: "sostiene", q: "¿Cómo se sostiene?"},
+];
+let capObs = null;
+function montaCaps() {
+  const host = $("#caps");
+  host.innerHTML = CAPS.map((c, i) => `<section class="cap" id="cap-${c.id}" data-cap="${c.id}"><div class="capn">${i + 1}<small> de ${CAPS.length}</small></div><h2 class="capq">${esc(c.q)}</h2><div class="capley leyenda"></div><div class="capcuerpo"></div><p class="caphall insight"></p><details class="mas"><summary>Ver cifras, notas y fuentes</summary><div class="capcif"></div><p class="nota capnota"></p><div class="capfu"></div></details></section>`).join("");
+  capObs = new IntersectionObserver(es => es.forEach(en => {
+    const c = CAPS.find(x => x.id === en.target.dataset.cap); if (!c) return;
+    c.visible = en.isIntersecting;
+    if (en.isIntersecting) { if (!c.montado) montaCap(c); else if (c.sucio) pintaCap(c); }
+  }), {rootMargin: "120px 0px 120px 0px"});
+  CAPS.forEach(c => { c.sec = $("#cap-" + c.id); c.sucio = true; capObs.observe(c.sec); });
+}
+function montaCap(c) {
+  const d = DET[c.id]; if (!d) return;
+  c.montado = true; d.enCap = true;
+  $(".capnota", c.sec).textContent = d.nota || "";
+  $(".capfu", c.sec).innerHTML = d.fu ? fuentes(d.fu) : "";
+  d.montar($(".capcuerpo", c.sec), c.sec);
+  pintaCap(c);
+  if (d.arranca) d.arranca();
+}
+function pintaCap(c) {
+  const d = DET[c.id]; if (!d || !c.montado) return;
+  c.sucio = false;
+  const o = d.actualizar ? d.actualizar() : null; if (!o) return;
+  if (o.cifras) $(".capcif", c.sec).innerHTML = cifras(o.cifras);
+  if (o.leyenda) $(".capley", c.sec).innerHTML = o.leyenda;
+  const h = $(".caphall", c.sec);
+  h.innerHTML = o.puntos ? `<b>Hallazgo.</b> ${o.puntos[0]}` : o.insight ? `<b>Hallazgo.</b> ${esc(o.insight)}` : "";
+}
+function pintaCaps() { CAPS.forEach(c => { c.sucio = true; if (c.visible && c.montado) pintaCap(c); }); }
+function irCap(id) { const s = $("#cap-" + id); if (s) s.scrollIntoView({behavior: REDUCE ? "auto" : "smooth", block: "start"}); }
 
 /* ===== cabecera, barra de escenario, cifras y cajas ===== */
 $("#oportunidad").textContent = "94 de cada 100 restaurantes a la carta no declara sitio web.";
@@ -5235,7 +5301,7 @@ const KPIS = [
 function pintaKpis() {
   const r = resumenS(S), html = KPIS.map(k => {
     const c = fila(r, k.clave), tip = `${k.nota || c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
-    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Piso: pagan poco, anuncios adversos y soporte caro">piso ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
+    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Estrés: pagan poco, los anuncios dejan la mitad y el soporte cuesta más">estrés ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
     return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"><b>${k.f(c.recomendado)}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
   $("#kpis").innerHTML = html; const kd = $("#kpisDet"); if (kd) kd.innerHTML = html;
@@ -5270,6 +5336,76 @@ const RECS_CORTO = ["Master Chef a $225", "Chef gratis: 25 mesas, 4 cuentas", "1
 function pintaCajas() {
   $("#grid").innerHTML = CAJAS.map((c, i) => `<button class="box" data-id="${c.id}" style="--i:${i}" aria-label="${esc(c.q)}"><div class="q">${esc(c.q)}</div><div class="m">${MINI[c.id]()}</div><div class="c">${esc(typeof c.c === "function" ? c.c() : c.c)}</div><div class="abre">toca para abrir ›</div></button>`).join("");
 }
+
+/* ===== capítulo 1: ¿Cuántos negocios hay en México? Círculos anidados (DENUE, mayo de 2026) ===== */
+const CLASE_NOM = {
+  "722511": ["A la carta y comida corrida", "núcleo"], "722412": ["Bares y cantinas", "núcleo"], "722411": ["Centros nocturnos", "núcleo"],
+  "722512": ["Pescados y mariscos", "fuera"], "722513": ["Antojitos", "fuera"], "722514": ["Tacos y tortas", "fuera"], "722515": ["Cafeterías y neverías", "fuera"],
+  "722516": ["Autoservicio", "fuera"], "722517": ["Pizzas y pollos para llevar", "fuera"], "722518": ["Otros para llevar", "fuera"], "722519": ["Otros alimentos", "fuera"],
+};
+/* empaqueta círculos de área proporcional dentro de un círculo grande: voraz, de mayor a menor */
+function empaqueta(items, R, dens = 0.56) {
+  const tot = items.reduce((a, x) => a + x.n, 0), k = Math.sqrt(dens * R * R / tot);
+  const cs = items.map(x => ({...x, r: Math.max(k * Math.sqrt(x.n), 5)})).sort((a, b) => b.r - a.r), put = [];
+  cs.forEach(c => {
+    let mejor = null;
+    for (let rad = 0; rad <= R - c.r - 4 && !mejor; rad += 3) for (let a = 0; a < 360; a += 6) {
+      const x = rad * Math.cos(a * Math.PI / 180), y = rad * Math.sin(a * Math.PI / 180);
+      if (put.every(p => Math.hypot(p.x - x, p.y - y) >= p.r + c.r + 5)) { mejor = {x, y}; break; }
+    }
+    if (!mejor) mejor = {x: 0, y: 0};
+    c.x = mejor.x; c.y = mejor.y; put.push(c);
+  });
+  return put;
+}
+DET.mercado2 = {
+  titulo: "Hay 773,860 restaurantes y bares; 104,882 son clientes potenciales.",
+  fu: ["inegi_denue", "carta_mercado"],
+  nota: "INEGI, DENUE de mayo de 2026, ramas 7224 y 7225 (SCIAN). Clientes potenciales (SAM): a la carta y comida corrida, bares y centros nocturnos. Sin sus posibles cadenas son ≈ 100,000 (96,021 a 104,855 según el umbral). Meta a 12 meses (SOM): 300 restaurantes, un escenario del modelo, no un dato.",
+  montar(host) {
+    host.innerHTML = `<div class="viz"><svg id="svM2" viewBox="0 0 1100 620" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    this.sv = $("#svM2", host); this.sel = null;
+    this.sv.addEventListener("mouseover", ev => { const t = ev.target.closest("[data-cl]"); const k = t ? t.dataset.cl : null; if (k !== this.sel) { this.sel = k; this.pinta(); } });
+    this.sv.addEventListener("click", ev => { const t = ev.target.closest("[data-cl]"); this.sel = t ? t.dataset.cl : null; this.pinta(); });
+  },
+  actualizar() { this.pinta(); const sam = CLASES_D.filter(c => CLASE_NOM[c.clave] && CLASE_NOM[c.clave][1] === "núcleo").reduce((a, c) => a + c.n, 0);
+    return {
+      leyenda: `<span><i style="background:${C.vino}"></i>clientes potenciales (SAM)</span><span><i style="background:${C.arena}"></i>fuera de lo que Carta atiende hoy</span><span><i style="background:${C.dorado}"></i>meta a 12 meses (SOM)</span>`,
+      cifras: [[n(M.total), "restaurantes y bares de México (TAM)"], [n(sam), "clientes potenciales (SAM): a la carta, bares y centros nocturnos"], ["≈ " + n(M.servible), "sin sus posibles cadenas"], ["300", "meta a 12 meses (SOM): escenario del modelo", "supuesto"]],
+      insight: `De ${n(M.total)} restaurantes y bares, ${n(sam)} son clientes potenciales; la meta del primer año es 300.`,
+    };
+  },
+  pinta() {
+    const gpc = this.ya ? "" : 'class="gp"'; this.ya = true;
+    const sv = this.sv, R = 275, CX = 300, CY = 315, sel = this.sel;
+    const items = CLASES_D.map(c => ({clave: c.clave, n: c.n, nom: (CLASE_NOM[c.clave] || [c.clave, "fuera"])[0], tipo: (CLASE_NOM[c.clave] || [0, "fuera"])[1]}));
+    const pk = empaqueta(items, R - 6);
+    let b = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="${C.a2}"/>` + T(CX, CY - R - 14, `Restaurantes y bares de México · ${n(M.total)}`, 15, C.vino, "middle", 700);
+    pk.forEach((c, i) => {
+      const nuc = c.tipo === "núcleo", on = sel === c.clave, x = CX + c.x, y = CY + c.y;
+      b += `<g data-cl="${c.clave}" style="cursor:pointer" tabindex="0" role="button" aria-label="${esc(c.nom)}: ${n(c.n)}"><g ${gpc} style="animation-delay:${i * 90}ms"><circle cx="${x}" cy="${y}" r="${c.r}" fill="${nuc ? C.vino : C.arena}" opacity="${sel && !on ? 0.5 : 1}" ${on ? `stroke="${C.dorado}" stroke-width="4"` : ""}/>`;
+      if (c.r > 26) { const sz = c.r > 70 ? 14 : 11.5, mc = Math.max(6, Math.floor(c.r * 1.7 / (sz * 0.55))), ls = []; let cur = ""; c.nom.split(" ").forEach(w => { if ((cur + " " + w).trim().length > mc && cur) { ls.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }); ls.push(cur);
+        const y0 = y - (ls.length * sz * 1.15) / 2 + sz * 0.85; ls.forEach((l, j) => { b += T(x, y0 + j * sz * 1.15, l, sz, nuc ? "#fff" : C.tinta, "middle", 700); }); b += T(x, y0 + ls.length * sz * 1.15 + 2, n(c.n), c.r > 70 ? 16 : 12.5, nuc ? "#f3d58a" : C.t2, "middle", 700); }
+      b += `</g></g>`;
+    });
+    // pequeños: etiquetas fuera con línea guía
+    let ly = 90; pk.filter(c => c.r <= 26).sort((a, z) => a.y - z.y).forEach(c => {
+      const x = CX + c.x, y = CY + c.y, nuc = c.tipo === "núcleo";
+      b += `<line x1="${x}" y1="${y}" x2="${CX + R + 18}" y2="${ly}" stroke="${nuc ? C.vino : C.gris}" stroke-width="1.5"/>` + T(CX + R + 26, ly + 4, `${c.nom} · ${n(c.n)}`, 12.5, nuc ? C.vino : C.t2, "start", 700);
+      ly += 24;
+    });
+    // el panel de la derecha: lo que se ve de lo elegido, o el resumen
+    const px = 720, so = 800, el = sel ? items.find(c => c.clave === sel) : null;
+    b += Rc(px, 330, 360, 250, "#fff", 24) ;
+    if (el) { b += T(px + 22, 372, el.nom, 20, C.vino, "start", 400, true) + T(px + 22, 428, n(el.n), 48, el.tipo === "núcleo" ? C.vino : C.t2, "start", 400, true) + T(px + 22, 452, `${n(100 * el.n / M.total, 1)} % del total`, 14, C.t2) + T(px + 22, 492, el.tipo === "núcleo" ? "Cliente potencial (SAM)" : "Fuera de lo que Carta atiende hoy", 13.5, el.tipo === "núcleo" ? C.vino : C.t2, "start", 700); }
+    else { b += T(px + 22, 372, "Toca un círculo", 20, C.vino, "start", 400, true) + T(px + 22, 428, n(M.nucleo), 48, C.vino, "start", 400, true) + T(px + 22, 452, "clientes potenciales (SAM)", 14, C.t2) + T(px + 22, 492, `= ${n(100 * M.nucleo / M.total, 1)} % del total`, 13.5, C.vino, "start", 700); }
+    // la meta a 12 meses: 300 puntos dorados en un grid chico
+    b += T(so, 60, "Meta a 12 meses (SOM)", 16, C.dorado, "start", 700) + T(so, 112, "300", 44, C.dorado, "start", 400, true) + T(so + 100, 106, "restaurantes: un escenario", 13.5, C.t2);
+    for (let i = 0; i < 100; i++) b += `<circle ${gpc} style="animation-delay:${800 + i * 10}ms" cx="${so + 8 + (i % 20) * 13.5}" cy="${150 + Math.floor(i / 20) * 14}" r="4.4" fill="${C.dorado}"/>`;
+    b += T(so, 232, "cada punto = 3 restaurantes", 12, C.t2);
+    sv.innerHTML = b;
+  },
+};
 
 /* ===== detalle: ¿Cuánto puede pagar un restaurante? (INEGI, Censos Económicos 2024, año 2023) ===== */
 DET.pagar = {
@@ -5308,46 +5444,58 @@ DET.linea = {
   nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea».",
   montar(host) {
     this.sel = 0;
-    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 960 500" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 500" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     const svg = $("#svLinea", host); this.rm = RM(svg); this.svg = svg;
     const elige = ev => { const t = ev.target.closest("[data-i]"); if (t && +t.dataset.i !== this.sel) { this.sel = +t.dataset.i; refrescar(); } };
     svg.addEventListener("mouseover", elige); svg.addEventListener("click", elige); svg.addEventListener("focusin", elige);
     svg.addEventListener("keydown", ev => { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); this.sel = clamp(this.sel + (ev.key === "ArrowDown" ? 1 : -1), 0, TAM.length - 1); refrescar(); const f = $(`[data-i="${this.sel}"]`, svg); if (f) f.focus(); } });
   },
   actualizar() {
-    const rm = this.rm, X0 = 160, W = 440, Y0 = 134, RH = 46, sel = this.sel;
-    // el guiño: lo que ya pasa del lado del comensal
-    rm.put("g0", "rect", {x: 30, y: 12, w: 900, h: 46, rx: 23, fill: C.vino, grow: false});
+    const rm = this.rm, X0 = 170, W = 400, Y0 = 134, RH = 46, sel = this.sel, cfg = config(S);
+    rm.put("g0", "rect", {x: 30, y: 12, w: 1040, h: 46, rx: 23, fill: C.vino, grow: false});
     rm.put("gp", "rect", {x: 52, y: 22, w: 15, h: 26, rx: 4, fill: "#fef9f1", grow: false});
     rm.put("gq", "rect", {x: 55, y: 26, w: 9, h: 16, rx: 2, fill: C.vino, grow: false});
     rm.put("gt", "text", {x: 82, y: 42, text: `${M.usa_internet_pct} % de los mexicanos usa internet; casi todos (${Math.round(M.celular_pct)} %) desde el celular`, size: 16, weight: 700, fill: "#fff"});
     rm.put("t2", "text", {x: 30, y: 100, text: "Negocios que declaran sitio web, por tamaño (personas ocupadas)", size: 14, weight: 700, fill: C.dorado});
     const xl = X0 + W * M.usa_internet_pct / 100;
-    rm.put("ref", "rect", {x: xl - 1, y: Y0 - 14, w: 2.5, h: RH * 7 - 6, rx: 1, fill: C.vino, grow: false, op: 0.55});
+    rm.put("ref", "rect", {x: xl - 1, y: Y0 - 14, w: 2.5, h: RH * 7 - 6, rx: 1, fill: C.vino, grow: false, op: 0.5});
     rm.put("reft", "text", {x: xl, y: Y0 - 20, text: `${M.usa_internet_pct} %`, size: 12, weight: 700, fill: C.vino, anchor: "middle"});
     M.estratos.forEach((e, i) => {
       const y = Y0 + i * RH, on = i === sel, op = on ? 1 : 0.62;
-      if (on) rm.put("band", "rect", {x: 20, y: y - 6, w: X0 + W + 90 - 20, h: RH - 4, rx: 14, fill: C.a2, grow: false});
+      if (on) rm.put("band", "rect", {x: 20, y: y - 6, w: 620, h: RH - 4, rx: 14, fill: C.a2, grow: false});
       rm.put("l" + i, "text", {x: X0 - 12, y: y + 20, text: TAM[i], size: 13.5, weight: on ? 700 : 400, fill: C.tinta, anchor: "end", op: on ? 1 : 0.8});
       rm.put("k" + i, "rect", {x: X0, y: y + 4, w: W, h: 24, rx: 12, fill: on ? "#fff" : C.a2});
       rm.put("f" + i, "rect", {x: X0, y: y + 4, w: Math.max(W * e.pct_sitio / 100, 4), h: 24, rx: 12, fill: C.dorado, op});
-      rm.put("v" + i, "text", {x: X0 + W + 14, y: y + 22, text: `${n(e.pct_sitio, 1)} %`, size: 15, weight: 700, fill: C.tinta, op: on ? 1 : 0.8});
-      rm.put("h" + i, "rect", {x: 20, y: y - 6, w: X0 + W + 90 - 20, h: RH - 4, rx: 14, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-i": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": `${TAM[i]}: ${n(e.pct_sitio, 1)} % declara sitio web`}});
+      rm.put("v" + i, "text", {x: X0 + W + 12, y: y + 22, text: `${n(e.pct_sitio, 1)} %`, size: 15, weight: 700, fill: C.tinta, op: on ? 1 : 0.8});
+      rm.put("h" + i, "rect", {x: 20, y: y - 6, w: 620, h: RH - 4, rx: 14, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-i": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": `${TAM[i]}: ${n(e.pct_sitio, 1)} % declara sitio web`}});
     });
-    // lo que se ve del tamaño elegido: un dibujo y dos números
-    const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 690;
-    rm.put("pn", "rect", {x: px, y: 96, w: 240, h: 380, rx: 22, fill: C.a2, grow: false});
-    const g = rm.put("ej", "g", {x: px + 22, y: 110});
-    if (this.ult !== sel) { this.ult = sel; g.innerHTML = dibujo(tipo, 0, 0, 1.25); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
-    rm.put("e0", "text", {x: px + 22, y: 266, text: ejem, size: 13, weight: 700, fill: C.osc});
-    rm.put("e1", "text", {x: px + 22, y: 330, text: `${n(e.pct_sitio, 1)} %`, size: 48, fill: C.vino, serif: true});
-    rm.put("e2", "text", {x: px + 22, y: 354, text: "declara sitio web", size: 13, fill: C.t2});
-    rm.put("e3", "text", {x: px + 22, y: 396, text: `${n(e.con_sitio)} de ${n(e.n)}`, size: 20, fill: C.tinta, serif: true});
-    rm.put("e4", "text", {x: px + 22, y: 418, text: "negocios de este tamaño", size: 12.5, fill: C.t2});
-    rm.put("e5", "text", {x: px + 22, y: 450, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 14, weight: 700, fill: C.vino});
+    // corchetes: a qué plan le toca cada tamaño y cuánto representaría si todos pagaran
+    const grupos = []; SEG.estratos.forEach((q, i) => { const p = planDe(q, cfg), u = grupos[grupos.length - 1]; if (u && u.p === p) { u.f = i; u.neg += q.negocios; } else grupos.push({p, i, f: i, neg: q.negocios}); });
+    const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio, S.precioSalon];
+    for (let g = 0; g < 3; g++) {
+      const u = grupos.find(z => z.p === g), y1 = u ? Y0 + u.i * RH - 2 : 0, y2 = u ? Y0 + (u.f + 1) * RH - 10 : 0, col = COLPLAN[g];
+      rm.put("bk" + g, "rect", {x: 656, y: y1, w: u ? 6 : 0, h: u ? y2 - y1 : 0, rx: 3, fill: col, grow: false});
+      rm.put("bkt" + g, "rect", {x: 656, y: y1, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
+      rm.put("bkb" + g, "rect", {x: 656, y: y2 - 6, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
+      const ym = u ? (y1 + y2) / 2 : 0;
+      rm.put("bn" + g, "text", {x: 684, y: ym - 14, text: u ? NOMPLAN[g] : "", size: 17, fill: col, serif: true});
+      rm.put("bs" + g, "text", {x: 684, y: ym + 4, text: u ? `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %` : "", size: 12.5, weight: 700, fill: C.tinta});
+      rm.put("bg" + g, "text", {x: 684, y: ym + 22, text: u ? (g === 0 ? "gratis: lleva anuncios" : `si todos pagaran: $${n(u.neg * precio[g] / 1e6, 1)} M al mes`) : "", size: 12, fill: C.t2});
+    }
+    // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
+    const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 908;
+    rm.put("pn", "rect", {x: px, y: 96, w: 180, h: 370, rx: 22, fill: C.a2, grow: false});
+    const g = rm.put("ej", "g", {x: px + 10, y: 112});
+    if (this.ult !== sel) { this.ult = sel; g.innerHTML = dibujo(tipo, 0, 0, 1.0); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
+    rm.put("e0", "text", {x: px + 16, y: 252, text: ejem, size: 12.5, weight: 700, fill: C.osc});
+    rm.put("e1", "text", {x: px + 16, y: 312, text: `${n(e.pct_sitio, 1)} %`, size: 44, fill: C.vino, serif: true});
+    rm.put("e2", "text", {x: px + 16, y: 334, text: "declara sitio web", size: 12.5, fill: C.t2});
+    rm.put("e3", "text", {x: px + 16, y: 374, text: `${n(e.con_sitio)} de ${n(e.n)}`, size: 17, fill: C.tinta, serif: true});
+    rm.put("e4", "text", {x: px + 16, y: 394, text: "negocios de este tamaño", size: 12, fill: C.t2});
+    rm.put("e5", "text", {x: px + 16, y: 430, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 13, weight: 700, fill: C.vino});
     const chicos = M.estratos.slice(0, 3), con = chicos.reduce((a, x) => a + x.con_sitio, 0), tot = chicos.reduce((a, x) => a + x.n, 0);
     return {
-      leyenda: `<span><i style="background:${C.dorado}"></i>negocios con sitio web</span><span><i style="background:${C.vino}"></i>límite: lo que ya hace el comensal</span>`,
+      leyenda: `<span><i style="background:${C.dorado}"></i>negocios con sitio web</span><span><i style="background:${C.vino}"></i>límite: lo que ya hace el comensal</span>${COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("")}`,
       cifras: [[n(100 * con / tot, 1) + " %", `de los ${n(tot)} negocios de menos de 31 personas declara sitio`], [n(M.estratos[2].pct_sitio, 1) + " %", "de los de 11 a 30 personas: el tramo chico que más declara"], [n(M.micro_con_sitio_pct, 1) + " %", `de ${n(M.micro_n)} micronegocios de comida declara sitio`]],
       puntos: [
         `Casi todos los comensales usan celular (${Math.round(M.celular_pct)} %): el menú por QR llega a donde ya están.`,
@@ -5538,8 +5686,8 @@ DET.disco = {
       const ma = ev.target.closest("[data-ma]"); if (ma) { cambiar({ma: +ma.dataset.ma}); return; }
       const p = ev.target.closest("[data-p]"); if (p) cambiar({[p.dataset.p]: !S[p.dataset.p]});
     });
-    const marcha = () => { if (actual !== this || !this.auto || this.paso >= 2 || REDUCE) return; setTimeout(() => { if (actual === this && this.auto) { this.paso++; refrescar(); marcha(); } }, 2200); };
-    setTimeout(marcha, 1200);
+    const marcha = () => { if ((actual !== this && !this.enCap) || !this.auto || this.paso >= 2 || REDUCE) return; setTimeout(() => { if (this.auto) { this.paso++; refrescar(); marcha(); } }, 2200); };
+    this.arranca = () => setTimeout(marcha, 1200);
   },
   actualizar() {
     const m = motor(S), rm = this.rm, p = this.paso, base = motor({...S, ma: 13, hist: 12, arch: false, servidor: -1});
@@ -6122,15 +6270,15 @@ document.addEventListener("keydown", e => {
 });
 
 /* ===== arranque ===== */
-function actualizaCajas() { $$("#grid .box:not(.rec)").forEach((b, i) => { const c = CAJAS[i].c; $(".c", b).textContent = typeof c === "function" ? c() : c; }); }
-function todo() { pintaEscenario(); pintaKpis(); actualizaCajas(); refrescar(); }
-pintaCajas(); todo();
+function todo() { pintaEscenario(); pintaKpis(); refrescar(); }
+montaCaps(); todo();
 oyentes.push(todo);
 $("#verIntro").addEventListener("click", abrirIntro);
 $("#pantallaTop").innerHTML = BTN_PANTALLA;
 $("#verDecisiones").addEventListener("click", () => abre("recomendaciones"));
 const h0 = location.hash.slice(1);
-if (h0 && DET[h0]) abre(h0, false);
+if (h0 && CAPS.some(c => c.id === h0)) setTimeout(() => irCap(h0), 300);
+else if (h0 && DET[h0]) abre(h0, false);
 else { let visto = false; try { visto = localStorage.getItem("carta-v9-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }
 
 </script>

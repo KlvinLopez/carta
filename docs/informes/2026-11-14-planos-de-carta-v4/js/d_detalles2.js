@@ -18,8 +18,8 @@ DET.disco = {
       const ma = ev.target.closest("[data-ma]"); if (ma) { cambiar({ma: +ma.dataset.ma}); return; }
       const p = ev.target.closest("[data-p]"); if (p) cambiar({[p.dataset.p]: !S[p.dataset.p]});
     });
-    const marcha = () => { if (actual !== this || !this.auto || this.paso >= 2 || REDUCE) return; setTimeout(() => { if (actual === this && this.auto) { this.paso++; refrescar(); marcha(); } }, 2200); };
-    setTimeout(marcha, 1200);
+    const marcha = () => { if ((actual !== this && !this.enCap) || !this.auto || this.paso >= 2 || REDUCE) return; setTimeout(() => { if (this.auto) { this.paso++; refrescar(); marcha(); } }, 2200); };
+    this.arranca = () => setTimeout(marcha, 1200);
   },
   actualizar() {
     const m = motor(S), rm = this.rm, p = this.paso, base = motor({...S, ma: 13, hist: 12, arch: false, servidor: -1});

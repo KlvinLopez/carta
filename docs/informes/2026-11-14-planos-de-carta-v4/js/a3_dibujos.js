@@ -17,6 +17,16 @@ function dibujo(k, x = 0, y = 0, s = 1) {
   else if (k === "cadena") g += [0, 1].map(i => caja(8 + i * 78, 44, 66, 56) + toldo(6 + i * 78, 32, 70, 12, 6) + caja(18 + i * 78, 60, 16, 40, sombra, 3)).join("") + `<circle cx="80" cy="76" r="9" fill="#b8860b"/><rect x="74" y="74" width="12" height="4" rx="2" fill="#fff"/>`;
   else if (k === "puntos") { for (let i = 0; i < 60; i++) g += `<circle cx="${16 + (i % 12) * 12}" cy="${14 + Math.floor(i / 12) * 14}" r="4.4" fill="${i < 3 ? "#b8860b" : "#6b2d3e"}" opacity="${i < 3 ? 1 : 0.5}"/>`; }
   else g += caja(30, 46, 100, 54) + toldo(24, 34, 112, 14, 8);
+  const letrero = (cx, y, w, t) => `<rect x="${cx - w / 2}" y="${y}" width="${w}" height="16" rx="8" fill="#4f1728"/><text x="${cx}" y="${y + 12}" font-size="10" font-weight="700" fill="#f3d58a" text-anchor="middle">${t}</text>`;
+  const focos = (x0, x1, y) => { let o = ""; for (let xx = x0; xx <= x1; xx += 14) o += `<circle cx="${xx}" cy="${y + 3 * Math.sin(xx)}" r="2.6" fill="#f3d58a"/>`; return o; };
+  const planta = xx => `<rect x="${xx - 5}" y="88" width="10" height="12" rx="3" fill="#b9afa3"/><circle cx="${xx}" cy="82" r="8" fill="#7a9a4a"/><circle cx="${xx - 5}" cy="87" r="5" fill="#7a9a4a"/>`;
+  if (k === "puesto") g += letrero(80, 22, 70, "TACOS") + focos(26, 134, 62);
+  else if (k === "fonda") g += letrero(80, 12, 84, "FONDA") + focos(20, 140, 52) + planta(18) + `<rect x="106" y="62" width="26" height="14" rx="3" fill="#4f1728"/>`;
+  else if (k === "barrio") g += letrero(80, 4, 96, "TAQUERÍA") + focos(10, 150, 40) + planta(150);
+  else if (k === "restaurante") g += letrero(80, 0, 100, "RESTAURANTE") + `<g transform="translate(40,98)">${gente(0, 0, "#6b2d3e")}<rect x="4" y="-12" width="14" height="3" rx="1.5" fill="#b9afa3"/></g>` + planta(150);
+  else if (k === "salon") g += letrero(56, 0, 90, "TERRAZA") + focos(2, 108, 24);
+  else if (k === "hotel") g += `<rect x="78" y="-8" width="3" height="16" fill="#b9afa3"/><path d="M81 -8 l18 6 l-18 6z" fill="#b8860b"/>` + gente(20, 98) + gente(142, 98, "#6b2d3e");
+  else if (k === "grupo") g += T(80, 36, "× 3", 14, "#6b2d3e", "middle", 700);
   return `<g transform="translate(${x},${y}) scale(${s})">${g}</g>`;
 }
 /* un teléfono de 120×196 con la pantalla de cada función */

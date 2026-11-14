@@ -40,6 +40,12 @@ def modelo_js() -> str:
     )
 
 
+def clases() -> list[dict]:
+    """Establecimientos por clase SCIAN (DENUE, mayo de 2026), de mayor a menor."""
+    d = json.loads((INV / "2026-11-13-mercado-de-carta-tablas.json").read_text(encoding="utf-8"))
+    return sorted(({"clave": k, "n": v["n"]} for k, v in d["por_clase"].items()), key=lambda x: -x["n"])
+
+
 def b64(p: Path) -> str:
     return base64.b64encode(p.read_bytes()).decode()
 
@@ -65,6 +71,7 @@ def main() -> None:
             "__GLOS__", (INV / "2026-11-14-glosario-de-negocio.json").read_text(encoding="utf-8")
         )
         .replace("__BAND__", (INV / "2026-11-14-banderas-de-operacion.json").read_text(encoding="utf-8"))
+        .replace("__CLASES__", json.dumps(clases()))
         .replace("__SEG__", (INV / "2026-11-14-segmentacion-datos.json").read_text(encoding="utf-8"))
         .replace("__DATOS__", json.dumps(d, ensure_ascii=False))
         .replace("__REFS__", json.dumps(refs, ensure_ascii=False))

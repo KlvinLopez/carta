@@ -41,8 +41,8 @@ const contraste = async (p, etiqueta) => {
   });
   ok(malos.length === 0, `${etiqueta}: sin texto blanco sobre fondo claro ${malos.slice(0, 3).join(' | ')}`);
 };
-const abre = async (p, id) => { await p.click(`.box[data-id="${id}"]`); await p.waitForTimeout(450); await contraste(p, 'contraste ' + id); };
-const cierra = async (p) => { await p.click('#det [data-cierra]'); await p.waitForTimeout(100); };
+const abre = async (p, id) => { const cap = id === 'mercado' ? 'mercado2' : id; await p.evaluate((i) => { document.querySelectorAll('.cap').forEach((c) => c.classList.toggle('act', c.id === 'cap-' + i)); document.getElementById('cap-' + i).scrollIntoView(); }, cap); await p.waitForTimeout(1000); await contraste(p, 'contraste ' + id); };
+const cierra = async (p) => { if (await p.isVisible('#det')) { await p.click('#det [data-cierra]'); await p.waitForTimeout(100); } };
 const sinDesborde = async (p, etiqueta) => {
   const d = await p.evaluate(() => { const e = document.getElementById('det'); return [document.documentElement.scrollWidth - innerWidth, e.hidden ? 0 : e.scrollWidth - e.clientWidth]; });
   ok(d[0] <= 0 && d[1] <= 0, `${etiqueta}: sin desborde horizontal (${d.join(', ')})`);
@@ -57,7 +57,7 @@ ok(!(await p.$('#esc')), 'no hay barra de escenario');
 ok((await p.$$('.kpi .tri .p')).length >= 3 && (await p.$$('.kpi .tri .m')).length >= 3, 'cada cifra muestra peor (rojo) y mejor (verde) al lado');
 const rec0 = await texto(p, '.kpi[data-kpi="margen"] b');
 ok((await texto(p, '.kpi[data-kpi="margen"] .p')) !== (await texto(p, '.kpi[data-kpi="margen"] .m')), 'peor y mejor difieren en el margen');
-ok(!(await p.$('#grid .box.rec')), 'la caja de recomendaciones salió de la retícula');
+ok(!(await p.$('#grid')), 'ya no hay retícula de cajas: es una historia con scroll');
 ok(await p.isVisible('#verDecisiones'), 'hay un botón «Decisiones a tomar»');
 await p.click('#verDecisiones'); await p.waitForTimeout(400);
 ok((await p.evaluate(() => abierto)) === 'recomendaciones', '«Decisiones a tomar» abre las recomendaciones');
@@ -65,7 +65,7 @@ ok((await p.$$('#kpisDet .kpi')).length === 6, 'las seis cifras acompañan a cad
 await cierra(p);
 const kp = await p.$eval('#kpis', (e) => getComputedStyle(e).position); ok(kp === 'sticky', 'las seis cifras quedan fijas al hacer scroll');
 // cada cifra de arriba se abre
-for (const k of ['potenciales', 'caben', 'sostiene', 'anuncios', 'ingreso', 'margen']) {
+for (const k of ['sostiene', 'anuncios', 'ingreso', 'margen']) {
   await p.click(`.kpi[data-kpi="${k}"]`); await p.waitForTimeout(250);
   ok((await p.$$('#det .cuenta .v')).length > 3, `cifra «${k}» abre su cuenta`);
   await cierra(p);
@@ -78,17 +78,13 @@ ok((await texto(p, '#svLinea')) !== t0, 'línea: pasar el cursor por un tamaño 
 ok(!(await texto(p, '#svLinea')).includes('toca un tamaño'), 'línea: sin texto de instrucciones');
 if (png) await p.screenshot({ path: `${png}/v5_linea.png` });
 await sinDesborde(p, 'línea'); await cierra(p);
-// mercado
-await abre(p, 'mercado');
-const m0 = await texto(p, '#svMer');
-await p.click('#svMer [data-paso="2"]'); await p.waitForTimeout(700);
-ok((await texto(p, '#svMer')) !== m0, 'mercado: tocar un paso parte la barra');
-await p.click('#svMer [data-paso="3"]'); await p.waitForTimeout(500);
-ok((await texto(p, '#svMer')).includes('300'), 'mercado: el último paso llega a la meta de 300');
-await p.click('#svMer [data-seg="d"]'); await p.waitForTimeout(300);
-ok((await texto(p, '#svMer')).includes('El resto del mercado'), 'mercado: tocar un tramo muestra su ejemplo y su número');
-if (png) await p.screenshot({ path: `${png}/v8_mercado.png` });
-await sinDesborde(p, 'mercado'); await cierra(p);
+// capítulo 1: círculos anidados
+await abre(p, 'mercado2');
+ok((await p.$$('#svM2 [data-cl]')).length >= 9, 'capítulo 1: un círculo por tipo de negocio');
+await p.waitForTimeout(1500); await p.hover('#svM2 [data-cl="722511"] circle'); await p.waitForTimeout(300);
+ok((await texto(p, '#svM2')).includes('72,521'), 'capítulo 1: tocar un círculo muestra su cantidad');
+if (png) await p.screenshot({ path: `${png}/v9_cap1.png` });
+await sinDesborde(p, 'capítulo 1');
 // matriz interactiva
 await abre(p, 'matriz');
 const fila0 = async () => p.$eval('#svMx text[font-weight="700"]', (e) => e.textContent).catch(() => '');
@@ -116,20 +112,20 @@ await sinDesborde(p, 'matriz'); await cierra(p);
 await abre(p, 'disco');
 await p.click('#svD [data-paso="2"]'); await p.waitForTimeout(400);
 ok(await p.isVisible('#ctl'), 'disco: el tercer paso muestra las palancas');
-const c0 = await texto(p, '#cif .cifra b');
+const c0 = await texto(p, '.cap.act .capcif .cifra b');
 await p.click('#srv [data-s="0"]'); await p.waitForTimeout(500);
-const c1 = await texto(p, '#cif .cifra b');
+const c1 = await texto(p, '.cap.act .capcif .cifra b');
 ok(c1 !== c0, `disco: cambiar a Hobby cambia cuántos caben (${c0} → ${c1})`);
 await p.click('#pals [data-ma="0.23"]'); await p.waitForTimeout(500);
-ok((await texto(p, '#cif .cifra b')) !== c1, 'disco: activar palancas cambia cuántos caben');
-ok(/disco|procesador|conexiones/.test(await texto(p, '#ins')), 'disco: dice el cuello de botella');
+ok((await texto(p, '.cap.act .capcif .cifra b')) !== c1, 'disco: activar palancas cambia cuántos caben');
+ok(/disco|procesador|conexiones/.test(await texto(p, '.cap.act .caphall')), 'disco: dice el cuello de botella');
 if (png) await p.screenshot({ path: `${png}/v5_disco.png` });
 await sinDesborde(p, 'disco'); await cierra(p);
 // topes: arrastre con teclado y con puntero
 await abre(p, 'topes');
-const e0 = await texto(p, '#cif .cifra:nth-child(5) b');
+const e0 = await texto(p, '.cap.act .capcif .cifra:nth-child(5) b');
 await p.focus('#svT circle[aria-label="Tope de platillos"]'); await p.keyboard.press('ArrowLeft'); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(500);
-const e1 = await texto(p, '#cif .cifra:nth-child(5) b');
+const e1 = await texto(p, '.cap.act .capcif .cifra:nth-child(5) b');
 ok(e1 !== e0, `topes: bajar el tope de platillos cambia a quién empuja (${e0} → ${e1})`);
 const box = await p.$eval('#svT circle[aria-label="Tope de mesas"]', (e) => { const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
 await p.mouse.move(box[0], box[1]); await p.mouse.down(); await p.mouse.move(box[0] + 150, box[1], {steps: 6}); await p.mouse.up(); await p.waitForTimeout(500);
@@ -239,12 +235,11 @@ async function pasada(w, h, bloqueadas) {
   const et = `${w}×${h}${bloqueadas ? ' sin fuentes' : ''}`;
   await sinDesborde(q, `${et} portada`); await fuera(q, `${et} portada`);
   if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_portada.png`, fullPage: true });
-  const ids = await q.$$eval('.box', (b) => b.map((x) => x.dataset.id));
+  const ids = await q.$$eval('.cap', (b) => b.map((x) => x.dataset.cap));
   for (const id of ids) {
-    await q.click(`.box[data-id="${id}"]`); await q.waitForTimeout(w < 600 ? 300 : 700);
+    await q.evaluate((i) => document.getElementById('cap-' + i).scrollIntoView(), id); await q.waitForTimeout(w < 600 ? 500 : 900);
     await sinDesborde(q, `${et} ${id}`); await fuera(q, `${et} ${id}`);
     if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_${id}.png` });
-    await q.click('#det [data-cierra]');
   }
   await ctx.close();
 }

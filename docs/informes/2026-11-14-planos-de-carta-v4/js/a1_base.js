@@ -118,10 +118,11 @@ function abre(id, atras = true) {
   const t = typeof d.titulo === "function" ? d.titulo() : d.titulo;
   det.innerHTML = `<div class="esc" style="padding-inline:max(16px,env(safe-area-inset-left,0px))"><div class="fila" id="escDet"></div></div><div class="kpis kpisDet" id="kpisDet"></div><div class="dd"><h2 id="dt">${esc(t)}</h2><div class="leyenda" id="ley"></div><p class="desliza">Desliza la gráfica de lado →</p><div id="cuerpo"></div><div id="cif"></div><div class="insight" id="ins"></div>${d.nota ? `<p class="nota">${esc(d.nota)}</p>` : ""}${fuentes(d.fu)}</div>`;
   actual = d; pintaEscenario(); pintaKpis(); d.montar($("#cuerpo", det), det);
-  refrescar(); det.scrollTop = 0; $("[data-cierra]", det).focus();
+  refrescar(); if (d.arranca) d.arranca(); det.scrollTop = 0; $("[data-cierra]", det).focus();
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
 }
 function refrescar() {
+  if (typeof pintaCaps === "function") pintaCaps();
   if (!abierto || !actual) return;
   const out = actual.actualizar ? actual.actualizar() : null;
   if (out && out.cifras) $("#cif", det).innerHTML = cifras(out.cifras);
@@ -136,8 +137,8 @@ document.addEventListener("click", e => {
   const c = e.target.closest("[data-cierra]"); if (c) { cierra(); return; }
   const ir = e.target.closest("[data-ir]"); if (ir) { abre(ir.dataset.ir, false); return; }
   const ap = e.target.closest("[data-aplica]"); if (ap) { cambiar(JSON.parse(ap.dataset.aplica)); return; }
-  const k = e.target.closest("[data-kpi]"); if (k) { abre("k_" + k.dataset.kpi); return; }
-  const b = e.target.closest(".box"); if (b && !abierto) { abre(b.dataset.id); return; }
+  const k = e.target.closest("[data-kpi]"); if (k) { const ir = {potenciales: "mercado2", caben: "disco"}[k.dataset.kpi]; if (ir) irCap(ir); else abre("k_" + k.dataset.kpi); return; }
+  
   if (e.target.closest("[data-pantalla]")) { pantalla(); return; }
   const es = e.target.closest("[data-esc]"); if (es) { aplicar(es.dataset.esc); return; }
   const cu = e.target.closest("[data-cupo]"); if (cu) { fijaCupo(+cu.dataset.cupo); return; }

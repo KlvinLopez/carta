@@ -167,6 +167,18 @@ main{padding-block:12px 28px}
 @media(max-width:600px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.box{min-height:170px}.viz{overflow-x:auto}.viz svg{min-width:760px}.desliza{display:block!important}.esc .fila{gap:6px}}
 .desliza{display:none;font-size:11.5px;color:var(--tinta2);margin:0 0 6px;font-weight:700}
 @media(prefers-reduced-motion:reduce){.box .gh,.box .gk,.fncard{animation:none}#det,.gk,.gh,#intro .sl>*,.pulso{animation:none}.rm,.box,.kpi,.chip,.btn,.pal,#intro .barras i.act b{transition:none}}
+
+/* historia con scroll */
+.cap{min-height:calc(100vh - 150px);padding:30px 0 40px;scroll-margin-top:140px}
+.capn{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--dorado);text-transform:uppercase}.capn small{color:var(--tinta2);font-weight:400;letter-spacing:0;text-transform:none}
+.capq{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(30px,4.2vw,54px);line-height:1.05;color:var(--vino);margin:6px 0 10px;text-wrap:balance}
+.cap .viz{padding:14px}.cap .viz svg{max-height:calc(100vh - 330px);min-height:360px}
+.caphall{margin:12px 0 8px}
+details.mas{margin-top:8px}details.mas summary{cursor:pointer;font-weight:700;color:var(--vino2);padding:6px 2px}
+.gp{transform-box:fill-box;transform-origin:center;animation:gpop .6s cubic-bezier(.34,1.5,.5,1) both}
+@keyframes gpop{from{transform:scale(0)}to{transform:none}}
+@media(prefers-reduced-motion:reduce){.gp{animation:none}}
+@media(max-width:700px){.kpis{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:44%;overflow-x:auto;gap:8px;padding:6px 0}.kpis .kpi{padding:6px 10px}.kpis .kpi .tx,.kpis .kpi .tri{display:none}.kpisDet{top:52px}.cap{scroll-margin-top:90px;min-height:auto}}
 </style>
 <div class="wrap">
   <header class="top">
@@ -176,14 +188,14 @@ main{padding-block:12px 28px}
   </header>
   <main>
     <div class="kpis" id="kpis"></div>
-    <div class="grid" id="grid"></div>
-    <p class="nota">Las cifras responden al escenario activo. Los supuestos llevan su etiqueta; planes y precios son propuesta; lo que la Fase 3 aún no construye está en futuro; no se venden datos.</p>
+    <div id="caps"></div>
+    <p class="nota">Las cifras responden a lo que muevas en cualquier capítulo. Los supuestos llevan su etiqueta; planes y precios son propuesta; lo que la Fase 3 aún no construye está en futuro; no se venden datos.</p>
   </main>
 </div>
 <div id="det" hidden role="dialog" aria-modal="true" aria-label="Detalle"></div>
 <div id="intro" hidden role="dialog" aria-modal="true" aria-label="Presentación"></div>
 <div class="tt" id="tt" hidden></div>
-<script>const D = __DATOS__; const R = __REFS__; const PAR = __PARAM__; const REC = __RECS__; const GLOS = __GLOS__; const MOD = __MODELO__; const SEG = __SEG__; const BAND = __BAND__;</script>
+<script>const D = __DATOS__; const R = __REFS__; const PAR = __PARAM__; const REC = __RECS__; const GLOS = __GLOS__; const MOD = __MODELO__; const SEG = __SEG__; const CLASES_D = __CLASES__; const BAND = __BAND__;</script>
 <script>
 __JS__
 </script>

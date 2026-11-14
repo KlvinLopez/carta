@@ -21,7 +21,7 @@ const KPIS = [
 function pintaKpis() {
   const r = resumenS(S), html = KPIS.map(k => {
     const c = fila(r, k.clave), tip = `${k.nota || c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
-    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Piso: pagan poco, anuncios adversos y soporte caro">piso ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
+    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Estrés: pagan poco, los anuncios dejan la mitad y el soporte cuesta más">estrés ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
     return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"><b>${k.f(c.recomendado)}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
   $("#kpis").innerHTML = html; const kd = $("#kpisDet"); if (kd) kd.innerHTML = html;
