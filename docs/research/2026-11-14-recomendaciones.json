@@ -1,52 +1,52 @@
 {
- "version": "2026-11-14-r3",
+ "version": "2026-11-14-r4",
  "decisiones": [
   {
    "id": "segmentacion",
    "decision": "Segmentación: qué entra en cada plan y con qué topes",
-   "recomendacion": "**Chef (gratis) = 15 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, 95.8 % de los negocios de hasta 10 personas quedan gratis y ≈ 83 % de todos los registrados.",
-   "depende": "**Del modelo de mesas y cuentas (no es estadística):** con el peor rincón del modelo la seguridad baja a 85 %. **Si falla:** si las fondas tienen más mesas de las que el modelo supone, algunas pagan sin querer; se corrige subiendo el tope (los datos del piloto lo muestran en una semana).",
-   "cifras": "Para 80 / 90 / 95 % de seguridad: 10 mesas y 3 cuentas · 10 mesas y 3 cuentas · 15 mesas y 4 cuentas; margen 11,254 · 9,265 · 8,050 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas.",
+   "recomendacion": "**Chef (gratis) = 25 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, 95.1 % de los negocios de hasta 10 personas quedan gratis (intervalo del modelo 86.7 %–98 %).",
+   "depende": "**Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato).** Medido: sólo los conteos por estrato. Con 15 mesas la seguridad sería 89.4 %, no 95 %; con el peor rincón del modelo, ningún tope de la rejilla estrecha lo cumple salvo 60 mesas · 5 cuentas · 100 platillos. **Si falla:** si las fondas tienen más mesas, algunas pagan sin querer; se corrige subiendo el tope (el piloto lo muestra en una semana).",
+   "cifras": "Para 80 / 90 / 95 % de seguridad: 12 mesas y 3 cuentas (150 platillos) · 20 mesas y 4 cuentas (100 platillos) · 25 mesas y 4 cuentas (150 platillos); margen 11,985 · 9,799 · 8,722 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).",
    "alternativas": [
     {
-     "opcion": "Seguridad 80 %: 10 mesas, 3 cuentas, 80 platillos",
-     "pros": "margen 11,254",
-     "contras": "81.4 % de los de hasta 10 personas dentro; 71 % de todos"
+     "opcion": "Seguridad 80 %: 12 mesas, 3 cuentas, 150 platillos",
+     "pros": "margen 11,985",
+     "contras": "80 % de los de hasta 10 personas dentro; 69 % de todos"
     },
     {
-     "opcion": "Seguridad 90 %: 10 mesas, 3 cuentas, 300 platillos",
-     "pros": "margen 9,265",
-     "contras": "90.4 % de los de hasta 10 personas dentro; 78 % de todos"
+     "opcion": "Seguridad 90 %: 20 mesas, 4 cuentas, 100 platillos",
+     "pros": "margen 9,799",
+     "contras": "90.3 % de los de hasta 10 personas dentro; 78 % de todos"
     },
     {
-     "opcion": "Seguridad 95 %: 15 mesas, 4 cuentas, 150 platillos",
-     "pros": "margen 8,050",
-     "contras": "95.8 % de los de hasta 10 personas dentro; 83 % de todos"
+     "opcion": "Seguridad 95 %: 25 mesas, 4 cuentas, 150 platillos",
+     "pros": "margen 8,722",
+     "contras": "95.1 % de los de hasta 10 personas dentro; 83 % de todos"
     }
    ],
-   "ejemplo": "Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 25 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.",
-   "prueba": "Mesas, cuentas y platillos reales de los primeros 10 a 20 restaurantes."
+   "ejemplo": "Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 40 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.",
+   "prueba": "Medir mesas y cuentas por negocio en los primeros 10 a 20 restaurantes: `mesa` y `personal_restaurante` activos por restaurante al darse de alta (sin datos personales)."
   },
   {
    "id": "precios",
    "decision": "Precios de Master Chef y Chef Ejecutivo",
-   "recomendacion": "**Master Chef 225 (pegado a Meniu Business) y Chef Ejecutivo 1,099.** Subir a 1,599 en Chef Ejecutivo cuesta 215 pesos al mes de margen con 1,000 restaurantes (curva media): es posicionamiento, no matemática.",
-   "depende": "**De la curva de pago (supuesto).** Con la mediana ±50 % el precio óptimo de la curva media va de 147 a 324. **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un punto de venta (652), 225 deja dinero sobre la mesa. 225 **no depende** de que el modelo acierte el óptimo: el margen cambia menos de 2 % entre 199 y 299.",
-   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 33 / 29 / 25 / 18; margen de operación (media) 7,904 / 8,048 / 8,052 / 7,803. Chef Ejecutivo 799 / 1,099 / 1,599: 8,059 / 8,048 / 7,833.",
+   "recomendacion": "**Master Chef 225 es una decisión de posicionamiento de Calvin (pegado a Meniu Business), no un resultado del modelo; Chef Ejecutivo 1,099 (igual que OlaClick Elite y Last.app Starter-Growth) también.** El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto.",
+   "depende": "**De la curva de pago (supuesto).** Con la mediana en 150 gana 199; en 225, 249; en 300, 299; en 450, 299. Ver [precio de entrada](2026-11-14-precio-de-entrada.md) (tablas por mediana y sigma). **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un POS (652), 225 deja dinero sobre la mesa.",
+   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 34 / 29 / 25 / 18; margen de operación (media) 8,573 / 8,719 / 8,724 / 8,471. Chef Ejecutivo 799 / 1,099 / 1,599: 8,740 / 8,719 / 8,315.",
    "alternativas": [
     {
      "opcion": "199",
      "pros": "Más pagantes",
-     "contras": "Debajo de Meniu: parece barato sin serlo; piso ×2.5"
+     "contras": "Debajo de Meniu"
     },
     {
-     "opcion": "225 (recomendada)",
-     "pros": "Pegado a Meniu; más de 2.8 veces el piso",
+     "opcion": "225 (decisión de posicionamiento)",
+     "pros": "Pegado a Meniu",
      "contras": "Sin colchón si el soporte cuesta más"
     },
     {
      "opcion": "249",
-     "pros": "Mismo margen que 225",
+     "pros": "Mismo margen que 225 con la curva supuesta",
      "contras": "Un poco arriba de Meniu"
     },
     {
@@ -55,25 +55,25 @@
      "contras": "Menos pagantes (18 contra 29)"
     }
    ],
-   "ejemplo": "Un restaurante de 25 mesas (ingreso medio 737,584 al mes [INEGI]): 225 son 0.04 % de su ingreso; un salón de 3.3 millones al mes pagaría 1,099 = 0.03 %.",
-   "prueba": "Prueba de precio del piloto (tres grupos de 10: 199 · 249 · 299 en Master Chef)."
+   "ejemplo": "Un restaurante de 25 mesas (ingreso medio 737,584 al mes [INEGI]): 225 son 0.03 % de su ingreso.",
+   "prueba": "Prueba de precio del piloto: tres grupos de 10 (199 · 249 · 299) y a los 6 meses cuántos se quedan."
   },
   {
    "id": "anuncios",
    "decision": "Anuncios en Chef: cuándo llegan y cuánto dejan",
-   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo) y no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 811 restaurantes.",
-   "depende": "**De tres supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas y la parte de visitas con anuncio. **Si fallan:** en el caso adverso el sistema no se paga solo hasta 1,469 restaurantes.",
-   "cifras": "Se paga solo desde 54 (tarifa baja), 12 (media) y 1,469 (adverso) restaurantes gratuitos. Requisitos: ADR, abrir la política de seguridad, aviso de privacidad, aprobación de la red.",
+   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 811 restaurantes (rango 246 a 1,896).",
+   "depende": "**De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 54 (rango 25 a 186) (tarifa baja), 12 (rango 6 a 25) (media) y 1,469 (rango 139 a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 148). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.",
+   "cifras": "Requisitos: ADR, abrir la política de seguridad (`script-src 'self'`), aviso de privacidad, aprobación de la red.",
    "alternativas": [
     {
      "opcion": "Anuncios desde el mes 3",
      "pros": "El peor caso se cubre antes",
-     "contras": "No hay tiempo de construir, abrir la política de seguridad y que la red apruebe"
+     "contras": "No hay tiempo de construir y que la red apruebe"
     },
     {
-     "opcion": "Anuncios desde el mes 9 (recomendada)",
+     "opcion": "Anuncios desde el mes 9 (supuesto)",
      "pros": "Tiempo realista",
-     "contras": "Calvin pone ≈ el costo de ~10 meses de la bolsa"
+     "contras": "Calvin pone hasta 2,032 pesos acumulados"
     },
     {
      "opcion": "Sin anuncios",
@@ -81,46 +81,46 @@
      "contras": "Descartada por Calvin"
     }
    ],
-   "ejemplo": "La fonda de 6 mesas deja 4.3 pesos al mes con la tarifa baja una vez que hay anuncios; hoy deja 0.",
-   "prueba": "Una prueba pequeña de AdSense con 3 restaurantes (impresiones, ingresos, RPM)."
+   "ejemplo": "Un gratuito deja 4.3 pesos al mes con la tarifa baja una vez que hay anuncios; hoy deja 0.",
+   "prueba": "Una prueba pequeña de AdSense con 3 restaurantes (impresiones, ingresos, RPM, tasa de llenado)."
   },
   {
    "id": "bolsa",
    "decision": "Cuánta bolsa poner mientras no hay anuncios",
-   "recomendacion": "**1,000 pesos al mes** alcanzan para 811 restaurantes gratuitos; acumulado, Calvin tendría que poner **2,227 pesos** en total en el caso recomendado y 1,936 en el peor.",
-   "depende": "**Del ritmo de adopción (supuesto) y del soporte por gratuito (supuesto).** Si se adopta más rápido, la bolsa se agota antes.",
-   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 279 / 811 / 1,896 / 2,116 restaurantes.",
+   "recomendacion": "**1,000 pesos al mes** alcanzan para 811 restaurantes gratuitos (rango 246 a 1,896); acumulado, Calvin pone hasta **2,032 pesos** en el caso recomendado, 20,594 en el peor y 88,023 en el piso de verdad.",
+   "depende": "**Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.",
+   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 279 (94–400) / 811 (246–1,896) / 1,896 (492–2,116) / 2,116 (1,391–2,116) restaurantes.",
    "alternativas": [
     {
      "opcion": "500 pesos al mes",
      "pros": "279 restaurantes y 1 M de comensales",
-     "contras": "más bolsa, más servicio"
+     "contras": "rango 94–400 según el soporte"
     },
     {
      "opcion": "1,000 pesos al mes",
      "pros": "811 restaurantes y 2.8 M de comensales",
-     "contras": "más bolsa, más servicio"
+     "contras": "rango 246–1,896 según el soporte"
     },
     {
      "opcion": "2,000 pesos al mes",
      "pros": "1,896 restaurantes y 6.5 M de comensales",
-     "contras": "más bolsa, más servicio"
+     "contras": "rango 492–2,116 según el soporte"
     },
     {
      "opcion": "5,000 pesos al mes",
      "pros": "2,116 restaurantes y 7.2 M de comensales",
-     "contras": "llega al tope medido"
+     "contras": "rango 1,391–2,116 según el soporte"
     }
    ],
-   "ejemplo": "Con 1,000 pesos al mes pagas el servidor y el soporte básico de ~800 fondas y taquerías gratuitas.",
-   "prueba": "El costo real de Railway del primer mes con restaurantes del piloto."
+   "ejemplo": "Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 811 fondas y taquerías gratuitas.",
+   "prueba": "El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte."
   },
   {
    "id": "historial",
    "decision": "Historial: meses en línea y archivo descargable",
    "recomendacion": "**12 meses en línea para la paga (decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**",
-   "depende": "**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos).** Si los eventos duplican, el disco de la paga sube ≈ 50 %.",
-   "cifras": "Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387).",
+   "depende": "**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos)** ([disco-e-historial](2026-11-14-disco-e-historial.md)).",
+   "cifras": "Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387) [disco-e-historial].",
    "alternativas": [
     {
      "opcion": "3 meses + archivo",
@@ -139,9 +139,9 @@
   {
    "id": "soporte",
    "decision": "Soporte",
-   "recomendacion": "**WhatsApp o correo en horario hábil para la paga (≈ 60 pesos al mes por cliente) y autoservicio para el gratuito (0.5).**",
+   "recomendacion": "**WhatsApp o correo en horario hábil para la paga (≈ 60 pesos al mes por cliente) y autoservicio para el gratuito (0.5, sin fuente).**",
    "depende": "**Del tiempo real de soporte (supuesto).** Si cada cliente de paga cuesta 150, Master Chef a 225 queda debajo del piso ×3 (238) y hay que subir el precio o acotar el soporte.",
-   "cifras": "Efecto en el margen (±50 %): soporte del gratuito 485 pesos; de paga 1,809.",
+   "cifras": "Efecto en el margen (±50 %): soporte del gratuito 485 pesos; de paga 1,914.",
    "alternativas": [
     {
      "opcion": "Autoservicio y correo (30)",
@@ -156,7 +156,7 @@
     {
      "opcion": "Alta hecha por nosotros (150)",
      "pros": "Mejor conversión probable",
-     "contras": "El piso ×3 sube a 520"
+     "contras": "El piso ×3 sube"
     }
    ],
    "ejemplo": "Un salón de 60 mesas necesita soporte propio (se supone 120).",
@@ -166,18 +166,18 @@
    "id": "avisos_reloj",
    "decision": "Avisos de reloj desde el servidor",
    "recomendacion": "**No.** Los relojes se calculan en el teléfono (AC-40.9).",
-   "depende": "**De que no haya notificaciones push (fuera de la v1).** Si se aprueban, el reloj del servidor sí tendría sentido.",
+   "depende": "**De que no haya notificaciones push (fuera de la v1).**",
    "cifras": "Un temporizador para ≈ 12,000 mesas es una consulta por minuto; sin push no despierta al teléfono.",
    "alternativas": [
     {
      "opcion": "Relojes en el teléfono (recomendada)",
-     "pros": "Cero costo de servidor; ya especificado",
+     "pros": "Cero costo de servidor",
      "contras": "Si el teléfono duerme no avisa"
     },
     {
      "opcion": "Reloj en el servidor",
      "pros": "Un evento por cruce de umbral",
-     "contras": "Otro proceso; contradice AC-40.9"
+     "contras": "Contradice AC-40.9"
     }
    ],
    "ejemplo": "El capitán de un salón de 60 mesas ve en su teléfono que la mesa 12 lleva 25 minutos sin movimiento.",
@@ -196,7 +196,7 @@
     "topes": {
      "gratuito": {
       "platillos": 150,
-      "mesas": 15,
+      "mesas": 25,
       "cuentas": 4,
       "lecturas_pdf": 3,
       "meses_en_linea": 1
@@ -289,39 +289,39 @@
  "tabla_cupo_gratis": [
   {
    "seguridad": 0.8,
-   "seguridad_real": 0.8143068000000001,
-   "dentro_de_todos": 0.70691,
-   "mesas": 10,
+   "seguridad_real": 0.800464,
+   "dentro_de_todos": 0.694918,
+   "mesas": 12,
    "cuentas": 3,
-   "platillos": 80,
+   "platillos": 150,
    "precio_servicio": 250,
    "meseta_precio": [
     225,
     275
    ],
-   "pagantes": 44.24719103389209,
-   "margen": 11254.256910058532
+   "pagantes": 46.14692315946915,
+   "margen": 11985.494711706539
   },
   {
    "seguridad": 0.9,
-   "seguridad_real": 0.903771,
-   "dentro_de_todos": 0.784575,
-   "mesas": 10,
-   "cuentas": 3,
-   "platillos": 300,
+   "seguridad_real": 0.9028026,
+   "dentro_de_todos": 0.7837907,
+   "mesas": 20,
+   "cuentas": 4,
+   "platillos": 100,
    "precio_servicio": 250,
    "meseta_precio": [
     200,
     275
    ],
-   "pagantes": 32.55035126465242,
-   "margen": 9265.3601067218
+   "pagantes": 32.76213294818085,
+   "margen": 9798.709952976124
   },
   {
    "seguridad": 0.95,
-   "seguridad_real": 0.95844,
-   "dentro_de_todos": 0.83202,
-   "mesas": 15,
+   "seguridad_real": 0.951384,
+   "dentro_de_todos": 0.825846,
+   "mesas": 25,
    "cuentas": 4,
    "platillos": 150,
    "precio_servicio": 250,
@@ -329,8 +329,8 @@
     200,
     275
    ],
-   "pagantes": 25.404834457189917,
-   "margen": 8050.357095914987
+   "pagantes": 26.428339018517487,
+   "margen": 8721.729952546495
   }
  ]
 }

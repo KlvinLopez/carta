@@ -35,13 +35,15 @@
    "limite": "31 días de historial",
    "precio_minimo": {
     "usd_mes": 7
-   }
+   },
+   "fuente": "https://loyverse.com/pricing"
   },
   {
    "nombre": "Neolo",
    "capa_gratuita": "Menú QR",
    "limite": "200 visitas",
-   "precio_minimo": null
+   "precio_minimo": null,
+   "fuente": "https://www.neolo.com/mexico/menu-qr/"
   },
   {
    "nombre": "Waitry",
@@ -57,21 +59,24 @@
    "capa_gratuita": null,
    "precio_minimo": {
     "usd_mes": 35
-   }
+   },
+   "fuente": "https://fu.do/es/precios/"
   },
   {
    "nombre": "Poster",
    "capa_gratuita": null,
    "precio_minimo": {
     "usd_mes": 26
-   }
+   },
+   "fuente": "https://joinposter.mx/pricing"
   },
   {
    "nombre": "Soft Restaurant Cloud",
    "capa_gratuita": null,
    "precio_minimo": {
     "mxn_mes": 699
-   }
+   },
+   "fuente": "https://softrestaurant.com/cloud"
   }
  ]
 }

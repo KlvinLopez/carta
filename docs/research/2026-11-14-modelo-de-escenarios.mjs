@@ -13,14 +13,18 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-14-r3';
+export const VERSION = '2026-11-14-r4';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
 export function valores(par, sobre = {}) {
   const out = {};
-  for (const [k, v] of Object.entries(par.parametros)) out[k] = v.valor;
-  return { ...out, ...sobre };
+  const rangos = {};
+  for (const [k, v] of Object.entries(par.parametros)) {
+    out[k] = v.valor;
+    if (typeof v.min === 'number' && typeof v.max === 'number') rangos[k] = [v.min, v.max];
+  }
+  return { ...out, rangos, ...sobre };
 }
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -58,7 +62,7 @@ export function configInicial() {
     nombre: 'segmentación de Calvin',
     precios: { servicio: 225, salon: 1099 },
     topes: {
-      gratuito: { platillos: 150, mesas: 15, cuentas: 4, lecturas_pdf: 3, meses_en_linea: 1 },
+      gratuito: { platillos: 150, mesas: 25, cuentas: 4, lecturas_pdf: 3, meses_en_linea: 1 },
       servicio: { platillos: 300, mesas: 100, cuentas: 30, lecturas_pdf_mes: 10, meses_en_linea: 12 },
       salon: { platillos: 300, mesas: 500, cuentas: 150, lecturas_pdf_mes: 20, meses_en_linea: 12 },
     },
@@ -158,7 +162,8 @@ export function parteSalon(config, s) {
 
 /**
  * Probabilidad de que un negocio de hasta 10 personas quede dentro de los topes de Chef (gratis): dentro de mesas y cuentas
- * (modelo) y dentro del tope de platillos (independiente del tamaño). `clave`: 'centro' | 'minimo'.
+ * (modelo, con la dispersión supuesta de mesas por cuenta) y dentro del tope de platillos (independiente del tamaño).
+ * `clave`: 'centro' | 'minimo' | 'maximo' (extremos de las 27 combinaciones del modelo: f, mesas por cuenta y dispersión).
  */
 export function seguridadChico(config, s, clave = 'centro') {
   const g = config.topes.gratuito;
@@ -449,6 +454,126 @@ export function capacidadConBolsa(config, s, bolsa) {
   return { bolsa, restaurantes: n, comensales_mes: e ? e.comensales_mes : 0, escalon: e ? e.capacidad.escalon : null, tope_medido: n >= s.cap_conexiones, n_se_paga_solo: { baja: nSePagaSolo(config, s, 'baja'), adverso: nSePagaSolo(config, s, 'adverso'), medio: nSePagaSolo(config, s, 'medio') } };
 }
 
+// ---------------------------------------------------------------- UNA definición de cada escenario (la usan resumen, proyectar y los .md)
+/**
+ * Cada escenario mueve DOS ejes a la vez (curva de pago y anuncios) y, el piso, también el soporte. Se define aquí una sola vez.
+ *  - recomendado: curva media, anuncios (tarifa baja) en marcha.
+ *  - peor: curva pesimista y SIN anuncios en ningún mes (el periodo que paga Calvin); no es el piso.
+ *  - mejor: curva optimista y anuncios en la tarifa media.
+ *  - piso_de_verdad: curva pesimista, anuncios adversos (la mitad de la tarifa baja y anuncio en el 30 % de las visitas) y soporte
+ *    al máximo de su rango (gratuito, Master Chef y Chef Ejecutivo): la combinación más mala de lo que el modelo se atreve a decir.
+ */
+export const ESCENARIOS = {
+  recomendado: { curva: 'media', anuncios: 'baja', definicion: 'curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha' },
+  peor: { curva: 'pesimista', anuncios: null, definicion: 'curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa)' },
+  mejor: { curva: 'optimista', anuncios: 'media', definicion: 'curva de pago optimista y anuncios en la tarifa media' },
+  piso_de_verdad: { curva: 'pesimista', anuncios: 'adverso', soporte: 'maximo', definicion: 'curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango' },
+};
+
+/** Lista de lo que el modelo NO modela (ingresos de anuncios y costos que quedan fuera). */
+export const NO_MODELADO = ['moderación de anuncios (revisar y bloquear categorías)', 'tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado)', 'comisión de la red de anuncios', 'impuestos sobre los ingresos de anuncios y de suscripción'];
+
+/** Supuestos y opciones de `evaluar` que corresponden a un escenario con nombre. */
+function paramsEscenario(nombre, s) {
+  const e = ESCENARIOS[nombre];
+  if (!e) throw new Error(`escenario desconocido: ${nombre}`);
+  let ss = s;
+  let parte;
+  if (e.soporte === 'maximo') ss = { ...ss, soporte_gratuito: s.rangos.soporte_gratuito[1], soporte_servicio: s.rangos.soporte_servicio[1], soporte_salon: s.rangos.soporte_salon[1] };
+  if (e.anuncios === 'adverso') { ss = { ...ss, anuncio_pesos_por_mil: { ...ss.anuncio_pesos_por_mil, baja: ss.anuncio_pesos_por_mil.baja / 2 } }; parte = 0.3; }
+  const opc = { curva: e.curva };
+  if (e.anuncios === null) opc.sinAnuncios = true;
+  else opc.anuncios = { activo: true, tarifa: e.anuncios === 'adverso' ? 'baja' : e.anuncios };
+  if (parte !== undefined) opc.parteVisitasConAnuncio = parte;
+  return { ss, opc };
+}
+
+/** Evalúa un escenario con nombre ('recomendado' | 'peor' | 'mejor' | 'piso_de_verdad') con n restaurantes en régimen. */
+export function evaluarEscenario(nombre, config, s, n = 1000) {
+  const { ss, opc } = paramsEscenario(nombre, s);
+  return evaluar(config, ss, n, opc);
+}
+
+/** Proyección mes a mes de un escenario con nombre; el peor no lleva anuncios en ningún mes. */
+export function proyectarEscenario(nombre, config, s, meses = 36) {
+  const { ss, opc } = paramsEscenario(nombre, s);
+  return proyectar(config, ss, meses, opc);
+}
+
+/** Matriz 3 × 3 (curva de pago × anuncios: sin · tarifa baja · tarifa media) del margen de operación, más el piso de verdad. */
+export function matrizEscenarios(config, s, n = 1000) {
+  const anuncios = [null, 'baja', 'media'];
+  const filas = Object.keys(s.curvas_pago).map((curva) => ({
+    curva,
+    celdas: anuncios.map((a) => { const e = evaluar(config, s, n, a === null ? { curva, sinAnuncios: true } : { curva, anuncios: { activo: true, tarifa: a } }); return { anuncios: a ?? 'sin', margen_operacion: e.margen_operacion, margen_despues_de_captacion: e.margen_despues_de_captacion, ingresos_anuncios: e.ingresos.anuncios, pagantes: e.clientes.de_paga }; }),
+  }));
+  const piso = evaluarEscenario('piso_de_verdad', config, s, n);
+  return { n, columnas: ['sin anuncios', 'tarifa baja', 'tarifa media'], filas, piso_de_verdad: { definicion: ESCENARIOS.piso_de_verdad.definicion, margen_operacion: piso.margen_operacion, margen_despues_de_captacion: piso.margen_despues_de_captacion, ingresos_anuncios: piso.ingresos.anuncios }, no_modelado: NO_MODELADO };
+}
+
+// ---------------------------------------------------------------- umbrales y bolsa como RANGOS
+/** Variantes de supuestos que mueven los umbrales de anuncios y de bolsa: [nombre, cómo, valor bajo, valor alto]. */
+function variantesAnuncios(s) {
+  const tar = (f) => ({ ...s, anuncio_pesos_por_mil: Object.fromEntries(Object.entries(s.anuncio_pesos_por_mil).map(([k, v]) => [k, v * f])) });
+  const [smin, smax] = s.rangos.soporte_gratuito;
+  return [
+    { supuesto: 'tarifa de anuncios', bajo: { etiqueta: 'la mitad', s: tar(0.5) }, alto: { etiqueta: 'el doble', s: tar(2) } },
+    { supuesto: 'visitas con anuncio', bajo: { etiqueta: 'la mitad', s: { ...s, parte_visitas_con_anuncio: s.parte_visitas_con_anuncio * 0.5 } }, alto: { etiqueta: 'el doble', s: { ...s, parte_visitas_con_anuncio: Math.min(1, s.parte_visitas_con_anuncio * 2) } } },
+    { supuesto: 'soporte por cliente gratuito', bajo: { etiqueta: `${smin} pesos`, s: { ...s, soporte_gratuito: smin } }, alto: { etiqueta: `${smax} pesos (el máximo de su rango)`, s: { ...s, soporte_gratuito: smax } } },
+    { supuesto: 'visitas con la app por gratuito', bajo: { etiqueta: 'la mitad', s: { ...s, visitas_app_gratuito: s.visitas_app_gratuito * 0.5 } }, alto: { etiqueta: 'el doble', s: { ...s, visitas_app_gratuito: s.visitas_app_gratuito * 2 } } },
+  ];
+}
+
+/**
+ * `nSePagaSolo` como RANGO: el centro (supuestos de trabajo) y, por cada supuesto que lo mueve, el valor con ese supuesto en su
+ * extremo bajo y alto (null = no se paga solo con ≤ `tope` restaurantes). `minimo` y `maximo` = los extremos entre variantes
+ * (maximo null si alguna variante nunca se paga solo). Vale con el canal de eventos (ADR-018) construido: con el sondeo de hoy el
+ * escalón de menor costo sólo cabe `cap_sondeo` restaurantes típicos.
+ */
+export function rangoSePagaSolo(config, s, caso = 'baja', tope = 3000) {
+  const centro = nSePagaSolo(config, s, caso, tope);
+  const por_supuesto = variantesAnuncios(s).map((v) => ({ supuesto: v.supuesto, bajo: { variante: v.bajo.etiqueta, n: nSePagaSolo(config, v.bajo.s, caso, tope) }, alto: { variante: v.alto.etiqueta, n: nSePagaSolo(config, v.alto.s, caso, tope) } }));
+  const todos = por_supuesto.flatMap((x) => [x.bajo.n, x.alto.n]);
+  const finitos = todos.filter((x) => x != null);
+  return { caso, centro, minimo: Math.min(centro ?? Infinity, ...finitos), maximo: todos.some((x) => x == null) || centro == null ? null : Math.max(centro, ...finitos), por_supuesto, tope, vale_con_canal_de_eventos: true, cap_sondeo_hoy: s.escalones.find((e) => e.id === 'hobby_sondeo').cap_cpu };
+}
+
+/** `capacidadConBolsa` como RANGO según el soporte por gratuito (sin fuente) y el escalón con el sondeo de hoy. */
+export function rangoBolsa(config, s, bolsa) {
+  const centro = capacidadConBolsa(config, s, bolsa);
+  const [smin, smax] = s.rangos.soporte_gratuito;
+  const por_soporte = [smin, 1.0, s.soporte_gratuito, smax].filter((x, i, a) => a.indexOf(x) === i).sort((a, b) => a - b).map((x) => { const c = capacidadConBolsa(config, { ...s, soporte_gratuito: x }, bolsa); return { soporte_gratuito: x, restaurantes: c.restaurantes, comensales_mes: c.comensales_mes }; });
+  const rs = por_soporte.map((x) => x.restaurantes);
+  return { bolsa, centro: { restaurantes: centro.restaurantes, comensales_mes: centro.comensales_mes, escalon: centro.escalon }, minimo: Math.min(...rs), maximo: Math.max(...rs), por_soporte, vale_con_canal_de_eventos: true, caben_con_el_sondeo_de_hoy: s.escalones.find((e) => e.id === 'hobby_sondeo').cap_cpu, no_modelado: NO_MODELADO };
+}
+
+// ---------------------------------------------------------------- el precio de Master Chef: qué decide y qué no
+/**
+ * Margen de operación al mes (n registrados, anuncios en marcha) de cada precio candidato de Master Chef bajo otra mediana o
+ * sigma de la curva de pago `curva`, para ver QUÉ DECIDE el precio: la curva es supuesto, así que el modelo no puede elegir entre
+ * 199, 225, 249 y 299; lo decide la prueba de precios del piloto. Devuelve filas por mediana y por sigma con el precio ganador
+ * entre los candidatos, el margen y el óptimo continuo.
+ */
+export function sensibilidadPrecio(config, s, n = 1000, opc = {}) {
+  const curva = opc.curva ?? 'media';
+  const precios = opc.precios ?? s.precios_candidatos.servicio;
+  const medianas = opc.medianas ?? [150, 225, 300, 450];
+  const sigmas = opc.sigmas ?? [0.3, 0.45, s.curvas_pago[curva].sigma, 0.9];
+  const con = (cambio) => ({ ...s, curvas_pago: { ...s.curvas_pago, [curva]: { ...s.curvas_pago[curva], ...cambio } } });
+  const fila = (ss, etiqueta, valor) => {
+    const margenes = precios.map((p) => { const c = JSON.parse(JSON.stringify(config)); c.precios.servicio = p; const e = evaluar(c, ss, n, { curva }); return { precio: p, margen_operacion: e.margen_operacion, pagantes: e.clientes.servicio }; });
+    const g = margenes.reduce((a, b) => (b.margen_operacion > a.margen_operacion ? b : a));
+    return { [etiqueta]: valor, margenes, precio_ganador: g.precio, optimo_continuo: precioOptimo(curva, ss).precio, ventaja_del_ganador_sobre_225: g.margen_operacion - margenes.find((x) => x.precio === config.precios.servicio).margen_operacion };
+  };
+  const base = s.curvas_pago[curva];
+  return {
+    n, curva, precios, base: { mediana: base.mediana, sigma: base.sigma, techo: base.techo },
+    por_mediana: medianas.map((x) => fila(con({ mediana: x }), 'mediana', x)),
+    por_sigma: sigmas.map((x) => fila(con({ sigma: x }), 'sigma', x)),
+    lectura: 'con la mediana en 225 (el supuesto) el óptimo sale cerca de 225: el modelo devuelve su supuesto. Si la mediana real es otra, gana otro precio: lo decide la prueba de tres precios del piloto, no este modelo.',
+  };
+}
+
 // ---------------------------------------------------------------- escenarios con nombre
 /**
  * peor_firme = peor_sin_anuncios = todos gratuitos MIENTRAS NO HAY ANUNCIOS (temporal; lo pone Calvin). Los `peor_anuncios_*` son
@@ -481,29 +606,26 @@ export function escenarios(config, s, ns = [100, 1000, 10000]) {
  * mejor = curva optimista y tarifa de anuncios media. `n` = restaurantes registrados.
  */
 export function resumen(config, s, n = 1000) {
-  const rec = evaluar(config, s, n, { curva: 'media' });
-  const peor = evaluar(config, s, n, { curva: 'pesimista', sinAnuncios: true });
-  const mejor = evaluar(config, s, n, { curva: 'optimista', anuncios: { activo: true, tarifa: 'media' } });
+  const rec = evaluarEscenario('recomendado', config, s, n);
+  const peor = evaluarEscenario('peor', config, s, n);
+  const mejor = evaluarEscenario('mejor', config, s, n);
+  const piso = evaluarEscenario('piso_de_verdad', config, s, n);
   const cap = (id) => { const e = s.escalones.find((x) => x.id === id); const mb = mbPorRestaurante('gratuito', config, s); return Math.min(e.cap_cpu, s.cap_conexiones, Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / mb)); };
-  const fila = (clave, nombre, unidad, r, p, m, nota) => ({ clave, nombre, unidad, recomendado: r, peor: p, mejor: m, nota });
+  const fila = (clave, nombre, unidad, r, p, m, nota, pv) => ({ clave, nombre, unidad, recomendado: r, peor: p, mejor: m, piso_de_verdad: pv, nota });
   return {
     n,
-    definiciones: {
-      recomendado: 'curva de pago media (la mediana de Master Chef es el precio de Meniu Business, 225) y anuncios en la tarifa baja ya en marcha',
-      peor: 'curva de pago pesimista y todavía sin anuncios (temporal: los pone Calvin de su bolsa)',
-      mejor: 'curva de pago optimista y anuncios en la tarifa media (el techo teórico «todos pagan» va aparte, en `todos_pagan`)',
-    },
+    definiciones: { ...Object.fromEntries(Object.entries(ESCENARIOS).map(([k, v]) => [k, v.definicion])), nota: 'el techo teórico «todos pagan» va aparte, en `todos_pagan`' },
     cifras: [
-      fila('clientes_potenciales', 'Clientes potenciales', 'negocios', s.sam_clientes_potenciales, s.sam_clientes_potenciales, s.sam_clientes_potenciales, 'dato medido (DENUE 05/2026): no varía con los escenarios'),
-      fila('restaurantes_que_caben', 'Restaurantes gratuitos que caben', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)'),
-      fila('gratuitos_por_cliente_de_paga', 'Gratuitos que sostiene cada cliente de paga (sin anuncios)', 'restaurantes', rec.gratuitos_que_sostiene_un_pagante_sin_anuncios, peor.gratuitos_que_sostiene_un_pagante_sin_anuncios, mejor.gratuitos_que_sostiene_un_pagante_sin_anuncios, 'con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`)'),
-      fila('ingreso_por_cliente_gratuito', 'Ingreso por cliente gratuito', 'pesos al mes', rec.por_cliente.ingreso_gratuito, peor.por_cliente.ingreso_gratuito, mejor.por_cliente.ingreso_gratuito, 'sólo anuncios'),
-      fila('ingreso_por_cliente_de_paga', 'Ingreso por cliente de paga', 'pesos al mes', rec.por_cliente.ingreso_por_pagante, peor.por_cliente.ingreso_por_pagante, mejor.por_cliente.ingreso_por_pagante, 'promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno'),
-      fila('costo_por_cliente_gratuito', 'Costo por cliente gratuito', 'pesos al mes', rec.por_cliente.costo_gratuito, peor.por_cliente.costo_gratuito, mejor.por_cliente.costo_gratuito, 'servidor, almacenamiento y soporte'),
-      fila('margen_de_operacion', 'Margen de operación', 'pesos al mes', rec.margen_operacion, peor.margen_operacion, mejor.margen_operacion, 'sin captación ni sueldos'),
-      fila('margen_despues_de_captacion', 'Margen después de captación', 'pesos al mes', rec.margen_despues_de_captacion, peor.margen_despues_de_captacion, mejor.margen_despues_de_captacion, 'resta reponer las bajas y los sueldos (parámetros sin dato)'),
-      fila('punto_de_equilibrio', 'Punto de equilibrio', 'clientes de paga', rec.equilibrio_pagantes, peor.equilibrio_pagantes, mejor.equilibrio_pagantes, 'cuántos clientes de paga hacen falta para no perder (el peor caso lo calcula sin anuncios)'),
-      fila('comensales_al_mes', 'Comensales al mes', 'comensales', rec.comensales_mes, peor.comensales_mes, mejor.comensales_mes, 'dato por restaurante SIMULADO (perfiles del simulador), no medido'),
+      fila('clientes_potenciales', 'Clientes potenciales', 'negocios', s.sam_clientes_potenciales, s.sam_clientes_potenciales, s.sam_clientes_potenciales, 'dato medido (DENUE 05/2026): no varía con los escenarios', s.sam_clientes_potenciales),
+      fila('restaurantes_que_caben', 'Restaurantes gratuitos que caben', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)', cap('hobby_sondeo')),
+      fila('gratuitos_por_cliente_de_paga', 'Gratuitos que sostiene cada cliente de paga (sin anuncios)', 'restaurantes', rec.gratuitos_que_sostiene_un_pagante_sin_anuncios, peor.gratuitos_que_sostiene_un_pagante_sin_anuncios, mejor.gratuitos_que_sostiene_un_pagante_sin_anuncios, 'con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`)', piso.gratuitos_que_sostiene_un_pagante_sin_anuncios),
+      fila('ingreso_por_cliente_gratuito', 'Ingreso por cliente gratuito', 'pesos al mes', rec.por_cliente.ingreso_gratuito, peor.por_cliente.ingreso_gratuito, mejor.por_cliente.ingreso_gratuito, 'sólo anuncios', piso.por_cliente.ingreso_gratuito),
+      fila('ingreso_por_cliente_de_paga', 'Ingreso por cliente de paga', 'pesos al mes', rec.por_cliente.ingreso_por_pagante, peor.por_cliente.ingreso_por_pagante, mejor.por_cliente.ingreso_por_pagante, 'promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno', piso.por_cliente.ingreso_por_pagante),
+      fila('costo_por_cliente_gratuito', 'Costo por cliente gratuito', 'pesos al mes', rec.por_cliente.costo_gratuito, peor.por_cliente.costo_gratuito, mejor.por_cliente.costo_gratuito, 'servidor, almacenamiento y soporte', piso.por_cliente.costo_gratuito),
+      fila('margen_de_operacion', 'Margen de operación', 'pesos al mes', rec.margen_operacion, peor.margen_operacion, mejor.margen_operacion, 'sin captación ni sueldos', piso.margen_operacion),
+      fila('margen_despues_de_captacion', 'Margen después de captación', 'pesos al mes', rec.margen_despues_de_captacion, peor.margen_despues_de_captacion, mejor.margen_despues_de_captacion, 'resta reponer las bajas y los sueldos (parámetros sin dato)', piso.margen_despues_de_captacion),
+      fila('punto_de_equilibrio', 'Punto de equilibrio', 'clientes de paga', rec.equilibrio_pagantes, peor.equilibrio_pagantes, mejor.equilibrio_pagantes, 'cuántos clientes de paga hacen falta para no perder (el peor caso lo calcula sin anuncios)', piso.equilibrio_pagantes),
+      fila('comensales_al_mes', 'Comensales al mes', 'comensales', rec.comensales_mes, peor.comensales_mes, mejor.comensales_mes, 'dato por restaurante SIMULADO (perfiles del simulador), no medido', piso.comensales_mes),
     ],
     todos_pagan: { definicion: 'techo teórico: todos los registrados pagan su plan (muy improbable)', margen_operacion: evaluar(config, s, n, { todosPagan: true }).margen_operacion, ingresos: evaluar(config, s, n, { todosPagan: true }).ingresos.total },
   };
@@ -614,8 +736,8 @@ export function sensibilidad(config, s, n, opc = {}) {
 // ---------------------------------------------------------------- optimizar
 const REJILLA = {
   precio_servicio: Array.from({ length: 25 }, (_, i) => 100 + 25 * i), // 100 a 700 cada 25
-  mesas: [8, 10, 12, 15, 16, 20, 25],
-  cuentas: [3, 4, 5, 6, 8],
+  mesas: [8, 10, 12, 15, 16, 20, 25, 30, 40, 60],
+  cuentas: [3, 4, 5, 6, 8, 10],
   platillos: [80, 100, 150, 300],
   precio_salon: [599, 799, 1099, 1599, 1999],
 };
