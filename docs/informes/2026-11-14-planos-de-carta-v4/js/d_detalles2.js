@@ -1,48 +1,71 @@
-/* ===== detalle: ¿Qué llena el disco? (armar una orden) ===== */
+/* ===== detalle: ¿Qué llena el disco? (una historia en tres pasos) ===== */
+const PASOS_DISCO = ["1 · Qué ocupa el espacio", "2 · Qué se llena primero", "3 · Qué lo libera"];
 DET.disco = {
-  titulo: "Armas una orden de palancas y ves cuántos restaurantes caben y qué los frena.",
+  titulo: "Lo que llena el servidor se ve en tres pasos: qué ocupa, qué se llena primero y qué lo libera.",
   fu: ["carta_disco", "carta_anuncios", "carta_capacidad", "railway_limites", "cloudflare_r2_precios"],
   nota: "Modelo de escenarios (docs/research/2026-11-14-modelo-de-escenarios.mjs). Archivar sólo cambia la oferta al dueño y el costo del almacenamiento de objetos, no cuántos caben. Hoy en producción aún corre el sondeo hasta que la Fase 3 construya los eventos; ver docs/historia/.",
   montar(host) {
-    host.innerHTML = `<div class="dos"><div class="panel"><h3>Arma tu orden</h3><div class="kick" style="margin-bottom:6px">Plan del servidor</div><div class="seg" id="srv"></div><div class="kick" style="margin:10px 0 6px">Historial de Master Chef en línea</div><div class="seg" id="hist"></div><div class="kick" style="margin:10px 0 6px">Palancas</div><div id="pals"></div></div><div><div class="viz"><svg id="svD" viewBox="0 0 700 470" role="img" font-family="DM Sans, sans-serif"></svg></div></div></div>`;
-    this.rm = RM($("#svD", host));
+    this.paso = 0; this.auto = true;
+    host.innerHTML = `<div class="viz"><svg id="svD" viewBox="0 0 960 470" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="panel" id="ctl" style="margin-top:10px" hidden><div class="kick" style="margin-bottom:6px">Plan del servidor</div><div class="seg" id="srv"></div><div class="kick" style="margin:10px 0 6px">Historial de Master Chef en línea</div><div class="seg" id="hist"></div><div class="kick" style="margin:10px 0 6px">Palancas</div><div class="pals2" id="pals"></div></div>`;
+    const svg = $("#svD", host); this.rm = RM(svg);
+    svg.addEventListener("click", ev => { const e = ev.target.closest("[data-paso]"); if (e) { this.auto = false; this.paso = +e.dataset.paso; refrescar(); } });
     $("#srv", host).innerHTML = `<button class="btn" data-s="-1">Automático</button>` + SERVS.map((e, i) => `<button class="btn" data-s="${i}">${esc(e.nombre.replace("Con eventos, ", ""))}<small style="font-weight:400"> · ${e.tope_usd} USD</small></button>`).join("");
     $("#hist", host).innerHTML = [1, 3, 6, 12].map(v => `<button class="btn" data-h="${v}">${v} ${v === 1 ? "mes" : "meses"}</button>`).join("");
-    $("#pals", host).innerHTML = [["a30", "Analítica sólo 30 días en línea", "En vez de 13 meses, como dice hoy el plan de datos"], ["a7", "Analítica en bruto sólo 7 días", "El resto se guarda como agregados"], ["arch", "Archivar lo que sale de línea", "El dueño lo descarga; cuesta ≈ 0.4 pesos al año"]].map(([k, t, d]) => `<button class="pal" data-p="${k}"><span class="sw"></span><span><b>${esc(t)}</b><small>${esc(d)}</small></span></button>`).join("");
+    $("#pals", host).innerHTML = [["a30", "Analítica 30 días en línea", "En vez de 13 meses"], ["a7", "Analítica en bruto 7 días", "El resto, agregados"], ["arch", "Archivar lo que sale", "≈ 0.4 pesos al año"]].map(([k, t, d]) => `<button class="pal" data-p="${k}"><span class="sw"></span><span><b>${esc(t)}</b><small>${esc(d)}</small></span></button>`).join("");
     host.addEventListener("click", ev => {
       const s = ev.target.closest("[data-s]"); if (s) { cambiar({servidor: +s.dataset.s}); return; }
       const h = ev.target.closest("[data-h]"); if (h) { cambiar({hist: +h.dataset.h}); return; }
       const p = ev.target.closest("[data-p]"); if (p) cambiar({[p.dataset.p]: !S[p.dataset.p]});
     });
+    const marcha = () => { if (actual !== this || !this.auto || this.paso >= 2 || REDUCE) return; setTimeout(() => { if (actual === this && this.auto) { this.paso++; refrescar(); marcha(); } }, 2200); };
+    setTimeout(marcha, 1200);
   },
   actualizar() {
-    const m = motor(S), rm = this.rm;
+    const m = motor(S), rm = this.rm, p = this.paso, base = motor({...S, a30: false, a7: false, hist: 12, arch: false, servidor: -1});
+    $("#ctl").hidden = p < 2;
     $$("#srv [data-s]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.s === S.servidor));
     $$("#hist [data-h]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.h === S.hist));
     $$("#pals [data-p]").forEach(b => b.setAttribute("aria-pressed", !!S[b.dataset.p]));
-    const mx = Math.max(3600, ...m.lim.map(l => l[1]).filter(isFinite)), X0 = 200, W = 440;
-    rm.put("t", "text", {x: 20, y: 26, text: "Cuántos restaurantes aguanta cada recurso", size: 14.5, weight: 700, fill: C.vino});
-    m.lim.forEach(([nom, v], i) => {
-      const y = 50 + i * 62, es = nom === m.cuello, w = W * Math.min(v, mx) / mx;
-      rm.put("n" + i, "text", {x: X0 - 12, y: y + 24, text: nom, size: 13.5, weight: 700, fill: C.tinta, anchor: "end"});
-      rm.put("k" + i, "rect", {x: X0, y, w: W, h: 36, rx: 12, fill: C.a2});
-      rm.put("b" + i, "rect", {x: X0, y, w, h: 36, rx: 12, fill: es ? C.vino : C.dorado, attrs: {class: es ? "rm pulso" : "rm"}});
-      rm.put("v" + i, "text", {x: X0 + w + 10, y: y + 25, text: n(v), size: 16, weight: 700, fill: es ? C.vino : C.t2, serif: true});
+    PASOS_DISCO.forEach((t, i) => {
+      rm.put("pb" + i, "rect", {x: 30 + i * 306, y: 12, w: 296, h: 38, rx: 19, fill: i === p ? C.vino : i < p ? "#d9b9c1" : C.a2, grow: false, cursor: "pointer", attrs: {"data-paso": i, role: "button", tabindex: 0, "aria-pressed": i === p, "aria-label": t}});
+      rm.put("pt" + i, "text", {x: 30 + i * 306 + 148, y: 36, text: t, size: 13.5, weight: 700, fill: i === p ? "#fff" : i < p ? C.osc : C.t2, anchor: "middle"});
     });
-    const xl = X0 + W * Math.min(m.caben, mx) / mx;
-    rm.put("lim", "line", {x1: xl, y1: 40, x2: xl, y2: 232, stroke: C.osc, sw: 2, dash: "5 4"});
-    rm.put("cb", "text", {x: 20, y: 276, text: "cuello de botella:", size: 14, fill: C.t2});
-    rm.put("cbv", "text", {x: 150, y: 276, text: m.cuello, size: 16, weight: 700, fill: C.rojo});
-    rm.put("g0", "text", {x: 20, y: 344, text: n(m.caben), size: 56, fill: C.vino, serif: true});
-    rm.put("g1", "text", {x: 20, y: 368, text: `restaurantes registrados caben (${n(100 * m.f)} % de paga en esta mezcla)`, size: 13.5, fill: C.t2});
-    const mb = m.ev.capacidad.mb_por_restaurante;
-    rm.put("u0", "text", {x: 20, y: 412, text: `Servidor: hasta ${m.usd} USD al mes (${mxn(Math.round(m.usd * TC))}) · ${nomServ(m)}`, size: 14, weight: 700, fill: C.tinta});
-    rm.put("u1", "text", {x: 20, y: 436, text: `Un cliente gratuito pesa ${n(mb.gratuito, 1)} MB en línea; uno de Master Chef, ${n(mb.servicio, 1)} MB.`, size: 13, fill: C.t2});
-    const sube = m.cuello === "disco" ? "Pasar a Pro o acortar el historial y la analítica lo levanta." : m.cuello === "procesador" ? "Más procesos lo levantan." : "Es el tope de Railway: más procesos o réplicas no lo suben.";
+    // paso 1: qué ocupa el espacio: una visita y lo que deja en la base
+    const mb = m.ev.capacidad.mb_por_restaurante, pf = SP.disco_perfiles.chico, v1 = p === 0 ? 1 : 0, tot = pf.mb_mes_visitas + pf.mb_mes_eventos + pf.mb_fijo;
+    const g = rm.put("ph", "g", {x: 40, y: 90, op: v1});
+    if (!g.__i) { g.__i = 1; g.innerHTML = fnDib(2).replace("<svg ", '<svg width="120" height="196" '); }
+    const X0 = 230, W = 640, mx = Math.max(mb.servicio, mb.gratuito, 1), wG = Math.max(W * mb.gratuito / mx, 10), wS = W * mb.servicio / mx;
+    rm.put("ca", "text", {x: X0, y: 108, text: "Un restaurante gratuito deja en la base al mes", size: 14, weight: 700, fill: C.vino, op: v1});
+    rm.put("cv", "rect", {x: X0, y: 120, w: v1 ? wG * pf.mb_mes_visitas / tot : 0, h: 34, rx: 10, fill: C.vino});
+    rm.put("ce", "rect", {x: X0 + wG * pf.mb_mes_visitas / tot, y: 120, w: v1 ? wG * pf.mb_mes_eventos / tot : 0, h: 34, rx: 10, fill: C.dorado});
+    rm.put("cg", "text", {x: X0 + wG + 14, y: 145, text: `${n(mb.gratuito, 1)} MB`, size: 26, fill: C.vino, serif: true, op: v1});
+    rm.put("cl", "text", {x: X0, y: 176, text: `visitas de la mesa ${n(pf.mb_mes_visitas, 1)} MB · analítica ${n(pf.mb_mes_eventos, 1)} MB`, size: 12.5, fill: C.t2, op: v1});
+    rm.put("cb", "text", {x: X0, y: 232, text: "Uno de Master Chef, con su historial", size: 14, weight: 700, fill: C.vino, op: v1});
+    rm.put("cs", "rect", {x: X0, y: 244, w: v1 ? wS : 0, h: 34, rx: 10, fill: C.osc});
+    rm.put("cn", "text", {x: X0 + Math.min(wS, W) - 14, y: 268, text: `${n(mb.servicio, 0)} MB`, size: 26, fill: "#fff", anchor: "end", serif: true, op: v1});
+    rm.put("cr", "text", {x: X0, y: 330, text: `≈ ${n(mb.servicio / mb.gratuito, 0)} veces el espacio de un gratuito`, size: 22, fill: C.rojo, serif: true, op: v1});
+    // pasos 2 y 3: lo que se llena primero y lo que lo libera (las mismas barras se mueven)
+    const v2 = p >= 1 ? 1 : 0, mxL = Math.max(3600, ...m.lim.map(l => l[1]).filter(isFinite)), XL = 200, WL = 440;
+    m.lim.forEach(([nom, v], i) => {
+      const y = 78 + i * 62, es = nom === m.cuello, w = v2 ? WL * Math.min(v, mxL) / mxL : 0;
+      rm.put("n" + i, "text", {x: XL - 12, y: y + 24, text: nom, size: 13.5, weight: 700, fill: C.tinta, anchor: "end", op: v2});
+      rm.put("k" + i, "rect", {x: XL, y, w: v2 ? WL : 0, h: 36, rx: 12, fill: C.a2});
+      rm.put("b" + i, "rect", {x: XL, y, w, h: 36, rx: 12, fill: es ? C.vino : C.dorado, attrs: {class: es ? "rm pulso" : "rm"}});
+      rm.put("v" + i, "text", {x: XL + w + 10, y: y + 25, text: n(v), size: 16, weight: 700, fill: es ? C.vino : C.t2, serif: true, op: v2});
+    });
+    const xl = XL + WL * Math.min(m.caben, mxL) / mxL;
+    rm.put("lim", "line", {x1: xl, y1: 68, x2: xl, y2: 266, stroke: C.osc, sw: 2, dash: "5 4", op: v2});
+    rm.put("g0", "text", {x: 690, y: 150, text: n(m.caben), size: 72, fill: C.vino, serif: true, op: v2});
+    rm.put("g1", "text", {x: 690, y: 176, text: "restaurantes caben", size: 14, fill: C.t2, op: v2});
+    rm.put("g2", "text", {x: 690, y: 208, text: `frena: ${m.cuello}`, size: 16, weight: 700, fill: C.rojo, op: v2});
+    const dl = m.caben - base.caben;
+    rm.put("g3", "text", {x: 690, y: 250, text: p >= 2 ? `${dl >= 0 ? "+" : "−"}${n(Math.abs(dl))} frente a no hacer nada` : "", size: 14, weight: 700, fill: dl >= 0 ? C.verde : C.rojo, op: p >= 2 ? 1 : 0});
+    rm.put("u0", "text", {x: 30, y: 330, text: `Servidor: hasta ${m.usd} USD al mes (${mxn(Math.round(m.usd * TC))}) · ${nomServ(m)}`, size: 14, weight: 700, fill: C.tinta, op: v2});
+    const sube = m.cuello === "disco" ? "acortar el historial y la analítica, o pasar a Pro, lo libera" : m.cuello === "procesador" ? "más procesos lo liberan" : "es el tope de Railway: más procesos no lo suben";
     return {
-      leyenda: `<span><i style="background:${C.vino}"></i>cuello de botella</span><span><i style="background:${C.dorado}"></i>otro recurso</span>`,
+      leyenda: p === 0 ? `<span><i style="background:${C.vino}"></i>visitas de la mesa</span><span><i style="background:${C.dorado}"></i>analítica</span><span><i style="background:${C.osc}"></i>un cliente de paga</span>` : `<span><i style="background:${C.vino}"></i>lo que se llena primero</span><span><i style="background:${C.dorado}"></i>otro recurso</span>`,
       cifras: [[n(m.caben), "restaurantes caben con esta orden", "supuesto: modelo de escenarios"], [m.usd + " USD", "costo del servidor al mes (tope del escalón)"], [`${S.hist} meses`, "de historial de Master Chef en línea"], [S.a7 ? "7 días" : S.a30 ? "30 días" : "13 meses", "de analítica en bruto en línea"]],
-      insight: `El cuello de botella es ${m.cuello}. ${sube}`,
+      insight: p === 0 ? `Un cliente de paga ocupa ≈ ${n(mb.servicio / mb.gratuito, 0)} veces el espacio de uno gratuito: el historial pesa más que la visita.` : p === 1 ? `Lo primero que se llena es ${m.cuello}: ahí está el límite de ${n(m.caben)} restaurantes.` : `Con esta orden caben ${n(m.caben)} y frena ${m.cuello}: ${sube}.`,
     };
   },
 };
@@ -152,6 +175,11 @@ DET.precio = {
     const mm = motor(S), mes = mm.meseta;
     rm.put("mes", "rect", {x: A(mes.desde), y: 78, w: A(mes.hasta) - A(mes.desde), h: h - 78 + 4, rx: 6, fill: C.dorado, op: 0.2, grow: false});
     rm.put("mest", "text", {x: A(mes.desde), y: h + 22, text: `meseta del margen: ${mxn(mes.desde)} a ${mxn(mes.hasta)} (a menos de 2 % del máximo)`, size: 12, weight: 700, fill: C.dorado});
+    const pmax = Math.max(...D.mercado_planes.filter(q => q.precio <= 1300).map(q => q.precio)), meniu = SUSTP["Meniu Business"];
+    [["rm", meniu, "Meniu: referencia de Master Chef", C.vino, 0], ["rx", pmax, "extremo alto: referencia de Chef Ejecutivo", C.osc, 1]].forEach(([id, v, tx, col, q]) => {
+      rm.put(id + "l", "line", {x1: A(v), y1: 74, x2: A(v), y2: h + 6, stroke: col, sw: 2, dash: "2 4"});
+      rm.put(id + "t", "text", {x: A(v) + (q ? -6 : 6), y: h + 46 + 22 * q, text: tx, size: 12, weight: 700, fill: col, anchor: q ? "end" : "start"});
+    });
     [["sv", "precioServicio", PLAN.paga, C.vino], ["sa", "precioSalon", PLAN.ejec, C.osc]].forEach(([id, key, nom, col], q) => {
       const x = A(S[key]);
       rm.put(id + "l", "line", {x1: x, y1: 36, x2: x, y2: h + 6, stroke: col, sw: 3});

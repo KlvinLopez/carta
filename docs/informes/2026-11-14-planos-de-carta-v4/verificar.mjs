@@ -90,6 +90,8 @@ ok((await p.$$('#oc [data-rest]')).length === 0, 'matriz: restablecer');
 await sinDesborde(p, 'matriz'); await cierra(p);
 // disco
 await abre(p, 'disco');
+await p.click('#svD [data-paso="2"]'); await p.waitForTimeout(400);
+ok(await p.isVisible('#ctl'), 'disco: el tercer paso muestra las palancas');
 const c0 = await texto(p, '#cif .cifra b');
 await p.click('#srv [data-s="0"]'); await p.waitForTimeout(500);
 const c1 = await texto(p, '#cif .cifra b');
@@ -151,9 +153,10 @@ ok((await texto(p, '#svG')).includes('11 a 50'), 'pagar: tocar un tamaño muestr
 await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
 await abre(p, 'recomendaciones');
+await p.click('[data-mas="topes"]'); await p.waitForTimeout(150);
 await p.click('#r_topes .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 8, 'recomendaciones: «Probar esta» aplica el cupo de 50 % (8 mesas)');
-await p.click('#r_topes .opcion.rec .btn'); await p.waitForTimeout(300);
+await p.click('#r_topes .acc2 [data-aplica]'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 10, 'recomendaciones: aplicar lo recomendado');
 if (png) await p.screenshot({ path: `${png}/v5_recs.png` });
 await sinDesborde(p, 'recomendaciones');
@@ -164,6 +167,15 @@ await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);
 ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
+await p.waitForTimeout(1500);
+const t1 = await p.evaluate(() => tI);
+await p.click('[data-intro="mas"]'); await p.waitForTimeout(100);
+ok((await p.evaluate(() => tI)) - t1 >= 2900, 'presentación: +3 s adelanta');
+await p.click('[data-intro="menos"]'); await p.waitForTimeout(100);
+ok((await p.evaluate(() => tI)) < t1 + 2000, 'presentación: −3 s atrasa');
+await p.click('[data-intro="pausa"]'); const tp = await p.evaluate(() => tI); await p.waitForTimeout(400);
+ok((await p.evaluate(() => tI)) === tp, 'presentación: la pausa detiene el tiempo');
+if (png) { await p.evaluate(() => { pausaI = true; }); for (const [i, ms] of [[1, 3300], [2, 8000], [3, 14500], [4, 19500], [5, 25500]]) { await p.evaluate((t) => { tI = t; pintaIntro(); }, ms); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v8_intro${i}.png` }); } }
 await p.click('[data-intro="saltar"]'); await p.waitForTimeout(200);
 ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
 await p.reload(); await p.waitForTimeout(400);
