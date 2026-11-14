@@ -56,30 +56,79 @@ prueba('corredor con Fudo + mesas 745', red(s.sustitutos['Fudo Avanzado + módul
 const e1 = M.evaluar(c, s, 1000);
 prueba('el margen es ingresos menos costos', Math.round(e1.ingresos.total - e1.costos.total), Math.round(e1.margen.pesos));
 prueba('clientes suman n', Math.round(e1.clientes.gratuito + e1.clientes.servicio + e1.clientes.salon), 1000);
+prueba('el plan gratuito lleva anuncios: en régimen suman', e1.ingresos.anuncios > 0, true);
+prueba('sinAnuncios: los anuncios no suman (periodo temporal)', M.evaluar(c, s, 1000, { sinAnuncios: true }).ingresos.anuncios, 0);
 const sin = M.escenarios(c, s, [1000])[0];
-prueba('peor caso condicional (con anuncios aprobados) mejora al peor firme (sin anuncios)', sin.peor_anuncios_tarifa_media.margen.pesos > sin.peor_firme.margen.pesos, true);
-prueba('por defecto los anuncios NO suman (no están aprobados)', e1.ingresos.anuncios, 0);
-prueba('peor firme a 1,000: pierde dinero', sin.peor_firme.margen.pesos < 0, true);
-prueba('peor con anuncios adversos < peor con anuncios en tarifa baja', sin.peor_anuncios_adversos.margen.pesos < sin.peor_anuncios_tarifa_baja.margen.pesos, true);
+prueba('peor caso temporal (sin anuncios) pierde dinero a 1,000', sin.peor_firme.margen_operacion < 0, true);
+prueba('peor caso con anuncios (tarifa media) mejora al temporal', sin.peor_anuncios_tarifa_media.margen_operacion > sin.peor_firme.margen_operacion, true);
+prueba('peor con anuncios adversos < tarifa baja', sin.peor_anuncios_adversos.margen_operacion < sin.peor_anuncios_tarifa_baja.margen_operacion, true);
+prueba('el mejor caso supera al esperado medio', sin.mejor.ingresos.total > sin.esperado.media.ingresos.total, true);
+prueba('esperado: pesimista ≤ media ≤ optimista en ingresos', sin.esperado.pesimista.ingresos.total <= sin.esperado.media.ingresos.total && sin.esperado.media.ingresos.total <= sin.esperado.optimista.ingresos.total, true);
+const po = M.precioOptimo('media', s);
+prueba('en el precio óptimo la derivada es ≈ 0 (cambio de signo)', Math.abs(po.derivada_en_optimo) < 0.2, true);
+prueba('la meseta contiene al óptimo', po.meseta.desde <= po.precio && po.precio <= po.meseta.hasta, true);
 const cero = JSON.parse(JSON.stringify(c)); cero.precios.servicio = 0; cero.precios.salon = 0;
 prueba('precio 0: no hay clientes de paga', M.evaluar(cero, s, 1000).clientes.de_paga, 0);
 prueba('margen de operación ≥ margen después de captación', e1.margen_operacion >= e1.margen_despues_de_captacion, true);
 const ex = M.evaluar(c, s, 5000, { todosPagan: true });
 prueba('con 5,000 restaurantes de paga ya hay extrapolación sin medir', ex.extrapolacion_sin_medir && ex.capacidad.requiere_arquitectura, true);
 prueba('con 100 restaurantes no hay extrapolación', M.evaluar(c, s, 100).extrapolacion_sin_medir, false);
-const sens = M.sensibilidad(c, s, 1000, { anunciosAprobados: true });
+const sens = M.sensibilidad(c, s, 1000);
 prueba('sensibilidad ordenada de mayor a menor', sens.filas.every((f, i) => i === 0 || sens.filas[i - 1].efecto >= f.efecto), true);
+prueba('la sensibilidad trae frases en llano', sens.filas[0].frase.startsWith('Si '), true);
 const opt0 = M.optimizar(s);
 prueba('la meseta del precio contiene al mejor precio', opt0.mejor.meseta[0] <= opt0.mejor.mejor_precio && opt0.mejor.mejor_precio <= opt0.mejor.meseta[1], true);
 const t = opt0.tabla_cupo_gratis.filter((x) => !x.sin_solucion);
-prueba('a más cupo gratis, menos margen (tabla de cupo)', t.every((x, i) => i === 0 || t[i - 1].margen >= x.margen - 1e-6), true);
-prueba('los topes del gratuito cambian con el cupo exigido', new Set(t.map((x) => `${x.mesas}-${x.cuentas}`)).size > 1, true);
-prueba('el traslape 1 baja «dentro» (con 0 es el mayor tope)', opt0.sensibilidad_traslape[1].dentro_con_topes_recomendados < opt0.sensibilidad_traslape[0].dentro_con_topes_recomendados, true);
-prueba('el mejor caso supera al esperado medio', sin.mejor.ingresos.total > sin.esperado.media.ingresos.total, true);
-prueba('esperado: pesimista ≤ media ≤ optimista en ingresos', sin.esperado.pesimista.ingresos.total <= sin.esperado.media.ingresos.total && sin.esperado.media.ingresos.total <= sin.esperado.optimista.ingresos.total, true);
-const po = M.precioOptimo('media', s);
-prueba('en el precio óptimo la derivada es ≈ 0 (cambio de signo)', Math.abs(po.derivada_en_optimo) < 0.2, true);
-prueba('funciona sin acceso a fs ni window (sólo importamos el módulo)', typeof M.evaluar, 'function');
+prueba('a más seguridad exigida al gratuito, menos margen', t.every((x, i) => i === 0 || t[i - 1].margen >= x.margen - 1e-6), true);
+prueba('los topes del gratuito cambian con la seguridad exigida', new Set(t.map((x) => `${x.mesas}-${x.cuentas}-${x.platillos}`)).size > 1, true);
+
+// 6) segmentación de Calvin
+const seg = s.segmentacion_negocios;
+prueba('la segmentación suma los 104,882 clientes potenciales', seg['Chef'] + seg['Master Chef'] + seg['Chef Ejecutivo'], 104882);
+prueba('Chef = 86.8 % de los clientes potenciales', Math.round((1000 * seg['Chef']) / 104882) / 10, 86.8);
+prueba('configInicial es la segmentación de Calvin', c.nombre, 'segmentación de Calvin');
+prueba('configBase es alias de configInicial', M.configBase().nombre, c.nombre);
+prueba('configTopes10Mesas3Cuentas conserva la anterior (299 y 10 mesas)', [M.configTopes10Mesas3Cuentas().precios.servicio, M.configTopes10Mesas3Cuentas().topes.gratuito.mesas].join('/'), '299/10');
+prueba('con los topes de la configuración inicial, un negocio de hasta 10 personas queda dentro con ≥ 95 %', M.seguridadChico(c, s) >= 0.95, true);
+prueba('el modelo de mesas y cuentas tiene intervalo: mínimo ≤ centro ≤ máximo', M.parteRebasa(c, s, 'minimo') <= M.parteRebasa(c, s, 'centro') && M.parteRebasa(c, s, 'centro') <= M.parteRebasa(c, s, 'maximo'), true);
+const ep = M.evaluarPrecios(c, s, 1000);
+prueba('se evalúan 4 precios de Master Chef y 3 de Chef Ejecutivo', `${ep.servicio.length}/${ep.salon.length}`, '4/3');
+prueba('cada precio trae el margen sin anuncios y con anuncios', 'margen_operacion_sin_anuncios' in ep.servicio[0].por_curva.media && 'sin_perdidas_con_anuncios' in ep.servicio[0].por_curva.media, true);
+
+// 7) la pregunta del peor caso: todos gratuitos
+const tg = M.tablaTodosGratuitos(c, s);
+prueba('la tabla cubre n de 10 a 2,000 y la zona extrapolada aparte', `${tg.medida[0].n}-${tg.medida[tg.medida.length - 1].n}/${tg.extrapolada_sin_medir[0].n}`, '10-2000/3000');
+prueba('la zona extrapolada está marcada', tg.extrapolada_sin_medir.every((x) => x.extrapolacion_sin_medir), true);
+prueba('la zona medida no está marcada', tg.medida.every((x) => !x.extrapolacion_sin_medir), true);
+prueba('el costo sin anuncios crece con n', tg.medida.every((x, i) => i === 0 || x.costo_sin_anuncios >= tg.medida[i - 1].costo_sin_anuncios - 1e-6), true);
+prueba('los comensales crecen con n', tg.medida.every((x, i) => i === 0 || x.comensales_mes > tg.medida[i - 1].comensales_mes), true);
+const nb = M.nSePagaSolo(c, s, 'baja');
+const na = M.nSePagaSolo(c, s, 'adverso');
+prueba('con tarifa baja los anuncios se pagan solos desde pocos restaurantes (< 100)', nb > 0 && nb < 100, true);
+prueba('el caso adverso exige más restaurantes que la tarifa baja', na > nb, true);
+const cb = M.capacidadConBolsa(c, s, 1000);
+prueba('con 1,000 pesos al mes de la bolsa caben entre 600 y 1,000 restaurantes gratuitos', cb.restaurantes >= 600 && cb.restaurantes <= 1000, true);
+prueba('el costo con ese número de restaurantes no pasa de la bolsa', M.todosGratuitos(c, s, cb.restaurantes).costo_sin_anuncios <= 1000, true);
+
+// 8) resumen en tres casos
+const rs = M.resumen(c, s, 1000);
+prueba('el resumen trae diez cifras', rs.cifras.length, 10);
+prueba('cada cifra trae recomendado, peor y mejor', rs.cifras.every((f) => 'recomendado' in f && 'peor' in f && 'mejor' in f), true);
+const mo = rs.cifras.find((f) => f.clave === 'margen_de_operacion');
+prueba('el margen de operación: peor ≤ recomendado ≤ mejor', mo.peor <= mo.recomendado && mo.recomendado <= mo.mejor, true);
+prueba('el resumen define los tres casos', Object.keys(rs.definiciones).join(','), 'recomendado,peor,mejor');
+
+// 9) banderas y proyección
+const bd = M.banderas({ cpu_pct: 75, disco_pct: 40, conexiones_abiertas: null, memoria_pct: 60, costo_por_restaurante: 3, ingresos_mes: 10000, costos_mes: 3000, escalon: 'pro_2' }, s);
+prueba('procesador a 75 % pide acción', bd.find((b) => b.id === 'procesador').nivel, 'accion');
+prueba('disco a 40 % está bien', bd.find((b) => b.id === 'disco').nivel, 'ok');
+prueba('lo que no se mide sale «sin_medir»', bd.find((b) => b.id === 'conexiones').nivel, 'sin_medir');
+prueba('la bandera dice a qué escalón pasar', bd.find((b) => b.id === 'procesador').paso.a.includes('4 procesos'), true);
+const pr = M.proyectar(c, s, 24);
+const mi = s.mes_inicio_anuncios;
+prueba('antes del mes de inicio no hay anuncios', pr.filas[mi - 2].ingresos_anuncios, 0);
+prueba('desde el mes de inicio hay anuncios', pr.filas[mi - 1].ingresos_anuncios > 0, true);
+prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0, true);
 
 console.log(fallas === 0 ? '\nTodas las pruebas pasan.' : `\n${fallas} prueba(s) fallan.`);
 process.exit(fallas === 0 ? 0 : 1);

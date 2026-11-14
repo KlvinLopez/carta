@@ -1,6 +1,6 @@
-// Corre el modelo y GENERA los resultados y los dos informes (modelo y recomendaciones): ninguna cifra se transcribe a mano.
+// Corre el modelo y GENERA los resultados y los informes (modelo, recomendaciones, chequeo de márgenes): ninguna cifra se transcribe a mano.
 // Uso: node 2026-11-14-corre-escenarios.mjs
-// Escribe: …-modelo-de-escenarios-resultados.json, …-modelo-de-escenarios.md, …-recomendaciones.md y …-recomendaciones.json
+// Escribe: …-modelo-de-escenarios-resultados.json, …-modelo-de-escenarios.md, …-recomendaciones.md/.json, …-chequeo-de-margenes.md
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -8,287 +8,318 @@ import * as M from './2026-11-14-modelo-de-escenarios.mjs';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const par = JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8'));
+const seg = JSON.parse(readFileSync(join(aqui, '2026-11-14-segmentacion-datos.json'), 'utf8'));
 const s = M.valores(par);
 const curvas = ['pesimista', 'media', 'optimista'];
 const N = [100, 1000, 10000];
 
 // ------------------------------------------------------------------ cálculo
+const rec = M.configInicial();
 const opt = M.optimizar(s);
 const mejor = opt.mejor;
-const rec = JSON.parse(JSON.stringify(mejor.config)); // topes del gratuito = consecuencia del cupo exigido
-rec.nombre = 'recomendada sin anuncios';
-rec.precios = { servicio: 299, salon: 499 };
-rec.anuncios = { activo: false, tarifa: 'baja' };
-const recAds = JSON.parse(JSON.stringify(rec)); recAds.nombre = 'recomendada con anuncios (condicional)'; recAds.anuncios = { activo: true, tarifa: 'baja' };
+const coincide = mejor.mesas === rec.topes.gratuito.mesas && mejor.cuentas === rec.topes.gratuito.cuentas && mejor.platillos === rec.topes.gratuito.platillos;
+if (!coincide) console.warn('AVISO: los topes de configInicial no coinciden con el optimizador', mejor.mesas, mejor.cuentas, mejor.platillos);
+const antes = M.configTopes10Mesas3Cuentas();
 
-const resumen = (e) => ({ n: e.n, gratuitos: e.clientes.gratuito, pagantes: e.clientes.de_paga, ingresos: e.ingresos.total, anuncios: e.ingresos.anuncios, suscripcion: e.ingresos.suscripcion, costos: e.costos.total, margen_operacion: e.margen_operacion, margen_despues_de_captacion: e.margen_despues_de_captacion, margen_pct: e.margen.porcentaje, escalon: e.capacidad.escalon, muro: e.capacidad.muro_que_manda, requiere_arquitectura: e.capacidad.requiere_arquitectura, instancias: e.capacidad.instancias, extrapolacion_sin_medir: e.extrapolacion_sin_medir, equilibrio_pagantes: e.equilibrio_pagantes, se_paga_solo: e.se_paga_solo, gratuitos_por_pagante: e.gratuitos_que_sostiene_un_pagante, gratuitos_por_pagante_sin_anuncios: e.gratuitos_que_sostiene_un_pagante_sin_anuncios, ingreso_por_gratuito: e.por_cliente.ingreso_gratuito, costo_por_gratuito: e.por_cliente.costo_gratuito, ingreso_por_pagante: e.por_cliente.ingreso_servicio, costo_por_pagante: e.por_cliente.costo_servicio });
-const esc = M.escenarios(rec, s, N).map((r) => ({ n: r.n, peor_firme: resumen(r.peor_firme), peor_anuncios_tarifa_baja: resumen(r.peor_anuncios_tarifa_baja), peor_anuncios_tarifa_media: resumen(r.peor_anuncios_tarifa_media), peor_anuncios_adversos: resumen(r.peor_anuncios_adversos), mejor: resumen(r.mejor), esperado: Object.fromEntries(curvas.map((c) => [c, resumen(r.esperado[c])])) }));
+const resumenEsc = (e) => ({ n: e.n, gratuitos: e.clientes.gratuito, pagantes: e.clientes.de_paga, ingresos: e.ingresos.total, anuncios: e.ingresos.anuncios, suscripcion: e.ingresos.suscripcion, costos: e.costos.total, margen_operacion: e.margen_operacion, margen_despues_de_captacion: e.margen_despues_de_captacion, margen_pct: e.margen.porcentaje, escalon: e.capacidad.escalon, muro: e.capacidad.muro_que_manda, requiere_arquitectura: e.capacidad.requiere_arquitectura, instancias: e.capacidad.instancias, extrapolacion_sin_medir: e.extrapolacion_sin_medir, equilibrio_pagantes: e.equilibrio_pagantes, se_paga_solo: e.se_paga_solo, gratuitos_por_pagante: e.gratuitos_que_sostiene_un_pagante, gratuitos_por_pagante_sin_anuncios: e.gratuitos_que_sostiene_un_pagante_sin_anuncios, ingreso_por_gratuito: e.por_cliente.ingreso_gratuito, costo_por_gratuito: e.por_cliente.costo_gratuito, ingreso_por_pagante: e.por_cliente.ingreso_por_pagante, costo_por_pagante: e.por_cliente.costo_servicio, comensales_mes: e.comensales_mes });
+const esc = M.escenarios(rec, s, N).map((r) => ({ n: r.n, peor_sin_anuncios: resumenEsc(r.peor_firme), peor_anuncios_tarifa_baja: resumenEsc(r.peor_anuncios_tarifa_baja), peor_anuncios_adversos: resumenEsc(r.peor_anuncios_adversos), peor_anuncios_tarifa_media: resumenEsc(r.peor_anuncios_tarifa_media), mejor: resumenEsc(r.mejor), esperado: Object.fromEntries(curvas.map((c) => [c, resumenEsc(r.esperado[c])])) }));
 const proy = Object.fromEntries(curvas.map((c) => [c, M.proyectar(rec, s, 36, { curva: c })]));
+const proyMejor = M.proyectar(rec, s, 36, { curva: 'optimista', anuncios: { activo: true, tarifa: 'media' } });
+const proyPeor = M.proyectar(rec, s, 36, { curva: 'pesimista' });
 const precios = Object.fromEntries(curvas.map((c) => [c, M.precioOptimo(c, s)]));
 const sensPrecio = M.sensibilidadPrecioOptimo(s);
-const sensFirme = M.sensibilidad(rec, s, 1000, { metrica: 'operacion' });
-const sensCond = M.sensibilidad(recAds, s, 1000, { metrica: 'operacion', anunciosAprobados: true });
+const ep = M.evaluarPrecios(rec, s, 1000);
+const tg = M.tablaTodosGratuitos(rec, s);
+const bolsas = [500, 1000, 2000, 5000].map((b) => M.capacidadConBolsa(rec, s, b));
+const nsolo = { baja: M.nSePagaSolo(rec, s, 'baja'), adverso: M.nSePagaSolo(rec, s, 'adverso'), medio: M.nSePagaSolo(rec, s, 'medio') };
+const res = M.resumen(rec, s, 1000);
+const sens = M.sensibilidad(rec, s, 1000);
+const sensSin = M.sensibilidad(rec, s, 1000, { sinAnuncios: true });
 const sensCapt = M.sensibilidad(rec, s, 1000, { metrica: 'captacion' });
-// margen contra precio de Master Chef, por curva, y arrepentimiento
-const listaPrecios = [149, 199, 249, 299, 349, 449, 599];
-const margenPrecio = Object.fromEntries(listaPrecios.map((p) => { const c = JSON.parse(JSON.stringify(rec)); c.precios.servicio = p; return [p, Object.fromEntries(curvas.map((k) => { const e = M.evaluar(c, s, 1000, { curva: k }); return [k, { margen: e.margen_operacion, pagantes: e.clientes.de_paga }]; }))]; }));
-const mejorPorCurva = Object.fromEntries(curvas.map((k) => [k, Math.max(...listaPrecios.map((p) => margenPrecio[p][k].margen))]));
-const w = { pesimista: 0.25, media: 0.5, optimista: 0.25 };
-const arrepentimiento = Object.fromEntries(listaPrecios.map((p) => [p, { por_curva: Object.fromEntries(curvas.map((k) => [k, mejorPorCurva[k] - margenPrecio[p][k].margen])), maximo: Math.max(...curvas.map((k) => mejorPorCurva[k] - margenPrecio[p][k].margen)), esperado: suma(curvas.map((k) => w[k] * (mejorPorCurva[k] - margenPrecio[p][k].margen))) }]));
-function suma(a) { return a.reduce((x, y) => x + y, 0); }
-// extrapolación: desde qué n hace falta otra arquitectura (curva media)
 let nArq = null;
 for (let n = 100; n <= 5000; n += 10) { if (M.evaluar(rec, s, n, { curva: 'media' }).capacidad.requiere_arquitectura) { nArq = n; break; } }
-const extra = [1000, 2000, 5000, 100000].map((n) => resumen(M.evaluar(rec, s, n, { curva: 'media' })));
-// segundo anclaje de disposición a pagar: precio como parte del ingreso (INEGI, lo-que-paga-un-restaurante)
-const ingreso = { '0 a 10': 107450, '11 a 50': 737584, '51 a 250': 3283332 };
-const ancla = { fuente: 'INEGI, Censos Económicos 2024 (SAIC), clase 722511, por negocio y mes', ingreso_mensual: ingreso, mediana_curva_media: s.curvas_pago.media.mediana, curva_media_como_pct_del_ingreso_0_10: (100 * s.curvas_pago.media.mediana * 1.16) / ingreso['0 a 10'], menu_qr_pct_0_10: [0.15, 0.3], pos_pct_0_10: [0.61, 0.93], pos_pct_11_50: [0.09, 0.14], optimista_mediana_pct_0_10: (100 * s.curvas_pago.optimista.mediana) / ingreso['0 a 10'], optimista_mediana_pct_11_50: (100 * s.curvas_pago.optimista.mediana) / ingreso['11 a 50'] };
+const E = (n, c) => esc.find((x) => x.n === n).esperado[c];
+const E1 = esc.find((x) => x.n === 1000);
 
-const resultados = { version: M.VERSION, config_recomendada_sin_anuncios: rec, escenarios: esc, proyeccion: proy,
-  precio_optimo_por_curva: Object.fromEntries(curvas.map((c) => [c, { precio: precios[c].precio, meseta: precios[c].meseta, conversion: precios[c].conversion, margen_por_elegible: precios[c].margen_por_elegible, derivada_en_optimo: precios[c].derivada_en_optimo, muestras: precios[c].muestras }])),
-  sensibilidad_precio_optimo: sensPrecio, segundo_anclaje_ingreso: ancla, margen_por_precio: margenPrecio, arrepentimiento,
-  optimizacion: { restricciones: opt.restricciones, evaluadas: opt.evaluadas, descartadas: opt.descartadas, mejor: { dentro: mejor.dentro, mesas: mejor.mesas, cuentas: mejor.cuentas, platillos: mejor.platillos, mejor_precio: mejor.mejor_precio, meseta: mejor.meseta, margen: mejor.margen, pagantes: mejor.pagantes, curva_de_precio: mejor.curva_de_precio }, precio_salon: opt.precio_salon, tabla_cupo_gratis: opt.tabla_cupo_gratis, frontera: opt.frontera, sensibilidad_traslape: opt.sensibilidad_traslape },
-  sensibilidad_50: { firme: sensFirme, condicional_con_anuncios: sensCond, despues_de_captacion: sensCapt },
-  extrapolacion: { n_desde_el_que_hace_falta_otra_arquitectura_curva_media: nArq, puntos: extra } };
+// la configuración anterior, para comparar
+const escAntes = M.escenarios(antes, s, [1000])[0];
+
+// ------------------------------------------------------------------ chequeo de márgenes: mes 12 por caso y desglose por cada 100 pesos
+const mes = (p, m) => p.filas.find((f) => f.mes === m);
+const desglose = (f) => { const total = f.ingresos; const partes = [['Servidor', f.costos_detalle.servidor], ['Almacenamiento y fotos', f.costos_detalle.almacenamiento + f.costos_detalle.objetos], ['Soporte', f.costos_detalle.soporte], ['Comisión de cobro', f.costos_detalle.comision], ['Conseguir clientes (reponer bajas y altas)', f.captacion], ['Sueldos', s.sueldos_mes], ['Impuestos', 0]]; const usados = partes.reduce((a, x) => a + x[1], 0); return { ingresos: total, partes: partes.map(([n, v]) => ({ concepto: n, pesos: v, por_cada_100: (100 * v) / total })), margen_despues_de_captacion: total - usados, por_cada_100_margen: (100 * (total - usados)) / total }; };
+const chequeo = { mes12: { recomendado: { fila: mes(proy.media, 12), desglose: desglose(mes(proy.media, 12)) }, peor: { fila: mes(proyPeor, 12), desglose: desglose(mes(proyPeor, 12)) }, mejor: { fila: mes(proyMejor, 12), desglose: desglose(mes(proyMejor, 12)) } },
+  regimen_1000: { recomendado: desglose({ ingresos: E1.esperado.media.ingresos, costos_detalle: { servidor: 0, almacenamiento: 0, objetos: 0, soporte: 0, comision: 0 }, captacion: 0 }) } };
+// desglose en régimen (n = 1000, curva media) con los componentes reales
+const e1 = M.evaluar(rec, s, 1000, { curva: 'media' });
+chequeo.regimen_1000.recomendado = desglose({ ingresos: e1.ingresos.total, costos_detalle: e1.costos, captacion: e1.captacion.reposicion_de_bajas });
+chequeo.regimen_1000.recomendado.ingresos_detalle = { suscripcion: e1.ingresos.suscripcion, anuncios: e1.ingresos.anuncios };
+
+const resultados = { version: M.VERSION, config_inicial: rec, config_topes_10_mesas_3_cuentas: antes,
+  segmentacion: { planes: seg.planes, estratos: seg.estratos, topes_chef: seg.topes_chef, topes_chef_conservador: seg.topes_chef_conservador, topes_master_chef: seg.topes_master_chef, seguridad_chico_por_topes: seg.seguridad_chico_por_topes },
+  escenarios: esc, proyeccion: { recomendado: proy.media, peor: proyPeor, mejor: proyMejor, por_curva: proy },
+  precios: { evaluacion: ep, optimo_por_curva: Object.fromEntries(curvas.map((c) => [c, { precio: precios[c].precio, meseta: precios[c].meseta, conversion: precios[c].conversion, margen_por_elegible: precios[c].margen_por_elegible, derivada_en_optimo: precios[c].derivada_en_optimo, muestras: precios[c].muestras }])), sensibilidad_precio_optimo: sensPrecio },
+  todos_gratuitos: { tabla: tg, bolsas, n_se_paga_solo: nsolo },
+  resumen: res, sensibilidad: { con_anuncios: sens, sin_anuncios: sensSin, despues_de_captacion: sensCapt },
+  optimizacion: { restricciones: opt.restricciones, evaluadas: opt.evaluadas, descartadas: opt.descartadas, mejor: { seguridad_chico: mejor.seguridad_chico, dentro_de_todos: mejor.dentro, mesas: mejor.mesas, cuentas: mejor.cuentas, platillos: mejor.platillos, mejor_precio: mejor.mejor_precio, meseta: mejor.meseta, margen: mejor.margen, pagantes: mejor.pagantes }, precio_salon: opt.precio_salon, tabla_cupo_gratis: opt.tabla_cupo_gratis, frontera: opt.frontera, sensibilidad_modelo_mesas_cuentas: opt.sensibilidad_modelo_mesas_cuentas },
+  chequeo_de_margenes: chequeo, extrapolacion: { n_desde_el_que_hace_falta_otra_arquitectura_curva_media: nArq } };
 writeFileSync(join(aqui, '2026-11-14-modelo-de-escenarios-resultados.json'), JSON.stringify(resultados, null, 1));
 
 // ------------------------------------------------------------------ formato
 const n0 = (x) => Math.round(x).toLocaleString('en-US');
 const n1 = (x) => (Math.round(x * 10) / 10).toLocaleString('en-US');
 const pc = (x) => (x == null ? '—' : `${Math.round(x * 100)} %`);
+const pc1 = (x) => `${(Math.round(x * 1000) / 10).toLocaleString('en-US')} %`;
 const sg = (x) => (x >= 0 ? `+${n0(x)}` : `−${n0(-x)}`);
-const e = (k, c = 'media', i = 1) => esc[i].esperado[c];
-const E1 = esc[1];
 const cs = rec.topes.gratuito;
+const tc = opt.tabla_cupo_gratis;
+const sp = sensPrecio;
+const prS = (p) => ep.servicio.find((x) => x.precio === p);
+const prL = (p) => ep.salon.find((x) => x.precio === p);
+const filaPrecio = (f, plan) => `| **${f.precio}** | ${curvas.map((c) => `${n1(f.por_curva[c].pagantes)}`).join(' · ')} | ${curvas.map((c) => sg(f.por_curva[c].margen_operacion)).join(' · ')} | ${curvas.map((c) => sg(f.por_curva[c].margen_despues_de_captacion)).join(' · ')} | ${curvas.map((c) => sg(f.por_curva[c].margen_operacion_sin_anuncios)).join(' · ')} | ${n1(f.por_curva.media.equilibrio_pagantes_sin_anuncios ?? 0)} | ${f.por_curva.pesimista.sin_perdidas_con_anuncios && f.por_curva.media.sin_perdidas_con_anuncios ? 'sí' : 'no'} · ${f.por_curva.pesimista.sin_perdidas_sin_anuncios && f.por_curva.media.sin_perdidas_sin_anuncios ? 'sí' : 'no'} |`;
+const cif = (id) => res.cifras.find((f) => f.clave === id);
+const fmtCif = (f) => { const r = (x) => (x == null ? '—' : f.clave === 'comensales_al_mes' || f.clave === 'clientes_potenciales' || f.clave === 'restaurantes_que_caben' ? n0(x) : f.clave.startsWith('margen') ? sg(x) : n1(x)); return `| ${f.nombre} (${f.unidad}) | **${r(f.recomendado)}** | ${r(f.peor)} | ${r(f.mejor)} | ${f.nota} |`; };
+const filaTG = (x) => `| ${n0(x.n)} | ${n0(x.comensales_mes)} | ${n0(x.costo_sin_anuncios)} | ${sg(x.con_anuncios.baja.margen)} | ${sg(x.con_anuncios.adverso.margen)} | ${sg(x.con_anuncios.medio.margen)} | ${x.escalon}${x.extrapolacion_sin_medir ? ' (extrapolación)' : ''} |`;
+const b1000 = bolsas[1];
+const chq = chequeo.mes12;
+const lineaDef = '**Recomendado** (vino) = curva de pago media (la mediana de Master Chef es el precio de Meniu Business, 225) y anuncios en la tarifa baja ya en marcha · **Peor** (rojo) = curva pesimista y todavía sin anuncios (temporal) · **Mejor** (verde) = curva optimista y anuncios en la tarifa media.';
 
 // ------------------------------------------------------------------ informe del modelo
-const filaFirme = (r) => `| ${r.n.toLocaleString('en-US')} | ${sg(r.peor_firme.margen_operacion)} | ${sg(r.peor_anuncios_tarifa_baja.margen_operacion)} | ${sg(r.peor_anuncios_adversos.margen_operacion)} | ${sg(r.peor_anuncios_tarifa_media.margen_operacion)} |`;
-const filaEsp = (r) => `| ${r.n.toLocaleString('en-US')} | ${curvas.map((c) => `${n0(r.esperado[c].pagantes)} de paga · **${sg(r.esperado[c].margen_operacion)}** (${pc(r.esperado[c].margen_pct)})`).join(' | ')} | ${sg(r.mejor.margen_operacion)} (${pc(r.mejor.margen_pct)}) |`;
-const filaCapt = (r) => `| ${r.n.toLocaleString('en-US')} | ${curvas.map((c) => `${sg(r.esperado[c].margen_operacion)} → **${sg(r.esperado[c].margen_despues_de_captacion)}**`).join(' | ')} |`;
-const cupo = opt.tabla_cupo_gratis.map((x) => (x.sin_solucion ? `| ${pc(x.cupo_gratis_minimo)} | sin solución | | | | |` : `| **${pc(x.cupo_gratis_minimo)}** | ${x.mesas} mesas · ${x.cuentas} cuentas · ${x.platillos} platillos | ${pc(x.dentro_real)} | ${x.precio_servicio} (meseta ${x.meseta_precio[0]}–${x.meseta_precio[1]}) | ${n0(x.pagantes)} | **${n0(x.margen)}** |`)).join('\n');
-const sensTabla = (sens) => sens.filas.slice(0, 10).map((f) => `| ${f.supuesto} | ${sg(f.margen_con_mitad)} | ${sg(f.margen_con_mitad_mas)} | ${n0(f.efecto)} |`).join('\n');
-const sp = sensPrecio;
-const filaSP = (c) => `| ${c} | **${sp[c].base}** | ${sp[c].mediana.bajo}–${sp[c].mediana.alto} | ${sp[c].sigma.bajo}–${sp[c].sigma.alto} | ${sp[c].soporte[0]} · ${sp[c].soporte[30]} · ${sp[c].soporte[150]} |`;
-const py = (c, m) => proy[c].filas.find((f) => f.mes === m);
-const filaProy = (m) => `| ${m} | ${n0(py('media', m).restaurantes)} | ${n0(py('media', m).pagantes)} | ${curvas.map((c) => `${sg(py(c, m).margen_operacion)} → ${sg(py(c, m).margen_despues_de_captacion)}`).join(' | ')} | ${py('media', m).escalon}${py('media', m).extrapolacion_sin_medir ? ' (extrapolación)' : ''} |`;
-const tr = opt.sensibilidad_traslape;
+const tcFila = (x) => `| **${pc(x.seguridad)}** | ${x.mesas} mesas · ${x.cuentas} cuentas · ${x.platillos} platillos | ${pc1(x.seguridad_real)} | ${pc(x.dentro_de_todos)} | ${n0(x.margen)} |`;
+const topesFila = (t) => `| **${pc(t.nivel)}** | ${t.mesas} mesas · ${t.cuentas} cuentas | ${pc(t.seguridad_chico.centro)} (${pc(t.seguridad_chico.min)}–${pc(t.seguridad_chico.max)}) | ${pc(t.dentro_todos.centro)} (${pc(t.dentro_todos.min)}–${pc(t.dentro_todos.max)}) | ${pc(t.fuga_de_mas_de_10_personas.centro)} (hasta ${pc(t.fuga_de_mas_de_10_personas.max)}) |`;
+const consFila = (t) => (t.sin_solucion ? '' : `| **${pc(t.nivel)}** | ${t.mesas} mesas · ${t.cuentas} cuentas | ≥ ${pc(t.seguridad_minima)} | ${pc(t.dentro_todos.centro)} | hasta ${pc(t.fuga_de_mas_de_10_personas.max)} |`);
+const sensFilas = (sn, k = 8) => sn.filas.slice(0, k).map((f) => `| ${f.frase} | ${n0(f.efecto)} |`).join('\n');
+const proyFila = (m) => `| ${m} | ${n0(mes(proy.media, m).restaurantes)} | ${n0(mes(proy.media, m).pagantes)} | ${sg(mes(proyPeor, m).margen_operacion)} | **${sg(mes(proy.media, m).margen_operacion)}** | ${sg(mes(proyMejor, m).margen_operacion)} | ${mes(proy.media, m).escalon}${mes(proy.media, m).con_anuncios ? '' : ' (sin anuncios)'} |`;
 
-const md = `# Modelo de escenarios de Carta: variables globales, tres casos y qué supuestos mandan
+const md = `# Modelo de escenarios de Carta: la segmentación de Calvin, el peor caso real y qué hay que medir
 
-**Fecha:** 14 de noviembre de 2026 (revisado el mismo día tras la ronda de la maestra) · **Rama:** \`agente/planes-precio-historial\` · **Estado:** modelo en código para decidir; la v1 no cobra ni tiene planes. **Este documento lo genera \`2026-11-14-corre-escenarios.mjs\` desde el modelo: ninguna cifra se transcribe a mano.**
-**Código:** [\`…-modelo-de-escenarios.mjs\`](2026-11-14-modelo-de-escenarios.mjs) · **Parámetros:** [\`…-parametros.json\`](2026-11-14-parametros.json) (${Object.keys(par.parametros).length}; cada uno con valor, rango, origen, fuente y si mueve el resultado) · **Pruebas:** [\`…-pruebas.mjs\`](2026-11-14-pruebas.mjs) · **Resultados:** [\`…-modelo-de-escenarios-resultados.json\`](2026-11-14-modelo-de-escenarios-resultados.json).
+**Fecha:** 14 de noviembre de 2026 (tercera vuelta) · **Rama:** \`agente/planes-precio-historial\` · **La v1 no cobra ni tiene planes.** Este documento lo genera \`2026-11-14-corre-escenarios.mjs\` desde el modelo: ninguna cifra se transcribe a mano.
 
-**Qué cambió con la revisión** (*antes decía… la revisión mostró…*): (1) *«el óptimo coincide con lo que Calvin ya decidió»* → **los topes del gratuito son consecuencia de cuánto cupo gratis se exige (decisión de Calvin), no un óptimo**; (2) *Master Chef 249 «óptimo»* → **una meseta** y un precio de Chef Ejecutivo que **no sale de la optimización**; (3) *163 / 218 / 580* → **un rango de ≈ 110 a 850 que depende de la curva de pago, que es supuesto**; (4) *los anuncios sostenían el peor caso* → **el peor caso firme es sin anuncios**; los anuncios son **condicionales** (no están aprobados ni construidos); (5) se añadieron soporte del gratuito, bajas, costo de conseguir un cliente, sueldos e impuestos, y el margen se da **antes y después de captación**.
-**Cambios de API (para la sesión que lo incrusta):** los anuncios **no suman** salvo que \`supuestos.anuncios_aprobados = true\` o \`opc.anunciosAprobados = true\` (antes sumaban con sólo \`config.anuncios.activo\`); \`configBase()\` ahora es un alias de \`configInicial()\` (la recomendada **sin anuncios**; antes era otra); \`margen.pesos\` sigue siendo el de operación y se añaden \`margen_operacion\`, \`margen_despues_de_captacion\`, \`margen_neto\`, \`se_paga_solo\`, \`extrapolacion_sin_medir\`, \`valores_esperados\`, \`sensibilidad()\` y \`sensibilidadPrecioOptimo()\`; \`precioOptimo\` devuelve \`meseta\`; \`optimizar\` devuelve \`tabla_cupo_gratis\`, \`meseta_precio_servicio\`, \`precio_salon\` y \`sensibilidad_traslape\` (ya no devuelve \`sensibilidad\`, que pasó a \`sensibilidad()\`).
+## Conclusiones
 
-**Marcas.** *medido* · *documento* · *fuente* · ***supuesto*** · *sin dato*. Pesos al mes antes de IVA. Planes: **Chef** (gratis), **Master Chef**, **Chef Ejecutivo** (nombre propuesto; el prototipo, \`admin-onboarding.jsx\` paso 3, sólo trae los dos primeros). Configuración con que sale todo: **«${rec.nombre}»**: Master Chef ${rec.precios.servicio}, Chef Ejecutivo ${rec.precios.salon}, Chef con ${cs.mesas} mesas, ${cs.cuentas} cuentas y ${cs.platillos} platillos, 12 meses de historial en línea para la paga, **sin anuncios**. Los clientes son **valores esperados** (pueden ser fracciones).
+1. **Chef (gratis) = 91,048 negocios (86.8 %): 15 mesas, 4 cuentas y 150 platillos dejan dentro al ${pc(mejor.seguridad_chico)} de los negocios de hasta 10 personas** (intervalo del modelo ${pc(M.seguridadChico(rec, s, 'minimo'))}–100 %); Master Chef 13,614 (13.0 %); Chef Ejecutivo 220 (0.2 %).
+2. **Master Chef a 225 (pegado a Meniu) y Chef Ejecutivo a 1,099 quedan sin pérdidas con anuncios en marcha en las tres curvas; sin anuncios sólo con la curva media o mejor:** ${sg(E(1000, 'media').margen_operacion)} al mes con 1,000 restaurantes con anuncios, ${sg(M.evaluar(rec, s, 1000, { curva: 'media', sinAnuncios: true }).margen_operacion)} sin ellos (curva media) y ${sg(M.evaluar(rec, s, 1000, { curva: 'pesimista', sinAnuncios: true }).margen_operacion)} con la pesimista.
+3. **Peor caso real (todos gratuitos): con 1,000 pesos al mes de su bolsa Calvin carga hasta ${n0(b1000.restaurantes)} restaurantes gratuitos y ${n1(b1000.comensales_mes / 1e6)} millones de comensales al mes (simulados); con anuncios se paga solo desde ${nsolo.baja} restaurantes (tarifa baja), ${nsolo.medio} (media) y ${n0(nsolo.adverso)} (adverso: mitad de tarifa y 30 % de visitas).**
+4. **Margen con 1,000 restaurantes (operación): ${sg(res.cifras.find((f) => f.clave === 'margen_de_operacion').recomendado)} recomendado · ${sg(res.cifras.find((f) => f.clave === 'margen_de_operacion').peor)} peor · ${sg(res.cifras.find((f) => f.clave === 'margen_de_operacion').mejor)} mejor** pesos al mes; después de captación ${sg(res.cifras.find((f) => f.clave === 'margen_despues_de_captacion').recomendado)} · ${sg(res.cifras.find((f) => f.clave === 'margen_despues_de_captacion').peor)} · ${sg(res.cifras.find((f) => f.clave === 'margen_despues_de_captacion').mejor)}.
+5. **Qué dato medir primero en el piloto: ${sens.medir_primero.slice(0, 3).map((x) => x.supuesto).join(', ')}** (§6); y el escalón sube de Hobby a Pro de 2 procesos hacia el mes ${proy.media.filas.find((f) => f.escalon === 'pro_2').mes} (§7 y las [banderas de operación](2026-11-14-banderas-de-operacion.md)).
 
----
+${lineaDef}
 
-## 0. Conclusiones
+**Qué cambió respecto a la vuelta anterior.** Los anuncios ya no son un interruptor: **el plan gratuito lleva anuncios** (decisión de Calvin) y lo que varía es **cuándo llegan** (\`mes_inicio_anuncios\`, hoy ${s.mes_inicio_anuncios}: no antes de construirlos y de que la red apruebe el sitio) y **cuánto dejan**. El peor caso «todo gratuito y sin anuncios» pasó de «peor caso» a **periodo temporal** que paga Calvin. Los planes dejaron de definirse por 10 mesas y 3 cuentas y pasaron a **la segmentación de Calvin** (por tamaño del negocio, traducida a topes).
 
-- **El peor caso firme es sin anuncios y pierde dinero:** ${sg(esc[0].peor_firme.margen_operacion)} / ${sg(esc[1].peor_firme.margen_operacion)} / ${sg(esc[2].peor_firme.margen_operacion)} pesos al mes con 100 / 1,000 / 10,000 restaurantes. **Los anuncios no están aprobados ni construidos** (la política de seguridad del sitio no los permite; hace falta un ADR, abrirla y cambiar el aviso de privacidad, [anuncios §3.6–3.7]). Si algún día se aprueban, el caso **condicional** da ${sg(esc[0].peor_anuncios_tarifa_baja.margen_operacion)} / ${sg(esc[1].peor_anuncios_tarifa_baja.margen_operacion)} / ${sg(esc[2].peor_anuncios_tarifa_baja.margen_operacion)} con la tarifa «baja» y anuncio en todas las visitas, **pero con la tarifa a la mitad y anuncio en el 30 % de las visitas** baja a ${sg(esc[0].peor_anuncios_adversos.margen_operacion)} / ${sg(esc[1].peor_anuncios_adversos.margen_operacion)} / ${sg(esc[2].peor_anuncios_adversos.margen_operacion)}. **La tarifa «baja» no es una cota inferior.**
-- **Margen esperado con 1,000 restaurantes** (operación; curvas pesimista · media · optimista): **${curvas.map((c) => sg(E1.esperado[c].margen_operacion)).join(' · ')}** pesos al mes; **después de captación** (bajas ${pc(s.churn_mensual)} al mes y ${s.cac} pesos por cliente de paga, *sin dato: supuesto de trabajo*): **${curvas.map((c) => sg(E1.esperado[c].margen_despues_de_captacion)).join(' · ')}**. No incluye sueldos ni impuestos (parámetros en 0).
-- **Mejor caso (todos pagan, 1,000):** ${sg(E1.mejor.margen_operacion)} pesos al mes; **exige repetir la pila de servidores** (extrapolación sin medir).
-- **Los topes del gratuito dependen de cuánto quieres atender gratis:** para que **quepa gratis el 50 / 60 / 70 / 80 %** los topes son **${opt.tabla_cupo_gratis.map((x) => `${x.mesas} mesas y ${x.cuentas} cuentas`).join(' / ')}** y el margen es **${opt.tabla_cupo_gratis.map((x) => n0(x.margen)).join(' / ')}** (§4). *No hay un óptimo: cada 10 puntos de cupo gratis cuestan ≈ ${n0((opt.tabla_cupo_gratis[0].margen - opt.tabla_cupo_gratis[3].margen) / 3)} pesos al mes con 1,000.* Con traslape de topes 0.5, los mismos topes dejan dentro ${pc(tr[0.5].dentro_con_topes_recomendados)} (no ${pc(tr[0].dentro_con_topes_recomendados)}); con 1, ${pc(tr[1].dentro_con_topes_recomendados)}.
-- **El precio de Master Chef es una meseta, no un punto:** con la curva media el margen por restaurante que rebasa topes cambia **menos de 2 %** entre **${precios.media.meseta.desde} y ${precios.media.meseta.hasta}**; el optimizador completo da **${mejor.mejor_precio}** (meseta ${mejor.meseta[0]}–${mejor.meseta[1]}). Pero **el precio óptimo depende de la curva (mediana, sigma, techo), que es supuesto**: con la mediana ±50 % va de ${sp.pesimista.mediana.bajo} a ${sp.pesimista.mediana.alto} (pesimista), ${sp.media.mediana.bajo} a ${sp.media.mediana.alto} (media) y ${sp.optimista.mediana.bajo} a ${sp.optimista.mediana.alto} (optimista): **un rango de ≈ 110 a 850 pesos**. **El dato que lo sustituye es la prueba de precio del piloto.**
-- **Qué supuesto mueve más el margen** (±50 %, 1,000 restaurantes, firme): **${sensFirme.filas[0].supuesto}** (${n0(sensFirme.filas[0].efecto)} pesos), **${sensFirme.filas[1].supuesto}** (${n0(sensFirme.filas[1].efecto)}) y **${sensFirme.filas[2].supuesto}** (${n0(sensFirme.filas[2].efecto)}). Con anuncios aprobados, ${sensCond.filas[0].supuesto} y ${sensCond.filas[1].supuesto} pasan al frente.
-- **Más allá de ≈ ${n0(nArq)} restaurantes registrados (curva media) hace falta otra arquitectura:** todo costo de ahí en adelante es **extrapolación sin medir**; el modelo lo marca (\`requiere_arquitectura\`, \`extrapolacion_sin_medir\`).
+**Cambios de API del \`.mjs\` (para quien lo incrusta).** (1) \`configInicial()\` / \`configBase()\` ahora es **«segmentación de Calvin»** (Master Chef 225, Chef Ejecutivo 1,099, Chef 15 mesas · 4 cuentas · 150 platillos); la anterior es \`configTopes10Mesas3Cuentas()\`. (2) **Quitado el interruptor** \`anuncios_aprobados\`: los anuncios **suman en régimen**; \`opc.sinAnuncios = true\` evalúa el periodo sin ellos; \`opc.anunciosAprobados === false\` sigue funcionando como alias de \`sinAnuncios\`. (3) \`parteRebasa\` usa el modelo conjunto de mesas y cuentas (\`empuja_conjunto\`, con intervalo); se quitaron \`traslape_topes\`, \`empuja_mesas\`, \`empuja_cuentas\` y \`restriccion_min_dentro\`; \`optimizar\` se rige por \`restriccion_seguridad_chico\`. (4) \`conversion(curva, precio, s, plan)\` y \`precioOptimo(…, plan)\` usan \`curvas_pago_salon\` para Chef Ejecutivo. (5) Nuevas funciones: \`todosGratuitos\`, \`tablaTodosGratuitos\`, \`nSePagaSolo\`, \`capacidadConBolsa\`, \`resumen\`, \`evaluarPrecios\`, \`banderas\`, \`seguridadChico\`, \`parteSalon\`, \`interp2\`. (6) \`proyectar\` mete los anuncios desde \`mes_inicio_anuncios\` y devuelve \`financiamiento_maximo\`. (7) \`sensibilidad\` trae \`frase\` y \`medir_primero\`.
 
 ---
 
-## 1. Peor caso: firme y condicional (margen de operación al mes)
+## 1. La segmentación de Calvin, traducida a topes
 
-| Restaurantes | **Peor firme: todos gratuitos, sin anuncios** | Condicional: anuncios aprobados, tarifa baja, 100 % de visitas | Condicional adverso: tarifa a la mitad y 30 % de visitas | Condicional: tarifa media |
+**Clientes potenciales = 104,882** (DENUE, mayo de 2026 [medido]). **Chef (gratis)** = 0–5 y 6–10 personas: **91,048 (86.8 %)** · **Master Chef** = 11–30, 31–50 y 51–100: **13,614 (13.0 %)** · **Chef Ejecutivo** = 101–250 y 251 o más: **220 (0.2 %)**.
+
+**Carta no sabe cuánta gente trabaja en un negocio**, así que la frontera se traduce a **topes que el producto sí aplica**, con el modelo de mesas y cuentas de la estadística de cartas (cuentas = ⌈f × personas⌉ con f = 0.35 a 0.50; mesas = cuentas × 2.5 a 4) aplicado a los estratos medidos. **Todo esto es supuesto (modelo, no estadística): el intervalo muestra los extremos del modelo.**
+
+**¿Con qué topes un negocio de hasta 10 personas queda dentro del gratuito?** (central; entre paréntesis, el intervalo del modelo)
+
+| Seguridad que se quiere | Topes de Chef (mesas · cuentas) | Seguridad real | Parte de TODOS los registrados que queda dentro | Negocios de más de 10 personas que se cuelan gratis |
 |---|---|---|---|---|
-${esc.map(filaFirme).join('\n')}
+${seg.topes_chef.map(topesFila).join('\n')}
 
-Sólo el **primer** caso existe hoy. Los otros tres **suponen** que los anuncios se aprueben y se construyan. Costo de atender a un cliente gratuito: **${n1(E1.peor_firme.costo_por_gratuito)} pesos** con 1,000 restaurantes (incluye ${s.soporte_gratuito} de soporte, *supuesto de trabajo*: con 1 peso el peor caso empeora 500 pesos al mes con 1,000 restaurantes).
+**Versión conservadora** (la seguridad vale aun en el peor rincón del modelo):
 
-**Por cada cliente de paga, cuántos gratuitos se sostienen** (sin anuncios; margen del cliente de paga ÷ costo del gratuito): **${esc.map((r) => `${n0(r.esperado.media.gratuitos_por_pagante_sin_anuncios)}`).join(' / ')}** con 100 / 1,000 / 10,000 restaurantes, configuración recomendada, curva media. Con anuncios **aprobados** cada gratuito se paga solo si deja más de lo que cuesta (\`se_paga_solo = true\`, \`gratuitos_por_pagante = null\`).
-
-## 2. Esperado y mejor caso (operación, y después de captación)
-
-| Restaurantes | Pesimista | Media | Optimista | Mejor: todos pagan |
+| Seguridad que se quiere | Topes de Chef | Seguridad mínima | Dentro (todos) | Se cuelan gratis |
 |---|---|---|---|---|
-${esc.map(filaEsp).join('\n')}
+${seg.topes_chef_conservador.map(consFila).join('\n')}
 
-**Operación → después de captación** (reponer bajas del ${pc(s.churn_mensual)} mensual a ${s.cac} pesos por cliente; *sin dato*):
+**Con el tope de platillos** (un negocio chico puede tener carta larga: 150 platillos deja pasar al ≈ 98 %) **la configuración inicial queda en 15 mesas · 4 cuentas · 150 platillos con ${pc1(mejor.seguridad_chico)} de seguridad** (el optimizador la elige: es la de mayor margen que cumple 95 %). **Master Chef** cubre hasta 100 mesas y 30 cuentas (≈ 98 % de los negocios de 11 a 100 personas; arriba de ahí, ≈ ${pc1(seg.topes_master_chef[2].parte_de_los_registrados_arriba.centro)} de los registrados, que es Chef Ejecutivo). **Chef Ejecutivo** exige subir hoy el tope técnico de **50 cuentas activas** (T-1.6): un negocio de 101 a 250 personas tiene 36 a 125 cuentas de mesero o capitán en el modelo (**cambio de código, no de este informe**).
 
-| Restaurantes | Pesimista | Media | Optimista |
-|---|---|---|---|
-${esc.map(filaCapt).join('\n')}
-
-«Esperado» es un **rango de tres curvas**, no un intervalo estadístico. **Ingreso y costo por cliente (1,000, media):** gratuito ${n1(E1.esperado.media.ingreso_por_gratuito)} pesos de ingreso (sin anuncios) y ${n1(E1.esperado.media.costo_por_gratuito)} de costo; cliente de paga ${n0(E1.esperado.media.ingreso_por_pagante)} de ingreso y ${n0(E1.esperado.media.costo_por_pagante)} de costo.
-
----
-
-## 3. El precio de Master Chef: meseta, no punto, y depende de la curva
-
-| Curva | Precio óptimo | **Meseta** (margen a menos de 2 %) | Conversión en el óptimo |
-|---|---|---|---|
-${curvas.map((c) => `| ${c} | **${precios[c].precio}** | **${precios[c].meseta.desde} a ${precios[c].meseta.hasta}** | ${pc(precios[c].conversion)} |`).join('\n')}
-
-**Sensibilidad del precio óptimo a los supuestos de la curva:**
-
-| Curva | Óptimo base | Mediana −50 % a +50 % | Sigma −50 % a +50 % | Soporte 0 · 30 · 150 |
+| Seguridad exigida a Chef | Topes | Seguridad real | Dentro de todos | Margen (1,000 restaurantes, curva media) |
 |---|---|---|---|---|
-${curvas.map(filaSP).join('\n')}
+${tc.map(tcFila).join('\n')}
 
-**El óptimo es tan bueno como la curva.** Las medianas de la curva son **precios de lista de otros productos** (${s.curvas_pago.pesimista.mediana} Neolo, ${s.curvas_pago.media.mediana} la mediana de menú QR con pedidos, ${s.curvas_pago.optimista.mediana} Fudo Avanzado, un punto de venta que Carta no es); sigma y techo se eligieron. **Reportar 163 / 218 / 580 como tres puntos sería falso: es un rango de ≈ 110 a 850 pesos.**
+## 2. Precios: Master Chef pegado a Meniu, Chef Ejecutivo hacia arriba
 
-**Segundo anclaje de la disposición a pagar: lo que ya gastan (INEGI, [lo que paga un restaurante](2026-11-14-lo-que-paga-un-restaurante.md)).** La mediana de la curva media (${s.curvas_pago.media.mediana}) es **${n1(ancla.curva_media_como_pct_del_ingreso_0_10)} % del ingreso** de un negocio de 0 a 10 personas (107,450 al mes), **dentro de la franja de 0.15 % a 0.30 %** que cuestan los menús QR con pedidos: **los dos anclajes se parecen en la curva media**. La optimista (${s.curvas_pago.optimista.mediana}) es ${n1(ancla.optimista_mediana_pct_0_10)} % del ingreso del chico (**fuera** de esa franja, en la de los puntos de venta, 0.61 % a 0.93 %) pero sólo ${n1(ancla.optimista_mediana_pct_11_50)} % del de 11 a 50 personas (**dentro** de la franja de los POS, 0.09 % a 0.14 %): **la curva optimista sólo describe a los de 11 a 50**. El único dato que sustituye ambos anclajes es la **prueba de precio del piloto**.
+Cada precio con tres curvas (pesimista · media · optimista), **1,000 restaurantes registrados**. «Sin pérdidas» = margen de operación **y** después de captación ≥ 0 (con anuncios en marcha · sin anuncios todavía).
 
-### 3.1 Margen contra precio (1,000 restaurantes, operación) y arrepentimiento
+| Master Chef | Pagantes de Master Chef | Margen de operación (con anuncios) | Después de captación | Margen de operación **sin anuncios** | Equilibrio sin anuncios (pagantes) | ¿Sin pérdidas? (con anuncios · sin) |
+|---|---|---|---|---|---|---|
+${ep.servicio.map((f) => filaPrecio(f, 'servicio')).join('\n')}
 
-| Precio de Master Chef | Pesimista | Media | Optimista | Arrepentimiento máximo | Arrepentimiento esperado (25/50/25 %) |
-|---|---|---|---|---|---|
-${listaPrecios.map((p) => `| ${p} | ${n0(margenPrecio[p].pesimista.margen)} | ${n0(margenPrecio[p].media.margen)} | ${n0(margenPrecio[p].optimista.margen)} | ${n0(arrepentimiento[p].maximo)} | ${n0(arrepentimiento[p].esperado)} |`).join('\n')}
+| Chef Ejecutivo | Pagantes de Chef Ejecutivo | Margen de operación (con anuncios) | Después de captación | Margen de operación **sin anuncios** | Equilibrio sin anuncios (pagantes) | ¿Sin pérdidas? (con anuncios · sin) |
+|---|---|---|---|---|---|---|
+${ep.salon.map((f) => filaPrecio(f, 'salon')).join('\n')}
 
-**Chef Ejecutivo:** el precio **no sale de la optimización**: con la mejor configuración, mover Chef Ejecutivo de ${opt.precio_salon.curva_de_precio[0][0]} a ${opt.precio_salon.curva_de_precio[5][0]} cambia el margen en **${n0(opt.precio_salon.diferencia_max_min)} pesos al mes** (menos de 2 %); los ${rec.precios.salon} son **«sugeridos por regla»** (3 × piso con soporte de ${s.soporte_salon}).
+**Lectura.** (1) **Los tres precios altos de Chef Ejecutivo cambian el margen menos de 2 %**: sólo ≈ ${n1(M.evaluar(rec, s, 1000, { curva: 'media' }).clientes.salon)} negocio de cada 1,000 es de ese tamaño; su precio **no se decide por margen sino por posicionamiento** (1,099 es lo que cuestan OlaClick Elite y Last.app; 1,599 es el extremo alto sin llegar a Last.app Unlimited, 2,900). (2) **Master Chef: 199 a 299 cambia el margen en menos de 2 %**, pero **cambia los pagantes** (de ${n0(prS(199).por_curva.media.pagantes)} a ${n0(prS(299).por_curva.media.pagantes)} con la curva media): como Calvin quiere captar sin pérdidas, **225 (el precio de Meniu) capta ${n0(prS(225).por_curva.media.pagantes)} y deja ${sg(prS(225).por_curva.media.margen_operacion)} al mes**. (3) **Sin pérdidas con qué supuestos:** (a) con anuncios en marcha sí en las tres curvas **si la tarifa baja y el 60 % de visitas con anuncio se cumplen** (supuestos sin dato); (b) **sin anuncios, ningún precio evita la pérdida con 1,000 restaurantes si la curva es pesimista** (${sg(prS(225).por_curva.pesimista.margen_operacion_sin_anuncios)} al mes): ese periodo lo paga Calvin.
 
----
+**Meseta y curva de pago.** Con la curva media, el margen por restaurante que rebasa topes cambia menos de 2 % entre **${precios.media.meseta.desde} y ${precios.media.meseta.hasta}**; con la mediana ±50 % el precio óptimo va de ${sp.media.mediana.bajo} a ${sp.media.mediana.alto}. **El óptimo es tan bueno como la curva (supuesto); lo sustituye la prueba de precio del piloto.**
 
-## 4. Topes del plan gratuito: consecuencia del cupo que se exige, no un óptimo
+## 3. La pregunta del peor caso: todos gratuitos
 
-\`restriccion_min_dentro\` (hoy ${pc(s.restriccion_min_dentro)}, **decisión de Calvin**, rango 40–80 %) y \`traslape_topes\` (hoy ${s.traslape_topes}; rango 0 a 1) son **parámetros visibles**. Con traslape 0 sólo cuenta el tope más estricto (por eso cuentas y platillos casi no mueven nada); con más traslape cada tope suma. Si quieres que quepa gratis…
+*«¿Hasta qué punto puedo tener restaurantes que todos son gratuitos, cuántos comensales, y todavía sostener el sistema con sólo anuncios?»* Todos los registrados son gratuitos (nadie paga). **Comensales al mes** = restaurantes × ${s.comensales_dia_gratuito} comensales al día × 30; el dato por restaurante sale del **simulador de uso (perfiles supuestos), no está medido**, y es más alto de lo que tendría una fonda de 0 a 5 personas. «Costo al mes» = servidor, almacenamiento y soporte (${s.soporte_gratuito} pesos por gratuito, supuesto): **lo que pone Calvin mientras no hay anuncios**.
 
-| Cupo gratis mínimo | Topes del gratuito | Dentro real | Precio Master Chef | Pagantes (media, 1,000) | **Margen al mes** |
-|---|---|---|---|---|---|
-${cupo}
+| Restaurantes gratuitos | Comensales al mes (simulado) | **Costo al mes sin anuncios** (pone Calvin) | Resultado con anuncios, tarifa baja | Adverso (mitad de tarifa, 30 % de visitas) | Tarifa media | Escalón de servidor |
+|---|---|---|---|---|---|---|
+${tg.medida.map(filaTG).join('\n')}
+| *Zona extrapolada (sin medir)* | | | | | | |
+${tg.extrapolada_sin_medir.map(filaTG).join('\n')}
 
-**Sensibilidad al traslape** (mismos topes de ${cs.mesas} mesas y ${cs.cuentas} cuentas): con 0 queda dentro ${pc(tr[0].dentro_con_topes_recomendados)} y el margen es ${n0(tr[0].margen_con_topes_recomendados)}; con 0.5, ${pc(tr[0.5].dentro_con_topes_recomendados)} y ${n0(tr[0.5].margen_con_topes_recomendados)}; con 1, ${pc(tr[1].dentro_con_topes_recomendados)} y ${n0(tr[1].margen_con_topes_recomendados)}. **Los números de mesas y cuentas son modelo, no estadística** (estadística de cartas §4.3).
+**Respuesta en una frase:** **con ${n0(b1000.bolsa)} pesos al mes de mi bolsa puedo cargar hasta ${n0(b1000.restaurantes)} restaurantes gratuitos y ${n1(b1000.comensales_mes / 1e6)} millones de comensales al mes; desde que hay anuncios, el sistema se paga solo a partir de ${nsolo.baja} restaurantes con la tarifa baja (${nsolo.medio} con la media), y con el caso adverso (mitad de tarifa y 30 % de visitas) **no se paga solo hasta ${n0(nsolo.adverso)} restaurantes**: con menos que eso, la bolsa de Calvin sigue poniendo la diferencia.** Con 500 / 2,000 / 5,000 pesos de bolsa: ${bolsas.map((b) => `${n0(b.bolsa)} → ${n0(b.restaurantes)} restaurantes${b.tope_medido ? ' (tope medido)' : ''}`).join(' · ')}.
 
----
+**Requisitos para que empiecen los anuncios** (\`mes_inicio_anuncios\` = ${s.mes_inicio_anuncios}, supuesto de trabajo): un ADR; abrir la política de seguridad del sitio (\`script-src 'self'\`); cambiar el aviso de privacidad; que la red apruebe el sitio ([anuncios §3.6–3.7](2026-11-13-anuncios-y-capa-del-comensal.md)); y que **no sean personalizados** (regla dura 10).
 
-## 5. Qué supuesto mueve más el resultado (cada uno ±50 %, 1,000 restaurantes, curva media)
+## 4. Todas las cifras en tres casos
 
-**Firme (sin anuncios), margen de operación; base ${n0(sensFirme.base)}:**
+${lineaDef}
 
-| Supuesto | Con la mitad | Con 1.5 veces | Efecto (pesos) |
-|---|---|---|---|
-${sensTabla(sensFirme)}
-
-**Condicional (anuncios aprobados, tarifa baja); base ${n0(sensCond.base)}:**
-
-| Supuesto | Con la mitad | Con 1.5 veces | Efecto |
-|---|---|---|---|
-${sensTabla(sensCond)}
-
----
-
-## 6. Escalabilidad en el tiempo (adopción **supuesta**: ${s.meta_12_meses} restaurantes a 12 meses, ${s.meta_24_meses} a 24)
-
-Margen de **operación → después de captación** (bajas ${pc(s.churn_mensual)} y ${s.cac} pesos por cliente de paga; **sin dato**) por curva (pesimista · media · optimista):
-
-| Mes | Restaurantes | De paga (media) | Margen al mes: ${curvas.join(' · ')} | Escalón (media) |
+| Cifra | Recomendado | Peor | Mejor | Qué es |
 |---|---|---|---|---|
-${[6, 12, 18, 24, 36].map(filaProy).join('\n')}
+${res.cifras.map(fmtCif).join('\n')}
 
-**Primer mes con margen positivo (curva media):** de operación **${proy.media.mes_primer_margen_positivo}**; después de captación **${proy.media.mes_primer_margen_positivo_despues_de_captacion ?? 'nunca en 36 meses'}**. *Es un artefacto de la curva de adopción supuesta y del costo de captación sin dato: no es una predicción.* **Extrapolación:** desde ≈ ${n0(nArq)} restaurantes registrados hace falta otra arquitectura; con 5,000 y 100,000 el modelo da instancias que **no existen** (${extra[2].instancias} y ${n0(extra[3].instancias)}) y esos márgenes son **extrapolación sin medir**.
+*Mejor caso teórico «todos pagan» (1,000): ${sg(res.todos_pagan.margen_operacion)} pesos al mes; no se usa como cota: exigiría repetir la pila de servidores.*
 
----
+## 5. Esperado a 100, 1,000 y 10,000 restaurantes (operación → después de captación)
 
-## 7. Parámetros que no mueven nada (marcados \`mueve_resultado: false\` en el JSON)
+| Restaurantes | Peor (pesimista, sin anuncios) | Recomendado (media) | Mejor (optimista, tarifa media) |
+|---|---|---|---|
+${esc.map((r) => { const pe = M.evaluar(rec, s, r.n, { curva: 'pesimista', sinAnuncios: true }); const me = M.evaluar(rec, s, r.n, { curva: 'media' }); const mj = M.evaluar(rec, s, r.n, { curva: 'optimista', anuncios: { activo: true, tarifa: 'media' } }); return `| ${n0(r.n)} | ${sg(pe.margen_operacion)} → ${sg(pe.margen_despues_de_captacion)} | **${sg(me.margen_operacion)} → ${sg(me.margen_despues_de_captacion)}** | ${sg(mj.margen_operacion)} → ${sg(mj.margen_despues_de_captacion)} |`; }).join('\n')}
 
-${Object.entries(par.parametros).filter(([, v]) => !v.mueve_resultado).map(([k]) => `\`${k}\``).join(', ')}. Los de costo variable sólo sirven al piso del corredor; los de mercado son informativos.
+## 6. Qué supuesto mueve más el margen, en llano (1,000 restaurantes, recomendado)
 
-## 8. Límites del modelo (dichos)
+**Qué medir primero en el piloto:** ${sens.medir_primero.map((x, i) => `${i + 1}. ${x.supuesto} → ${x.como}`).join(' · ')}.
 
-- **No hay dato de disposición a pagar, de bajas ni de costo de conseguir un cliente:** son los tres supuestos que más cambian el negocio.
-- **Los muros salen de un simulador** (no de una prueba de carga), con ±2× en lo que depende del CPU de Railway.
-- **Pruebas:** \`node 2026-11-14-pruebas.mjs\` reproduce las cifras ya publicadas (equilibrio 9.7; 14, 22, 38 y 128 de paga en 5 GB; 298–299, 1,064, 1,896 y 2,116 por escalón; corredor 249, 299 y 349) y las propiedades nuevas (anuncios apagados por defecto, precio 0 sin clientes, extrapolación, orden de la sensibilidad, monotonía de la tabla de cupo).
+| Qué pasa si… | Efecto en el margen (pesos al mes) |
+|---|---|
+${sensFilas(sens)}
+
+## 7. Crecimiento mes a mes (adopción **supuesta**: ${s.meta_12_meses} restaurantes a 12 meses y ${s.meta_24_meses} a 24; anuncios desde el mes ${s.mes_inicio_anuncios})
+
+Margen de operación al mes. Peor = pesimista y sin anuncios; recomendado = media; mejor = optimista con tarifa media.
+
+| Mes | Restaurantes | De paga (recomendado) | Peor | **Recomendado** | Mejor | Escalón |
+|---|---|---|---|---|---|---|
+${[3, 6, 9, 12, 18, 24, 36].map(proyFila).join('\n')}
+
+**Primer mes con margen de operación positivo (recomendado): ${proy.media.mes_primer_margen_positivo}; después de captación: ${proy.media.mes_primer_margen_positivo_despues_de_captacion}.** **Lo más que tendría que poner Calvin, acumulado: ${n0(proy.media.financiamiento_maximo)} pesos** (peor caso: ${n0(proyPeor.financiamiento_maximo)}). *Es un artefacto de la curva de adopción supuesta y del costo de captación sin dato: no es una predicción.* **Más allá de ≈ ${n0(nArq)} restaurantes registrados hace falta otra arquitectura: todo costo de ahí en adelante es extrapolación sin medir.**
+
+## 8. Límites (dichos)
+
+- **No hay dato de disposición a pagar, de bajas ni de costo de conseguir un cliente.** El **peor caso real** depende de la tarifa de anuncios y de la parte de visitas con anuncio, que tampoco tienen dato.
+- **Los topes de mesas y cuentas son un modelo (no estadística):** el intervalo del modelo es amplio (§1).
+- **El dato de comensales por restaurante es simulado** y más alto de lo que tendría un negocio de 0 a 5 personas.
+- **Los muros salen de un simulador**, no de una prueba de carga (±2×).
+- **Pruebas:** \`node 2026-11-14-pruebas.mjs\` reproduce las cifras publicadas y prueba la segmentación, el peor caso, el resumen, las banderas y la proyección.
 `;
 writeFileSync(join(aqui, '2026-11-14-modelo-de-escenarios.md'), md);
 
+// ------------------------------------------------------------------ chequeo de márgenes
+const desg = (d) => d.partes.map((p) => `| ${p.concepto} | ${n1(p.por_cada_100)} |`).join('\n');
+const linea = (nombre, f) => `| ${nombre} | ${n0(f.fila.restaurantes)} | ${n0(f.fila.pagantes)} | ${n0(f.fila.ingresos_suscripcion)} | ${n0(f.fila.ingresos_anuncios)} | **${n0(f.fila.ingresos)}** | ${n0(f.fila.costos)} | ${n0(f.fila.captacion)} | **${sg(f.fila.margen_despues_de_captacion)}** |`;
+const chequeoMd = `# Chequeo de márgenes: mes 12 cifra por cifra y a dónde se va cada peso
+
+**Fecha:** 14 de noviembre de 2026 · **Generado por \`2026-11-14-corre-escenarios.mjs\`** desde el modelo; datos en [\`…-modelo-de-escenarios-resultados.json\`](2026-11-14-modelo-de-escenarios-resultados.json) (\`chequeo_de_margenes\`).
+
+## Conclusiones
+
+1. **El «margen de 10,000 al mes 12 en el mejor caso» venía de la versión anterior del modelo** (otro reparto de planes y curva optimista; **no se reproduce con el modelo actual**, y la cifra vieja no quedó guardada para desglosarla); **en el modelo corregido, el mejor caso del mes 12 es ${sg(chq.mejor.fila.margen_operacion)} pesos de operación** (${sg(chq.mejor.fila.margen_despues_de_captacion)} después de captación) con ${n0(chq.mejor.fila.pagantes)} clientes de paga.
+2. **Mes 12 recomendado: ingresos ${n0(chq.recomendado.fila.ingresos)}, costos ${n0(chq.recomendado.fila.costos)}, margen de operación ${sg(chq.recomendado.fila.margen_operacion)}, después de captación ${sg(chq.recomendado.fila.margen_despues_de_captacion)}** con ${n0(chq.recomendado.fila.restaurantes)} restaurantes y ${n0(chq.recomendado.fila.pagantes)} de paga.
+3. **De cada 100 pesos que entran en el mes 12 (recomendado): ${n1(chq.recomendado.desglose.partes[0].por_cada_100)} van al servidor, ${n1(chq.recomendado.desglose.partes[2].por_cada_100)} a soporte, ${n1(chq.recomendado.desglose.partes[3].por_cada_100)} a la comisión de cobro, ${n1(chq.recomendado.desglose.partes[4].por_cada_100)} a conseguir clientes y ${n1(chq.recomendado.desglose.por_cada_100_margen)} se quedan.**
+4. **Los anuncios son ${n1((100 * chq.recomendado.fila.ingresos_anuncios) / chq.recomendado.fila.ingresos)} de cada 100 pesos que entran en el mes 12 (recomendado)** y dependen de una tarifa sin dato: es la cifra que más conviene mirar dos veces.
+
+## 1. Mes 12, de dónde sale cada cifra (pesos al mes)
+
+| Caso | Restaurantes | De paga | Ingreso por suscripción | Ingreso por anuncios | **Ingresos** | Costos de operación | Conseguir clientes | **Margen después de captación** |
+|---|---|---|---|---|---|---|---|---|
+${linea('Peor (pesimista, sin anuncios)', chq.peor)}
+${linea('**Recomendado** (media, anuncios en la tarifa baja)', chq.recomendado)}
+${linea('Mejor (optimista, tarifa media)', chq.mejor)}
+
+**Cómo se calcula cada columna.** *Restaurantes* = a·t^b con 300 a 12 meses y 1,200 a 24 (**supuesto**). *De paga* = restaurantes × los que rebasan los topes (${pc1(M.parteRebasa(rec, s))}) × los que llegan a pagar según la curva, a 225 (Master Chef) y 1,099 (Chef Ejecutivo). *Suscripción* = de paga × precio. *Anuncios* = gratuitos × ${n0(s.visitas_app_gratuito)} visitas × ${pc(s.parte_visitas_con_anuncio)} con anuncio × tarifa por mil (baja ${s.anuncio_pesos_por_mil.baja}, media ${s.anuncio_pesos_por_mil.media}); **antes del mes ${s.mes_inicio_anuncios} es cero**. *Costos* = servidor del escalón (${chq.recomendado.fila.escalon}), almacenamiento, soporte (${s.soporte_gratuito} por gratuito, ${s.soporte_servicio} por Master Chef) y comisión de tarjeta. *Conseguir clientes* = altas × ${s.cac} pesos (altas = nuevos de paga + bajas del ${pc(s.churn_mensual)} mensual).
+
+## 2. De cada 100 pesos que entran (mes 12)
+
+| Concepto | Recomendado | Peor | Mejor |
+|---|---|---|---|
+${chq.recomendado.desglose.partes.map((p, i) => `| ${p.concepto} | ${n1(p.por_cada_100)} | ${n1(chq.peor.desglose.partes[i].por_cada_100)} | ${n1(chq.mejor.desglose.partes[i].por_cada_100)} |`).join('\n')}
+| **Se queda (margen después de captación)** | **${n1(chq.recomendado.desglose.por_cada_100_margen)}** | ${n1(chq.peor.desglose.por_cada_100_margen)} | ${n1(chq.mejor.desglose.por_cada_100_margen)} |
+
+**En régimen con 1,000 restaurantes (curva media):** ${n0(chequeo.regimen_1000.recomendado.ingresos)} pesos de ingresos al mes (${n0(chequeo.regimen_1000.recomendado.ingresos_detalle.suscripcion)} de suscripción y ${n0(chequeo.regimen_1000.recomendado.ingresos_detalle.anuncios)} de anuncios).
+
+## 3. Lo que este chequeo encontró
+
+- **Una cifra que sonó rara tenía explicación y se corrigió:** el «10,000 del mes 12 en el mejor caso» era de la versión anterior (más negocios grandes y pagos más altos). Con la segmentación de Calvin, sólo 0.2 % de los registrados es Chef Ejecutivo y el mejor caso del mes 12 es ${sg(chq.mejor.fila.margen_operacion)}.
+- **La suma cuadra:** ingresos − costos = margen de operación; margen de operación − conseguir clientes − sueldos = margen después de captación (prueba automática).
+- **Qué no incluye:** sueldos (0), impuestos (0) ni ningún gasto de ventas más allá de los ${s.cac} pesos por cliente de paga; **bajas y captación no tienen dato**.
+`;
+writeFileSync(join(aqui, '2026-11-14-chequeo-de-margenes.md'), chequeoMd);
+
 // ------------------------------------------------------------------ recomendaciones
-const mp = margenPrecio;
-const tc = opt.tabla_cupo_gratis;
 const D = [
-  { id: 'precio', decision: 'Precio de Master Chef (qué tan agresivo entrar y contra quién)',
-    recomendacion: `**Un rango de ${precios.media.meseta.desde} a 349 al mes antes de IVA, y lanzar en 299.** La meseta de la curva media (margen a menos de 2 % del máximo) es ${precios.media.meseta.desde}–${precios.media.meseta.hasta}; el corredor por sustituto (Meniu, Fudo Avanzado, Fudo + mesas) es 249–349. **299 queda dentro del corredor y fuera de la meseta:** frente a 249 renuncia a ${n0(mp[249].media.margen - mp[299].media.margen)} pesos al mes de margen en la curva media y gana ${n0(mp[299].optimista.margen - mp[249].optimista.margen)} en la optimista. La cuenta de arrepentimiento empujaría más arriba (${[249, 299, 349, 449].map((p) => `${p}: ${n0(arrepentimiento[p].esperado)}`).join(' · ')}), pero depende de que la curva optimista (la de quien paga como por un punto de venta) pese 25 %, y el segundo anclaje (INEGI) sólo la respalda para negocios de 11 a 50 personas: por eso **299 y no 449**. **K (qué tan agresivo entrar) es decisión de Calvin, no un cálculo.**`,
-    depende: `**De la curva de pago (mediana, sigma, techo), que es supuesto.** Con la mediana ±50 % el precio óptimo de la curva media va de ${sp.media.mediana.bajo} a ${sp.media.mediana.alto}; con soporte 0 a 150, de ${sp.media.soporte[0]} a ${sp.media.soporte[150]}. **Si falla:** si los dueños ven a Carta como un menú QR (mediana ≈ 157), el precio sostenible es ≈ 110–220 y 299 pierde clientes; si lo ven como un POS (mediana ≈ 650), 299 deja dinero sobre la mesa (el óptimo sube a ≈ 500–850).`,
-    cifras: `Margen a 1,000 (operación) a 249 / 299 / 349 / 449: pesimista ${[249, 299, 349, 449].map((p) => n0(mp[p].pesimista.margen)).join(' / ')}; media ${[249, 299, 349, 449].map((p) => n0(mp[p].media.margen)).join(' / ')}; optimista ${[249, 299, 349, 449].map((p) => n0(mp[p].optimista.margen)).join(' / ')}. Arrepentimiento esperado: ${[249, 299, 349, 449].map((p) => `${p}: ${n0(arrepentimiento[p].esperado)}`).join(' · ')}.`,
-    alternativas: [
-      { opcion: '249 (entrar fuerte; Meniu como sustituto)', pros: 'Más pagantes; es el piso ×3; casi en la meseta (192–247)', contras: 'Sin colchón si el soporte cuesta más; pierde mucho con la curva optimista' },
-      { opcion: '299 (lanzamiento recomendado)', pros: 'Centro del corredor; compromiso entre las tres curvas', contras: 'Fuera de la meseta de la curva media por poco; 33 % arriba de Meniu' },
-      { opcion: '349 (Fudo + mesas)', pros: 'Menor arrepentimiento si el dueño paga como por un sistema', contras: 'Menos pagantes; el supuesto del módulo de mesas es el más débil' },
-      { opcion: '449 (K = 0.7 contra Fudo)', pros: 'Menor arrepentimiento esperado si la curva optimista es cierta', contras: 'Menos pagantes; sin prueba de que paguen' }],
-    ejemplo: 'Un restaurante de 25 mesas (≈ 11 a 50 personas; ingreso medio 737,584 pesos al mes [INEGI]): 299 son 0.05 % de su ingreso y 3.7 horas de personal a 80 pesos la hora [valor medido; las horas que Carta ahorra son supuesto].',
-    prueba: 'Prueba de precio del piloto: tres grupos de 10 (249 · 349 · 449) y la regla «se queda el precio con más pagantes × margen por pagante». Con 10 por grupo es un sí o un no, no una curva.' },
-  { id: 'topes', decision: 'Topes del plan gratuito (mesas, cuentas, platillos)',
-    recomendacion: `**Mantener lo decidido (10 mesas, 3 cuentas, 80 platillos) *si* Calvin quiere que quepa gratis al menos el 60 %.** No es un óptimo: es la consecuencia de ese 60 %. Si quiere 50 %, los topes son ${tc[0].mesas} mesas y ${tc[0].cuentas} cuentas (+${n0(tc[0].margen - tc[1].margen)} pesos al mes); si 70 %, ${tc[2].mesas} y ${tc[2].cuentas} (${sg(tc[2].margen - tc[1].margen)}); si 80 %, ${tc[3].mesas} y ${tc[3].cuentas} (${sg(tc[3].margen - tc[1].margen)}).`,
-    depende: `**De qué parte quieres atender gratis (decisión de Calvin) y del modelo de mesas y cuentas (no es estadística).** Con traslape 0.5 los mismos topes dejan dentro ${pc(tr[0.5].dentro_con_topes_recomendados)}, no ${pc(tr[0].dentro_con_topes_recomendados)}. **Si falla:** si 10 mesas empuja a más gente de lo que el modelo dice, el cupo real es menor y hay que subir el tope (se mide con las mesas del piloto).`,
-    cifras: `Tabla de cupo (1,000 restaurantes): ${tc.map((x) => `${pc(x.cupo_gratis_minimo)} → ${x.mesas}/${x.cuentas}, margen ${n0(x.margen)}`).join(' · ')}. Un platillo cuesta 1.4–1.9 KB: bajar el tope de platillos no ahorra nada.`,
-    alternativas: tc.map((x) => ({ opcion: `Cupo gratis ≥ ${pc(x.cupo_gratis_minimo)}: ${x.mesas} mesas, ${x.cuentas} cuentas, ${x.platillos} platillos`, pros: `${n0(x.pagantes)} de paga; margen ${n0(x.margen)}`, contras: `Dentro real ${pc(x.dentro_real)}` })),
-    ejemplo: 'Una fonda de 6 mesas y 3 personas queda dentro de todos los topes: Chef, gratis; costo ≈ 1 peso al mes (0.6 de servidor y 0.5 de soporte).',
-    prueba: 'Mesas, cuentas y platillos reales de los primeros 10–20 restaurantes (consultas de lectura al piloto).' },
+  { id: 'segmentacion', decision: 'Segmentación: qué entra en cada plan y con qué topes',
+    recomendacion: `**Chef (gratis) = 15 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, ${pc1(mejor.seguridad_chico)} de los negocios de hasta 10 personas quedan gratis y ≈ ${pc(1 - M.parteRebasa(rec, s))} de todos los registrados.`,
+    depende: `**Del modelo de mesas y cuentas (no es estadística):** con el peor rincón del modelo la seguridad baja a ${pc(M.seguridadChico(rec, s, 'minimo'))}. **Si falla:** si las fondas tienen más mesas de las que el modelo supone, algunas pagan sin querer; se corrige subiendo el tope (los datos del piloto lo muestran en una semana).`,
+    cifras: `Para 80 / 90 / 95 % de seguridad: ${tc.map((x) => `${x.mesas} mesas y ${x.cuentas} cuentas`).join(' · ')}; margen ${tc.map((x) => n0(x.margen)).join(' · ')} al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas.`,
+    alternativas: tc.map((x) => ({ opcion: `Seguridad ${pc(x.seguridad)}: ${x.mesas} mesas, ${x.cuentas} cuentas, ${x.platillos} platillos`, pros: `margen ${n0(x.margen)}`, contras: `${pc1(x.seguridad_real)} de los de hasta 10 personas dentro; ${pc(x.dentro_de_todos)} de todos` })),
+    ejemplo: 'Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 25 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.',
+    prueba: 'Mesas, cuentas y platillos reales de los primeros 10 a 20 restaurantes.' },
+  { id: 'precios', decision: 'Precios de Master Chef y Chef Ejecutivo',
+    recomendacion: `**Master Chef 225 (pegado a Meniu Business) y Chef Ejecutivo 1,099.** Subir a 1,599 en Chef Ejecutivo cuesta ${n0(prL(1099).por_curva.media.margen_operacion - prL(1599).por_curva.media.margen_operacion)} pesos al mes de margen con 1,000 restaurantes (curva media): es posicionamiento, no matemática.`,
+    depende: `**De la curva de pago (supuesto).** Con la mediana ±50 % el precio óptimo de la curva media va de ${sp.media.mediana.bajo} a ${sp.media.mediana.alto}. **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un punto de venta (652), 225 deja dinero sobre la mesa. 225 **no depende** de que el modelo acierte el óptimo: el margen cambia menos de 2 % entre 199 y 299.`,
+    cifras: `Master Chef 199 / 225 / 249 / 299: pagantes (media) ${[199, 225, 249, 299].map((p) => n0(prS(p).por_curva.media.pagantes)).join(' / ')}; margen de operación (media) ${[199, 225, 249, 299].map((p) => n0(prS(p).por_curva.media.margen_operacion)).join(' / ')}. Chef Ejecutivo 799 / 1,099 / 1,599: ${[799, 1099, 1599].map((p) => n0(prL(p).por_curva.media.margen_operacion)).join(' / ')}.`,
+    alternativas: [{ opcion: '199', pros: 'Más pagantes', contras: 'Debajo de Meniu: parece barato sin serlo; piso ×2.5' }, { opcion: '225 (recomendada)', pros: 'Pegado a Meniu; más de 2.8 veces el piso', contras: 'Sin colchón si el soporte cuesta más' }, { opcion: '249', pros: 'Mismo margen que 225', contras: 'Un poco arriba de Meniu' }, { opcion: '299', pros: 'Más margen por pagante', contras: `Menos pagantes (${n0(prS(299).por_curva.media.pagantes)} contra ${n0(prS(225).por_curva.media.pagantes)})` }],
+    ejemplo: 'Un restaurante de 25 mesas (ingreso medio 737,584 al mes [INEGI]): 225 son 0.04 % de su ingreso; un salón de 3.3 millones al mes pagaría 1,099 = 0.03 %.',
+    prueba: 'Prueba de precio del piloto (tres grupos de 10: 199 · 249 · 299 en Master Chef).' },
+  { id: 'anuncios', decision: 'Anuncios en Chef: cuándo llegan y cuánto dejan',
+    recomendacion: `**El plan gratuito lleva anuncios; llegan hacia el mes ${s.mes_inicio_anuncios} (supuesto de trabajo) y no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben ${n0(b1000.restaurantes)} restaurantes.`,
+    depende: `**De tres supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas y la parte de visitas con anuncio. **Si fallan:** en el caso adverso el sistema no se paga solo hasta ${n0(nsolo.adverso)} restaurantes.`,
+    cifras: `Se paga solo desde ${nsolo.baja} (tarifa baja), ${nsolo.medio} (media) y ${n0(nsolo.adverso)} (adverso) restaurantes gratuitos. Requisitos: ADR, abrir la política de seguridad, aviso de privacidad, aprobación de la red.`,
+    alternativas: [{ opcion: 'Anuncios desde el mes 3', pros: 'El peor caso se cubre antes', contras: 'No hay tiempo de construir, abrir la política de seguridad y que la red apruebe' }, { opcion: `Anuncios desde el mes ${s.mes_inicio_anuncios} (recomendada)`, pros: 'Tiempo realista', contras: 'Calvin pone ≈ el costo de ~10 meses de la bolsa' }, { opcion: 'Sin anuncios', pros: 'Cumple la política de seguridad de hoy', contras: 'Descartada por Calvin' }],
+    ejemplo: 'La fonda de 6 mesas deja 4.3 pesos al mes con la tarifa baja una vez que hay anuncios; hoy deja 0.',
+    prueba: 'Una prueba pequeña de AdSense con 3 restaurantes (impresiones, ingresos, RPM).' },
+  { id: 'bolsa', decision: 'Cuánta bolsa poner mientras no hay anuncios',
+    recomendacion: `**1,000 pesos al mes** alcanzan para ${n0(b1000.restaurantes)} restaurantes gratuitos; acumulado, Calvin tendría que poner **${n0(proy.media.financiamiento_maximo)} pesos** en total en el caso recomendado y ${n0(proyPeor.financiamiento_maximo)} en el peor.`,
+    depende: '**Del ritmo de adopción (supuesto) y del soporte por gratuito (supuesto).** Si se adopta más rápido, la bolsa se agota antes.',
+    cifras: `Bolsa 500 / 1,000 / 2,000 / 5,000 → ${bolsas.map((b) => n0(b.restaurantes)).join(' / ')} restaurantes.`,
+    alternativas: bolsas.map((b) => ({ opcion: `${n0(b.bolsa)} pesos al mes`, pros: `${n0(b.restaurantes)} restaurantes y ${n1(b.comensales_mes / 1e6)} M de comensales`, contras: b.tope_medido ? 'llega al tope medido' : 'más bolsa, más servicio' })),
+    ejemplo: 'Con 1,000 pesos al mes pagas el servidor y el soporte básico de ~800 fondas y taquerías gratuitas.',
+    prueba: 'El costo real de Railway del primer mes con restaurantes del piloto.' },
   { id: 'historial', decision: 'Historial: meses en línea y archivo descargable',
-    recomendacion: '**12 meses en línea para la paga (lo decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**',
-    depende: '**Del volumen de disco que se pague (Hobby de 5 GB o Pro de 50 GB) y del dato de disco medido** (7.1–8.5 KB por visita, con 10 eventos por visita supuestos). **Si falla:** si los eventos por visita son el doble, el disco de la paga sube ≈ 50 % y los 12 meses sólo caben en Pro.',
-    cifras: 'Con 1, 3, 6 y 12 meses el margen casi no cambia (12 meses de historial para 48 clientes de paga son ≈ 6 GB); lo que cambia es cuántos de paga caben en Hobby: 263, 128, 72 y 38 (en Pro, 2,637 · 1,283 · 724 · 387).',
-    alternativas: [{ opcion: '1 mes', pros: 'Cabe lo máximo en Hobby', contras: 'Casi nada de historial para quien paga' }, { opcion: '3 meses + archivo', pros: '128 de paga en Hobby', contras: 'Cambia lo decidido' }, { opcion: '12 meses + archivo (recomendada)', pros: 'Cumple lo decidido; cuesta menos de 1 peso al mes por cliente en Pro', contras: 'En Hobby sólo caben 38 de paga: hay que pasar a Pro antes' }],
-    ejemplo: 'Un restaurante de 25 mesas genera 13.5 MB al mes: 12 meses son 162 MB, ≈ 0.45 pesos al mes de volumen.',
-    prueba: 'Cuántos dueños abren el mes anterior en el panel (eventos del piloto).' },
-  { id: 'soporte', decision: 'Soporte: cuánto se promete',
-    recomendacion: '**Soporte por WhatsApp o correo en horario hábil, con tope de ≈ 60 pesos al mes por cliente de paga (30 minutos) y casi nada para el gratuito (autoservicio).**',
-    depende: `**Del tiempo real de soporte, que es supuesto** (${s.soporte_servicio} de paga y ${s.soporte_gratuito} por gratuito; rangos 30–150 y 0–3). **Si falla:** con 150 por cliente de paga el precio de la regla sube a ${sp.media.soporte[150]}–${precioFmt(M.redondea(M.precioSugerido(652, 0.5, { ...s, soporte_servicio: 150 }), { ...s, soporte_servicio: 150 }))} y el margen cae; con 1 peso por gratuito el peor caso firme empeora en ${n0(1000 * 0.5)} pesos al mes con 1,000 restaurantes.`,
-    cifras: `Efecto en el margen (±50 %, firme): soporte de paga ${n0(sensFirme.filas.find((f) => f.supuesto.startsWith('soporte por cliente de paga')).efecto)} pesos; soporte del gratuito ${n0(sensFirme.filas.find((f) => f.supuesto.startsWith('soporte por cliente gratuito')).efecto)}.`,
-    alternativas: [{ opcion: 'Autoservicio y correo (30)', pros: 'Piso bajo', contras: 'Mal servicio si el dueño no sabe subir su carta' }, { opcion: 'WhatsApp en horario (60, recomendada)', pros: 'Equilibrio', contras: 'Depende de que 30 minutos alcancen' }, { opcion: 'Teléfono y alta hecha por nosotros (150)', pros: 'Mejor conversión probable', contras: 'El precio de la regla sube mucho' }],
-    ejemplo: 'Un salón de 60 mesas (Chef Ejecutivo) necesita soporte propio: se supone el doble (120 pesos al mes).',
+    recomendacion: '**12 meses en línea para la paga (decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**',
+    depende: '**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos).** Si los eventos duplican, el disco de la paga sube ≈ 50 %.',
+    cifras: 'Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387).',
+    alternativas: [{ opcion: '3 meses + archivo', pros: '128 de paga en Hobby', contras: 'Cambia lo decidido' }, { opcion: '12 meses + archivo (recomendada)', pros: 'Cumple lo decidido', contras: 'En Hobby sólo caben 38 de paga' }],
+    ejemplo: 'Un restaurante de 25 mesas con 1,800 visitas al mes genera 13.5 MB al mes: 12 meses son 162 MB.',
+    prueba: 'Cuántos dueños abren el mes anterior en el panel.' },
+  { id: 'soporte', decision: 'Soporte',
+    recomendacion: '**WhatsApp o correo en horario hábil para la paga (≈ 60 pesos al mes por cliente) y autoservicio para el gratuito (0.5).**',
+    depende: `**Del tiempo real de soporte (supuesto).** Si cada cliente de paga cuesta 150, Master Chef a 225 queda debajo del piso ×3 (${n0(3 * M.piso(s, 'servicio', 225))}) y hay que subir el precio o acotar el soporte.`,
+    cifras: `Efecto en el margen (±50 %): soporte del gratuito ${n0(sens.filas.find((f) => f.supuesto === 'soporte por cliente gratuito').efecto)} pesos; de paga ${n0(sens.filas.find((f) => f.supuesto === 'soporte por cliente de paga').efecto)}.`,
+    alternativas: [{ opcion: 'Autoservicio y correo (30)', pros: 'Piso bajo', contras: 'Mal servicio si no saben subir su carta' }, { opcion: 'WhatsApp en horario (60, recomendada)', pros: 'Equilibrio', contras: 'Depende de que 30 minutos alcancen' }, { opcion: 'Alta hecha por nosotros (150)', pros: 'Mejor conversión probable', contras: 'El piso ×3 sube a 520' }],
+    ejemplo: 'Un salón de 60 mesas necesita soporte propio (se supone 120).',
     prueba: 'Tickets y minutos de soporte del piloto.' },
-  { id: 'anuncios', decision: 'Anuncios en el plan gratuito',
-    recomendacion: '**Condicional: no contar con ellos hasta que se aprueben y se construyan.** Hoy no se pueden mostrar (la política de seguridad del sitio no lo permite). Si Calvin quiere seguir ese camino: ADR, abrir la política de seguridad, cambiar el aviso de privacidad, prueba de AdSense con 3 restaurantes. «Sin anuncios» queda como beneficio de Master Chef, como en el prototipo.',
-    depende: `**De tres supuestos que no tienen dato:** que la red apruebe el sitio, la tarifa por mil visitas y la parte de visitas con anuncio. **Si fallan:** con la tarifa a la mitad y 30 % de las visitas el peor caso condicional baja de ${sg(esc[1].peor_anuncios_tarifa_baja.margen_operacion)} a ${sg(esc[1].peor_anuncios_adversos.margen_operacion)} (1,000 restaurantes). **El peor caso firme es sin anuncios: ${sg(esc[1].peor_firme.margen_operacion)} pesos al mes con 1,000 y necesita ≈ ${n1(esc[1].peor_firme.equilibrio_pagantes)} clientes de paga para cubrirse.**`,
-    cifras: `Margen esperado a 1,000 (media): sin anuncios ${n0(E1.esperado.media.margen_operacion)}; con anuncios aprobados, tarifa baja ${n0(M.evaluar(recAds, s, 1000, { curva: 'media', anunciosAprobados: true }).margen_operacion)}.`,
-    alternativas: [{ opcion: 'Sin anuncios (hoy)', pros: 'Cumple la regla dura 10 y la política de seguridad; sin riesgo de aprobación', contras: 'El peor caso pierde dinero: exige unos 4 clientes de paga con 1,000' }, { opcion: 'Con anuncios no personalizados (condicional)', pros: 'Podría volver sostenible el peor caso; motivo para pasar a Master Chef', contras: 'Tarifa sin fuente; aprobación; ADR y cambio de política de seguridad; clics accidentales' }, { opcion: 'Con anuncios personalizados', pros: 'Tarifa más alta', contras: 'Rompe la regla dura 10: descartada' }],
-    ejemplo: 'La fonda de 6 mesas con ≈ 2,050 visitas al mes dejaría 7 pesos (tarifa baja) o 29 (media) con anuncios; hoy deja 0.',
-    prueba: 'El informe de AdSense de una prueba pequeña (impresiones, ingresos estimados, RPM).' },
-  { id: 'avisos_reloj', decision: 'Avisos de reloj desde el servidor (mesa amarilla o roja por tiempo)',
-    recomendacion: '**No.** Los relojes se calculan en el teléfono con la hora de la última acción (AC-40.9).',
-    depende: '**De que no haya notificaciones push** (fuera de la v1). **Si falla** (se aprueban push), el reloj del servidor sí tendría sentido: un evento por cruce de umbral, ≈ 0.1 por segundo con 1,000 restaurantes.',
-    cifras: 'Un temporizador del servidor para ≈ 12,000 mesas es una consulta por minuto (poco costo) pero sin push no despierta al teléfono: sólo añade un proceso y un muro.',
-    alternativas: [{ opcion: 'Relojes en el teléfono (recomendada)', pros: 'Cero costo de servidor; ya especificado', contras: 'Si el teléfono duerme no avisa' }, { opcion: 'Reloj en el servidor', pros: 'Un evento por cruce', contras: 'Otro proceso; contradice AC-40.9; sin push no sirve' }],
+  { id: 'avisos_reloj', decision: 'Avisos de reloj desde el servidor',
+    recomendacion: '**No.** Los relojes se calculan en el teléfono (AC-40.9).',
+    depende: '**De que no haya notificaciones push (fuera de la v1).** Si se aprueban, el reloj del servidor sí tendría sentido.',
+    cifras: 'Un temporizador para ≈ 12,000 mesas es una consulta por minuto; sin push no despierta al teléfono.',
+    alternativas: [{ opcion: 'Relojes en el teléfono (recomendada)', pros: 'Cero costo de servidor; ya especificado', contras: 'Si el teléfono duerme no avisa' }, { opcion: 'Reloj en el servidor', pros: 'Un evento por cruce de umbral', contras: 'Otro proceso; contradice AC-40.9' }],
     ejemplo: 'El capitán de un salón de 60 mesas ve en su teléfono que la mesa 12 lleva 25 minutos sin movimiento.',
     prueba: 'Que se apruebe push.' },
 ];
-function precioFmt(x) { return x; }
-const cfgs = { recomendada_sin_anuncios: { nombre: 'Recomendada, sin anuncios (lo que existe hoy)', config: rec }, recomendada_con_anuncios_condicional: { nombre: 'Recomendada con anuncios (condicional a aprobación y construcción)', config: recAds } };
-writeFileSync(join(aqui, '2026-11-14-recomendaciones.json'), JSON.stringify({ version: M.VERSION, decisiones: D, configuraciones: cfgs, tabla_cupo_gratis: tc, meseta_precio: { media: precios.media.meseta, optimizador: mejor.meseta } }, null, 1));
-let r = `# Recomendaciones: seis decisiones con su supuesto, su meseta y la prueba que las cierra
+writeFileSync(join(aqui, '2026-11-14-recomendaciones.json'), JSON.stringify({ version: M.VERSION, decisiones: D, configuraciones: { segmentacion_de_calvin: { nombre: 'Segmentación de Calvin (configInicial)', config: rec }, topes_10_mesas_3_cuentas: { nombre: 'Topes 10 mesas / 3 cuentas (la anterior)', config: antes } }, tabla_cupo_gratis: tc }, null, 1));
+let r = `# Recomendaciones: siete decisiones con su supuesto, sus alternativas y la prueba que las cierra
 
-**Fecha:** 14 de noviembre de 2026 (revisado el mismo día; apoyado en el [modelo corregido](2026-11-14-modelo-de-escenarios.md)) · **Rama:** \`agente/planes-precio-historial\` · **Estado:** propuesta para decidir; no cambia plan ni código. **Generado por \`2026-11-14-corre-escenarios.mjs\`.**
-**Datos:** [\`…-recomendaciones.json\`](2026-11-14-recomendaciones.json) (decisiones y las dos configuraciones cargables) · Términos: [glosario](2026-11-14-glosario-de-negocio.md) · Planes: **Chef** (gratis), **Master Chef**, **Chef Ejecutivo** (nombre propuesto; el prototipo sólo trae los dos primeros).
-**Qué cambió con la revisión:** el precio se da como **rango con meseta**; los topes del gratuito como **«depende de qué parte quieres atender gratis»**; los anuncios como **condicionales**; y cada decisión dice **de qué supuesto depende y qué pasa si falla**.
+**Fecha:** 14 de noviembre de 2026 (tercera vuelta; apoyado en el [modelo](2026-11-14-modelo-de-escenarios.md)) · **Generado por \`2026-11-14-corre-escenarios.mjs\`** · [JSON](2026-11-14-recomendaciones.json) con las decisiones y las dos configuraciones cargables.
 
-**Marcas.** Cifras del modelo (1,000 restaurantes, curva **media**, configuración «recomendada sin anuncios») · datos de INEGI · ***supuesto***. **El óptimo es tan bueno como la curva de pago, que es supuesto.**
+## Conclusiones
 
----
+1. **Planes por tamaño: Chef (gratis) 15 mesas · 4 cuentas · 150 platillos; Master Chef hasta 100 mesas y 30 cuentas; Chef Ejecutivo lo demás.**
+2. **Master Chef 225 (pegado a Meniu) y Chef Ejecutivo 1,099:** margen de operación ${sg(E(1000, 'media').margen_operacion)} al mes con 1,000 restaurantes (curva media, con anuncios).
+3. **Los anuncios llegan hacia el mes ${s.mes_inicio_anuncios}; mientras tanto, 1,000 pesos al mes de la bolsa de Calvin cargan ${n0(b1000.restaurantes)} restaurantes gratuitos** (acumulado máximo que Calvin pone: ${n0(proy.media.financiamiento_maximo)} pesos en el caso recomendado).
+4. **Lo que más cambia el resultado: ${sens.medir_primero.slice(0, 3).map((x) => x.supuesto).join(', ')}.** Se miden en el piloto.
+5. **Historial de 12 meses para la paga (decidido): casi no mueve el margen.**
 
-## 0. Conclusiones
+${lineaDef}
 
-- **Master Chef: un rango de ${precios.media.meseta.desde} a 349 al mes; lanzar en 299.** Chef Ejecutivo: **${rec.precios.salon}**, que **no sale de la optimización** (cambia el margen menos de 2 % en todo el rango): es «sugerido por regla».
-- **Chef (gratis): ${cs.mesas} mesas, ${cs.cuentas} cuentas y ${cs.platillos} platillos *si* quieres que quepa gratis al menos el 60 %.** Para 50 / 60 / 70 / 80 %: ${tc.map((x) => `${x.mesas}/${x.cuentas}`).join(' · ')} (mesas/cuentas) y margen ${tc.map((x) => n0(x.margen)).join(' · ')} al mes.
-- **Margen con 1,000 restaurantes (operación, antes de captación y sueldos):** ${curvas.map((c) => sg(E1.esperado[c].margen_operacion)).join(' · ')} (pesimista · media · optimista); **después de captación:** ${curvas.map((c) => sg(E1.esperado[c].margen_despues_de_captacion)).join(' · ')}.
-- **El peor caso firme (todos gratuitos, sin anuncios) pierde ${n0(-esc[1].peor_firme.margen_operacion)} pesos al mes con 1,000 restaurantes**; los anuncios son **condicionales** a que se aprueben y se construyan.
-- **Historial de 12 meses para la paga (lo decidido): casi no mueve el margen;** sólo estorba en Hobby.
-- **Qué dato cambia todo:** la **prueba de precio del piloto** (sustituye a la curva de pago, el supuesto que más mueve el margen).
-
-## 1. Las dos configuraciones, listas para cargar
-
-| | **Recomendada, sin anuncios** (lo que existe hoy) | **Con anuncios** (condicional) |
-|---|---|---|
-| Master Chef · Chef Ejecutivo | ${rec.precios.servicio} · ${rec.precios.salon} | igual |
-| Chef (gratis) | ${cs.mesas} mesas · ${cs.cuentas} cuentas · ${cs.platillos} platillos · 3 lecturas de PDF en total · 1 mes | igual |
-| Historial en línea, paga | 12 meses | 12 meses |
-| Anuncios | no | sí (si se aprueban: \`anuncios_aprobados = true\`) |
-| Margen a 1,000 (media, operación) | ${n0(E1.esperado.media.margen_operacion)} | ${n0(M.evaluar(recAds, s, 1000, { curva: 'media', anunciosAprobados: true }).margen_operacion)} |
-
----
 `;
 D.forEach((d, i) => {
-  r += `\n## ${i + 2}. ${d.decision}\n\n**Recomendación.** ${d.recomendacion}\n\n**De qué supuesto depende y qué pasa si falla.** ${d.depende}\n\n**Cifras del modelo.** ${d.cifras}\n\n| Opción | A favor | En contra |\n|---|---|---|\n${d.alternativas.map((a) => `| ${a.opcion} | ${a.pros} | ${a.contras} |`).join('\n')}\n\n**Ejemplo.** ${d.ejemplo}\n\n**La prueba o el dato que la cierra.** ${d.prueba}\n\n---\n`;
+  r += `\n## ${i + 1}. ${d.decision}\n\n**Recomendación.** ${d.recomendacion}\n\n**De qué supuesto depende y qué pasa si falla.** ${d.depende}\n\n**Cifras del modelo.** ${d.cifras}\n\n| Opción | A favor | En contra |\n|---|---|---|\n${d.alternativas.map((a) => `| ${a.opcion} | ${a.pros} | ${a.contras} |`).join('\n')}\n\n**Ejemplo.** ${d.ejemplo}\n\n**La prueba o el dato que la cierra.** ${d.prueba}\n\n---\n`;
 });
-r += `\n## 8. Datos por conseguir (resumen)\n\nCurva de pago real · tope e IVA de Meniu y Fudo · bajas y costo de conseguir un cliente (**sin dato: supuestos de trabajo**) · tarifa de anuncios y aprobación (hoy no existen) · soporte por cliente · mesas, cuentas y platillos reales · horas que Carta ahorra por visita · eventos por visita. Todos con su forma de medirse en los informes.\n`;
+r += `\n## 8. Datos por conseguir (resumen)\n\nCurva de pago real · tope e IVA de Meniu y Fudo · bajas y costo de conseguir un cliente (**sin dato: supuestos de trabajo**) · tarifa de anuncios, parte de visitas con anuncio y aprobación de la red · soporte por cliente · mesas, cuentas y platillos reales · comensales por restaurante real · eventos por visita.\n`;
 writeFileSync(join(aqui, '2026-11-14-recomendaciones.md'), r);
-console.log('ok. mejor:', JSON.stringify({ dentro: mejor.dentro, mesas: mejor.mesas, cuentas: mejor.cuentas, precio: mejor.mejor_precio, meseta: mejor.meseta, margen: Math.round(mejor.margen) }), 'nArq', nArq);
+console.log('ok. topes optimizador:', mejor.mesas, mejor.cuentas, mejor.platillos, 'seguridad', mejor.seguridad_chico.toFixed(3), 'nArq', nArq, 'bolsa1000', b1000.restaurantes, 'nsolo', JSON.stringify(nsolo));
