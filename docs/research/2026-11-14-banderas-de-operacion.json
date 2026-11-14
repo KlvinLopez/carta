@@ -1,0 +1,112 @@
+{
+ "version": "2026-11-14-r3",
+ "banderas": [
+  {
+   "id": "procesador",
+   "nombre": "Procesador (p95 de la hora pico)",
+   "que_se_mide": "p95 de CPU del servicio `api` en la hora pico (panel de Railway; hoy sin alerta)",
+   "umbral_aviso": 50,
+   "umbral_accion": 70,
+   "que_hacer": "más procesos o escalón mayor",
+   "estado_de_la_medicion": "no medido en Railway: el 98 % del modelo es simulador (±2×)"
+  },
+  {
+   "id": "disco",
+   "nombre": "Disco del volumen",
+   "que_se_mide": "uso del volumen de PostgreSQL (`pg_database_size` + panel de Railway)",
+   "umbral_aviso": 60,
+   "umbral_accion": 80,
+   "que_hacer": "archivar lo antiguo o pasar a Pro (50 GB)",
+   "estado_de_la_medicion": "no medido; 7.1–8.5 KB por visita salen de una medición local"
+  },
+  {
+   "id": "conexiones",
+   "nombre": "Conexiones abiertas (eventos)",
+   "que_se_mide": "conexiones SSE abiertas por worker (log de `/op/eventos` y `/p/sesion/eventos`; **aún no se cuentan**)",
+   "umbral_aviso": 60,
+   "umbral_accion": 80,
+   "que_hacer": "la pila de 8 procesos llega a 10,000: repetir la pila o cambiar de nube",
+   "estado_de_la_medicion": "no medido; las 10,000 son un tope documentado, no una prueba"
+  },
+  {
+   "id": "memoria",
+   "nombre": "Memoria",
+   "que_se_mide": "RSS por proceso (panel de Railway)",
+   "umbral_aviso": 70,
+   "umbral_accion": 85,
+   "que_hacer": "más memoria por proceso o menos procesos por servicio",
+   "estado_de_la_medicion": "no medido"
+  },
+  {
+   "id": "costo_por_restaurante",
+   "nombre": "Costo por restaurante (pesos al mes)",
+   "que_se_mide": "factura de Railway ÷ restaurantes activos del mes",
+   "umbral_aviso": 8,
+   "umbral_accion": 15,
+   "que_hacer": "revisar escalón, soporte y fotos",
+   "estado_de_la_medicion": "se puede medir desde el primer mes con restaurantes"
+  },
+  {
+   "id": "costos_sobre_ingresos",
+   "nombre": "Costos sobre ingresos (%)",
+   "que_se_mide": "factura + soporte ÷ ingresos del mes",
+   "umbral_aviso": 70,
+   "umbral_accion": 90,
+   "que_hacer": "subir el precio, acotar el soporte o empezar los anuncios",
+   "estado_de_la_medicion": "se puede medir desde el primer mes con ingresos"
+  }
+ ],
+ "escalones": [
+  {
+   "id": "hobby_sondeo",
+   "nombre": "Hoy: sondeo, 2 procesos, Hobby",
+   "capacidad_restaurantes_tipicos": 148,
+   "volumen_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_tope": 20,
+   "mes_en_que_entra_recomendado": null,
+   "sube_costo_usd_vs_anterior": 0
+  },
+  {
+   "id": "hobby_eventos",
+   "nombre": "Con eventos, 2 procesos, Hobby",
+   "capacidad_restaurantes_tipicos": 1064,
+   "volumen_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_tope": 12,
+   "mes_en_que_entra_recomendado": 1,
+   "sube_costo_usd_vs_anterior": 0
+  },
+  {
+   "id": "pro_2",
+   "nombre": "Con eventos, 2 procesos, Pro",
+   "capacidad_restaurantes_tipicos": 1064,
+   "volumen_gb": 50,
+   "costo_usd_base": 20,
+   "costo_usd_tope": 30,
+   "mes_en_que_entra_recomendado": 11,
+   "sube_costo_usd_vs_anterior": 11.9
+  },
+  {
+   "id": "pro_4",
+   "nombre": "Con eventos, 4 procesos, Pro",
+   "capacidad_restaurantes_tipicos": 1896,
+   "volumen_gb": 50,
+   "costo_usd_base": 23,
+   "costo_usd_tope": 44,
+   "mes_en_que_entra_recomendado": 23,
+   "sube_costo_usd_vs_anterior": 3
+  },
+  {
+   "id": "pro_8",
+   "nombre": "Con eventos, 8 procesos, Pro",
+   "capacidad_restaurantes_tipicos": 2116,
+   "volumen_gb": 50,
+   "costo_usd_base": 30,
+   "costo_usd_tope": 54,
+   "mes_en_que_entra_recomendado": 30,
+   "sube_costo_usd_vs_anterior": 7
+  }
+ ],
+ "nota": "mes en que entra = primer mes de la proyección recomendada (adopción supuesta)"
+}
