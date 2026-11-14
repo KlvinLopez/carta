@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planos de Carta · versión interactiva</title>
+<style>
+@font-face{font-family:"DM Sans";src:url(data:font/woff2;base64,__SANS__) format("woff2");font-weight:100 1000}
+@font-face{font-family:"DM Serif Display";src:url(data:font/woff2;base64,__SERIF__) format("woff2")}
+:root{--crema:#fef9f1;--vino:#4f1728;--vino2:#6b2d3e;--dorado:#b8860b;--tinta:#1a1a1a;--tinta2:#5b4a3d;--arena:#e6d9c6;--arena2:#f3eadb;--azul:#2e7aab;--verde:#4f7a4a;--gris:#b9afa3}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{font-family:"DM Sans",sans-serif;background:var(--crema);color:var(--tinta);min-height:100vh}
+svg text{font-family:"DM Sans",sans-serif}
+.serif{font-family:"DM Serif Display",serif;font-weight:400}
+header.top{max-width:1320px;margin:0 auto;padding:18px 20px 0;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.kick{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--tinta2);font-weight:700}
+.hero{font-family:"DM Serif Display",serif;font-size:clamp(40px,6vw,60px);line-height:1;color:var(--vino);margin:2px 0 0}
+.alcance{margin:2px 0 0;font-size:14px;color:var(--tinta2)}
+.et{font-size:10.5px;font-weight:700;border-radius:9999px;padding:2px 9px;border:1.5px solid var(--dorado);color:var(--dorado);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.et.prop{border-color:var(--vino2);color:var(--vino2)}
+.et.med{border-color:var(--verde);color:var(--verde)}
+main{max-width:1320px;margin:0 auto;padding:12px 20px 28px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:#fff;border-radius:18px;padding:10px 14px;box-shadow:0 3px 10px rgba(107,45,62,.12)}
+.kpi b{display:block;font-family:"DM Serif Display",serif;font-weight:400;font-size:26px;color:var(--vino);line-height:1.05;white-space:nowrap}
+.kpi span{font-size:12px;line-height:1.25;display:block}
+.cita{font-size:10px;color:var(--tinta2)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.box{all:unset;box-sizing:border-box;cursor:pointer;background:#fff;border-radius:22px;padding:12px 16px 12px;box-shadow:0 3px 12px rgba(107,45,62,.13);display:flex;flex-direction:column;min-height:196px;transition:transform .25s cubic-bezier(.34,1.4,.5,1),box-shadow .25s}
+.box:hover,.box:focus-visible{transform:translateY(-3px);box-shadow:0 8px 20px rgba(107,45,62,.22)}
+.box:focus-visible{outline:3px solid var(--dorado)}
+.box .q{font-family:"DM Serif Display",serif;font-size:21px;color:var(--vino);line-height:1.1}
+.box .m{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;margin:6px 0 2px}
+.box .m svg{width:100%;height:auto;max-height:118px}
+.box .c{font-size:12.5px;font-weight:700;color:var(--vino2)}
+.box .abre{font-size:11px;color:var(--tinta2);margin-top:3px}
+.box.dec{background:var(--vino2);color:var(--crema)}
+.box.dec .q,.box.dec .c{color:#f3d58a}
+.box.dec ol{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.box.dec li{display:flex;gap:8px;align-items:center}
+.box.dec i{font-style:normal;font-weight:700;background:#f3d58a;color:var(--vino);border-radius:50%;width:20px;height:20px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px}
+/* detalle */
+#det{position:fixed;inset:0;background:var(--crema);overflow:auto;z-index:10;animation:ent .28s cubic-bezier(.34,1.3,.5,1)}
+@keyframes ent{from{opacity:0;transform:scale(.97) translateY(14px)}to{opacity:1;transform:none}}
+.dd{max-width:1180px;margin:0 auto;padding:16px 20px 40px}
+.vuelve{all:unset;cursor:pointer;background:var(--vino2);color:var(--crema);border-radius:9999px;padding:10px 18px;font-size:14px;font-weight:700;min-height:44px;display:inline-flex;align-items:center}
+.vuelve:focus-visible,.ctl button:focus-visible{outline:3px solid var(--dorado)}
+.dd h2{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(26px,3.6vw,38px);line-height:1.12;color:var(--vino);margin:14px 0 4px}
+.como{font-size:13.5px;color:var(--tinta2);margin:0 0 12px}
+.como b{color:var(--vino2)}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:#fff;border-radius:18px;padding:10px 14px;margin-bottom:12px}
+.ctl label{font-size:13px;font-weight:700;color:var(--tinta2);display:flex;align-items:center;gap:8px}
+.ctl input[type=range]{width:min(240px,60vw);accent-color:var(--vino2)}
+.ctl output{font-weight:700;color:var(--vino);min-width:3ch;display:inline-block}
+.ctl select{font:inherit;padding:8px 10px;border-radius:12px;border:1.5px solid var(--arena);background:var(--crema);min-height:40px}
+.ctl .opt{all:unset;cursor:pointer;border-radius:9999px;padding:9px 15px;min-height:40px;font-size:13px;font-weight:700;background:var(--arena2);color:var(--tinta2);display:inline-flex;align-items:center}
+.ctl .opt[aria-pressed=true]{background:var(--vino2);color:#fff}
+.sw{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;min-height:40px}
+.sw input{width:20px;height:20px;accent-color:var(--vino2)}
+.viz{background:#fff;border-radius:22px;padding:10px;box-shadow:0 3px 12px rgba(107,45,62,.1);overflow:hidden}
+.viz svg{width:100%;height:auto;display:block}
+.cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
+.cifra{background:#fff;border-radius:16px;padding:10px 14px;border-left:5px solid var(--dorado)}
+.cifra b{display:block;font-family:"DM Serif Display",serif;font-weight:400;font-size:24px;color:var(--vino);line-height:1.1}
+.cifra span{font-size:12.5px;display:block}
+.insight{background:var(--vino2);color:var(--crema);border-radius:18px;padding:12px 16px;font-size:14.5px;margin:12px 0}
+.insight b{color:#f3d58a}
+.fuentes{font-size:12px;color:var(--tinta2)}
+.fuentes ul{margin:4px 0 0;padding-left:18px}
+.fuentes a{color:var(--vino2)}
+.tt{position:fixed;pointer-events:none;background:var(--tinta);color:#fff;font-size:12.5px;padding:7px 10px;border-radius:10px;z-index:30;max-width:260px}
+.desliza{display:none;font-size:11.5px;color:var(--tinta2);margin:0 0 6px;font-weight:700}
+.nota{font-size:12px;color:var(--tinta2);margin:8px 0}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.box{min-height:170px}.viz{overflow-x:auto}.viz svg{min-width:780px}.desliza{display:block!important}}
+@media(prefers-reduced-motion:reduce){#det{animation:none}.box{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><div class="kick">Planos de Carta · informe ejecutivo interactivo · 14 de noviembre de 2026 · versión 4</div>
+  <div class="hero">PILOTEAR</div>
+  <p class="alcance">con 10 restaurantes reales: la v1 no cobra, así que planes y precio son propuesta.</p></div>
+  <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span class="et prop">propuesta</span><span class="cita">supuestos marcados · sin venta de datos · toca una caja para abrirla</span></div>
+</header>
+<main>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid" id="grid"></div>
+</main>
+<div id="det" hidden role="dialog" aria-modal="true"></div>
+<div class="tt" id="tt" hidden></div>
+<script>
+"use strict";
+const D = __DATOS__;
+const R = __REFS__;
+const M = D.mercado, CAP = D.capacidad, DI = D.disco, PL = D.planes, PR = D.precio, MX = D.matriz;
+const C = {vino:"#6b2d3e", osc:"#4f1728", dorado:"#b8860b", tinta:"#1a1a1a", t2:"#5b4a3d", arena:"#e6d9c6", a2:"#f3eadb", azul:"#2e7aab", gris:"#b9afa3", verde:"#4f7a4a"};
+const n = (x, d = 0) => Number(x).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T = (x, y, s, size = 12, fill = C.tinta, anchor = "start", w = 400, serif = false) =>
+  `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" text-anchor="${anchor}" font-weight="${w}"${serif ? ' font-family="DM Serif Display, serif"' : ""}>${esc(s)}</text>`;
+const Rc = (x, y, w, h, fill, rx = 6, ex = "") => `<rect x="${x}" y="${y}" width="${Math.max(w, 0)}" height="${h}" rx="${rx}" fill="${fill}" ${ex}/>`;
+const SV = (w, h, body) => `<svg viewBox="0 0 ${w} ${h}" role="img" font-family="DM Sans, sans-serif">${body}</svg>`;
+const dona = (cx, cy, r, pct, col, g = 26) => {
+  const c = 2 * Math.PI * r;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.arena}" stroke-width="${g}"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="${g}" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+};
+const cita = (...ks) => ks.map(k => R[k].corta).join("; ");
+function fuentes(ks) {
+  return `<div class="fuentes"><b>Fuentes</b><ul>${ks.map(k => {
+    const r = R[k], u = (r.url.match(/https?:\/\/[^\s)]+/) || [])[0];
+    return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(r.corta)}</a>` : esc(r.corta)}. ${esc(r.titulo)}. <span>${esc(u ? "" : r.url)}</span></li>`;
+  }).join("")}</ul></div>`;
+}
+// precio: la regla máx(3 × piso; K × S), con el piso del guion de investigación
+const F = PR.formula;
+const piso = (p, s) => F.costo_var_mediano + F.fijo + (F.stripe_pct * p * (1 + F.iva) + F.stripe_fijo) * (1 + F.iva) + s;
+function reglaPrecio(S, K, s) { let p = K * S; for (let i = 0; i < 40; i++) p = Math.max(3 * piso(p, s), K * S); return p; }
+function redondea(p, s) { if (p < 100) return Math.round(p); let b = Math.floor(p / 50) * 50 - 1; while (b < 3 * piso(b, s)) b += 50; return b; }
+
+/* ---------- minis (visual de cada caja) ---------- */
+const pctSitio = 100 * M.nucleo_con_sitio / M.nucleo;
+const miniDona = () => SV(300, 120, dona(60, 60, 38, M.usa_internet_pct, C.vino, 18) + T(60, 66, "83 %", 18, C.vino, "middle", 400, true) + T(60, 114, "comensal", 11, C.t2, "middle") +
+  Rc(104, 36, 92, 50, C.a2, 14) + T(150, 66, "94 % sin sitio", 12, C.osc, "middle", 700) + dona(240, 60, 38, pctSitio, C.dorado, 18) + T(240, 66, "6 %", 18, C.dorado, "middle", 400, true) + T(240, 114, "negocio", 11, C.t2, "middle"));
+const lg = v => Math.log10(v);
+function miniMercado() {
+  const f = [["Total", M.total, C.arena], ["Núcleo", M.nucleo, C.gris], ["Servible", M.servible, C.vino], ["17 zonas", M.zonas17, C.osc]];
+  return SV(300, 120, f.map(([a, v, c], i) => { const w = 20 + 150 * (lg(v) - lg(50)) / (lg(M.total) - lg(50)); return T(0, 20 + i * 28, a, 11, C.t2, "start", 700) + Rc(60, 6 + i * 28, w, 20, c, 7) + T(66 + w, 21 + i * 28, n(v), 11.5, C.tinta, "start", 700); }).join(""));
+}
+function miniMatriz() {
+  let b = "";
+  MX.filas.slice(0, 8).forEach((f, i) => f.celdas.forEach((c, j) => { b += Rc(8 + j * 24, 4 + i * 14, 20, 11, c === "si" ? C.vino : c === "no" ? C.arena : "none", 4, c === "np" ? `stroke="${C.gris}" stroke-dasharray="2 2"` : ""); }));
+  return SV(300, 120, b + Rc(8 + 2 * 24 - 2, 2, 24, 116, "none", 6, `stroke="${C.dorado}" stroke-width="2"`));
+}
+function miniBarras(vals, cols, labs, mx) {
+  return SV(300, 120, vals.map((v, i) => { const h = 80 * v / mx; return Rc(14 + i * 72, 92 - h, 54, Math.max(h, 3), cols[i], 9) + T(41 + i * 72, 86 - h, n(v), 13, C.vino, "middle", 700) + T(41 + i * 72, 110, labs[i], 10.5, C.t2, "middle"); }).join(""));
+}
+const miniCap = () => miniBarras(CAP.escalones.map(e => e.gratuitos), [C.gris, C.vino, C.vino, C.osc], ["disco", "CPU", "CPU", "conexiones"], 2400);
+const palMap = Object.fromEntries(DI.palancas.map(p => [p.clave, p]));
+const miniDisco = () => miniBarras(["P00", "P0", "P1", "P2"].map(k => palMap[k].paga), [C.gris, "#cdbba3", C.vino, C.osc], ["hoy", "12 m", "30 d", "archivo"], 140);
+function miniPlanes() {
+  return SV(300, 120, [["Gratuito", "≤ 10 mesas", "0", C.gris], ["Servicio", "11–40", "249–349", C.vino], ["Salón", "> 40", "249–599", C.osc]].map(([a, b, c, col], i) =>
+    Rc(i * 102, 4, 94, 108, "#fff", 14, `stroke="${C.arena}" stroke-width="1.5"`) + Rc(i * 102, 4, 94, 28, col, 14) + Rc(i * 102, 18, 94, 14, col, 0) + T(i * 102 + 47, 23, a, 12, "#fff", "middle", 700) + T(i * 102 + 47, 58, b, 11.5, C.tinta, "middle") + T(i * 102 + 47, 90, c, 16, C.vino, "middle", 400, true)).join(""));
+}
+function miniPrecio() {
+  const X = v => 6 + 288 * v / 800;
+  return SV(300, 120, Rc(X(0), 52, X(800) - X(0), 10, C.a2, 5) + Rc(X(249), 38, X(349) - X(249), 38, C.dorado, 10) + T(X(299), 28, "249 a 349", 14, C.dorado, "middle", 700) +
+    [[225, "Meniu"], [652, "Fudo"], [745, "+ mesas"]].map(([v, a], i) => `<circle cx="${X(v)}" cy="57" r="6" fill="${C.azul}"/>` + T(X(v), 96 + (i == 2 ? 16 : 0), `${a} ${v}`, 11, C.azul, "middle", 700)).join(""));
+}
+function miniEq() {
+  const eq = PL.equilibrio, fijo = PL.costo_fijo_1000, X = p => 14 + 270 * p / 45, Y = v => 100 - 90 * (v + 3000) / 13000;
+  return SV(300, 120, `<line x1="14" x2="290" y1="${Y(0)}" y2="${Y(0)}" stroke="${C.t2}"/>` + [["249", C.gris], ["299", C.dorado], ["349", C.vino]].map(([k, c]) =>
+    `<polyline points="${X(0)},${Y(-fijo)} ${X(45)},${Y(eq[k].margen_por_pagante * 45 - fijo)}" fill="none" stroke="${c}" stroke-width="3"/><circle cx="${X(eq[k].pagantes_para_cubrir_fijo)}" cy="${Y(0)}" r="5" fill="${c}"/>`).join("") + T(150, 116, "9.7 pagantes cubren el fijo a 349", 11, C.t2, "middle"));
+}
+
+/* ---------- cajas ---------- */
+const DEC = ["K: qué tan agresivo entrar (0.3 a 0.7)", "Contra quién se compite: Meniu o Fudo", "Tope de platillos del gratuito: 80 o 60", "Si se ofrece historial y hasta cuándo se guarda", "Soporte: 60 o 150 pesos al mes (se mide)"];
+const CAJAS = [
+  {id: "hueco", q: "¿Está el negocio en línea?", mini: miniDona, c: "94 % del núcleo no tiene sitio propio."},
+  {id: "mercado", q: "¿Cuántos negocios hay?", mini: miniMercado, c: "≈ 100,000 servibles; ganar 100 a 1,000 es escenario."},
+  {id: "matriz", q: "¿Qué existe y a qué precio?", mini: miniMatriz, c: "Nadie publica el pedido en grupo."},
+  {id: "cap", q: "¿Cuántos caben con eventos?", mini: miniCap, c: "Primero el disco; luego el procesador."},
+  {id: "disco", q: "¿Qué llena el disco?", mini: miniDisco, c: "Archivar el historial multiplica por 9."},
+  {id: "planes", q: "¿A quién deja dentro cada tope?", mini: miniPlanes, c: "Los topes empujan a ≈ 39 % (supuesto)."},
+  {id: "precio", q: "¿Cuánto se cobra?", mini: miniPrecio, c: "Corredor de 249 a 349."},
+  {id: "eq", q: "¿Cómo se sostiene?", mini: miniEq, c: "9.7 pagantes por 1,000 cubren el fijo."},
+];
+
+/* ---------- detalles ---------- */
+const ctl = h => `<div class="ctl">${h}</div>`;
+function marcaCifras(a) { return `<div class="cifras">${a.map(([b, s, tag]) => `<div class="cifra"><b>${b}</b><span>${s}</span>${tag ? `<span class="et" style="margin-top:4px;display:inline-block">${tag}</span>` : ""}</div>`).join("")}</div>`; }
+
+const DET = {
+  hueco: {
+    titulo: "El comensal está conectado; 94 de cada 100 negocios no tiene sitio.",
+    como: "Cada anillo mide qué parte del grupo tiene lo que se pide. Cambia el criterio del negocio.",
+    fu: ["inegi_endutih", "inegi_denue"],
+    insight: "Carta no le quita un cliente a nadie: sería el primer sitio propio de casi todo el núcleo. Ojo: el DENUE no ve Facebook, Instagram ni WhatsApp.",
+    controles: () => ctl(`<span class="kick">Negocio</span>` + [["n", "Núcleo completo"], ["z", "17 zonas metropolitanas"], ["g", "11 personas o más"]].map(([k, t], i) => `<button class="opt" data-k="${k}" aria-pressed="${i === 0}">${t}</button>`).join("")),
+    pinta(st, el) {
+      const k = st.k || "n";
+      const v = {n: [M.nucleo_con_sitio, M.nucleo], z: [M.zonas17_con_sitio, M.zonas17], g: [M.nucleo_11mas_con_sitio, M.nucleo_11mas]}[k];
+      const p = 100 * v[0] / v[1];
+      el.innerHTML = SV(960, 400, T(170, 40, "El comensal", 24, C.vino, "middle", 400, true) + dona(170, 200, 110, M.usa_internet_pct, C.vino, 40) + T(170, 212, M.usa_internet_pct + " %", 44, C.vino, "middle", 400, true) +
+        T(170, 350, "usa internet (6 años y más)", 14, C.t2, "middle") + T(170, 372, M.celular_pct + " % de ellos, con celular", 14, C.t2, "middle") +
+        Rc(340, 130, 280, 140, C.a2, 24) + T(480, 176, "EL HUECO", 12, C.t2, "middle", 700) + T(480, 226, n(100 - p, 1) + " %", 48, C.osc, "middle", 400, true) + T(480, 254, "sin sitio propio", 14, C.t2, "middle") +
+        T(790, 40, "El negocio", 24, C.dorado, "middle", 400, true) + dona(790, 200, 110, p, C.dorado, 40) + T(790, 212, n(p, 1) + " %", 44, C.dorado, "middle", 400, true) +
+        T(790, 350, "declara sitio web", 14, C.t2, "middle") + T(790, 372, `${n(v[0])} de ${n(v[1])}`, 14, C.t2, "middle"));
+      el.insertAdjacentHTML("beforeend", marcaCifras([[n(M.usa_internet_pct, 1) + " %", "de la población de 6 años y más usa internet (2024)", ""], [n(100 - p, 1) + " %", "del grupo elegido no declara sitio web", ""], ["0.8 %", `de ${n(M.micro_n)} micronegocios declara sitio`, ""]]));
+    },
+  },
+  mercado: {
+    titulo: "Hay ≈ 100,000 negocios servibles; ganar 100 a 1,000 es un escenario.",
+    como: "Cada barra es una capa del mercado, en escala logarítmica. Toca una barra para ver su criterio.",
+    fu: ["inegi_denue", "carta_mercado", "carta_muestra"],
+    insight: "El mercado sobra; lo que falta medir es cuántos dueños prueban y cuántos pagan.",
+    controles: () => ctl(`<span class="kick">Ver</span><button class="opt" data-k="e" aria-pressed="true">Embudo del mercado</button><button class="opt" data-k="l" aria-pressed="false">Cartas que un lector puede leer</button>`),
+    pinta(st, el) {
+      const k = st.k || "e";
+      const lo = lg(50), hi = lg(M.total), W = 640, w = v => 40 + W * (lg(v) - lo) / (hi - lo);
+      const et = [["Restaurantes y bares de México", M.total, n(M.total), C.arena, C.t2, "Ramas 7225 y 7224 del DENUE 05/2026."], ["Núcleo: a la carta, comida corrida, bares", M.nucleo, n(M.nucleo), C.gris, C.tinta, "Clases 722511, 722411 y 722412."],
+        ["Servible: sin cadenas", M.servible, "≈ " + n(M.servible), C.vino, "#fff", `Entre ${n(M.servible_rango[0])} y ${n(M.servible_rango[1])} según cuántos nombres repetidos sean cadenas.`], ["Primera ola: 17 zonas metropolitanas", M.zonas17, n(M.zonas17), C.osc, "#fff", "Núcleo dentro de las 17 zonas ya usadas para la muestra."]];
+      if (k === "e") {
+        let b = et.map(([a, v, t, col, tc, desc], i) => `<g class="bar" data-tip="${esc(desc)}" tabindex="0" style="cursor:pointer">${Rc(0, 24 + i * 70, w(v), 52, col, 14)}${T(14, 58 + i * 70, t, 24, tc, "start", 400, true)}${T(w(v) + 14, 58 + i * 70, a, 14, C.t2)}</g>`).join("");
+        const [a, z] = M.ganable_12m;
+        b += `<g data-tip="Escenario a 12 meses; es un supuesto, no un dato." style="cursor:pointer">${Rc(w(a), 304, w(z) - w(a), 52, C.dorado, 14)}${T(w(a) + 14, 338, `${a} a ${n(z)}`, 24, "#fff", "start", 400, true)}${T(w(z) + 14, 338, "Ganable a 12 meses (escenario)", 14, C.t2)}</g>`;
+        b += T(950, 18, "escala logarítmica", 12, C.t2, "end", 700);
+        el.innerHTML = SV(960, 390, b);
+        el.insertAdjacentHTML("beforeend", marcaCifras([[n(M.servible_rango[0]) + "–" + n(M.servible_rango[1]), "rango del mercado servible"], ["100 a 1,000", "restaurantes activos a 12 meses", "supuesto"], [n(M.nucleo_sin_sitio), "negocios del núcleo sin sitio declarado"]]));
+      } else {
+        const m = M.muestra, W2 = 800;
+        const filas = [["Sitios declarados en el DENUE", m.con_sitio_universo, C.gris], ["× tasa de carta completa (" + m.tasa.toFixed(3) + ")", m.alcanzables, C.vino]];
+        let b = filas.map(([a, v, col], i) => Rc(0, 30 + i * 90, 40 + (W2 - 40) * v / m.con_sitio_universo, 60, col, 16) + T(16, 68 + i * 90, n(v), 28, i ? "#fff" : C.tinta, "start", 400, true) + T(40 + (W2 - 40) * v / m.con_sitio_universo + 14, 66 + i * 90, a, 14, C.t2)).join("");
+        b += T(0, 250, `Rango ${n(m.rango[0])} a ${n(m.rango[1])} · muestra: ${m.completas} cartas completas de ${m.intentos} intentos.`, 14, C.t2) + T(0, 276, "Aplicar esa tasa a todo el universo es un supuesto; vale para negocios populares con sitio propio.", 13, C.dorado, "start", 700);
+        el.innerHTML = SV(960, 300, b);
+        el.insertAdjacentHTML("beforeend", marcaCifras([["≈ " + n(m.alcanzables), "cartas que se pueden leer del sitio", "supuesto"], [(100 * m.alcanzables / M.total).toFixed(2) + " %", "del universo 7225 y 7224 (cálculo: alcanzables ÷ total)", ""], [m.tasa.toFixed(3), "20 de 200 intentos: medida con la muestra", "medida"]]));
+      }
+    },
+  },
+  matriz: {
+    titulo: "Nadie publica el pedido en grupo; es el hueco que Carta ocupa.",
+    como: "Cada fila es un plan real; cada columna, un trabajo. Toca una celda. Filtra por tipo de trabajo.",
+    fu: ["paginas_proveedores_14nov", "carta_precio"],
+    insight: "Los precios van de 0 a 1,099 pesos y ninguno publica pedir en grupo. «No publicado» no cuenta como «no lo tiene».",
+    controles: () => ctl(`<span class="kick">Trabajos</span>` + [["t", "Todos"], ["m", "Mesa y pedido"], ["o", "Operación"]].map(([k, t], i) => `<button class="opt" data-k="${k}" aria-pressed="${i === 0}">${t}</button>`).join("")),
+    pinta(st, el) {
+      const k = st.k || "t";
+      const idx = {t: MX.trabajos.map((_, i) => i), m: [0, 1, 2, 3], o: [4, 5, 6, 7, 8, 9, 10, 11]}[k];
+      const cw = idx.length > 8 ? 62 : 90, x0 = 230, y0 = 120, ch = 28, carta = ["hoy", "fut", "fut", "fut", "no", "no", "no", "no", "no", "no", "no", "no"];
+      const cel = (x, y, e, tip) => {
+        const a = `data-tip="${esc(tip)}" tabindex="0"`;
+        if (e === "si") return `<rect ${a} x="${x}" y="${y + 3}" width="${cw - 10}" height="${ch - 8}" rx="8" fill="${C.vino}"/>`;
+        if (e === "no") return `<rect ${a} x="${x}" y="${y + 3}" width="${cw - 10}" height="${ch - 8}" rx="8" fill="${C.arena}"/>`;
+        if (e === "np") return `<rect ${a} x="${x}" y="${y + 3}" width="${cw - 10}" height="${ch - 8}" rx="8" fill="none" stroke="${C.gris}" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+        if (e === "hoy") return `<rect ${a} x="${x}" y="${y + 3}" width="${cw - 10}" height="${ch - 8}" rx="8" fill="${C.dorado}"/>`;
+        return `<rect ${a} x="${x}" y="${y + 3}" width="${cw - 10}" height="${ch - 8}" rx="8" fill="none" stroke="${C.dorado}" stroke-width="2.2"/>`;
+      };
+      const txt = {si: "lo incluye", no: "la página dice que no o es complemento de pago", np: "no publicado", hoy: "Carta, en producción", fut: "Carta, Fase 3: aún no construida"};
+      let b = idx.map((j, a) => `<text transform="translate(${x0 + a * cw + cw / 2} ${y0 - 8}) rotate(-45)" font-size="12.5" fill="${j === 2 ? C.osc : C.t2}" font-weight="${j === 2 ? 700 : 400}">${esc(MX.trabajos[j])}</text>`).join("");
+      MX.filas.forEach((f, i) => { const y = y0 + i * ch; b += T(x0 - 12, y + 19, f.nombre, 13, C.tinta, "end", 700) + T(0, y + 19, n(f.precio), 12.5, C.t2); idx.forEach((j, a) => { b += cel(x0 + a * cw + 5, y, f.celdas[j], `${f.nombre} ${f.plan} · ${MX.trabajos[j]}: ${txt[f.celdas[j]]}`); }); });
+      const y = y0 + MX.filas.length * ch + 8;
+      b += T(x0 - 12, y + 21, "Carta", 14, C.dorado, "end", 700) + T(0, y + 21, "249–349", 12.5, C.dorado, "start", 700);
+      idx.forEach((j, a) => { b += cel(x0 + a * cw + 5, y, carta[j], `Carta · ${MX.trabajos[j]}: ${txt[carta[j]]}`); });
+      b += T(0, y0 - 14, "MXN al mes", 11, C.t2, "start", 700);
+      const gi = idx.indexOf(2);
+      if (gi >= 0) b += Rc(x0 + gi * cw - 1, y0 - 4, cw + 2, (MX.filas.length + 1) * ch + 22, "none", 14, `stroke="${C.dorado}" stroke-width="2.4"`);
+      el.innerHTML = SV(960, y + 50, b);
+    },
+  },
+  cap: {
+    titulo: "Con eventos caben de 299 a 2,116 restaurantes gratuitos.",
+    como: "Elige un escalón de servidor. La barra dorada es la capacidad de restaurantes de paga, que pesan más cada uno.",
+    fu: ["carta_anuncios", "carta_capacidad", "railway_limites"],
+    insight: "El primer muro es el disco; pasar a Pro lo levanta. El último, 10,000 conexiones abiertas, no se sube con más procesos ni réplicas.",
+    nota: "Hoy en producción aún corre el sondeo hasta que la Fase 3 construya los eventos; ver el archivo histórico (docs/historia/).",
+    controles: () => ctl(`<span class="kick">Escalón</span>` + CAP.escalones.map((e, i) => `<button class="opt" data-k="${i}" aria-pressed="${i === 0}">${e.procesos} procesos · ${e.plan === "pro" ? "Pro" : "Hobby"}</button>`).join("")),
+    pinta(st, el) {
+      const sel = +(st.k || 0), mx = 2400, base = 300;
+      const muro = ["disco de 5 GB", "procesador", "procesador", "10,000 conexiones"];
+      let b = "";
+      CAP.escalones.forEach((e, i) => {
+        const x = 40 + i * 225, h = 230 * e.gratuitos / mx, hp = 230 * e.paga / mx, on = i === sel;
+        b += `<g opacity="${on ? 1 : 0.45}">` + Rc(x, base - h, 90, h, on ? C.vino : C.gris, 12) + Rc(x + 96, base - hp, 70, hp, C.dorado, 12) + T(x + 45, base - h - 10, n(e.gratuitos), 26, C.vino, "middle", 400, true) + T(x + 131, base - hp - 10, n(e.paga), 18, C.dorado, "middle", 400, true) +
+          T(x + 83, base + 22, `${e.procesos} procesos · ${e.plan === "pro" ? "Pro" : "Hobby"}`, 13, C.tinta, "middle", 700) + T(x + 83, base + 42, `${e.usd} USD al mes`, 12, C.t2, "middle") + `</g>`;
+      });
+      b += T(40, 20, "gratuitos típicos (vino) y de paga típicos (dorado) que caben", 13, C.vino, "start", 700) + T(950, 20, "supuesto: simulador de uso", 12, C.dorado, "end", 700);
+      el.innerHTML = SV(960, 360, b);
+      const e = CAP.escalones[sel];
+      el.insertAdjacentHTML("beforeend", marcaCifras([[n(e.gratuitos), "gratuitos caben · muro: " + muro[sel], "supuesto"], [n(e.paga), "de paga caben · muro: " + e.muro_paga, "supuesto"], [e.usd + " USD", "costo de Railway al mes", ""], [n(e.n_conexiones || 0) || "—", "tope por conexiones", ""]].filter(x => x[0] !== "0")));
+    },
+  },
+  disco: {
+    titulo: "Mover el historial a archivo lleva de 14 a 128 restaurantes de paga.",
+    como: "Activa palancas. Se suman en este orden: encender una enciende las anteriores.",
+    fu: ["carta_disco", "cloudflare_r2_precios"],
+    insight: "La palanca grande no es comprimir, es dónde vive el historial. Guardar lo viejo en frío cuesta ≈ 0.4 pesos al año por restaurante; no se venden datos.",
+    nota: "Sin reserva de 20 %. La palanca «sin 4 índices» ahorra sólo 10 % de su tabla: no vale el riesgo. La del archivo exige un archivador que aún no existe.",
+    controles: () => ctl(["P1", "P2", "P3", "P4", "P5"].map(k => `<label class="sw"><input type="checkbox" data-p="${k}"> ${esc(palMap[k].nombre)}</label>`).join("")),
+    pinta(st, el) {
+      const orden = ["P1", "P2", "P3", "P4", "P5"], on = st.on || 0;
+      const act = on === 0 ? "P0" : orden[on - 1];
+      const p = palMap[act];
+      const filas = [["Plan 03 §7 hoy", "P00"], ["12 meses en línea", "P0"], ...orden.map(k => [palMap[k].nombre, k])];
+      let b = filas.map(([nom, k], i) => { const q = palMap[k], w = 520 * q.paga / 440, act_ = k === act; return T(250, 28 + i * 46, nom, 13, C.tinta, "end", act_ ? 700 : 400) + Rc(262, 8 + i * 46, Math.max(w, 4), 32, act_ ? C.dorado : C.arena, 10) + T(262 + Math.max(w, 4) + 8, 31 + i * 46, q.paga, 22, C.vino, "start", 400, true); }).join("");
+      el.innerHTML = SV(960, 340, b);
+      el.insertAdjacentHTML("beforeend", marcaCifras([[p.paga, "restaurantes de paga caben en 5 GB (todo de paga)", "modelo + medida"], [p.mixto_80_20, "con 80 % gratuitos y 20 % de paga", "supuesto"], [p.gratuito, "si todos son gratuitos", ""], [n(p.mb_paga, 0) + " MB", "lo que pesa un restaurante de paga en línea", "medida"]]));
+    },
+  },
+  planes: {
+    titulo: "Los topes de mesas y personal empujan a pagar a ≈ 39 %; el de platillos, a 10.8 %.",
+    como: "Mueve el tope de platillos del gratuito: el anillo muestra a quién deja dentro. Mesas y cuentas son supuesto.",
+    fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
+    insight: "Con 80 platillos casi todos caben; con 40 más de la mitad pagaría sólo por eso. Dejar 80 para el conjunto; no se concluye sobre los formales (2 negocios).",
+    controles: () => ctl(`<label>Tope de platillos del gratuito <input type="range" id="rg" min="0" max="${PL.cobertura_platillos.length - 1}" step="1" value="2"> <output id="og">80</output></label>`),
+    pinta(st, el) {
+      const i = st.r == null ? 2 : +st.r, c = PL.cobertura_platillos[i];
+      let b = dona(150, 160, 100, c.total_empuja_pct, C.vino, 38) + T(150, 172, n(c.total_empuja_pct, 1) + " %", 40, C.vino, "middle", 400, true) + T(150, 290, `empuja a pagar con ${c.tope} platillos`, 13.5, C.t2, "middle") + T(150, 310, `${n(c.total_cubre_pct, 1)} % queda dentro del gratuito`, 13.5, C.t2, "middle");
+      const E = PL.empuja;
+      [["10 mesas", E.mesas, 1], ["3 cuentas de personal", E.cuentas, 1], [c.tope + " platillos", {pct: c.total_empuja_pct}, 0]].forEach(([nom, v, sup], k) => {
+        const y = 60 + k * 70;
+        b += T(560, y - 8, nom, 13.5, C.tinta, "end", 700) + Rc(580, y - 24, 340, 28, C.a2, 14);
+        if (v.bajo != null) b += Rc(580 + 3.4 * v.bajo, y - 24, 3.4 * (v.alto - v.bajo), 28, "#d9a9b6", 14);
+        b += `<circle cx="${580 + 3.4 * v.pct}" cy="${y - 10}" r="10" fill="${C.vino}"/>` + T(580 + 3.4 * Math.max(v.pct, v.alto || 0) + 16, y - 5, n(v.pct, 1) + " %" + (v.bajo != null ? ` (${v.bajo}–${v.alto})` : ""), 13, C.tinta) + T(580, y + 16, sup ? "supuesto" : "medida", 11, sup ? C.dorado : C.verde, "start", 700);
+      });
+      b += T(340, 280, "Con 60: " + PL.cobertura_platillos[1].total_empuja_pct + " %; con 40: " + PL.cobertura_platillos[0].total_empuja_pct + " %.", 13, C.t2);
+      el.innerHTML = SV(960, 340, b);
+      el.insertAdjacentHTML("beforeend", marcaCifras([["≈ " + n(PL.empujados), `de ${n(PL.negocios_722511)} negocios de la clase 722511 rebasarían algún tope`, "supuesto"], [PL.planes.Gratuito.costo + " · " + PL.planes.Servicio.costo + " · " + PL.planes.Salón.costo, "pesos de costo por restaurante: gratuito · Servicio · Salón", ""], [PL.planes.Gratuito.caben_5gb + " · " + PL.planes.Servicio.caben_5gb + " · " + PL.planes.Salón.caben_5gb, "restaurantes de cada plan que caben en 5 GB", ""]]));
+    },
+  },
+  precio: {
+    titulo: "Servicio cuesta de 249 a 349; 2,000 queda fuera en todos los casos.",
+    como: "Mueve K (qué tan agresivo entrar) y el soporte; elige el sustituto. La regla: máx(3 × piso; K × sustituto).",
+    fu: ["carta_precio", "paginas_proveedores_14nov"],
+    insight: "Elegir el precio es elegir contra quién se compite; K y el soporte lo mueven. K lo decide Calvin. Es una propuesta: la v1 no cobra.",
+    controles: () => ctl(`<label>K <input type="range" id="rk" min="0.3" max="0.7" step="0.05" value="0.5"> <output id="ok">0.50</output></label><label>Soporte al mes <input type="range" id="rs" min="30" max="150" step="10" value="60"> <output id="os">60</output></label><label>Sustituto <select id="ss">${Object.entries(PR.sustitutos).map(([k, v], i) => `<option value="${k}" ${i == 1 ? "selected" : ""}>${k} (${v})</option>`).join("")}</select></label>`),
+    pinta(st, el) {
+      const K = st.k == null ? 0.5 : +st.k, S = st.s == null ? 60 : +st.s, sn = st.sus || "Fudo Avanzado", sv = PR.sustitutos[sn];
+      const crudo = reglaPrecio(sv, K, S), pr = redondea(crudo, S);
+      const X = v => 30 + 880 * v / 800;
+      let b = Rc(X(0), 100, X(800) - X(0), 16, C.a2, 8) + Rc(X(249), 82, X(349) - X(249), 52, C.dorado, 14, 'opacity=".85"') + T(X(299), 70, "corredor 249 a 349", 14, C.dorado, "middle", 700);
+      Object.entries(PR.sustitutos).forEach(([k, v], j) => { b += `<circle cx="${X(v)}" cy="108" r="${k === sn ? 11 : 8}" fill="${C.azul}" opacity="${k === sn ? 1 : 0.5}"/>` + T(X(v), 160 + (j == 2 ? 20 : 0), `${k} ${v}`, 12.5, C.azul, "middle", 700); });
+      b += Rc(X(Math.min(pr, 800)) - 3, 66, 6, 82, C.osc, 3) + T(X(Math.min(pr, 800)), 52, "tu precio: " + pr, 17, C.osc, "middle", 700) + T(X(240), 200, "piso × 3 con soporte 60 = 240", 12, C.t2, "middle");
+      b += T(30, 250, "Tu precio como parte del sustituto elegido y de Fudo Avanzado (652):", 14, C.vino, "start", 700);
+      [["Meniu", 225], ["Fudo Avanzado", 652], ["Fudo + mesas", 745]].forEach(([k, v], j) => { const p = 100 * pr / v; b += Rc(30, 266 + j * 38, 12 + 600 * Math.min(p, 120) / 120, 28, p > 100 ? "#9b2c2c" : C.vino, 10) + T(46 + 600 * Math.min(p, 120) / 120, 286 + j * 38, `${n(p)} % de ${k} (${v})`, 13, C.tinta, "start", 700); });
+      el.innerHTML = SV(960, 400, b);
+      el.insertAdjacentHTML("beforeend", marcaCifras([[pr, `precio de la regla (crudo ≈ ${n(crudo)}), redondeado hacia abajo a x49 o x99 sin bajar del piso ×3`, "propuesta"], [n(piso(pr, S), 1), "piso: lo que cuesta atender a un restaurante de paga al mes", ""], [n(100 * (1 - piso(pr, S) / pr)) + " %", "margen sobre el piso", ""], ["399 y 2,000", `Salón con K = 0.5 (rango 249–599) · 2,000 = ${n(200000 / 652)} % de Fudo Avanzado`, ""]]));
+    },
+  },
+  eq: {
+    titulo: "Con 9.7 pagantes por 1,000 registrados a 349 se cubre el costo fijo.",
+    como: "Elige cuántos rebasan los topes, cuántos de ellos pagan y a cuánto se vende Servicio. Salen las cuentas del estudio.",
+    fu: ["carta_tres_planes", "carta_planes"],
+    insight: "Todo depende de dos datos que hoy no existen: cuántos rebasan los topes y cuántos pagan. Con 16 % y 5 %, el neto es negativo: por eso el piloto.",
+    controles: () => ctl(`<label>Rebasan topes <select id="er">${[16, 39, 71].map(v => `<option ${v == 39 ? "selected" : ""}>${v}</option>`).join("")}</select> %</label><label>De ellos, pagan <select id="ec">${[5, 10, 20].map(v => `<option ${v == 10 ? "selected" : ""}>${v}</option>`).join("")}</select> %</label><label>Servicio a <select id="ep">${[299, 349].map(v => `<option ${v == 349 ? "selected" : ""}>${v}</option>`).join("")}</select></label>`),
+    pinta(st, el) {
+      const r = +(st.r || 39), cv = +(st.c || 10), pp = +(st.p || 349);
+      const e = PL.escenarios.find(x => x.rebasan_topes_pct === r && x.conversion_pct === cv && x.precio_servicio === pp);
+      const eq = PL.equilibrio, fijo = PL.costo_fijo_1000, X = p => 70 + 560 * p / 45, Y = v => 40 + 260 * (10000 - v) / 13000;
+      let b = [-2569, 0, 5000, 10000].map(v => `<line x1="70" x2="630" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? C.t2 : C.arena}"/>` + T(62, Y(v) + 4, n(v), 11.5, C.t2, "end")).join("");
+      [["249", C.gris], ["299", C.dorado], ["349", C.vino]].forEach(([k, c]) => { b += `<polyline points="${X(0)},${Y(-fijo)} ${X(45)},${Y(eq[k].margen_por_pagante * 45 - fijo)}" fill="none" stroke="${c}" stroke-width="${k == pp ? 5 : 2.5}" opacity="${k == pp ? 1 : 0.55}"/><circle cx="${X(eq[k].pagantes_para_cubrir_fijo)}" cy="${Y(0)}" r="7" fill="${c}" stroke="#fff" stroke-width="2"/>`; });
+      b += `<circle cx="${X(e.pagantes)}" cy="${Y(e.neto_mes)}" r="10" fill="none" stroke="${C.tinta}" stroke-width="3"/>` + T(350, 336, "pagantes por cada 1,000 registrados", 12.5, C.t2, "middle");
+      [0, 10, 20, 30, 40].forEach(p => { b += T(X(p), 318, p, 12, C.t2, "middle"); });
+      b += Rc(690, 40, 250, 250, "#fff", 20, `stroke="${C.arena}" stroke-width="1.5"`) + T(706, 72, "Tu escenario", 14, C.vino, "start", 700) + T(706, 120, n(e.pagantes, e.pagantes % 1 ? 1 : 0), 44, C.vino, "start", 400, true) + T(706, 142, "pagantes por 1,000", 13, C.t2) + T(706, 196, n(e.ingreso_mes), 28, C.vino, "start", 400, true) + T(706, 216, "pesos de ingreso al mes", 13, C.t2) + T(706, 262, (e.neto_mes < 0 ? "−" : "") + n(Math.abs(e.neto_mes)) + " neto", 24, e.neto_mes < 0 ? "#9b2c2c" : C.verde, "start", 700);
+      el.innerHTML = SV(960, 350, b);
+      el.insertAdjacentHTML("beforeend", marcaCifras([[eq[String(pp)].pagantes_para_cubrir_fijo, `pagantes por 1,000 cubren el fijo (${n(fijo)} al mes) a ${pp}`, ""], [n(e.costo_de_atender_pagantes), "pesos: costo de atender a los pagantes (piso)", ""], ["supuestos", "% que rebasa y % que paga: los mide el piloto", "supuesto"]]));
+    },
+  },
+  dec: {
+    titulo: "Cinco decisiones que te tocan.",
+    como: "Cada una cambia un número de las cajas anteriores.",
+    fu: ["carta_precio", "carta_disco", "carta_tres_planes"],
+    insight: "Ninguna se decide con más análisis: K, el sustituto y el soporte se cierran con el piloto de 10 restaurantes.",
+    controles: () => "",
+    pinta(st, el) {
+      const t = [["K: qué tan agresivo entrar", "De 0.3 a 0.7. Contra Fudo Avanzado el precio va de 249 a 449; contra Meniu es 249 siempre.", "precio"], ["Contra quién se compite", "Meniu (225) da 249; Fudo Avanzado (652) da 299; Fudo con mesas (745) da 349, con K = 0.5.", "precio"],
+        ["Tope de platillos del gratuito", "Con 80 empuja a 10.8 %; con 60, a 24.3 %; con 40, a 52.7 %.", "planes"], ["Historial", "Si se ofrece como complemento y hasta cuándo se guarda; hoy 03 §7 purga a 24 meses. No se venden datos.", "disco"], ["Soporte al mes", "60 pesos (30 minutos) o 150: con 150 el precio sube a ≈ 556. Se mide en el piloto.", "precio"]];
+      el.innerHTML = `<div class="cifras" style="grid-template-columns:1fr">${t.map(([a, b, k], i) => `<div class="cifra" style="border-left-color:var(--vino2)"><b style="font-size:20px">${i + 1}. ${a}</b><span>${b}</span><button class="opt" style="margin-top:6px;background:var(--arena2);padding:6px 12px;min-height:36px" data-ir="${k}">ver la caja</button></div>`).join("")}</div>`;
+    },
+  },
+};
+const K0 = [["94 %", "del núcleo no declara sitio web", ["inegi_denue"]], ["≈ 100,000", "negocios servibles", ["carta_mercado"]], ["299 → 2,116", "gratuitos caben con eventos", ["carta_anuncios"]], ["14 → 128", "de paga caben en 5 GB", ["carta_disco"]], ["≈ 39 %", "rebasaría los topes (supuesto)", ["carta_tres_planes"]], ["9.7", "pagantes por 1,000 cubren el fijo a 349", ["carta_tres_planes"]]];
+document.getElementById("kpis").innerHTML = K0.map(([a, b, c]) => `<div class="kpi"><b>${a}</b><span>${b}</span><span class="cita">(${cita(...c)})</span></div>`).join("");
+document.getElementById("grid").innerHTML = CAJAS.map(c => `<button class="box" data-id="${c.id}" aria-label="${esc(c.q)}"><div class="q">${esc(c.q)}</div><div class="m">${c.mini()}</div><div class="c">${esc(c.c)}</div><div class="abre">toca para abrir ›</div></button>`).join("") +
+  `<button class="box dec" data-id="dec"><div class="q">Decisiones que te tocan</div><ol>${DEC.map((t, i) => `<li><i>${i + 1}</i>${esc(t)}</li>`).join("")}</ol><div class="abre" style="color:#f3d58a;margin-top:auto">toca para abrir ›</div></button>`;
+
+/* ---------- detalle a pantalla completa ---------- */
+const det = document.getElementById("det"), tt = document.getElementById("tt");
+let abierto = null, estado = {}, ultimoFoco = null;
+function abre(id) {
+  const d = DET[id]; if (!d) return;
+  ultimoFoco = document.activeElement; abierto = id; estado = {};
+  det.hidden = false; document.body.style.overflow = "hidden";
+  det.innerHTML = `<div class="dd"><button class="vuelve" id="vuelve">← Volver</button><h2 id="dt">${esc(d.titulo)}</h2><p class="como"><b>Cómo leerlo.</b> ${esc(d.como)}</p>${d.controles()}<p class="desliza">Desliza la gráfica de lado →</p><div class="viz" id="viz"></div><div id="cif"></div><div class="insight"><b>Insight clave.</b> ${esc(d.insight)}</div>${d.nota ? `<p class="nota">${esc(d.nota)}</p>` : ""}${fuentes(d.fu)}</div>`;
+  const viz = det.querySelector("#viz");
+  const dibuja = () => {
+    d.pinta(estado, viz);
+    const cif = viz.querySelector(".cifras"); if (cif) det.querySelector("#cif").replaceChildren(cif); else det.querySelector("#cif").replaceChildren();
+    const svgEl = viz.querySelector("svg"); if (svgEl) svgEl.setAttribute("aria-label", d.titulo);
+  };
+  det.querySelector("#vuelve").onclick = cierra;
+  det.querySelectorAll(".opt[data-k]").forEach(b => b.onclick = () => { estado.k = b.dataset.k; det.querySelectorAll(".opt[data-k]").forEach(x => x.setAttribute("aria-pressed", x === b)); dibuja(); });
+  det.querySelectorAll("[data-ir]").forEach(b => b.onclick = () => { cierra(); abre(b.dataset.ir); });
+  if (id === "disco") det.querySelectorAll("input[data-p]").forEach(cb => cb.onchange = () => {
+    const ord = ["P1", "P2", "P3", "P4", "P5"], i = ord.indexOf(cb.dataset.p);
+    det.querySelectorAll("input[data-p]").forEach((o, j) => { o.checked = cb.checked ? j <= i : j < i; });
+    estado.on = det.querySelectorAll("input[data-p]:checked").length; dibuja();
+  });
+  if (id === "planes") det.querySelector("#rg").oninput = e => { estado.r = e.target.value; det.querySelector("#og").textContent = PL.cobertura_platillos[+e.target.value].tope; dibuja(); };
+  if (id === "precio") {
+    det.querySelector("#rk").oninput = e => { estado.k = e.target.value; det.querySelector("#ok").textContent = (+e.target.value).toFixed(2); dibuja(); };
+    det.querySelector("#rs").oninput = e => { estado.s = e.target.value; det.querySelector("#os").textContent = e.target.value; dibuja(); };
+    det.querySelector("#ss").onchange = e => { estado.sus = e.target.value; dibuja(); };
+  }
+  if (id === "eq") { det.querySelector("#er").onchange = e => { estado.r = e.target.value; dibuja(); }; det.querySelector("#ec").onchange = e => { estado.c = e.target.value; dibuja(); }; det.querySelector("#ep").onchange = e => { estado.p = e.target.value; dibuja(); }; }
+  dibuja(); det.scrollTop = 0; det.querySelector("#vuelve").focus();
+  if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+}
+function cierra() { det.hidden = true; det.innerHTML = ""; abierto = null; document.body.style.overflow = ""; tt.hidden = true; history.replaceState(null, "", location.pathname); if (ultimoFoco && document.contains(ultimoFoco)) ultimoFoco.focus(); }
+document.getElementById("grid").addEventListener("click", e => { const b = e.target.closest(".box"); if (b) abre(b.dataset.id); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && abierto) cierra();
+  if (e.key === "Tab" && abierto) { const f = [...det.querySelectorAll("button,input,select,a[href]")].filter(x => !x.disabled); if (!f.length) return; const a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
+});
+function muestraTip(e) { const t = e.target.closest("[data-tip]"); if (!t) { tt.hidden = true; return; } tt.textContent = t.dataset.tip; tt.hidden = false; const r = t.getBoundingClientRect(); tt.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 130), innerWidth - 270) + "px"; tt.style.top = Math.max(8, r.top - tt.offsetHeight - 8) + "px"; }
+det.addEventListener("mouseover", muestraTip); det.addEventListener("focusin", muestraTip); det.addEventListener("mouseout", () => tt.hidden = true); det.addEventListener("click", muestraTip);
+if (location.hash && DET[location.hash.slice(1)]) abre(location.hash.slice(1));
+</script>
+</body>
+</html>
