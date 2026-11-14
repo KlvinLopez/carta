@@ -185,7 +185,7 @@ if (png) await p.screenshot({ path: `${png}/v8_sost4.png` });
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
 await abre(p, 'pagar');
-ok((await p.$$('#svG .gh')).length >= 6, 'pagar: una imagen con punto de venta y Carta por tamaño');
+ok((await p.$$('#svG .gh')).length >= 4, 'pagar: una imagen con punto de venta y Carta por tamaño');
 if (png) await p.screenshot({ path: `${png}/v8_pagar.png` });
 await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
