@@ -667,6 +667,116 @@
    "tipo": "documentación técnica",
    "consulta": "2026-11-13",
    "nota": "No reabiertas en esta ronda."
+  },
+  {
+   "clave": "cloudflare_r2_precios",
+   "autor": "Cloudflare",
+   "año": 2026,
+   "titulo": "R2 pricing (Standard 0.015 USD/GB-mes, Infrequent Access 0.01, recuperación 0.01/GB, 30 días mínimos, 10 GB gratis, salida gratis)",
+   "publica": "Cloudflare Developers",
+   "url": "https://developers.cloudflare.com/r2/pricing/",
+   "tipo": "precio publicado por el proveedor",
+   "consulta": "2026-11-14",
+   "nota": "Página con «Last updated Oct 30, 2026»."
+  },
+  {
+   "clave": "backblaze_b2_precios",
+   "autor": "Backblaze",
+   "año": 2026,
+   "titulo": "B2 Cloud Storage pricing (6.95 USD/TB-mes, sin duración mínima, salida gratis hasta 3× lo almacenado)",
+   "publica": "Backblaze",
+   "url": "https://www.backblaze.com/cloud-storage/pricing",
+   "tipo": "precio publicado por el proveedor",
+   "consulta": "2026-11-14",
+   "nota": "La página no muestra fecha de actualización."
+  },
+  {
+   "clave": "aws_s3_precios",
+   "autor": "Amazon Web Services",
+   "año": 2026,
+   "titulo": "Amazon S3 pricing: sólo se leyeron las duraciones mínimas (30, 90 y 180 días); las tablas de precios no cargaron",
+   "publica": "Amazon Web Services",
+   "url": "https://aws.amazon.com/s3/pricing/",
+   "tipo": "precio publicado por el proveedor",
+   "consulta": "2026-11-14",
+   "nota": "Precios por GB no leídos: dato por conseguir."
+  },
+  {
+   "clave": "cff_art30",
+   "autor": "Cámara de Diputados del H. Congreso de la Unión",
+   "año": 2026,
+   "titulo": "Código Fiscal de la Federación, artículo 30 (conservación de contabilidad y documentación: cinco años); última reforma DOF 09-04-2026",
+   "publica": "Cámara de Diputados",
+   "url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf",
+   "tipo": "ley vigente",
+   "consulta": "2026-11-14",
+   "nota": "Texto copiado del PDF oficial; no es opinión legal."
+  },
+  {
+   "clave": "ccom_art38_46_47",
+   "autor": "Cámara de Diputados del H. Congreso de la Unión",
+   "año": 2025,
+   "titulo": "Código de Comercio, artículos 38, 46 y 47 (conservación de comprobantes y registros: diez años); última reforma DOF 14-11-2025",
+   "publica": "Cámara de Diputados",
+   "url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/CCom.pdf",
+   "tipo": "ley vigente",
+   "consulta": "2026-11-14",
+   "nota": "Texto copiado del PDF oficial; no es opinión legal."
+  },
+  {
+   "clave": "lfpdppp_2025",
+   "autor": "Cámara de Diputados del H. Congreso de la Unión",
+   "año": 2025,
+   "titulo": "Ley Federal de Protección de Datos Personales en Posesión de los Particulares (nueva ley, DOF 20-03-2025; última reforma DOF 14-11-2025): artículos 10, 24 y 25",
+   "publica": "Cámara de Diputados",
+   "url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
+   "tipo": "ley vigente",
+   "consulta": "2026-11-14",
+   "nota": "Texto copiado del PDF oficial; no es opinión legal. NOM-151-SCFI-2016 no se pudo leer (DOF devolvió 503)."
+  },
+  {
+   "clave": "spotify_privacidad",
+   "autor": "Spotify",
+   "año": 2026,
+   "titulo": "Privacy Policy (vigente desde el 1 de julio de 2026): 90 días para búsquedas; herramienta «Download your data»",
+   "publica": "Spotify USA Inc.",
+   "url": "https://www.spotify.com/legal/privacy-policy/",
+   "tipo": "política pública",
+   "consulta": "2026-11-14",
+   "nota": "Leída parcialmente (resumen automático de la parte final): sólo se citan frases textuales."
+  },
+  {
+   "clave": "airbnb_privacidad",
+   "autor": "Airbnb",
+   "año": 2026,
+   "titulo": "Privacy Policy (última actualización 5 de febrero de 2026): retención «as long as needed», sin plazos concretos",
+   "publica": "Airbnb, Inc.",
+   "url": "https://www.airbnb.com/help/article/3175",
+   "tipo": "política pública",
+   "consulta": "2026-11-14",
+   "nota": "No describe función de exportación; remite a solicitud formal."
+  },
+  {
+   "clave": "olaclick_precios_14nov",
+   "autor": "OlaClick",
+   "año": 2026,
+   "titulo": "Página de precios (Advanced 9.90, Premium 25, Elite 59, Impulso 160 USD; 75/400/ilimitados pedidos; «más de 40.000 negocios»)",
+   "publica": "OlaClick",
+   "url": "https://pricing.olaclick.app/",
+   "tipo": "precio publicado por el proveedor",
+   "consulta": "2026-11-14",
+   "nota": "La conversión a texto perdió la tabla de funciones por plan."
+  },
+  {
+   "clave": "inegi_ce2024_boletin",
+   "autor": "INEGI",
+   "año": 2025,
+   "titulo": "Censos Económicos 2024: reporte de resultados 22/25 (516,894 personas ocupadas en la clase 722511)",
+   "publica": "INEGI",
+   "url": "https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/ce/CE2024_def_RR.pdf",
+   "tipo": "estadística oficial",
+   "consulta": "2026-11-14",
+   "nota": "24 de julio de 2025; no trae ingresos por estrato."
   }
  ],
  "grupos": [
