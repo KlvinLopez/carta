@@ -124,7 +124,7 @@ DET.topes = {
     const por = [0, 1, 2].map(p => SEG.estratos.filter(q => planDe(q, c) === p).reduce((a, q) => a + q.negocios, 0));
     return {
       leyenda: COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("") + `<span>Arrastra una asa o usa las flechas</span>`,
-      cifras: [[n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
+      cifras: [[n(100 * MOD.seguridadChico(c, SP, "minimo")) + "–" + n(100 * MOD.seguridadChico(c, SP, "centro")) + " %", `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: modelo, no medida`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
       insight: `Con ${S.topeMesas} mesas, ${S.topeCuentas} cuentas y ${S.topePlatillos} platillos, ${n(100 * por[0] / tot, 1)} % de los negocios queda en ${PLAN.gratis}; ese plan lleva anuncios y lo pagan los demás.`,
     };
   },

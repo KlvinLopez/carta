@@ -12,7 +12,7 @@ const fila = (r, k) => r.cifras.find(c => c.clave === k);
 const pesos = v => (v == null ? "—" : mxn(Math.round(v * 10) / 10));
 const KPIS = [
   {id: "potenciales", clave: "clientes_potenciales", f: v => "≈ " + n(v), txt: "clientes potenciales (SAM)", solo: true},
-  {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes gratuitos caben en el servidor", ps: ["con sondeo (hoy)", "con Pro de 8 procesos"], neutro: true},
+  {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes gratuitos caben con eventos (por escalón del servidor)", ps: ["con sondeo (hoy)", "con Pro de 8 procesos"], neutro: true},
   {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
   {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
   {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga"},

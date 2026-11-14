@@ -103,9 +103,9 @@ if (png) await p.screenshot({ path: `${png}/v5_disco.png` });
 await sinDesborde(p, 'disco'); await cierra(p);
 // topes: arrastre con teclado y con puntero
 await abre(p, 'topes');
-const e0 = await texto(p, '#cif .cifra:nth-child(4) b');
+const e0 = await texto(p, '#cif .cifra:nth-child(5) b');
 await p.focus('#svT circle[aria-label="Tope de platillos"]'); await p.keyboard.press('ArrowLeft'); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(500);
-const e1 = await texto(p, '#cif .cifra:nth-child(4) b');
+const e1 = await texto(p, '#cif .cifra:nth-child(5) b');
 ok(e1 !== e0, `topes: bajar el tope de platillos cambia a quién empuja (${e0} → ${e1})`);
 const box = await p.$eval('#svT circle[aria-label="Tope de mesas"]', (e) => { const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
 await p.mouse.move(box[0], box[1]); await p.mouse.down(); await p.mouse.move(box[0] + 150, box[1], {steps: 6}); await p.mouse.up(); await p.waitForTimeout(500);
@@ -132,7 +132,7 @@ ok((await p.$$('#ocp [data-rp]')).length >= 1, 'precio: ocultar un proveedor');
 if (png) await p.screenshot({ path: `${png}/v5_precio.png` });
 await sinDesborde(p, 'precio'); await cierra(p);
 // sostiene: cuatro vistas
-await abre(p, 'sostiene');
+await p.evaluate(() => cambiar({...BASE})); await abre(p, 'sostiene');
 const k0 = await texto(p, '#svK');
 await p.focus('#hN'); await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(300);
 ok((await texto(p, '#svK')) !== k0, 'sostiene: mover el deslizador cambia comensales y costo');
@@ -150,6 +150,9 @@ if (png) await p.screenshot({ path: `${png}/v8_sost2.png` });
 await p.click('#tabsK [data-vista="3"]'); await p.waitForTimeout(400);
 ok((await p.$$('#svK [data-tip]')).length >= 6, 'sostiene: «qué hay que medir primero» con una frase por barra');
 if (png) await p.screenshot({ path: `${png}/v8_sostiene.png`, fullPage: true });
+await p.click('#tabsK [data-vista="4"]'); await p.waitForTimeout(1300);
+ok((await texto(p, '#svK')).includes('−$156') && (await texto(p, '#svK')).includes('$30,650'), 'sostiene: la matriz 3 × 3 da −156 y +30,650 en las esquinas');
+if (png) await p.screenshot({ path: `${png}/v8_sost4.png` });
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
 await abre(p, 'pagar');

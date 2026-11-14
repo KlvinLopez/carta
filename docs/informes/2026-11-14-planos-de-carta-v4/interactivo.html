@@ -4573,7 +4573,7 @@ const fila = (r, k) => r.cifras.find(c => c.clave === k);
 const pesos = v => (v == null ? "—" : mxn(Math.round(v * 10) / 10));
 const KPIS = [
   {id: "potenciales", clave: "clientes_potenciales", f: v => "≈ " + n(v), txt: "clientes potenciales (SAM)", solo: true},
-  {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes gratuitos caben en el servidor", ps: ["con sondeo (hoy)", "con Pro de 8 procesos"], neutro: true},
+  {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes gratuitos caben con eventos (por escalón del servidor)", ps: ["con sondeo (hoy)", "con Pro de 8 procesos"], neutro: true},
   {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
   {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
   {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga"},
@@ -4992,7 +4992,7 @@ DET.topes = {
     const por = [0, 1, 2].map(p => SEG.estratos.filter(q => planDe(q, c) === p).reduce((a, q) => a + q.negocios, 0));
     return {
       leyenda: COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("") + `<span>Arrastra una asa o usa las flechas</span>`,
-      cifras: [[n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
+      cifras: [[n(100 * MOD.seguridadChico(c, SP, "minimo")) + "–" + n(100 * MOD.seguridadChico(c, SP, "centro")) + " %", `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: modelo, no medida`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
       insight: `Con ${S.topeMesas} mesas, ${S.topeCuentas} cuentas y ${S.topePlatillos} platillos, ${n(100 * por[0] / tot, 1)} % de los negocios queda en ${PLAN.gratis}; ese plan lleva anuncios y lo pagan los demás.`,
     };
   },
@@ -5085,7 +5085,7 @@ function proyecta(nivel, s0) {
   const [a, b] = M.metas[nivel], s = {...sup(s0), meta_12_meses: a, meta_24_meses: b};
   return MOD.proyectar(config(s0), s, 24, {curva: s0.curva});
 }
-const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?"];
+const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?", "Qué tanto pagan × anuncios"];
 DET.sostiene = {
   titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
@@ -5107,7 +5107,7 @@ DET.sostiene = {
     $$("#bolsaK [data-bolsa]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.bolsa === S.bolsa));
     return this.pinta();
   },
-  pinta() { const o = [this.v0, this.v1, this.v2, this.v3][this.v].call(this); return o; },
+  pinta() { const o = [this.v0, this.v1, this.v2, this.v3, this.v4][this.v].call(this); return o; },
   v0() { // ¿hasta dónde aguanto con todos gratuitos?
     const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
     const tabla = conCache("tg", () => MOD.tablaTodosGratuitos(c, s).medida);
@@ -5131,6 +5131,7 @@ DET.sostiene = {
     [["baja", "tarifa baja", C.vino], ["medio", "tarifa media", C.verde], ["adverso", "adverso (la mitad)", C.dorado]].forEach(([k, nm, col], i) => { const r = g.con_anuncios[k]; b += `<circle cx="${px + 6}" cy="${256 + i * 30}" r="6" fill="${col}"/>` + T(px + 20, 261 + i * 30, `${nm}: ${fmP(r.margen)}`, 14, C.tinta, "start", 700) + T(px + 270, 261 + i * 30, r.se_paga_solo ? "se paga solo" : "no alcanza", 12, r.se_paga_solo ? C.verde : C.rojo, "end", 700); });
     b += `<g transform="translate(${px},352)">${Rc(0, 0, 280, 22, C.a2, 11)}</g>` + T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
     [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2); });
+    b += T(30, 500, "Vale cuando la Fase 3 (canal de eventos) esté construida; hoy, con sondeo, caben 148. Los umbrales son rangos, no puntos.", 12.5, C.t2);
     b += T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.restaurantes)} restaurantes gratuitos y ${n(bol.comensales_mes / 1e6, 2)} M de comensales al mes${bol.tope_medido ? " (tope medido)" : ""}.`, 14.5, C.osc, "start", 700);
     sv.innerHTML = b;
     const hd = $("#hN", sv), inv = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
@@ -5197,6 +5198,30 @@ DET.sostiene = {
       insight: `En el caso recomendado, de cada 100 pesos que entran quedan ${n(r.mo, 0)} de margen de operación, ${n(r.mc, 0)} después de captación y ${n(r.mn, 0)} netos; en el peor caso el margen es ${n(filas[0].mo, 0)}.`,
     };
   },
+  v4() { // matriz 3 × 3: qué tanto pagan × cuánto dejan los anuncios (margen de operación con 1,000 restaurantes)
+    const sv = this.sv, c = config(S), s = sup(S), X0 = 250, CW = 210, CH = 96, Y0 = 110;
+    const curvas = [["pesimista", "Pagan poco"], ["media", "Pagan lo esperado"], ["optimista", "Pagan más"]];
+    const ads = [["Sin anuncios", {sinAnuncios: true}], ["Tarifa baja", {anuncios: {activo: true, tarifa: "baja"}}], ["Tarifa media", {anuncios: {activo: true, tarifa: "media"}}]];
+    const v = curvas.map(([k]) => ads.map(([, o]) => MOD.evaluar(c, s, 1000, {curva: k, ...o}).margen_operacion));
+    const mxp = Math.max(...v.flat()), mxn2 = Math.max(1, -Math.min(...v.flat()));
+    let b = T(30, 28, "Margen de operación al mes con 1,000 restaurantes (pesos)", 14.5, C.vino, "start", 700);
+    ads.forEach(([t], j) => { b += T(X0 + j * CW + CW / 2 - 6, Y0 - 16, t, 14, C.vino, "middle", 700); });
+    curvas.forEach(([, t], i) => {
+      b += T(X0 - 16, Y0 + i * CH + CH / 2 + 5, t, 14, C.vino, "end", 700);
+      ads.forEach((_, j) => {
+        const x = v[i][j], pos = x >= 0, k = pos ? Math.min(1, x / mxp) : Math.min(1, -x / mxn2), fuerte = k > 0.5;
+        const fill = pos ? `rgb(${Math.round(255 - k * (255 - 63))},${Math.round(255 - k * (255 - 107))},${Math.round(255 - k * (255 - 59))})` : `rgb(${Math.round(255 - k * (255 - 155))},${Math.round(255 - k * (255 - 44))},${Math.round(255 - k * (255 - 44))})`;
+        const rec = i === 1 && j === 1, peor = i === 0 && j === 0, mejor = i === 2 && j === 2;
+        b += `<g class="gh" style="animation-delay:${(i * 3 + j) * 60}ms">${Rc(X0 + j * CW + 4, Y0 + i * CH + 4, CW - 8, CH - 8, fill, 18, rec ? `stroke="${C.dorado}" stroke-width="4"` : "")}</g>` + T(X0 + j * CW + CW / 2 - 6, Y0 + i * CH + CH / 2 + 6, fmP(x), 26, fuerte ? "#fff" : C.tinta, "middle", 400, true) + (rec || peor || mejor ? T(X0 + j * CW + CW / 2 - 6, Y0 + i * CH + CH - 14, rec ? "recomendado" : peor ? "peor" : "mejor", 11.5, fuerte ? "#fff" : C.t2, "middle", 700) : "");
+      });
+    });
+    sv.innerHTML = b;
+    return {
+      leyenda: `<span><i style="background:${C.rojo}"></i>pierde</span><span><i style="background:${C.verde}"></i>gana</span><span><i style="background:none;border:3px solid ${C.dorado}"></i>recomendado</span>`,
+      cifras: [[fmP(v[1][1]), "recomendado: pagan lo esperado y hay anuncios de tarifa baja", "supuesto"], [fmP(v[0][0]), "peor: pagan poco y todavía no hay anuncios", "supuesto"], [fmP(v[2][2]), "mejor: pagan más y hay anuncios de tarifa media", "supuesto"]],
+      insight: `El margen va de ${fmP(v[0][0])} a ${fmP(v[2][2])} según qué tanto paguen y cuánto dejen los anuncios; sólo la esquina sin anuncios y con pocos pagos pierde.`,
+    };
+  },
   v3() { // qué hay que medir primero
     const sv = this.sv, se = conCache("sens", () => MOD.sensibilidad(config(S), sup(S), 1000, {curva: S.curva})), fil = se.filas.slice(0, 8), mx = Math.max(...fil.map(f => f.efecto), 1), X0 = 560, W = 300;
     let b = T(30, 28, "¿Qué hay que medir primero? El supuesto que más mueve el margen, arriba", 14.5, C.vino, "start", 700);
@@ -5257,7 +5282,7 @@ const TARJ = {
   historial: {
     que: "12 meses de historial en línea para Master Chef",
     cif: () => ["12 meses", "Chef: 1 mes; archivo descargable"],
-    si: () => `Con 3 meses caben ${n(motor({...S, hist: 3}).caben)} restaurantes; con 12, ${n(motor({...S, hist: 12}).caben)}.`,
+    si: () => `Cada cliente de paga pesa ${n(evalS({...S, hist: 12}).capacidad.mb_por_restaurante.servicio)} MB con 12 meses y ${n(evalS({...S, hist: 3}).capacidad.mb_por_restaurante.servicio)} con 3.`,
     rec: 1,
   },
   soporte: {
@@ -5355,11 +5380,11 @@ const ESCENAS = [
   u => { // 3 · cada quien arma lo suyo y la mesa lo envía junta
     const col = ["#b8860b", "#6b2d3e", "#3f6b3b"], ps = [40, 230, 420];
     let f = ps.map((x, i) => {
-      let r = ""; for (let j = 0; j < 3; j++) { const k = easeO(segI(u, 500 + i * 450 + j * 500, 900 + i * 450 + j * 500)); r += platoI(96 + j * 66, i + j * 2, k, (1 - k) * 40); }
+      let r = ""; for (let j = 0; j < 3; j++) { const k = easeO(segI(u, 150 + i * 90 + j * 420, 550 + i * 90 + j * 420)); r += platoI(96 + j * 66, i + j * 2, k, (1 - k) * 40); }
       return fonoI(x, 120, 0.75, Rc(8, 10, 184, 64, "#f3eadb", 0) + `<circle cx="38" cy="42" r="16" fill="${col[i]}"/>` + Rc(64, 36, 70, 10, "#6b2d3e", 5, 'opacity=".7"') + r, "c" + i);
     }).join("");
-    const dots = ps.map((x, i) => [0, 1].map(j => { const k = easeO(segI(u, 3100 + i * 120 + j * 160, 4000 + i * 120 + j * 160)); return k > 0 && k < 1 ? `<circle cx="${lerp(x + 70, 780, k)}" cy="${lerp(270, 250, k) - 40 * Math.sin(k * Math.PI)}" r="9" fill="${col[i]}"/>` : ""; }).join("")).join("");
-    const nPl = Math.round(6 * segI(u, 3300, 4300)), env = u > 4500, pulso = 1 + 0.06 * Math.sin(u / 120) * (env ? 0 : 1);
+    const dots = ps.map((x, i) => [0, 1].map(j => { const k = easeO(segI(u, 3300 + i * 100 + j * 140, 4200 + i * 100 + j * 140)); return k > 0 && k < 1 ? `<circle cx="${lerp(x + 70, 780, k)}" cy="${lerp(270, 250, k) - 40 * Math.sin(k * Math.PI)}" r="9" fill="${col[i]}"/>` : ""; }).join("")).join("");
+    const nPl = Math.round(9 * segI(u, 150, 3300)), env = u > 4500, pulso = 1 + 0.06 * Math.sin(u / 120) * (env ? 0 : 1);
     const pill = `<g>${Rc(640, 180, 280, 150, "#fef9f1", 28)}${T(780, 226, "Mesa 4", 26, "#6b2d3e", "middle", 400, true)}${T(780, 258, `${nPl} platillos`, 17, "#1a1a1a", "middle", 700)}<g transform="translate(780,296) scale(${pulso})">${Rc(-76, -20, 152, 40, env ? "#3f6b3b" : "#b8860b", 20)}${T(0, 6, env ? "Enviada ✓" : "Enviar juntos", 15, "#fff", "middle", 700)}</g></g>`;
     return cap("Cada quien arma lo suyo; la mesa lo envía junta", u) + f + dots + pill + etiq("Fase 3 · aún no construido", false);
   },
