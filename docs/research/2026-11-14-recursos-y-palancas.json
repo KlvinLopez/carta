@@ -1,0 +1,866 @@
+{
+ "version": "2026-11-14-r5",
+ "fecha": "2026-11-14",
+ "config_palancas": [],
+ "cuello_hoy": {
+  "recurso": "procesador",
+  "nombre": "Procesador (el trabajo de la API)",
+  "restaurantes": 148,
+  "comensales_mes": 505716
+ },
+ "cuello_con_eventos": {
+  "recurso": "disco",
+  "nombre": "Disco de la base de datos",
+  "restaurantes": 279,
+  "comensales_mes": 953343
+ },
+ "hoy": {
+  "fecha": "2026-11-14",
+  "servicios": [
+   {
+    "servicio": "Railway · api (la aplicación)",
+    "plan": "Hobby (5 USD al mes, incluye 5 USD de uso)",
+    "costo_usd_mes": 8.1,
+    "detalle": "factura real ≈ 8.1 USD con la memoria deducida de la factura [documento: anuncios-y-capa-del-comensal §0]; CPU a 20 USD por vCPU-mes y RAM a 10 USD por GB-mes [fuente: docs.railway.com, leída 14-nov-2026]",
+    "limites": {
+     "procesador": "2 procesos de la API (WORKERS=2); Railway permite hasta 48 vCPU por servicio",
+     "memoria": "hasta 48 GB por servicio; hoy ≈ 320 MB",
+     "conexiones": "10000 conexiones abiertas a la vez (sin usar hoy)"
+    }
+   },
+   {
+    "servicio": "Railway · Postgres (la base de datos, versión 18)",
+    "plan": "Hobby: volumen de 5 GB",
+    "costo_usd_mes": null,
+    "detalle": "incluido en los 8.1 USD; el volumen cuesta 0.15 USD por GB-mes; Pro sube el volumen a 50 GB (en este modelo)",
+    "limites": {
+     "disco": "5 GB (4 GB útiles con la reserva del 20 % para WAL e hinchazón)",
+     "conexiones": "≈ 100 conexiones [estimada; falta `SHOW max_connections`]"
+    }
+   },
+   {
+    "servicio": "Railway · respaldo (copia diaria con pg_dump)",
+    "plan": "Hobby",
+    "costo_usd_mes": null,
+    "detalle": "trabajo programado; corre unos minutos al día; incluido en la factura de Railway",
+    "limites": {}
+   },
+   {
+    "servicio": "Cloudflare (DNS, HTTPS y caché del menú)",
+    "plan": "Free",
+    "costo_usd_mes": 0,
+    "detalle": "[documento: deploy/railway/README.md §Cloudflare, plan Free]; el menú público lo absorbe la caché del borde",
+    "limites": {
+     "procesador": "las reglas de tasa del plan Free"
+    }
+   },
+   {
+    "servicio": "Cloudflare R2 (fotos y respaldos)",
+    "plan": "10 GB gratis, después 0.015 USD por GB-mes",
+    "costo_usd_mes": 0,
+    "detalle": "[fuente: developers.cloudflare.com/r2/pricing, 14-nov-2026]; ≈ 0.05 GB por gratuito típico: cubre ≈ 200 gratuitos sin pagar",
+    "limites": {
+     "fotos": "sin tope práctico"
+    }
+   },
+   {
+    "servicio": "Dominio carta.cooking",
+    "plan": "anual",
+    "costo_usd_mes": 2.0833333333333335,
+    "detalle": "25 USD al año [documento: dato de Calvin, 13-nov]",
+    "limites": {}
+   }
+  ],
+  "total_usd_mes": 10.183333333333334,
+  "total_pesos_mes": 189.60144666666667,
+  "no_incluye": [
+   "Firebase Authentication (plan sin costo hoy; sin dato de límites)",
+   "API de Claude para leer PDFs (≈ 0.11 a 0.64 USD por lectura [documento: planes-y-costo §0])"
+  ]
+ },
+ "recursos": [
+  {
+   "recurso": "procesador",
+   "nombre": "Procesador (el trabajo de la API)",
+   "como_funciona": "Cada teléfono con la app abierta le pregunta al servidor cada 3 segundos si algo cambió; casi siempre la respuesta es «nada nuevo», pero cada pregunta gasta procesador. Con los avisos de la Fase 3, el servidor sólo habla cuando hay un cambio. Ruta: `app/api/publico/sesion.py` (estado con ETag) y `app/services/sesion.py`.",
+   "consumo_por_restaurante": {
+    "unidad": "ms de CPU por visita",
+    "valor": null,
+    "nota": "1 gratuito típico = 1 unidad de carga; un cliente de paga pesa 2.3; con el sondeo un teléfono pregunta cada 3 s (≈ 4.1 peticiones/s por restaurante registrado, medido en el tope)"
+   },
+   "limite_hoy": {
+    "restaurantes": 148,
+    "texto": "148 restaurantes (Hoy: sondeo, 2 procesos, Hobby)"
+   },
+   "restaurantes_hoy": 148,
+   "restaurantes_con_eventos": 1064,
+   "comensales_mes_hoy": 505716,
+   "comensales_mes_con_eventos": 3635688,
+   "es_cuello_hoy": true,
+   "es_cuello_con_eventos": false,
+   "medido": "medido en local (±2×); falta medir en Railway",
+   "palancas": [
+    {
+     "id": "estado_en_memoria_60s",
+     "nombre": "Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)",
+     "esfuerzo": "medio",
+     "riesgo": "bajo-medio: cambia ADR-004 (vida máxima 2 s)",
+     "regla_que_toca": "ninguna; cambia un ADR",
+     "medido": true,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 14.265,
+     "restaurantes_antes": {
+      "hoy": 148,
+      "con_eventos": 1064
+     },
+     "restaurantes_despues": {
+      "hoy": 276,
+      "con_eventos": 1064
+     },
+     "ganancia_restaurantes": {
+      "hoy": 128,
+      "con_eventos": 0
+     },
+     "antes": "caben 148",
+     "despues": "caben 276",
+     "ganancia": "caben +128 restaurantes con el sondeo de hoy"
+    }
+   ]
+  },
+  {
+   "recurso": "memoria",
+   "nombre": "Memoria de la API",
+   "como_funciona": "Cada proceso de la API guarda en memoria el menú y el estado de las mesas por unos segundos, y (con avisos) una línea por cada teléfono conectado. Ruta: `app/services/{cache_menu,menu_publico,sesion}.py`.",
+   "consumo_por_restaurante": {
+    "unidad": "MB por restaurante",
+    "sondeo": 0.1,
+    "eventos": 0.20869565217391306,
+    "fijo_mb": "160 MB por proceso en reposo",
+    "medido": "el proceso y la línea abierta, medido; el resto, supuesto"
+   },
+   "limite_hoy": {
+    "restaurantes": 476800,
+    "texto": "476,800 restaurantes (Hoy: sondeo, 2 procesos, Hobby)"
+   },
+   "restaurantes_hoy": 476800,
+   "restaurantes_con_eventos": 228466,
+   "comensales_mes_hoy": 1629225600,
+   "comensales_mes_con_eventos": 780668322,
+   "es_cuello_hoy": false,
+   "es_cuello_con_eventos": false,
+   "medido": "proceso y línea medidos; el resto supuesto",
+   "palancas": []
+  },
+  {
+   "recurso": "disco",
+   "nombre": "Disco de la base de datos",
+   "como_funciona": "Cada visita deja filas en `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden` y `llamada_mesero`, y **diez filas de analítica en `evento_analitica`**; las tablas y sus índices viven en el volumen de PostgreSQL. Ruta: `app/db/models.py`; analítica en `app/services/analitica.py`.",
+   "consumo_por_restaurante": {
+    "unidad": "MB al mes por restaurante gratuito típico",
+    "valor": 14.265,
+    "bytes_por_evento": 368,
+    "medido": true
+   },
+   "limite_hoy": {
+    "restaurantes": 279,
+    "texto": "279 restaurantes (Hoy: sondeo, 2 procesos, Hobby)"
+   },
+   "restaurantes_hoy": 279,
+   "restaurantes_con_eventos": 279,
+   "comensales_mes_hoy": 953343,
+   "comensales_mes_con_eventos": 953343,
+   "es_cuello_hoy": false,
+   "es_cuello_con_eventos": true,
+   "medido": "medido en PostgreSQL local (10 restaurantes medianos, un mes)",
+   "palancas": [
+    {
+     "id": "analitica_agregada_por_dia",
+     "nombre": "Analítica agregada por día en vez de una fila por evento",
+     "esfuerzo": "medio",
+     "riesgo": "medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo",
+     "regla_que_toca": "ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica",
+     "medido": true,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 7.70032505,
+     "restaurantes_antes": {
+      "hoy": 279,
+      "con_eventos": 279
+     },
+     "restaurantes_despues": {
+      "hoy": 518,
+      "con_eventos": 518
+     },
+     "ganancia_restaurantes": {
+      "hoy": 239,
+      "con_eventos": 239
+     },
+     "antes": "14.3 MB al mes por restaurante · caben 279",
+     "despues": "7.7 MB al mes por restaurante · caben 518",
+     "ganancia": "6.6 MB menos por restaurante al mes; caben +239 restaurantes en el mismo disco"
+    },
+    {
+     "id": "retencion_analitica_7_dias",
+     "nombre": "Guardar la analítica en bruto sólo 7 días (después, agregada)",
+     "esfuerzo": "chico",
+     "riesgo": "bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial",
+     "regla_que_toca": "ninguna dura (regla 9 habla de entidades con historial; el evento no lo es)",
+     "medido": false,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 8.91458405,
+     "restaurantes_antes": {
+      "hoy": 279,
+      "con_eventos": 279
+     },
+     "restaurantes_despues": {
+      "hoy": 447,
+      "con_eventos": 447
+     },
+     "ganancia_restaurantes": {
+      "hoy": 168,
+      "con_eventos": 168
+     },
+     "antes": "14.3 MB al mes por restaurante · caben 279",
+     "despues": "8.9 MB al mes por restaurante · caben 447",
+     "ganancia": "5.4 MB menos por restaurante al mes; caben +168 restaurantes en el mismo disco"
+    },
+    {
+     "id": "indices_de_evento_minimos",
+     "nombre": "Dejar sólo dos índices en la analítica (llave y restaurante-fecha)",
+     "esfuerzo": "chico",
+     "riesgo": "medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos",
+     "regla_que_toca": "convención de /migracion (índice en toda FK con cascada); pide ADR",
+     "medido": true,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 12.405229750000002,
+     "restaurantes_antes": {
+      "hoy": 279,
+      "con_eventos": 279
+     },
+     "restaurantes_despues": {
+      "hoy": 321,
+      "con_eventos": 321
+     },
+     "ganancia_restaurantes": {
+      "hoy": 42,
+      "con_eventos": 42
+     },
+     "antes": "14.3 MB al mes por restaurante · caben 279",
+     "despues": "12.4 MB al mes por restaurante · caben 321",
+     "ganancia": "1.9 MB menos por restaurante al mes; caben +42 restaurantes en el mismo disco"
+    },
+    {
+     "id": "tipos_mas_chicos",
+     "nombre": "Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)",
+     "esfuerzo": "medio",
+     "riesgo": "bajo: migración con reescritura de la tabla",
+     "regla_que_toca": "ninguna",
+     "medido": true,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 12.1728457,
+     "restaurantes_antes": {
+      "hoy": 279,
+      "con_eventos": 279
+     },
+     "restaurantes_despues": {
+      "hoy": 327,
+      "con_eventos": 327
+     },
+     "ganancia_restaurantes": {
+      "hoy": 48,
+      "con_eventos": 48
+     },
+     "antes": "14.3 MB al mes por restaurante · caben 279",
+     "despues": "12.2 MB al mes por restaurante · caben 327",
+     "ganancia": "2.1 MB menos por restaurante al mes; caben +48 restaurantes en el mismo disco"
+    },
+    {
+     "id": "purga_claves_idempotencia",
+     "nombre": "Purgar las claves de idempotencia a las 24 horas",
+     "esfuerzo": "chico",
+     "riesgo": "bajo si la ventana de reintento del teléfono es menor de 24 h",
+     "regla_que_toca": "ninguna",
+     "medido": true,
+     "antes": "2.9 MB al mes por restaurante, sin tope (la tabla crece mientras nadie la purgue; hoy está vacía: ningún servicio la usa)",
+     "despues": "0.10 MB constantes (un día)",
+     "ganancia": "evita 34 MB por restaurante al año; no cambia los restaurantes que caben hoy porque la tabla está vacía hasta la Fase 3",
+     "ganancia_restaurantes": 0,
+     "mb_antes": 2.862,
+     "mb_despues": 0.0954
+    },
+    {
+     "id": "archivar_sesiones_cerradas",
+     "nombre": "Archivar en R2 las sesiones cerradas con más de 3 meses y quitarlas de la base",
+     "esfuerzo": "grande",
+     "riesgo": "alto: se vuelve a leer el historial del archivo; un error pierde datos",
+     "regla_que_toca": "regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes",
+     "medido": false,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 14.265,
+     "restaurantes_antes": {
+      "hoy": 279,
+      "con_eventos": 279
+     },
+     "restaurantes_despues": {
+      "hoy": 279,
+      "con_eventos": 279
+     },
+     "ganancia_restaurantes": {
+      "hoy": 0,
+      "con_eventos": 0
+     },
+     "antes": "14.3 MB al mes por restaurante · caben 279",
+     "despues": "14.3 MB al mes por restaurante · caben 279",
+     "ganancia": "0.0 MB menos por restaurante al mes; caben +0 restaurantes en el mismo disco"
+    }
+   ]
+  },
+  {
+   "recurso": "conexiones_bd",
+   "nombre": "Conexiones a la base de datos",
+   "como_funciona": "Cada petición pide prestada una conexión a la base del grupo de su proceso (`DB_POOL_SIZE` 10 y `DB_MAX_OVERFLOW` 10) y la devuelve en milisegundos. Con avisos, cada proceso mantiene además una conexión fija para escuchar a la base. Ruta: `app/db/database.py`.",
+   "consumo_por_restaurante": {
+    "unidad": "conexiones de la base a la vez por restaurante registrado",
+    "sondeo": 0.012162162162162163,
+    "eventos": 0.0016917293233082709,
+    "nota": "cada petición retiene una conexión ≈ 3 ms"
+   },
+   "limite_hoy": {
+    "restaurantes": 3288,
+    "texto": "3,288 restaurantes (Hoy: sondeo, 2 procesos, Hobby)"
+   },
+   "restaurantes_hoy": 3288,
+   "restaurantes_con_eventos": 23644,
+   "comensales_mes_hoy": 11235096,
+   "comensales_mes_con_eventos": 80791548,
+   "es_cuello_hoy": false,
+   "es_cuello_con_eventos": false,
+   "medido": "estimada: falta `SHOW max_connections` en Railway",
+   "palancas": [
+    {
+     "id": "pool_acotado",
+     "nombre": "Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)",
+     "esfuerzo": "chico",
+     "riesgo": "bajo; hay que verificar `SHOW max_connections` en Railway",
+     "regla_que_toca": "ninguna",
+     "medido": false,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 14.265,
+     "restaurantes_antes": {
+      "hoy": 3288,
+      "con_eventos": 23644
+     },
+     "restaurantes_despues": {
+      "hoy": 1644,
+      "con_eventos": 11822
+     },
+     "ganancia_restaurantes": {
+      "hoy": -1644,
+      "con_eventos": -11822
+     },
+     "antes": "caben 3288",
+     "despues": "caben 1644",
+     "ganancia": "evita pasarse de las 100 conexiones de la base con más procesos (ya no)"
+    }
+   ]
+  },
+  {
+   "recurso": "lineas",
+   "nombre": "Líneas abiertas con los teléfonos",
+   "como_funciona": "Con los avisos (ADR-018, Fase 3) cada teléfono mantiene una conexión abierta con el servidor; Railway permite unas 10,000 abiertas a la vez. Hoy no existen. Ruta futura: `/p/sesion/eventos` y `/op/eventos` (T-3.20 y T-3.21).",
+   "consumo_por_restaurante": {
+    "unidad": "líneas abiertas por restaurante en la hora pico",
+    "valor": 4.725897920604915,
+    "nota": "10000 ÷ 2116 restaurantes típicos (la relación del simulador de capacidad)"
+   },
+   "limite_hoy": {
+    "restaurantes": null,
+    "texto": "no aplica (Hoy: sondeo, 2 procesos, Hobby)"
+   },
+   "restaurantes_hoy": null,
+   "restaurantes_con_eventos": 2116,
+   "comensales_mes_hoy": null,
+   "comensales_mes_con_eventos": 7230372,
+   "es_cuello_hoy": false,
+   "es_cuello_con_eventos": false,
+   "medido": "tope de Railway leído en su documentación; consumo medido en local",
+   "palancas": [
+    {
+     "id": "cerrar_lineas_ociosas",
+     "nombre": "Cerrar la línea abierta a los 2 minutos sin cambios y reabrirla al volver",
+     "esfuerzo": "medio",
+     "riesgo": "bajo: el teléfono ya vuelve al sondeo si la línea falla",
+     "regla_que_toca": "ninguna",
+     "medido": false,
+     "mb_por_restaurante_antes": 14.265,
+     "mb_por_restaurante_despues": 14.265,
+     "restaurantes_antes": {
+      "hoy": null,
+      "con_eventos": 2116
+     },
+     "restaurantes_despues": {
+      "hoy": null,
+      "con_eventos": 3022
+     },
+     "ganancia_restaurantes": {
+      "hoy": null,
+      "con_eventos": 906
+     },
+     "antes": "caben 2116",
+     "despues": "caben 3022",
+     "ganancia": "caben +906 restaurantes antes de topar las 10,000 líneas"
+    }
+   ]
+  },
+  {
+   "recurso": "fotos",
+   "nombre": "Almacenamiento de fotos y respaldos (R2)",
+   "como_funciona": "Las fotos de los platillos y los respaldos diarios de la base viven en R2 (almacenamiento tipo S3 de Cloudflare); la API sólo guarda la dirección. Ruta: `app/services/assets.py`.",
+   "consumo_por_restaurante": {
+    "unidad": "GB por restaurante",
+    "valor": 0.05,
+    "nota": "10 GB gratis y luego 0.015 USD por GB-mes"
+   },
+   "limite_hoy": {
+    "restaurantes": null,
+    "texto": "sin tope práctico: 10 GB gratis (≈ 200 gratuitos) y después 0.014 pesos por restaurante al mes"
+   },
+   "restaurantes_hoy": null,
+   "restaurantes_con_eventos": null,
+   "comensales_mes_hoy": null,
+   "comensales_mes_con_eventos": null,
+   "es_cuello_hoy": false,
+   "es_cuello_con_eventos": false,
+   "medido": "documento (mapa de procesos) y precio de Cloudflare",
+   "palancas": []
+  }
+ ],
+ "escalera": [
+  {
+   "id": "hobby_sondeo",
+   "tamano": "Hoy: Hobby, 2 procesos, el teléfono pregunta cada 3 s",
+   "procesos": 2,
+   "disco_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_con_carga": 20,
+   "costo_pesos_base": 150.81228,
+   "restaurantes_que_caben": 148,
+   "recurso_que_obliga_a_subir": "procesador",
+   "por_recurso": {
+    "procesador": 148,
+    "memoria": 476800,
+    "disco": 279,
+    "conexiones_bd": 3288,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "hobby_eventos",
+   "tamano": "Hobby, 2 procesos, con avisos en vez de preguntas (Fase 3)",
+   "procesos": 2,
+   "disco_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_con_carga": 12,
+   "costo_pesos_base": 150.81228,
+   "restaurantes_que_caben": 279,
+   "recurso_que_obliga_a_subir": "disco",
+   "por_recurso": {
+    "procesador": 1064,
+    "memoria": 228466,
+    "disco": 279,
+    "conexiones_bd": 23644,
+    "lineas": 2116,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_2",
+   "tamano": "Pro, 2 procesos, con avisos",
+   "procesos": 2,
+   "disco_gb": 50,
+   "costo_usd_base": 20,
+   "costo_usd_con_carga": 30,
+   "costo_pesos_base": 372.376,
+   "restaurantes_que_caben": 1064,
+   "recurso_que_obliga_a_subir": "procesador",
+   "por_recurso": {
+    "procesador": 1064,
+    "memoria": 228466,
+    "disco": 2803,
+    "conexiones_bd": 23644,
+    "lineas": 2116,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_4",
+   "tamano": "Pro, 4 procesos, con avisos",
+   "procesos": 4,
+   "disco_gb": 50,
+   "costo_usd_base": 23,
+   "costo_usd_con_carga": 44,
+   "costo_pesos_base": 428.2324,
+   "restaurantes_que_caben": 1896,
+   "recurso_que_obliga_a_subir": "procesador",
+   "por_recurso": {
+    "procesador": 1896,
+    "memoria": 226933,
+    "disco": 2803,
+    "conexiones_bd": 47288,
+    "lineas": 2116,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_8",
+   "tamano": "Pro, 8 procesos, con avisos",
+   "procesos": 8,
+   "disco_gb": 50,
+   "costo_usd_base": 30,
+   "costo_usd_con_carga": 54,
+   "costo_pesos_base": 558.564,
+   "restaurantes_que_caben": 2116,
+   "recurso_que_obliga_a_subir": "lineas",
+   "por_recurso": {
+    "procesador": 2116,
+    "memoria": 223866,
+    "disco": 2803,
+    "conexiones_bd": 53199,
+    "lineas": 2116,
+    "fotos": null
+   },
+   "supera_postgres": true
+  },
+  {
+   "id": "otra_pila",
+   "tamano": "Una segunda copia de toda la pila (extrapolación sin medir)",
+   "procesos": 16,
+   "costo_usd_base": null,
+   "costo_usd_con_carga": 108,
+   "restaurantes_que_caben": 4232,
+   "recurso_que_obliga_a_subir": "líneas abiertas",
+   "extrapolacion_sin_medir": true
+  }
+ ],
+ "glosario": {
+  "piso": "Lo que cuesta atender a un cliente de paga en un mes; es la suma de cuatro cosas: (1) lo que crece con su uso (1.9 pesos [documento]), (2) su parte de la base fija del servidor (3 pesos [documento]), (3) la comisión de la tarjeta con IVA [documento] y (4) el soporte (60 pesos [SUPUESTO]). El precio no debe bajar de 3 veces el piso.",
+  "tamano_del_servidor": "El tamaño del servidor que rentamos en Railway: cuántos procesos de la API corren, cuánta memoria y disco tiene y cuánto cuesta al mes. Sube por escalones (Hobby, Pro de 2, 4 y 8 procesos).",
+  "cuello_de_botella": "El recurso que se llena primero. Aunque los demás estén sobrados, el sistema no puede atender más restaurantes que los que aguanta el cuello de botella; para crecer hay que ensanchar ése.",
+  "linea_abierta": "Una conexión que el teléfono deja abierta con el servidor para que éste le avise al instante cuando algo cambia (en lugar de preguntar cada 3 segundos). Railway permite unas 10,000 abiertas a la vez."
+ },
+ "palancas_catalogo": [
+  {
+   "id": "analitica_agregada_por_dia",
+   "recurso": "disco",
+   "nombre": "Analítica agregada por día en vez de una fila por evento",
+   "esfuerzo": "medio",
+   "riesgo": "medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo",
+   "regla_que_toca": "ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica",
+   "medido": true
+  },
+  {
+   "id": "retencion_analitica_7_dias",
+   "recurso": "disco",
+   "nombre": "Guardar la analítica en bruto sólo 7 días (después, agregada)",
+   "esfuerzo": "chico",
+   "riesgo": "bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial",
+   "regla_que_toca": "ninguna dura (regla 9 habla de entidades con historial; el evento no lo es)",
+   "medido": false
+  },
+  {
+   "id": "indices_de_evento_minimos",
+   "recurso": "disco",
+   "nombre": "Dejar sólo dos índices en la analítica (llave y restaurante-fecha)",
+   "esfuerzo": "chico",
+   "riesgo": "medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos",
+   "regla_que_toca": "convención de /migracion (índice en toda FK con cascada); pide ADR",
+   "medido": true
+  },
+  {
+   "id": "tipos_mas_chicos",
+   "recurso": "disco",
+   "nombre": "Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)",
+   "esfuerzo": "medio",
+   "riesgo": "bajo: migración con reescritura de la tabla",
+   "regla_que_toca": "ninguna",
+   "medido": true
+  },
+  {
+   "id": "purga_claves_idempotencia",
+   "recurso": "disco",
+   "nombre": "Purgar las claves de idempotencia a las 24 horas",
+   "esfuerzo": "chico",
+   "riesgo": "bajo si la ventana de reintento del teléfono es menor de 24 h",
+   "regla_que_toca": "ninguna",
+   "medido": true
+  },
+  {
+   "id": "archivar_sesiones_cerradas",
+   "recurso": "disco",
+   "nombre": "Archivar en R2 las sesiones cerradas con más de 3 meses y quitarlas de la base",
+   "esfuerzo": "grande",
+   "riesgo": "alto: se vuelve a leer el historial del archivo; un error pierde datos",
+   "regla_que_toca": "regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes",
+   "medido": false
+  },
+  {
+   "id": "estado_en_memoria_60s",
+   "recurso": "procesador",
+   "nombre": "Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)",
+   "esfuerzo": "medio",
+   "riesgo": "bajo-medio: cambia ADR-004 (vida máxima 2 s)",
+   "regla_que_toca": "ninguna; cambia un ADR",
+   "medido": true
+  },
+  {
+   "id": "cerrar_lineas_ociosas",
+   "recurso": "lineas",
+   "nombre": "Cerrar la línea abierta a los 2 minutos sin cambios y reabrirla al volver",
+   "esfuerzo": "medio",
+   "riesgo": "bajo: el teléfono ya vuelve al sondeo si la línea falla",
+   "regla_que_toca": "ninguna",
+   "medido": false
+  },
+  {
+   "id": "pool_acotado",
+   "recurso": "conexiones_bd",
+   "nombre": "Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)",
+   "esfuerzo": "chico",
+   "riesgo": "bajo; hay que verificar `SHOW max_connections` en Railway",
+   "regla_que_toca": "ninguna",
+   "medido": false
+  }
+ ],
+ "top3_palancas": [
+  {
+   "id": "analitica_agregada_por_dia",
+   "nombre": "Analítica agregada por día en vez de una fila por evento",
+   "ganancia": "6.6 MB menos por restaurante al mes; caben +239 restaurantes en el mismo disco",
+   "recurso": "disco"
+  },
+  {
+   "id": "retencion_analitica_7_dias",
+   "nombre": "Guardar la analítica en bruto sólo 7 días (después, agregada)",
+   "ganancia": "5.4 MB menos por restaurante al mes; caben +168 restaurantes en el mismo disco",
+   "recurso": "disco"
+  },
+  {
+   "id": "estado_en_memoria_60s",
+   "nombre": "Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)",
+   "ganancia": "caben +128 restaurantes con el sondeo de hoy",
+   "recurso": "procesador"
+  }
+ ],
+ "disco_a_fondo": {
+  "medido_en": "carta_med_palancas_1",
+  "nota": "medido en PostgreSQL local sobre una copia de carta_med_mediano; 10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]",
+  "bytes_por_visita_por_tabla": [
+   {
+    "tabla": "evento_analitica",
+    "filas_por_visita": 10,
+    "heap_por_visita": 2041.6284444444445,
+    "indices_por_visita": 1638.855111111111,
+    "total_por_visita": 3683.2142222222224
+   },
+   {
+    "tabla": "item_orden",
+    "filas_por_visita": 7.782666666666667,
+    "heap_por_visita": 785.5217777777777,
+    "indices_por_visita": 565.7031111111111,
+    "total_por_visita": 1353.5004444444444
+   },
+   {
+    "tabla": "miembro_sesion",
+    "filas_por_visita": 2.594222222222222,
+    "heap_por_visita": 283.53422222222224,
+    "indices_por_visita": 363.1786666666667,
+    "total_por_visita": 648.5333333333333
+   },
+   {
+    "tabla": "orden_personal",
+    "filas_por_visita": 2.594222222222222,
+    "heap_por_visita": 283.53422222222224,
+    "indices_por_visita": 307.6551111111111,
+    "total_por_visita": 593.0097777777778
+   },
+   {
+    "tabla": "comanda_orden",
+    "filas_por_visita": 2.594222222222222,
+    "heap_por_visita": 156.5582222222222,
+    "indices_por_visita": 279.43822222222224,
+    "total_por_visita": 437.8168888888889
+   },
+   {
+    "tabla": "comanda",
+    "filas_por_visita": 1.3005,
+    "heap_por_visita": 217.5431111111111,
+    "indices_por_visita": 214.35733333333334,
+    "total_por_visita": 434.176
+   },
+   {
+    "tabla": "sesion_grupal",
+    "filas_por_visita": 1,
+    "heap_por_visita": 126.06577777777778,
+    "indices_por_visita": 136.07822222222222,
+    "total_por_visita": 263.96444444444444
+   },
+   {
+    "tabla": "llamada_mesero",
+    "filas_por_visita": 0.3012222222222222,
+    "heap_por_visita": 45.056,
+    "indices_por_visita": 44.60088888888889,
+    "total_por_visita": 91.47733333333333
+   }
+  ],
+  "bytes_por_visita_total": 7505.692444444444,
+  "parte_de_la_visita_que_es_analitica": 0.49029453674508855,
+  "bytes_por_evento": {
+   "total": 368,
+   "heap": 204,
+   "indices": 164
+  },
+  "columnas_bytes_medios": {
+   "id": 8,
+   "restaurante_id": 16,
+   "mesa_id": 16,
+   "sesion_id": 16,
+   "miembro_id": 0,
+   "platillo_id": 0,
+   "tipo": 8.8,
+   "propiedades": 10.6,
+   "ip_hash": 65,
+   "user_agent_fam": 14,
+   "ocurrido_en": 8
+  },
+  "suma_columnas": 162.39999999999998,
+  "indices_por_evento": [
+   {
+    "indice": "idx_evento_restaurante_fecha",
+    "bytes_por_evento": 52.74737777777778
+   },
+   {
+    "indice": "idx_evento_tipo",
+    "bytes_por_evento": 51.291022222222225
+   },
+   {
+    "indice": "pk_evento_analitica",
+    "bytes_por_evento": 22.57351111111111
+   },
+   {
+    "indice": "idx_evento_sesion",
+    "bytes_por_evento": 13.5168
+   },
+   {
+    "indice": "idx_evento_mesa",
+    "bytes_por_evento": 10.740622222222223
+   },
+   {
+    "indice": "idx_evento_miembro",
+    "bytes_por_evento": 6.508088888888889
+   },
+   {
+    "indice": "idx_evento_platillo",
+    "bytes_por_evento": 6.508088888888889
+   }
+  ],
+  "medicion_palancas": {
+   "base": {
+    "filas": 180000,
+    "visitas": 18000,
+    "restaurantes": 10,
+    "heap": 36749312,
+    "indices": 29499392,
+    "total": 66297856
+   },
+   "columnas_bytes_medios": {
+    "id": 8,
+    "restaurante_id": 16,
+    "mesa_id": 16,
+    "sesion_id": 16,
+    "miembro_id": 0,
+    "platillo_id": 0,
+    "tipo": 8.8,
+    "propiedades": 10.6,
+    "ip_hash": 65,
+    "user_agent_fam": 14,
+    "ocurrido_en": 8
+   },
+   "indices_bytes": {
+    "idx_evento_tipo": 9232384,
+    "idx_evento_sesion": 2433024,
+    "idx_evento_mesa": 1933312,
+    "idx_evento_miembro": 1171456,
+    "idx_evento_platillo": 1171456,
+    "pk_evento_analitica": 4063232,
+    "idx_evento_restaurante_fecha": 9494528
+   },
+   "agregada_por_dia": {
+    "filas": 1860,
+    "total": 393216,
+    "dias": 31
+   },
+   "compacta": {
+    "heap": 23592960,
+    "indices": 22822912,
+    "total": 46424064
+   },
+   "compacta_un_indice": {
+    "heap": 23592960,
+    "indices": 11395072,
+    "total": 34996224
+   },
+   "original_un_indice": {
+    "heap": 37224448,
+    "indices": 11395072,
+    "total": 48627712
+   },
+   "idempotencia": {
+    "filas": 100000,
+    "total": 53002240,
+    "bytes_respuesta": 339
+   },
+   "visita_tablas_bytes": {
+    "sesion_grupal": 4751360,
+    "miembro_sesion": 11673600,
+    "orden_personal": 10674176,
+    "item_orden": 24363008,
+    "comanda": 7815168,
+    "comanda_orden": 7880704,
+    "llamada_mesero": 1646592
+   },
+   "gzip_sesion_json": {
+    "crudo": 1130057,
+    "comprimido": 204618,
+    "filas": 3000
+   },
+   "base_de_trabajo": "carta_med_palancas_1",
+   "nota": "medido en PostgreSQL local sobre una copia de carta_med_mediano; 10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]"
+  }
+ },
+ "kpi_restaurantes_que_caben": {
+  "sin_palancas": {
+   "clave": "restaurantes_que_caben",
+   "nombre": "Restaurantes gratuitos que caben",
+   "unidad": "restaurantes",
+   "recomendado": 279,
+   "peor": 148,
+   "mejor": 2116,
+   "piso_de_verdad": 148,
+   "nota": "recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)"
+  },
+  "con_agregada_por_dia": {
+   "clave": "restaurantes_que_caben",
+   "nombre": "Restaurantes gratuitos que caben",
+   "unidad": "restaurantes",
+   "recomendado": 518,
+   "peor": 148,
+   "mejor": 2116,
+   "piso_de_verdad": 148,
+   "nota": "recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)"
+  }
+ }
+}

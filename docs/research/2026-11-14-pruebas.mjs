@@ -182,5 +182,38 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('el piso de verdad es peor que el peor', margen('piso_de_verdad') < margen('peor'), true);
 }
 
+// 11) RECURSOS Y PALANCAS (ronda 5): cuello de botella, límites por recurso, palancas y escalera
+{
+  const cfg = M.configInicial();
+  const R = M.recursos(cfg, s);
+  const rec = (id) => R.recursos.find((x) => x.recurso === id);
+  prueba('cuello de botella hoy (sondeo): recurso y restaurantes', `${R.cuello_hoy.recurso}-${R.cuello_hoy.restaurantes}`, 'procesador-148');
+  prueba('cuello con eventos: recurso y restaurantes', `${R.cuello_con_eventos.recurso}-${R.cuello_con_eventos.restaurantes}`, 'disco-279');
+  prueba('límite de cada recurso hoy (procesador, memoria, disco, conexiones BD)', [rec('procesador'), rec('memoria'), rec('disco'), rec('conexiones_bd')].map((x) => x.restaurantes_hoy).join(','), '148,476800,279,3288');
+  prueba('límite de cada recurso con eventos (procesador, disco, conexiones BD, líneas)', [rec('procesador'), rec('disco'), rec('conexiones_bd'), rec('lineas')].map((x) => x.restaurantes_con_eventos).join(','), '1064,279,23644,2116');
+  prueba('las líneas abiertas no existen hoy', rec('lineas').restaurantes_hoy, null);
+  prueba('sólo un recurso es cuello hoy y sólo uno con eventos', `${R.recursos.filter((x) => x.es_cuello_hoy).length}-${R.recursos.filter((x) => x.es_cuello_con_eventos).length}`, '1-1');
+  prueba('escalera: restaurantes que caben por tamaño', R.escalera.slice(0, 5).map((e) => e.restaurantes_que_caben).join(','), '148,279,1064,1896,2116');
+  prueba('escalera: recurso que obliga a subir', R.escalera.slice(0, 5).map((e) => e.recurso_que_obliga_a_subir).join(','), 'procesador,disco,procesador,procesador,lineas');
+  prueba('lo que pagamos hoy: total en USD al mes', Math.round(R.hoy.total_usd_mes * 100) / 100, 10.18, 0.01);
+  const pal = (id, k) => rec(M.PALANCAS[id].recurso).palancas.find((p) => p.id === id).ganancia_restaurantes[k];
+  prueba('palanca analítica agregada por día: +restaurantes por disco', pal('analitica_agregada_por_dia', 'con_eventos'), 239);
+  prueba('palanca retención 7 días: +restaurantes por disco', pal('retencion_analitica_7_dias', 'con_eventos'), 168);
+  prueba('palanca tipos más chicos: +restaurantes por disco', pal('tipos_mas_chicos', 'con_eventos'), 48);
+  prueba('palanca índices mínimos: +restaurantes por disco', pal('indices_de_evento_minimos', 'con_eventos'), 42);
+  prueba('palanca estado en memoria 60 s: +restaurantes con el sondeo', pal('estado_en_memoria_60s', 'hoy'), 128);
+  prueba('palanca cerrar líneas ociosas: +restaurantes antes del tope de líneas', pal('cerrar_lineas_ociosas', 'con_eventos'), 906);
+  prueba('el archivo de sesiones toca las reglas 8 y 9', /regla 9/.test(M.PALANCAS.archivar_sesiones_cerradas.regla_que_toca) && /regla 8/.test(M.PALANCAS.archivar_sesiones_cerradas.regla_que_toca), true);
+  prueba('toda palanca dice si es medida o estimada', Object.values(M.PALANCAS).every((p) => typeof p.medido === 'boolean'), true);
+  // las palancas mueven el modelo: más restaurantes caben por disco y baja el costo de disco
+  const conPal = { ...cfg, palancas: ['analitica_agregada_por_dia'] };
+  const caben = (c) => M.resumen(c, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').recomendado;
+  prueba('resumen: restaurantes que caben sin palancas', caben(cfg), 279);
+  prueba('resumen: restaurantes que caben con la analítica agregada', caben(conPal), 518);
+  prueba('las palancas bajan los MB por restaurante gratuito', M.mbPorRestaurante('gratuito', conPal, s) < M.mbPorRestaurante('gratuito', cfg, s), true);
+  prueba('sin palancas el disco por restaurante gratuito es 14.3 MB', M.mbPorRestaurante('gratuito', cfg, s), 14.27, 0.05);
+  prueba('el cuello cambia si se ensancha el disco: con Pro el procesador manda', M.recursos(cfg, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
+}
+
 console.log(fallas === 0 ? '\nTodas las pruebas pasan.' : `\n${fallas} prueba(s) fallan.`);
 process.exit(fallas === 0 ? 0 : 1);

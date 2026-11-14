@@ -1,0 +1,73 @@
+{
+ "base": {
+  "filas": 180000,
+  "visitas": 18000,
+  "restaurantes": 10,
+  "heap": 36749312,
+  "indices": 29499392,
+  "total": 66297856
+ },
+ "columnas_bytes_medios": {
+  "id": 8.0,
+  "restaurante_id": 16.0,
+  "mesa_id": 16.0,
+  "sesion_id": 16.0,
+  "miembro_id": 0.0,
+  "platillo_id": 0.0,
+  "tipo": 8.8,
+  "propiedades": 10.6,
+  "ip_hash": 65.0,
+  "user_agent_fam": 14.0,
+  "ocurrido_en": 8.0
+ },
+ "indices_bytes": {
+  "idx_evento_tipo": 9232384,
+  "idx_evento_sesion": 2433024,
+  "idx_evento_mesa": 1933312,
+  "idx_evento_miembro": 1171456,
+  "idx_evento_platillo": 1171456,
+  "pk_evento_analitica": 4063232,
+  "idx_evento_restaurante_fecha": 9494528
+ },
+ "agregada_por_dia": {
+  "filas": 1860,
+  "total": 393216,
+  "dias": 31
+ },
+ "compacta": {
+  "heap": 23592960,
+  "indices": 22822912,
+  "total": 46424064
+ },
+ "compacta_un_indice": {
+  "heap": 23592960,
+  "indices": 11395072,
+  "total": 34996224
+ },
+ "original_un_indice": {
+  "heap": 37224448,
+  "indices": 11395072,
+  "total": 48627712
+ },
+ "idempotencia": {
+  "filas": 100000,
+  "total": 53002240,
+  "bytes_respuesta": 339.0
+ },
+ "visita_tablas_bytes": {
+  "sesion_grupal": 4751360,
+  "miembro_sesion": 11673600,
+  "orden_personal": 10674176,
+  "item_orden": 24363008,
+  "comanda": 7815168,
+  "comanda_orden": 7880704,
+  "llamada_mesero": 1646592
+ },
+ "gzip_sesion_json": {
+  "crudo": 1130057,
+  "comprimido": 204618,
+  "filas": 3000
+ },
+ "base_de_trabajo": "carta_med_palancas_1",
+ "nota": "medido en PostgreSQL local sobre una copia de carta_med_mediano; 10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]"
+}

@@ -1906,6 +1906,207 @@
    "fuente": "",
    "nota": "restaurantes registrados con que se evalúa la configuración al optimizar",
    "mueve_resultado": true
+  },
+  "factores_disco_eventos": {
+   "valor": {
+    "un_indice": 0.7335,
+    "tipos_chicos": 0.7002,
+    "ambos": 0.5279,
+    "agregada_por_dia_cota_alta": 0.0593,
+    "retencion_7_dias": 0.2333
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-14-recursos-medir.py sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]); la agregada por día es COTA ALTA: 31 días × (5 tipos + 55 platillos) filas de 211 bytes (el generador no asigna platillo a los eventos, por eso no se usa la medición directa)",
+   "nota": "fracción de lo que ocupa hoy la analítica (heap + índices) que quedaría con cada palanca; 1 = igual que hoy",
+   "mueve_resultado": true
+  },
+  "bytes_por_evento": {
+   "valor": {
+    "hoy": 368,
+    "heap": 204,
+    "indices": 164,
+    "columnas": {
+     "id": 8.0,
+     "restaurante_id": 16.0,
+     "mesa_id": 16.0,
+     "sesion_id": 16.0,
+     "miembro_id": 0.0,
+     "platillo_id": 0.0,
+     "tipo": 8.8,
+     "propiedades": 10.6,
+     "ip_hash": 65.0,
+     "user_agent_fam": 14.0,
+     "ocurrido_en": 8.0
+    },
+    "indices_bytes_total": {
+     "idx_evento_tipo": 9232384,
+     "idx_evento_sesion": 2433024,
+     "idx_evento_mesa": 1933312,
+     "idx_evento_miembro": 1171456,
+     "idx_evento_platillo": 1171456,
+     "pk_evento_analitica": 4063232,
+     "idx_evento_restaurante_fecha": 9494528
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-14-recursos-medicion.json (pg_column_size medio por columna; tamaño de cada índice)",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "idempotencia_bytes_por_fila": {
+   "valor": 530,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "100,000 filas de clave_idempotencia con respuesta jsonb de ≈ 339 bytes (con su índice de purga)",
+   "nota": "la tabla está vacía hasta la Fase 3 (hoy ningún servicio la usa)",
+   "mueve_resultado": false
+  },
+  "claves_idempotencia_por_visita": {
+   "valor": 3,
+   "min": 1,
+   "max": 8,
+   "origen": "supuesto",
+   "fuente": "una por orden confirmada, una por comanda y una por llamada [supuesto]",
+   "nota": "se mide al construir la Fase 3 (contar filas de clave_idempotencia por sesión)",
+   "mueve_resultado": false
+  },
+  "rss_worker_mb": {
+   "valor": 160,
+   "min": 120,
+   "max": 250,
+   "origen": "medido",
+   "fuente": "modelo-de-capacidad: ≈ 160 MB por worker en reposo [medida aquí]",
+   "nota": "memoria residente de un proceso de la API",
+   "mueve_resultado": false
+  },
+  "mb_por_linea_abierta": {
+   "valor": 0.023,
+   "min": 0.02,
+   "max": 0.026,
+   "origen": "medido",
+   "fuente": "eventos-frente-a-sondeo: ≈ 20–26 KB por conexión abierta (RSS +98 MB con 5,000 y +258 MB con 10,000)",
+   "nota": "memoria del proceso por teléfono conectado",
+   "mueve_resultado": false
+  },
+  "mb_por_restaurante_sondeo": {
+   "valor": 0.1,
+   "min": 0.02,
+   "max": 0.5,
+   "origen": "supuesto",
+   "fuente": "cachés de menú y estado en memoria; sin dato",
+   "nota": "memoria por restaurante registrado con el sondeo de hoy",
+   "mueve_resultado": false
+  },
+  "ram_max_servicio_mb": {
+   "valor": 48000,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "docs.railway.com/reference/pricing/plans, leída el 14-nov-2026: Hobby 48 GB y 48 vCPU por servicio (con réplicas)",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "workers_hoy": {
+   "valor": 2,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "modelo-de-capacidad §1: WORKERS=2",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "db_pool_por_worker": {
+   "valor": 20,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "app/core/config.py: DB_POOL_SIZE 10 + DB_MAX_OVERFLOW 10",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "pg_max_conexiones": {
+   "valor": 100,
+   "min": 100,
+   "max": 100,
+   "origen": "supuesto",
+   "fuente": "Postgres de Railway ≈ 100 [estimada: falta `SHOW max_connections`, modelo-de-capacidad §5]",
+   "nota": "conexiones máximas de la base",
+   "mueve_resultado": false
+  },
+  "ms_conexion_por_peticion": {
+   "valor": 3.0,
+   "min": 1.8,
+   "max": 3.5,
+   "origen": "medido",
+   "fuente": "modelo-de-capacidad: 1.8–3.5 ms por petición (CPU), tiempo que una petición retiene su conexión [estimada: la retención real puede ser mayor]",
+   "nota": "milisegundos que una petición usa una conexión de la base",
+   "mueve_resultado": false
+  },
+  "peticiones_por_segundo_tope_sondeo": {
+   "valor": 600,
+   "min": 420,
+   "max": 600,
+   "origen": "medido",
+   "fuente": "modelo-de-capacidad §1: tope duro ≈ 600 peticiones/s con 2 workers (≈ 148 restaurantes registrados típicos)",
+   "nota": "tope del procesador con el sondeo de hoy",
+   "mueve_resultado": false
+  },
+  "factor_estado_memoria_60s": {
+   "valor": 1.87,
+   "min": 1.0,
+   "max": 1.87,
+   "origen": "medido",
+   "fuente": "eventos-frente-a-sondeo: 0.88 → 0.47 ms de CPU por comensal con estado en memoria 60 s invalidado por NOTIFY (÷ 0.47)",
+   "nota": "cuánto sube el tope del procesador con esa palanca (sólo en el sondeo)",
+   "mueve_resultado": false
+  },
+  "factor_lineas_ociosas": {
+   "valor": 0.7,
+   "min": 0.5,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "sin dato: parte de las líneas abiertas que quedaría si se cierran a los 2 min de ociosidad; se mide contando líneas por restaurante",
+   "nota": "palanca de líneas abiertas",
+   "mueve_resultado": false
+  },
+  "lineas_max_railway": {
+   "valor": 10000,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "eventos-frente-a-sondeo: ≈ 10,000 conexiones abiertas simultáneas de Railway «subject to change»; no aclara si es por servicio o por dominio",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "precios_railway_usd": {
+   "valor": {
+    "ram_gb_mes": 10.0,
+    "cpu_vcpu_mes": 20.0,
+    "volumen_gb_mes": 0.15,
+    "salida_gb": 0.05,
+    "hobby_suscripcion": 5.0,
+    "pro_suscripcion": 20.0
+   },
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "docs.railway.com/reference/pricing/plans, leída el 14-nov-2026",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "visitas_mes_gratuito": {
+   "valor": 1800,
+   "min": 1500,
+   "max": 4500,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 y disco-e-historial: 1,800 visitas al mes (chico y mediano; grande 4,500, formal 1,500)",
+   "nota": "visitas (sesiones de mesa) al mes de un gratuito típico",
+   "mueve_resultado": false
   }
  }
 }

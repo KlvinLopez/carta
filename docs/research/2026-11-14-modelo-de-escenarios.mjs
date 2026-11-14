@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-14-r4';
+export const VERSION = '2026-11-14-r5';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -217,15 +217,16 @@ export function sensibilidadPrecioOptimo(s, plan = 'servicio') {
 }
 
 // ---------------------------------------------------------------- disco
-/** MB en línea por restaurante de un plan en régimen. */
+/** MB en línea por restaurante de un plan en régimen (con las palancas de `config.palancas`, si hay). */
 export function mbPorRestaurante(plan, config, s) {
   const mezcla = plan === 'gratuito' ? s.mezcla_gratuito : plan === 'servicio' ? s.mezcla_paga : { grande: 1 };
-  const mv = config.topes[plan].meses_en_linea;
+  const ef = efectosPalancas(config, s);
+  const mv = plan === 'gratuito' ? config.topes[plan].meses_en_linea : Math.min(config.topes[plan].meses_en_linea, ef.meses_paga_en_linea ?? Infinity);
   const me = config.disco.meses_analitica_en_linea[plan];
   let t = 0;
   for (const [perfil, w] of Object.entries(mezcla)) {
     const d = s.disco_perfiles[perfil];
-    t += w * (d.mb_fijo + mv * d.mb_mes_visitas + me * d.mb_mes_eventos);
+    t += w * (d.mb_fijo + mv * d.mb_mes_visitas + me * d.mb_mes_eventos * ef.eventos_disco);
   }
   return t;
 }
@@ -233,6 +234,46 @@ export function mbPorRestaurante(plan, config, s) {
 /** Cuántos restaurantes de un plan caben en un volumen (GB) sin reserva (como en los informes). */
 export function cabenEnVolumen(mbPorRest, s, volumenGb = 5) {
   return Math.floor((volumenGb * 1e9 - s.base_vacia_mb * 1e6) / (mbPorRest * 1e6));
+}
+
+// ---------------------------------------------------------------- palancas (propuestas: nada de esto está construido)
+/**
+ * Palancas por recurso. `config.palancas` es una lista de ids; cada una cambia lo que el modelo calcula (disco por restaurante, tope
+ * del procesador con el sondeo, líneas abiertas por restaurante) y por tanto el margen y `resumen`. Son PROPUESTAS: no se toca `app/`
+ * ni `migrations/`. `medido` = se midió en PostgreSQL local (2026-11-14-recursos-medir.py); si no, es estimada con su supuesto.
+ */
+export const PALANCAS = {
+  analitica_agregada_por_dia: { recurso: 'disco', nombre: 'Analítica agregada por día en vez de una fila por evento', esfuerzo: 'medio', riesgo: 'medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo', regla_que_toca: 'ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica', medido: true },
+  retencion_analitica_7_dias: { recurso: 'disco', nombre: 'Guardar la analítica en bruto sólo 7 días (después, agregada)', esfuerzo: 'chico', riesgo: 'bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial', regla_que_toca: 'ninguna dura (regla 9 habla de entidades con historial; el evento no lo es)', medido: false },
+  indices_de_evento_minimos: { recurso: 'disco', nombre: 'Dejar sólo dos índices en la analítica (llave y restaurante-fecha)', esfuerzo: 'chico', riesgo: 'medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos', regla_que_toca: 'convención de /migracion (índice en toda FK con cascada); pide ADR', medido: true },
+  tipos_mas_chicos: { recurso: 'disco', nombre: 'Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)', esfuerzo: 'medio', riesgo: 'bajo: migración con reescritura de la tabla', regla_que_toca: 'ninguna', medido: true },
+  purga_claves_idempotencia: { recurso: 'disco', nombre: 'Purgar las claves de idempotencia a las 24 horas', esfuerzo: 'chico', riesgo: 'bajo si la ventana de reintento del teléfono es menor de 24 h', regla_que_toca: 'ninguna', medido: true },
+  archivar_sesiones_cerradas: { recurso: 'disco', nombre: 'Archivar en R2 las sesiones cerradas con más de 3 meses y quitarlas de la base', esfuerzo: 'grande', riesgo: 'alto: se vuelve a leer el historial del archivo; un error pierde datos', regla_que_toca: 'regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes', medido: false },
+  estado_en_memoria_60s: { recurso: 'procesador', nombre: 'Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)', esfuerzo: 'medio', riesgo: 'bajo-medio: cambia ADR-004 (vida máxima 2 s)', regla_que_toca: 'ninguna; cambia un ADR', medido: true },
+  cerrar_lineas_ociosas: { recurso: 'lineas', nombre: 'Cerrar la línea abierta a los 2 minutos sin cambios y reabrirla al volver', esfuerzo: 'medio', riesgo: 'bajo: el teléfono ya vuelve al sondeo si la línea falla', regla_que_toca: 'ninguna', medido: false },
+  pool_acotado: { recurso: 'conexiones_bd', nombre: 'Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)', esfuerzo: 'chico', riesgo: 'bajo; hay que verificar `SHOW max_connections` en Railway', regla_que_toca: 'ninguna', medido: false },
+};
+
+/** Efectos de `config.palancas` sobre lo que calcula el modelo. */
+export function efectosPalancas(config, s) {
+  const p = new Set(config.palancas ?? []);
+  const f = s.factores_disco_eventos;
+  let eventos = 1;
+  if (p.has('analitica_agregada_por_dia')) eventos = f.agregada_por_dia_cota_alta;
+  else {
+    if (p.has('indices_de_evento_minimos') && p.has('tipos_mas_chicos')) eventos = f.ambos;
+    else if (p.has('indices_de_evento_minimos')) eventos = f.un_indice;
+    else if (p.has('tipos_mas_chicos')) eventos = f.tipos_chicos;
+    if (p.has('retencion_analitica_7_dias')) eventos *= f.retencion_7_dias;
+  }
+  return {
+    eventos_disco: eventos,
+    meses_paga_en_linea: p.has('archivar_sesiones_cerradas') ? 3 : null,
+    cap_cpu_sondeo: p.has('estado_en_memoria_60s') ? s.factor_estado_memoria_60s : 1,
+    lineas_factor: p.has('cerrar_lineas_ociosas') ? s.factor_lineas_ociosas : 1,
+    pool_por_worker: p.has('pool_acotado') ? 10 : s.db_pool_por_worker,
+    purga_idempotencia: p.has('purga_claves_idempotencia'),
+  };
 }
 
 // ---------------------------------------------------------------- servidor
@@ -630,6 +671,151 @@ export function resumen(config, s, n = 1000) {
     todos_pagan: { definicion: 'techo teórico: todos los registrados pagan su plan (muy improbable)', margen_operacion: evaluar(config, s, n, { todosPagan: true }).margen_operacion, ingresos: evaluar(config, s, n, { todosPagan: true }).ingresos.total },
   };
 }
+
+// ---------------------------------------------------------------- recursos y palancas (ronda 5)
+const PROCESOS = { hobby_sondeo: 2, hobby_eventos: 2, pro_2: 2, pro_4: 4, pro_8: 8 };
+const NOMBRE_TAMANO = { hobby_sondeo: 'Hoy: Hobby, 2 procesos, el teléfono pregunta cada 3 s', hobby_eventos: 'Hobby, 2 procesos, con avisos en vez de preguntas (Fase 3)', pro_2: 'Pro, 2 procesos, con avisos', pro_4: 'Pro, 4 procesos, con avisos', pro_8: 'Pro, 8 procesos, con avisos' };
+
+/** Cuántos restaurantes (gratuitos típicos) aguanta cada recurso en un tamaño de servidor; null = no aplica. */
+function topesDeTamano(config, s, id) {
+  const e = s.escalones.find((x) => x.id === id);
+  const eSondeo = s.escalones.find((x) => x.id === 'hobby_sondeo');
+  const eEventos = s.escalones.find((x) => x.id === 'hobby_eventos');
+  const ef = efectosPalancas(config, s);
+  const sondeo = id === 'hobby_sondeo';
+  const procesos = PROCESOS[id];
+  const mb = mbPorRestaurante('gratuito', config, s);
+  const lineasPorRest = (s.lineas_max_railway / s.cap_conexiones) * ef.lineas_factor;
+  const procesador = Math.floor(e.cap_cpu * (sondeo ? ef.cap_cpu_sondeo : 1));
+  const disco = Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / mb);
+  const lineas = sondeo ? null : Math.floor(s.lineas_max_railway / lineasPorRest);
+  const rpsPorRest = (s.peticiones_por_segundo_tope_sondeo / eSondeo.cap_cpu) * (sondeo ? 1 / ef.cap_cpu_sondeo : eSondeo.cap_cpu / eEventos.cap_cpu);
+  const conexionesPorRest = (rpsPorRest * s.ms_conexion_por_peticion) / 1000;
+  const piscina = procesos * ef.pool_por_worker;
+  const usables = Math.min(piscina, s.pg_max_conexiones - 10);
+  const conexiones_bd = Math.floor(usables / conexionesPorRest);
+  const memPorRest = s.mb_por_restaurante_sondeo + (sondeo ? 0 : lineasPorRest * s.mb_por_linea_abierta);
+  const memoria = Math.floor((s.ram_max_servicio_mb - procesos * s.rss_worker_mb) / memPorRest);
+  return { id, procesos, mb_por_restaurante: mb, lineas_por_restaurante: sondeo ? 0 : lineasPorRest, procesador, memoria, disco, conexiones_bd, lineas, fotos: null, conexiones_por_restaurante: conexionesPorRest, pool_total: piscina, supera_postgres: piscina > s.pg_max_conexiones, memoria_mb_a_tope: procesos * s.rss_worker_mb + Math.min(procesador, disco) * memPorRest };
+}
+
+const RECURSOS = ['procesador', 'memoria', 'disco', 'conexiones_bd', 'lineas', 'fotos'];
+const NOMBRE_RECURSO = { procesador: 'Procesador (el trabajo de la API)', memoria: 'Memoria de la API', disco: 'Disco de la base de datos', conexiones_bd: 'Conexiones a la base de datos', lineas: 'Líneas abiertas con los teléfonos', fotos: 'Almacenamiento de fotos y respaldos (R2)' };
+
+const PRIORIDAD_EMPATE = ['lineas', 'disco', 'conexiones_bd', 'memoria', 'procesador'];
+const minimoDe = (t) => { const c = RECURSOS.filter((r) => t[r] != null).map((r) => [r, t[r]]); return c.sort((a, b) => a[1] - b[1] || PRIORIDAD_EMPATE.indexOf(a[0]) - PRIORIDAD_EMPATE.indexOf(b[0]))[0]; };
+
+/**
+ * Los seis recursos, qué pagamos hoy, el cuello de botella (hoy con el sondeo de 3 s y con eventos), las palancas y la escalera de
+ * tamaños del servidor. `estado`: { tamano: 'hobby_sondeo' (el que se paga hoy), tamano_eventos: 'hobby_eventos' }. Las palancas de
+ * `config.palancas` ya están aplicadas a lo que devuelve; cada palanca trae antes → después contra `config` sin ella.
+ */
+export function recursos(config, s, estado = {}) {
+  const idHoy = estado.tamano ?? 'hobby_sondeo';
+  const idEv = estado.tamano_eventos ?? 'hobby_eventos';
+  const hoy = topesDeTamano(config, s, idHoy);
+  const ev = topesDeTamano(config, s, idEv);
+  const [cuelloHoy] = minimoDe(hoy);
+  const [cuelloEv] = minimoDe(ev);
+  const mesEventos = s.comensales_dia_gratuito * 30;
+  const eHoy = s.escalones.find((x) => x.id === idHoy);
+  const eEv = s.escalones.find((x) => x.id === idEv);
+  const mbG = hoy.mb_por_restaurante;
+  const gb = (r) => r ?? null;
+  const consumo = {
+    procesador: { unidad: 'ms de CPU por visita', valor: null, nota: `1 gratuito típico = 1 unidad de carga; un cliente de paga pesa ${s.peso_servicio_cpu}; con el sondeo un teléfono pregunta cada 3 s (≈ ${n(s.peticiones_por_segundo_tope_sondeo / eHoy.cap_cpu, 1)} peticiones/s por restaurante registrado, medido en el tope)` },
+    memoria: { unidad: 'MB por restaurante', sondeo: s.mb_por_restaurante_sondeo, eventos: s.mb_por_restaurante_sondeo + ev.lineas_por_restaurante * s.mb_por_linea_abierta, fijo_mb: `${s.rss_worker_mb} MB por proceso en reposo`, medido: 'el proceso y la línea abierta, medido; el resto, supuesto' },
+    disco: { unidad: 'MB al mes por restaurante gratuito típico', valor: mbG, bytes_por_evento: s.bytes_por_evento.hoy, medido: true },
+    conexiones_bd: { unidad: 'conexiones de la base a la vez por restaurante registrado', sondeo: hoy.conexiones_por_restaurante, eventos: ev.conexiones_por_restaurante, nota: `cada petición retiene una conexión ≈ ${s.ms_conexion_por_peticion} ms` },
+    lineas: { unidad: 'líneas abiertas por restaurante en la hora pico', valor: ev.lineas_por_restaurante, nota: `${s.lineas_max_railway} ÷ ${s.cap_conexiones} restaurantes típicos (la relación del simulador de capacidad)` },
+    fotos: { unidad: 'GB por restaurante', valor: s.r2_gb_gratuito, nota: `${s.r2_gratis_gb} GB gratis y luego ${s.r2_usd_gb_mes} USD por GB-mes` },
+  };
+  const comoFunciona = {
+    procesador: 'Cada teléfono con la app abierta le pregunta al servidor cada 3 segundos si algo cambió; casi siempre la respuesta es «nada nuevo», pero cada pregunta gasta procesador. Con los avisos de la Fase 3, el servidor sólo habla cuando hay un cambio. Ruta: `app/api/publico/sesion.py` (estado con ETag) y `app/services/sesion.py`.',
+    memoria: 'Cada proceso de la API guarda en memoria el menú y el estado de las mesas por unos segundos, y (con avisos) una línea por cada teléfono conectado. Ruta: `app/services/{cache_menu,menu_publico,sesion}.py`.',
+    disco: 'Cada visita deja filas en `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden` y `llamada_mesero`, y **diez filas de analítica en `evento_analitica`**; las tablas y sus índices viven en el volumen de PostgreSQL. Ruta: `app/db/models.py`; analítica en `app/services/analitica.py`.',
+    conexiones_bd: 'Cada petición pide prestada una conexión a la base del grupo de su proceso (`DB_POOL_SIZE` 10 y `DB_MAX_OVERFLOW` 10) y la devuelve en milisegundos. Con avisos, cada proceso mantiene además una conexión fija para escuchar a la base. Ruta: `app/db/database.py`.',
+    lineas: 'Con los avisos (ADR-018, Fase 3) cada teléfono mantiene una conexión abierta con el servidor; Railway permite unas 10,000 abiertas a la vez. Hoy no existen. Ruta futura: `/p/sesion/eventos` y `/op/eventos` (T-3.20 y T-3.21).',
+    fotos: 'Las fotos de los platillos y los respaldos diarios de la base viven en R2 (almacenamiento tipo S3 de Cloudflare); la API sólo guarda la dirección. Ruta: `app/services/assets.py`.',
+  };
+  const valorDe = (t, r) => t[r];
+  const evaluarPalanca = (id) => {
+    const pl = PALANCAS[id];
+    const r = pl.recurso;
+    const base = { ...config, palancas: (config.palancas ?? []).filter((x) => x !== id) };
+    const con = { ...config, palancas: [...new Set([...(config.palancas ?? []), id])] };
+    const a = { h: topesDeTamano(base, s, idHoy), e: topesDeTamano(base, s, idEv) };
+    const d = { h: topesDeTamano(con, s, idHoy), e: topesDeTamano(con, s, idEv) };
+    const fila = { id, nombre: pl.nombre, esfuerzo: pl.esfuerzo, riesgo: pl.riesgo, regla_que_toca: pl.regla_que_toca, medido: pl.medido };
+    if (id === 'purga_claves_idempotencia') {
+      const mbMes = (s.visitas_mes_gratuito * s.claves_idempotencia_por_visita * s.idempotencia_bytes_por_fila) / 1e6;
+      return { ...fila, antes: `${n(mbMes, 1)} MB al mes por restaurante, sin tope (la tabla crece mientras nadie la purgue; hoy está vacía: ningún servicio la usa)`, despues: `${n(mbMes / 30, 2)} MB constantes (un día)`, ganancia: `evita ${n(mbMes * 12, 0)} MB por restaurante al año; no cambia los restaurantes que caben hoy porque la tabla está vacía hasta la Fase 3`, ganancia_restaurantes: 0, mb_antes: mbMes, mb_despues: mbMes / 30 };
+    }
+    const k = r === 'disco' ? 'disco' : r;
+    const dif = (x, y) => (x == null || y == null ? null : y - x);
+    const sig = { ...fila, mb_por_restaurante_antes: a.h.mb_por_restaurante, mb_por_restaurante_despues: d.h.mb_por_restaurante, restaurantes_antes: { hoy: a.h[k], con_eventos: a.e[k] }, restaurantes_despues: { hoy: d.h[k], con_eventos: d.e[k] }, ganancia_restaurantes: { hoy: dif(a.h[k], d.h[k]), con_eventos: dif(a.e[k], d.e[k]) } };
+    sig.antes = r === 'disco' ? `${n(a.h.mb_por_restaurante, 1)} MB al mes por restaurante · caben ${a.e.disco}` : `caben ${a.h[k] ?? a.e[k]}`;
+    sig.despues = r === 'disco' ? `${n(d.h.mb_por_restaurante, 1)} MB al mes por restaurante · caben ${d.e.disco}` : `caben ${d.h[k] ?? d.e[k]}`;
+    sig.ganancia = r === 'disco' ? `${n(a.h.mb_por_restaurante - d.h.mb_por_restaurante, 1)} MB menos por restaurante al mes; caben ${d.e.disco - a.e.disco >= 0 ? '+' : ''}${d.e.disco - a.e.disco} restaurantes en el mismo disco` : r === 'procesador' ? `caben +${d.h.procesador - a.h.procesador} restaurantes con el sondeo de hoy` : r === 'lineas' ? `caben +${d.e.lineas - a.e.lineas} restaurantes antes de topar las 10,000 líneas` : `evita pasarse de las ${s.pg_max_conexiones} conexiones de la base con más procesos (${d.h.supera_postgres ? 'aún las pasa' : 'ya no'})`;
+    return sig;
+  };
+  const porRecurso = (r) => Object.keys(PALANCAS).filter((id) => PALANCAS[id].recurso === r).map(evaluarPalanca);
+  const limiteTexto = (t, r, e) => (t[r] == null ? 'no aplica' : `${t[r].toLocaleString('en-US')} restaurantes`);
+  const lista = RECURSOS.map((r) => ({
+    recurso: r,
+    nombre: NOMBRE_RECURSO[r],
+    como_funciona: comoFunciona[r],
+    consumo_por_restaurante: consumo[r],
+    limite_hoy: { restaurantes: hoy[r], texto: r === 'fotos' ? `sin tope práctico: ${s.r2_gratis_gb} GB gratis (≈ ${Math.floor(s.r2_gratis_gb / s.r2_gb_gratuito)} gratuitos) y después ${n(s.r2_gb_gratuito * s.r2_usd_gb_mes * s.fx, 3)} pesos por restaurante al mes` : limiteTexto(hoy, r) + ` (${eHoy.nombre})` },
+    restaurantes_hoy: hoy[r],
+    restaurantes_con_eventos: ev[r],
+    comensales_mes_hoy: hoy[r] == null ? null : hoy[r] * mesEventos,
+    comensales_mes_con_eventos: ev[r] == null ? null : ev[r] * mesEventos,
+    es_cuello_hoy: r === cuelloHoy,
+    es_cuello_con_eventos: r === cuelloEv,
+    medido: { procesador: 'medido en local (±2×); falta medir en Railway', memoria: 'proceso y línea medidos; el resto supuesto', disco: 'medido en PostgreSQL local (10 restaurantes medianos, un mes)', conexiones_bd: 'estimada: falta `SHOW max_connections` en Railway', lineas: 'tope de Railway leído en su documentación; consumo medido en local', fotos: 'documento (mapa de procesos) y precio de Cloudflare' }[r],
+    palancas: porRecurso(r),
+  }));
+  const escalera = Object.keys(PROCESOS).map((id) => {
+    const e = s.escalones.find((x) => x.id === id);
+    const t = topesDeTamano(config, s, id);
+    const [muro, cabe] = minimoDe(t);
+    return { id, tamano: NOMBRE_TAMANO[id], procesos: t.procesos, disco_gb: e.volumen_gb, costo_usd_base: e.base_usd, costo_usd_con_carga: e.tope_usd, costo_pesos_base: e.base_usd * s.fx, restaurantes_que_caben: cabe, recurso_que_obliga_a_subir: muro, por_recurso: Object.fromEntries(RECURSOS.map((r) => [r, t[r]])), supera_postgres: t.supera_postgres };
+  });
+  const ultimo = escalera[escalera.length - 1];
+  escalera.push({ id: 'otra_pila', tamano: 'Una segunda copia de toda la pila (extrapolación sin medir)', procesos: 16, costo_usd_base: null, costo_usd_con_carga: s.escalones.at(-1).tope_usd + s.instancia_extra_usd, restaurantes_que_caben: ultimo.restaurantes_que_caben * 2, recurso_que_obliga_a_subir: 'líneas abiertas', extrapolacion_sin_medir: true });
+  const railway = 8.1;
+  const dominio = s.dominio_usd_anio / 12;
+  return {
+    config_palancas: config.palancas ?? [],
+    cuello_hoy: { recurso: cuelloHoy, nombre: NOMBRE_RECURSO[cuelloHoy], restaurantes: hoy[cuelloHoy], comensales_mes: hoy[cuelloHoy] * mesEventos },
+    cuello_con_eventos: { recurso: cuelloEv, nombre: NOMBRE_RECURSO[cuelloEv], restaurantes: ev[cuelloEv], comensales_mes: ev[cuelloEv] * mesEventos },
+    hoy: {
+      fecha: '2026-11-14',
+      servicios: [
+        { servicio: 'Railway · api (la aplicación)', plan: 'Hobby (5 USD al mes, incluye 5 USD de uso)', costo_usd_mes: railway, detalle: `factura real ≈ ${railway} USD con la memoria deducida de la factura [documento: anuncios-y-capa-del-comensal §0]; CPU a ${s.precios_railway_usd.cpu_vcpu_mes} USD por vCPU-mes y RAM a ${s.precios_railway_usd.ram_gb_mes} USD por GB-mes [fuente: docs.railway.com, leída 14-nov-2026]`, limites: { procesador: `${PROCESOS[idHoy]} procesos de la API (WORKERS=2); Railway permite hasta 48 vCPU por servicio`, memoria: `hasta ${s.ram_max_servicio_mb / 1000} GB por servicio; hoy ≈ ${PROCESOS[idHoy] * s.rss_worker_mb} MB`, conexiones: `${s.lineas_max_railway} conexiones abiertas a la vez (sin usar hoy)` } },
+        { servicio: 'Railway · Postgres (la base de datos, versión 18)', plan: 'Hobby: volumen de 5 GB', costo_usd_mes: null, detalle: `incluido en los ${railway} USD; el volumen cuesta ${s.volumen_usd_gb_mes} USD por GB-mes; Pro sube el volumen a 50 GB (en este modelo)`, limites: { disco: '5 GB (4 GB útiles con la reserva del 20 % para WAL e hinchazón)', conexiones: `≈ ${s.pg_max_conexiones} conexiones [estimada; falta \`SHOW max_connections\`]` } },
+        { servicio: 'Railway · respaldo (copia diaria con pg_dump)', plan: 'Hobby', costo_usd_mes: null, detalle: 'trabajo programado; corre unos minutos al día; incluido en la factura de Railway', limites: {} },
+        { servicio: 'Cloudflare (DNS, HTTPS y caché del menú)', plan: 'Free', costo_usd_mes: 0, detalle: '[documento: deploy/railway/README.md §Cloudflare, plan Free]; el menú público lo absorbe la caché del borde', limites: { procesador: 'las reglas de tasa del plan Free' } },
+        { servicio: 'Cloudflare R2 (fotos y respaldos)', plan: `${s.r2_gratis_gb} GB gratis, después ${s.r2_usd_gb_mes} USD por GB-mes`, costo_usd_mes: 0, detalle: `[fuente: developers.cloudflare.com/r2/pricing, 14-nov-2026]; ≈ ${s.r2_gb_gratuito} GB por gratuito típico: cubre ≈ ${Math.floor(s.r2_gratis_gb / s.r2_gb_gratuito)} gratuitos sin pagar`, limites: { fotos: 'sin tope práctico' } },
+        { servicio: 'Dominio carta.cooking', plan: 'anual', costo_usd_mes: dominio, detalle: `${s.dominio_usd_anio} USD al año [documento: dato de Calvin, 13-nov]`, limites: {} },
+      ],
+      total_usd_mes: railway + dominio,
+      total_pesos_mes: (railway + dominio) * s.fx,
+      no_incluye: ['Firebase Authentication (plan sin costo hoy; sin dato de límites)', 'API de Claude para leer PDFs (≈ 0.11 a 0.64 USD por lectura [documento: planes-y-costo §0])'],
+    },
+    recursos: lista,
+    escalera,
+    glosario: {
+      piso: `Lo que cuesta atender a un cliente de paga en un mes; es la suma de cuatro cosas: (1) lo que crece con su uso (${s.costo_var_servicio} pesos [documento]), (2) su parte de la base fija del servidor (${s.base_fija_por_restaurante} pesos [documento]), (3) la comisión de la tarjeta con IVA [documento] y (4) el soporte (${s.soporte_servicio} pesos [SUPUESTO]). El precio no debe bajar de 3 veces el piso.`,
+      tamano_del_servidor: 'El tamaño del servidor que rentamos en Railway: cuántos procesos de la API corren, cuánta memoria y disco tiene y cuánto cuesta al mes. Sube por escalones (Hobby, Pro de 2, 4 y 8 procesos).',
+      cuello_de_botella: 'El recurso que se llena primero. Aunque los demás estén sobrados, el sistema no puede atender más restaurantes que los que aguanta el cuello de botella; para crecer hay que ensanchar ése.',
+      linea_abierta: 'Una conexión que el teléfono deja abierta con el servidor para que éste le avise al instante cuando algo cambia (en lugar de preguntar cada 3 segundos). Railway permite unas 10,000 abiertas a la vez.',
+    },
+  };
+}
+
+const n = (x, d = 0) => (x == null ? '—' : Number(x).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }));
 
 // ---------------------------------------------------------------- banderas de operación
 /**
