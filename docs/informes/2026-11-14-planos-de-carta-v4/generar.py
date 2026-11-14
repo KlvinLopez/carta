@@ -497,7 +497,7 @@ def g_capacidad() -> str:
         tx(
             0,
             22,
-            "Restaurantes registrados que caben (configuración recomendada, curva de pago media)",
+            "Restaurantes que caben, con clientes de paga y su historial (configuración recomendada, curva media)",
             14.5,
             VINO,
             weight=700,
@@ -814,6 +814,9 @@ def g_equilibrio() -> str:
             TINTA2,
         )
     )
+    piso = MV["resumen"]["cifras"][6]["piso_de_verdad"]
+    b.append(rc(150, 346, 440, 26, "#E8E3DC", 13))
+    b.append(tx(168, 364, f"Piso real {_fmp(piso)}: pagan poco, anuncios adversos y soporte al máximo", 12, TINTA2, weight=700))
     return svg(968, 440, "".join(b))
 # ------------------------------------------------------------------ páginas de la historia
 PAGINAS: list[dict] = []
@@ -907,7 +910,7 @@ def construir_paginas():
     )
     pagina(
         "8 · Tres planes",
-        f"Chef gratis deja dentro a ≈ {round(MV['seg']['c25'][1])} de cada 100 negocios chicos; sus 25 mesas son decisión de Calvin.",
+        f"25 mesas es la propuesta: ≈ {round(MV['seg']['c25'][1])} de cada 100 chicos caben; con 15, ≈ {round(MV['seg']['c15'][1])} y el margen sube ≈ {n(round((MV['seg']['m15'] - MV['seg']['m25']) / 100) * 100)} al mes; lo decide Calvin.",
         g_planes(),
         "Arriba, los planes. Abajo, qué fracción de los negocios se pasa de cada límite; la barra rosa es el intervalo.",
         "La cobertura de Chef es modelo, no medida: con 15 mesas bajaría a ≈ 89 de cada 100.",
@@ -924,7 +927,7 @@ def construir_paginas():
     )
     pagina(
         "10 · Cómo se sostiene",
-        f"Con 1,000 restaurantes el margen va de {_fmp(MV['matriz']['filas'][0]['celdas'][0]['margen_operacion'])} a {_fmp(MV['matriz']['filas'][2]['celdas'][2]['margen_operacion'])} al mes; sólo pierde con pocos pagos y sin anuncios.",
+        f"Con 1,000 restaurantes el margen va de {_fmp(MV['matriz']['filas'][0]['celdas'][0]['margen_operacion'])} a {_fmp(MV['matriz']['filas'][2]['celdas'][2]['margen_operacion'])} al mes; el piso real es {_fmp(MV['resumen']['cifras'][6]['piso_de_verdad'])}.",
         g_equilibrio(),
         "Cada línea es un caso; donde cruza el cero, el negocio se sostiene. La franja es el rango de las tres curvas de pago.",
         "Con $1,000 al mes de bolsa caben 811 restaurantes gratuitos hasta que lleguen los anuncios; vale con la Fase 3 construida.",
@@ -962,11 +965,11 @@ def mini_mercado():
         ("17 zonas", M["zonas17"], VINO_OSC, "40,872"),
     ]
     for i, (nom, v, col, txt) in enumerate(filas):
-        w = 30 + 170 * (math.log10(v) - lo) / (hi - lo)
+        w = 26 + 150 * (math.log10(v) - lo) / (hi - lo)
         y = 6 + i * 36
-        b.append(tx(0, y + 20, nom, 13, TINTA2, weight=700))
-        b.append(rc(70, y, w, 28, col, 9))
-        b.append(tx(70 + w + 7, y + 20, txt, 13.5, TINTA, weight=700))
+        b.append(tx(0, y + 20, nom, 12, TINTA2, weight=700))
+        b.append(rc(86, y, w, 28, col, 9))
+        b.append(tx(86 + w + 7, y + 20, txt, 13, TINTA, weight=700))
     return svg(330, 150, "".join(b), "mini")
 
 
@@ -1056,8 +1059,8 @@ def html_p1() -> str:
         ),
         ("104,882", "clientes potenciales (SAM)", cita("carta_mercado")),
         (
-            f"{n(cap[0]['caben'])} → {n(cap[-1]['caben'])}",
-            "restaurantes caben, de Hobby a Pro 8",
+            n(MV["resumen"]["cifras"][1]["recomendado"]),
+            f"restaurantes gratuitos caben con eventos (hoy, con sondeo, {n(MV['resumen']['cifras'][1]['peor'])}; con servidor grande, {n(MV['resumen']['cifras'][1]['mejor'])})",
             cita("carta_anuncios"),
         ),
         (
@@ -1097,7 +1100,7 @@ def html_p1() -> str:
             "Capacidad con eventos",
             "¿Cuántos caben?",
             mini_capacidad(),
-            "Primero el disco; luego el procesador.",
+            "Con clientes de paga y su historial; primero el disco, luego el procesador.",
             "carta_anuncios",
         ),
         (
