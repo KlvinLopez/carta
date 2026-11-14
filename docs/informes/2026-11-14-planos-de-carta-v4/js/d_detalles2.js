@@ -11,21 +11,23 @@ DET.disco = {
     svg.addEventListener("click", ev => { const e = ev.target.closest("[data-paso]"); if (e) { this.auto = false; this.paso = +e.dataset.paso; refrescar(); } });
     $("#srv", host).innerHTML = `<button class="btn" data-s="-1">Automático</button>` + SERVS.map((e, i) => `<button class="btn" data-s="${i}">${esc(e.nombre.replace("Con eventos, ", ""))}<small style="font-weight:400"> · ${e.tope_usd} USD</small></button>`).join("");
     $("#hist", host).innerHTML = [1, 3, 6, 12].map(v => `<button class="btn" data-h="${v}">${v} ${v === 1 ? "mes" : "meses"}</button>`).join("");
-    $("#pals", host).innerHTML = [["a30", "Analítica 30 días en línea", "En vez de 13 meses"], ["a7", "Analítica en bruto 7 días", "El resto, agregados"], ["arch", "Archivar lo que sale", "≈ 0.4 pesos al año"]].map(([k, t, d]) => `<button class="pal" data-p="${k}"><span class="sw"></span><span><b>${esc(t)}</b><small>${esc(d)}</small></span></button>`).join("");
+    $("#pals", host).innerHTML = `<div class="seg" style="grid-column:1/-1"><span class="kick" style="align-self:center">Analítica en línea</span>${[[0.23, "7 días"], [1, "1 mes"], [13, "13 meses"]].map(([v, t]) => `<button class="btn" data-ma="${v}">${t}</button>`).join("")}</div><button class="pal" data-p="arch"><span class="sw"></span><span><b>Archivar lo que sale</b><small>≈ 0.4 pesos al año</small></span></button>`;
     host.addEventListener("click", ev => {
       const s = ev.target.closest("[data-s]"); if (s) { cambiar({servidor: +s.dataset.s}); return; }
       const h = ev.target.closest("[data-h]"); if (h) { cambiar({hist: +h.dataset.h}); return; }
+      const ma = ev.target.closest("[data-ma]"); if (ma) { cambiar({ma: +ma.dataset.ma}); return; }
       const p = ev.target.closest("[data-p]"); if (p) cambiar({[p.dataset.p]: !S[p.dataset.p]});
     });
     const marcha = () => { if (actual !== this || !this.auto || this.paso >= 2 || REDUCE) return; setTimeout(() => { if (actual === this && this.auto) { this.paso++; refrescar(); marcha(); } }, 2200); };
     setTimeout(marcha, 1200);
   },
   actualizar() {
-    const m = motor(S), rm = this.rm, p = this.paso, base = motor({...S, a30: false, a7: false, hist: 12, arch: false, servidor: -1});
+    const m = motor(S), rm = this.rm, p = this.paso, base = motor({...S, ma: 13, hist: 12, arch: false, servidor: -1});
     $("#ctl").hidden = p < 2;
     $$("#srv [data-s]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.s === S.servidor));
     $$("#hist [data-h]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.h === S.hist));
     $$("#pals [data-p]").forEach(b => b.setAttribute("aria-pressed", !!S[b.dataset.p]));
+    $$("#pals [data-ma]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.ma === S.ma));
     PASOS_DISCO.forEach((t, i) => {
       rm.put("pb" + i, "rect", {x: 30 + i * 306, y: 12, w: 296, h: 38, rx: 19, fill: i === p ? C.vino : i < p ? "#d9b9c1" : C.a2, grow: false, cursor: "pointer", attrs: {"data-paso": i, role: "button", tabindex: 0, "aria-pressed": i === p, "aria-label": t}});
       rm.put("pt" + i, "text", {x: 30 + i * 306 + 148, y: 36, text: t, size: 13.5, weight: 700, fill: i === p ? "#fff" : i < p ? C.osc : C.t2, anchor: "middle"});
@@ -64,66 +66,66 @@ DET.disco = {
     const sube = m.cuello === "disco" ? "acortar el historial y la analítica, o pasar a Pro, lo libera" : m.cuello === "procesador" ? "más procesos lo liberan" : "es el tope de Railway: más procesos no lo suben";
     return {
       leyenda: p === 0 ? `<span><i style="background:${C.vino}"></i>visitas de la mesa</span><span><i style="background:${C.dorado}"></i>analítica</span><span><i style="background:${C.osc}"></i>un cliente de paga</span>` : `<span><i style="background:${C.vino}"></i>lo que se llena primero</span><span><i style="background:${C.dorado}"></i>otro recurso</span>`,
-      cifras: [[n(m.caben), "restaurantes caben con esta orden", "supuesto: modelo de escenarios"], [m.usd + " USD", "costo del servidor al mes (tope del escalón)"], [`${S.hist} meses`, "de historial de Master Chef en línea"], [S.a7 ? "7 días" : S.a30 ? "30 días" : "13 meses", "de analítica en bruto en línea"]],
+      cifras: [[n(m.caben), "restaurantes caben con esta orden", "supuesto: modelo de escenarios"], [m.usd + " USD", "costo del servidor al mes (tope del escalón)"], [`${S.hist} meses`, "de historial de Master Chef en línea"], [S.ma < 1 ? "7 días" : S.ma === 1 ? "1 mes" : S.ma + " meses", "de analítica en bruto en línea"]],
       insight: p === 0 ? `Un cliente de paga ocupa ≈ ${n(mb.servicio / mb.gratuito, 0)} veces el espacio de uno gratuito: el historial pesa más que la visita.` : p === 1 ? `Lo primero que se llena es ${m.cuello}: ahí está el límite de ${n(m.caben)} restaurantes.` : `Con esta orden caben ${n(m.caben)} y frena ${m.cuello}: ${sube}.`,
     };
   },
 };
 
-/* ===== detalle: ¿A quién deja dentro cada tope? ===== */
+/* ===== detalle: ¿A quién deja dentro cada tope? (segmentación de Calvin) ===== */
 const TRK = [
-  {k: "topePlatillos", nom: "Tope de platillos", min: 40, max: 300, f: v => MOD.interp(SP.empuja_platillos, v), tag: "medida", tip: "148 cartas leídas; sesgo hacia abajo"},
-  {k: "topeMesas", nom: "Tope de mesas", min: 5, max: 40, f: v => MOD.interp(SP.empuja_mesas, v), tag: "supuesto", tip: "Modelo: no hay estadística de mesas en México"},
-  {k: "topeCuentas", nom: "Cuentas de personal", min: 2, max: 20, f: v => MOD.interp(SP.empuja_cuentas, v), tag: "supuesto", tip: "Modelo: se mide con los primeros restaurantes"},
-  {k: "precioServicio", nom: "Precio de Master Chef al mes", min: 49, max: 699, f: null, tag: "propuesta", tip: "De los que se pasan del plan Chef, pagan según la curva"},
+  {k: "topeMesas", nom: "Mesas", min: 5, max: 60, step: 1, tag: "supuesto", tip: "Modelo de mesas y cuentas por tamaño: no hay estadística de mesas en México"},
+  {k: "topeCuentas", nom: "Cuentas", min: 2, max: 20, step: 1, tag: "supuesto", tip: "Modelo: se mide con los primeros restaurantes"},
+  {k: "topePlatillos", nom: "Platillos", min: 40, max: 300, step: 10, tag: "medida", tip: "148 cartas leídas; sesgo hacia abajo"},
 ];
+const COLPLAN = [C.vino, C.dorado, C.osc], NOMPLAN = [PLAN.gratis, PLAN.paga, PLAN.ejec];
 DET.topes = {
-  titulo: "Mueves los límites del plan gratuito y ves a quién deja dentro y a quién empuja a pagar.",
+  titulo: "Chef es gratis para los dos tamaños chicos; mueve los límites y mira dónde cae cada tamaño.",
   fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
-  nota: "Entre los puntos del estudio las curvas se interpolan; mesas y cuentas son supuesto. Propuesta de cambio frente a lo decidido: tercer plan sobre 40 mesas y lecturas de PDF con tope numérico.",
+  nota: "Segmentación de Calvin: gratis los dos tamaños chicos (0 a 5 y 6 a 10 personas), plan medio los tres de en medio, plan caro los dos grandes. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato. Chef Ejecutivo es nombre propuesto.",
   montar(host) {
-    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 470" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
-    const svg = $("#svT", host); this.rm = RM(svg); this.svg = svg; this.armado = false;
-    svg.addEventListener("click", ev => { const c = ev.target.closest("[data-curva]"); if (c) cambiar({curva: c.dataset.curva}); });
+    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    this.rm = RM($("#svT", host)); this.svg = $("#svT", host); this.armado = false;
   },
   actualizar() {
-    const rm = this.rm, m = motor(S), X0 = 40, W = 470, svg = this.svg;
+    const rm = this.rm, svg = this.svg, c = config(S), e = evalS(S), X0 = 200, W = 300;
     TRK.forEach((t, i) => {
-      const y = 70 + i * 92, v = S[t.k], px = X0 + W * (v - t.min) / (t.max - t.min), p = t.f ? t.f(v) : m.conv;
-      rm.put("n" + i, "text", {x: X0, y: y - 22, text: t.nom, size: 14, weight: 700, fill: C.vino});
-      rm.put("tg" + i, "text", {x: X0 + W, y: y - 22, text: t.tag, size: 11, weight: 700, fill: t.tag === "medida" ? C.verde : C.dorado, anchor: "end"});
+      const y = 62 + i * 70, v = S[t.k], px = X0 + W * (v - t.min) / (t.max - t.min);
+      rm.put("n" + i, "text", {x: X0 - 18, y: y + 5, text: t.nom, size: 14, weight: 700, fill: C.vino, anchor: "end"});
       rm.put("k" + i, "rect", {x: X0, y: y - 8, w: W, h: 16, rx: 8, fill: C.a2, grow: false});
-      rm.put("f" + i, "rect", {x: X0, y: y - 8, w: px - X0, h: 16, rx: 8, fill: i === 3 ? C.dorado : C.vino, grow: false});
-      rm.put("a" + i, "text", {x: X0, y: y + 30, text: String(t.min), size: 11, fill: C.t2});
-      rm.put("z" + i, "text", {x: X0 + W, y: y + 30, text: String(t.max), size: 11, fill: C.t2, anchor: "end"});
-      const h = rm.put("h" + i, "circle", {x: px, y, r: 15, fill: i === 3 ? C.dorado : C.vino, stroke: "#fff", sw: 3, cursor: "grab", attrs: {"aria-label": t.nom, "aria-valuemin": t.min, "aria-valuemax": t.max, "aria-valuenow": v, "data-tip": t.tip}});
+      rm.put("f" + i, "rect", {x: X0, y: y - 8, w: px - X0, h: 16, rx: 8, fill: C.vino, grow: false});
+      const h = rm.put("h" + i, "circle", {x: px, y, r: 15, fill: C.vino, stroke: "#fff", sw: 3, cursor: "grab", attrs: {"aria-label": "Tope de " + t.nom.toLowerCase(), "aria-valuemin": t.min, "aria-valuemax": t.max, "aria-valuenow": v, "data-tip": t.tip}});
       rm.put("hv" + i, "text", {x: px, y: y + 4, text: String(v), size: 11, weight: 700, fill: "#fff", anchor: "middle"});
-      rm.put("r" + i, "text", {x: X0 + W + 24, y: y + 5, text: i === 3 ? `pagan ${n(100 * m.conv)} % de los que se pasan` : `empuja a ${n(100 * p, 1)} %`, size: 13, weight: 700, fill: C.tinta});
-      if (!this.armado) {
-        const set = val => cambiar({[t.k]: clamp(Math.round(val), t.min, t.max)});
-        arrastrable(h, svg, pt => set(t.min + (pt.x - X0) / W * (t.max - t.min)), (d, mult) => set(S[t.k] + d * mult * (t.max - t.min > 200 ? 5 : 1)));
-      }
+      rm.put("tg" + i, "text", {x: X0 + W + 26, y: y + 5, text: t.tag, size: 11, weight: 700, fill: t.tag === "medida" ? C.verde : C.dorado});
+      if (!this.armado) { const set = val => cambiar({[t.k]: clamp(Math.round(val / t.step) * t.step, t.min, t.max)}); arrastrable(h, svg, pt => set(t.min + (pt.x - X0) / W * (t.max - t.min)), (d, mult) => set(S[t.k] + d * mult * t.step)); }
     });
     this.armado = true;
-    // curva de pago: tres botones dentro de la gráfica
-    ["pesimista", "media", "optimista"].forEach((c, i) => {
-      rm.put("cv" + i, "rect", {x: 40 + i * 118, y: 410, w: 110, h: 28, rx: 14, fill: S.curva === c ? C.vino : C.arena, grow: false, cursor: "pointer", attrs: {"data-curva": c, role: "button", tabindex: 0, "aria-pressed": S.curva === c}});
-      rm.put("cvt" + i, "text", {x: 95 + i * 118, y: 429, text: c, size: 12.5, weight: 700, fill: S.curva === c ? "#fff" : C.t2, anchor: "middle"});
+    // lo que cambia con los topes: ingreso, costo y margen al mes con 1,000 restaurantes
+    [["Ingreso", e.ingresos.total, C.vino], ["Costo", e.costos.total, C.t2], ["Margen", e.margen_operacion, e.margen_operacion >= 0 ? C.verde : C.rojo]].forEach(([nm, v, col], i) => {
+      rm.put("m" + i, "text", {x: 620 + i * 112, y: 78, text: nm, size: 13, weight: 700, fill: C.t2});
+      rm.put("mv" + i, "text", {x: 620 + i * 112, y: 118, text: mp(v), size: 30, fill: col, serif: true});
     });
-    rm.put("cvl", "text", {x: 40, y: 402, text: "Cuánto pagan: curva", size: 12, weight: 700, fill: C.t2});
-    const cx = 800, cy = 150, r = 88, circ = 2 * Math.PI * r;
-    const dn = rm.put("don0", "circle", {x: cx, y: cy, r, fill: "none", stroke: C.arena, sw: 34});
-    const dp = rm.put("don", "circle", {x: cx, y: cy, r, fill: "none", stroke: C.vino, sw: 34});
-    dn.style.transform = dp.style.transform = `translate(${cx}px,${cy}px) rotate(-90deg)`; dp.style.strokeDasharray = `${circ * m.rebasan} ${circ}`; dp.style.transition = REDUCE ? "none" : "stroke-dasharray .5s cubic-bezier(.34,1.2,.5,1)";
-    rm.put("dn", "text", {x: cx, y: cy + 12, text: emTxt(m), size: 36, fill: C.vino, anchor: "middle", serif: true});
-    rm.put("dl", "text", {x: cx, y: cy + 118, text: "se pasa del plan gratuito", size: 14, weight: 700, fill: C.vino, anchor: "middle"});
-    rm.put("dd", "text", {x: cx, y: cy + 146, text: `Se queda en Chef: ${dentroTxt(m)}`, size: 14, weight: 700, fill: C.tinta, anchor: "middle"});
-    rm.put("de", "text", {x: cx, y: cy + 172, text: `${n(m.ev.clientes.de_paga, 1)} clientes de paga por cada 1,000`, size: 13, fill: C.t2, anchor: "middle"});
-    rm.put("df", "text", {x: cx, y: cy + 194, text: `punto de equilibrio: ${m.eq == null ? "—" : n(m.eq, 1)} clientes de paga`, size: 13, weight: 700, fill: C.osc, anchor: "middle"});
+    rm.put("mt", "text", {x: 620, y: 150, text: "al mes con 1,000 restaurantes registrados", size: 12.5, fill: C.t2});
+    rm.put("md", "text", {x: 620, y: 190, text: `${n(100 * (1 - e.rebasan_topes), 1)} % se queda en ${PLAN.gratis}`, size: 15, weight: 700, fill: C.vino});
+    rm.put("me", "text", {x: 620, y: 214, text: `${n(e.clientes.de_paga, 1)} clientes de paga por cada 1,000`, size: 13, fill: C.t2});
+    // la segmentación: a qué plan cae cada tamaño
+    const tot = SEG.estratos.reduce((a, q) => a + q.negocios, 0);
+    SEG.estratos.forEach((q, i) => {
+      const x = 30 + i * 132, p = planDe(q, c), g = rm.put("dz" + i, "g", {x: x + 8, y: 262});
+      if (!g.__i) { g.__i = 1; g.innerHTML = dibujo(EJTAM[i][0], 0, 0, 0.7); }
+      rm.put("cp" + i, "rect", {x, y: 352, w: 124, h: 34, rx: 17, fill: COLPLAN[p]});
+      rm.put("cpt" + i, "text", {x: x + 62, y: 374, text: NOMPLAN[p], size: 13, weight: 700, fill: "#fff", anchor: "middle"});
+      rm.put("tl" + i, "text", {x: x + 62, y: 414, text: q.estrato + " personas", size: 12.5, weight: 700, fill: C.tinta, anchor: "middle"});
+      rm.put("tm" + i, "text", {x: x + 62, y: 434, text: `≈ ${n(mesasDe(q))} mesas`, size: 11, fill: C.t2, anchor: "middle"});
+      rm.put("tc" + i, "text", {x: x + 62, y: 450, text: `≈ ${n(cuentasDe(q))} cuentas`, size: 11, fill: C.t2, anchor: "middle"});
+      rm.put("tn" + i, "text", {x: x + 62, y: 470, text: `${n(q.negocios)} · ${n(100 * q.negocios / tot, 1)} %`, size: 11.5, fill: C.t2, anchor: "middle"});
+    });
+    rm.put("lg", "text", {x: 30, y: 250, text: "A qué plan cae cada tamaño de negocio", size: 14, weight: 700, fill: C.vino});
+    const por = [0, 1, 2].map(p => SEG.estratos.filter(q => planDe(q, c) === p).reduce((a, q) => a + q.negocios, 0));
     return {
-      leyenda: `<span><i style="background:${C.vino}"></i>lo que el plan gratuito permite</span><span><i style="background:${C.dorado}"></i>precio de Master Chef</span><span>Arrastra una asa o usa las flechas</span>`,
-      cifras: [[n(100 * MOD.interp(SP.empuja_platillos, S.topePlatillos), 1) + " %", `se pasa del tope de ${S.topePlatillos} platillos`, "medida"], [n(100 * MOD.interp(SP.empuja_mesas, S.topeMesas), 1) + " %", `se pasa de ${S.topeMesas} mesas`, "supuesto"], [n(100 * MOD.interp(SP.empuja_cuentas, S.topeCuentas), 1) + " %", `se pasa de ${S.topeCuentas} cuentas de personal`, "supuesto"], [n(m.ev.clientes.de_paga, 1), "clientes de paga por cada 1,000 registrados", "supuesto"]],
-      insight: `Con estos límites ≈ ${n(100 * m.rebasan)} % de los negocios necesita más que Chef, y a ${mxn(S.precioServicio)} paga ≈ ${n(100 * m.conv)} % de ellos. Mesas, cuentas y pago los mide el piloto.`,
+      leyenda: COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("") + `<span>Arrastra una asa o usa las flechas</span>`,
+      cifras: [[n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
+      insight: `Con ${S.topeMesas} mesas, ${S.topeCuentas} cuentas y ${S.topePlatillos} platillos, ${n(100 * por[0] / tot, 1)} % de los negocios queda en ${PLAN.gratis}; ese plan lleva anuncios y lo pagan los demás.`,
     };
   },
 };

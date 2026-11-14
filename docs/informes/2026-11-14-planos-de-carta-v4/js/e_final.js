@@ -1,153 +1,191 @@
-/* ===== detalle: ¿Cómo se sostiene? (modelo de escenarios) ===== */
-const margenEn = (s0, N) => evalS(s0, Math.max(1, N)).margen.pesos;
-function proyecta(nivel, s0) {
-  const [a, b] = M.metas[nivel], c = config(s0), s = {...sup(s0), meta_12_meses: a, meta_24_meses: b};
-  return MOD.proyectar(c, s, 24, opcS(s0));
-}
+/* ===== detalle: ¿Cómo se sostiene? (cuatro vistas, cada una con su gráfica) ===== */
 const fmP = x => (x < 0 ? "−" : "") + "$" + n(Math.abs(Math.round(x)));
+const NS_TG = [10, 25, 50, 100, 200, 300, 500, 750, 1000, 1500, 2000];
+const memo = {};
+const conCache = (k, f) => { const key = k + JSON.stringify(S); if (!(key in memo)) { memo[key] = f(); const ks = Object.keys(memo); if (ks.length > 60) delete memo[ks[0]]; } return memo[key]; };
+function proyecta(nivel, s0) {
+  const [a, b] = M.metas[nivel], s = {...sup(s0), meta_12_meses: a, meta_24_meses: b};
+  return MOD.proyectar(config(s0), s, 24, {curva: s0.curva});
+}
+const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?"];
 DET.sostiene = {
-  titulo: "¿Se sostiene? Con anuncios solos, sólo a escala; con clientes de paga, desde pocos.",
+  titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
-  nota: "Modelo de escenarios (docs/research/2026-11-14-modelo-de-escenarios.mjs). Anuncios: la tarifa en México no está publicada; es supuesto y AdSense podría no aprobar el sitio. La curva de pago es supuesto: la sustituye la prueba del piloto.",
+  nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
   montar(host) {
-    this.vis = {peor: true, mejor: true, esp: true}; this.N = 300; this.nivel = "medio"; this.mes = 12;
-    host.innerHTML = `<div class="viz"><svg id="svA" viewBox="0 0 960 430" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:12px"><svg id="svB" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:12px"><svg id="svC" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
-    this.svC = $("#svC", host);
-    this.svC.addEventListener("click", ev => { const t = ev.target.closest("[data-sens]"); if (!t) return; const k = t.dataset.sens, f = (S.ajustes || {})[k] || 1, sig = f === 1 ? 0.5 : f === 0.5 ? 1.5 : 1; cambiar({ajustes: {...(S.ajustes || {}), [k]: sig}}); });
-    this.svC.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { const t = ev.target.closest("[data-sens]"); if (t) { ev.preventDefault(); t.dispatchEvent(new MouseEvent("click", {bubbles: true})); } } });
-    this.svA = $("#svA", host); this.svB = $("#svB", host);
-    const clic = ev => { const t = ev.target.closest("[data-v]"); if (!t) return; const v = t.dataset.v; if (["peor", "mejor", "esp"].includes(v)) this.vis[v] = !this.vis[v]; else this.nivel = v; refrescar(); };
-    this.svA.addEventListener("click", clic); this.svB.addEventListener("click", clic);
-    this.svB.addEventListener("pointermove", ev => { const p = this.svB.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY; const q = p.matrixTransform(this.svB.getScreenCTM().inverse()); const t = clamp(Math.round((q.x - 70) / 840 * 23) + 1, 1, 24); if (t !== this.mes) { this.mes = t; this.pintaB(); } });
+    this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
+    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
+    const sv = $("#svK", host); this.sv = sv;
+    host.addEventListener("click", ev => {
+      const t = ev.target.closest("[data-vista]"); if (t) { this.v = +t.dataset.vista; refrescar(); return; }
+      const b = ev.target.closest("[data-bolsa]"); if (b) { cambiar({bolsa: +b.dataset.bolsa}); return; }
+      const q = ev.target.closest("[data-nivel]"); if (q) { this.nivel = q.dataset.nivel; refrescar(); }
+    });
+    sv.addEventListener("pointermove", ev => { if (this.v !== 1 || ev.target.closest("[data-drag]")) return; const p = sv.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY; const q = p.matrixTransform(sv.getScreenCTM().inverse()); const t = clamp(Math.round((q.x - 70) / 840 * 23) + 1, 1, 24); if (t !== this.mes) { this.mes = t; this.pinta(); } });
   },
   actualizar() {
-    this.pintaA(); this.pintaB(); this.pintaC();
-    const m = motor(S), pz = proyecta(this.nivel, S), peor = {...S, caso: "peor"};
-    const eqN = (s0) => { for (let N = 1; N <= 5000; N += 25) if (margenEn(s0, N) >= 0) return N; return null; };
-    const ePeor = eqN(peor);
+    $$("#tabsK [data-vista]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vista === this.v));
+    $("#bolsaK").hidden = this.v !== 0;
+    $$("#bolsaK [data-bolsa]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.bolsa === S.bolsa));
+    return this.pinta();
+  },
+  pinta() { const o = [this.v0, this.v1, this.v2, this.v3][this.v].call(this); return o; },
+  v0() { // ¿hasta dónde aguanto con todos gratuitos?
+    const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
+    const tabla = conCache("tg", () => MOD.tablaTodosGratuitos(c, s).medida);
+    const desde = conCache("nps", () => ({baja: MOD.nSePagaSolo(c, s, "baja"), medio: MOD.nSePagaSolo(c, s, "medio"), adverso: MOD.nSePagaSolo(c, s, "adverso")}));
+    const bol = conCache("bolsa" + S.bolsa, () => MOD.capacidadConBolsa(c, s, S.bolsa));
+    const X0 = 60, W = 540, Y0 = 70, H = 300, lo = lg(10), hi = lg(2000), sl = v => Math.asinh(v / 600), vmin = -3000, vmax = 60000;
+    const X = k => X0 + W * (lg(k) - lo) / (hi - lo), Y = v => Y0 + H * (sl(vmax) - sl(clamp(v, vmin, vmax))) / (sl(vmax) - sl(vmin));
+    let b = T(30, 28, "Resultado al mes (pesos) según cuántos restaurantes gratuitos hay", 14.5, C.vino, "start", 700);
+    [-3000, 0, 1000, 5000, 20000, 60000].forEach(v => { b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? C.t2 : C.arena}"/>` + T(X0 - 8, Y(v) + 4, (v < 0 ? "−" : "") + n(Math.abs(v)), 11, C.t2, "end"); });
+    [10, 50, 100, 300, 1000, 2000].forEach(k => { b += T(X(k), Y0 + H + 22, n(k), 11.5, C.t2, "middle"); });
+    b += T(X0 + W / 2, Y0 + H + 44, "restaurantes gratuitos (escala logarítmica)", 12, C.t2, "middle");
+    const linea = (f, col, w, dash = "") => `<polyline points="${tabla.map(r => `${X(r.n).toFixed(1)},${Y(f(r)).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""}/>`;
+    b += linea(r => r.resultado_sin_anuncios, C.rojo, 3.5) + linea(r => r.con_anuncios.adverso.margen, C.dorado, 2.5, "6 4") + linea(r => r.con_anuncios.baja.margen, C.vino, 3) + linea(r => r.con_anuncios.medio.margen, C.verde, 3);
+    b += `<line x1="${X(N)}" x2="${X(N)}" y1="${Y0}" y2="${Y0 + H}" stroke="${C.tinta}" stroke-width="1.5" stroke-dasharray="4 3"/><g data-drag="1" id="hN"><circle cx="${X(N)}" cy="${Y0 + H}" r="13" fill="${C.tinta}" stroke="#fff" stroke-width="3"/></g>`;
+    // lo que pasa con N restaurantes gratuitos
+    const px = 650;
+    b += T(px, 76, `${n(N)} restaurantes gratuitos`, 22, C.vino, "start", 400, true);
+    b += T(px, 118, `${n(g.comensales_mes / 1e6, 2)} M`, 34, C.tinta, "start", 400, true) + T(px, 138, "comensales al mes (simulados)", 12.5, C.t2);
+    b += T(px, 178, fmP(g.costo_sin_anuncios), 30, C.rojo, "start", 400, true) + T(px, 198, "al mes que pones tú mientras no hay anuncios", 12.5, C.t2);
+    b += T(px, 232, "Cuando ya hay anuncios, al mes:", 13, C.t2, "start", 700);
+    [["baja", "tarifa baja", C.vino], ["medio", "tarifa media", C.verde], ["adverso", "adverso (la mitad)", C.dorado]].forEach(([k, nm, col], i) => { const r = g.con_anuncios[k]; b += `<circle cx="${px + 6}" cy="${256 + i * 30}" r="6" fill="${col}"/>` + T(px + 20, 261 + i * 30, `${nm}: ${fmP(r.margen)}`, 14, C.tinta, "start", 700) + T(px + 270, 261 + i * 30, r.se_paga_solo ? "se paga solo" : "no alcanza", 12, r.se_paga_solo ? C.verde : C.rojo, "end", 700); });
+    b += `<g transform="translate(${px},352)">${Rc(0, 0, 280, 22, C.a2, 11)}</g>` + T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
+    [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2); });
+    b += T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.restaurantes)} restaurantes gratuitos y ${n(bol.comensales_mes / 1e6, 2)} M de comensales al mes${bol.tope_medido ? " (tope medido)" : ""}.`, 14.5, C.osc, "start", 700);
+    sv.innerHTML = b;
+    const hd = $("#hN", sv), inv = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
+    arrastrable(hd, sv, pt => { this.N = inv(pt.x); this.pinta(); }, (d, mult) => { this.N = clamp(this.N + d * mult * 10, 10, 2000); this.pinta(); });
+    hd.setAttribute("aria-label", "Restaurantes gratuitos"); hd.setAttribute("aria-valuenow", N);
     return {
-      leyenda: `<span><i style="background:${C.rojo}"></i>peor (firme): todos gratuitos, sin anuncios</span><span><i style="background:${C.verde}"></i>mejor: todos pagan</span><span><i style="background:${C.vino}"></i>esperado: curva ${S.curva}, con su rango</span>`,
-      cifras: [[mp(m.margen), "margen de operación al mes con 1,000 restaurantes (sin captación ni sueldos)", "supuesto"], [mp(m.margenCapt), "margen después de captación: reponer las bajas con el costo de conseguir un cliente", "supuesto"], [mp(m.margenNeto), "margen neto (con sueldos e impuestos; hoy valen cero: sin dato)", "supuesto"], [ePeor ? n(ePeor) : "no se sostiene", "restaurantes gratuitos para sostenerse sin clientes de paga (peor caso firme, sin anuncios)", "supuesto"], [m.eq == null ? "—" : n(m.eq, 1), "clientes de paga por cada 1,000 que cubren el costo de operación", "supuesto"], [pz.mes_primer_margen_positivo ? "mes " + pz.mes_primer_margen_positivo : "—", "primer mes con margen positivo (escenario esperado)", "supuesto"]],
-      insight: ePeor ? `Sin clientes de paga y sin anuncios Carta se sostiene sólo desde ≈ ${n(ePeor)} restaurantes; con clientes de paga, el costo de operación se cubre con ${m.eq == null ? "—" : n(m.eq, 1)} por cada 1,000.` : `Sin clientes de paga y sin anuncios Carta no se sostiene dentro de 5,000 restaurantes: necesita clientes de paga (${m.eq == null ? "—" : n(m.eq, 1)} por cada 1,000 cubren la operación).`,
+      leyenda: `<span><i style="background:${C.rojo}"></i>sin anuncios: lo pones tú</span><span><i style="background:${C.vino}"></i>anuncios, tarifa baja</span><span><i style="background:${C.verde}"></i>tarifa media</span><span><i style="background:${C.dorado}"></i>adverso</span>`,
+      cifras: [[n(g.comensales_mes / 1e6, 2) + " M", `comensales al mes con ${n(N)} restaurantes gratuitos`, "simulado"], [fmP(g.costo_sin_anuncios), "al mes que pones tú mientras no hay anuncios"], [desde.baja == null ? "—" : n(desde.baja), "restaurantes gratuitos desde los que se paga solo (tarifa baja)", "supuesto"], [desde.adverso == null ? "—" : n(desde.adverso), "lo mismo, en el caso adverso", "supuesto"]],
+      insight: `Con ${n(N)} restaurantes gratuitos y sin anuncios pones ${fmP(g.costo_sin_anuncios)} al mes; con anuncios se paga solo desde ${desde.baja == null ? "—" : n(desde.baja)} (tarifa baja) o ${desde.adverso == null ? "—" : n(desde.adverso)} (caso adverso).`,
     };
   },
-  pintaA() {
-    const sv = this.svA, X0 = 70, W = 840, Y0 = 70, H = 280, pasos = [], S0 = {...S, caso: "esperado"};
-    for (let N = 1; N <= 1000; N += 20) pasos.push(N);
-    pasos.push(1000);
-    const sl = v => Math.asinh(v / 1500), vmin = -3000, vmax = 400000;
-    const X = N => X0 + W * N / 1000, Y = v => Y0 + H * (sl(vmax) - sl(clamp(v, vmin, vmax))) / (sl(vmax) - sl(vmin));
-    let b = T(30, 24, "Resultado al mes (pesos) según cuántos restaurantes se registran", 14.5, C.vino, "start", 700);
-    [-3000, 0, 3000, 10000, 30000, 100000, 300000].forEach(v => { b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? C.t2 : C.arena}"/>` + T(X0 - 8, Y(v) + 4, (v < 0 ? "−" : "") + n(Math.abs(v)), 11, C.t2, "end"); });
-    b += T(X0 + W, Y0 - 8, "escala logarítmica en ambos sentidos", 10.5, C.t2, "end");
-    [0, 250, 500, 750, 1000].forEach(N => { b += T(X(N), Y0 + H + 20, String(N), 11.5, C.t2, "middle"); });
-    b += T(X0 + W / 2, Y0 + H + 40, "restaurantes registrados", 12, C.t2, "middle");
-    const serie = (s0) => pasos.map(N => [N, margenEn(s0, N)]);
-    const linea = (pts, col, w) => `<polyline points="${pts.map(([N, v]) => `${X(N).toFixed(1)},${Y(v).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}"/>`;
-    const eq = (pts, col, dy) => { for (let i = 1; i < pts.length; i++) if (pts[i - 1][1] < 0 && pts[i][1] >= 0) { const [n0, v0] = pts[i - 1], [n1, v1] = pts[i], Nq = n0 + (n1 - n0) * (-v0) / (v1 - v0); return `<circle cx="${X(Nq)}" cy="${Y(0)}" r="7" fill="${col}" stroke="#fff" stroke-width="2"/>${T(X(Nq) + 10, Y(0) + dy, "equilibrio: " + n(Nq), 11.5, col, "start", 700)}`; } return ""; };
-    const pPeor = serie({...S, caso: "peor"}), pMejor = serie({...S, caso: "mejor"}), pEsp = serie(S0), pLo = serie({...S0, curva: "pesimista"}), pHi = serie({...S0, curva: "optimista"});
-    if (this.vis.esp) b += `<polygon points="${pLo.map(([N, v]) => `${X(N).toFixed(1)},${Y(v).toFixed(1)}`).join(" ")} ${[...pHi].reverse().map(([N, v]) => `${X(N).toFixed(1)},${Y(v).toFixed(1)}`).join(" ")}" fill="${C.vino}" opacity=".16"/>` + linea(S.caso === "esperado" ? pEsp : serie({...S, caso: "esperado"}), C.vino, 4) + eq(pEsp, C.vino, 22);
-    if (this.vis.peor) b += linea(pPeor, C.rojo, 3) + eq(pPeor, C.rojo, -12);
-    if (this.vis.mejor) b += linea(pMejor, C.verde, 3) + eq(pMejor, C.verde, -12);
-    const N = this.N;
-    b += `<line x1="${X(N)}" x2="${X(N)}" y1="${Y0}" y2="${Y0 + H}" stroke="${C.tinta}" stroke-width="1.5" stroke-dasharray="4 3"/><g data-drag="1" id="hN"><circle cx="${X(N)}" cy="${Y0 + H}" r="13" fill="${C.tinta}" stroke="#fff" stroke-width="3"/></g>`;
-    [["peor", C.rojo, "Peor (firme)"], ["esp", C.vino, "Esperado"], ["mejor", C.verde, "Mejor caso"]].forEach(([k, c, nom], i) => { b += `<g data-v="${k}" style="cursor:pointer" opacity="${this.vis[k] ? 1 : 0.4}" tabindex="0" role="button" aria-pressed="${this.vis[k]}"><rect x="${600 + i * 110}" y="8" width="102" height="24" rx="12" fill="${c}"/>${T(651 + i * 110, 25, nom, 12.5, "#fff", "middle", 700)}</g>`; });
-    b += T(X0, 52, `Con ${n(N)} restaurantes: peor ${fmP(margenEn({...S, caso: "peor"}, N))} · esperado ${fmP(margenEn(S0, N))} · mejor ${fmP(margenEn({...S, caso: "mejor"}, N))}`, 13, C.tinta, "start", 700);
-    sv.innerHTML = b;
-    const hd = $("#hN", sv);
-    arrastrable(hd, sv, pt => { this.N = clamp(Math.round((pt.x - X0) / W * 1000 / 10) * 10, 10, 1000); this.pintaA(); }, (d, mult) => { this.N = clamp(this.N + d * mult * 10, 10, 1000); this.pintaA(); });
-    hd.setAttribute("aria-label", "Restaurantes registrados"); hd.setAttribute("aria-valuenow", N);
-  },
-  pintaC() {
-    const sv = this.svC, m = motor(S), se = MOD.sensibilidad(config(S), sup(S), 1000, {curva: S.curva}), filas = se.filas.slice(0, 12), X0 = 330, W = 560, base = se.base;
-    const lo = Math.min(...filas.map(f => f.rango[0])), hi = Math.max(...filas.map(f => f.rango[1])), X = v => X0 + W * (v - lo) / Math.max(hi - lo, 1);
-    let b = T(30, 24, "¿Qué supuesto mueve más el resultado? Margen de operación con 1,000 restaurantes", 14.5, C.vino, "start", 700);
-    b += T(30, 44, "Cada barra va de la mitad a una vez y media del supuesto. Toca una barra: ajusta ese supuesto (×0.5, ×1.5, normal).", 12, C.t2);
-    filas.forEach((f, i) => {
-      const y = 64 + i * 38, aj = (S.ajustes || {})[f.supuesto] || 1;
-      b += T(X0 - 12, y + 20, f.supuesto, 12.5, C.tinta, "end", aj === 1 ? 400 : 700) + Rc(X0, y + 4, W, 24, C.a2, 6, "") + `<g data-sens="${esc(f.supuesto)}" style="cursor:pointer" tabindex="0" role="button" aria-label="Ajustar ${esc(f.supuesto)}">` + Rc(X(f.rango[0]), y + 4, Math.max(X(f.rango[1]) - X(f.rango[0]), 3), 24, aj === 1 ? C.vino : C.dorado, 6) + Rc(X0 - 330, y, W + 330, 34, "rgba(0,0,0,0)", 6) + `</g>` + (X(f.rango[1]) > X0 + W - 150 ? T(X(f.rango[0]) - 8, y + 21, `${mp(f.rango[0])} a ${mp(f.rango[1])}`, 11.5, C.t2, "end") : T(X(f.rango[1]) + 8, y + 21, `${mp(f.rango[0])} a ${mp(f.rango[1])}`, 11.5, C.t2)) + (aj !== 1 ? T(X0 + W + 10, y + 21, "×" + aj, 12, C.dorado, "start", 700) : "");
-    });
-    b += `<line x1="${X(base)}" x2="${X(base)}" y1="58" y2="${64 + filas.length * 38}" stroke="${C.tinta}" stroke-width="1.5" stroke-dasharray="4 3"/>` + T(X(base) + 6, 56, "ahora: " + mp(base), 12, C.tinta, "start", 700);
-    if (Object.keys(S.ajustes || {}).some(k => S.ajustes[k] && S.ajustes[k] !== 1)) b += `<g data-limpia="1" style="cursor:pointer" tabindex="0" role="button"><rect x="780" y="6" width="150" height="26" rx="13" fill="${C.dorado}"/>${T(855, 24, "Quitar ajustes", 12.5, "#fff", "middle", 700)}</g>`;
-    sv.innerHTML = b;
-    const q = $("[data-limpia]", sv); if (q) q.onclick = () => cambiar({ajustes: {}});
-  },
-  pintaB() {
-    const sv = this.svB, pz = proyecta(this.nivel, {...S, caso: "esperado"}), filas = pz.filas, X0 = 70, W = 840, X = t => X0 + W * (t - 1) / 23;
-    const maxR = Math.max(...filas.map(r => r.restaurantes), 1), Ya = r => 80 + 150 * (1 - r / maxR);
-    let b = T(30, 24, "Crecimiento mes a mes (meta del estudio de mercado) · escenario esperado", 14.5, C.vino, "start", 700);
-    [["bajo", "Bajo"], ["medio", "Medio"], ["alto", "Alto"]].forEach(([k, nom], i) => { b += `<g data-v="${k}" style="cursor:pointer" tabindex="0" role="button" aria-pressed="${this.nivel === k}"><rect x="${640 + i * 100}" y="8" width="92" height="24" rx="12" fill="${this.nivel === k ? C.vino : C.arena}"/>${T(686 + i * 100, 25, nom, 12.5, this.nivel === k ? "#fff" : C.t2, "middle", 700)}</g>`; });
-    // franjas por escalón de servidor
-    const esc = []; filas.forEach(r => { const u = esc[esc.length - 1]; if (!u || u.id !== r.escalon) esc.push({id: r.escalon, ini: r.mes, fin: r.mes}); else u.fin = r.mes; });
-    const colEsc = ["#f3eadb", "#ead9d0", "#e3cbc6", "#dbbcbc", "#d3aeb3"];
-    esc.forEach((e, i) => { const nom = (SP.escalones.find(x => x.id === e.id) || {nombre: e.id}).nombre.replace("Con eventos, ", ""); b += Rc(X(e.ini) - (e.ini === 1 ? 0 : W / 46), 50, X(e.fin) - X(e.ini) + (e.ini === 1 ? W / 46 : W / 23), 190, colEsc[i % colEsc.length], 0) + T(X(e.ini) + 6, 66, nom, 11.5, C.osc, "start", 700); if (i > 0) b += T(X(e.ini) + 6, 82, "mes " + e.ini + ": subir de escalón", 11, C.rojo, "start", 700); });
-    const ext = filas.filter(r => r.requiere_arquitectura || r.extrapolacion_sin_medir);
-    if (ext.length) b += `<defs><pattern id="ray" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" fill="${C.rojo}" opacity=".35"/></pattern></defs>` + Rc(X(ext[0].mes) - W / 46, 50, X(24) - X(ext[0].mes) + W / 46, 190, "url(#ray)", 0) + T(X(ext[0].mes) + 6, 98, "extrapolación sin medir (más de ≈ 2,030 restaurantes)", 11.5, C.rojo, "start", 700);
+  v1() { // crecimiento mes a mes, con los saltos de escalón como banderas
+    const sv = this.sv, pz = proyecta(this.nivel, S), filas = pz.filas, X0 = 70, W = 840, X = t => X0 + W * (t - 1) / 23;
+    const maxR = Math.max(...filas.map(r => r.restaurantes), 1), Ya = r => 150 + 110 * (1 - r / maxR);
+    let b = T(30, 24, "Crecimiento mes a mes (meta del estudio de mercado) · recomendado", 14.5, C.vino, "start", 700);
+    [["bajo", "Bajo"], ["medio", "Medio"], ["alto", "Alto"]].forEach(([k, nm], i) => { b += `<g data-nivel="${k}" style="cursor:pointer" tabindex="0" role="button" aria-pressed="${this.nivel === k}"><rect x="${640 + i * 100}" y="8" width="92" height="24" rx="12" fill="${this.nivel === k ? C.vino : C.arena}"/>${T(686 + i * 100, 25, nm, 12.5, this.nivel === k ? "#fff" : C.t2, "middle", 700)}</g>`; });
     [0, maxR / 2, maxR].forEach(v => { b += `<line x1="${X0}" x2="${X0 + W}" y1="${Ya(v)}" y2="${Ya(v)}" stroke="${C.arena}"/>` + T(X0 - 8, Ya(v) + 4, n(v), 11, C.t2, "end"); });
-    b += `<polyline points="${filas.map(r => `${X(r.mes)},${Ya(r.restaurantes)}`).join(" ")}" fill="none" stroke="${C.vino}" stroke-width="4"/>` + T(X0 + W, 252, "restaurantes registrados (línea) y escalón del servidor (franjas)", 11.5, C.t2, "end");
-    [1, 6, 12, 18, 24].forEach(t => { b += T(X(t), 268, "mes " + t, 11.5, C.t2, "middle"); });
-    const yb0 = 400, hb = 110, mxv = Math.max(...filas.map(r => Math.max(r.ingresos, r.costos, Math.abs(r.margen))), 1), Yb = v => yb0 + hb * (1 - v / mxv);
-    b += T(30, 306, "Ingresos, costos y margen al mes (pesos)", 13.5, C.vino, "start", 700);
+    b += `<polygon points="${X(1)},${Ya(0)} ${filas.map(r => `${X(r.mes)},${Ya(r.restaurantes)}`).join(" ")} ${X(24)},${Ya(0)}" fill="${C.vino}" opacity=".12"/><polyline points="${filas.map(r => `${X(r.mes)},${Ya(r.restaurantes)}`).join(" ")}" fill="none" stroke="${C.vino}" stroke-width="4"/>` + T(X0 + W, 280, "restaurantes registrados", 11.5, C.t2, "end");
+    [1, 6, 12, 18, 24].forEach(t => { b += T(X(t), 296, "mes " + t, 11.5, C.t2, "middle"); });
+    // banderas: cada salto de escalón, el inicio de los anuncios y el primer margen positivo
+    const ban = [];
+    filas.forEach((r, i) => { const p = filas[i - 1]; if (p && r.escalon !== p.escalon) ban.push([r.mes, r.escalon === "pro_2" ? "aquí pasa a Pro" : "aquí toca otro procesador", C.rojo]); if (r.requiere_arquitectura && !(p && p.requiere_arquitectura)) ban.push([r.mes, "aquí hace falta otra nube", C.osc]); });
+    ban.push([pz.mes_inicio_anuncios, "aquí empiezan los anuncios", C.verde]);
+    if (pz.mes_primer_margen_positivo) ban.push([pz.mes_primer_margen_positivo, "primer margen positivo", C.dorado]);
+    ban.sort((a, z) => a[0] - z[0]).forEach(([t, tx, col], i) => { const y = 44 + (i % 3) * 22, x = X(t), lb = `⚑ ${tx} · mes ${t}`, w = lb.length * 6.7 + 18, rx = x + w > X0 + W + 40 ? x - w + 4 : x - 4; b += `<line x1="${x}" x2="${x}" y1="${y + 8}" y2="${Ya(filas[t - 1].restaurantes)}" stroke="${col}" stroke-width="1.8" stroke-dasharray="3 3"/><g><rect x="${rx}" y="${y - 10}" width="${w}" height="20" rx="10" fill="${col}"/>${T(rx + 10, y + 4, lb, 11, "#fff", "start", 700)}</g>`; });
+    const yb0 = 420, hb = 70, mxv = Math.max(...filas.map(r => Math.max(r.ingresos, r.costos)), 1), Yb = v => yb0 + hb * (1 - v / mxv);
+    b += T(30, 322, "Ingresos, costos y margen al mes (pesos)", 13.5, C.vino, "start", 700);
     filas.forEach(r => { const x = X(r.mes) - 11; b += Rc(x, Yb(r.ingresos), 10, yb0 + hb - Yb(r.ingresos), C.vino, 2) + Rc(x + 11, Yb(r.costos), 10, yb0 + hb - Yb(r.costos), C.gris, 2); });
-    b += `<polyline points="${filas.map(r => `${X(r.mes)},${Yb(Math.max(r.margen, 0))}`).join(" ")}" fill="none" stroke="${C.verde}" stroke-width="3"/>` + T(X0 - 8, Yb(mxv) + 8, "$" + n(mxv), 11, C.t2, "end") + T(X0 - 8, yb0 + hb, "0", 11, C.t2, "end");
+    const mmx = Math.max(...filas.map(r => Math.abs(r.margen)), 1), Ym = v => yb0 + hb / 2 - (hb / 2) * v / mmx;
+    b += `<polyline points="${filas.map(r => `${X(r.mes)},${Ym(r.margen)}`).join(" ")}" fill="none" stroke="${C.verde}" stroke-width="3"/>`;
     const r = filas[this.mes - 1];
-    b += `<line x1="${X(this.mes)}" x2="${X(this.mes)}" y1="50" y2="${yb0 + hb}" stroke="${C.tinta}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
-    b += T(X0 + W, 42, `Mes ${r.mes}: ${n(r.restaurantes)} restaurantes (${n(r.pagantes, 1)} de paga) · ${n(r.comensales_mes)} comensales al mes`, 12.5, C.tinta, "end", 700);
-    b += T(X0 + W, yb0 + hb + 24, `Mes ${r.mes}: ingreso ${fmP(r.ingresos)} · costo ${fmP(r.costos)} · margen ${fmP(r.margen)}`, 12.5, C.tinta, "end", 700);
-    b += `<rect x="${X0}" y="${yb0 + hb + 34}" width="12" height="12" rx="3" fill="${C.vino}"/>${T(X0 + 18, yb0 + hb + 45, "ingresos", 11.5, C.t2)}<rect x="${X0 + 90}" y="${yb0 + hb + 34}" width="12" height="12" rx="3" fill="${C.gris}"/>${T(X0 + 108, yb0 + hb + 45, "costos", 11.5, C.t2)}<rect x="${X0 + 170}" y="${yb0 + hb + 34}" width="12" height="12" rx="3" fill="${C.verde}"/>${T(X0 + 188, yb0 + hb + 45, "margen (si es positivo)", 11.5, C.t2)}`;
+    b += `<line x1="${X(this.mes)}" x2="${X(this.mes)}" y1="130" y2="${yb0 + hb}" stroke="${C.tinta}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+    b += T(X0 + W, 316, `Mes ${r.mes}: ${n(r.restaurantes)} restaurantes (${n(r.pagantes, 1)} de paga) · ${n(r.comensales_mes / 1000)} mil comensales al mes`, 12.5, C.tinta, "end", 700);
+    b += T(X0 + W, yb0 + hb + 26, `Mes ${r.mes}: ingreso ${fmP(r.ingresos)} · costo ${fmP(r.costos)} · margen ${fmP(r.margen)}`, 12.5, C.tinta, "end", 700);
+    b += `<rect x="${X0}" y="${yb0 + hb + 16}" width="12" height="12" rx="3" fill="${C.vino}"/>${T(X0 + 18, yb0 + hb + 27, "ingresos", 11.5, C.t2)}<rect x="${X0 + 90}" y="${yb0 + hb + 16}" width="12" height="12" rx="3" fill="${C.gris}"/>${T(X0 + 108, yb0 + hb + 27, "costos", 11.5, C.t2)}<rect x="${X0 + 170}" y="${yb0 + hb + 16}" width="12" height="12" rx="3" fill="${C.verde}"/>${T(X0 + 188, yb0 + hb + 27, "margen", 11.5, C.t2)}`;
     sv.innerHTML = b;
+    return {
+      leyenda: `<span><i style="background:${C.vino}"></i>restaurantes registrados</span><span>Las banderas marcan cuándo cambia la infraestructura</span>`,
+      cifras: [[pz.mes_primer_margen_positivo ? "mes " + pz.mes_primer_margen_positivo : "—", "primer mes con margen positivo", "supuesto"], [pz.mes_primer_margen_positivo_despues_de_captacion ? "mes " + pz.mes_primer_margen_positivo_despues_de_captacion : "—", "primer mes con margen positivo después de captación", "supuesto"], [fmP(pz.financiamiento_maximo), "lo más que tienes que poner acumulado", "supuesto"]],
+      insight: `Con la meta ${this.nivel}, el primer margen positivo llega en el mes ${pz.mes_primer_margen_positivo || "—"}; lo más que pones de tu bolsa, acumulado, es ${fmP(pz.financiamiento_maximo)}.`,
+    };
+  },
+  v2() { // a dónde se va cada 100 pesos
+    const sv = this.sv, X0 = 150, W = 640, esc = 100;
+    const casos = [["peor", "Peor", C.rojo], ["rec", "Recomendado", C.vino], ["mejor", "Mejor", C.verde]];
+    let b = T(30, 28, "De cada 100 pesos que entran, a dónde se van (1,000 restaurantes)", 14.5, C.vino, "start", 700);
+    const filas = casos.map(([k, nm, col]) => { const e = ev3(S, k, 1000), t = e.ingresos.total || 1, p = v => 100 * v / t; return {k, nm, col, e, t, partes: [["Servidor", p(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos), "#b9afa3"], ["Soporte", p(e.costos.soporte), "#d9cfc2"], ["Comisión", p(e.costos.comision), "#c9a9a6"], ["Reponer bajas", p(e.captacion.reposicion_de_bajas), C.arena]], mo: p(e.margen_operacion), mc: p(e.margen_despues_de_captacion), mn: p(e.margen_neto)}; });
+    const mx = Math.max(100, ...filas.map(f => f.partes.reduce((a, q) => a + q[1], 0))), K = W / mx;
+    b += `<rect x="${X0 + esc * K - 1}" y="52" width="2.4" height="${60 + filas.length * 118}" fill="${C.tinta}" opacity=".5"/>` + T(X0 + esc * K, 46, "$100", 12, C.tinta, "middle", 700);
+    filas.forEach((f, i) => {
+      const y = 70 + i * 118; let x = X0;
+      b += T(X0 - 14, y + 30, f.nm, 15, f.col, "end", 700);
+      f.partes.forEach(([nm, v, col], j) => { const w = Math.max(0, v) * K; b += `<g class="gh" style="animation-delay:${j * 90}ms" data-tip="${esc2(nm)}: ${n(v, 1)} de cada 100">${Rc(x, y, w, 44, col, 6)}</g>`; if (w > 54) b += T(x + w / 2, y + 27, `${n(v, 0)}`, 13, C.tinta, "middle", 700); x += w; });
+      const mw = Math.max(0, 100 * K - (x - X0));
+      if (f.mo >= 0) { b += `<g class="gh" style="animation-delay:360ms">${Rc(x, y, mw, 44, C.verde, 6)}</g>` + T(x + mw / 2, y + 27, `margen ${n(f.mo, 0)}`, 13, "#fff", "middle", 700); }
+      else b += T(x + 12, y + 27, `faltan ${n(-f.mo, 0)}`, 13, C.rojo, "start", 700);
+      b += T(X0, y + 66, `Margen de operación ${n(f.mo, 1)} · después de captación ${n(f.mc, 1)} · neto ${n(f.mn, 1)}`, 12.5, C.t2) + T(X0, y + 84, `${fmP(f.e.margen_operacion)} al mes de margen de operación`, 12.5, C.tinta, "start", 700);
+    });
+    sv.innerHTML = b;
+    const r = filas[1];
+    return {
+      leyenda: [["Servidor", "#b9afa3"], ["Soporte", "#d9cfc2"], ["Comisión de tarjeta", "#c9a9a6"], ["Reponer bajas", C.arena], ["Margen", C.verde]].map(([t, c]) => `<span><i style="background:${c}"></i>${t}</span>`).join(""),
+      cifras: [[n(r.mo, 1), "pesos de cada 100 son margen de operación (recomendado)", "supuesto"], [n(r.mc, 1), "pesos de cada 100 después de captación", "supuesto"], [n(r.mn, 1), "pesos de cada 100 de margen neto (sueldos e impuestos valen cero: sin dato)", "supuesto"]],
+      insight: `En el caso recomendado, de cada 100 pesos que entran quedan ${n(r.mo, 0)} de margen de operación, ${n(r.mc, 0)} después de captación y ${n(r.mn, 0)} netos; en el peor caso el margen es ${n(filas[0].mo, 0)}.`,
+    };
+  },
+  v3() { // qué hay que medir primero
+    const sv = this.sv, se = conCache("sens", () => MOD.sensibilidad(config(S), sup(S), 1000, {curva: S.curva})), fil = se.filas.slice(0, 8), mx = Math.max(...fil.map(f => f.efecto), 1), X0 = 560, W = 300;
+    let b = T(30, 28, "¿Qué hay que medir primero? El supuesto que más mueve el margen, arriba", 14.5, C.vino, "start", 700);
+    fil.forEach((f, i) => {
+      const y = 56 + i * 56, w = Math.max(6, W * f.efecto / mx);
+      b += `<g data-tip="${esc2(f.frase)}">` + Rc(14, y - 4, 932, 52, i % 2 ? "rgba(0,0,0,0)" : C.a2, 14) + T(X0 - 14, y + 18, f.que_es.charAt(0).toUpperCase() + f.que_es.slice(1), 13, C.tinta, "end", 700) + T(X0 - 14, y + 36, "Cómo: " + f.medir_en_el_piloto, 11.5, C.t2, "end") + `<g class="gh" style="animation-delay:${i * 70}ms">${Rc(X0, y + 6, w, 26, i === 0 ? C.vino : C.dorado, 8)}</g>` + T(X0 + w + 10, y + 25, `mueve ${fmP(f.efecto)} al mes`, 13, C.tinta, "start", 700) + `</g>`;
+    });
+    sv.innerHTML = b;
+    return {
+      leyenda: `<span>Pasa el cursor por una barra: la frase en llano</span>`,
+      cifras: se.medir_primero.slice(0, 3).map((f, i) => [`${i + 1}. ${f.supuesto}`, f.como, "medir"]),
+      insight: `Lo primero por medir: ${se.filas[0].que_es}, con ${se.filas[0].medir_en_el_piloto}.`,
+    };
   },
 };
+const esc2 = t => String(t).replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
 
 /* ===== Recomendaciones (sesión de análisis: recomendaciones.json) ===== */
 const sinMd = t => String(t).replace(/\*\*/g, "").replace(/\*/g, "");
-const PARCHES = {
-  precio: [{precioServicio: 249, sustituto: "Meniu Business", K: 0.5}, {precioServicio: 299, sustituto: "Fudo Avanzado", K: 0.5}, {precioServicio: 349, sustituto: "Fudo Avanzado + módulo de mesas", K: 0.5}, {precioServicio: 449, sustituto: "Fudo Avanzado", K: 0.7}],
-  topes: TCUPO.map(r => ({cupo: r.cupo_gratis_minimo, topeMesas: r.mesas, topeCuentas: r.cuentas, topePlatillos: r.platillos})),
-  historial: [{hist: 1}, {hist: 3}, {hist: 12}],
-  soporte: [{soporte: 30}, {soporte: 60}, {soporte: 150}],
-  anuncios: [{anunciosAprob: false}, {anunciosAprob: true}, null], // los personalizados chocan con la regla dura 10: no se aplican
-  avisos_reloj: [null, null],
-};
-const CIFRA_REC = {
-  precio: () => { const me = motor(PRESETS.rec).meseta; return [`${mxn(me.desde)}–${mxn(me.hasta)}`, "meseta del margen con la curva media; el corredor por sustituto es $249–$349 y se lanza en $299"]; },
-  topes: () => [n(100 - 100 * MOD.parteRebasa(config(PRESETS.rec), SP), 1) + " %", "de los negocios queda dentro del plan Chef con 10 mesas, 3 cuentas y 80 platillos"],
-  historial: () => ["12 meses", "de historial en línea para Master Chef; 30 días para Chef"],
-  soporte: () => ["$60", "al mes por cliente de paga (30 minutos de soporte)"],
-  anuncios: () => ["$0", "hoy no hay anuncios: falta aprobación y abrir la política de seguridad del sitio"],
-  avisos_reloj: () => ["0", "avisos de reloj desde el servidor: los relojes viven en el teléfono"],
-};
 const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 /* tarjetas: qué hacer (5 a 8 palabras), por qué (una cifra), qué pasa si no (una línea); lo demás, detrás de «ver más» */
+const PARCHES = {
+  segmentacion: [{topeMesas: 10, topeCuentas: 3, topePlatillos: 80}, {topeMesas: 10, topeCuentas: 3, topePlatillos: 300}, {topeMesas: 15, topeCuentas: 4, topePlatillos: 150}],
+  precios: [{precioServicio: 199, precioSalon: 1099}, {precioServicio: 225, precioSalon: 1099}, {precioServicio: 249, precioSalon: 1099}, {precioServicio: 299, precioSalon: 1099}],
+  anuncios: [{mesAds: 3}, {mesAds: 9}, {mesAds: 99}],
+  bolsa: [{bolsa: 500}, {bolsa: 1000}, {bolsa: 2000}, {bolsa: 5000}],
+  historial: [{hist: 3, arch: true}, {hist: 12, arch: true}],
+  soporte: [{soporte: 30}, {soporte: 60}, {soporte: 150}],
+  avisos_reloj: [null, null],
+};
+const segC = (mesas, cuentas, plat) => 100 * MOD.seguridadChico({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas, platillos: plat}}}, SP);
 const TARJ = {
-  precio: {
-    que: "Master Chef a $299 al mes",
-    cif: () => { const me = motor(PRESETS.rec).meseta; return [`${mxn(me.desde)}–${mxn(me.hasta)}`, "meseta del margen"]; },
-    si: () => { const c = MOD.conversion(S.curva, 449, sup(S)), c0 = MOD.conversion(S.curva, 299, sup(S)); return `A $449 pagaría ${n(100 * c)} % de los que se pasan de Chef, no ${n(100 * c0)} %.`; },
+  segmentacion: {
+    que: "Chef gratis: 15 mesas, 4 cuentas, 150 platillos",
+    cif: () => [n(segC(15, 4, 150), 1) + " %", "de los negocios de hasta 10 personas queda en Chef"],
+    si: () => `Con 10 mesas, 3 cuentas y 80 platillos, sólo ${n(segC(10, 3, 80), 1)} % queda dentro.`,
+    rec: 2,
+  },
+  precios: {
+    que: "Master Chef $225 y Chef Ejecutivo $1,099",
+    cif: () => [mxn(225), "pegado a Meniu Business ($225)"],
+    si: () => { const c = MOD.conversion(S.curva, 299, sup(S), "servicio"), c0 = MOD.conversion(S.curva, 225, sup(S), "servicio"); return `A $299 pagaría ${n(100 * c)} % de los que se pasan de Chef, no ${n(100 * c0)} %.`; },
     rec: 1,
   },
-  topes: {
-    que: "Chef: 10 mesas, 3 cuentas, 80 platillos",
-    cif: () => [n(100 * MOD.parteRebasa(config(PRESETS.rec), SP), 1) + " %", "se pasa del plan Chef"],
-    si: () => `Con topes de 80 % de cupo caben ${n(motor({...S, ...PARCHES.topes[PARCHES.topes.length - 1]}).caben)} restaurantes, no ${n(motor(PRESETS.rec).caben)}.`,
+  anuncios: {
+    que: "Anuncios no personalizados en Chef desde el mes 9",
+    cif: () => ["mes 9", "empiezan los anuncios (supuesto)"],
+    si: () => `Sin anuncios, con 1,000 gratuitos pones ${fmP(MOD.todosGratuitos(config(S), sup(S), 1000).costo_sin_anuncios)} al mes de tu bolsa.`,
+    rec: 1,
+  },
+  bolsa: {
+    que: "Bolsa de $1,000 al mes mientras no hay anuncios",
+    cif: () => [n(MOD.capacidadConBolsa(config(S), sup(S), 1000).restaurantes), "restaurantes gratuitos caben con esa bolsa"],
+    si: () => `Con $500 al mes caben ${n(MOD.capacidadConBolsa(config(S), sup(S), 500).restaurantes)} restaurantes.`,
     rec: 1,
   },
   historial: {
     que: "12 meses de historial en línea para Master Chef",
-    cif: () => ["12 meses", "Chef: 30 días"],
-    si: () => `Con 1 mes caben ${n(motor({...S, hist: 1}).caben)}; con 12, ${n(motor({...S, hist: 12}).caben)}.`,
-    rec: 2,
-  },
-  soporte: {
-    que: "30 minutos de soporte al mes por cliente de paga",
-    cif: () => ["$60", "al mes por cliente de paga"],
-    si: () => `Con $150 el margen baja de ${mp(motor({...S, soporte: 60}).margen)} a ${mp(motor({...S, soporte: 150}).margen)}.`,
+    cif: () => ["12 meses", "Chef: 1 mes; archivo descargable"],
+    si: () => `Con 3 meses caben ${n(motor({...S, hist: 3}).caben)} restaurantes; con 12, ${n(motor({...S, hist: 12}).caben)}.`,
     rec: 1,
   },
-  anuncios: {
-    que: "Anuncios no personalizados en Chef, cuando se aprueben",
-    cif: () => ["$0", "hoy: no hay anuncios"],
-    si: () => { const m = motor({...S, caso: "esperado", anunciosAprob: false}); return `Sin anuncios, cada cliente de paga sostiene ${m.sostieneSinAds == null ? "—" : n(m.sostieneSinAds)} gratuitos.`; },
+  soporte: {
+    que: "Soporte por WhatsApp en horario hábil",
+    cif: () => ["$60", "al mes por cliente de paga"],
+    si: () => `Con $150 (alta hecha por nosotros) el margen baja de ${mp(motor({...S, soporte: 60}).margen)} a ${mp(motor({...S, soporte: 150}).margen)}.`,
     rec: 1,
   },
   avisos_reloj: {
@@ -188,23 +226,23 @@ function cuentaDet(titulo, fu, filas, insight) {
   };
 }
 const gl = t => (GLOS.find(g => g.termino === t) || {}).que_es || "";
-DET.k_potenciales = cuentaDet("Clientes potenciales (SAM): ≈ 100,000 restaurantes y bares sin cadenas.", ["inegi_denue", "carta_mercado"], () => [
-  ["Mercado total (TAM): restaurantes y bares de México", n(M.total)], ["− Fuera de lo que Carta atiende hoy (fondas para llevar, tacos, mariscos, cafeterías)", "− " + n(M.total - M.nucleo)], ["= Restaurantes a la carta, comida corrida y bares", n(M.nucleo), true],
-  ["− Posibles cadenas (nombre repetido; casi ninguna lo es)", "− " + n(M.nucleo - M.servible)], ["= Clientes potenciales (SAM)", "≈ " + n(M.servible), true], ["Rango según el umbral de cadena", n(M.servible_rango[0]) + " a " + n(M.servible_rango[1])], ["Meta a 12 meses (SOM): escenario del modelo", n(SP.meta_12_meses) + " restaurantes (1,200 a 24 meses)"]], () => "El mercado no es el límite: lo es cuántos dueños prueban Carta y cuántos pagan.");
+DET.k_potenciales = cuentaDet("Clientes potenciales (SAM): 104,882 restaurantes a la carta y bares.", ["inegi_denue", "carta_mercado"], () => [
+  ["Mercado total (TAM): restaurantes y bares de México", n(M.total)], ["− Fuera de lo que Carta atiende hoy (fondas para llevar, tacos, mariscos, cafeterías)", "− " + n(M.total - M.nucleo)], ["= Clientes potenciales (SAM)", n(M.nucleo), true],
+  ["De ellos, sin posibles cadenas (nombre repetido; casi ninguna lo es)", "≈ " + n(M.servible)], ["Rango sin cadenas según el umbral", n(M.servible_rango[0]) + " a " + n(M.servible_rango[1])], ["Meta a 12 meses (SOM): escenario del modelo", n(SP.meta_12_meses) + " restaurantes (1,200 a 24 meses)"]], () => "El mercado no es el límite: lo es cuántos dueños prueban Carta y cuántos pagan.");
 DET.k_caben = cuentaDet("Cuántos restaurantes caben: lo decide el recurso que se llena primero.", ["carta_anuncios", "carta_capacidad", "railway_limites"], () => {
   const m = motor(S); return [["Escalón del servidor", nomServ(m) + " · hasta " + m.usd + " USD al mes"], ["Mezcla del escenario: clientes de paga por 1,000", n(1000 * m.f, 1)], ...m.lim.map(([nom, v]) => [`Límite por ${nom}`, n(v)]), [`Cabe el menor: ${m.cuello}`, n(m.caben) + " restaurantes", true]];
-}, () => "Cambia el servidor y las palancas en «¿Qué llena el disco?» y esta cifra se recalcula.");
+}, () => "Son escalones de infraestructura (servidor de hoy con sondeo, con eventos, Pro de 8 procesos), no escenarios. Cámbialos en «¿Qué llena el disco?».");
 DET.k_sostiene = cuentaDet("Un cliente de paga sostiene el costo de decenas de clientes gratuitos.", ["carta_planes", "carta_precio"], () => {
   const m = motor(S), pc = m.ev.por_cliente, neto = pc.costo_gratuito - pc.ingreso_gratuito;
-  return [[`Ingreso por cliente de ${PLAN.paga}`, mxn(pc.ingreso_servicio)], ["− Costo de atenderlo (servidor, soporte y comisión de tarjeta)", "− " + n(pc.costo_servicio, 1)], ["= Margen por cliente de paga", mxn(Math.round(pc.margen_servicio)), true], ["Costo de un cliente gratuito (servidor y soporte)", mxn(Math.round(pc.costo_gratuito * 100) / 100)], ["− Lo que deja en anuncios (hoy $0: no hay anuncios)", "− " + n(pc.ingreso_gratuito, 2)], ["= Costo neto de un gratuito", neto <= 0 ? "se paga solo" : mxn(Math.round(neto * 100) / 100), true], ["Gratuitos que sostiene cada cliente de paga", m.sePagaSolo ? "todos: se pagan solos" : n(m.sostiene), true], ["Sin contar anuncios", m.sostieneSinAds == null ? "—" : n(m.sostieneSinAds)]];
-}, () => "Con anuncios, cada gratuito podría pagarse solo; los anuncios hoy no existen, así que la cifra firme es la de sin anuncios.");
-DET.k_anuncios = cuentaDet("Hoy un cliente gratuito deja $0 en anuncios: no hay anuncios.", ["carta_anuncios"], () => {
+  return [[`Ingreso por cliente de paga`, mxn(Math.round(pc.ingreso_por_pagante))], ["− Costo de atenderlo (servidor, soporte y comisión de tarjeta)", "− " + n(pc.costo_servicio, 1)], ["= Margen por cliente de paga", mxn(Math.round(pc.margen_servicio)), true], ["Costo de un cliente gratuito (servidor y soporte)", mxn(Math.round(pc.costo_gratuito * 100) / 100)], ["− Lo que deja en anuncios (en régimen)", "− " + n(pc.ingreso_gratuito, 2)], ["= Costo neto de un gratuito", neto <= 0 ? "se paga solo" : mxn(Math.round(neto * 100) / 100), true], ["Gratuitos que sostiene cada cliente de paga", m.sePagaSolo ? "todos: se pagan solos" : n(m.sostiene), true], ["Sin contar anuncios", m.sostieneSinAds == null ? "—" : n(m.sostieneSinAds)]];
+}, () => "Mientras no hay anuncios, la cifra firme es la de sin anuncios; con anuncios en régimen cada gratuito puede pagarse solo.");
+DET.k_anuncios = cuentaDet("El plan gratuito lleva anuncios; lo que cambia es desde qué mes.", ["carta_anuncios"], () => {
   const t = SP.anuncio_pesos_por_mil, v = SP.visitas_app_gratuito, p = SP.parte_visitas_con_anuncio;
-  return [["Estado de los anuncios", "no aprobados ni construidos"], ["Visitas con la app al mes de un gratuito típico", n(v)], ["Parte de las visitas que ven anuncio (supuesto)", n(100 * p) + " %"], ...["baja", "media", "alta"].map(k => [`Si se aprueban, tarifa ${k}: ${mxn(t[k])} por mil visitas`, mxn(Math.round(t[k] * v * p / 100) / 10) + " al mes"]), ["Escenario activo", S.anunciosAprob ? "con anuncios (condicional): " + mxn(Math.round(motor(S).ingGrat * 10) / 10) + " al mes" : "sin anuncios: $0", true]];
-}, () => "Para tenerlos hace falta un ADR, abrir la política de seguridad del sitio, cambiar el aviso de privacidad y que AdSense los apruebe. Se activan arriba en la barra de escenario, como condicional.");
-DET.k_ingreso = cuentaDet("Un cliente de paga ingresa el precio de su plan cada mes.", ["carta_precio", "carta_tres_planes"], () => [[`${PLAN.paga} (11 a 40 mesas)`, mxn(S.precioServicio) + " al mes"], [`${PLAN.ejec} (más de 40 mesas; nombre propuesto)`, mxn(S.precioSalon) + " al mes"], ["Meseta del margen, curva " + S.curva, `${mxn(motor(S).meseta.desde)} a ${mxn(motor(S).meseta.hasta)}`], ["Corredor por sustituto", "$249 a $349"], ["Meniu, el sustituto más barato, cobra", "$225"]], () => "El precio es propuesta: la v1 no cobra, y lo confirma el piloto con 10 restaurantes.");
+  return [["Los anuncios empiezan", S.mesAds >= 99 ? "nunca" : "en el mes " + S.mesAds + " (supuesto)"], ["Visitas con la app al mes de un gratuito típico", n(v)], ["Parte de las visitas que ven anuncio (supuesto)", n(100 * p) + " %"], ...["baja", "media", "alta"].map(k => [`Tarifa ${k}: ${mxn(t[k])} por mil visitas`, mxn(Math.round(t[k] * v * p / 100) / 10) + " al mes por gratuito"]), ["Hasta entonces, el costo lo pones tú", "ver «¿Cómo se sostiene?»", true]];
+}, () => "Para tenerlos hace falta un ADR, abrir la política de seguridad del sitio, cambiar el aviso de privacidad y que AdSense los apruebe: hoy no existen.");
+DET.k_ingreso = cuentaDet("Un cliente de paga ingresa el precio de su plan cada mes.", ["carta_precio", "carta_tres_planes"], () => [[`${PLAN.paga} (11 a 100 personas)`, mxn(S.precioServicio) + " al mes"], [`${PLAN.ejec} (más de 100 personas; nombre propuesto)`, mxn(S.precioSalon) + " al mes"], ["Meseta del margen, curva " + S.curva, `${mxn(motor(S).meseta.desde)} a ${mxn(motor(S).meseta.hasta)}`], ["Corredor por sustituto", "$249 a $349"], ["Meniu, el sustituto más barato, cobra", "$225"]], () => "El precio es propuesta: la v1 no cobra, y lo confirma el piloto con 10 restaurantes.");
 DET.k_margen = cuentaDet("Tres márgenes con nombre: de operación, después de captación y neto.", ["carta_tres_planes", "carta_precio"], () => {
-  const m = motor(S), e = m.ev; return [["Ingresos por suscripción", mxn(Math.round(e.ingresos.suscripcion))], ["Ingresos por anuncios (hoy $0)", mxn(Math.round(e.ingresos.anuncios))], ["− Servidor y almacenamiento", "− " + n(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos)], ["− Soporte", "− " + n(e.costos.soporte)], ["− Comisión de tarjeta", "− " + n(e.costos.comision)], ["= Margen de operación (sin captación ni sueldos)", mp(e.margen_operacion), true], ["− Reponer bajas (3 % al mes × costo de conseguir un cliente)", "− " + n(e.captacion.reposicion_de_bajas)], ["= Margen después de captación", mp(e.margen_despues_de_captacion), true], ["Margen neto (sueldos e impuestos valen cero: sin dato)", mp(e.margen_neto), true]];
+  const m = motor(S), e = m.ev; return [["Ingresos por suscripción", mxn(Math.round(e.ingresos.suscripcion))], ["Ingresos por anuncios (en régimen)", mxn(Math.round(e.ingresos.anuncios))], ["− Servidor y almacenamiento", "− " + n(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos)], ["− Soporte", "− " + n(e.costos.soporte)], ["− Comisión de tarjeta", "− " + n(e.costos.comision)], ["= Margen de operación (sin captación ni sueldos)", mp(e.margen_operacion), true], ["− Reponer bajas (3 % al mes × costo de conseguir un cliente)", "− " + n(e.captacion.reposicion_de_bajas)], ["= Margen después de captación", mp(e.margen_despues_de_captacion), true], ["Margen neto (sueldos e impuestos valen cero: sin dato)", mp(e.margen_neto), true]];
 }, () => "El margen de operación no incluye sueldos ni impuestos ni conseguir clientes; por eso se muestran los tres.");
 
 /* ===== presentación: cómo cambia pedir en un restaurante (≈ 28 s, teléfonos dibujados; ±3 s, pausa y saltar) ===== */

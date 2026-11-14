@@ -64,6 +64,7 @@ def main() -> None:
         .replace(
             "__GLOS__", (INV / "2026-11-14-glosario-de-negocio.json").read_text(encoding="utf-8")
         )
+        .replace("__SEG__", (INV / "2026-11-14-segmentacion-datos.json").read_text(encoding="utf-8"))
         .replace("__DATOS__", json.dumps(d, ensure_ascii=False))
         .replace("__REFS__", json.dumps(refs, ensure_ascii=False))
         .replace("__SANS__", b64(FUENTES / "DMSans-variable-latin.woff2"))

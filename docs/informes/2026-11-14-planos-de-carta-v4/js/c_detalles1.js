@@ -60,15 +60,15 @@ DET.linea = {
 /* ===== detalle: ¿Cuántos negocios hay? (una barra que se parte por niveles) ===== */
 const NIV = () => [
   {nom: "Restaurantes y bares de México", n: M.total, kd: "grupo", ej: "Todo el sector: tacos, mariscos, cafés, restaurantes y bares", sig: "TAM"},
-  {tot: M.total, keep: M.nucleo, nomK: "Restaurantes a la carta, comida corrida y bares", nomD: "Fondas para llevar, tacos, mariscos y cafés", kd: "restaurante", dd: "puesto", sig: ""},
-  {tot: M.nucleo, keep: M.servible, nomK: "Clientes potenciales (SAM)", nomD: "Posibles cadenas", kd: "barrio", dd: "cadena", sig: "SAM"},
+  {tot: M.total, keep: M.nucleo, nomK: "Clientes potenciales (SAM): restaurantes a la carta y bares", nomD: "Fondas para llevar, tacos, mariscos y cafés", kd: "restaurante", dd: "puesto", sig: ""},
+  {tot: M.nucleo, keep: M.servible, nomK: "Sin cadenas", nomD: "Posibles cadenas", kd: "barrio", dd: "cadena", sig: "SAM"},
   {tot: M.servible, keep: SP.meta_12_meses, nomK: "Meta a 12 meses (SOM)", nomD: "El resto del mercado", kd: "puntos", dd: "barrio", sig: "SOM"},
 ];
 const ETAPAS = ["México", "A la carta y bares", "Sin cadenas", "Meta a 12 meses"];
 DET.mercado = {
-  titulo: "Hay ≈ 100,000 clientes potenciales; ganar 100 a 1,000 en un año es un escenario.",
+  titulo: "Hay 104,882 clientes potenciales; ganar 100 a 1,000 en un año es un escenario.",
   fu: ["inegi_denue", "carta_mercado", "carta_muestra"],
-  nota: "Mercado total (TAM): todos los negocios que algún día podrían usar algo como Carta. Clientes potenciales (SAM): los que Carta atiende hoy, sin cadenas (entre 96,021 y 104,855 según el umbral). Meta a 12 meses (SOM): escenario, no dato.",
+  nota: "Mercado total (TAM): todos los negocios que algún día podrían usar algo como Carta. Clientes potenciales (SAM): restaurantes a la carta y bares, lo que Carta atiende hoy (sin sus posibles cadenas, ≈ 100,000: entre 96,021 y 104,855 según el umbral). Meta a 12 meses (SOM): escenario, no dato.",
   montar(host) {
     this.paso = 0; this.sel = "k"; this.auto = true;
     host.innerHTML = `<div class="viz"><svg id="svMer" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
@@ -110,7 +110,7 @@ DET.mercado = {
     const m = M.muestra;
     return {
       leyenda: `<span><i style="background:${C.vino}"></i>lo que se queda</span><span><i style="background:${C.arena}"></i>lo que sale</span><span><i style="background:${C.dorado}"></i>meta a 12 meses (escenario)</span>`,
-      cifras: [[n(M.servible_rango[0]) + "–" + n(M.servible_rango[1]), "rango de clientes potenciales (SAM)"], ["100 a 1,000", "meta a 12 meses (SOM)", "supuesto"], ["≈ " + n(m.alcanzables), "cartas que un lector puede leer del sitio de un negocio", "supuesto"]],
+      cifras: [[n(M.nucleo), "clientes potenciales (SAM); sin cadenas, ≈ " + n(M.servible)], ["100 a 1,000", "meta a 12 meses (SOM)", "supuesto"], ["≈ " + n(m.alcanzables), "cartas que un lector puede leer del sitio de un negocio", "supuesto"]],
       insight: "El mercado sobra; lo que falta medir es cuántos dueños prueban Carta y cuántos pagan.",
     };
   },

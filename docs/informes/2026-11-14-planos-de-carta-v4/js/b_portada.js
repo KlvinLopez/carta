@@ -7,22 +7,23 @@ function pintaEscenario() { // sólo el encabezado del detalle: volver y pantall
 }
 
 const mp = v => (v < 0 ? "−" : "") + mxn(Math.abs(Math.round(v)));
-/* los tres escenarios a la vez: recomendado (vino), peor (rojo) y mejor (verde) */
-const CASOS = {rec: "esperado", peor: "peor", mejor: "mejor"};
-const tri = f => Object.fromEntries(Object.entries(CASOS).map(([k, c]) => [k, f(motor({...S, caso: c}), c)]));
+/* los tres escenarios a la vez, tal como los entrega `resumen` del modelo: recomendado (vino), peor (rojo) y mejor (verde) */
+const fila = (r, k) => r.cifras.find(c => c.clave === k);
+const pesos = v => (v == null ? "—" : mxn(Math.round(v * 10) / 10));
 const KPIS = [
-  {id: "potenciales", sola: () => "≈ " + n(M.servible), txt: () => "clientes potenciales (SAM)", tag: () => cita("carta_mercado")},
-  {id: "caben", f: m => n(m.caben), txt: () => "restaurantes caben en el servidor", tag: () => "modelo de escenarios · supuesto"},
-  {id: "sostiene", f: m => (m.sePagaSolo ? "todos" : n(m.sostiene ?? m.sostieneSinAds ?? 0)), txt: () => "gratuitos que sostiene cada cliente de paga", tag: () => "modelo de escenarios · supuesto"},
-  {id: "anuncios", f: (m, c) => mxn(c === "mejor" ? Math.round(motor({...S, caso: "esperado", anunciosAprob: true, tarifa: "alta"}).ingGrat * 10) / 10 : 0), txt: () => "al mes por cliente gratuito en anuncios", tag: () => "hoy no hay anuncios: el mejor caso supone tarifa alta · " + cita("carta_anuncios")},
-  {id: "ingreso", sola: () => mxn(S.precioServicio), txt: () => `al mes por cliente de paga (${PLAN.paga})`, tag: () => "propuesta · " + cita("carta_precio")},
-  {id: "margen", f: m => mp(m.margen), txt: () => "de margen al mes con 1,000 restaurantes", tag: () => "modelo de escenarios · supuesto"},
+  {id: "potenciales", clave: "clientes_potenciales", f: v => "≈ " + n(v), txt: "clientes potenciales (SAM)", solo: true},
+  {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes gratuitos caben en el servidor", ps: ["con sondeo (hoy)", "con Pro de 8 procesos"], neutro: true},
+  {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
+  {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
+  {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga"},
+  {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes"},
 ];
 function pintaKpis() {
-  const el = $("#kpis");
+  const r = resumenS(S), el = $("#kpis");
   el.innerHTML = KPIS.map(k => {
-    const t = k.f ? tri(k.f) : null;
-    return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(k.tag())}"><b>${t ? t.rec : k.sola()}</b>${t ? `<span class="tri"><i class="p">peor ${t.peor}</i><i class="m">mejor ${t.mejor}</i></span>` : ""}<span class="tx">${esc(k.txt())}</span></button>`;
+    const c = fila(r, k.clave), tip = `${c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
+    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i></span>`;
+    return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"><b>${k.f(c.recomendado)}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
 }
 
@@ -32,18 +33,18 @@ const MINI = {
   mercado: () => { const tot = M.total, a = M.nucleo / tot; return SV(300, 124, Rc(8, 8, 284, 22, C.arena, 8) + `<g class="gh">${Rc(8, 8, 284 * a, 22, C.vino2 ?? C.vino, 8)}</g>` + Rc(8, 50, 284, 22, C.arena, 8) + `<g class="gh" style="animation-delay:.2s">${Rc(8, 50, 284 * M.servible / M.nucleo, 22, C.vino, 8)}</g>` + `<g class="gk" style="animation-delay:.4s">${Rc(8, 92, 6, 22, C.dorado, 3)}</g>` + T(24, 108, "300", 12, C.dorado, "start", 700)); },
   matriz: () => { let b = ""; MX.filas.slice(0, 8).forEach((f, i) => { b += Rc(8, 4 + i * 14, 14 + f.precio / 1243 * 40, 11, C.vino, 4, `opacity="${0.25 + 0.75 * f.precio / 1243}"`); f.celdas.forEach((c, j) => { b += Rc(60 + j * 19, 4 + i * 14, 16, 11, c === "si" ? C.vino : c === "no" ? C.arena : "none", 4, c === "np" ? `stroke="${C.gris}" stroke-dasharray="2 2"` : ""); }); }); return SV(300, 124, b + Rc(60 + 2 * 19 - 2, 2, 20, 116, "none", 6, `stroke="${C.dorado}" stroke-width="2"`)); },
   disco: () => { const m = motor(S), mx = Math.max(...m.lim.map(l => l[1]), 1); return SV(300, 124, m.lim.map(([nom, v], i) => T(8, 24 + i * 34, nom, 11, C.t2, "start", 700) + Rc(104, 10 + i * 34, 188, 18, C.a2, 9) + `<g class="gh">${Rc(104, 10 + i * 34, 188 * Math.min(1, v / mx), 18, nom === m.cuello ? C.vino : C.dorado, 9)}</g>` + T(104 + 188 * Math.min(1, v / mx) - 6, 23 + i * 34, n(v), 10.5, "#fff", "end", 700)).join("") + T(8, 118, "el recurso más corto frena", 10.5, C.t2)); },
-  topes: () => { const f = [["platillos", S.topePlatillos, MOD.interp(SP.empuja_platillos, S.topePlatillos)], ["mesas", S.topeMesas, MOD.interp(SP.empuja_mesas, S.topeMesas)], ["cuentas", S.topeCuentas, MOD.interp(SP.empuja_cuentas, S.topeCuentas)]]; return SV(300, 124, f.map(([a, t, p], i) => T(8, 22 + i * 36, `${a} ≤ ${t}`, 11.5, C.t2, "start", 700) + Rc(96, 8 + i * 36, 196, 18, C.arena, 9) + `<g class="gh">${Rc(96, 8 + i * 36, 196 * (1 - p), 18, C.vino, 9)}</g>` + T(96 + 196 * (1 - p) - 6, 21 + i * 36, `${n(100 - 100 * p)} % dentro`, 10.5, "#fff", "end", 700)).join("") + T(8, 120, "el resto paga o se ajusta", 10.5, C.t2)); },
+  topes: () => { const c = config(S), mx = Math.sqrt(Math.max(...SEG.estratos.map(e => e.negocios))); let g = ""; SEG.estratos.forEach((e, i) => { const h = 20 + 80 * Math.sqrt(e.negocios) / mx, p = planDe(e, c); g += `<g class="gk" style="animation-delay:${i * 60}ms">${Rc(10 + i * 40, 112 - h, 32, h, [C.vino, C.dorado, C.osc][p], 8)}</g>`; }); return SV(300, 124, g); },
   precio: () => { const X = v => 8 + 284 * v / 1300; let b = Rc(8, 50, 284, 10, C.arena, 5); const cols = ["#2e7aab", "#2a9d8f", "#7b5ea7", "#d95d39", "#5c8a3a", "#8d6e63"]; D.mercado_planes.filter(p => p.precio <= 1300).forEach((p, i) => { b += `<circle cx="${X(p.precio)}" cy="${55 + (i % 3 - 1) * 12}" r="5" fill="${cols[i % 6]}" opacity=".8"/>`; }); b += `<g class="gk">${Rc(X(S.precioServicio) - 2, 28, 4, 56, C.vino, 2)}</g>` + T(X(S.precioServicio), 22, "Carta", 12, C.vino, "middle", 700) + T(150, 112, "frente a 30 planes publicados", 11, C.t2, "middle"); return SV(300, 124, b); },
   pagar: () => { const t = D.inegi_tamano, lo = lg(50000), hi = lg(10000000); return SV(300, 124, t.map((x, i) => T(8, 22 + i * 28, x.estrato, 10.5, C.t2, "start", 700) + Rc(70, 8 + i * 28, 220 * (lg(x.ingreso) - lo) / (hi - lo), 14, C.vino, 6) + Rc(70, 24 + i * 28 - 2, 220 * (lg(x.excedente) - lo) / (hi - lo), 6, C.dorado, 3)).join("") + T(8, 120, "ingreso (vino) y excedente (dorado)", 10.5, C.t2)); },
   sostiene: () => {
-    const N = [1, 250, 500, 750, 1000], sl = v => Math.asinh(v / 1500), X = v => 14 + 270 * v / 1000, Y = v => 100 - 84 * (sl(clamp(v, -3000, 300000)) - sl(-3000)) / (sl(300000) - sl(-3000));
-    const lin = (caso, col, w) => { const t = {...S, caso}; return `<polyline points="${N.map(k => `${X(k)},${Y(evalS(t, k).margen.pesos)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}"/>`; };
-    return SV(300, 124, `<line x1="14" x2="290" y1="${Y(0)}" y2="${Y(0)}" stroke="${C.t2}"/>` + lin("peor", C.rojo, 2.5) + lin("esperado", C.vino, 3.5) + lin("mejor", C.verde, 2.5) + T(150, 118, "peor · esperado · mejor", 11, C.t2, "middle"));
+    const N = [1, 100, 250, 500, 750, 1000], sl = v => Math.asinh(v / 1500), X = v => 14 + 270 * v / 1000, Y = v => 100 - 84 * (sl(clamp(v, -3000, 300000)) - sl(-3000)) / (sl(300000) - sl(-3000));
+    const lin = (caso, col, w) => `<polyline points="${N.map(k => `${X(k)},${Y(ev3(S, caso, k).margen_operacion)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}"/>`;
+    return SV(300, 124, `<line x1="14" x2="290" y1="${Y(0)}" y2="${Y(0)}" stroke="${C.t2}"/>` + lin("peor", C.rojo, 2.5) + lin("rec", C.vino, 3.5) + lin("mejor", C.verde, 2.5) + T(150, 118, "peor · recomendado · mejor", 11, C.t2, "middle"));
   },
 };
 const CAJAS = [
   {id: "linea", q: "¿Está el negocio en línea?", c: "El comensal sí; 94 % de los negocios, no."},
-  {id: "mercado", q: "¿Cuántos negocios hay?", c: "≈ 100,000 clientes potenciales."},
+  {id: "mercado", q: "¿Cuántos negocios hay?", c: () => `${n(M.nucleo)} clientes potenciales (SAM).`},
   {id: "matriz", q: "¿Qué existe y a qué precio?", c: "Ninguna página leída publica el pedido en grupo."},
   {id: "disco", q: "¿Qué llena el disco?", c: () => { const m = motor(S); return `Caben ${n(m.caben)}; frena ${m.cuello}.`; }},
   {id: "topes", q: "¿A quién deja dentro cada tope?", c: () => `Dentro del plan ${PLAN.gratis}: ${dentroTxt(motor(S))}.`},
