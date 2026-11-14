@@ -64,6 +64,22 @@ def cargar5() -> dict:
     d["mercado"]["metas"] = {
         k: [emb[k]["12"]["activos"], emb[k]["24"]["activos"]] for k in ("bajo", "medio", "alto")
     }
+    # INEGI, Censos Económicos 2024 (año de referencia 2023), SAIC: clase 722511, por negocio y por mes [medido]
+    plano = json.loads((INV / "2026-11-14-lo-que-paga-un-restaurante-datos-planos.json").read_text(encoding="utf-8"))["722511"]
+    tam = []
+    for est in ("0 a 10", "11 a 50", "51 a 250", "251 y más"):
+        e = plano[est]
+        ue = e["UE"]
+        tam.append({
+            "estrato": est, "negocios": ue,
+            "ingreso": round(e["M000A"] * 1e6 / ue / 12),
+            "excedente": round((e["A800A"] - e["A700A"] - e["J000A"]) * 1e6 / ue / 12),
+            "comunicacion": round(e["K820A"] * 1e6 / ue / 12),
+            "horas": round(e["H001D"] * 1000 / ue / 12),
+            "va_hora": round(e["A131A"] * 1e6 / (e["H001D"] * 1000)),
+        })  # fmt: skip
+    d["inegi_tamano"] = tam
+    d["pos_sustitutos"] = {"Fudo Avanzado": 652, "Soft Restaurant Cloud Lite": 699, "Last.app Starter": 1000, "Poster Business": 819}
     d["matriz_trabajos_futuros"] = [
         "Pantalla de cocina",
         "Caja (POS)",

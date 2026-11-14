@@ -11,21 +11,24 @@ DET.sostiene = {
   nota: "Modelo de escenarios (docs/research/2026-11-14-modelo-de-escenarios.mjs). Anuncios: la tarifa en México no está publicada; es supuesto y AdSense podría no aprobar el sitio. La curva de pago es supuesto: la sustituye la prueba del piloto.",
   montar(host) {
     this.vis = {peor: true, mejor: true, esp: true}; this.N = 300; this.nivel = "medio"; this.mes = 12;
-    host.innerHTML = `<div class="viz"><svg id="svA" viewBox="0 0 960 430" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:12px"><svg id="svB" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svA" viewBox="0 0 960 430" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:12px"><svg id="svB" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:12px"><svg id="svC" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    this.svC = $("#svC", host);
+    this.svC.addEventListener("click", ev => { const t = ev.target.closest("[data-sens]"); if (!t) return; const k = t.dataset.sens, f = (S.ajustes || {})[k] || 1, sig = f === 1 ? 0.5 : f === 0.5 ? 1.5 : 1; cambiar({ajustes: {...(S.ajustes || {}), [k]: sig}}); });
+    this.svC.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { const t = ev.target.closest("[data-sens]"); if (t) { ev.preventDefault(); t.dispatchEvent(new MouseEvent("click", {bubbles: true})); } } });
     this.svA = $("#svA", host); this.svB = $("#svB", host);
     const clic = ev => { const t = ev.target.closest("[data-v]"); if (!t) return; const v = t.dataset.v; if (["peor", "mejor", "esp"].includes(v)) this.vis[v] = !this.vis[v]; else this.nivel = v; refrescar(); };
     this.svA.addEventListener("click", clic); this.svB.addEventListener("click", clic);
     this.svB.addEventListener("pointermove", ev => { const p = this.svB.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY; const q = p.matrixTransform(this.svB.getScreenCTM().inverse()); const t = clamp(Math.round((q.x - 70) / 840 * 23) + 1, 1, 24); if (t !== this.mes) { this.mes = t; this.pintaB(); } });
   },
   actualizar() {
-    this.pintaA(); this.pintaB();
+    this.pintaA(); this.pintaB(); this.pintaC();
     const m = motor(S), pz = proyecta(this.nivel, S), peor = {...S, caso: "peor"};
-    const eqN = (s0) => { for (let N = 1; N <= 5000; N += 1) if (margenEn(s0, N) >= 0) return N; return null; };
+    const eqN = (s0) => { for (let N = 1; N <= 5000; N += 25) if (margenEn(s0, N) >= 0) return N; return null; };
     const ePeor = eqN(peor);
     return {
       leyenda: `<span><i style="background:${C.rojo}"></i>peor: todos gratuitos, anuncios de tarifa baja</span><span><i style="background:${C.verde}"></i>mejor: todos pagan</span><span><i style="background:${C.vino}"></i>esperado: curva ${S.curva}, con su rango</span>`,
-      cifras: [[ePeor ? n(ePeor) : "más de 5,000", "restaurantes gratuitos para sostenerse sólo con anuncios", "supuesto"], [n(m.eqSinAds, 1), "clientes de paga por cada 1,000 que cubren el costo sin contar anuncios (punto de equilibrio)", "supuesto"], [pz.mes_primer_margen_positivo ? "mes " + pz.mes_primer_margen_positivo : "—", "primer mes con margen positivo (escenario esperado)", "supuesto"]],
-      insight: ePeor ? `Sólo con anuncios Carta se sostiene desde ≈ ${n(ePeor)} restaurantes gratuitos; con clientes de paga y sin anuncios, el equilibrio llega con ${n(m.eqSinAds, 1)} por cada 1,000.` : "Sólo con anuncios Carta no se sostiene dentro de 5,000 restaurantes; necesita clientes de paga.",
+      cifras: [[mp(m.margen), "margen de operación al mes con 1,000 restaurantes (sin captación ni sueldos)", "supuesto"], [mp(m.margenCapt), "margen después de captación: reponer las bajas con el costo de conseguir un cliente", "supuesto"], [mp(m.margenNeto), "margen neto (con sueldos e impuestos; hoy valen cero: sin dato)", "supuesto"], [ePeor ? n(ePeor) : "no se sostiene", "restaurantes gratuitos para sostenerse sin clientes de paga (peor caso firme, sin anuncios)", "supuesto"], [m.eq == null ? "—" : n(m.eq, 1), "clientes de paga por cada 1,000 que cubren el costo de operación", "supuesto"], [pz.mes_primer_margen_positivo ? "mes " + pz.mes_primer_margen_positivo : "—", "primer mes con margen positivo (escenario esperado)", "supuesto"]],
+      insight: ePeor ? `Sin clientes de paga y sin anuncios Carta se sostiene sólo desde ≈ ${n(ePeor)} restaurantes; con clientes de paga, el costo de operación se cubre con ${m.eq == null ? "—" : n(m.eq, 1)} por cada 1,000.` : `Sin clientes de paga y sin anuncios Carta no se sostiene dentro de 5,000 restaurantes: necesita clientes de paga (${m.eq == null ? "—" : n(m.eq, 1)} por cada 1,000 cubren la operación).`,
     };
   },
   pintaA() {
@@ -48,12 +51,26 @@ DET.sostiene = {
     if (this.vis.mejor) b += linea(pMejor, C.verde, 3) + eq(pMejor, C.verde, -12);
     const N = this.N;
     b += `<line x1="${X(N)}" x2="${X(N)}" y1="${Y0}" y2="${Y0 + H}" stroke="${C.tinta}" stroke-width="1.5" stroke-dasharray="4 3"/><g data-drag="1" id="hN"><circle cx="${X(N)}" cy="${Y0 + H}" r="13" fill="${C.tinta}" stroke="#fff" stroke-width="3"/></g>`;
-    [["peor", C.rojo, "Peor caso"], ["esp", C.vino, "Esperado"], ["mejor", C.verde, "Mejor caso"]].forEach(([k, c, nom], i) => { b += `<g data-v="${k}" style="cursor:pointer" opacity="${this.vis[k] ? 1 : 0.4}" tabindex="0" role="button" aria-pressed="${this.vis[k]}"><rect x="${600 + i * 110}" y="8" width="102" height="24" rx="12" fill="${c}"/>${T(651 + i * 110, 25, nom, 12.5, "#fff", "middle", 700)}</g>`; });
+    [["peor", C.rojo, "Peor (firme)"], ["esp", C.vino, "Esperado"], ["mejor", C.verde, "Mejor caso"]].forEach(([k, c, nom], i) => { b += `<g data-v="${k}" style="cursor:pointer" opacity="${this.vis[k] ? 1 : 0.4}" tabindex="0" role="button" aria-pressed="${this.vis[k]}"><rect x="${600 + i * 110}" y="8" width="102" height="24" rx="12" fill="${c}"/>${T(651 + i * 110, 25, nom, 12.5, "#fff", "middle", 700)}</g>`; });
     b += T(X0, 52, `Con ${n(N)} restaurantes: peor ${fmP(margenEn({...S, caso: "peor"}, N))} · esperado ${fmP(margenEn(S0, N))} · mejor ${fmP(margenEn({...S, caso: "mejor"}, N))}`, 13, C.tinta, "start", 700);
     sv.innerHTML = b;
     const hd = $("#hN", sv);
     arrastrable(hd, sv, pt => { this.N = clamp(Math.round((pt.x - X0) / W * 1000 / 10) * 10, 10, 1000); this.pintaA(); }, (d, mult) => { this.N = clamp(this.N + d * mult * 10, 10, 1000); this.pintaA(); });
     hd.setAttribute("aria-label", "Restaurantes registrados"); hd.setAttribute("aria-valuenow", N);
+  },
+  pintaC() {
+    const sv = this.svC, m = motor(S), se = MOD.sensibilidad(config(S), sup(S), 1000, {curva: S.curva}), filas = se.filas.slice(0, 12), X0 = 330, W = 560, base = se.base;
+    const lo = Math.min(...filas.map(f => f.rango[0])), hi = Math.max(...filas.map(f => f.rango[1])), X = v => X0 + W * (v - lo) / Math.max(hi - lo, 1);
+    let b = T(30, 24, "¿Qué supuesto mueve más el resultado? Margen de operación con 1,000 restaurantes", 14.5, C.vino, "start", 700);
+    b += T(30, 44, "Cada barra va de la mitad a una vez y media del supuesto. Toca una barra: ajusta ese supuesto (×0.5, ×1.5, normal).", 12, C.t2);
+    filas.forEach((f, i) => {
+      const y = 64 + i * 38, aj = (S.ajustes || {})[f.supuesto] || 1;
+      b += T(X0 - 12, y + 20, f.supuesto, 12.5, C.tinta, "end", aj === 1 ? 400 : 700) + Rc(X0, y + 4, W, 24, C.a2, 6, "") + `<g data-sens="${esc(f.supuesto)}" style="cursor:pointer" tabindex="0" role="button" aria-label="Ajustar ${esc(f.supuesto)}">` + Rc(X(f.rango[0]), y + 4, Math.max(X(f.rango[1]) - X(f.rango[0]), 3), 24, aj === 1 ? C.vino : C.dorado, 6) + Rc(X0 - 330, y, W + 330, 34, "rgba(0,0,0,0)", 6) + `</g>` + (X(f.rango[1]) > X0 + W - 150 ? T(X(f.rango[0]) - 8, y + 21, `${mp(f.rango[0])} a ${mp(f.rango[1])}`, 11.5, C.t2, "end") : T(X(f.rango[1]) + 8, y + 21, `${mp(f.rango[0])} a ${mp(f.rango[1])}`, 11.5, C.t2)) + (aj !== 1 ? T(X0 + W + 10, y + 21, "×" + aj, 12, C.dorado, "start", 700) : "");
+    });
+    b += `<line x1="${X(base)}" x2="${X(base)}" y1="58" y2="${64 + filas.length * 38}" stroke="${C.tinta}" stroke-width="1.5" stroke-dasharray="4 3"/>` + T(X(base) + 6, 56, "ahora: " + mp(base), 12, C.tinta, "start", 700);
+    if (Object.keys(S.ajustes || {}).some(k => S.ajustes[k] && S.ajustes[k] !== 1)) b += `<g data-limpia="1" style="cursor:pointer" tabindex="0" role="button"><rect x="780" y="6" width="150" height="26" rx="13" fill="${C.dorado}"/>${T(855, 24, "Quitar ajustes", 12.5, "#fff", "middle", 700)}</g>`;
+    sv.innerHTML = b;
+    const q = $("[data-limpia]", sv); if (q) q.onclick = () => cambiar({ajustes: {}});
   },
   pintaB() {
     const sv = this.svB, pz = proyecta(this.nivel, {...S, caso: "esperado"}), filas = pz.filas, X0 = 70, W = 840, X = t => X0 + W * (t - 1) / 23;
@@ -64,6 +81,8 @@ DET.sostiene = {
     const esc = []; filas.forEach(r => { const u = esc[esc.length - 1]; if (!u || u.id !== r.escalon) esc.push({id: r.escalon, ini: r.mes, fin: r.mes}); else u.fin = r.mes; });
     const colEsc = ["#f3eadb", "#ead9d0", "#e3cbc6", "#dbbcbc", "#d3aeb3"];
     esc.forEach((e, i) => { const nom = (SP.escalones.find(x => x.id === e.id) || {nombre: e.id}).nombre.replace("Con eventos, ", ""); b += Rc(X(e.ini) - (e.ini === 1 ? 0 : W / 46), 50, X(e.fin) - X(e.ini) + (e.ini === 1 ? W / 46 : W / 23), 190, colEsc[i % colEsc.length], 0) + T(X(e.ini) + 6, 66, nom, 11.5, C.osc, "start", 700); if (i > 0) b += T(X(e.ini) + 6, 82, "mes " + e.ini + ": subir de escalón", 11, C.rojo, "start", 700); });
+    const ext = filas.filter(r => r.requiere_arquitectura || r.extrapolacion_sin_medir);
+    if (ext.length) b += `<defs><pattern id="ray" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" fill="${C.rojo}" opacity=".35"/></pattern></defs>` + Rc(X(ext[0].mes) - W / 46, 50, X(24) - X(ext[0].mes) + W / 46, 190, "url(#ray)", 0) + T(X(ext[0].mes) + 6, 98, "extrapolación sin medir (más de ≈ 2,030 restaurantes)", 11.5, C.rojo, "start", 700);
     [0, maxR / 2, maxR].forEach(v => { b += `<line x1="${X0}" x2="${X0 + W}" y1="${Ya(v)}" y2="${Ya(v)}" stroke="${C.arena}"/>` + T(X0 - 8, Ya(v) + 4, n(v), 11, C.t2, "end"); });
     b += `<polyline points="${filas.map(r => `${X(r.mes)},${Ya(r.restaurantes)}`).join(" ")}" fill="none" stroke="${C.vino}" stroke-width="4"/>` + T(X0 + W, 252, "restaurantes registrados (línea) y escalón del servidor (franjas)", 11.5, C.t2, "end");
     [1, 6, 12, 18, 24].forEach(t => { b += T(X(t), 268, "mes " + t, 11.5, C.t2, "middle"); });
@@ -83,38 +102,38 @@ DET.sostiene = {
 /* ===== Recomendaciones (sesión de análisis: recomendaciones.json) ===== */
 const sinMd = t => String(t).replace(/\*\*/g, "").replace(/\*/g, "");
 const PARCHES = {
-  agresividad: [{precioServicio: 249, sustituto: "Meniu Business"}, {precioServicio: 299, sustituto: "Fudo Avanzado", K: 0.5}, {precioServicio: 349, sustituto: "Fudo Avanzado + módulo de mesas"}, {precioServicio: 449, sustituto: "Fudo Avanzado", K: 0.7}],
-  topes_gratuito: [{topeMesas: 8, topeCuentas: 2, topePlatillos: 60}, {topeMesas: 10, topeCuentas: 3, topePlatillos: 80}, {topeMesas: 15, topeCuentas: 5, topePlatillos: 100}],
+  precio: [{precioServicio: 249, sustituto: "Meniu Business", K: 0.5}, {precioServicio: 299, sustituto: "Fudo Avanzado", K: 0.5}, {precioServicio: 349, sustituto: "Fudo Avanzado + módulo de mesas", K: 0.5}, {precioServicio: 449, sustituto: "Fudo Avanzado", K: 0.7}],
+  topes: TCUPO.map(r => ({cupo: r.cupo_gratis_minimo, topeMesas: r.mesas, topeCuentas: r.cuentas, topePlatillos: r.platillos})),
   historial: [{hist: 1}, {hist: 3}, {hist: 12}],
   soporte: [{soporte: 30}, {soporte: 60}, {soporte: 150}],
-  anuncios: [{ads: false}, {ads: true, tarifa: "baja"}, null], // los personalizados chocan con la regla dura 10: no se aplican
+  anuncios: [{anunciosAprob: false}, {anunciosAprob: true}, null], // los personalizados chocan con la regla dura 10: no se aplican
   avisos_reloj: [null, null],
 };
 const CIFRA_REC = {
-  agresividad: () => ["$299", "precio de lanzamiento: 46 % de lo que cobra Fudo Avanzado"],
-  topes_gratuito: () => [n(100 - 100 * MOD.parteRebasa(config(PRESETS.rec), SP), 1) + " %", "de los negocios queda dentro del plan Chef"],
+  precio: () => { const me = motor(PRESETS.rec).meseta; return [`${mxn(me.desde)}–${mxn(me.hasta)}`, "meseta del margen con la curva media; el corredor por sustituto es $249–$349 y se lanza en $299"]; },
+  topes: () => [n(100 - 100 * MOD.parteRebasa(config(PRESETS.rec), SP), 1) + " %", "de los negocios queda dentro del plan Chef con 10 mesas, 3 cuentas y 80 platillos"],
   historial: () => ["12 meses", "de historial en línea para Master Chef; 30 días para Chef"],
   soporte: () => ["$60", "al mes por cliente de paga (30 minutos de soporte)"],
-  anuncios: () => ["$" + n(motor(PRESETS.rec).ingGrat, 1), "al mes por cliente gratuito con anuncios de tarifa baja"],
+  anuncios: () => ["$0", "hoy no hay anuncios: falta aprobación y abrir la política de seguridad del sitio"],
   avisos_reloj: () => ["0", "avisos de reloj desde el servidor: los relojes viven en el teléfono"],
 };
 const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 DET.recomendaciones = {
   titulo: "Seis recomendaciones: aplica una al escenario y mira cómo cambian las cifras.",
   fu: ["carta_precio", "carta_tres_planes", "carta_disco", "calvin_posturas"],
-  nota: "Recomendaciones del análisis, no decisiones: las decide Calvin. Planes y precios son propuesta; la v1 no cobra.",
+  nota: "Recomendaciones del análisis, no decisiones: las decide Calvin. Planes y precios son propuesta; la v1 no cobra. «Chef Ejecutivo» es nombre propuesto.",
   montar(host) { host.innerHTML = REC.decisiones.map(r => `<div class="rcard" id="r_${r.id}"></div>`).join(""); },
   actualizar() {
     REC.decisiones.forEach(r => {
-      const parches = PARCHES[r.id] || [], [cif, sub] = CIFRA_REC[r.id]();
+      const parches = PARCHES[r.id] || [], [cif, sub] = (CIFRA_REC[r.id] || (() => ["", ""]))();
       const op = (a, i) => {
-        const rec = /recomendada/.test(a.opcion), p = parches[i], on = aplicadaP(p);
-        return `<div class="opcion${rec ? " rec" : ""}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h4>${esc(a.opcion.replace(/ ?\(recomendada\)/, ""))}</h4>${rec ? '<span class="et prop">recomendado</span>' : ""}</div><ul><li class="pro">+ ${esc(sinMd(a.pros))}</li><li class="con">− ${esc(sinMd(a.contras))}</li></ul>${p ? `<button class="btn${on ? " on" : ""}" data-aplica='${JSON.stringify(p)}'>${on ? "✓ aplicado" : rec ? "Aplicar al escenario" : "Probar esta"}</button>` : `<small class="nota">No cambia las cifras del modelo</small>`}</div>`;
+        const rec = /recomendad/.test(a.opcion) || (r.id === "topes" && i === 1), p = parches[i], on = aplicadaP(p);
+        return `<div class="opcion${rec ? " rec" : ""}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h4>${esc(a.opcion.replace(/ ?\((.*?)recomendad[oa](.*?)\)/, ""))}</h4>${rec ? '<span class="et prop">recomendado</span>' : ""}</div><ul><li class="pro">+ ${esc(sinMd(a.pros))}</li><li class="con">− ${esc(sinMd(a.contras))}</li></ul>${p ? `<button class="btn${on ? " on" : ""}" data-aplica='${JSON.stringify(p)}'>${on ? "✓ aplicado" : rec ? "Aplicar al escenario" : "Probar esta"}</button>` : `<small class="nota">No cambia las cifras del modelo</small>`}</div>`;
       };
-      $("#r_" + r.id).innerHTML = `<h3>${esc(r.decision)}</h3><div class="porque"><b>${esc(cif)}</b><span>${esc(sub)}</span></div><div class="tarjetas">${r.alternativas.map(op).join("")}</div><div class="ejemplo"><b>Con un restaurante concreto:</b> ${esc(sinMd(r.ejemplo))}</div><details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2)">La recomendación y el porqué</summary><p style="font-size:13.5px">${esc(sinMd(r.recomendacion))}</p><p style="font-size:13px;color:var(--tinta2)">${esc(sinMd(r.por_que))}</p><p style="font-size:12.5px"><b>Dato que lo cambiaría:</b> ${esc(sinMd(r.dato_que_la_cambiaria))}</p></details>`;
+      $("#r_" + r.id).innerHTML = `<h3>${esc(r.decision)}</h3><div class="porque"><b>${esc(cif)}</b><span>${esc(sub)}</span></div><div class="tarjetas">${r.alternativas.map(op).join("")}</div><div class="ejemplo"><b>Con un restaurante concreto:</b> ${esc(sinMd(r.ejemplo))}</div><div class="ejemplo" style="background:#f6e4e4"><b>De qué depende y qué pasa si falla:</b> ${esc(sinMd(r.depende))}</div><details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2)">La recomendación, las cifras y la prueba</summary><p style="font-size:13.5px">${esc(sinMd(r.recomendacion))}</p><p style="font-size:13px;color:var(--tinta2)">${esc(sinMd(r.cifras))}</p><p style="font-size:12.5px"><b>Prueba que lo cambiaría:</b> ${esc(sinMd(r.prueba))}</p></details>`;
     });
     const m = motor(S);
-    return {cifras: [[n(m.caben), "restaurantes caben con el escenario activo"], [mxn(S.precioServicio), "Master Chef al mes", "propuesta"], [n(100 * m.margenPct) + " %", "margen con 1,000 restaurantes", "supuesto"], [emTxt(m), "se pasa del plan Chef", "supuesto"]], insight: "Aplica una recomendación y las cifras de arriba cambian al instante; «Mi escenario» guarda tu combinación."};
+    return {cifras: [[n(m.caben), "restaurantes caben con el escenario activo"], [mxn(S.precioServicio), "Master Chef al mes", "propuesta"], [mp(m.margen), "margen de operación con 1,000 restaurantes", "supuesto"], [emTxt(m), "se pasa del plan Chef", "supuesto"]], insight: "Aplica una recomendación y las cifras de arriba cambian al instante; «Mi escenario» guarda tu combinación."};
   },
 };
 
@@ -134,16 +153,16 @@ DET.k_caben = cuentaDet("Cuántos restaurantes caben: lo decide el recurso que s
 }, () => "Cambia el servidor y las palancas en «¿Qué llena el disco?» y esta cifra se recalcula.");
 DET.k_sostiene = cuentaDet("Un cliente de paga sostiene el costo de decenas de clientes gratuitos.", ["carta_planes", "carta_precio"], () => {
   const m = motor(S), pc = m.ev.por_cliente, neto = pc.costo_gratuito - pc.ingreso_gratuito;
-  return [[`Ingreso por cliente de ${PLAN.paga}`, mxn(pc.ingreso_servicio)], ["− Costo de atenderlo (servidor, soporte y comisión de tarjeta)", "− " + n(pc.costo_servicio, 1)], ["= Margen por cliente de paga", mxn(Math.round(pc.margen_servicio)), true], ["Costo de un cliente gratuito", mxn(Math.round(pc.costo_gratuito * 10) / 10)], ["− Lo que deja en anuncios", "− " + n(pc.ingreso_gratuito, 1)], ["= Costo neto de un gratuito", (neto <= 0 ? "se paga solo" : mxn(Math.round(neto * 10) / 10)), true], ["Gratuitos que sostiene cada cliente de paga (sin contar anuncios)", m.sostieneSinAds == null ? "todos" : n(m.sostieneSinAds), true], ["Con los anuncios del escenario", m.sostiene == null ? "cada gratuito se paga solo" : n(m.sostiene) + " gratuitos"]];
-}, () => "Con anuncios, cada gratuito deja más de lo que cuesta; la tarifa es supuesto y la sustituye una prueba pequeña con 3 restaurantes.");
-DET.k_anuncios = cuentaDet("Un cliente gratuito deja unos pesos al mes en anuncios; una tarifa sin fuente fuerte.", ["carta_anuncios"], () => {
-  const t = SP.anuncio_pesos_por_mil, v = SP.visitas_app_gratuito;
-  return [["Visitas con la app al mes de un gratuito típico", n(v)], ...["baja", "media", "alta"].map(k => [`Tarifa ${k}: ${mxn(t[k])} por mil visitas`, mxn(Math.round(t[k] * v / 100) / 10) + " al mes"]), [`Escenario activo: ${S.caso === "peor" ? "baja (peor caso)" : S.ads ? S.tarifa : "sin anuncios"}`, mxn(Math.round(motor(S).ingGrat * 10) / 10) + " al mes", true]];
-}, () => "La tarifa de anuncios en México no está publicada: es supuesto, y AdSense podría no aprobar una carta detrás de un código de mesa.");
-DET.k_ingreso = cuentaDet("Un cliente de paga ingresa el precio de su plan cada mes.", ["carta_precio", "carta_tres_planes"], () => [[`${PLAN.paga} (11 a 40 mesas)`, mxn(S.precioServicio) + " al mes"], [`${PLAN.ejec} (más de 40 mesas)`, mxn(S.precioSalon) + " al mes"], ["Corredor propuesto de Master Chef", "$249 a $349"], ["Con soporte de $150 el precio sube a", "≈ $556"], ["Meniu, el sustituto más barato, cobra", "$225"]], () => "El precio es propuesta: la v1 no cobra, y lo confirma el piloto con 10 restaurantes.");
-DET.k_margen = cuentaDet("Margen: lo que queda de los ingresos después de atender a todos.", ["carta_tres_planes", "carta_precio"], () => {
-  const m = motor(S), e = m.ev; return [["Ingresos por suscripción", mxn(Math.round(e.ingresos.suscripcion))], ["Ingresos por anuncios", mxn(Math.round(e.ingresos.anuncios))], ["− Servidor y almacenamiento", "− " + n(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos)], ["− Soporte", "− " + n(e.costos.soporte)], ["− Comisión de tarjeta", "− " + n(e.costos.comision)], ["= Margen al mes con 1,000 restaurantes", fmP(e.margen.pesos), true], ["Margen sobre los ingresos", e.margen.porcentaje == null ? "—" : n(100 * e.margen.porcentaje) + " %", true]];
-}, () => "Aquí el margen no incluye sueldos ni impuestos: es lo que queda después de atender a los clientes.");
+  return [[`Ingreso por cliente de ${PLAN.paga}`, mxn(pc.ingreso_servicio)], ["− Costo de atenderlo (servidor, soporte y comisión de tarjeta)", "− " + n(pc.costo_servicio, 1)], ["= Margen por cliente de paga", mxn(Math.round(pc.margen_servicio)), true], ["Costo de un cliente gratuito (servidor y soporte)", mxn(Math.round(pc.costo_gratuito * 100) / 100)], ["− Lo que deja en anuncios (hoy $0: no hay anuncios)", "− " + n(pc.ingreso_gratuito, 2)], ["= Costo neto de un gratuito", neto <= 0 ? "se paga solo" : mxn(Math.round(neto * 100) / 100), true], ["Gratuitos que sostiene cada cliente de paga", m.sePagaSolo ? "todos: se pagan solos" : n(m.sostiene), true], ["Sin contar anuncios", m.sostieneSinAds == null ? "—" : n(m.sostieneSinAds)]];
+}, () => "Con anuncios, cada gratuito podría pagarse solo; los anuncios hoy no existen, así que la cifra firme es la de sin anuncios.");
+DET.k_anuncios = cuentaDet("Hoy un cliente gratuito deja $0 en anuncios: no hay anuncios.", ["carta_anuncios"], () => {
+  const t = SP.anuncio_pesos_por_mil, v = SP.visitas_app_gratuito, p = SP.parte_visitas_con_anuncio;
+  return [["Estado de los anuncios", "no aprobados ni construidos"], ["Visitas con la app al mes de un gratuito típico", n(v)], ["Parte de las visitas que ven anuncio (supuesto)", n(100 * p) + " %"], ...["baja", "media", "alta"].map(k => [`Si se aprueban, tarifa ${k}: ${mxn(t[k])} por mil visitas`, mxn(Math.round(t[k] * v * p / 100) / 10) + " al mes"]), ["Escenario activo", S.anunciosAprob ? "con anuncios (condicional): " + mxn(Math.round(motor(S).ingGrat * 10) / 10) + " al mes" : "sin anuncios: $0", true]];
+}, () => "Para tenerlos hace falta un ADR, abrir la política de seguridad del sitio, cambiar el aviso de privacidad y que AdSense los apruebe. Se activan arriba en la barra de escenario, como condicional.");
+DET.k_ingreso = cuentaDet("Un cliente de paga ingresa el precio de su plan cada mes.", ["carta_precio", "carta_tres_planes"], () => [[`${PLAN.paga} (11 a 40 mesas)`, mxn(S.precioServicio) + " al mes"], [`${PLAN.ejec} (más de 40 mesas; nombre propuesto)`, mxn(S.precioSalon) + " al mes"], ["Meseta del margen, curva " + S.curva, `${mxn(motor(S).meseta.desde)} a ${mxn(motor(S).meseta.hasta)}`], ["Corredor por sustituto", "$249 a $349"], ["Meniu, el sustituto más barato, cobra", "$225"]], () => "El precio es propuesta: la v1 no cobra, y lo confirma el piloto con 10 restaurantes.");
+DET.k_margen = cuentaDet("Tres márgenes con nombre: de operación, después de captación y neto.", ["carta_tres_planes", "carta_precio"], () => {
+  const m = motor(S), e = m.ev; return [["Ingresos por suscripción", mxn(Math.round(e.ingresos.suscripcion))], ["Ingresos por anuncios (hoy $0)", mxn(Math.round(e.ingresos.anuncios))], ["− Servidor y almacenamiento", "− " + n(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos)], ["− Soporte", "− " + n(e.costos.soporte)], ["− Comisión de tarjeta", "− " + n(e.costos.comision)], ["= Margen de operación (sin captación ni sueldos)", mp(e.margen_operacion), true], ["− Reponer bajas (3 % al mes × costo de conseguir un cliente)", "− " + n(e.captacion.reposicion_de_bajas)], ["= Margen después de captación", mp(e.margen_despues_de_captacion), true], ["Margen neto (sueldos e impuestos valen cero: sin dato)", mp(e.margen_neto), true]];
+}, () => "El margen de operación no incluye sueldos ni impuestos ni conseguir clientes; por eso se muestran los tres.");
 
 /* ===== presentación breve (≤ 30 s, se puede saltar, no se repite sola) ===== */
 const SLIDES = [

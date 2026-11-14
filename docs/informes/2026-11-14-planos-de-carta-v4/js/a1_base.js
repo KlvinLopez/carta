@@ -127,6 +127,8 @@ document.addEventListener("click", e => {
   const k = e.target.closest("[data-kpi]"); if (k) { abre("k_" + k.dataset.kpi); return; }
   const b = e.target.closest(".box"); if (b && !abierto) { abre(b.dataset.id); return; }
   const es = e.target.closest("[data-esc]"); if (es) { aplicar(es.dataset.esc); return; }
+  const cu = e.target.closest("[data-cupo]"); if (cu) { fijaCupo(+cu.dataset.cupo); return; }
+  const an = e.target.closest("[data-ads]"); if (an) { cambiar({anunciosAprob: !S.anunciosAprob}); return; }
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && !$("#intro").hidden) { cerrarIntro(); return; }

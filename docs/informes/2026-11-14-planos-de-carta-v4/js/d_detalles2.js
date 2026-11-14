@@ -96,7 +96,7 @@ DET.topes = {
     rm.put("dl", "text", {x: cx, y: cy + 118, text: "se pasa del plan gratuito", size: 14, weight: 700, fill: C.vino, anchor: "middle"});
     rm.put("dd", "text", {x: cx, y: cy + 146, text: `Se queda en Chef: ${dentroTxt(m)}`, size: 14, weight: 700, fill: C.tinta, anchor: "middle"});
     rm.put("de", "text", {x: cx, y: cy + 172, text: `${n(m.ev.clientes.de_paga, 1)} clientes de paga por cada 1,000`, size: 13, fill: C.t2, anchor: "middle"});
-    rm.put("df", "text", {x: cx, y: cy + 194, text: `equilibrio sin anuncios: ${n(m.eqSinAds, 1)} clientes de paga`, size: 13, weight: 700, fill: C.osc, anchor: "middle"});
+    rm.put("df", "text", {x: cx, y: cy + 194, text: `punto de equilibrio: ${m.eq == null ? "—" : n(m.eq, 1)} clientes de paga`, size: 13, weight: 700, fill: C.osc, anchor: "middle"});
     return {
       leyenda: `<span><i style="background:${C.vino}"></i>lo que el plan gratuito permite</span><span><i style="background:${C.dorado}"></i>precio de Master Chef</span><span>Arrastra una asa o usa las flechas</span>`,
       cifras: [[n(100 * MOD.interp(SP.empuja_platillos, S.topePlatillos), 1) + " %", `se pasa del tope de ${S.topePlatillos} platillos`, "medida"], [n(100 * MOD.interp(SP.empuja_mesas, S.topeMesas), 1) + " %", `se pasa de ${S.topeMesas} mesas`, "supuesto"], [n(100 * MOD.interp(SP.empuja_cuentas, S.topeCuentas), 1) + " %", `se pasa de ${S.topeCuentas} cuentas de personal`, "supuesto"], [n(m.ev.clientes.de_paga, 1), "clientes de paga por cada 1,000 registrados", "supuesto"]],
@@ -115,14 +115,19 @@ DET.precio = {
     const prov = []; D.mercado_planes.forEach(p => { if (!prov.includes(p.proveedor)) prov.push(p.proveedor); });
     this.prov = prov.sort((a, b) => Math.min(...D.mercado_planes.filter(p => p.proveedor === a).map(p => p.precio)) - Math.min(...D.mercado_planes.filter(p => p.proveedor === b).map(p => p.precio)));
     this.oculto = new Set(); this.armado = false;
-    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div>`;
     this.rm = RM($("#svP", host)); this.svg = $("#svP", host);
     this.svg.addEventListener("click", ev => { const t = ev.target.closest("[data-prov]"); if (t) { this.oculto.add(t.dataset.prov); refrescar(); } });
     host.addEventListener("click", ev => {
       const r = ev.target.closest("[data-rp]"); if (r) { r.dataset.rp === "*" ? this.oculto.clear() : this.oculto.delete(r.dataset.rp); refrescar(); return; }
       const s = ev.target.closest("[data-sus]"); if (s) { cambiar({sustituto: s.dataset.sus}); return; }
+      const cv = ev.target.closest("[data-cv]"); if (cv) { cambiar({curva: cv.dataset.cv, cMed: null, cSig: null, cTec: null}); return; }
+      if (ev.target.closest("[data-cvr]")) { cambiar({cMed: null, cSig: null, cTec: null}); return; }
       if (ev.target.closest("[data-regla]")) cambiar({precioServicio: MOD.redondea(MOD.precioSugerido(SUSTP[S.sustituto], S.K, sup(S)), sup(S))});
     });
+    $("#cvs", host).innerHTML = ["pesimista", "media", "optimista"].map(c => `<button class="btn" data-cv="${c}">${c}</button>`).join("") + `<button class="btn" data-cvr="1">Restablecer</button>`;
+    $("#cvc", host).innerHTML = [["cMed", "Mediana: lo que paga la mitad", 50, 1000, 5], ["cSig", "Dispersión", 0.2, 1.2, 0.05], ["cTec", "Techo: los que llegan a pagar", 0.05, 1, 0.05]].map(([k, t, mi, ma, st]) => `<label class="ctlr"><span>${t}</span><input type="range" data-cc="${k}" min="${mi}" max="${ma}" step="${st}"><output data-cco="${k}"></output></label>`).join("");
+    host.addEventListener("input", ev => { const r = ev.target.closest("[data-cc]"); if (r) cambiar({[r.dataset.cc]: +r.value}); });
     $("#sus", host).innerHTML = SUSTS.map(k => `<button class="btn" data-sus="${esc(k)}">${esc(CORTO_SUST[k])} · ${mxn(SUSTP[k])}</button>`).join("") + `<button class="btn dor" data-regla="1"></button>`;
   },
   actualizar() {
@@ -144,6 +149,9 @@ DET.precio = {
       });
     });
     const h = y0 + vis.length * LH;
+    const mm = motor(S), mes = mm.meseta;
+    rm.put("mes", "rect", {x: A(mes.desde), y: 78, w: A(mes.hasta) - A(mes.desde), h: h - 78 + 4, rx: 6, fill: C.dorado, op: 0.2, grow: false});
+    rm.put("mest", "text", {x: A(mes.desde), y: h + 22, text: `meseta del margen: ${mxn(mes.desde)} a ${mxn(mes.hasta)} (a menos de 2 % del máximo)`, size: 12, weight: 700, fill: C.dorado});
     [["sv", "precioServicio", PLAN.paga, C.vino], ["sa", "precioSalon", PLAN.ejec, C.osc]].forEach(([id, key, nom, col], q) => {
       const x = A(S[key]);
       rm.put(id + "l", "line", {x1: x, y1: 36, x2: x, y2: h + 6, stroke: col, sw: 3});
@@ -154,13 +162,17 @@ DET.precio = {
     this.armado = true;
     const caros = D.mercado_planes.filter(p => p.precio > S.precioServicio).length, tot = D.mercado_planes.length;
     const m = motor(S), sust = SUSTP[S.sustituto], kimp = S.precioServicio / sust, s = sup(S);
-    const regla = MOD.redondea(MOD.precioSugerido(sust, S.K, s), s), opt = MOD.precioOptimo(S.curva, s).precio;
+    const regla = MOD.redondea(MOD.precioSugerido(sust, S.K, s), s);
     $("#ocp").innerHTML = [...this.oculto].map(p => `<button class="btn" data-rp="${esc(p)}">↩ ${esc(p)}</button>`).join("") + (this.oculto.size ? `<button class="btn dor" data-rp="*">Mostrar todos</button>` : "");
     $$("#sus [data-sus]").forEach(b => b.setAttribute("aria-pressed", b.dataset.sus === S.sustituto));
+    $$("#cvs [data-cv]").forEach(b => b.setAttribute("aria-pressed", b.dataset.cv === S.curva));
+    const cvb = m.s.curvas_pago[S.curva];
+    [["cMed", cvb.mediana, v => mxn(v)], ["cSig", cvb.sigma, v => v.toFixed(2)], ["cTec", cvb.techo, v => n(100 * v) + " %"]].forEach(([k, v, f]) => { const r = $(`[data-cc="${k}"]`); if (r && document.activeElement !== r) r.value = v; $(`[data-cco="${k}"]`).textContent = f(v); });
+    $("#inegi").innerHTML = D.inegi_tamano.map(t => { const p = 100 * S.precioServicio / t.ingreso, w = clamp(p / 0.3 * 100, 2, 100); return `<div class="ing"><span>${esc(t.estrato)} personas · ${mxn(t.ingreso)} al mes</span><b>${p.toFixed(2)} %</b><div class="ingb"><i style="width:${w}%"></i></div></div>`; }).join("") + `<p class="nota">Ingreso por negocio de la clase 722511 (INEGI, Censos Económicos 2024, año 2023). Barra completa = 0.3 % del ingreso. Un punto de venta cuesta de 652 a 1,000 al mes.</p>`;
     $("[data-regla]", $("#sus")).textContent = `Poner el precio de la regla: ${mxn(regla)} (K = ${S.K})`;
     return {
       leyenda: `<span>Cada color es un proveedor; más claro = plan más barato</span><span><i style="background:${C.vino}"></i>${PLAN.paga}</span><span><i style="background:${C.osc}"></i>${PLAN.ejec}</span>`,
-      cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], [mxn(opt), `precio que más margen deja con la curva ${S.curva}`, "supuesto"]],
+      cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], [`${mxn(mes.desde)}–${mxn(mes.hasta)}`, `meseta del precio con la curva ${S.curva}: el margen cambia menos de 2 %`, "supuesto"]],
       insight: S.precioServicio <= 349 ? "Meniu ya ofrece caja, cocina y pedir desde la mesa por $225: a este precio Carta sólo gana si la mesa que pide junta y la sencillez valen la diferencia." : "A este precio Carta queda arriba del corredor propuesto (249 a 349): lo tiene que justificar la orden compartida.",
     };
   },

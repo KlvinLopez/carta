@@ -35,7 +35,7 @@ def modelo_js() -> str:
     src = (INV / "2026-11-14-modelo-de-escenarios.mjs").read_text(encoding="utf-8")
     nombres = re.findall(r"^export (?:async )?(?:function|const) (\w+)", src, flags=re.M)
     cuerpo = re.sub(r"^export ", "", src, flags=re.M)
-    return "(function(){\n" + cuerpo + "\nreturn {" + ",".join(nombres) + "};\n})()"
+    return "(function(){\n" + cuerpo + "\nreturn {" + ",".join(nombres + ["PARAMS_SENS"]) + "};\n})()"
 
 
 def b64(p: Path) -> str:
