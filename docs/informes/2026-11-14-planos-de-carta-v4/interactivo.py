@@ -11,7 +11,7 @@ import base64
 import json
 from pathlib import Path
 
-from datos import cargar
+from datos_v5 import cargar5
 
 AQUI = Path(__file__).resolve().parent
 RAIZ = AQUI.parents[2]
@@ -30,7 +30,7 @@ def b64(p: Path) -> str:
 
 
 def main() -> None:
-    d = cargar()
+    d = cargar5()
     refs_all = json.loads((AQUI / "datos" / "referencias.json").read_text(encoding="utf-8"))
     refs = {}
     for r in refs_all["referencias"]:
@@ -39,9 +39,11 @@ def main() -> None:
                 "corta": f"{r['corta']} {r['año']}" if r.get("corta") else f"{r['autor']}, {r['año'] or 's. f.'}",
                 "año": r["año"], "titulo": r["titulo"], "url": r["url"], "publica": r["publica"],
             }  # fmt: skip
+    js = "\n".join(p.read_text(encoding="utf-8") for p in sorted((AQUI / "js").glob("*.js")))
     plantilla = (AQUI / "interactivo.tpl.html").read_text(encoding="utf-8")
     html = (
-        plantilla.replace("__DATOS__", json.dumps(d, ensure_ascii=False))
+        plantilla.replace("__JS__", js)
+        .replace("__DATOS__", json.dumps(d, ensure_ascii=False))
         .replace("__REFS__", json.dumps(refs, ensure_ascii=False))
         .replace("__SANS__", b64(FUENTES / "DMSans-variable-latin.woff2"))
         .replace("__SERIF__", b64(FUENTES / "DMSerifDisplay-Regular-latin.woff2"))
