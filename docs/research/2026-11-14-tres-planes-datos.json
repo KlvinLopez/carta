@@ -1,0 +1,132 @@
+{
+ "cobertura_platillos": [
+  {
+   "tope": 40,
+   "total_cubre_pct": 47.3,
+   "total_empuja_pct": 52.7,
+   "bar_cantina_empuja_pct": 64.3,
+   "cafeteria_empuja_pct": 50.0,
+   "casual_empuja_pct": 64.0,
+   "formal_empuja_pct": 77.8,
+   "taqueria_fonda_empuja_pct": 32.6
+  },
+  {
+   "tope": 60,
+   "total_cubre_pct": 75.7,
+   "total_empuja_pct": 24.3,
+   "bar_cantina_empuja_pct": 28.6,
+   "cafeteria_empuja_pct": 37.5,
+   "casual_empuja_pct": 30.0,
+   "formal_empuja_pct": 44.4,
+   "taqueria_fonda_empuja_pct": 2.3
+  },
+  {
+   "tope": 80,
+   "total_cubre_pct": 89.2,
+   "total_empuja_pct": 10.8,
+   "bar_cantina_empuja_pct": 0.0,
+   "cafeteria_empuja_pct": 18.8,
+   "casual_empuja_pct": 14.0,
+   "formal_empuja_pct": 22.2,
+   "taqueria_fonda_empuja_pct": 2.3
+  },
+  {
+   "tope": 100,
+   "total_cubre_pct": 95.9,
+   "total_empuja_pct": 4.1,
+   "bar_cantina_empuja_pct": 0.0,
+   "cafeteria_empuja_pct": 0.0,
+   "casual_empuja_pct": 8.0,
+   "formal_empuja_pct": 22.2,
+   "taqueria_fonda_empuja_pct": 0.0
+  },
+  {
+   "tope": 120,
+   "total_cubre_pct": 95.9,
+   "total_empuja_pct": 4.1,
+   "bar_cantina_empuja_pct": 0.0,
+   "cafeteria_empuja_pct": 0.0,
+   "casual_empuja_pct": 8.0,
+   "formal_empuja_pct": 22.2,
+   "taqueria_fonda_empuja_pct": 0.0
+  }
+ ],
+ "nucleo_por_plan": {
+  "Gratuito": {
+   "negocios": 73193,
+   "pct": 69.8
+  },
+  "Servicio": {
+   "negocios": 28664,
+   "pct": 27.3
+  },
+  "Salón": {
+   "negocios": 3025,
+   "pct": 2.9
+  }
+ },
+ "planes": {
+  "Gratuito": {
+   "precio": 0,
+   "perfil": "chico",
+   "costo_var": 1.0,
+   "fijo": 3.0,
+   "mb_en_linea": 13.0,
+   "costo_total": 4.0,
+   "margen_pct": null,
+   "gratuitos_por_costo": 1.0,
+   "gratuitos_por_disco": 1.0,
+   "restaurantes_en_5gb_solo_de_este_plan": 384
+  },
+  "Servicio": {
+   "precio": 349,
+   "perfil": "mediano",
+   "costo_var": 1.9,
+   "fijo": 3.0,
+   "mb_en_linea": 27.4,
+   "costo_total": 83.0,
+   "margen_pct": 76,
+   "gratuitos_por_costo": 1.2,
+   "gratuitos_por_disco": 2.1,
+   "restaurantes_en_5gb_solo_de_este_plan": 182
+  },
+  "Salón": {
+   "precio": 549,
+   "perfil": "grande",
+   "costo_var": 7.5,
+   "fijo": 3.0,
+   "mb_en_linea": 130.9,
+   "costo_total": 96.9,
+   "margen_pct": 82,
+   "gratuitos_por_costo": 2.6,
+   "gratuitos_por_disco": 10.1,
+   "restaurantes_en_5gb_solo_de_este_plan": 38
+  }
+ },
+ "escenarios": [
+  {
+   "conversion": 0.03,
+   "pagan_servicio": 8,
+   "pagan_salon": 1,
+   "ingreso_mes": 3336,
+   "costo_fijo_1000_mes": 2569,
+   "punto_de_equilibrio_pagantes": 7.4
+  },
+  {
+   "conversion": 0.05,
+   "pagan_servicio": 14,
+   "pagan_salon": 1,
+   "ingreso_mes": 5560,
+   "costo_fijo_1000_mes": 2569,
+   "punto_de_equilibrio_pagantes": 7.4
+  },
+  {
+   "conversion": 0.1,
+   "pagan_servicio": 27,
+   "pagan_salon": 3,
+   "ingreso_mes": 11120,
+   "costo_fijo_1000_mes": 2569,
+   "punto_de_equilibrio_pagantes": 7.4
+  }
+ ]
+}
