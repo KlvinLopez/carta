@@ -21,7 +21,7 @@ prueba('piso con la comisión sobre el precio sin IVA (primera versión, 83)', M
 prueba('equilibrio a 349 con costo fijo 2,569 (138 USD × 18.6188)', Math.round(M.puntoEquilibrio(138 * s.fx, 349, pisoMediano) * 10) / 10, 9.7, 0.05);
 
 // 2) restaurantes de paga que caben en 5 GB (todos de paga, mezcla de paga): 14, 22, 38 y 128
-const c = M.configBase();
+const c = M.configInicial();
 const paga = (mv, me) => {
   const cc = JSON.parse(JSON.stringify(c));
   cc.topes.servicio.meses_en_linea = mv;
@@ -57,7 +57,24 @@ const e1 = M.evaluar(c, s, 1000);
 prueba('el margen es ingresos menos costos', Math.round(e1.ingresos.total - e1.costos.total), Math.round(e1.margen.pesos));
 prueba('clientes suman n', Math.round(e1.clientes.gratuito + e1.clientes.servicio + e1.clientes.salon), 1000);
 const sin = M.escenarios(c, s, [1000])[0];
-prueba('peor caso con anuncios mejora al peor sin anuncios', sin.peor_anuncios_tarifa_media.margen.pesos > sin.peor_sin_anuncios.margen.pesos, true);
+prueba('peor caso condicional (con anuncios aprobados) mejora al peor firme (sin anuncios)', sin.peor_anuncios_tarifa_media.margen.pesos > sin.peor_firme.margen.pesos, true);
+prueba('por defecto los anuncios NO suman (no están aprobados)', e1.ingresos.anuncios, 0);
+prueba('peor firme a 1,000: pierde dinero', sin.peor_firme.margen.pesos < 0, true);
+prueba('peor con anuncios adversos < peor con anuncios en tarifa baja', sin.peor_anuncios_adversos.margen.pesos < sin.peor_anuncios_tarifa_baja.margen.pesos, true);
+const cero = JSON.parse(JSON.stringify(c)); cero.precios.servicio = 0; cero.precios.salon = 0;
+prueba('precio 0: no hay clientes de paga', M.evaluar(cero, s, 1000).clientes.de_paga, 0);
+prueba('margen de operación ≥ margen después de captación', e1.margen_operacion >= e1.margen_despues_de_captacion, true);
+const ex = M.evaluar(c, s, 5000, { todosPagan: true });
+prueba('con 5,000 restaurantes de paga ya hay extrapolación sin medir', ex.extrapolacion_sin_medir && ex.capacidad.requiere_arquitectura, true);
+prueba('con 100 restaurantes no hay extrapolación', M.evaluar(c, s, 100).extrapolacion_sin_medir, false);
+const sens = M.sensibilidad(c, s, 1000, { anunciosAprobados: true });
+prueba('sensibilidad ordenada de mayor a menor', sens.filas.every((f, i) => i === 0 || sens.filas[i - 1].efecto >= f.efecto), true);
+const opt0 = M.optimizar(s);
+prueba('la meseta del precio contiene al mejor precio', opt0.mejor.meseta[0] <= opt0.mejor.mejor_precio && opt0.mejor.mejor_precio <= opt0.mejor.meseta[1], true);
+const t = opt0.tabla_cupo_gratis.filter((x) => !x.sin_solucion);
+prueba('a más cupo gratis, menos margen (tabla de cupo)', t.every((x, i) => i === 0 || t[i - 1].margen >= x.margen - 1e-6), true);
+prueba('los topes del gratuito cambian con el cupo exigido', new Set(t.map((x) => `${x.mesas}-${x.cuentas}`)).size > 1, true);
+prueba('el traslape 1 baja «dentro» (con 0 es el mayor tope)', opt0.sensibilidad_traslape[1].dentro_con_topes_recomendados < opt0.sensibilidad_traslape[0].dentro_con_topes_recomendados, true);
 prueba('el mejor caso supera al esperado medio', sin.mejor.ingresos.total > sin.esperado.media.ingresos.total, true);
 prueba('esperado: pesimista ≤ media ≤ optimista en ingresos', sin.esperado.pesimista.ingresos.total <= sin.esperado.media.ingresos.total && sin.esperado.media.ingresos.total <= sin.esperado.optimista.ingresos.total, true);
 const po = M.precioOptimo('media', s);
