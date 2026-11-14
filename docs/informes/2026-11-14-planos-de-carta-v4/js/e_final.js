@@ -14,7 +14,7 @@ DET.sostiene = {
   nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
   montar(host) {
     this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
-    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
+    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
     const sv = $("#svK", host); this.sv = sv;
     host.addEventListener("click", ev => {
       const t = ev.target.closest("[data-vista]"); if (t) { this.v = +t.dataset.vista; refrescar(); return; }
@@ -26,6 +26,7 @@ DET.sostiene = {
   actualizar() {
     $$("#tabsK [data-vista]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vista === this.v));
     $("#bolsaK").hidden = this.v !== 0;
+    const bk = $("#banK"); bk.hidden = this.v !== 1; bk.innerHTML = BAND.banderas.map(b => `<span class="chip" data-tip="${esc2(b.que_hacer + ". " + b.estado_de_la_medicion + ". Proyección: no medido en Railway.")}" tabindex="0">${esc(b.nombre.replace(/ \(.*\)/, ""))} <b>${b.umbral_aviso}/${b.umbral_accion}</b></span>`).join("");
     $$("#bolsaK [data-bolsa]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.bolsa === S.bolsa));
     return this.pinta();
   },
@@ -33,8 +34,9 @@ DET.sostiene = {
   v0() { // ¿hasta dónde aguanto con todos gratuitos?
     const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
     const tabla = conCache("tg", () => MOD.tablaTodosGratuitos(c, s).medida);
-    const desde = conCache("nps", () => ({baja: MOD.nSePagaSolo(c, s, "baja"), medio: MOD.nSePagaSolo(c, s, "medio"), adverso: MOD.nSePagaSolo(c, s, "adverso")}));
-    const bol = conCache("bolsa" + S.bolsa, () => MOD.capacidadConBolsa(c, s, S.bolsa));
+    const rs = conCache("rs", () => ({baja: MOD.rangoSePagaSolo(c, s, "baja"), medio: MOD.rangoSePagaSolo(c, s, "medio"), adverso: MOD.rangoSePagaSolo(c, s, "adverso")})), rg = r => `${n(r.minimo)}–${r.maximo == null ? "nunca" : n(r.maximo)}`;
+    const desde = {baja: rs.baja.centro, medio: rs.medio.centro, adverso: rs.adverso.centro};
+    const bol = conCache("bolsa" + S.bolsa, () => MOD.rangoBolsa(c, s, S.bolsa));
     const X0 = 60, W = 540, Y0 = 70, H = 300, lo = lg(10), hi = lg(2000), sl = v => Math.asinh(v / 600), vmin = -3000, vmax = 60000;
     const X = k => X0 + W * (lg(k) - lo) / (hi - lo), Y = v => Y0 + H * (sl(vmax) - sl(clamp(v, vmin, vmax))) / (sl(vmax) - sl(vmin));
     let b = T(30, 28, "Resultado al mes (pesos) según cuántos restaurantes gratuitos hay", 14.5, C.vino, "start", 700);
@@ -52,16 +54,16 @@ DET.sostiene = {
     b += T(px, 232, "Cuando ya hay anuncios, al mes:", 13, C.t2, "start", 700);
     [["baja", "tarifa baja", C.vino], ["medio", "tarifa media", C.verde], ["adverso", "adverso (la mitad)", C.dorado]].forEach(([k, nm, col], i) => { const r = g.con_anuncios[k]; b += `<circle cx="${px + 6}" cy="${256 + i * 30}" r="6" fill="${col}"/>` + T(px + 20, 261 + i * 30, `${nm}: ${fmP(r.margen)}`, 14, C.tinta, "start", 700) + T(px + 270, 261 + i * 30, r.se_paga_solo ? "se paga solo" : "no alcanza", 12, r.se_paga_solo ? C.verde : C.rojo, "end", 700); });
     b += `<g transform="translate(${px},352)">${Rc(0, 0, 280, 22, C.a2, 11)}</g>` + T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
-    [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2); });
+    [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2) + T(px + i * 96, 456, `rango ${rg(rs[k])}`, 11, C.t2); });
     b += T(30, 500, "Vale cuando la Fase 3 (canal de eventos) esté construida; hoy, con sondeo, caben 148. Los umbrales son rangos, no puntos.", 12.5, C.t2);
-    b += T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.restaurantes)} restaurantes gratuitos y ${n(bol.comensales_mes / 1e6, 2)} M de comensales al mes${bol.tope_medido ? " (tope medido)" : ""}.`, 14.5, C.osc, "start", 700);
+    b += `<rect x="30" y="462" width="600" height="26" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que este cálculo no incluye: " + bol.no_modelado.join("; "))}" tabindex="0"/>` + T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) y ${n(bol.centro.comensales_mes / 1e6, 2)} M de comensales al mes.`, 14.5, C.osc, "start", 700);
     sv.innerHTML = b;
     const hd = $("#hN", sv), inv = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
     arrastrable(hd, sv, pt => { this.N = inv(pt.x); this.pinta(); }, (d, mult) => { this.N = clamp(this.N + d * mult * 10, 10, 2000); this.pinta(); });
     hd.setAttribute("aria-label", "Restaurantes gratuitos"); hd.setAttribute("aria-valuenow", N);
     return {
       leyenda: `<span><i style="background:${C.rojo}"></i>sin anuncios: lo pones tú</span><span><i style="background:${C.vino}"></i>anuncios, tarifa baja</span><span><i style="background:${C.verde}"></i>tarifa media</span><span><i style="background:${C.dorado}"></i>adverso</span>`,
-      cifras: [[n(g.comensales_mes / 1e6, 2) + " M", `comensales al mes con ${n(N)} restaurantes gratuitos`, "simulado"], [fmP(g.costo_sin_anuncios), "al mes que pones tú mientras no hay anuncios"], [desde.baja == null ? "—" : n(desde.baja), "restaurantes gratuitos desde los que se paga solo (tarifa baja)", "supuesto"], [desde.adverso == null ? "—" : n(desde.adverso), "lo mismo, en el caso adverso", "supuesto"]],
+      cifras: [[n(g.comensales_mes / 1e6, 2) + " M", `comensales al mes con ${n(N)} restaurantes gratuitos`, "simulado"], [fmP(g.costo_sin_anuncios), "al mes que pones tú mientras no hay anuncios"], [desde.baja == null ? "—" : n(desde.baja), `restaurantes gratuitos desde los que se paga solo (tarifa baja; rango ${rg(rs.baja)})`, "supuesto"], [desde.adverso == null ? "—" : n(desde.adverso), `lo mismo, en el caso adverso (rango ${rg(rs.adverso)})`, "supuesto"]],
       insight: `Con ${n(N)} restaurantes gratuitos y sin anuncios pones ${fmP(g.costo_sin_anuncios)} al mes; con anuncios se paga solo desde ${desde.baja == null ? "—" : n(desde.baja)} (tarifa baja) o ${desde.adverso == null ? "—" : n(desde.adverso)} (caso adverso).`,
     };
   },
@@ -75,7 +77,7 @@ DET.sostiene = {
     [1, 6, 12, 18, 24].forEach(t => { b += T(X(t), 296, "mes " + t, 11.5, C.t2, "middle"); });
     // banderas: cada salto de escalón, el inicio de los anuncios y el primer margen positivo
     const ban = [];
-    filas.forEach((r, i) => { const p = filas[i - 1]; if (p && r.escalon !== p.escalon) ban.push([r.mes, r.escalon === "pro_2" ? "aquí pasa a Pro" : "aquí toca otro procesador", C.rojo]); if (r.requiere_arquitectura && !(p && p.requiere_arquitectura)) ban.push([r.mes, "aquí hace falta otra nube", C.osc]); });
+    filas.forEach((r, i) => { const p = filas[i - 1]; if (p && r.escalon !== p.escalon) ban.push([r.mes, (r.escalon === "pro_2" ? "aquí pasa a Pro" : "aquí toca otro procesador") + ((BAND.escalones.find(q => q.id === r.escalon) || {}).sube_costo_usd_vs_anterior ? ` (+${BAND.escalones.find(q => q.id === r.escalon).sube_costo_usd_vs_anterior} USD)` : ""), C.rojo]); if (r.requiere_arquitectura && !(p && p.requiere_arquitectura)) ban.push([r.mes, "aquí hace falta otra nube", C.osc]); });
     ban.push([pz.mes_inicio_anuncios, "aquí empiezan los anuncios", C.verde]);
     if (pz.mes_primer_margen_positivo) ban.push([pz.mes_primer_margen_positivo, "primer margen positivo", C.dorado]);
     ban.sort((a, z) => a[0] - z[0]).forEach(([t, tx, col], i) => { const y = 44 + (i % 3) * 22, x = X(t), lb = `⚑ ${tx} · mes ${t}`, w = lb.length * 6.7 + 18, rx = x + w > X0 + W + 40 ? x - w + 4 : x - 4; b += `<line x1="${x}" x2="${x}" y1="${y + 8}" y2="${Ya(filas[t - 1].restaurantes)}" stroke="${col}" stroke-width="1.8" stroke-dasharray="3 3"/><g><rect x="${rx}" y="${y - 10}" width="${w}" height="20" rx="10" fill="${col}"/>${T(rx + 10, y + 4, lb, 11, "#fff", "start", 700)}</g>`; });
@@ -124,7 +126,7 @@ DET.sostiene = {
     const sv = this.sv, c = config(S), s = sup(S), X0 = 250, CW = 210, CH = 96, Y0 = 110;
     const curvas = [["pesimista", "Pagan poco"], ["media", "Pagan lo esperado"], ["optimista", "Pagan más"]];
     const ads = [["Sin anuncios", {sinAnuncios: true}], ["Tarifa baja", {anuncios: {activo: true, tarifa: "baja"}}], ["Tarifa media", {anuncios: {activo: true, tarifa: "media"}}]];
-    const v = curvas.map(([k]) => ads.map(([, o]) => MOD.evaluar(c, s, 1000, {curva: k, ...o}).margen_operacion));
+    const v = MOD.matrizEscenarios(c, s, 1000).filas.map(f => f.celdas.map(z => z.margen_operacion));
     const mxp = Math.max(...v.flat()), mxn2 = Math.max(1, -Math.min(...v.flat()));
     let b = T(30, 28, "Margen de operación al mes con 1,000 restaurantes (pesos)", 14.5, C.vino, "start", 700);
     ads.forEach(([t], j) => { b += T(X0 + j * CW + CW / 2 - 6, Y0 - 16, t, 14, C.vino, "middle", 700); });
@@ -167,7 +169,7 @@ const sinMd = t => String(t).replace(/\*\*/g, "").replace(/\*/g, "");
 const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 /* tarjetas: qué hacer (5 a 8 palabras), por qué (una cifra), qué pasa si no (una línea); lo demás, detrás de «ver más» */
 const PARCHES = {
-  segmentacion: [{topeMesas: 10, topeCuentas: 3, topePlatillos: 80}, {topeMesas: 10, topeCuentas: 3, topePlatillos: 300}, {topeMesas: 15, topeCuentas: 4, topePlatillos: 150}],
+  segmentacion: [{topeMesas: 12, topeCuentas: 3, topePlatillos: 150}, {topeMesas: 20, topeCuentas: 4, topePlatillos: 100}, {topeMesas: 25, topeCuentas: 4, topePlatillos: 150}],
   precios: [{precioServicio: 199, precioSalon: 1099}, {precioServicio: 225, precioSalon: 1099}, {precioServicio: 249, precioSalon: 1099}, {precioServicio: 299, precioSalon: 1099}],
   anuncios: [{mesAds: 3}, {mesAds: 9}, {mesAds: 99}],
   bolsa: [{bolsa: 500}, {bolsa: 1000}, {bolsa: 2000}, {bolsa: 5000}],
@@ -178,9 +180,9 @@ const PARCHES = {
 const segC = (mesas, cuentas, plat) => 100 * MOD.seguridadChico({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas, platillos: plat}}}, SP);
 const TARJ = {
   segmentacion: {
-    que: "Chef gratis: 15 mesas, 4 cuentas, 150 platillos",
-    cif: () => [n(segC(15, 4, 150), 1) + " %", "de los negocios de hasta 10 personas queda en Chef"],
-    si: () => `Con 10 mesas, 3 cuentas y 80 platillos, sólo ${n(segC(10, 3, 80), 1)} % queda dentro.`,
+    que: "Chef gratis: 25 mesas, 4 cuentas, 150 platillos",
+    cif: () => [n(segC(25, 4, 150), 1) + " %", "de los negocios de hasta 10 personas queda en Chef (modelo)"],
+    si: () => `Con 15 mesas, ${n(segC(15, 4, 150), 1)} % de los chicos queda dentro (mínimo más bajo).`,
     rec: 2,
   },
   precios: {

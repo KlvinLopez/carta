@@ -16,7 +16,7 @@ async function nueva(w, h) {
   const ctx = await nav.newContext({ viewport: { width: w, height: h } });
   const p = await ctx.newPage();
   p.on('console', (m) => m.type() === 'error' && errores.push(`${w}: ${m.text()}`));
-  p.on('pageerror', (e) => errores.push(`${w}: ${e}`));
+  p.on("pageerror", (e) => errores.push(`${w}: ${String(e.stack).split("\n").slice(0, 3).join(" | ")}`));
   await p.goto(url);
   await p.evaluate(() => document.fonts.ready);
   return p;
@@ -128,7 +128,7 @@ const e1 = await texto(p, '#cif .cifra:nth-child(5) b');
 ok(e1 !== e0, `topes: bajar el tope de platillos cambia a quién empuja (${e0} → ${e1})`);
 const box = await p.$eval('#svT circle[aria-label="Tope de mesas"]', (e) => { const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
 await p.mouse.move(box[0], box[1]); await p.mouse.down(); await p.mouse.move(box[0] + 150, box[1], {steps: 6}); await p.mouse.up(); await p.waitForTimeout(500);
-ok((await p.evaluate(() => S.topeMesas)) > 15, 'topes: arrastrar el asa de mesas la mueve');
+ok((await p.evaluate(() => S.topeMesas)) > 25, 'topes: arrastrar el asa de mesas la mueve');
 ok((await p.$$('#svT [id], #svT .rm')).length > 20 && (await texto(p, '#svT')).includes('Chef Ejecutivo'), 'topes: muestra a qué plan cae cada tamaño');
 if (png) await p.screenshot({ path: `${png}/v5_topes.png` });
 await sinDesborde(p, 'topes'); await cierra(p);
@@ -170,7 +170,7 @@ await p.click('#tabsK [data-vista="3"]'); await p.waitForTimeout(400);
 ok((await p.$$('#svK [data-tip]')).length >= 6, 'sostiene: «qué hay que medir primero» con una frase por barra');
 if (png) await p.screenshot({ path: `${png}/v8_sostiene.png`, fullPage: true });
 await p.click('#tabsK [data-vista="4"]'); await p.waitForTimeout(1300);
-ok((await texto(p, '#svK')).includes('−$156') && (await texto(p, '#svK')).includes('$30,650'), 'sostiene: la matriz 3 × 3 da −156 y +30,650 en las esquinas');
+ok((await texto(p, '#svK')).includes('−$47') && (await texto(p, '#svK')).includes('$32,655'), 'sostiene: la matriz 3 × 3 da −47 y +32,655 en las esquinas');
 if (png) await p.screenshot({ path: `${png}/v8_sost4.png` });
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
@@ -182,14 +182,14 @@ await sinDesborde(p, 'pagar'); await cierra(p);
 await abre(p, 'recomendaciones');
 await p.click('[data-mas="segmentacion"]'); await p.waitForTimeout(150);
 await p.click('#r_segmentacion .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
-ok((await p.evaluate(() => S.topeMesas)) === 10, 'recomendaciones: «Probar esta» aplica 10 mesas');
+ok((await p.evaluate(() => S.topeMesas)) === 12, 'recomendaciones: «Probar esta» aplica 12 mesas');
 await p.click('#r_segmentacion .acc2 [data-aplica]'); await p.waitForTimeout(300);
-ok((await p.evaluate(() => S.topeMesas)) === 15, 'recomendaciones: aplicar lo recomendado (15 mesas)');
+ok((await p.evaluate(() => S.topeMesas)) === 25, 'recomendaciones: aplicar lo recomendado (25 mesas)');
 if (png) await p.screenshot({ path: `${png}/v5_recs.png` });
 await sinDesborde(p, 'recomendaciones');
 // persistencia del escenario que se edita dentro de cada detalle
 await p.reload(); await p.waitForTimeout(400);
-ok((await p.evaluate(() => S.topeMesas)) === 15, 'lo editado dentro del detalle persiste al recargar');
+ok((await p.evaluate(() => S.topeMesas)) === 25, 'lo editado dentro del detalle persiste al recargar');
 await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);

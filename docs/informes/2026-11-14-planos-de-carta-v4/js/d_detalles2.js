@@ -84,7 +84,7 @@ DET.topes = {
   fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
   nota: "Segmentación de Calvin: gratis los dos tamaños chicos (0 a 5 y 6 a 10 personas), plan medio los tres de en medio, plan caro los dos grandes. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato. Chef Ejecutivo es nombre propuesto.",
   montar(host) {
-    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 590" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.rm = RM($("#svT", host)); this.svg = $("#svT", host); this.armado = false;
   },
   actualizar() {
@@ -120,15 +120,20 @@ DET.topes = {
       rm.put("tc" + i, "text", {x: x + 62, y: 450, text: `≈ ${n(cuentasDe(q))} ${Math.round(cuentasDe(q)) === 1 ? "cuenta" : "cuentas"}`, size: 11, fill: C.t2, anchor: "middle"});
       rm.put("tn" + i, "text", {x: x + 62, y: 470, text: `${n(q.negocios)} · ${100 * q.negocios / tot < 0.1 ? "menos de 0.1" : n(100 * q.negocios / tot, 1)} %`, size: 11.5, fill: C.t2, anchor: "middle"});
     });
-    const sMin = 100 * MOD.seguridadChico(c, SP, "minimo"), sCen = 100 * MOD.seguridadChico(c, SP, "centro");
-    rm.put("cr0", "rect", {x: 30, y: 490, w: 900, h: 56, rx: 20, fill: C.a2, grow: false});
-    rm.put("cr1", "text", {x: 52, y: 528, text: `≈ ${n(sMin)}–${n(sCen)} de cada 100`, size: 28, fill: C.vino, serif: true});
-    rm.put("cr2", "text", {x: 360, y: 524, text: `negocios de hasta 10 personas caben en ${PLAN.gratis} (modelo, no medida)`, size: 13.5, weight: 700, fill: C.t2});
+    const filaCob = mesas => { const cc = config({...S, topeMesas: mesas}); return [100 * MOD.seguridadChico(cc, SP, "minimo"), 100 * MOD.seguridadChico(cc, SP, "centro"), 100 * MOD.seguridadChico(cc, SP, "maximo"), evalS({...S, topeMesas: mesas}).margen_operacion]; };
+    const alt = S.topeMesas === 15 ? 25 : 15;
+    [[S.topeMesas, "tu asa"], [alt, alt === 15 ? "alternativa" : "recomendada"]].forEach(([me, tag], i) => {
+      const [mi, ce, ma, mg] = filaCob(me), y = 488 + i * 44;
+      rm.put("cr0" + i, "rect", {x: 30, y, w: 900, h: 38, rx: 16, fill: i ? "rgba(0,0,0,0)" : C.a2, grow: false});
+      rm.put("cr1" + i, "text", {x: 48, y: y + 26, text: `${me} mesas · ${tag}`, size: 14, weight: 700, fill: i ? C.t2 : C.vino});
+      rm.put("cr2" + i, "text", {x: 260, y: y + 26, text: `≈ ${n(ce, 1)} de cada 100 chicos caben en ${PLAN.gratis} (rango ${n(mi, 1)}–${n(ma, 1)}, modelo, no medida)`, size: 13.5, fill: C.tinta});
+      rm.put("cr3" + i, "text", {x: 920, y: y + 26, text: `margen ${mp(mg)} al mes`, size: 14, weight: 700, fill: mg >= 0 ? C.verde : C.rojo, anchor: "end"});
+    });
     rm.put("lg", "text", {x: 30, y: 250, text: "A qué plan cae cada tamaño de negocio", size: 14, weight: 700, fill: C.vino});
     const por = [0, 1, 2].map(p => SEG.estratos.filter(q => planDe(q, c) === p).reduce((a, q) => a + q.negocios, 0));
     return {
       leyenda: COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("") + `<span>Arrastra una asa o usa las flechas</span>`,
-      cifras: [[n(100 * MOD.seguridadChico(c, SP, "minimo")) + "–" + n(100 * MOD.seguridadChico(c, SP, "centro")) + " %", `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: modelo, no medida`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
+      cifras: [[n(100 * MOD.seguridadChico(c, SP, "minimo")) + "–" + n(100 * MOD.seguridadChico(c, SP, "maximo")) + " %", `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: modelo, no medida`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
       insight: `Con ${S.topeMesas} mesas, ${S.topeCuentas} cuentas y ${S.topePlatillos} platillos, ${n(100 * por[0] / tot, 1)} % de los negocios queda en ${PLAN.gratis}; ese plan lleva anuncios y lo pagan los demás.`,
     };
   },
@@ -144,7 +149,7 @@ DET.precio = {
     const prov = []; D.mercado_planes.forEach(p => { if (!prov.includes(p.proveedor)) prov.push(p.proveedor); });
     this.prov = prov.sort((a, b) => Math.min(...D.mercado_planes.filter(p => p.proveedor === a).map(p => p.precio)) - Math.min(...D.mercado_planes.filter(p => p.proveedor === b).map(p => p.precio)));
     this.oculto = new Set(); this.armado = false;
-    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div><div class="panel" style="margin-top:10px"><h3>El mejor precio depende de cuánto paguen</h3><svg id="svS" viewBox="0 0 960 250" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.rm = RM($("#svP", host)); this.svg = $("#svP", host);
     this.svg.addEventListener("click", ev => { const t = ev.target.closest("[data-prov]"); if (t) { this.oculto.add(t.dataset.prov); refrescar(); } });
     host.addEventListener("click", ev => {
@@ -194,6 +199,17 @@ DET.precio = {
       if (!this.armado) arrastrable(hd, svg, pt => cambiar({[key]: inv(pt.x)}), (d, mult) => cambiar({[key]: clamp(S[key] + d * mult * 10, 49, 1299)}));
     });
     this.armado = true;
+    {
+      const sp = MOD.sensibilidadPrecio(config({...S, precioServicio: 225}), sup(S), 1000), sv2 = $("#svS"), mx = Math.max(...sp.por_mediana.flatMap(q => q.margenes.map(z => z.margen_operacion)), 1);
+      let b = "";
+      sp.por_mediana.forEach((q, g) => {
+        const x0 = 30 + g * 232;
+        b += T(x0, 24, `Pagan alrededor de ${mxn(q.mediana)}`, 13.5, C.vino, "start", 700) + T(x0, 44, `mejor precio: ${mxn(q.precio_ganador)}`, 13, C.dorado, "start", 700);
+        q.margenes.forEach((z, i) => { const h = 130 * z.margen_operacion / mx, w = 44, x = x0 + i * 52, win = z.precio === q.precio_ganador; b += `<g class="gk" style="animation-delay:${(g * 4 + i) * 40}ms" data-tip="${mxn(z.precio)}: margen ${fmP(z.margen_operacion)} al mes, ${n(z.pagantes, 1)} clientes de paga">${Rc(x, 200 - h, w, h, win ? C.dorado : C.arena, 8, z.precio === 225 ? `stroke="${C.vino}" stroke-width="3"` : "")}</g>` + T(x + w / 2, 218, mxn(z.precio), 11.5, z.precio === 225 ? C.vino : C.t2, "middle", z.precio === 225 || win ? 700 : 400); });
+      });
+      b += T(30, 242, "Dorado: el mejor de los cuatro · contorno vino: $225 = igualar a Meniu Business (decisión de posicionamiento, no un óptimo del modelo)", 12, C.t2);
+      sv2.innerHTML = b;
+    }
     const caros = D.mercado_planes.filter(p => p.precio > S.precioServicio).length, tot = D.mercado_planes.length;
     const m = motor(S), sust = SUSTP[S.sustituto], kimp = S.precioServicio / sust, s = sup(S);
     const regla = MOD.redondea(MOD.precioSugerido(sust, S.K, s), s);
@@ -207,7 +223,7 @@ DET.precio = {
     return {
       leyenda: `<span>Cada color es un proveedor; más claro = plan más barato</span><span><i style="background:${C.vino}"></i>${PLAN.paga}</span><span><i style="background:${C.osc}"></i>${PLAN.ejec}</span>`,
       cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], [`${mxn(mes.desde)}–${mxn(mes.hasta)}`, `meseta del precio con la curva ${S.curva}: el margen cambia menos de 2 %`, "supuesto"]],
-      insight: S.precioServicio <= 349 ? "Meniu ya ofrece caja, cocina y pedir desde la mesa por $225: a este precio Carta sólo gana si la mesa que pide junta y la sencillez valen la diferencia." : "A este precio Carta queda arriba del corredor propuesto (249 a 349): lo tiene que justificar la orden compartida.",
+      insight: "225 es igualar a Meniu Business, no un óptimo del modelo: el mejor precio se mueve con cuánto paguen los dueños, y eso lo decide la prueba de tres precios del piloto.",
     };
   },
 };

@@ -49,6 +49,7 @@ main{padding-block:12px 28px}
 .kpi .tri{display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;font-style:normal}
 .kpi .tri i{font-style:normal;font-weight:700}
 .kpi .tri.ne i{color:var(--tinta2)}
+.kpi .tri .pv{color:#8a7f74;font-weight:400}
 .kpi .tri .p{color:var(--rojo)}.kpi .tri .m{color:var(--verde)}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .box{all:unset;box-sizing:border-box;cursor:pointer;background:var(--blanco);border-radius:22px;padding:12px 16px;box-shadow:0 3px 12px var(--sombra);display:flex;flex-direction:column;min-height:200px;min-width:0;transition:transform .25s cubic-bezier(.34,1.4,.5,1),box-shadow .25s}
@@ -706,7 +707,7 @@ main{padding-block:12px 28px}
    "max": 3.0,
    "origen": "supuesto",
    "fuente": "supuesto de trabajo: 15 segundos de atención al mes por cliente gratuito a 120 pesos la hora",
-   "nota": "pesos al mes por cliente gratuito; con 1 peso el peor caso con anuncios a 100 restaurantes pierde casi todo su margen",
+   "nota": "pesos al mes por cliente gratuito (SUPUESTO sin fuente: 15 s al mes); rango 0–3 (el efecto en la bolsa y en los umbrales sale de `rangoBolsa` y `rangoSePagaSolo`, no de este texto); con 1 peso el peor caso con anuncios a 100 restaurantes pierde casi todo su margen",
    "mueve_resultado": true
   },
   "churn_mensual": {
@@ -791,108 +792,134 @@ main{padding-block:12px 28px}
     ],
     "centro": [
      [
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803
+      0.5265,
+      0.4881,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818
+     ],
+     [
+      0.4576,
+      0.3808,
+      0.3683,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648
+     ],
+     [
+      0.4319,
+      0.3359,
+      0.317,
+      0.31,
+      0.3067,
+      0.3051,
+      0.3051,
+      0.3051,
+      0.3051,
+      0.3051,
+      0.3051
+     ],
+     [
+      0.4061,
+      0.2909,
+      0.2658,
+      0.2553,
+      0.2487,
+      0.2457,
+      0.2457,
+      0.2457,
+      0.2457,
+      0.2457,
+      0.2457
      ],
      [
       0.3803,
+      0.2459,
+      0.2082,
+      0.1943,
+      0.1844,
+      0.1797,
+      0.1775,
+      0.1775,
+      0.1775,
+      0.1775,
+      0.1775
+     ],
+     [
       0.3803,
+      0.2267,
+      0.189,
+      0.1716,
+      0.1617,
+      0.1557,
+      0.1535,
+      0.1529,
+      0.1529,
+      0.1529,
+      0.1529
+     ],
+     [
       0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803
+      0.2267,
+      0.1827,
+      0.1618,
+      0.1453,
+      0.1348,
+      0.1303,
+      0.1287,
+      0.1287,
+      0.1287,
+      0.1287
      ],
      [
       0.3803,
       0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075
-     ],
-     [
-      0.3803,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075,
-      0.2075
-     ],
-     [
-      0.3803,
-      0.2075,
-      0.151,
-      0.151,
-      0.151,
-      0.151,
-      0.151,
-      0.151,
-      0.151,
-      0.151,
-      0.151
-     ],
-     [
-      0.3803,
-      0.2075,
-      0.151,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195
+      0.1573,
+      0.1328,
+      0.113,
+      0.0995,
+      0.0914,
+      0.0875,
+      0.0869,
+      0.0869,
+      0.0869
      ],
      [
       0.3803,
       0.2075,
       0.151,
-      0.1195,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898
+      0.123,
+      0.0999,
+      0.0822,
+      0.0718,
+      0.0654,
+      0.0641,
+      0.0641,
+      0.0641
      ],
      [
       0.3803,
       0.2075,
       0.151,
       0.1195,
-      0.0898,
-      0.075,
-      0.075,
-      0.075,
-      0.075,
-      0.075,
-      0.075
+      0.0931,
+      0.0708,
+      0.0559,
+      0.0449,
+      0.0421,
+      0.0417,
+      0.0417
      ],
      [
       0.3803,
@@ -901,11 +928,11 @@ main{padding-block:12px 28px}
       0.1195,
       0.0898,
       0.0632,
-      0.0498,
-      0.0498,
-      0.0498,
-      0.0498,
-      0.0498
+      0.0454,
+      0.0278,
+      0.0216,
+      0.0202,
+      0.02
      ],
      [
       0.3803,
@@ -915,23 +942,10 @@ main{padding-block:12px 28px}
       0.0898,
       0.0632,
       0.0432,
-      0.0318,
-      0.0318,
-      0.0318,
-      0.0318
-     ],
-     [
-      0.3803,
-      0.2075,
-      0.151,
-      0.1195,
-      0.0898,
-      0.0632,
-      0.0432,
-      0.02,
-      0.0122,
-      0.0122,
-      0.0122
+      0.021,
+      0.0112,
+      0.0081,
+      0.0072
      ],
      [
       0.3803,
@@ -943,8 +957,8 @@ main{padding-block:12px 28px}
       0.0432,
       0.02,
       0.0088,
-      0.0043,
-      0.0043
+      0.0049,
+      0.0031
      ],
      [
       0.3803,
@@ -958,99 +972,112 @@ main{padding-block:12px 28px}
       0.0088,
       0.0043,
       0.0019
-     ],
-     [
-      0.3803,
-      0.2075,
-      0.151,
-      0.1195,
-      0.0898,
-      0.0632,
-      0.0432,
-      0.02,
-      0.0088,
-      0.0043,
-      0.0016
      ]
     ],
     "minimo": [
      [
+      0.3366,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944
+     ],
+     [
       0.3021,
+      0.2178,
+      0.2053,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202
+     ],
+     [
       0.3021,
-      0.3021,
-      0.3021,
-      0.3021,
-      0.3021,
-      0.3021,
-      0.3021,
-      0.3021,
-      0.3021,
-      0.3021
+      0.1897,
+      0.1585,
+      0.1519,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496
      ],
      [
       0.3021,
       0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756
-     ],
-     [
-      0.3021,
-      0.1756,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195,
-      0.1195
-     ],
-     [
-      0.3021,
-      0.1756,
-      0.1195,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898
-     ],
-     [
-      0.3021,
-      0.1756,
-      0.1195,
-      0.0898,
-      0.0688,
-      0.0688,
-      0.0688,
-      0.0688,
-      0.0688,
-      0.0688,
-      0.0688
+      0.132,
+      0.1155,
+      0.1108,
+      0.1092,
+      0.1092,
+      0.1092,
+      0.1092,
+      0.1092,
+      0.1092
      ],
      [
       0.3021,
       0.1756,
       0.1195,
+      0.0964,
+      0.0847,
+      0.0789,
+      0.078,
+      0.078,
+      0.078,
+      0.078,
+      0.078
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0931,
+      0.0791,
+      0.0708,
+      0.0698,
+      0.0698,
+      0.0698,
+      0.0698,
+      0.0698
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0711,
+      0.0553,
+      0.0512,
+      0.05,
+      0.05,
+      0.05,
+      0.05
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
       0.0898,
       0.0688,
-      0.0688,
-      0.0688,
-      0.0688,
-      0.0688,
-      0.0688,
-      0.0688
+      0.0488,
+      0.0398,
+      0.0359,
+      0.0359,
+      0.0359,
+      0.0359
      ],
      [
       0.3021,
@@ -1059,11 +1086,11 @@ main{padding-block:12px 28px}
       0.0898,
       0.0688,
       0.0463,
-      0.0463,
-      0.0463,
-      0.0463,
-      0.0463,
-      0.0463
+      0.0341,
+      0.0245,
+      0.0239,
+      0.0239,
+      0.0239
      ],
      [
       0.3021,
@@ -1073,23 +1100,10 @@ main{padding-block:12px 28px}
       0.0688,
       0.0463,
       0.0318,
-      0.0318,
-      0.0318,
-      0.0318,
-      0.0318
-     ],
-     [
-      0.3021,
-      0.1756,
-      0.1195,
-      0.0898,
-      0.0688,
-      0.0463,
-      0.0318,
-      0.0215,
-      0.0215,
-      0.0215,
-      0.0215
+      0.016,
+      0.0134,
+      0.0132,
+      0.0132
      ],
      [
       0.3021,
@@ -1100,9 +1114,9 @@ main{padding-block:12px 28px}
       0.0463,
       0.0318,
       0.0122,
-      0.01,
-      0.01,
-      0.01
+      0.0066,
+      0.0051,
+      0.005
      ],
      [
       0.3021,
@@ -1114,8 +1128,8 @@ main{padding-block:12px 28px}
       0.0318,
       0.0122,
       0.0061,
-      0.0046,
-      0.0046
+      0.0031,
+      0.002
      ],
      [
       0.3021,
@@ -1128,20 +1142,7 @@ main{padding-block:12px 28px}
       0.0122,
       0.0061,
       0.003,
-      0.0017
-     ],
-     [
-      0.3021,
-      0.1756,
-      0.1195,
-      0.0898,
-      0.0688,
-      0.0463,
-      0.0318,
-      0.0122,
-      0.0061,
-      0.003,
-      0.0011
+      0.0012
      ],
      [
       0.3021,
@@ -1159,160 +1160,147 @@ main{padding-block:12px 28px}
     ],
     "maximo": [
      [
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122,
-      0.6122
+      0.5953,
+      0.5661,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634
+     ],
+     [
+      0.5265,
+      0.4973,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891
+     ],
+     [
+      0.5007,
+      0.4423,
+      0.4179,
+      0.4082,
+      0.4055,
+      0.4018,
+      0.4018,
+      0.4018,
+      0.4018,
+      0.4018,
+      0.4018
+     ],
+     [
+      0.475,
+      0.4019,
+      0.3775,
+      0.3678,
+      0.3626,
+      0.3588,
+      0.3565,
+      0.3565,
+      0.3565,
+      0.3565,
+      0.3565
+     ],
+     [
+      0.4319,
+      0.3442,
+      0.3117,
+      0.2971,
+      0.2893,
+      0.2818,
+      0.2795,
+      0.278,
+      0.278,
+      0.278,
+      0.278
+     ],
+     [
+      0.4319,
+      0.3442,
+      0.3035,
+      0.2841,
+      0.2763,
+      0.2688,
+      0.2665,
+      0.2645,
+      0.2645,
+      0.2645,
+      0.2645
+     ],
+     [
+      0.4061,
+      0.3038,
+      0.255,
+      0.2307,
+      0.2203,
+      0.2108,
+      0.2061,
+      0.2033,
+      0.2029,
+      0.2029,
+      0.2029
+     ],
+     [
+      0.4061,
+      0.2892,
+      0.2323,
+      0.2031,
+      0.1901,
+      0.1769,
+      0.1709,
+      0.1661,
+      0.1644,
+      0.1642,
+      0.1642
      ],
      [
       0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803
-     ],
-     [
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803,
-      0.3803
-     ],
-     [
-      0.3803,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488
-     ],
-     [
-      0.3803,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488,
-      0.2488
-     ],
-     [
-      0.3803,
-      0.2488,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756,
-      0.1756
-     ],
-     [
-      0.3803,
-      0.2488,
-      0.1756,
-      0.1319,
-      0.1319,
-      0.1319,
-      0.1319,
-      0.1319,
-      0.1319,
-      0.1319,
-      0.1319
-     ],
-     [
-      0.3803,
-      0.2488,
-      0.1756,
-      0.1319,
-      0.1085,
-      0.1085,
-      0.1085,
-      0.1085,
-      0.1085,
-      0.1085,
-      0.1085
-     ],
-     [
-      0.3803,
-      0.2488,
-      0.1756,
-      0.1319,
-      0.1085,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898,
-      0.0898
-     ],
-     [
-      0.3803,
-      0.2488,
-      0.1756,
-      0.1319,
-      0.1085,
-      0.075,
-      0.0538,
-      0.0538,
-      0.0538,
-      0.0538,
-      0.0538
+      0.2634,
+      0.2065,
+      0.1774,
+      0.1617,
+      0.1448,
+      0.1364,
+      0.13,
+      0.1284,
+      0.1276,
+      0.1276
      ],
      [
       0.3803,
       0.2488,
-      0.1756,
-      0.1319,
-      0.1085,
-      0.075,
-      0.0538,
-      0.0288,
-      0.0288,
-      0.0288,
-      0.0288
+      0.1838,
+      0.1497,
+      0.1315,
+      0.1092,
+      0.0974,
+      0.0876,
+      0.0843,
+      0.0834,
+      0.0833
      ],
      [
       0.3803,
       0.2488,
       0.1756,
-      0.1319,
-      0.1085,
-      0.075,
-      0.0538,
-      0.0288,
-      0.014,
-      0.0073,
-      0.0073
+      0.1368,
+      0.1159,
+      0.0878,
+      0.0724,
+      0.057,
+      0.051,
+      0.0486,
+      0.0482
      ],
      [
       0.3803,
@@ -1320,12 +1308,12 @@ main{padding-block:12px 28px}
       0.1756,
       0.1319,
       0.1085,
-      0.075,
-      0.0538,
-      0.0288,
-      0.014,
-      0.0056,
-      0.0039
+      0.0767,
+      0.0578,
+      0.0369,
+      0.0266,
+      0.0221,
+      0.0211
      ],
      [
       0.3803,
@@ -1335,10 +1323,23 @@ main{padding-block:12px 28px}
       0.1085,
       0.075,
       0.0538,
+      0.0308,
+      0.0181,
+      0.0119,
+      0.0102
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
       0.0288,
-      0.014,
-      0.0056,
-      0.0021
+      0.0145,
+      0.0071,
+      0.0045
      ]
     ]
    },
@@ -1346,7 +1347,7 @@ main{padding-block:12px 28px}
    "max": null,
    "origen": "supuesto",
    "fuente": "2026-11-14-segmentacion.py: modelo de mesas y cuentas de la estadística de cartas §4.2 (cuentas = ⌈f × personas⌉, f 0.35–0.50; mesas = cuentas × 2.5–4) aplicado a los estratos medidos del DENUE; la forma dentro de cada estrato es supuesto",
-   "nota": "parte de los registrados que rebasa mesas o cuentas del tope (tabla de rejilla; intervalo mínimo–máximo sobre las 9 combinaciones del modelo)",
+   "nota": "parte de los registrados que rebasa mesas o cuentas del tope (tabla de rejilla; intervalo mínimo–máximo sobre las 27 combinaciones del modelo: f, mesas por cuenta y dispersión)",
    "mueve_resultado": true
   },
   "seguridad_chico": {
@@ -1382,121 +1383,121 @@ main{padding-block:12px 28px}
     ],
     "centro": [
      [
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138
+      0.5455,
+      0.5897,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969
+     ],
+     [
+      0.6248,
+      0.7132,
+      0.7277,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302
+     ],
+     [
+      0.6545,
+      0.765,
+      0.7868,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916
+     ],
+     [
+      0.6841,
+      0.8168,
+      0.8458,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531
      ],
      [
       0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138
+      0.8686,
+      0.9121,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218
      ],
      [
       0.7138,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129
+      0.8907,
+      0.9342,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464
      ],
      [
       0.7138,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129,
-      0.9129
-     ],
-     [
-      0.7138,
-      0.9129,
-      0.978,
-      0.978,
-      0.978,
-      0.978,
-      0.978,
-      0.978,
-      0.978,
-      0.978,
-      0.978
-     ],
-     [
-      0.7138,
-      0.9129,
-      0.978,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
-     ],
-     [
-      0.7138,
-      0.9129,
-      0.978,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
-     ],
-     [
-      0.7138,
-      0.9129,
-      0.978,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
+      0.8907,
+      0.9414,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561
      ],
      [
       0.7138,
       0.9129,
+      0.9708,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879
+     ],
+     [
+      0.7138,
+      0.9129,
       0.978,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976
      ],
      [
       0.7138,
@@ -1566,147 +1567,147 @@ main{padding-block:12px 28px}
     ],
     "minimo": [
      [
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467,
-      0.4467
+      0.4661,
+      0.4998,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029
+     ],
+     [
+      0.5455,
+      0.5791,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885
+     ],
+     [
+      0.5751,
+      0.6425,
+      0.6706,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818
+     ],
+     [
+      0.6048,
+      0.689,
+      0.7171,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283
+     ],
+     [
+      0.6545,
+      0.7555,
+      0.7929,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097
+     ],
+     [
+      0.6545,
+      0.7555,
+      0.8023,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247
+     ],
+     [
+      0.6841,
+      0.802,
+      0.8582,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862
+     ],
+     [
+      0.6841,
+      0.8188,
+      0.8844,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918
      ],
      [
       0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138
-     ],
-     [
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138,
-      0.7138
-     ],
-     [
-      0.7138,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653
-     ],
-     [
-      0.7138,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653,
-      0.8653
-     ],
-     [
-      0.7138,
-      0.8653,
-      0.9496,
-      0.9496,
-      0.9496,
-      0.9496,
-      0.9496,
-      0.9496,
-      0.9496,
-      0.9496,
-      0.9496
-     ],
-     [
-      0.7138,
-      0.8653,
-      0.9496,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
-     ],
-     [
-      0.7138,
-      0.8653,
-      0.9496,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
-     ],
-     [
-      0.7138,
-      0.8653,
-      0.9496,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
-     ],
-     [
-      0.7138,
-      0.8653,
-      0.9496,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
+      0.8485,
+      0.914,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476
      ],
      [
       0.7138,
       0.8653,
+      0.9402,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794
+     ],
+     [
+      0.7138,
+      0.8653,
       0.9496,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0,
-      1.0
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944
      ],
      [
       0.7138,
@@ -1747,13 +1748,206 @@ main{padding-block:12px 28px}
       1.0,
       1.0
      ]
+    ],
+    "maximo": [
+     [
+      0.7642,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128
+     ],
+     [
+      0.8039,
+      0.901,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122
+     ],
+     [
+      0.8039,
+      0.9334,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614
+     ],
+     [
+      0.8039,
+      0.9496,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ]
     ]
    },
    "min": null,
    "max": null,
    "origen": "supuesto",
    "fuente": "2026-11-14-segmentacion.py (mismo modelo)",
-   "nota": "probabilidad de que un negocio de hasta 10 personas quede dentro de esos topes (gratis); centro y peor rincón del modelo",
+   "nota": "probabilidad de que un negocio de hasta 10 personas quede dentro de esos topes (gratis); centro (σ = 0.5) y peor rincón de las 27 combinaciones",
+   "mueve_resultado": true
+  },
+  "sigma_mesas_por_cuenta": {
+   "valor": 0.5,
+   "min": 0.0,
+   "max": 0.75,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py: dispersión lognormal (en ln) de las mesas por cuenta de personal; 0 = la versión anterior, determinista",
+   "nota": "mesas de un negocio = cuentas × m × exp(σ·z); SIN dato: el piloto debe medir mesas y cuentas por negocio (alta de los primeros 10 a 20 restaurantes: `mesa` y `personal_restaurante` activos por restaurante, sin datos personales)",
    "mueve_resultado": true
   },
   "restriccion_seguridad_chico": {
@@ -1780,7 +1974,7 @@ main{padding-block:12px 28px}
    "max": 1.0,
    "origen": "supuesto",
    "fuente": "",
-   "nota": "parte de las visitas con la app en que el comensal ve un anuncio que paga; sin dato",
+   "nota": "parte de las visitas con la app en que se SIRVE un anuncio que paga (incluye tasa de llenado y bloqueadores; no se modelan por separado). No es el mismo descuento que el 0.6 de `visitas_app_gratuito` (comensales que abren la app): son dos supuestos distintos que coinciden en el número; sin dato",
    "mueve_resultado": true
   },
   "mes_inicio_anuncios": {
@@ -1895,54 +2089,54 @@ main{padding-block:12px 28px}
   }
  }
 }; const REC = {
- "version": "2026-11-14-r3",
+ "version": "2026-11-14-r4",
  "decisiones": [
   {
    "id": "segmentacion",
    "decision": "Segmentación: qué entra en cada plan y con qué topes",
-   "recomendacion": "**Chef (gratis) = 15 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, 95.8 % de los negocios de hasta 10 personas quedan gratis y ≈ 83 % de todos los registrados.",
-   "depende": "**Del modelo de mesas y cuentas (no es estadística):** con el peor rincón del modelo la seguridad baja a 85 %. **Si falla:** si las fondas tienen más mesas de las que el modelo supone, algunas pagan sin querer; se corrige subiendo el tope (los datos del piloto lo muestran en una semana).",
-   "cifras": "Para 80 / 90 / 95 % de seguridad: 10 mesas y 3 cuentas · 10 mesas y 3 cuentas · 15 mesas y 4 cuentas; margen 11,254 · 9,265 · 8,050 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas.",
+   "recomendacion": "**Chef (gratis) = 25 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, 95.1 % de los negocios de hasta 10 personas quedan gratis (intervalo del modelo 86.7 %–98 %).",
+   "depende": "**Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato).** Medido: sólo los conteos por estrato. Con 15 mesas la seguridad sería 89.4 %, no 95 %; con el peor rincón del modelo, ningún tope de la rejilla estrecha lo cumple salvo 60 mesas · 5 cuentas · 100 platillos. **Si falla:** si las fondas tienen más mesas, algunas pagan sin querer; se corrige subiendo el tope (el piloto lo muestra en una semana).",
+   "cifras": "Para 80 / 90 / 95 % de seguridad: 12 mesas y 3 cuentas (150 platillos) · 20 mesas y 4 cuentas (100 platillos) · 25 mesas y 4 cuentas (150 platillos); margen 11,985 · 9,799 · 8,722 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).",
    "alternativas": [
     {
-     "opcion": "Seguridad 80 %: 10 mesas, 3 cuentas, 80 platillos",
-     "pros": "margen 11,254",
-     "contras": "81.4 % de los de hasta 10 personas dentro; 71 % de todos"
+     "opcion": "Seguridad 80 %: 12 mesas, 3 cuentas, 150 platillos",
+     "pros": "margen 11,985",
+     "contras": "80 % de los de hasta 10 personas dentro; 69 % de todos"
     },
     {
-     "opcion": "Seguridad 90 %: 10 mesas, 3 cuentas, 300 platillos",
-     "pros": "margen 9,265",
-     "contras": "90.4 % de los de hasta 10 personas dentro; 78 % de todos"
+     "opcion": "Seguridad 90 %: 20 mesas, 4 cuentas, 100 platillos",
+     "pros": "margen 9,799",
+     "contras": "90.3 % de los de hasta 10 personas dentro; 78 % de todos"
     },
     {
-     "opcion": "Seguridad 95 %: 15 mesas, 4 cuentas, 150 platillos",
-     "pros": "margen 8,050",
-     "contras": "95.8 % de los de hasta 10 personas dentro; 83 % de todos"
+     "opcion": "Seguridad 95 %: 25 mesas, 4 cuentas, 150 platillos",
+     "pros": "margen 8,722",
+     "contras": "95.1 % de los de hasta 10 personas dentro; 83 % de todos"
     }
    ],
-   "ejemplo": "Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 25 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.",
-   "prueba": "Mesas, cuentas y platillos reales de los primeros 10 a 20 restaurantes."
+   "ejemplo": "Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 40 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.",
+   "prueba": "Medir mesas y cuentas por negocio en los primeros 10 a 20 restaurantes: `mesa` y `personal_restaurante` activos por restaurante al darse de alta (sin datos personales)."
   },
   {
    "id": "precios",
    "decision": "Precios de Master Chef y Chef Ejecutivo",
-   "recomendacion": "**Master Chef 225 (pegado a Meniu Business) y Chef Ejecutivo 1,099.** Subir a 1,599 en Chef Ejecutivo cuesta 215 pesos al mes de margen con 1,000 restaurantes (curva media): es posicionamiento, no matemática.",
-   "depende": "**De la curva de pago (supuesto).** Con la mediana ±50 % el precio óptimo de la curva media va de 147 a 324. **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un punto de venta (652), 225 deja dinero sobre la mesa. 225 **no depende** de que el modelo acierte el óptimo: el margen cambia menos de 2 % entre 199 y 299.",
-   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 33 / 29 / 25 / 18; margen de operación (media) 7,904 / 8,048 / 8,052 / 7,803. Chef Ejecutivo 799 / 1,099 / 1,599: 8,059 / 8,048 / 7,833.",
+   "recomendacion": "**Master Chef 225 es una decisión de posicionamiento de Calvin (pegado a Meniu Business), no un resultado del modelo; Chef Ejecutivo 1,099 (igual que OlaClick Elite y Last.app Starter-Growth) también.** El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto.",
+   "depende": "**De la curva de pago (supuesto).** Con la mediana en 150 gana 199; en 225, 249; en 300, 299; en 450, 299. Ver [precio de entrada](2026-11-14-precio-de-entrada.md) (tablas por mediana y sigma). **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un POS (652), 225 deja dinero sobre la mesa.",
+   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 34 / 29 / 25 / 18; margen de operación (media) 8,573 / 8,719 / 8,724 / 8,471. Chef Ejecutivo 799 / 1,099 / 1,599: 8,740 / 8,719 / 8,315.",
    "alternativas": [
     {
      "opcion": "199",
      "pros": "Más pagantes",
-     "contras": "Debajo de Meniu: parece barato sin serlo; piso ×2.5"
+     "contras": "Debajo de Meniu"
     },
     {
-     "opcion": "225 (recomendada)",
-     "pros": "Pegado a Meniu; más de 2.8 veces el piso",
+     "opcion": "225 (decisión de posicionamiento)",
+     "pros": "Pegado a Meniu",
      "contras": "Sin colchón si el soporte cuesta más"
     },
     {
      "opcion": "249",
-     "pros": "Mismo margen que 225",
+     "pros": "Mismo margen que 225 con la curva supuesta",
      "contras": "Un poco arriba de Meniu"
     },
     {
@@ -1951,25 +2145,25 @@ main{padding-block:12px 28px}
      "contras": "Menos pagantes (18 contra 29)"
     }
    ],
-   "ejemplo": "Un restaurante de 25 mesas (ingreso medio 737,584 al mes [INEGI]): 225 son 0.04 % de su ingreso; un salón de 3.3 millones al mes pagaría 1,099 = 0.03 %.",
-   "prueba": "Prueba de precio del piloto (tres grupos de 10: 199 · 249 · 299 en Master Chef)."
+   "ejemplo": "Un restaurante de 25 mesas (ingreso medio 737,584 al mes [INEGI]): 225 son 0.03 % de su ingreso.",
+   "prueba": "Prueba de precio del piloto: tres grupos de 10 (199 · 249 · 299) y a los 6 meses cuántos se quedan."
   },
   {
    "id": "anuncios",
    "decision": "Anuncios en Chef: cuándo llegan y cuánto dejan",
-   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo) y no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 811 restaurantes.",
-   "depende": "**De tres supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas y la parte de visitas con anuncio. **Si fallan:** en el caso adverso el sistema no se paga solo hasta 1,469 restaurantes.",
-   "cifras": "Se paga solo desde 54 (tarifa baja), 12 (media) y 1,469 (adverso) restaurantes gratuitos. Requisitos: ADR, abrir la política de seguridad, aviso de privacidad, aprobación de la red.",
+   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 811 restaurantes (rango 246 a 1,896).",
+   "depende": "**De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 54 (rango 25 a 186) (tarifa baja), 12 (rango 6 a 25) (media) y 1,469 (rango 139 a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 148). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.",
+   "cifras": "Requisitos: ADR, abrir la política de seguridad (`script-src 'self'`), aviso de privacidad, aprobación de la red.",
    "alternativas": [
     {
      "opcion": "Anuncios desde el mes 3",
      "pros": "El peor caso se cubre antes",
-     "contras": "No hay tiempo de construir, abrir la política de seguridad y que la red apruebe"
+     "contras": "No hay tiempo de construir y que la red apruebe"
     },
     {
-     "opcion": "Anuncios desde el mes 9 (recomendada)",
+     "opcion": "Anuncios desde el mes 9 (supuesto)",
      "pros": "Tiempo realista",
-     "contras": "Calvin pone ≈ el costo de ~10 meses de la bolsa"
+     "contras": "Calvin pone hasta 2,032 pesos acumulados"
     },
     {
      "opcion": "Sin anuncios",
@@ -1977,46 +2171,46 @@ main{padding-block:12px 28px}
      "contras": "Descartada por Calvin"
     }
    ],
-   "ejemplo": "La fonda de 6 mesas deja 4.3 pesos al mes con la tarifa baja una vez que hay anuncios; hoy deja 0.",
-   "prueba": "Una prueba pequeña de AdSense con 3 restaurantes (impresiones, ingresos, RPM)."
+   "ejemplo": "Un gratuito deja 4.3 pesos al mes con la tarifa baja una vez que hay anuncios; hoy deja 0.",
+   "prueba": "Una prueba pequeña de AdSense con 3 restaurantes (impresiones, ingresos, RPM, tasa de llenado)."
   },
   {
    "id": "bolsa",
    "decision": "Cuánta bolsa poner mientras no hay anuncios",
-   "recomendacion": "**1,000 pesos al mes** alcanzan para 811 restaurantes gratuitos; acumulado, Calvin tendría que poner **2,227 pesos** en total en el caso recomendado y 1,936 en el peor.",
-   "depende": "**Del ritmo de adopción (supuesto) y del soporte por gratuito (supuesto).** Si se adopta más rápido, la bolsa se agota antes.",
-   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 279 / 811 / 1,896 / 2,116 restaurantes.",
+   "recomendacion": "**1,000 pesos al mes** alcanzan para 811 restaurantes gratuitos (rango 246 a 1,896); acumulado, Calvin pone hasta **2,032 pesos** en el caso recomendado, 20,594 en el peor y 88,023 en el piso de verdad.",
+   "depende": "**Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.",
+   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 279 (94–400) / 811 (246–1,896) / 1,896 (492–2,116) / 2,116 (1,391–2,116) restaurantes.",
    "alternativas": [
     {
      "opcion": "500 pesos al mes",
      "pros": "279 restaurantes y 1 M de comensales",
-     "contras": "más bolsa, más servicio"
+     "contras": "rango 94–400 según el soporte"
     },
     {
      "opcion": "1,000 pesos al mes",
      "pros": "811 restaurantes y 2.8 M de comensales",
-     "contras": "más bolsa, más servicio"
+     "contras": "rango 246–1,896 según el soporte"
     },
     {
      "opcion": "2,000 pesos al mes",
      "pros": "1,896 restaurantes y 6.5 M de comensales",
-     "contras": "más bolsa, más servicio"
+     "contras": "rango 492–2,116 según el soporte"
     },
     {
      "opcion": "5,000 pesos al mes",
      "pros": "2,116 restaurantes y 7.2 M de comensales",
-     "contras": "llega al tope medido"
+     "contras": "rango 1,391–2,116 según el soporte"
     }
    ],
-   "ejemplo": "Con 1,000 pesos al mes pagas el servidor y el soporte básico de ~800 fondas y taquerías gratuitas.",
-   "prueba": "El costo real de Railway del primer mes con restaurantes del piloto."
+   "ejemplo": "Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 811 fondas y taquerías gratuitas.",
+   "prueba": "El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte."
   },
   {
    "id": "historial",
    "decision": "Historial: meses en línea y archivo descargable",
    "recomendacion": "**12 meses en línea para la paga (decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**",
-   "depende": "**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos).** Si los eventos duplican, el disco de la paga sube ≈ 50 %.",
-   "cifras": "Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387).",
+   "depende": "**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos)** ([disco-e-historial](2026-11-14-disco-e-historial.md)).",
+   "cifras": "Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387) [disco-e-historial].",
    "alternativas": [
     {
      "opcion": "3 meses + archivo",
@@ -2035,9 +2229,9 @@ main{padding-block:12px 28px}
   {
    "id": "soporte",
    "decision": "Soporte",
-   "recomendacion": "**WhatsApp o correo en horario hábil para la paga (≈ 60 pesos al mes por cliente) y autoservicio para el gratuito (0.5).**",
+   "recomendacion": "**WhatsApp o correo en horario hábil para la paga (≈ 60 pesos al mes por cliente) y autoservicio para el gratuito (0.5, sin fuente).**",
    "depende": "**Del tiempo real de soporte (supuesto).** Si cada cliente de paga cuesta 150, Master Chef a 225 queda debajo del piso ×3 (238) y hay que subir el precio o acotar el soporte.",
-   "cifras": "Efecto en el margen (±50 %): soporte del gratuito 485 pesos; de paga 1,809.",
+   "cifras": "Efecto en el margen (±50 %): soporte del gratuito 485 pesos; de paga 1,914.",
    "alternativas": [
     {
      "opcion": "Autoservicio y correo (30)",
@@ -2052,7 +2246,7 @@ main{padding-block:12px 28px}
     {
      "opcion": "Alta hecha por nosotros (150)",
      "pros": "Mejor conversión probable",
-     "contras": "El piso ×3 sube a 520"
+     "contras": "El piso ×3 sube"
     }
    ],
    "ejemplo": "Un salón de 60 mesas necesita soporte propio (se supone 120).",
@@ -2062,18 +2256,18 @@ main{padding-block:12px 28px}
    "id": "avisos_reloj",
    "decision": "Avisos de reloj desde el servidor",
    "recomendacion": "**No.** Los relojes se calculan en el teléfono (AC-40.9).",
-   "depende": "**De que no haya notificaciones push (fuera de la v1).** Si se aprueban, el reloj del servidor sí tendría sentido.",
+   "depende": "**De que no haya notificaciones push (fuera de la v1).**",
    "cifras": "Un temporizador para ≈ 12,000 mesas es una consulta por minuto; sin push no despierta al teléfono.",
    "alternativas": [
     {
      "opcion": "Relojes en el teléfono (recomendada)",
-     "pros": "Cero costo de servidor; ya especificado",
+     "pros": "Cero costo de servidor",
      "contras": "Si el teléfono duerme no avisa"
     },
     {
      "opcion": "Reloj en el servidor",
      "pros": "Un evento por cruce de umbral",
-     "contras": "Otro proceso; contradice AC-40.9"
+     "contras": "Contradice AC-40.9"
     }
    ],
    "ejemplo": "El capitán de un salón de 60 mesas ve en su teléfono que la mesa 12 lleva 25 minutos sin movimiento.",
@@ -2092,7 +2286,7 @@ main{padding-block:12px 28px}
     "topes": {
      "gratuito": {
       "platillos": 150,
-      "mesas": 15,
+      "mesas": 25,
       "cuentas": 4,
       "lecturas_pdf": 3,
       "meses_en_linea": 1
@@ -2185,39 +2379,39 @@ main{padding-block:12px 28px}
  "tabla_cupo_gratis": [
   {
    "seguridad": 0.8,
-   "seguridad_real": 0.8143068000000001,
-   "dentro_de_todos": 0.70691,
-   "mesas": 10,
+   "seguridad_real": 0.800464,
+   "dentro_de_todos": 0.694918,
+   "mesas": 12,
    "cuentas": 3,
-   "platillos": 80,
+   "platillos": 150,
    "precio_servicio": 250,
    "meseta_precio": [
     225,
     275
    ],
-   "pagantes": 44.24719103389209,
-   "margen": 11254.256910058532
+   "pagantes": 46.14692315946915,
+   "margen": 11985.494711706539
   },
   {
    "seguridad": 0.9,
-   "seguridad_real": 0.903771,
-   "dentro_de_todos": 0.784575,
-   "mesas": 10,
-   "cuentas": 3,
-   "platillos": 300,
+   "seguridad_real": 0.9028026,
+   "dentro_de_todos": 0.7837907,
+   "mesas": 20,
+   "cuentas": 4,
+   "platillos": 100,
    "precio_servicio": 250,
    "meseta_precio": [
     200,
     275
    ],
-   "pagantes": 32.55035126465242,
-   "margen": 9265.3601067218
+   "pagantes": 32.76213294818085,
+   "margen": 9798.709952976124
   },
   {
    "seguridad": 0.95,
-   "seguridad_real": 0.95844,
-   "dentro_de_todos": 0.83202,
-   "mesas": 15,
+   "seguridad_real": 0.951384,
+   "dentro_de_todos": 0.825846,
+   "mesas": 25,
    "cuentas": 4,
    "platillos": 150,
    "precio_servicio": 250,
@@ -2225,8 +2419,8 @@ main{padding-block:12px 28px}
     200,
     275
    ],
-   "pagantes": 25.404834457189917,
-   "margen": 8050.357095914987
+   "pagantes": 26.428339018517487,
+   "margen": 8721.729952546495
   }
  ]
 }; const GLOS = [
@@ -2357,14 +2551,18 @@ main{padding-block:12px 28px}
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-const VERSION = '2026-11-14-r3';
+const VERSION = '2026-11-14-r4';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
 function valores(par, sobre = {}) {
   const out = {};
-  for (const [k, v] of Object.entries(par.parametros)) out[k] = v.valor;
-  return { ...out, ...sobre };
+  const rangos = {};
+  for (const [k, v] of Object.entries(par.parametros)) {
+    out[k] = v.valor;
+    if (typeof v.min === 'number' && typeof v.max === 'number') rangos[k] = [v.min, v.max];
+  }
+  return { ...out, rangos, ...sobre };
 }
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -2402,7 +2600,7 @@ function configInicial() {
     nombre: 'segmentación de Calvin',
     precios: { servicio: 225, salon: 1099 },
     topes: {
-      gratuito: { platillos: 150, mesas: 15, cuentas: 4, lecturas_pdf: 3, meses_en_linea: 1 },
+      gratuito: { platillos: 150, mesas: 25, cuentas: 4, lecturas_pdf: 3, meses_en_linea: 1 },
       servicio: { platillos: 300, mesas: 100, cuentas: 30, lecturas_pdf_mes: 10, meses_en_linea: 12 },
       salon: { platillos: 300, mesas: 500, cuentas: 150, lecturas_pdf_mes: 20, meses_en_linea: 12 },
     },
@@ -2502,7 +2700,8 @@ function parteSalon(config, s) {
 
 /**
  * Probabilidad de que un negocio de hasta 10 personas quede dentro de los topes de Chef (gratis): dentro de mesas y cuentas
- * (modelo) y dentro del tope de platillos (independiente del tamaño). `clave`: 'centro' | 'minimo'.
+ * (modelo, con la dispersión supuesta de mesas por cuenta) y dentro del tope de platillos (independiente del tamaño).
+ * `clave`: 'centro' | 'minimo' | 'maximo' (extremos de las 27 combinaciones del modelo: f, mesas por cuenta y dispersión).
  */
 function seguridadChico(config, s, clave = 'centro') {
   const g = config.topes.gratuito;
@@ -2793,6 +2992,126 @@ function capacidadConBolsa(config, s, bolsa) {
   return { bolsa, restaurantes: n, comensales_mes: e ? e.comensales_mes : 0, escalon: e ? e.capacidad.escalon : null, tope_medido: n >= s.cap_conexiones, n_se_paga_solo: { baja: nSePagaSolo(config, s, 'baja'), adverso: nSePagaSolo(config, s, 'adverso'), medio: nSePagaSolo(config, s, 'medio') } };
 }
 
+// ---------------------------------------------------------------- UNA definición de cada escenario (la usan resumen, proyectar y los .md)
+/**
+ * Cada escenario mueve DOS ejes a la vez (curva de pago y anuncios) y, el piso, también el soporte. Se define aquí una sola vez.
+ *  - recomendado: curva media, anuncios (tarifa baja) en marcha.
+ *  - peor: curva pesimista y SIN anuncios en ningún mes (el periodo que paga Calvin); no es el piso.
+ *  - mejor: curva optimista y anuncios en la tarifa media.
+ *  - piso_de_verdad: curva pesimista, anuncios adversos (la mitad de la tarifa baja y anuncio en el 30 % de las visitas) y soporte
+ *    al máximo de su rango (gratuito, Master Chef y Chef Ejecutivo): la combinación más mala de lo que el modelo se atreve a decir.
+ */
+const ESCENARIOS = {
+  recomendado: { curva: 'media', anuncios: 'baja', definicion: 'curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha' },
+  peor: { curva: 'pesimista', anuncios: null, definicion: 'curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa)' },
+  mejor: { curva: 'optimista', anuncios: 'media', definicion: 'curva de pago optimista y anuncios en la tarifa media' },
+  piso_de_verdad: { curva: 'pesimista', anuncios: 'adverso', soporte: 'maximo', definicion: 'curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango' },
+};
+
+/** Lista de lo que el modelo NO modela (ingresos de anuncios y costos que quedan fuera). */
+const NO_MODELADO = ['moderación de anuncios (revisar y bloquear categorías)', 'tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado)', 'comisión de la red de anuncios', 'impuestos sobre los ingresos de anuncios y de suscripción'];
+
+/** Supuestos y opciones de `evaluar` que corresponden a un escenario con nombre. */
+function paramsEscenario(nombre, s) {
+  const e = ESCENARIOS[nombre];
+  if (!e) throw new Error(`escenario desconocido: ${nombre}`);
+  let ss = s;
+  let parte;
+  if (e.soporte === 'maximo') ss = { ...ss, soporte_gratuito: s.rangos.soporte_gratuito[1], soporte_servicio: s.rangos.soporte_servicio[1], soporte_salon: s.rangos.soporte_salon[1] };
+  if (e.anuncios === 'adverso') { ss = { ...ss, anuncio_pesos_por_mil: { ...ss.anuncio_pesos_por_mil, baja: ss.anuncio_pesos_por_mil.baja / 2 } }; parte = 0.3; }
+  const opc = { curva: e.curva };
+  if (e.anuncios === null) opc.sinAnuncios = true;
+  else opc.anuncios = { activo: true, tarifa: e.anuncios === 'adverso' ? 'baja' : e.anuncios };
+  if (parte !== undefined) opc.parteVisitasConAnuncio = parte;
+  return { ss, opc };
+}
+
+/** Evalúa un escenario con nombre ('recomendado' | 'peor' | 'mejor' | 'piso_de_verdad') con n restaurantes en régimen. */
+function evaluarEscenario(nombre, config, s, n = 1000) {
+  const { ss, opc } = paramsEscenario(nombre, s);
+  return evaluar(config, ss, n, opc);
+}
+
+/** Proyección mes a mes de un escenario con nombre; el peor no lleva anuncios en ningún mes. */
+function proyectarEscenario(nombre, config, s, meses = 36) {
+  const { ss, opc } = paramsEscenario(nombre, s);
+  return proyectar(config, ss, meses, opc);
+}
+
+/** Matriz 3 × 3 (curva de pago × anuncios: sin · tarifa baja · tarifa media) del margen de operación, más el piso de verdad. */
+function matrizEscenarios(config, s, n = 1000) {
+  const anuncios = [null, 'baja', 'media'];
+  const filas = Object.keys(s.curvas_pago).map((curva) => ({
+    curva,
+    celdas: anuncios.map((a) => { const e = evaluar(config, s, n, a === null ? { curva, sinAnuncios: true } : { curva, anuncios: { activo: true, tarifa: a } }); return { anuncios: a ?? 'sin', margen_operacion: e.margen_operacion, margen_despues_de_captacion: e.margen_despues_de_captacion, ingresos_anuncios: e.ingresos.anuncios, pagantes: e.clientes.de_paga }; }),
+  }));
+  const piso = evaluarEscenario('piso_de_verdad', config, s, n);
+  return { n, columnas: ['sin anuncios', 'tarifa baja', 'tarifa media'], filas, piso_de_verdad: { definicion: ESCENARIOS.piso_de_verdad.definicion, margen_operacion: piso.margen_operacion, margen_despues_de_captacion: piso.margen_despues_de_captacion, ingresos_anuncios: piso.ingresos.anuncios }, no_modelado: NO_MODELADO };
+}
+
+// ---------------------------------------------------------------- umbrales y bolsa como RANGOS
+/** Variantes de supuestos que mueven los umbrales de anuncios y de bolsa: [nombre, cómo, valor bajo, valor alto]. */
+function variantesAnuncios(s) {
+  const tar = (f) => ({ ...s, anuncio_pesos_por_mil: Object.fromEntries(Object.entries(s.anuncio_pesos_por_mil).map(([k, v]) => [k, v * f])) });
+  const [smin, smax] = s.rangos.soporte_gratuito;
+  return [
+    { supuesto: 'tarifa de anuncios', bajo: { etiqueta: 'la mitad', s: tar(0.5) }, alto: { etiqueta: 'el doble', s: tar(2) } },
+    { supuesto: 'visitas con anuncio', bajo: { etiqueta: 'la mitad', s: { ...s, parte_visitas_con_anuncio: s.parte_visitas_con_anuncio * 0.5 } }, alto: { etiqueta: 'el doble', s: { ...s, parte_visitas_con_anuncio: Math.min(1, s.parte_visitas_con_anuncio * 2) } } },
+    { supuesto: 'soporte por cliente gratuito', bajo: { etiqueta: `${smin} pesos`, s: { ...s, soporte_gratuito: smin } }, alto: { etiqueta: `${smax} pesos (el máximo de su rango)`, s: { ...s, soporte_gratuito: smax } } },
+    { supuesto: 'visitas con la app por gratuito', bajo: { etiqueta: 'la mitad', s: { ...s, visitas_app_gratuito: s.visitas_app_gratuito * 0.5 } }, alto: { etiqueta: 'el doble', s: { ...s, visitas_app_gratuito: s.visitas_app_gratuito * 2 } } },
+  ];
+}
+
+/**
+ * `nSePagaSolo` como RANGO: el centro (supuestos de trabajo) y, por cada supuesto que lo mueve, el valor con ese supuesto en su
+ * extremo bajo y alto (null = no se paga solo con ≤ `tope` restaurantes). `minimo` y `maximo` = los extremos entre variantes
+ * (maximo null si alguna variante nunca se paga solo). Vale con el canal de eventos (ADR-018) construido: con el sondeo de hoy el
+ * escalón de menor costo sólo cabe `cap_sondeo` restaurantes típicos.
+ */
+function rangoSePagaSolo(config, s, caso = 'baja', tope = 3000) {
+  const centro = nSePagaSolo(config, s, caso, tope);
+  const por_supuesto = variantesAnuncios(s).map((v) => ({ supuesto: v.supuesto, bajo: { variante: v.bajo.etiqueta, n: nSePagaSolo(config, v.bajo.s, caso, tope) }, alto: { variante: v.alto.etiqueta, n: nSePagaSolo(config, v.alto.s, caso, tope) } }));
+  const todos = por_supuesto.flatMap((x) => [x.bajo.n, x.alto.n]);
+  const finitos = todos.filter((x) => x != null);
+  return { caso, centro, minimo: Math.min(centro ?? Infinity, ...finitos), maximo: todos.some((x) => x == null) || centro == null ? null : Math.max(centro, ...finitos), por_supuesto, tope, vale_con_canal_de_eventos: true, cap_sondeo_hoy: s.escalones.find((e) => e.id === 'hobby_sondeo').cap_cpu };
+}
+
+/** `capacidadConBolsa` como RANGO según el soporte por gratuito (sin fuente) y el escalón con el sondeo de hoy. */
+function rangoBolsa(config, s, bolsa) {
+  const centro = capacidadConBolsa(config, s, bolsa);
+  const [smin, smax] = s.rangos.soporte_gratuito;
+  const por_soporte = [smin, 1.0, s.soporte_gratuito, smax].filter((x, i, a) => a.indexOf(x) === i).sort((a, b) => a - b).map((x) => { const c = capacidadConBolsa(config, { ...s, soporte_gratuito: x }, bolsa); return { soporte_gratuito: x, restaurantes: c.restaurantes, comensales_mes: c.comensales_mes }; });
+  const rs = por_soporte.map((x) => x.restaurantes);
+  return { bolsa, centro: { restaurantes: centro.restaurantes, comensales_mes: centro.comensales_mes, escalon: centro.escalon }, minimo: Math.min(...rs), maximo: Math.max(...rs), por_soporte, vale_con_canal_de_eventos: true, caben_con_el_sondeo_de_hoy: s.escalones.find((e) => e.id === 'hobby_sondeo').cap_cpu, no_modelado: NO_MODELADO };
+}
+
+// ---------------------------------------------------------------- el precio de Master Chef: qué decide y qué no
+/**
+ * Margen de operación al mes (n registrados, anuncios en marcha) de cada precio candidato de Master Chef bajo otra mediana o
+ * sigma de la curva de pago `curva`, para ver QUÉ DECIDE el precio: la curva es supuesto, así que el modelo no puede elegir entre
+ * 199, 225, 249 y 299; lo decide la prueba de precios del piloto. Devuelve filas por mediana y por sigma con el precio ganador
+ * entre los candidatos, el margen y el óptimo continuo.
+ */
+function sensibilidadPrecio(config, s, n = 1000, opc = {}) {
+  const curva = opc.curva ?? 'media';
+  const precios = opc.precios ?? s.precios_candidatos.servicio;
+  const medianas = opc.medianas ?? [150, 225, 300, 450];
+  const sigmas = opc.sigmas ?? [0.3, 0.45, s.curvas_pago[curva].sigma, 0.9];
+  const con = (cambio) => ({ ...s, curvas_pago: { ...s.curvas_pago, [curva]: { ...s.curvas_pago[curva], ...cambio } } });
+  const fila = (ss, etiqueta, valor) => {
+    const margenes = precios.map((p) => { const c = JSON.parse(JSON.stringify(config)); c.precios.servicio = p; const e = evaluar(c, ss, n, { curva }); return { precio: p, margen_operacion: e.margen_operacion, pagantes: e.clientes.servicio }; });
+    const g = margenes.reduce((a, b) => (b.margen_operacion > a.margen_operacion ? b : a));
+    return { [etiqueta]: valor, margenes, precio_ganador: g.precio, optimo_continuo: precioOptimo(curva, ss).precio, ventaja_del_ganador_sobre_225: g.margen_operacion - margenes.find((x) => x.precio === config.precios.servicio).margen_operacion };
+  };
+  const base = s.curvas_pago[curva];
+  return {
+    n, curva, precios, base: { mediana: base.mediana, sigma: base.sigma, techo: base.techo },
+    por_mediana: medianas.map((x) => fila(con({ mediana: x }), 'mediana', x)),
+    por_sigma: sigmas.map((x) => fila(con({ sigma: x }), 'sigma', x)),
+    lectura: 'con la mediana en 225 (el supuesto) el óptimo sale cerca de 225: el modelo devuelve su supuesto. Si la mediana real es otra, gana otro precio: lo decide la prueba de tres precios del piloto, no este modelo.',
+  };
+}
+
 // ---------------------------------------------------------------- escenarios con nombre
 /**
  * peor_firme = peor_sin_anuncios = todos gratuitos MIENTRAS NO HAY ANUNCIOS (temporal; lo pone Calvin). Los `peor_anuncios_*` son
@@ -2825,29 +3144,26 @@ function escenarios(config, s, ns = [100, 1000, 10000]) {
  * mejor = curva optimista y tarifa de anuncios media. `n` = restaurantes registrados.
  */
 function resumen(config, s, n = 1000) {
-  const rec = evaluar(config, s, n, { curva: 'media' });
-  const peor = evaluar(config, s, n, { curva: 'pesimista', sinAnuncios: true });
-  const mejor = evaluar(config, s, n, { curva: 'optimista', anuncios: { activo: true, tarifa: 'media' } });
+  const rec = evaluarEscenario('recomendado', config, s, n);
+  const peor = evaluarEscenario('peor', config, s, n);
+  const mejor = evaluarEscenario('mejor', config, s, n);
+  const piso = evaluarEscenario('piso_de_verdad', config, s, n);
   const cap = (id) => { const e = s.escalones.find((x) => x.id === id); const mb = mbPorRestaurante('gratuito', config, s); return Math.min(e.cap_cpu, s.cap_conexiones, Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / mb)); };
-  const fila = (clave, nombre, unidad, r, p, m, nota) => ({ clave, nombre, unidad, recomendado: r, peor: p, mejor: m, nota });
+  const fila = (clave, nombre, unidad, r, p, m, nota, pv) => ({ clave, nombre, unidad, recomendado: r, peor: p, mejor: m, piso_de_verdad: pv, nota });
   return {
     n,
-    definiciones: {
-      recomendado: 'curva de pago media (la mediana de Master Chef es el precio de Meniu Business, 225) y anuncios en la tarifa baja ya en marcha',
-      peor: 'curva de pago pesimista y todavía sin anuncios (temporal: los pone Calvin de su bolsa)',
-      mejor: 'curva de pago optimista y anuncios en la tarifa media (el techo teórico «todos pagan» va aparte, en `todos_pagan`)',
-    },
+    definiciones: { ...Object.fromEntries(Object.entries(ESCENARIOS).map(([k, v]) => [k, v.definicion])), nota: 'el techo teórico «todos pagan» va aparte, en `todos_pagan`' },
     cifras: [
-      fila('clientes_potenciales', 'Clientes potenciales', 'negocios', s.sam_clientes_potenciales, s.sam_clientes_potenciales, s.sam_clientes_potenciales, 'dato medido (DENUE 05/2026): no varía con los escenarios'),
-      fila('restaurantes_que_caben', 'Restaurantes gratuitos que caben', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)'),
-      fila('gratuitos_por_cliente_de_paga', 'Gratuitos que sostiene cada cliente de paga (sin anuncios)', 'restaurantes', rec.gratuitos_que_sostiene_un_pagante_sin_anuncios, peor.gratuitos_que_sostiene_un_pagante_sin_anuncios, mejor.gratuitos_que_sostiene_un_pagante_sin_anuncios, 'con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`)'),
-      fila('ingreso_por_cliente_gratuito', 'Ingreso por cliente gratuito', 'pesos al mes', rec.por_cliente.ingreso_gratuito, peor.por_cliente.ingreso_gratuito, mejor.por_cliente.ingreso_gratuito, 'sólo anuncios'),
-      fila('ingreso_por_cliente_de_paga', 'Ingreso por cliente de paga', 'pesos al mes', rec.por_cliente.ingreso_por_pagante, peor.por_cliente.ingreso_por_pagante, mejor.por_cliente.ingreso_por_pagante, 'promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno'),
-      fila('costo_por_cliente_gratuito', 'Costo por cliente gratuito', 'pesos al mes', rec.por_cliente.costo_gratuito, peor.por_cliente.costo_gratuito, mejor.por_cliente.costo_gratuito, 'servidor, almacenamiento y soporte'),
-      fila('margen_de_operacion', 'Margen de operación', 'pesos al mes', rec.margen_operacion, peor.margen_operacion, mejor.margen_operacion, 'sin captación ni sueldos'),
-      fila('margen_despues_de_captacion', 'Margen después de captación', 'pesos al mes', rec.margen_despues_de_captacion, peor.margen_despues_de_captacion, mejor.margen_despues_de_captacion, 'resta reponer las bajas y los sueldos (parámetros sin dato)'),
-      fila('punto_de_equilibrio', 'Punto de equilibrio', 'clientes de paga', rec.equilibrio_pagantes, peor.equilibrio_pagantes, mejor.equilibrio_pagantes, 'cuántos clientes de paga hacen falta para no perder (el peor caso lo calcula sin anuncios)'),
-      fila('comensales_al_mes', 'Comensales al mes', 'comensales', rec.comensales_mes, peor.comensales_mes, mejor.comensales_mes, 'dato por restaurante SIMULADO (perfiles del simulador), no medido'),
+      fila('clientes_potenciales', 'Clientes potenciales', 'negocios', s.sam_clientes_potenciales, s.sam_clientes_potenciales, s.sam_clientes_potenciales, 'dato medido (DENUE 05/2026): no varía con los escenarios', s.sam_clientes_potenciales),
+      fila('restaurantes_que_caben', 'Restaurantes gratuitos que caben', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)', cap('hobby_sondeo')),
+      fila('gratuitos_por_cliente_de_paga', 'Gratuitos que sostiene cada cliente de paga (sin anuncios)', 'restaurantes', rec.gratuitos_que_sostiene_un_pagante_sin_anuncios, peor.gratuitos_que_sostiene_un_pagante_sin_anuncios, mejor.gratuitos_que_sostiene_un_pagante_sin_anuncios, 'con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`)', piso.gratuitos_que_sostiene_un_pagante_sin_anuncios),
+      fila('ingreso_por_cliente_gratuito', 'Ingreso por cliente gratuito', 'pesos al mes', rec.por_cliente.ingreso_gratuito, peor.por_cliente.ingreso_gratuito, mejor.por_cliente.ingreso_gratuito, 'sólo anuncios', piso.por_cliente.ingreso_gratuito),
+      fila('ingreso_por_cliente_de_paga', 'Ingreso por cliente de paga', 'pesos al mes', rec.por_cliente.ingreso_por_pagante, peor.por_cliente.ingreso_por_pagante, mejor.por_cliente.ingreso_por_pagante, 'promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno', piso.por_cliente.ingreso_por_pagante),
+      fila('costo_por_cliente_gratuito', 'Costo por cliente gratuito', 'pesos al mes', rec.por_cliente.costo_gratuito, peor.por_cliente.costo_gratuito, mejor.por_cliente.costo_gratuito, 'servidor, almacenamiento y soporte', piso.por_cliente.costo_gratuito),
+      fila('margen_de_operacion', 'Margen de operación', 'pesos al mes', rec.margen_operacion, peor.margen_operacion, mejor.margen_operacion, 'sin captación ni sueldos', piso.margen_operacion),
+      fila('margen_despues_de_captacion', 'Margen después de captación', 'pesos al mes', rec.margen_despues_de_captacion, peor.margen_despues_de_captacion, mejor.margen_despues_de_captacion, 'resta reponer las bajas y los sueldos (parámetros sin dato)', piso.margen_despues_de_captacion),
+      fila('punto_de_equilibrio', 'Punto de equilibrio', 'clientes de paga', rec.equilibrio_pagantes, peor.equilibrio_pagantes, mejor.equilibrio_pagantes, 'cuántos clientes de paga hacen falta para no perder (el peor caso lo calcula sin anuncios)', piso.equilibrio_pagantes),
+      fila('comensales_al_mes', 'Comensales al mes', 'comensales', rec.comensales_mes, peor.comensales_mes, mejor.comensales_mes, 'dato por restaurante SIMULADO (perfiles del simulador), no medido', piso.comensales_mes),
     ],
     todos_pagan: { definicion: 'techo teórico: todos los registrados pagan su plan (muy improbable)', margen_operacion: evaluar(config, s, n, { todosPagan: true }).margen_operacion, ingresos: evaluar(config, s, n, { todosPagan: true }).ingresos.total },
   };
@@ -2958,8 +3274,8 @@ function sensibilidad(config, s, n, opc = {}) {
 // ---------------------------------------------------------------- optimizar
 const REJILLA = {
   precio_servicio: Array.from({ length: 25 }, (_, i) => 100 + 25 * i), // 100 a 700 cada 25
-  mesas: [8, 10, 12, 15, 16, 20, 25],
-  cuentas: [3, 4, 5, 6, 8],
+  mesas: [8, 10, 12, 15, 16, 20, 25, 30, 40, 60],
+  cuentas: [3, 4, 5, 6, 8, 10],
   platillos: [80, 100, 150, 300],
   precio_salon: [599, 799, 1099, 1599, 1999],
 };
@@ -3019,7 +3335,7 @@ function optimizar(s, restricciones = {}, base = configInicial()) {
   return { restricciones: r, mejor, meseta_precio_servicio: mejor ? mejor.meseta : null, precio_salon: salon, top5: validas.slice(0, 5), frontera, tabla_cupo_gratis: tabla, sensibilidad_modelo_mesas_cuentas: sensibilidadClave, evaluadas: evaluadas.length, descartadas };
 }
 
-return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3Cuentas,comisionTarjeta,piso,puntoEquilibrio,precioSugerido,redondea,interp2,parteRebasa,parteSalon,seguridadChico,conversion,precioOptimo,sensibilidadPrecioOptimo,mbPorRestaurante,cabenEnVolumen,escalonPara,evaluar,evaluarPrecios,todosGratuitos,tablaTodosGratuitos,nSePagaSolo,capacidadConBolsa,escenarios,resumen,banderas,proyectar,sensibilidad,optimizar,PARAMS_SENS};
+return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3Cuentas,comisionTarjeta,piso,puntoEquilibrio,precioSugerido,redondea,interp2,parteRebasa,parteSalon,seguridadChico,conversion,precioOptimo,sensibilidadPrecioOptimo,mbPorRestaurante,cabenEnVolumen,escalonPara,evaluar,evaluarPrecios,todosGratuitos,tablaTodosGratuitos,nSePagaSolo,capacidadConBolsa,ESCENARIOS,NO_MODELADO,evaluarEscenario,proyectarEscenario,matrizEscenarios,rangoSePagaSolo,rangoBolsa,sensibilidadPrecio,escenarios,resumen,banderas,proyectar,sensibilidad,optimizar,PARAMS_SENS};
 })(); const SEG = {
  "estratos": [
   {
@@ -3097,22 +3413,33 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
    3.25,
    4.0
   ],
-  "nota": "central: f=0.425, m=3.25; intervalo: mínimo y máximo sobre las 9 combinaciones"
+  "sigma_mesas_por_cuenta": [
+   0.25,
+   0.5,
+   0.75
+  ],
+  "sigma_central": 0.5,
+  "nota": "central: f=0.425, m=3.25, sigma=0.5; intervalo: mínimo y máximo sobre las 27 combinaciones (f, m, sigma). Todo es supuesto: sólo los conteos por estrato son medidos"
  },
  "topes_chef": [
   {
    "seguridad": 0.8,
-   "mesas": 10,
+   "mesas": 12,
    "cuentas": 3,
    "seguridad_chico": {
+    "centro": 0.8168334950172127,
+    "min": 0.6890048715017673,
+    "max": 0.9496094463664417
+   },
+   "sin_dispersion": {
     "centro": 0.9128629053053611,
-    "min": 0.7138152296538612,
+    "min": 0.8653439640386317,
     "max": 0.9496094463664416
    },
    "dentro_todos": {
-    "centro": 0.7924557293171614,
-    "min": 0.6196625639244556,
-    "max": 0.8243553791191222
+    "centro": 0.7090926570272038,
+    "min": 0.5981247071994519,
+    "max": 0.8243553791191224
    },
    "fuga_de_mas_de_10_personas": {
     "centro": 0.0,
@@ -3122,69 +3449,64 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
   },
   {
    "seguridad": 0.9,
-   "mesas": 10,
-   "cuentas": 3,
-   "seguridad_chico": {
-    "centro": 0.9128629053053611,
-    "min": 0.7138152296538612,
-    "max": 0.9496094463664416
-   },
-   "dentro_todos": {
-    "centro": 0.7924557293171614,
-    "min": 0.6196625639244556,
-    "max": 0.8243553791191222
-   },
-   "fuga_de_mas_de_10_personas": {
-    "centro": 0.0,
-    "min": 0.0,
-    "max": 0.0
-   }
-  },
-  {
-   "seguridad": 0.95,
    "mesas": 15,
    "cuentas": 4,
    "seguridad_chico": {
+    "centro": 0.9120719234597505,
+    "min": 0.792925341247438,
+    "max": 1.0
+   },
+   "sin_dispersion": {
     "centro": 0.978025657754112,
     "min": 0.8653439640386317,
     "max": 1.0
    },
    "dentro_todos": {
-    "centro": 0.8490234748307277,
-    "min": 0.7512045654906403,
+    "centro": 0.7917690784611598,
+    "min": 0.688338003374237,
     "max": 0.8804758585463252
    },
    "fuga_de_mas_de_10_personas": {
     "centro": 0.0,
     "min": 0.0,
     "max": 0.09383179095385806
+   }
+  },
+  {
+   "seguridad": 0.95,
+   "mesas": 20,
+   "cuentas": 5,
+   "seguridad_chico": {
+    "centro": 0.9560781991903705,
+    "min": 0.8861624671193289,
+    "max": 1.0
+   },
+   "sin_dispersion": {
+    "centro": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   },
+   "dentro_todos": {
+    "centro": 0.8382218799278105,
+    "min": 0.7692770952716449,
+    "max": 0.9101578477380043
+   },
+   "fuga_de_mas_de_10_personas": {
+    "centro": 0.06255452730257204,
+    "min": 0.0,
+    "max": 0.31886478144118585
    }
   }
  ],
  "topes_chef_conservador": [
   {
    "nivel": 0.8,
-   "mesas": 12,
-   "cuentas": 3,
-   "seguridad_minima": 0.8653439640386317,
-   "dentro_todos": {
-    "centro": 0.7924557293171614,
-    "min": 0.7512045654906403,
-    "max": 0.8243553791191222
-   },
-   "fuga_de_mas_de_10_personas": {
-    "centro": 0.0,
-    "max": 0.0
-   }
-  },
-  {
-   "nivel": 0.9,
    "mesas": 16,
    "cuentas": 4,
-   "seguridad_minima": 0.9496094463664416,
+   "seguridad_minima": 0.8022881726171947,
    "dentro_todos": {
-    "centro": 0.8490234748307277,
-    "min": 0.8243553791191222,
+    "centro": 0.8109683190603493,
+    "min": 0.6964658715551795,
     "max": 0.8804758585463252
    },
    "fuga_de_mas_de_10_personas": {
@@ -3193,13 +3515,28 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
    }
   },
   {
-   "nivel": 0.95,
-   "mesas": 20,
+   "nivel": 0.9,
+   "mesas": 25,
    "cuentas": 5,
-   "seguridad_minima": 1.0,
+   "seguridad_minima": 0.9179607749355664,
    "dentro_todos": {
-    "centro": 0.8804758585463252,
-    "min": 0.8680993878835263,
+    "centro": 0.8672011348857961,
+    "min": 0.7968811868226526,
+    "max": 0.9101578477380043
+   },
+   "fuga_de_mas_de_10_personas": {
+    "centro": 0.0729802818530007,
+    "max": 0.31886478144118585
+   }
+  },
+  {
+   "nivel": 0.95,
+   "mesas": 40,
+   "cuentas": 5,
+   "seguridad_minima": 0.9794392678227859,
+   "dentro_todos": {
+    "centro": 0.880475858546325,
+    "min": 0.8502506288660495,
     "max": 0.9101578477380043
    },
    "fuga_de_mas_de_10_personas": {
@@ -3214,29 +3551,29 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
    "mesas": 60,
    "cuentas": 15,
    "seguridad": {
-    "centro": 0.861998659020903,
-    "min": 0.7939620978404583,
+    "centro": 0.80219928934834,
+    "min": 0.6142630675039733,
     "max": 0.9219392062261914
    },
    "parte_de_los_registrados_arriba": {
-    "centro": 0.020010585763900638,
+    "centro": 0.027772724345566442,
     "min": 0.012230121912593492,
-    "max": 0.028841936652619134
+    "max": 0.057027858310859825
    }
   },
   {
    "nivel": 0.9,
-   "mesas": 60,
+   "mesas": 100,
    "cuentas": 20,
    "seguridad": {
-    "centro": 0.9219392062261914,
-    "min": 0.7939620978404583,
+    "centro": 0.9297443116137967,
+    "min": 0.8113052966612228,
     "max": 0.969475827401436
    },
    "parte_de_los_registrados_arriba": {
-    "centro": 0.012230121912593492,
+    "centro": 0.01121699568743706,
     "min": 0.006059725079201876,
-    "max": 0.028841936652619134
+    "max": 0.0265907371260475
    }
   },
   {
@@ -3244,14 +3581,14 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
    "mesas": 100,
    "cuentas": 30,
    "seguridad": {
-    "centro": 0.9826635165191274,
-    "min": 0.960188041721757,
-    "max": 0.9930769118959388
+    "centro": 0.9534309322302235,
+    "min": 0.8459603426805306,
+    "max": 0.9922759325301427
    },
    "parte_de_los_registrados_arriba": {
-    "centro": 0.0043479232481131065,
-    "min": 0.0029962331138678653,
-    "max": 0.007265307679106043
+    "centro": 0.008142400875438471,
+    "min": 0.0031002026518815156,
+    "max": 0.022092407608047683
    }
   }
  ],
@@ -3287,108 +3624,134 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
   ],
   "centro": [
    [
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803
+    0.5265,
+    0.4881,
+    0.4818,
+    0.4818,
+    0.4818,
+    0.4818,
+    0.4818,
+    0.4818,
+    0.4818,
+    0.4818,
+    0.4818
+   ],
+   [
+    0.4576,
+    0.3808,
+    0.3683,
+    0.3648,
+    0.3648,
+    0.3648,
+    0.3648,
+    0.3648,
+    0.3648,
+    0.3648,
+    0.3648
+   ],
+   [
+    0.4319,
+    0.3359,
+    0.317,
+    0.31,
+    0.3067,
+    0.3051,
+    0.3051,
+    0.3051,
+    0.3051,
+    0.3051,
+    0.3051
+   ],
+   [
+    0.4061,
+    0.2909,
+    0.2658,
+    0.2553,
+    0.2487,
+    0.2457,
+    0.2457,
+    0.2457,
+    0.2457,
+    0.2457,
+    0.2457
    ],
    [
     0.3803,
+    0.2459,
+    0.2082,
+    0.1943,
+    0.1844,
+    0.1797,
+    0.1775,
+    0.1775,
+    0.1775,
+    0.1775,
+    0.1775
+   ],
+   [
     0.3803,
+    0.2267,
+    0.189,
+    0.1716,
+    0.1617,
+    0.1557,
+    0.1535,
+    0.1529,
+    0.1529,
+    0.1529,
+    0.1529
+   ],
+   [
     0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803
+    0.2267,
+    0.1827,
+    0.1618,
+    0.1453,
+    0.1348,
+    0.1303,
+    0.1287,
+    0.1287,
+    0.1287,
+    0.1287
    ],
    [
     0.3803,
     0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075
-   ],
-   [
-    0.3803,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075,
-    0.2075
-   ],
-   [
-    0.3803,
-    0.2075,
-    0.151,
-    0.151,
-    0.151,
-    0.151,
-    0.151,
-    0.151,
-    0.151,
-    0.151,
-    0.151
-   ],
-   [
-    0.3803,
-    0.2075,
-    0.151,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195
+    0.1573,
+    0.1328,
+    0.113,
+    0.0995,
+    0.0914,
+    0.0875,
+    0.0869,
+    0.0869,
+    0.0869
    ],
    [
     0.3803,
     0.2075,
     0.151,
-    0.1195,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898
+    0.123,
+    0.0999,
+    0.0822,
+    0.0718,
+    0.0654,
+    0.0641,
+    0.0641,
+    0.0641
    ],
    [
     0.3803,
     0.2075,
     0.151,
     0.1195,
-    0.0898,
-    0.075,
-    0.075,
-    0.075,
-    0.075,
-    0.075,
-    0.075
+    0.0931,
+    0.0708,
+    0.0559,
+    0.0449,
+    0.0421,
+    0.0417,
+    0.0417
    ],
    [
     0.3803,
@@ -3397,11 +3760,11 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.1195,
     0.0898,
     0.0632,
-    0.0498,
-    0.0498,
-    0.0498,
-    0.0498,
-    0.0498
+    0.0454,
+    0.0278,
+    0.0216,
+    0.0202,
+    0.02
    ],
    [
     0.3803,
@@ -3411,23 +3774,10 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0898,
     0.0632,
     0.0432,
-    0.0318,
-    0.0318,
-    0.0318,
-    0.0318
-   ],
-   [
-    0.3803,
-    0.2075,
-    0.151,
-    0.1195,
-    0.0898,
-    0.0632,
-    0.0432,
-    0.02,
-    0.0122,
-    0.0122,
-    0.0122
+    0.021,
+    0.0112,
+    0.0081,
+    0.0072
    ],
    [
     0.3803,
@@ -3439,8 +3789,8 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0432,
     0.02,
     0.0088,
-    0.0043,
-    0.0043
+    0.0049,
+    0.0031
    ],
    [
     0.3803,
@@ -3454,99 +3804,112 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0088,
     0.0043,
     0.0019
-   ],
-   [
-    0.3803,
-    0.2075,
-    0.151,
-    0.1195,
-    0.0898,
-    0.0632,
-    0.0432,
-    0.02,
-    0.0088,
-    0.0043,
-    0.0016
    ]
   ],
   "minimo": [
    [
+    0.3366,
+    0.2944,
+    0.2944,
+    0.2944,
+    0.2944,
+    0.2944,
+    0.2944,
+    0.2944,
+    0.2944,
+    0.2944,
+    0.2944
+   ],
+   [
     0.3021,
+    0.2178,
+    0.2053,
+    0.202,
+    0.202,
+    0.202,
+    0.202,
+    0.202,
+    0.202,
+    0.202,
+    0.202
+   ],
+   [
     0.3021,
-    0.3021,
-    0.3021,
-    0.3021,
-    0.3021,
-    0.3021,
-    0.3021,
-    0.3021,
-    0.3021,
-    0.3021
+    0.1897,
+    0.1585,
+    0.1519,
+    0.1496,
+    0.1496,
+    0.1496,
+    0.1496,
+    0.1496,
+    0.1496,
+    0.1496
    ],
    [
     0.3021,
     0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756
-   ],
-   [
-    0.3021,
-    0.1756,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195,
-    0.1195
-   ],
-   [
-    0.3021,
-    0.1756,
-    0.1195,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898
-   ],
-   [
-    0.3021,
-    0.1756,
-    0.1195,
-    0.0898,
-    0.0688,
-    0.0688,
-    0.0688,
-    0.0688,
-    0.0688,
-    0.0688,
-    0.0688
+    0.132,
+    0.1155,
+    0.1108,
+    0.1092,
+    0.1092,
+    0.1092,
+    0.1092,
+    0.1092,
+    0.1092
    ],
    [
     0.3021,
     0.1756,
     0.1195,
+    0.0964,
+    0.0847,
+    0.0789,
+    0.078,
+    0.078,
+    0.078,
+    0.078,
+    0.078
+   ],
+   [
+    0.3021,
+    0.1756,
+    0.1195,
+    0.0931,
+    0.0791,
+    0.0708,
+    0.0698,
+    0.0698,
+    0.0698,
+    0.0698,
+    0.0698
+   ],
+   [
+    0.3021,
+    0.1756,
+    0.1195,
+    0.0898,
+    0.0711,
+    0.0553,
+    0.0512,
+    0.05,
+    0.05,
+    0.05,
+    0.05
+   ],
+   [
+    0.3021,
+    0.1756,
+    0.1195,
     0.0898,
     0.0688,
-    0.0688,
-    0.0688,
-    0.0688,
-    0.0688,
-    0.0688,
-    0.0688
+    0.0488,
+    0.0398,
+    0.0359,
+    0.0359,
+    0.0359,
+    0.0359
    ],
    [
     0.3021,
@@ -3555,11 +3918,11 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0898,
     0.0688,
     0.0463,
-    0.0463,
-    0.0463,
-    0.0463,
-    0.0463,
-    0.0463
+    0.0341,
+    0.0245,
+    0.0239,
+    0.0239,
+    0.0239
    ],
    [
     0.3021,
@@ -3569,23 +3932,10 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0688,
     0.0463,
     0.0318,
-    0.0318,
-    0.0318,
-    0.0318,
-    0.0318
-   ],
-   [
-    0.3021,
-    0.1756,
-    0.1195,
-    0.0898,
-    0.0688,
-    0.0463,
-    0.0318,
-    0.0215,
-    0.0215,
-    0.0215,
-    0.0215
+    0.016,
+    0.0134,
+    0.0132,
+    0.0132
    ],
    [
     0.3021,
@@ -3596,9 +3946,9 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0463,
     0.0318,
     0.0122,
-    0.01,
-    0.01,
-    0.01
+    0.0066,
+    0.0051,
+    0.005
    ],
    [
     0.3021,
@@ -3610,8 +3960,8 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0318,
     0.0122,
     0.0061,
-    0.0046,
-    0.0046
+    0.0031,
+    0.002
    ],
    [
     0.3021,
@@ -3624,20 +3974,7 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.0122,
     0.0061,
     0.003,
-    0.0017
-   ],
-   [
-    0.3021,
-    0.1756,
-    0.1195,
-    0.0898,
-    0.0688,
-    0.0463,
-    0.0318,
-    0.0122,
-    0.0061,
-    0.003,
-    0.0011
+    0.0012
    ],
    [
     0.3021,
@@ -3655,160 +3992,147 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
   ],
   "maximo": [
    [
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122,
-    0.6122
+    0.5953,
+    0.5661,
+    0.5634,
+    0.5634,
+    0.5634,
+    0.5634,
+    0.5634,
+    0.5634,
+    0.5634,
+    0.5634,
+    0.5634
+   ],
+   [
+    0.5265,
+    0.4973,
+    0.4891,
+    0.4891,
+    0.4891,
+    0.4891,
+    0.4891,
+    0.4891,
+    0.4891,
+    0.4891,
+    0.4891
+   ],
+   [
+    0.5007,
+    0.4423,
+    0.4179,
+    0.4082,
+    0.4055,
+    0.4018,
+    0.4018,
+    0.4018,
+    0.4018,
+    0.4018,
+    0.4018
+   ],
+   [
+    0.475,
+    0.4019,
+    0.3775,
+    0.3678,
+    0.3626,
+    0.3588,
+    0.3565,
+    0.3565,
+    0.3565,
+    0.3565,
+    0.3565
+   ],
+   [
+    0.4319,
+    0.3442,
+    0.3117,
+    0.2971,
+    0.2893,
+    0.2818,
+    0.2795,
+    0.278,
+    0.278,
+    0.278,
+    0.278
+   ],
+   [
+    0.4319,
+    0.3442,
+    0.3035,
+    0.2841,
+    0.2763,
+    0.2688,
+    0.2665,
+    0.2645,
+    0.2645,
+    0.2645,
+    0.2645
+   ],
+   [
+    0.4061,
+    0.3038,
+    0.255,
+    0.2307,
+    0.2203,
+    0.2108,
+    0.2061,
+    0.2033,
+    0.2029,
+    0.2029,
+    0.2029
+   ],
+   [
+    0.4061,
+    0.2892,
+    0.2323,
+    0.2031,
+    0.1901,
+    0.1769,
+    0.1709,
+    0.1661,
+    0.1644,
+    0.1642,
+    0.1642
    ],
    [
     0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803
-   ],
-   [
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803,
-    0.3803
-   ],
-   [
-    0.3803,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488
-   ],
-   [
-    0.3803,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488,
-    0.2488
-   ],
-   [
-    0.3803,
-    0.2488,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756,
-    0.1756
-   ],
-   [
-    0.3803,
-    0.2488,
-    0.1756,
-    0.1319,
-    0.1319,
-    0.1319,
-    0.1319,
-    0.1319,
-    0.1319,
-    0.1319,
-    0.1319
-   ],
-   [
-    0.3803,
-    0.2488,
-    0.1756,
-    0.1319,
-    0.1085,
-    0.1085,
-    0.1085,
-    0.1085,
-    0.1085,
-    0.1085,
-    0.1085
-   ],
-   [
-    0.3803,
-    0.2488,
-    0.1756,
-    0.1319,
-    0.1085,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898,
-    0.0898
-   ],
-   [
-    0.3803,
-    0.2488,
-    0.1756,
-    0.1319,
-    0.1085,
-    0.075,
-    0.0538,
-    0.0538,
-    0.0538,
-    0.0538,
-    0.0538
+    0.2634,
+    0.2065,
+    0.1774,
+    0.1617,
+    0.1448,
+    0.1364,
+    0.13,
+    0.1284,
+    0.1276,
+    0.1276
    ],
    [
     0.3803,
     0.2488,
-    0.1756,
-    0.1319,
-    0.1085,
-    0.075,
-    0.0538,
-    0.0288,
-    0.0288,
-    0.0288,
-    0.0288
+    0.1838,
+    0.1497,
+    0.1315,
+    0.1092,
+    0.0974,
+    0.0876,
+    0.0843,
+    0.0834,
+    0.0833
    ],
    [
     0.3803,
     0.2488,
     0.1756,
-    0.1319,
-    0.1085,
-    0.075,
-    0.0538,
-    0.0288,
-    0.014,
-    0.0073,
-    0.0073
+    0.1368,
+    0.1159,
+    0.0878,
+    0.0724,
+    0.057,
+    0.051,
+    0.0486,
+    0.0482
    ],
    [
     0.3803,
@@ -3816,12 +4140,12 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.1756,
     0.1319,
     0.1085,
-    0.075,
-    0.0538,
-    0.0288,
-    0.014,
-    0.0056,
-    0.0039
+    0.0767,
+    0.0578,
+    0.0369,
+    0.0266,
+    0.0221,
+    0.0211
    ],
    [
     0.3803,
@@ -3831,10 +4155,23 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     0.1085,
     0.075,
     0.0538,
+    0.0308,
+    0.0181,
+    0.0119,
+    0.0102
+   ],
+   [
+    0.3803,
+    0.2488,
+    0.1756,
+    0.1319,
+    0.1085,
+    0.075,
+    0.0538,
     0.0288,
-    0.014,
-    0.0056,
-    0.0021
+    0.0145,
+    0.0071,
+    0.0045
    ]
   ]
  },
@@ -3870,121 +4207,121 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
   ],
   "centro": [
    [
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138
+    0.5455,
+    0.5897,
+    0.5969,
+    0.5969,
+    0.5969,
+    0.5969,
+    0.5969,
+    0.5969,
+    0.5969,
+    0.5969,
+    0.5969
+   ],
+   [
+    0.6248,
+    0.7132,
+    0.7277,
+    0.7302,
+    0.7302,
+    0.7302,
+    0.7302,
+    0.7302,
+    0.7302,
+    0.7302,
+    0.7302
+   ],
+   [
+    0.6545,
+    0.765,
+    0.7868,
+    0.7916,
+    0.7916,
+    0.7916,
+    0.7916,
+    0.7916,
+    0.7916,
+    0.7916,
+    0.7916
+   ],
+   [
+    0.6841,
+    0.8168,
+    0.8458,
+    0.8531,
+    0.8531,
+    0.8531,
+    0.8531,
+    0.8531,
+    0.8531,
+    0.8531,
+    0.8531
    ],
    [
     0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138
+    0.8686,
+    0.9121,
+    0.9218,
+    0.9218,
+    0.9218,
+    0.9218,
+    0.9218,
+    0.9218,
+    0.9218,
+    0.9218
    ],
    [
     0.7138,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129
+    0.8907,
+    0.9342,
+    0.9464,
+    0.9464,
+    0.9464,
+    0.9464,
+    0.9464,
+    0.9464,
+    0.9464,
+    0.9464
    ],
    [
     0.7138,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129,
-    0.9129
-   ],
-   [
-    0.7138,
-    0.9129,
-    0.978,
-    0.978,
-    0.978,
-    0.978,
-    0.978,
-    0.978,
-    0.978,
-    0.978,
-    0.978
-   ],
-   [
-    0.7138,
-    0.9129,
-    0.978,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
-   ],
-   [
-    0.7138,
-    0.9129,
-    0.978,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
-   ],
-   [
-    0.7138,
-    0.9129,
-    0.978,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
+    0.8907,
+    0.9414,
+    0.9561,
+    0.9561,
+    0.9561,
+    0.9561,
+    0.9561,
+    0.9561,
+    0.9561,
+    0.9561
    ],
    [
     0.7138,
     0.9129,
+    0.9708,
+    0.9879,
+    0.9879,
+    0.9879,
+    0.9879,
+    0.9879,
+    0.9879,
+    0.9879,
+    0.9879
+   ],
+   [
+    0.7138,
+    0.9129,
     0.978,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
+    0.9976,
+    0.9976,
+    0.9976,
+    0.9976,
+    0.9976,
+    0.9976,
+    0.9976,
+    0.9976
    ],
    [
     0.7138,
@@ -4054,147 +4391,147 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
   ],
   "minimo": [
    [
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467,
-    0.4467
+    0.4661,
+    0.4998,
+    0.5029,
+    0.5029,
+    0.5029,
+    0.5029,
+    0.5029,
+    0.5029,
+    0.5029,
+    0.5029,
+    0.5029
+   ],
+   [
+    0.5455,
+    0.5791,
+    0.5885,
+    0.5885,
+    0.5885,
+    0.5885,
+    0.5885,
+    0.5885,
+    0.5885,
+    0.5885,
+    0.5885
+   ],
+   [
+    0.5751,
+    0.6425,
+    0.6706,
+    0.6818,
+    0.6818,
+    0.6818,
+    0.6818,
+    0.6818,
+    0.6818,
+    0.6818,
+    0.6818
+   ],
+   [
+    0.6048,
+    0.689,
+    0.7171,
+    0.7283,
+    0.7283,
+    0.7283,
+    0.7283,
+    0.7283,
+    0.7283,
+    0.7283,
+    0.7283
+   ],
+   [
+    0.6545,
+    0.7555,
+    0.7929,
+    0.8097,
+    0.8097,
+    0.8097,
+    0.8097,
+    0.8097,
+    0.8097,
+    0.8097,
+    0.8097
+   ],
+   [
+    0.6545,
+    0.7555,
+    0.8023,
+    0.8247,
+    0.8247,
+    0.8247,
+    0.8247,
+    0.8247,
+    0.8247,
+    0.8247,
+    0.8247
+   ],
+   [
+    0.6841,
+    0.802,
+    0.8582,
+    0.8862,
+    0.8862,
+    0.8862,
+    0.8862,
+    0.8862,
+    0.8862,
+    0.8862,
+    0.8862
+   ],
+   [
+    0.6841,
+    0.8188,
+    0.8844,
+    0.918,
+    0.918,
+    0.918,
+    0.918,
+    0.918,
+    0.918,
+    0.918,
+    0.918
    ],
    [
     0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138
-   ],
-   [
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138,
-    0.7138
-   ],
-   [
-    0.7138,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653
-   ],
-   [
-    0.7138,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653,
-    0.8653
-   ],
-   [
-    0.7138,
-    0.8653,
-    0.9496,
-    0.9496,
-    0.9496,
-    0.9496,
-    0.9496,
-    0.9496,
-    0.9496,
-    0.9496,
-    0.9496
-   ],
-   [
-    0.7138,
-    0.8653,
-    0.9496,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
-   ],
-   [
-    0.7138,
-    0.8653,
-    0.9496,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
-   ],
-   [
-    0.7138,
-    0.8653,
-    0.9496,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
-   ],
-   [
-    0.7138,
-    0.8653,
-    0.9496,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
+    0.8485,
+    0.914,
+    0.9476,
+    0.9476,
+    0.9476,
+    0.9476,
+    0.9476,
+    0.9476,
+    0.9476,
+    0.9476
    ],
    [
     0.7138,
     0.8653,
+    0.9402,
+    0.9794,
+    0.9794,
+    0.9794,
+    0.9794,
+    0.9794,
+    0.9794,
+    0.9794,
+    0.9794
+   ],
+   [
+    0.7138,
+    0.8653,
     0.9496,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
+    0.9944,
+    0.9944,
+    0.9944,
+    0.9944,
+    0.9944,
+    0.9944,
+    0.9944,
+    0.9944
    ],
    [
     0.7138,
@@ -4235,66 +4572,377 @@ return {VERSION,valores,interp,phi,configInicial,configBase,configTopes10Mesas3C
     1.0,
     1.0
    ]
+  ],
+  "maximo": [
+   [
+    0.7642,
+    0.8128,
+    0.8128,
+    0.8128,
+    0.8128,
+    0.8128,
+    0.8128,
+    0.8128,
+    0.8128,
+    0.8128,
+    0.8128
+   ],
+   [
+    0.8039,
+    0.901,
+    0.9122,
+    0.9122,
+    0.9122,
+    0.9122,
+    0.9122,
+    0.9122,
+    0.9122,
+    0.9122,
+    0.9122
+   ],
+   [
+    0.8039,
+    0.9334,
+    0.9614,
+    0.9614,
+    0.9614,
+    0.9614,
+    0.9614,
+    0.9614,
+    0.9614,
+    0.9614,
+    0.9614
+   ],
+   [
+    0.8039,
+    0.9496,
+    0.9888,
+    0.9888,
+    0.9888,
+    0.9888,
+    0.9888,
+    0.9888,
+    0.9888,
+    0.9888,
+    0.9888
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   [
+    0.8039,
+    0.9496,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
   ]
  },
  "seguridad_chico_por_topes": [
   {
    "mesas": 10,
    "cuentas": 3,
-   "centro": 0.913,
-   "dentro_todos": 0.792,
-   "fuga": 0.0
-  },
-  {
-   "mesas": 10,
-   "cuentas": 5,
-   "centro": 0.913,
-   "dentro_todos": 0.792,
+   "centro": 0.765,
+   "sin_dispersion": 0.913,
+   "minimo": 0.642,
+   "dentro_todos": 0.664,
    "fuga": 0.0
   },
   {
    "mesas": 12,
+   "cuentas": 3,
+   "centro": 0.817,
+   "sin_dispersion": 0.913,
+   "minimo": 0.689,
+   "dentro_todos": 0.709,
+   "fuga": 0.0
+  },
+  {
+   "mesas": 15,
    "cuentas": 4,
-   "centro": 0.913,
+   "centro": 0.912,
+   "sin_dispersion": 0.978,
+   "minimo": 0.793,
    "dentro_todos": 0.792,
    "fuga": 0.0
   },
   {
    "mesas": 15,
    "cuentas": 5,
-   "centro": 0.978,
-   "dentro_todos": 0.849,
-   "fuga": 0.0
+   "centro": 0.922,
+   "sin_dispersion": 0.978,
+   "minimo": 0.81,
+   "dentro_todos": 0.806,
+   "fuga": 0.042
   },
   {
-   "mesas": 16,
+   "mesas": 20,
    "cuentas": 5,
-   "centro": 1.0,
-   "dentro_todos": 0.88,
-   "fuga": 0.094
+   "centro": 0.956,
+   "sin_dispersion": 1.0,
+   "minimo": 0.886,
+   "dentro_todos": 0.838,
+   "fuga": 0.063
   },
   {
    "mesas": 20,
    "cuentas": 6,
-   "centro": 1.0,
-   "dentro_todos": 0.91,
-   "fuga": 0.319
+   "centro": 0.956,
+   "sin_dispersion": 1.0,
+   "minimo": 0.886,
+   "dentro_todos": 0.855,
+   "fuga": 0.188
   },
   {
    "mesas": 25,
    "cuentas": 8,
-   "centro": 1.0,
-   "dentro_todos": 0.925,
-   "fuga": 0.431
+   "centro": 0.988,
+   "sin_dispersion": 1.0,
+   "minimo": 0.918,
+   "dentro_todos": 0.9,
+   "fuga": 0.325
   },
   {
    "mesas": 30,
    "cuentas": 8,
-   "centro": 1.0,
-   "dentro_todos": 0.937,
-   "fuga": 0.521
+   "centro": 0.998,
+   "sin_dispersion": 1.0,
+   "minimo": 0.948,
+   "dentro_todos": 0.918,
+   "fuga": 0.393
   }
  ]
+}; const BAND = {
+ "version": "2026-11-14-r4",
+ "banderas": [
+  {
+   "id": "procesador",
+   "nombre": "Procesador (p95 de la hora pico)",
+   "que_se_mide": "p95 de CPU del servicio `api` en la hora pico (panel de Railway; hoy sin alerta)",
+   "umbral_aviso": 50,
+   "umbral_accion": 70,
+   "que_hacer": "más procesos o escalón mayor",
+   "estado_de_la_medicion": "no medido en Railway: el 98 % del modelo es simulador (±2×)"
+  },
+  {
+   "id": "disco",
+   "nombre": "Disco del volumen",
+   "que_se_mide": "uso del volumen de PostgreSQL (`pg_database_size` + panel de Railway)",
+   "umbral_aviso": 60,
+   "umbral_accion": 80,
+   "que_hacer": "archivar lo antiguo o pasar a Pro (50 GB)",
+   "estado_de_la_medicion": "no medido; 7.1–8.5 KB por visita salen de una medición local"
+  },
+  {
+   "id": "conexiones",
+   "nombre": "Conexiones abiertas (eventos)",
+   "que_se_mide": "conexiones SSE abiertas por worker (log de `/op/eventos` y `/p/sesion/eventos`; **aún no se cuentan**)",
+   "umbral_aviso": 60,
+   "umbral_accion": 80,
+   "que_hacer": "la pila de 8 procesos llega a 10,000: repetir la pila o cambiar de nube",
+   "estado_de_la_medicion": "no medido; las 10,000 son un tope documentado, no una prueba"
+  },
+  {
+   "id": "memoria",
+   "nombre": "Memoria",
+   "que_se_mide": "RSS por proceso (panel de Railway)",
+   "umbral_aviso": 70,
+   "umbral_accion": 85,
+   "que_hacer": "más memoria por proceso o menos procesos por servicio",
+   "estado_de_la_medicion": "no medido"
+  },
+  {
+   "id": "costo_por_restaurante",
+   "nombre": "Costo por restaurante (pesos al mes)",
+   "que_se_mide": "factura de Railway ÷ restaurantes activos del mes",
+   "umbral_aviso": 8,
+   "umbral_accion": 15,
+   "que_hacer": "revisar escalón, soporte y fotos",
+   "estado_de_la_medicion": "se puede medir desde el primer mes con restaurantes"
+  },
+  {
+   "id": "costos_sobre_ingresos",
+   "nombre": "Costos sobre ingresos (%)",
+   "que_se_mide": "factura + soporte ÷ ingresos del mes",
+   "umbral_aviso": 70,
+   "umbral_accion": 90,
+   "que_hacer": "subir el precio, acotar el soporte o empezar los anuncios",
+   "estado_de_la_medicion": "se puede medir desde el primer mes con ingresos"
+  }
+ ],
+ "escalones": [
+  {
+   "id": "hobby_sondeo",
+   "nombre": "Hoy: sondeo, 2 procesos, Hobby",
+   "capacidad_restaurantes_tipicos": 148,
+   "volumen_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_tope": 20,
+   "mes_en_que_entra_recomendado": null,
+   "sube_costo_usd_vs_anterior": 0
+  },
+  {
+   "id": "hobby_eventos",
+   "nombre": "Con eventos, 2 procesos, Hobby",
+   "capacidad_restaurantes_tipicos": 1064,
+   "volumen_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_tope": 12,
+   "mes_en_que_entra_recomendado": 1,
+   "sube_costo_usd_vs_anterior": 0
+  },
+  {
+   "id": "pro_2",
+   "nombre": "Con eventos, 2 procesos, Pro",
+   "capacidad_restaurantes_tipicos": 1064,
+   "volumen_gb": 50,
+   "costo_usd_base": 20,
+   "costo_usd_tope": 30,
+   "mes_en_que_entra_recomendado": 11,
+   "sube_costo_usd_vs_anterior": 11.9
+  },
+  {
+   "id": "pro_4",
+   "nombre": "Con eventos, 4 procesos, Pro",
+   "capacidad_restaurantes_tipicos": 1896,
+   "volumen_gb": 50,
+   "costo_usd_base": 23,
+   "costo_usd_tope": 44,
+   "mes_en_que_entra_recomendado": 23,
+   "sube_costo_usd_vs_anterior": 3
+  },
+  {
+   "id": "pro_8",
+   "nombre": "Con eventos, 8 procesos, Pro",
+   "capacidad_restaurantes_tipicos": 2116,
+   "volumen_gb": 50,
+   "costo_usd_base": 30,
+   "costo_usd_tope": 54,
+   "mes_en_que_entra_recomendado": 30,
+   "sube_costo_usd_vs_anterior": 7
+  }
+ ],
+ "nota": "mes en que entra = primer mes de la proyección recomendada (adopción supuesta)"
 };</script>
 <script>
 "use strict";
@@ -4583,7 +5231,7 @@ function pintaKpis() {
   const r = resumenS(S), el = $("#kpis");
   el.innerHTML = KPIS.map(k => {
     const c = fila(r, k.clave), tip = `${c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
-    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i></span>`;
+    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv">piso ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
     return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"><b>${k.f(c.recomendado)}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
 }
@@ -4613,7 +5261,7 @@ const CAJAS = [
   {id: "pagar", q: "¿Cuánto puede pagar un restaurante?", c: () => `${(100 * S.precioServicio / D.inegi_tamano[1].ingreso).toFixed(2)} % del ingreso de uno de 11 a 50 personas.`},
   {id: "sostiene", q: "¿Cómo se sostiene?", c: () => { const m = motor(S); return `${mp(m.margen)} al mes de margen con 1,000 restaurantes.`; }},
 ];
-const RECS_CORTO = ["Master Chef a $225", "Chef gratis: 15 mesas, 4 cuentas", "12 meses de historial para Master Chef", "Soporte por WhatsApp: $60", "Anuncios en Chef desde el mes 9"];
+const RECS_CORTO = ["Master Chef a $225", "Chef gratis: 25 mesas, 4 cuentas", "12 meses de historial para Master Chef", "Soporte por WhatsApp: $60", "Anuncios en Chef desde el mes 9"];
 function pintaCajas() {
   const rec = `<button class="box rec" data-id="recomendaciones" style="--i:0"><div class="q">Recomendaciones</div><ol>${RECS_CORTO.map((t, i) => `<li><i>${i + 1}</i>${esc(t)}</li>`).join("")}</ol><div class="abre" style="margin-top:auto">toca para abrir ›</div></button>`;
   $("#grid").innerHTML = rec + CAJAS.map((c, i) => `<button class="box" data-id="${c.id}" style="--i:${i + 1}" aria-label="${esc(c.q)}"><div class="q">${esc(c.q)}</div><div class="m">${MINI[c.id]()}</div><div class="c">${esc(typeof c.c === "function" ? c.c() : c.c)}</div><div class="abre">toca para abrir ›</div></button>`).join("");
@@ -4952,7 +5600,7 @@ DET.topes = {
   fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
   nota: "Segmentación de Calvin: gratis los dos tamaños chicos (0 a 5 y 6 a 10 personas), plan medio los tres de en medio, plan caro los dos grandes. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato. Chef Ejecutivo es nombre propuesto.",
   montar(host) {
-    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 590" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.rm = RM($("#svT", host)); this.svg = $("#svT", host); this.armado = false;
   },
   actualizar() {
@@ -4988,15 +5636,20 @@ DET.topes = {
       rm.put("tc" + i, "text", {x: x + 62, y: 450, text: `≈ ${n(cuentasDe(q))} ${Math.round(cuentasDe(q)) === 1 ? "cuenta" : "cuentas"}`, size: 11, fill: C.t2, anchor: "middle"});
       rm.put("tn" + i, "text", {x: x + 62, y: 470, text: `${n(q.negocios)} · ${100 * q.negocios / tot < 0.1 ? "menos de 0.1" : n(100 * q.negocios / tot, 1)} %`, size: 11.5, fill: C.t2, anchor: "middle"});
     });
-    const sMin = 100 * MOD.seguridadChico(c, SP, "minimo"), sCen = 100 * MOD.seguridadChico(c, SP, "centro");
-    rm.put("cr0", "rect", {x: 30, y: 490, w: 900, h: 56, rx: 20, fill: C.a2, grow: false});
-    rm.put("cr1", "text", {x: 52, y: 528, text: `≈ ${n(sMin)}–${n(sCen)} de cada 100`, size: 28, fill: C.vino, serif: true});
-    rm.put("cr2", "text", {x: 360, y: 524, text: `negocios de hasta 10 personas caben en ${PLAN.gratis} (modelo, no medida)`, size: 13.5, weight: 700, fill: C.t2});
+    const filaCob = mesas => { const cc = config({...S, topeMesas: mesas}); return [100 * MOD.seguridadChico(cc, SP, "minimo"), 100 * MOD.seguridadChico(cc, SP, "centro"), 100 * MOD.seguridadChico(cc, SP, "maximo"), evalS({...S, topeMesas: mesas}).margen_operacion]; };
+    const alt = S.topeMesas === 15 ? 25 : 15;
+    [[S.topeMesas, "tu asa"], [alt, alt === 15 ? "alternativa" : "recomendada"]].forEach(([me, tag], i) => {
+      const [mi, ce, ma, mg] = filaCob(me), y = 488 + i * 44;
+      rm.put("cr0" + i, "rect", {x: 30, y, w: 900, h: 38, rx: 16, fill: i ? "rgba(0,0,0,0)" : C.a2, grow: false});
+      rm.put("cr1" + i, "text", {x: 48, y: y + 26, text: `${me} mesas · ${tag}`, size: 14, weight: 700, fill: i ? C.t2 : C.vino});
+      rm.put("cr2" + i, "text", {x: 260, y: y + 26, text: `≈ ${n(ce, 1)} de cada 100 chicos caben en ${PLAN.gratis} (rango ${n(mi, 1)}–${n(ma, 1)}, modelo, no medida)`, size: 13.5, fill: C.tinta});
+      rm.put("cr3" + i, "text", {x: 920, y: y + 26, text: `margen ${mp(mg)} al mes`, size: 14, weight: 700, fill: mg >= 0 ? C.verde : C.rojo, anchor: "end"});
+    });
     rm.put("lg", "text", {x: 30, y: 250, text: "A qué plan cae cada tamaño de negocio", size: 14, weight: 700, fill: C.vino});
     const por = [0, 1, 2].map(p => SEG.estratos.filter(q => planDe(q, c) === p).reduce((a, q) => a + q.negocios, 0));
     return {
       leyenda: COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("") + `<span>Arrastra una asa o usa las flechas</span>`,
-      cifras: [[n(100 * MOD.seguridadChico(c, SP, "minimo")) + "–" + n(100 * MOD.seguridadChico(c, SP, "centro")) + " %", `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: modelo, no medida`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
+      cifras: [[n(100 * MOD.seguridadChico(c, SP, "minimo")) + "–" + n(100 * MOD.seguridadChico(c, SP, "maximo")) + " %", `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: modelo, no medida`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
       insight: `Con ${S.topeMesas} mesas, ${S.topeCuentas} cuentas y ${S.topePlatillos} platillos, ${n(100 * por[0] / tot, 1)} % de los negocios queda en ${PLAN.gratis}; ese plan lleva anuncios y lo pagan los demás.`,
     };
   },
@@ -5012,7 +5665,7 @@ DET.precio = {
     const prov = []; D.mercado_planes.forEach(p => { if (!prov.includes(p.proveedor)) prov.push(p.proveedor); });
     this.prov = prov.sort((a, b) => Math.min(...D.mercado_planes.filter(p => p.proveedor === a).map(p => p.precio)) - Math.min(...D.mercado_planes.filter(p => p.proveedor === b).map(p => p.precio)));
     this.oculto = new Set(); this.armado = false;
-    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div><div class="panel" style="margin-top:10px"><h3>El mejor precio depende de cuánto paguen</h3><svg id="svS" viewBox="0 0 960 250" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.rm = RM($("#svP", host)); this.svg = $("#svP", host);
     this.svg.addEventListener("click", ev => { const t = ev.target.closest("[data-prov]"); if (t) { this.oculto.add(t.dataset.prov); refrescar(); } });
     host.addEventListener("click", ev => {
@@ -5062,6 +5715,17 @@ DET.precio = {
       if (!this.armado) arrastrable(hd, svg, pt => cambiar({[key]: inv(pt.x)}), (d, mult) => cambiar({[key]: clamp(S[key] + d * mult * 10, 49, 1299)}));
     });
     this.armado = true;
+    {
+      const sp = MOD.sensibilidadPrecio(config({...S, precioServicio: 225}), sup(S), 1000), sv2 = $("#svS"), mx = Math.max(...sp.por_mediana.flatMap(q => q.margenes.map(z => z.margen_operacion)), 1);
+      let b = "";
+      sp.por_mediana.forEach((q, g) => {
+        const x0 = 30 + g * 232;
+        b += T(x0, 24, `Pagan alrededor de ${mxn(q.mediana)}`, 13.5, C.vino, "start", 700) + T(x0, 44, `mejor precio: ${mxn(q.precio_ganador)}`, 13, C.dorado, "start", 700);
+        q.margenes.forEach((z, i) => { const h = 130 * z.margen_operacion / mx, w = 44, x = x0 + i * 52, win = z.precio === q.precio_ganador; b += `<g class="gk" style="animation-delay:${(g * 4 + i) * 40}ms" data-tip="${mxn(z.precio)}: margen ${fmP(z.margen_operacion)} al mes, ${n(z.pagantes, 1)} clientes de paga">${Rc(x, 200 - h, w, h, win ? C.dorado : C.arena, 8, z.precio === 225 ? `stroke="${C.vino}" stroke-width="3"` : "")}</g>` + T(x + w / 2, 218, mxn(z.precio), 11.5, z.precio === 225 ? C.vino : C.t2, "middle", z.precio === 225 || win ? 700 : 400); });
+      });
+      b += T(30, 242, "Dorado: el mejor de los cuatro · contorno vino: $225 = igualar a Meniu Business (decisión de posicionamiento, no un óptimo del modelo)", 12, C.t2);
+      sv2.innerHTML = b;
+    }
     const caros = D.mercado_planes.filter(p => p.precio > S.precioServicio).length, tot = D.mercado_planes.length;
     const m = motor(S), sust = SUSTP[S.sustituto], kimp = S.precioServicio / sust, s = sup(S);
     const regla = MOD.redondea(MOD.precioSugerido(sust, S.K, s), s);
@@ -5075,7 +5739,7 @@ DET.precio = {
     return {
       leyenda: `<span>Cada color es un proveedor; más claro = plan más barato</span><span><i style="background:${C.vino}"></i>${PLAN.paga}</span><span><i style="background:${C.osc}"></i>${PLAN.ejec}</span>`,
       cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], [`${mxn(mes.desde)}–${mxn(mes.hasta)}`, `meseta del precio con la curva ${S.curva}: el margen cambia menos de 2 %`, "supuesto"]],
-      insight: S.precioServicio <= 349 ? "Meniu ya ofrece caja, cocina y pedir desde la mesa por $225: a este precio Carta sólo gana si la mesa que pide junta y la sencillez valen la diferencia." : "A este precio Carta queda arriba del corredor propuesto (249 a 349): lo tiene que justificar la orden compartida.",
+      insight: "225 es igualar a Meniu Business, no un óptimo del modelo: el mejor precio se mueve con cuánto paguen los dueños, y eso lo decide la prueba de tres precios del piloto.",
     };
   },
 };
@@ -5096,7 +5760,7 @@ DET.sostiene = {
   nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
   montar(host) {
     this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
-    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
+    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
     const sv = $("#svK", host); this.sv = sv;
     host.addEventListener("click", ev => {
       const t = ev.target.closest("[data-vista]"); if (t) { this.v = +t.dataset.vista; refrescar(); return; }
@@ -5108,6 +5772,7 @@ DET.sostiene = {
   actualizar() {
     $$("#tabsK [data-vista]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vista === this.v));
     $("#bolsaK").hidden = this.v !== 0;
+    const bk = $("#banK"); bk.hidden = this.v !== 1; bk.innerHTML = BAND.banderas.map(b => `<span class="chip" data-tip="${esc2(b.que_hacer + ". " + b.estado_de_la_medicion + ". Proyección: no medido en Railway.")}" tabindex="0">${esc(b.nombre.replace(/ \(.*\)/, ""))} <b>${b.umbral_aviso}/${b.umbral_accion}</b></span>`).join("");
     $$("#bolsaK [data-bolsa]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.bolsa === S.bolsa));
     return this.pinta();
   },
@@ -5115,8 +5780,9 @@ DET.sostiene = {
   v0() { // ¿hasta dónde aguanto con todos gratuitos?
     const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
     const tabla = conCache("tg", () => MOD.tablaTodosGratuitos(c, s).medida);
-    const desde = conCache("nps", () => ({baja: MOD.nSePagaSolo(c, s, "baja"), medio: MOD.nSePagaSolo(c, s, "medio"), adverso: MOD.nSePagaSolo(c, s, "adverso")}));
-    const bol = conCache("bolsa" + S.bolsa, () => MOD.capacidadConBolsa(c, s, S.bolsa));
+    const rs = conCache("rs", () => ({baja: MOD.rangoSePagaSolo(c, s, "baja"), medio: MOD.rangoSePagaSolo(c, s, "medio"), adverso: MOD.rangoSePagaSolo(c, s, "adverso")})), rg = r => `${n(r.minimo)}–${r.maximo == null ? "nunca" : n(r.maximo)}`;
+    const desde = {baja: rs.baja.centro, medio: rs.medio.centro, adverso: rs.adverso.centro};
+    const bol = conCache("bolsa" + S.bolsa, () => MOD.rangoBolsa(c, s, S.bolsa));
     const X0 = 60, W = 540, Y0 = 70, H = 300, lo = lg(10), hi = lg(2000), sl = v => Math.asinh(v / 600), vmin = -3000, vmax = 60000;
     const X = k => X0 + W * (lg(k) - lo) / (hi - lo), Y = v => Y0 + H * (sl(vmax) - sl(clamp(v, vmin, vmax))) / (sl(vmax) - sl(vmin));
     let b = T(30, 28, "Resultado al mes (pesos) según cuántos restaurantes gratuitos hay", 14.5, C.vino, "start", 700);
@@ -5134,16 +5800,16 @@ DET.sostiene = {
     b += T(px, 232, "Cuando ya hay anuncios, al mes:", 13, C.t2, "start", 700);
     [["baja", "tarifa baja", C.vino], ["medio", "tarifa media", C.verde], ["adverso", "adverso (la mitad)", C.dorado]].forEach(([k, nm, col], i) => { const r = g.con_anuncios[k]; b += `<circle cx="${px + 6}" cy="${256 + i * 30}" r="6" fill="${col}"/>` + T(px + 20, 261 + i * 30, `${nm}: ${fmP(r.margen)}`, 14, C.tinta, "start", 700) + T(px + 270, 261 + i * 30, r.se_paga_solo ? "se paga solo" : "no alcanza", 12, r.se_paga_solo ? C.verde : C.rojo, "end", 700); });
     b += `<g transform="translate(${px},352)">${Rc(0, 0, 280, 22, C.a2, 11)}</g>` + T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
-    [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2); });
+    [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2) + T(px + i * 96, 456, `rango ${rg(rs[k])}`, 11, C.t2); });
     b += T(30, 500, "Vale cuando la Fase 3 (canal de eventos) esté construida; hoy, con sondeo, caben 148. Los umbrales son rangos, no puntos.", 12.5, C.t2);
-    b += T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.restaurantes)} restaurantes gratuitos y ${n(bol.comensales_mes / 1e6, 2)} M de comensales al mes${bol.tope_medido ? " (tope medido)" : ""}.`, 14.5, C.osc, "start", 700);
+    b += `<rect x="30" y="462" width="600" height="26" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que este cálculo no incluye: " + bol.no_modelado.join("; "))}" tabindex="0"/>` + T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) y ${n(bol.centro.comensales_mes / 1e6, 2)} M de comensales al mes.`, 14.5, C.osc, "start", 700);
     sv.innerHTML = b;
     const hd = $("#hN", sv), inv = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
     arrastrable(hd, sv, pt => { this.N = inv(pt.x); this.pinta(); }, (d, mult) => { this.N = clamp(this.N + d * mult * 10, 10, 2000); this.pinta(); });
     hd.setAttribute("aria-label", "Restaurantes gratuitos"); hd.setAttribute("aria-valuenow", N);
     return {
       leyenda: `<span><i style="background:${C.rojo}"></i>sin anuncios: lo pones tú</span><span><i style="background:${C.vino}"></i>anuncios, tarifa baja</span><span><i style="background:${C.verde}"></i>tarifa media</span><span><i style="background:${C.dorado}"></i>adverso</span>`,
-      cifras: [[n(g.comensales_mes / 1e6, 2) + " M", `comensales al mes con ${n(N)} restaurantes gratuitos`, "simulado"], [fmP(g.costo_sin_anuncios), "al mes que pones tú mientras no hay anuncios"], [desde.baja == null ? "—" : n(desde.baja), "restaurantes gratuitos desde los que se paga solo (tarifa baja)", "supuesto"], [desde.adverso == null ? "—" : n(desde.adverso), "lo mismo, en el caso adverso", "supuesto"]],
+      cifras: [[n(g.comensales_mes / 1e6, 2) + " M", `comensales al mes con ${n(N)} restaurantes gratuitos`, "simulado"], [fmP(g.costo_sin_anuncios), "al mes que pones tú mientras no hay anuncios"], [desde.baja == null ? "—" : n(desde.baja), `restaurantes gratuitos desde los que se paga solo (tarifa baja; rango ${rg(rs.baja)})`, "supuesto"], [desde.adverso == null ? "—" : n(desde.adverso), `lo mismo, en el caso adverso (rango ${rg(rs.adverso)})`, "supuesto"]],
       insight: `Con ${n(N)} restaurantes gratuitos y sin anuncios pones ${fmP(g.costo_sin_anuncios)} al mes; con anuncios se paga solo desde ${desde.baja == null ? "—" : n(desde.baja)} (tarifa baja) o ${desde.adverso == null ? "—" : n(desde.adverso)} (caso adverso).`,
     };
   },
@@ -5157,7 +5823,7 @@ DET.sostiene = {
     [1, 6, 12, 18, 24].forEach(t => { b += T(X(t), 296, "mes " + t, 11.5, C.t2, "middle"); });
     // banderas: cada salto de escalón, el inicio de los anuncios y el primer margen positivo
     const ban = [];
-    filas.forEach((r, i) => { const p = filas[i - 1]; if (p && r.escalon !== p.escalon) ban.push([r.mes, r.escalon === "pro_2" ? "aquí pasa a Pro" : "aquí toca otro procesador", C.rojo]); if (r.requiere_arquitectura && !(p && p.requiere_arquitectura)) ban.push([r.mes, "aquí hace falta otra nube", C.osc]); });
+    filas.forEach((r, i) => { const p = filas[i - 1]; if (p && r.escalon !== p.escalon) ban.push([r.mes, (r.escalon === "pro_2" ? "aquí pasa a Pro" : "aquí toca otro procesador") + ((BAND.escalones.find(q => q.id === r.escalon) || {}).sube_costo_usd_vs_anterior ? ` (+${BAND.escalones.find(q => q.id === r.escalon).sube_costo_usd_vs_anterior} USD)` : ""), C.rojo]); if (r.requiere_arquitectura && !(p && p.requiere_arquitectura)) ban.push([r.mes, "aquí hace falta otra nube", C.osc]); });
     ban.push([pz.mes_inicio_anuncios, "aquí empiezan los anuncios", C.verde]);
     if (pz.mes_primer_margen_positivo) ban.push([pz.mes_primer_margen_positivo, "primer margen positivo", C.dorado]);
     ban.sort((a, z) => a[0] - z[0]).forEach(([t, tx, col], i) => { const y = 44 + (i % 3) * 22, x = X(t), lb = `⚑ ${tx} · mes ${t}`, w = lb.length * 6.7 + 18, rx = x + w > X0 + W + 40 ? x - w + 4 : x - 4; b += `<line x1="${x}" x2="${x}" y1="${y + 8}" y2="${Ya(filas[t - 1].restaurantes)}" stroke="${col}" stroke-width="1.8" stroke-dasharray="3 3"/><g><rect x="${rx}" y="${y - 10}" width="${w}" height="20" rx="10" fill="${col}"/>${T(rx + 10, y + 4, lb, 11, "#fff", "start", 700)}</g>`; });
@@ -5206,7 +5872,7 @@ DET.sostiene = {
     const sv = this.sv, c = config(S), s = sup(S), X0 = 250, CW = 210, CH = 96, Y0 = 110;
     const curvas = [["pesimista", "Pagan poco"], ["media", "Pagan lo esperado"], ["optimista", "Pagan más"]];
     const ads = [["Sin anuncios", {sinAnuncios: true}], ["Tarifa baja", {anuncios: {activo: true, tarifa: "baja"}}], ["Tarifa media", {anuncios: {activo: true, tarifa: "media"}}]];
-    const v = curvas.map(([k]) => ads.map(([, o]) => MOD.evaluar(c, s, 1000, {curva: k, ...o}).margen_operacion));
+    const v = MOD.matrizEscenarios(c, s, 1000).filas.map(f => f.celdas.map(z => z.margen_operacion));
     const mxp = Math.max(...v.flat()), mxn2 = Math.max(1, -Math.min(...v.flat()));
     let b = T(30, 28, "Margen de operación al mes con 1,000 restaurantes (pesos)", 14.5, C.vino, "start", 700);
     ads.forEach(([t], j) => { b += T(X0 + j * CW + CW / 2 - 6, Y0 - 16, t, 14, C.vino, "middle", 700); });
@@ -5249,7 +5915,7 @@ const sinMd = t => String(t).replace(/\*\*/g, "").replace(/\*/g, "");
 const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 /* tarjetas: qué hacer (5 a 8 palabras), por qué (una cifra), qué pasa si no (una línea); lo demás, detrás de «ver más» */
 const PARCHES = {
-  segmentacion: [{topeMesas: 10, topeCuentas: 3, topePlatillos: 80}, {topeMesas: 10, topeCuentas: 3, topePlatillos: 300}, {topeMesas: 15, topeCuentas: 4, topePlatillos: 150}],
+  segmentacion: [{topeMesas: 12, topeCuentas: 3, topePlatillos: 150}, {topeMesas: 20, topeCuentas: 4, topePlatillos: 100}, {topeMesas: 25, topeCuentas: 4, topePlatillos: 150}],
   precios: [{precioServicio: 199, precioSalon: 1099}, {precioServicio: 225, precioSalon: 1099}, {precioServicio: 249, precioSalon: 1099}, {precioServicio: 299, precioSalon: 1099}],
   anuncios: [{mesAds: 3}, {mesAds: 9}, {mesAds: 99}],
   bolsa: [{bolsa: 500}, {bolsa: 1000}, {bolsa: 2000}, {bolsa: 5000}],
@@ -5260,9 +5926,9 @@ const PARCHES = {
 const segC = (mesas, cuentas, plat) => 100 * MOD.seguridadChico({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas, platillos: plat}}}, SP);
 const TARJ = {
   segmentacion: {
-    que: "Chef gratis: 15 mesas, 4 cuentas, 150 platillos",
-    cif: () => [n(segC(15, 4, 150), 1) + " %", "de los negocios de hasta 10 personas queda en Chef"],
-    si: () => `Con 10 mesas, 3 cuentas y 80 platillos, sólo ${n(segC(10, 3, 80), 1)} % queda dentro.`,
+    que: "Chef gratis: 25 mesas, 4 cuentas, 150 platillos",
+    cif: () => [n(segC(25, 4, 150), 1) + " %", "de los negocios de hasta 10 personas queda en Chef (modelo)"],
+    si: () => `Con 15 mesas, ${n(segC(15, 4, 150), 1)} % de los chicos queda dentro (mínimo más bajo).`,
     rec: 2,
   },
   precios: {
