@@ -1,0 +1,113 @@
+[
+ {
+  "termino": "Mercado total",
+  "sigla_industria": "TAM (mercado total direccionable)",
+  "que_es": "Todos los negocios que preparan alimentos y bebidas: restaurantes, fondas, taquerías, cafeterías, bares.",
+  "cifra_de_carta": "773,860 negocios",
+  "fuente": "medido: DENUE 05/2026, rama 7225 + 7224 (INEGI)",
+  "nota": "Sólo dimensiona; no es a quién se le vende."
+ },
+ {
+  "termino": "Clientes potenciales",
+  "sigla_industria": "SAM (mercado alcanzable)",
+  "que_es": "Restaurantes a la carta o de comida corrida y bares: los que Carta puede atender con lo que hace hoy. Antes en los informes se les llamaba «núcleo» o «negocios servibles»: es la misma cifra.",
+  "cifra_de_carta": "104,882 negocios (72,521 restaurantes a la carta o de comida corrida, 30,451 bares y cantinas, 1,910 centros nocturnos)",
+  "fuente": "medido: DENUE 05/2026, clases 722511 + 722412 + 722411",
+  "nota": "Sólo 6,170 (5.9 %) declara sitio web."
+ },
+ {
+  "termino": "Meta de clientes a 12 meses",
+  "sigla_industria": "SOM (mercado que se espera conseguir)",
+  "que_es": "Restaurantes registrados que Carta se propone tener al año. Es un escenario que fija el plan comercial, no un cálculo.",
+  "cifra_de_carta": "300 restaurantes (0.29 % de los clientes potenciales); a 24 meses, 1,200",
+  "fuente": "supuesto (rango 50–3,000 y 200–10,000)",
+  "nota": "Se cambia en `meta_12_meses` y `meta_24_meses` del modelo."
+ },
+ {
+  "termino": "Cliente gratuito",
+  "sigla_industria": "—",
+  "que_es": "Restaurante en el plan Chef: 10 mesas, 3 cuentas de personal, 80 platillos, con anuncios.",
+  "cifra_de_carta": "Costo ≈ 0.6 pesos al mes; con anuncios deja 7.2 pesos (tarifa baja)",
+  "fuente": "modelo de escenarios, 1,000 restaurantes",
+  "nota": "Nombre del plan: prototipo, `admin-onboarding.jsx`, paso 3 «Elige tu plan»."
+ },
+ {
+  "termino": "Cliente de paga",
+  "sigla_industria": "—",
+  "que_es": "Restaurante en un plan de paga: «Master Chef» (el del prototipo, $799 en esa pantalla; aquí se propone 249 a 349) o «Chef Ejecutivo» (tercer plan; el prototipo sólo tiene dos, el nombre es propuesta nuestra).",
+  "cifra_de_carta": "Master Chef propuesto: 249; Chef Ejecutivo: 499",
+  "fuente": "modelo de escenarios (configuración recomendada)",
+  "nota": "Cobro por transferencia o tarjeta."
+ },
+ {
+  "termino": "Ingreso por cliente al mes",
+  "sigla_industria": "ARPU (ingreso promedio por usuario)",
+  "que_es": "Cuánto deja un cliente en un mes, antes de IVA. Se da por separado para el gratuito (anuncios) y el de paga (suscripción).",
+  "cifra_de_carta": "Gratuito 7.2 pesos (tarifa baja de anuncios; 28.7 media); Master Chef 249; promedio de todos los registrados con 1,000 restaurantes (curva media) 18.9",
+  "fuente": "modelo de escenarios",
+  "nota": "El promedio mezcla ambos."
+ },
+ {
+  "termino": "Costo por cliente al mes",
+  "sigla_industria": "—",
+  "que_es": "Lo que cuesta atender a un cliente: servidor, almacenamiento y, en los de paga, soporte y comisión de cobro.",
+  "cifra_de_carta": "Gratuito 0.6 pesos; Master Chef 77 (soporte 60, comisión 15.5, servidor ≈ 1.5)",
+  "fuente": "modelo de escenarios; soporte es supuesto",
+  "nota": "El soporte es lo que más pesa y se mide en el piloto."
+ },
+ {
+  "termino": "Margen",
+  "sigla_industria": "Margen bruto",
+  "que_es": "Ingresos menos costos, en pesos y como porcentaje de los ingresos. Aquí no incluye sueldos, impuestos sobre la renta ni el costo de conseguir clientes.",
+  "cifra_de_carta": "1,000 restaurantes, curva media: 14,496 pesos al mes (77 %)",
+  "fuente": "modelo de escenarios",
+  "nota": "Con las curvas pesimista y optimista: 8,150 y 44,492."
+ },
+ {
+  "termino": "Punto de equilibrio",
+  "sigla_industria": "Break-even",
+  "que_es": "Cuántos clientes de paga hacen falta para que el negocio no pierda: el costo que los anuncios no cubren dividido entre lo que deja cada cliente de paga (precio menos lo que cuesta atenderlo).",
+  "cifra_de_carta": "Sin anuncios, con 1,000 restaurantes: 3.6 clientes de paga; con el costo fijo publicado de 2,569 pesos al mes: 9.7 a 349",
+  "fuente": "modelo de escenarios; tres-planes",
+  "nota": "«9.7 pagantes» antes se escribió sin explicar: son 2,569 pesos ÷ 264 pesos de margen por cliente."
+ },
+ {
+  "termino": "Conversión",
+  "sigla_industria": "Tasa de conversión",
+  "que_es": "De los restaurantes que rebasan los topes del plan gratuito, qué parte llega a pagar.",
+  "cifra_de_carta": "16 % (curva media, a 218 pesos); supuesto: no hay dato",
+  "fuente": "supuesto: sustituye la prueba del piloto",
+  "nota": "Depende del precio."
+ },
+ {
+  "termino": "Costo de conseguir un cliente",
+  "sigla_industria": "CAC (costo de adquisición de cliente)",
+  "que_es": "Lo gastado en conseguir restaurantes (visitas, demostraciones, ayuda con la carta) dividido entre los que se consiguieron.",
+  "cifra_de_carta": "SIN DATO TODAVÍA",
+  "fuente": "—",
+  "nota": "Se medirá en el piloto: horas y gastos por restaurante registrado y por restaurante de paga."
+ },
+ {
+  "termino": "Valor de un cliente en el tiempo",
+  "sigla_industria": "LTV (valor de vida del cliente)",
+  "que_es": "Lo que deja un cliente de paga durante todo el tiempo que se queda: ingreso mensual de paga × meses de permanencia, menos lo que cuesta atenderlo.",
+  "cifra_de_carta": "SIN DATO TODAVÍA",
+  "fuente": "—",
+  "nota": "Se medirá con la permanencia de los clientes de paga del piloto. Regla de prudencia: LTV ≥ 3 veces el CAC [práctica común de la industria; sin fuente aquí]."
+ },
+ {
+  "termino": "Anuncios no personalizados",
+  "sigla_industria": "—",
+  "que_es": "Anuncios en el menú gratuito que no usan datos del comensal (la regla dura 10 lo impide).",
+  "cifra_de_carta": "Tarifa supuesta: 3.5 / 14 / 37 pesos por mil visitas con la app",
+  "fuente": "supuesto: cadena de tres eslabones, fiabilidad baja (anuncios-y-capa-del-comensal §2)",
+  "nota": "No hay tarifa publicada para México."
+ },
+ {
+  "planes": {
+   "chef": "plan gratuito (prototipo)",
+   "master_chef": "plan de paga (prototipo)",
+   "chef_ejecutivo": "tercer plan (propuesta, sin pantalla)"
+  }
+ }
+]

@@ -1,0 +1,3322 @@
+{
+ "version": "2026-11-14",
+ "precio_optimo_por_curva": {
+  "pesimista": {
+   "precio": 163,
+   "conversion": 0.07051556856477495,
+   "margen_por_elegible": 6.460919808077857,
+   "derivada_en_optimo": 0.00001691123422942198,
+   "muestras": [
+    {
+     "precio": 50,
+     "conversion": 0.1483416357923294,
+     "margen_por_elegible": -2.358940559700485
+    },
+    {
+     "precio": 100,
+     "conversion": 0.12247676426187552,
+     "margen_por_elegible": 3.8795543884768873
+    },
+    {
+     "precio": 150,
+     "conversion": 0.08045123648536685,
+     "margen_por_elegible": 6.376062988114508
+    },
+    {
+     "precio": 200,
+     "conversion": 0.047121323516415715,
+     "margen_por_elegible": 5.976476625410513
+    },
+    {
+     "precio": 250,
+     "conversion": 0.02641112551400605,
+     "margen_por_elegible": 4.60635383644759
+    },
+    {
+     "precio": 300,
+     "conversion": 0.014647130055153446,
+     "margen_por_elegible": 3.251480076060977
+    },
+    {
+     "precio": 350,
+     "conversion": 0.008163896310311858,
+     "margen_por_elegible": 2.2007043010035927
+    },
+    {
+     "precio": 400,
+     "conversion": 0.004606722369849103,
+     "margen_por_elegible": 1.4609914109611075
+    },
+    {
+     "precio": 450,
+     "conversion": 0.002640293998029847,
+     "margen_por_elegible": 0.9629714065377631
+    },
+    {
+     "precio": 500,
+     "conversion": 0.0015389017079181998,
+     "margen_por_elegible": 0.6344879430533075
+    },
+    {
+     "precio": 550,
+     "conversion": 0.0009123169753997073,
+     "margen_por_elegible": 0.41955370317392826
+    },
+    {
+     "precio": 600,
+     "conversion": 0.0005499212816926668,
+     "margen_por_elegible": 0.2790603259982035
+    },
+    {
+     "precio": 650,
+     "conversion": 0.00033682295846997333,
+     "margen_por_elegible": 0.18694784363554637
+    },
+    {
+     "precio": 700,
+     "conversion": 0.0002094702657223668,
+     "margen_por_elegible": 0.1262290611607893
+    },
+    {
+     "precio": 750,
+     "conversion": 0.00013216533362682135,
+     "margen_por_elegible": 0.08593241967242263
+    },
+    {
+     "precio": 800,
+     "conversion": 0.00008453629935837314,
+     "margen_por_elegible": 0.05898661632423013
+    },
+    {
+     "precio": 850,
+     "conversion": 0.000054773047167899766,
+     "margen_por_elegible": 0.04082479712306127
+    },
+    {
+     "precio": 900,
+     "conversion": 0.00003592301546941901,
+     "margen_por_elegible": 0.02848416938893132
+    },
+    {
+     "precio": 950,
+     "conversion": 0.00002383220032420308,
+     "margen_por_elegible": 0.020030975811948844
+    },
+    {
+     "precio": 1000,
+     "conversion": 0.000015983205871017424,
+     "margen_por_elegible": 0.01419433989680376
+    },
+    {
+     "precio": 1050,
+     "conversion": 0.00001082964693508437,
+     "margen_por_elegible": 0.01013282759818032
+    },
+    {
+     "precio": 1100,
+     "conversion": 0.0000074092813322712555,
+     "margen_por_elegible": 0.0072850590996819155
+    },
+    {
+     "precio": 1150,
+     "conversion": 0.000005115962433288601,
+     "margen_por_elegible": 0.005273596286337078
+    },
+    {
+     "precio": 1200,
+     "conversion": 0.0000035633814503610583,
+     "margen_por_elegible": 0.0038427152073253782
+    },
+    {
+     "precio": 1250,
+     "conversion": 0.0000025025924377974904,
+     "margen_por_elegible": 0.002817839002001965
+    },
+    {
+     "precio": 1300,
+     "conversion": 0.0000017714693029136086,
+     "margen_por_elegible": 0.0020789005728395096
+    },
+    {
+     "precio": 1350,
+     "conversion": 0.0000012633632582081943,
+     "margen_por_elegible": 0.0015427229931781017
+    },
+    {
+     "precio": 1400,
+     "conversion": 9.074462221481116e-7,
+     "margen_por_elegible": 0.0011512786191446602
+    },
+    {
+     "precio": 1450,
+     "conversion": 6.56249632602357e-7,
+     "margen_por_elegible": 0.0008638080564019481
+    },
+    {
+     "precio": 1500,
+     "conversion": 4.776831284525328e-7,
+     "margen_por_elegible": 0.0006514917651317632
+    }
+   ]
+  },
+  "media": {
+   "precio": 218,
+   "conversion": 0.16071640090078715,
+   "margen_por_elegible": 23.136689873108754,
+   "derivada_en_optimo": 0.0000610210227289798,
+   "muestras": [
+    {
+     "precio": 50,
+     "conversion": 0.34672915011802724,
+     "margen_por_elegible": -5.513714683508878
+    },
+    {
+     "precio": 100,
+     "conversion": 0.30948036620287367,
+     "margen_por_elegible": 9.803050562983634
+    },
+    {
+     "precio": 150,
+     "conversion": 0.24454003502537208,
+     "margen_por_elegible": 19.380717246292434
+    },
+    {
+     "precio": 200,
+     "conversion": 0.1807447744654809,
+     "margen_por_elegible": 22.924163396678047
+    },
+    {
+     "precio": 250,
+     "conversion": 0.12964564998752492,
+     "margen_por_elegible": 22.61144595606423
+    },
+    {
+     "precio": 300,
+     "conversion": 0.09199323433830907,
+     "margen_por_elegible": 20.421349947540072
+    },
+    {
+     "precio": 350,
+     "conversion": 0.06521203757797049,
+     "margen_por_elegible": 17.57891160300215
+    },
+    {
+     "precio": 400,
+     "conversion": 0.04641704698104178,
+     "margen_por_elegible": 14.720858240845448
+    },
+    {
+     "precio": 450,
+     "conversion": 0.03326085671443549,
+     "margen_por_elegible": 12.130942234785506
+    },
+    {
+     "precio": 500,
+     "conversion": 0.02402400304768417,
+     "margen_por_elegible": 9.905077237357744
+    },
+    {
+     "precio": 550,
+     "conversion": 0.017500228394985527,
+     "margen_por_elegible": 8.047954633628166
+    },
+    {
+     "precio": 600,
+     "conversion": 0.012858183571701298,
+     "margen_por_elegible": 6.524950058705025
+    },
+    {
+     "precio": 650,
+     "conversion": 0.009528038577515285,
+     "margen_por_elegible": 5.288375454672498
+    },
+    {
+     "precio": 700,
+     "conversion": 0.007118854811441921,
+     "margen_por_elegible": 4.289899362515249
+    },
+    {
+     "precio": 750,
+     "conversion": 0.005361237446627282,
+     "margen_por_elegible": 3.4858165419376563
+    },
+    {
+     "precio": 800,
+     "conversion": 0.0040683678105955185,
+     "margen_por_elegible": 2.838771662952816
+    },
+    {
+     "precio": 850,
+     "conversion": 0.0031097351745769494,
+     "margen_por_elegible": 2.3178244441903937
+    },
+    {
+     "precio": 900,
+     "conversion": 0.0023934464470312775,
+     "margen_por_elegible": 1.8978176840029448
+    },
+    {
+     "precio": 950,
+     "conversion": 0.0018542775167627145,
+     "margen_por_elegible": 1.5585211428922696
+    },
+    {
+     "precio": 1000,
+     "conversion": 0.0014455607196772967,
+     "margen_por_elegible": 1.2837712510338621
+    },
+    {
+     "precio": 1050,
+     "conversion": 0.0011336410760942328,
+     "margen_por_elegible": 1.06069843745917
+    },
+    {
+     "precio": 1100,
+     "conversion": 0.0008940606294715991,
+     "margen_por_elegible": 0.8790710235324294
+    },
+    {
+     "precio": 1150,
+     "conversion": 0.0007089123642748051,
+     "margen_por_elegible": 0.7307554854688186
+    },
+    {
+     "precio": 1200,
+     "conversion": 0.0005649911128357554,
+     "margen_por_elegible": 0.6092808113702394
+    },
+    {
+     "precio": 1250,
+     "conversion": 0.0004524915050116151,
+     "margen_por_elegible": 0.5094909549149182
+    },
+    {
+     "precio": 1300,
+     "conversion": 0.00036408420129028227,
+     "margen_por_elegible": 0.4272695289606695
+    },
+    {
+     "precio": 1350,
+     "conversion": 0.00029425567076721835,
+     "margen_por_elegible": 0.3593226146290414
+    },
+    {
+     "precio": 1400,
+     "conversion": 0.00023883294026606493,
+     "margen_por_elegible": 0.3030077716615314
+    },
+    {
+     "precio": 1450,
+     "conversion": 0.00019463911363803987,
+     "margen_por_elegible": 0.2561995102149628
+    },
+    {
+     "precio": 1500,
+     "conversion": 0.00015924200063007765,
+     "margen_por_elegible": 0.2171834127985362
+    }
+   ]
+  },
+  "optimista": {
+   "precio": 580,
+   "conversion": 0.3463885453767431,
+   "margen_por_elegible": 169.18443454935655,
+   "derivada_en_optimo": -0.000014367769395562391,
+   "muestras": [
+    {
+     "precio": 50,
+     "conversion": 0.5999943901956787,
+     "margen_por_elegible": -9.541158792442896
+    },
+    {
+     "precio": 100,
+     "conversion": 0.599466164636531,
+     "margen_por_elegible": 18.988594316440416
+    },
+    {
+     "precio": 150,
+     "conversion": 0.5957025784540936,
+     "margen_por_elegible": 47.2116691841819
+    },
+    {
+     "precio": 200,
+     "conversion": 0.5853328906063383,
+     "margen_por_elegible": 74.2387538748581
+    },
+    {
+     "precio": 250,
+     "conversion": 0.5669630244885252,
+     "margen_por_elegible": 98.8837943158339
+    },
+    {
+     "precio": 300,
+     "conversion": 0.5412765107749622,
+     "margen_por_elegible": 120.15663026118715
+    },
+    {
+     "precio": 350,
+     "conversion": 0.5100585830442095,
+     "margen_por_elegible": 137.49416636408887
+    },
+    {
+     "precio": 400,
+     "conversion": 0.47535810531097333,
+     "margen_por_elegible": 150.75666672155594
+    },
+    {
+     "precio": 450,
+     "conversion": 0.4390264351649468,
+     "margen_por_elegible": 160.1222833871964
+    },
+    {
+     "precio": 500,
+     "conversion": 0.4025387693487523,
+     "margen_por_elegible": 165.9664125714751
+    },
+    {
+     "precio": 550,
+     "conversion": 0.366971958600912,
+     "margen_por_elegible": 168.76200744214663
+    },
+    {
+     "precio": 600,
+     "conversion": 0.3330523256551049,
+     "margen_por_elegible": 169.00908123740427
+    },
+    {
+     "precio": 650,
+     "conversion": 0.3012256323893671,
+     "margen_por_elegible": 167.19015437294232
+    },
+    {
+     "precio": 700,
+     "conversion": 0.27172686578180555,
+     "margen_por_elegible": 163.7455657084157
+    },
+    {
+     "precio": 750,
+     "conversion": 0.2446396804258997,
+     "margen_por_elegible": 159.06198024849922
+    },
+    {
+     "precio": 800,
+     "conversion": 0.2199434738322879,
+     "margen_por_elegible": 153.46923632136136
+    },
+    {
+     "precio": 850,
+     "conversion": 0.19754975091156973,
+     "margen_por_elegible": 147.24264797527363
+    },
+    {
+     "precio": 900,
+     "conversion": 0.1773283993294562,
+     "margen_por_elegible": 140.6076883570147
+    },
+    {
+     "precio": 950,
+     "conversion": 0.15912648423924627,
+     "margen_por_elegible": 133.74588638379893
+    },
+    {
+     "precio": 1000,
+     "conversion": 0.14278131104497457,
+     "margen_por_elegible": 126.80099826272334
+    },
+    {
+     "precio": 1050,
+     "conversion": 0.12812923010146807,
+     "margen_por_elegible": 119.88492392117284
+    },
+    {
+     "precio": 1100,
+     "conversion": 0.11501134974603212,
+     "margen_por_elegible": 113.08309705891409
+    },
+    {
+     "precio": 1150,
+     "conversion": 0.10327704717160228,
+     "margen_por_elegible": 106.45923607338123
+    },
+    {
+     "precio": 1200,
+     "conversion": 0.09278593920866351,
+     "margen_por_elegible": 100.0594364061058
+    },
+    {
+     "precio": 1250,
+     "conversion": 0.08340879719505363,
+     "margen_por_elegible": 93.91563656012015
+    },
+    {
+     "precio": 1300,
+     "conversion": 0.0750277550678858,
+     "margen_por_elegible": 88.04851584667671
+    },
+    {
+     "precio": 1350,
+     "conversion": 0.06753605930121047,
+     "margen_por_elegible": 82.46989207236184
+    },
+    {
+     "precio": 1400,
+     "conversion": 0.060837535558808574,
+     "margen_por_elegible": 77.18468843752302
+    },
+    {
+     "precio": 1450,
+     "conversion": 0.05484589340129326,
+     "margen_por_elegible": 72.19253501556841
+    },
+    {
+     "precio": 1500,
+     "conversion": 0.0494839518919844,
+     "margen_por_elegible": 67.4890638659173
+    }
+   ]
+  }
+ },
+ "config_base": {
+  "config": {
+   "precios": {
+    "servicio": 299,
+    "salon": 399
+   },
+   "topes": {
+    "gratuito": {
+     "platillos": 80,
+     "mesas": 10,
+     "cuentas": 3,
+     "lecturas_pdf": 3,
+     "meses_en_linea": 1
+    },
+    "servicio": {
+     "platillos": 300,
+     "mesas": 40,
+     "cuentas": 20,
+     "lecturas_pdf_mes": 10,
+     "meses_en_linea": 3
+    },
+    "salon": {
+     "platillos": 300,
+     "mesas": 100,
+     "cuentas": 50,
+     "lecturas_pdf_mes": 20,
+     "meses_en_linea": 6
+    }
+   },
+   "disco": {
+    "meses_analitica_en_linea": {
+     "gratuito": 1,
+     "servicio": 1,
+     "salon": 1
+    },
+    "archivar": true
+   },
+   "anuncios": {
+    "activo": true,
+    "tarifa": "media"
+   },
+   "curva": "media",
+   "competencia": {
+    "sustituto": "Fudo Avanzado",
+    "k": 0.5
+   }
+  },
+  "escenarios": [
+   {
+    "n": 100,
+    "peor_sin_anuncios": {
+     "n": 100,
+     "gratuitos": 100,
+     "pagantes": 0,
+     "ingresos": 0,
+     "anuncios": 0,
+     "suscripcion": 0,
+     "costos": 217.89198292444408,
+     "margen": -217.89198292444408,
+     "margen_pct": null,
+     "escalon": "hobby_eventos",
+     "muro": "disco",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 1.0086450259049342,
+     "gratuitos_por_pagante": 99.14290700068855,
+     "gratuitos_por_pagante_solo_variable": 216.02444599273778,
+     "ingreso_por_gratuito": 0,
+     "costo_por_gratuito": 2.1789198292444407,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 82.9755540072622
+    },
+    "peor_anuncios_tarifa_baja": {
+     "n": 100,
+     "gratuitos": 100,
+     "pagantes": 0,
+     "ingresos": 717.5,
+     "anuncios": 717.5,
+     "suscripcion": 0,
+     "costos": 217.89198292444408,
+     "margen": 499.60801707555595,
+     "margen_pct": 0.6963177938335274,
+     "escalon": "hobby_eventos",
+     "muro": "disco",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 2.1789198292444407,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 82.9755540072622
+    },
+    "peor_anuncios_tarifa_media": {
+     "n": 100,
+     "gratuitos": 100,
+     "pagantes": 0,
+     "ingresos": 2870,
+     "anuncios": 2870,
+     "suscripcion": 0,
+     "costos": 217.89198292444408,
+     "margen": 2652.108017075556,
+     "margen_pct": 0.9240794484583819,
+     "escalon": "hobby_eventos",
+     "muro": "disco",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 2.1789198292444407,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 82.9755540072622
+    },
+    "mejor": {
+     "n": 100,
+     "gratuitos": 0,
+     "pagantes": 100,
+     "ingresos": 30200,
+     "anuncios": 0,
+     "suscripcion": 30200,
+     "costos": 8456.84147323683,
+     "margen": 21743.15852676317,
+     "margen_pct": 0.7199721366477871,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 1.93241457169983,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 82.40859191490961
+    },
+    "esperado": {
+     "pesimista": {
+      "n": 100,
+      "gratuitos": 99.45247999536656,
+      "pagantes": 0.5475200046334296,
+      "ingresos": 3019.392376591374,
+      "anuncios": 2854.28617586702,
+      "suscripcion": 165.10620072435415,
+      "costos": 261.7119656473441,
+      "margen": 2757.68041094403,
+      "margen_pct": 0.9133229693244461,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.7,
+      "costo_por_gratuito": 2.1646605542016486,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 82.94275767466378
+     },
+     "media": {
+      "n": 100,
+      "gratuitos": 96.52513974393656,
+      "pagantes": 3.4748602560634296,
+      "ingresos": 3823.2740121725647,
+      "anuncios": 2770.2715106509795,
+      "suscripcion": 1053.0025015215851,
+      "costos": 499.39551573618064,
+      "margen": 3323.878496436384,
+      "margen_pct": 0.8693801401243536,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.700000000000003,
+      "costo_por_gratuito": 2.088718374154323,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 82.76809066055493
+     },
+     "optimista": {
+      "n": 100,
+      "gratuitos": 79.06513350494532,
+      "pagantes": 20.934866495054685,
+      "ingresos": 8671.516523763501,
+      "anuncios": 2269.1693315919306,
+      "suscripcion": 6402.34719217157,
+      "costos": 1952.3739843017447,
+      "margen": 6719.142539461756,
+      "margen_pct": 0.7748520712667223,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.7,
+      "costo_por_gratuito": 1.7177048317129848,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 81.91475951293987
+     }
+    }
+   },
+   {
+    "n": 1000,
+    "peor_sin_anuncios": {
+     "n": 1000,
+     "gratuitos": 1000,
+     "pagantes": 0,
+     "ingresos": 0,
+     "anuncios": 0,
+     "suscripcion": 0,
+     "costos": 637.1859329946076,
+     "margen": -637.1859329946076,
+     "margen_pct": null,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 2.851088107451831,
+     "gratuitos_por_pagante": 344.59397576809124,
+     "gratuitos_por_pagante_solo_variable": 219.57043395411242,
+     "ingreso_por_gratuito": 0,
+     "costo_por_gratuito": 0.6371859329946076,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.4295660458876
+    },
+    "peor_anuncios_tarifa_baja": {
+     "n": 1000,
+     "gratuitos": 1000,
+     "pagantes": 0,
+     "ingresos": 7175,
+     "anuncios": 7175,
+     "suscripcion": 0,
+     "costos": 637.1859329946076,
+     "margen": 6537.814067005393,
+     "margen_pct": 0.9111935981889049,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 0.6371859329946076,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.4295660458876
+    },
+    "peor_anuncios_tarifa_media": {
+     "n": 1000,
+     "gratuitos": 1000,
+     "pagantes": 0,
+     "ingresos": 28700,
+     "anuncios": 28700,
+     "suscripcion": 0,
+     "costos": 637.1859329946076,
+     "margen": 28062.81406700539,
+     "margen_pct": 0.9777983995472261,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 0.6371859329946076,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.4295660458876
+    },
+    "mejor": {
+     "n": 1000,
+     "gratuitos": 0,
+     "pagantes": 1000,
+     "ingresos": 302000,
+     "anuncios": 0,
+     "suscripcion": 302000,
+     "costos": 81724.87562721528,
+     "margen": 220275.12437278472,
+     "margen_pct": 0.729387829048956,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 2,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 0.7530122053982956,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.69596647241607
+    },
+    "esperado": {
+     "pesimista": {
+      "n": 1000,
+      "gratuitos": 994.5247999536657,
+      "pagantes": 5.4752000463342965,
+      "ingresos": 30193.923765913747,
+      "anuncios": 28542.861758670206,
+      "suscripcion": 1651.0620072435415,
+      "costos": 1074.9894875102848,
+      "margen": 29118.934278403463,
+      "margen_pct": 0.9643971583208456,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.7,
+      "costo_por_gratuito": 0.6342152072352114,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 79.42273337664098
+     },
+     "media": {
+      "n": 1000,
+      "gratuitos": 965.2513974393657,
+      "pagantes": 34.748602560634296,
+      "ingresos": 38232.74012172565,
+      "anuncios": 27702.715106509797,
+      "suscripcion": 10530.025015215853,
+      "costos": 3449.631657283445,
+      "margen": 34783.1084644422,
+      "margen_pct": 0.9097728374607604,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.7,
+      "costo_por_gratuito": 0.6184386306313171,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 79.38644725045202
+     },
+     "optimista": {
+      "n": 1000,
+      "gratuitos": 790.6513350494532,
+      "pagantes": 209.34866495054686,
+      "ingresos": 86715.165237635,
+      "anuncios": 22691.693315919307,
+      "suscripcion": 64023.47192171569,
+      "costos": 18062.797313327654,
+      "margen": 68652.36792430734,
+      "margen_pct": 0.7916996725563723,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.7,
+      "costo_por_gratuito": 0.6151045701110677,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 79.37877891125545
+     }
+    }
+   },
+   {
+    "n": 10000,
+    "peor_sin_anuncios": {
+     "n": 10000,
+     "gratuitos": 10000,
+     "pagantes": 0,
+     "ingresos": 0,
+     "anuncios": 0,
+     "suscripcion": 0,
+     "costos": 5478.647463789907,
+     "margen": -5478.647463789907,
+     "margen_pct": null,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 5,
+     "equilibrio_pagantes": 24.305667490110817,
+     "gratuitos_por_pagante": 401.1498716350992,
+     "gratuitos_por_pagante_solo_variable": 219.77587268332832,
+     "ingreso_por_gratuito": 0,
+     "costo_por_gratuito": 0.5478647463789907,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.22412731667167
+    },
+    "peor_anuncios_tarifa_baja": {
+     "n": 10000,
+     "gratuitos": 10000,
+     "pagantes": 0,
+     "ingresos": 71750,
+     "anuncios": 71750,
+     "suscripcion": 0,
+     "costos": 5478.647463789907,
+     "margen": 66271.35253621009,
+     "margen_pct": 0.9236425440586772,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 5,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 0.5478647463789907,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.22412731667167
+    },
+    "peor_anuncios_tarifa_media": {
+     "n": 10000,
+     "gratuitos": 10000,
+     "pagantes": 0,
+     "ingresos": 287000,
+     "anuncios": 287000,
+     "suscripcion": 0,
+     "costos": 5478.647463789907,
+     "margen": 281521.3525362101,
+     "margen_pct": 0.9809106360146693,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 5,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 0.5478647463789907,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.22412731667167
+    },
+    "mejor": {
+     "n": 10000,
+     "gratuitos": 0,
+     "pagantes": 10000,
+     "ingresos": 3020000,
+     "anuncios": 0,
+     "suscripcion": 3020000,
+     "costos": 812456.086467142,
+     "margen": 2207543.913532858,
+     "margen_pct": 0.730974805805582,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 12,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 0.55422872115894,
+     "ingreso_por_pagante": 299,
+     "costo_por_pagante": 79.23876445866556
+    },
+    "esperado": {
+     "pesimista": {
+      "n": 10000,
+      "gratuitos": 9945.247999536658,
+      "pagantes": 54.752000463342966,
+      "ingresos": 301939.23765913746,
+      "anuncios": 285428.61758670205,
+      "suscripcion": 16510.620072435413,
+      "costos": 9859.445977769456,
+      "margen": 292079.791681368,
+      "margen_pct": 0.9673462579616767,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true,
+      "instancias": 5,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.7,
+      "costo_por_gratuito": 0.5458450165040656,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 79.21948193795934
+     },
+     "media": {
+      "n": 10000,
+      "gratuitos": 9652.513974393656,
+      "pagantes": 347.486025606343,
+      "ingresos": 382327.40121725644,
+      "anuncios": 277027.15106509795,
+      "suscripcion": 105300.25015215852,
+      "costos": 33621.32939791504,
+      "margen": 348706.0718193414,
+      "margen_pct": 0.9120614183266195,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true,
+      "instancias": 5,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.700000000000003,
+      "costo_por_gratuito": 0.5351351052325808,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 79.19484914203493
+     },
+     "optimista": {
+      "n": 10000,
+      "gratuitos": 7906.513350494532,
+      "pagantes": 2093.486649505469,
+      "ingresos": 867151.65237635,
+      "anuncios": 226916.93315919305,
+      "suscripcion": 640234.719217157,
+      "costos": 179997.11189402436,
+      "margen": 687154.5404823257,
+      "margen_pct": 0.7924271822572688,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true,
+      "instancias": 7,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 28.7,
+      "costo_por_gratuito": 0.5674923093069598,
+      "ingreso_por_pagante": 299,
+      "costo_por_pagante": 79.26927071140601
+     }
+    }
+   }
+  ]
+ },
+ "config_recomendada": {
+  "config": {
+   "precios": {
+    "servicio": 249,
+    "salon": 499
+   },
+   "topes": {
+    "gratuito": {
+     "platillos": 80,
+     "mesas": 10,
+     "cuentas": 3,
+     "lecturas_pdf": 3,
+     "meses_en_linea": 1
+    },
+    "servicio": {
+     "platillos": 300,
+     "mesas": 40,
+     "cuentas": 20,
+     "lecturas_pdf_mes": 10,
+     "meses_en_linea": 3
+    },
+    "salon": {
+     "platillos": 300,
+     "mesas": 100,
+     "cuentas": 50,
+     "lecturas_pdf_mes": 20,
+     "meses_en_linea": 3
+    }
+   },
+   "disco": {
+    "meses_analitica_en_linea": {
+     "gratuito": 1,
+     "servicio": 1,
+     "salon": 1
+    },
+    "archivar": true
+   },
+   "anuncios": {
+    "activo": true,
+    "tarifa": "baja"
+   },
+   "curva": "media",
+   "competencia": {
+    "sustituto": "Fudo Avanzado",
+    "k": 0.5
+   }
+  },
+  "escenarios": [
+   {
+    "n": 100,
+    "peor_sin_anuncios": {
+     "n": 100,
+     "gratuitos": 100,
+     "pagantes": 0,
+     "ingresos": 0,
+     "anuncios": 0,
+     "suscripcion": 0,
+     "costos": 217.89198292444408,
+     "margen": -217.89198292444408,
+     "margen_pct": null,
+     "escalon": "hobby_eventos",
+     "muro": "disco",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 1.293538003472022,
+     "gratuitos_por_pagante": 77.30735373184798,
+     "gratuitos_por_pagante_solo_variable": 168.44652599273778,
+     "ingreso_por_gratuito": 0,
+     "costo_por_gratuito": 2.1789198292444407,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 80.55347400726221
+    },
+    "peor_anuncios_tarifa_baja": {
+     "n": 100,
+     "gratuitos": 100,
+     "pagantes": 0,
+     "ingresos": 717.5,
+     "anuncios": 717.5,
+     "suscripcion": 0,
+     "costos": 217.89198292444408,
+     "margen": 499.60801707555595,
+     "margen_pct": 0.6963177938335274,
+     "escalon": "hobby_eventos",
+     "muro": "disco",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 2.1789198292444407,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 80.55347400726221
+    },
+    "peor_anuncios_tarifa_media": {
+     "n": 100,
+     "gratuitos": 100,
+     "pagantes": 0,
+     "ingresos": 2870,
+     "anuncios": 2870,
+     "suscripcion": 0,
+     "costos": 217.89198292444408,
+     "margen": 2652.108017075556,
+     "margen_pct": 0.9240794484583819,
+     "escalon": "hobby_eventos",
+     "muro": "disco",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 2.1789198292444407,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 80.55347400726221
+    },
+    "mejor": {
+     "n": 100,
+     "gratuitos": 0,
+     "pagantes": 100,
+     "ingresos": 25650,
+     "anuncios": 0,
+     "suscripcion": 25650,
+     "costos": 8235.952610186429,
+     "margen": 17414.04738981357,
+     "margen_pct": 0.6789102296223615,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 1.9304254259080424,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 79.98193687958849
+    },
+    "esperado": {
+     "pesimista": {
+      "n": 100,
+      "gratuitos": 99.03329011938081,
+      "pagantes": 0.9667098806191952,
+      "ingresos": 952.441126852963,
+      "anuncios": 710.5638566065572,
+      "suscripcion": 241.87727024640577,
+      "costos": 291.6321370029215,
+      "margen": 660.8089898500414,
+      "margen_pct": 0.6938056024874454,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.174999999999999,
+      "costo_por_gratuito": 2.155227768398807,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 80.49898226731726
+     },
+     "media": {
+      "n": 100,
+      "gratuitos": 95.22839417025165,
+      "pagantes": 4.771605829748358,
+      "ingresos": 1889.5277077665273,
+      "anuncios": 683.2637281715556,
+      "suscripcion": 1206.2639795949717,
+      "costos": 585.486856215097,
+      "margen": 1304.0408515514305,
+      "margen_pct": 0.6901411639487637,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.175000000000001,
+      "costo_por_gratuito": 2.064400582745564,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 80.2900797403148
+     },
+     "optimista": {
+      "n": 100,
+      "gratuitos": 78.36356407246157,
+      "pagantes": 21.636435927538432,
+      "ingresos": 6252.177966468199,
+      "anuncios": 562.2585722199118,
+      "suscripcion": 5689.919394248287,
+      "costos": 1949.1165693674288,
+      "margen": 4303.06139710077,
+      "margen_pct": 0.6882499858735678,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.175000000000001,
+      "costo_por_gratuito": 1.7150334377488348,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 79.48653530682232
+     }
+    }
+   },
+   {
+    "n": 1000,
+    "peor_sin_anuncios": {
+     "n": 1000,
+     "gratuitos": 1000,
+     "pagantes": 0,
+     "ingresos": 0,
+     "anuncios": 0,
+     "suscripcion": 0,
+     "costos": 637.1859329946076,
+     "margen": -637.1859329946076,
+     "margen_pct": null,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 3.6397784915314872,
+     "gratuitos_por_pagante": 269.92515849462103,
+     "gratuitos_por_pagante_solo_variable": 171.9925139541124,
+     "ingreso_por_gratuito": 0,
+     "costo_por_gratuito": 0.6371859329946076,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 77.00748604588759
+    },
+    "peor_anuncios_tarifa_baja": {
+     "n": 1000,
+     "gratuitos": 1000,
+     "pagantes": 0,
+     "ingresos": 7175,
+     "anuncios": 7175,
+     "suscripcion": 0,
+     "costos": 637.1859329946076,
+     "margen": 6537.814067005393,
+     "margen_pct": 0.9111935981889049,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 0.6371859329946076,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 77.00748604588759
+    },
+    "peor_anuncios_tarifa_media": {
+     "n": 1000,
+     "gratuitos": 1000,
+     "pagantes": 0,
+     "ingresos": 28700,
+     "anuncios": 28700,
+     "suscripcion": 0,
+     "costos": 637.1859329946076,
+     "margen": 28062.81406700539,
+     "margen_pct": 0.9777983995472261,
+     "escalon": "pro_2",
+     "muro": "procesador",
+     "requiere_arquitectura": false,
+     "instancias": 1,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 0.6371859329946076,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 77.00748604588759
+    },
+    "mejor": {
+     "n": 1000,
+     "gratuitos": 0,
+     "pagantes": 1000,
+     "ingresos": 256500,
+     "anuncios": 0,
+     "suscripcion": 256500,
+     "costos": 79515.98699671129,
+     "margen": 176984.0130032887,
+     "margen_pct": 0.6899961520596051,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 2,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 0.751023059606508,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 77.26931143709497
+    },
+    "esperado": {
+     "pesimista": {
+      "n": 1000,
+      "gratuitos": 990.3329011938081,
+      "pagantes": 9.667098806191952,
+      "ingresos": 9524.41126852963,
+      "anuncios": 7105.638566065572,
+      "suscripcion": 2418.7727024640576,
+      "costos": 1373.9168211387378,
+      "margen": 8150.494447390892,
+      "margen_pct": 0.8557478480923638,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.174999999999999,
+      "costo_por_gratuito": 0.63222606613511,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 76.99607835211074
+     },
+     "media": {
+      "n": 1000,
+      "gratuitos": 952.2839417025165,
+      "pagantes": 47.71605829748358,
+      "ingresos": 18895.277077665272,
+      "anuncios": 6832.637281715556,
+      "suscripcion": 12062.639795949717,
+      "costos": 4398.862351316755,
+      "margen": 14496.414726348517,
+      "margen_pct": 0.7671977852859152,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.175000000000001,
+      "costo_por_gratuito": 0.696892296927565,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 77.1448106829334
+     },
+     "optimista": {
+      "n": 1000,
+      "gratuitos": 783.6356407246157,
+      "pagantes": 216.36435927538432,
+      "ingresos": 62521.77966468198,
+      "anuncios": 5622.585722199116,
+      "suscripcion": 56899.19394248286,
+      "costos": 18030.09046339145,
+      "margen": 44491.68920129053,
+      "margen_pct": 0.7116190460333859,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false,
+      "instancias": 1,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.174999999999999,
+      "costo_por_gratuito": 0.6131964966827522,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 76.95231034237032
+     }
+    }
+   },
+   {
+    "n": 10000,
+    "peor_sin_anuncios": {
+     "n": 10000,
+     "gratuitos": 10000,
+     "pagantes": 0,
+     "ingresos": 0,
+     "anuncios": 0,
+     "suscripcion": 0,
+     "costos": 5478.647463789907,
+     "margen": -5478.647463789907,
+     "margen_pct": null,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 5,
+     "equilibrio_pagantes": 31.021270581616413,
+     "gratuitos_por_pagante": 314.3074158748822,
+     "gratuitos_por_pagante_solo_variable": 172.1979526833283,
+     "ingreso_por_gratuito": 0,
+     "costo_por_gratuito": 0.5478647463789907,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 76.80204731667168
+    },
+    "peor_anuncios_tarifa_baja": {
+     "n": 10000,
+     "gratuitos": 10000,
+     "pagantes": 0,
+     "ingresos": 71750,
+     "anuncios": 71750,
+     "suscripcion": 0,
+     "costos": 5478.647463789907,
+     "margen": 66271.35253621009,
+     "margen_pct": 0.9236425440586772,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 5,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 0.5478647463789907,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 76.80204731667168
+    },
+    "peor_anuncios_tarifa_media": {
+     "n": 10000,
+     "gratuitos": 10000,
+     "pagantes": 0,
+     "ingresos": 287000,
+     "anuncios": 287000,
+     "suscripcion": 0,
+     "costos": 5478.647463789907,
+     "margen": 281521.3525362101,
+     "margen_pct": 0.9809106360146693,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 5,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 28.7,
+     "costo_por_gratuito": 0.5478647463789907,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 76.80204731667168
+    },
+    "mejor": {
+     "n": 10000,
+     "gratuitos": 0,
+     "pagantes": 10000,
+     "ingresos": 2565000,
+     "anuncios": 0,
+     "suscripcion": 2565000,
+     "costos": 790367.200162102,
+     "margen": 1774632.799837898,
+     "margen_pct": 0.6918646393130207,
+     "escalon": "pro_8",
+     "muro": "conexiones",
+     "requiere_arquitectura": true,
+     "instancias": 12,
+     "equilibrio_pagantes": 0,
+     "gratuitos_por_pagante": null,
+     "gratuitos_por_pagante_solo_variable": null,
+     "ingreso_por_gratuito": 7.175,
+     "costo_por_gratuito": 0.5522395753671523,
+     "ingreso_por_pagante": 249,
+     "costo_por_pagante": 76.81210942334445
+    },
+    "esperado": {
+     "pesimista": {
+      "n": 10000,
+      "gratuitos": 9903.32901193808,
+      "pagantes": 96.67098806191952,
+      "ingresos": 95244.1126852963,
+      "anuncios": 71056.38566065572,
+      "suscripcion": 24187.72702464058,
+      "costos": 12850.566725743292,
+      "margen": 82393.54595955301,
+      "margen_pct": 0.8650775742097164,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true,
+      "instancias": 5,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.175,
+      "costo_por_gratuito": 0.5444837435230876,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 76.7942710101031
+     },
+     "media": {
+      "n": 10000,
+      "gratuitos": 9522.839417025163,
+      "pagantes": 477.16058297483573,
+      "ingresos": 188952.77077665267,
+      "anuncios": 68326.37281715554,
+      "suscripcion": 120626.39795949715,
+      "costos": 42786.29754417723,
+      "margen": 146166.47323247546,
+      "margen_pct": 0.7735608884256491,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true,
+      "instancias": 6,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.175,
+      "costo_por_gratuito": 0.583967591482361,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 76.88508386040942
+     },
+     "optimista": {
+      "n": 10000,
+      "gratuitos": 7836.356407246157,
+      "pagantes": 2163.643592753843,
+      "ingresos": 625217.7966468199,
+      "anuncios": 56225.85722199118,
+      "suscripcion": 568991.9394248287,
+      "costos": 179670.0948600175,
+      "margen": 445547.7017868024,
+      "margen_pct": 0.7126279900802126,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true,
+      "instancias": 7,
+      "equilibrio_pagantes": 0,
+      "gratuitos_por_pagante": null,
+      "gratuitos_por_pagante_solo_variable": null,
+      "ingreso_por_gratuito": 7.175000000000001,
+      "costo_por_gratuito": 0.565625399913784,
+      "ingreso_por_pagante": 249,
+      "costo_por_pagante": 76.8428968198017
+     }
+    }
+   }
+  ],
+  "proyeccion": {
+   "pesimista": {
+    "parametros_curva": {
+     "a": 2.0833333333333335,
+     "b": 2
+    },
+    "filas": [
+     {
+      "mes": 1,
+      "restaurantes": 2,
+      "pagantes": 0.019334197612383905,
+      "comensales_mes": 6878.4299861132595,
+      "ingresos": 19.048822537059262,
+      "costos": 191.66282395235274,
+      "margen": -172.61400141529347,
+      "margen_acumulado": -172.61400141529347,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 2,
+      "restaurantes": 8,
+      "pagantes": 0.07733679044953562,
+      "comensales_mes": 27513.719944453038,
+      "ingresos": 76.19529014823705,
+      "costos": 197.78339413912224,
+      "margen": -121.58810399088519,
+      "margen_acumulado": -294.20210540617865,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 3,
+      "restaurantes": 19,
+      "pagantes": 0.1836748773176471,
+      "comensales_mes": 65345.08486807597,
+      "ingresos": 180.963814102063,
+      "costos": 209.004439481533,
+      "margen": -28.040625379470015,
+      "margen_acumulado": -322.24273078564863,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 4,
+      "restaurantes": 33,
+      "pagantes": 0.31901426060433435,
+      "comensales_mes": 113494.09477086877,
+      "ingresos": 314.3055718614778,
+      "costos": 223.28576991732857,
+      "margen": 91.01980194414924,
+      "margen_acumulado": -231.2229288414994,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 5,
+      "restaurantes": 52,
+      "pagantes": 0.5026891379219814,
+      "comensales_mes": 178839.1796389447,
+      "ingresos": 495.2693859635407,
+      "costos": 242.66757550876542,
+      "margen": 252.60181045477526,
+      "margen_acumulado": 21.378881613275865,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 6,
+      "restaurantes": 75,
+      "pagantes": 0.7250324104643964,
+      "comensales_mes": 257941.1244792472,
+      "ingresos": 714.3308451397223,
+      "costos": 266.1297612247152,
+      "margen": 448.20108391500713,
+      "margen_acumulado": 469.57996552828297,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 7,
+      "restaurantes": 102,
+      "pagantes": 0.9860440782315791,
+      "comensales_mes": 350799.92929177615,
+      "ingresos": 971.4899493900223,
+      "costos": 293.672327065178,
+      "margen": 677.8176223248443,
+      "margen_acumulado": 1147.3975878531273,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 8,
+      "restaurantes": 133,
+      "pagantes": 1.2857241412235294,
+      "comensales_mes": 457415.5940765317,
+      "ingresos": 1266.746698714441,
+      "costos": 325.29527303015385,
+      "margen": 941.4514256842872,
+      "margen_acumulado": 2088.8490135374145,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 9,
+      "restaurantes": 169,
+      "pagantes": 1.6337396982464396,
+      "comensales_mes": 581227.3338265703,
+      "ingresos": 1609.6255043815077,
+      "costos": 362.01869415077095,
+      "margen": 1247.6068102307368,
+      "margen_acumulado": 3336.4558237681513,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 10,
+      "restaurantes": 208,
+      "pagantes": 2.0107565516879258,
+      "comensales_mes": 715356.7185557788,
+      "ingresos": 1981.0775438541627,
+      "costos": 401.95445293517025,
+      "margen": 1579.1230909189926,
+      "margen_acumulado": 4915.578914687144,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 11,
+      "restaurantes": 252,
+      "pagantes": 2.4361088991603714,
+      "comensales_mes": 866682.1782502705,
+      "ingresos": 2400.151639669467,
+      "costos": 447.46158811778207,
+      "margen": 1952.690051551685,
+      "margen_acumulado": 6868.268966238829,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 12,
+      "restaurantes": 300,
+      "pagantes": 2.9001296418575855,
+      "comensales_mes": 1031764.4979169888,
+      "ingresos": 2857.3233805588893,
+      "costos": 698.0505200646887,
+      "margen": 2159.2728604942004,
+      "margen_acumulado": 9027.54182673303,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 13,
+      "restaurantes": 352,
+      "pagantes": 3.402818779779567,
+      "comensales_mes": 1210603.6775559336,
+      "ingresos": 3352.5927665224303,
+      "costos": 748.2577310016181,
+      "margen": 2604.335035520812,
+      "margen_acumulado": 11631.876862253841,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 14,
+      "restaurantes": 408,
+      "pagantes": 3.9441763129263165,
+      "comensales_mes": 1403199.7171671046,
+      "ingresos": 3885.959797560089,
+      "costos": 802.327035087542,
+      "margen": 3083.6327624725473,
+      "margen_acumulado": 14715.509624726388,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 15,
+      "restaurantes": 469,
+      "pagantes": 4.533869340104026,
+      "comensales_mes": 1612991.831743559,
+      "ingresos": 4466.948884940397,
+      "costos": 861.2239556097093,
+      "margen": 3605.7249293306877,
+      "margen_acumulado": 18321.234554057075,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 16,
+      "restaurantes": 533,
+      "pagantes": 5.15256366370031,
+      "comensales_mes": 1833101.5912991837,
+      "ingresos": 5076.5112061262935,
+      "costos": 923.0174459936222,
+      "margen": 4153.493760132671,
+      "margen_acumulado": 22474.728314189746,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 17,
+      "restaurantes": 602,
+      "pagantes": 5.819593481327555,
+      "comensales_mes": 2070407.4258200908,
+      "ingresos": 5733.695583654838,
+      "costos": 989.6385528137785,
+      "margen": 4744.057030841059,
+      "margen_acumulado": 27218.785345030803,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 18,
+      "restaurantes": 675,
+      "pagantes": 6.525291694179567,
+      "comensales_mes": 2321470.1203132244,
+      "ingresos": 6428.977606257499,
+      "costos": 1060.1217527829292,
+      "margen": 5368.85585347457,
+      "margen_acumulado": 32587.64119850537,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 19,
+      "restaurantes": 752,
+      "pagantes": 7.269658302256347,
+      "comensales_mes": 2586289.6747785853,
+      "ingresos": 7162.357273934282,
+      "costos": 1134.4670459010747,
+      "margen": 6027.890228033207,
+      "margen_acumulado": 38615.531426538575,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 20,
+      "restaurantes": 833,
+      "pagantes": 8.052693305557895,
+      "comensales_mes": 2864866.089216172,
+      "ingresos": 7933.834586685182,
+      "costos": 1212.6744321682145,
+      "margen": 6721.160154516968,
+      "margen_acumulado": 45336.691581055544,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 21,
+      "restaurantes": 919,
+      "pagantes": 8.884063802890402,
+      "comensales_mes": 3160638.5786190424,
+      "ingresos": 8752.93395577873,
+      "costos": 1295.7094348715978,
+      "margen": 7457.224520907132,
+      "margen_acumulado": 52793.91610196268,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 22,
+      "restaurantes": 1008,
+      "pagantes": 9.744435596641486,
+      "comensales_mes": 3466728.713001082,
+      "ingresos": 9600.606558677868,
+      "costos": 1381.6410074367268,
+      "margen": 8218.965551241141,
+      "margen_acumulado": 61012.88165320382,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 23,
+      "restaurantes": 1102,
+      "pagantes": 10.65314288442353,
+      "comensales_mes": 3790014.9223484057,
+      "ingresos": 10495.901217919654,
+      "costos": 1563.1129204027675,
+      "margen": 8932.788297516887,
+      "margen_acumulado": 69945.66995072071,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 24,
+      "restaurantes": 1200,
+      "pagantes": 11.600518567430342,
+      "comensales_mes": 4127057.991667955,
+      "ingresos": 11429.293522235557,
+      "costos": 1660.8339482414626,
+      "margen": 9768.459573994094,
+      "margen_acumulado": 79714.12952471481,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 25,
+      "restaurantes": 1302,
+      "pagantes": 12.586562645661921,
+      "comensales_mes": 4477857.920959732,
+      "ingresos": 12400.78347162558,
+      "costos": 1762.5435894613288,
+      "margen": 10638.239882164251,
+      "margen_acumulado": 90352.36940687906,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 26,
+      "restaurantes": 1408,
+      "pagantes": 13.611275119118268,
+      "comensales_mes": 4842414.710223734,
+      "ingresos": 13410.371066089721,
+      "costos": 1868.241844062366,
+      "margen": 11542.129222027355,
+      "margen_acumulado": 101894.49862890643,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 27,
+      "restaurantes": 1519,
+      "pagantes": 14.684323086605575,
+      "comensales_mes": 5224167.5744530205,
+      "ingresos": 14467.58071689651,
+      "costos": 1978.9258653898676,
+      "margen": 12488.654851506642,
+      "margen_acumulado": 114383.15348041306,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 28,
+      "restaurantes": 1633,
+      "pagantes": 15.786372350511458,
+      "comensales_mes": 5616238.083661475,
+      "ingresos": 15553.363601508887,
+      "costos": 2092.6013467532475,
+      "margen": 13460.762254755638,
+      "margen_acumulado": 127843.9157351687,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 29,
+      "restaurantes": 1752,
+      "pagantes": 16.9367571084483,
+      "comensales_mes": 6025504.667835214,
+      "ingresos": 16686.768542463913,
+      "costos": 2211.262594843091,
+      "margen": 14475.505947620823,
+      "margen_acumulado": 142319.4216827895,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 30,
+      "restaurantes": 1875,
+      "pagantes": 18.12581026160991,
+      "comensales_mes": 6448528.11198118,
+      "ingresos": 17858.271128493056,
+      "costos": 2473.655757362571,
+      "margen": 15384.615371130485,
+      "margen_acumulado": 157704.03705392,
+      "escalon": "pro_8",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 31,
+      "restaurantes": 2002,
+      "pagantes": 19.353531809996287,
+      "comensales_mes": 6885308.416099372,
+      "ingresos": 19067.87135959632,
+      "costos": 2600.931718099106,
+      "margen": 16466.939641497214,
+      "margen_acumulado": 174170.97669541722,
+      "escalon": "pro_8",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 32,
+      "restaurantes": 2133,
+      "pagantes": 20.619921753607432,
+      "comensales_mes": 7335845.58018979,
+      "ingresos": 20315.5692357737,
+      "costos": 3290.7803705123833,
+      "margen": 17024.788865261315,
+      "margen_acumulado": 191195.76556067853,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 33,
+      "restaurantes": 2269,
+      "pagantes": 21.934647191249535,
+      "comensales_mes": 7803578.819245492,
+      "ingresos": 21610.889168293732,
+      "costos": 3427.075887521587,
+      "margen": 18183.813280772145,
+      "margen_acumulado": 209379.57884145068,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 34,
+      "restaurantes": 2408,
+      "pagantes": 23.27837392531022,
+      "comensales_mes": 8281629.703280363,
+      "ingresos": 22934.78233461935,
+      "costos": 3566.377923288346,
+      "margen": 19368.404411331005,
+      "margen_acumulado": 228747.98325278168,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 35,
+      "restaurantes": 2552,
+      "pagantes": 24.67043615340186,
+      "comensales_mes": 8776876.662280519,
+      "ingresos": 24306.297557287617,
+      "costos": 3710.690823651032,
+      "margen": 20595.606733636585,
+      "margen_acumulado": 249343.58998641826,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 36,
+      "restaurantes": 2700,
+      "pagantes": 26.10116677671827,
+      "comensales_mes": 9285880.481252898,
+      "ingresos": 25715.910425029997,
+      "costos": 3859.0124156904594,
+      "margen": 21856.898009339537,
+      "margen_acumulado": 271200.4879957578,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     }
+    ],
+    "mes_primer_margen_positivo": 4
+   },
+   "media": {
+    "parametros_curva": {
+     "a": 2.0833333333333335,
+     "b": 2
+    },
+    "filas": [
+     {
+      "mes": 1,
+      "restaurantes": 2,
+      "pagantes": 0.09543211659496716,
+      "comensales_mes": 7053.303003935234,
+      "ingresos": 37.79055415533054,
+      "costos": 197.53991833659626,
+      "margen": -159.74936418126572,
+      "margen_acumulado": -159.74936418126572,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 2,
+      "restaurantes": 8,
+      "pagantes": 0.3817284663798686,
+      "comensales_mes": 28213.212015740937,
+      "ingresos": 151.16221662132216,
+      "costos": 221.29177167609632,
+      "margen": -70.12955505477416,
+      "margen_acumulado": -229.87891923603988,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 3,
+      "restaurantes": 19,
+      "pagantes": 0.9066051076521879,
+      "comensales_mes": 67006.37853738472,
+      "ingresos": 359.01026447564016,
+      "costos": 264.8368361318463,
+      "margen": 94.17342834379383,
+      "margen_acumulado": -135.70549089224605,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 4,
+      "restaurantes": 33,
+      "pagantes": 1.5746299238169579,
+      "comensales_mes": 116379.49956493138,
+      "ingresos": 623.5441435629539,
+      "costos": 320.2578272573465,
+      "margen": 303.2863163056074,
+      "margen_acumulado": 167.58082541336134,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 5,
+      "restaurantes": 52,
+      "pagantes": 2.481235031469146,
+      "comensales_mes": 183385.87810231608,
+      "ingresos": 982.5544080385941,
+      "costos": 395.4720294990965,
+      "margen": 587.0823785394977,
+      "margen_acumulado": 754.663203952859,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 6,
+      "restaurantes": 75,
+      "pagantes": 3.578704372311268,
+      "comensales_mes": 264498.8626475713,
+      "ingresos": 1417.1457808248952,
+      "costos": 486.5208006338467,
+      "margen": 930.6249801910485,
+      "margen_acumulado": 1685.2881841439075,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 7,
+      "restaurantes": 102,
+      "pagantes": 4.867037946343324,
+      "comensales_mes": 359718.453200697,
+      "ingresos": 1927.3182619218578,
+      "costos": 593.404140661597,
+      "margen": 1333.9141212602608,
+      "margen_acumulado": 3019.2023054041683,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 8,
+      "restaurantes": 133,
+      "pagantes": 6.346235753565315,
+      "comensales_mes": 469044.64976169314,
+      "ingresos": 2513.071851329481,
+      "costos": 716.122049582347,
+      "margen": 1796.949801747134,
+      "margen_acumulado": 4816.1521071513025,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 9,
+      "restaurantes": 169,
+      "pagantes": 8.064013852274725,
+      "comensales_mes": 596004.1038325273,
+      "ingresos": 3193.301826125431,
+      "costos": 858.6331696193473,
+      "margen": 2334.6686565060836,
+      "margen_acumulado": 7150.820763657386,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 10,
+      "restaurantes": 208,
+      "pagantes": 9.924940125876583,
+      "comensales_mes": 733543.5124092643,
+      "ingresos": 3930.2176321543766,
+      "costos": 1013.341971160614,
+      "margen": 2916.8756609937627,
+      "margen_acumulado": 10067.696424651149,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 11,
+      "restaurantes": 252,
+      "pagantes": 12.024446690965862,
+      "comensales_mes": 888716.1784958396,
+      "ingresos": 4761.609823571648,
+      "costos": 1188.1810813524544,
+      "margen": 3573.4287422191937,
+      "margen_acumulado": 13641.125166870343,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 12,
+      "restaurantes": 300,
+      "pagantes": 14.314817489245073,
+      "comensales_mes": 1057995.4505902852,
+      "ingresos": 5668.583123299581,
+      "costos": 1578.8012555438688,
+      "margen": 4089.7818677557116,
+      "margen_acumulado": 17730.907034626056,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 13,
+      "restaurantes": 352,
+      "pagantes": 16.79605252071422,
+      "comensales_mes": 1241381.3286926015,
+      "ingresos": 6651.137531338176,
+      "costos": 1781.6719272971895,
+      "margen": 4869.465604040986,
+      "margen_acumulado": 22600.372638667042,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 14,
+      "restaurantes": 408,
+      "pagantes": 19.468151785373298,
+      "comensales_mes": 1438873.812802788,
+      "ingresos": 7709.273047687431,
+      "costos": 2000.1480353392274,
+      "margen": 5709.125012348204,
+      "margen_acumulado": 28309.49765101525,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 15,
+      "restaurantes": 469,
+      "pagantes": 22.378831341519795,
+      "comensales_mes": 1653999.5544228125,
+      "ingresos": 8861.884949425012,
+      "costos": 2238.1309387421607,
+      "margen": 6623.754010682851,
+      "margen_acumulado": 34933.2516616981,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 16,
+      "restaurantes": 533,
+      "pagantes": 25.432659072558746,
+      "comensales_mes": 1879705.2505487402,
+      "ingresos": 10071.182682395589,
+      "costos": 2487.8179193616324,
+      "margen": 7583.3647630339565,
+      "margen_acumulado": 42516.616424732056,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 17,
+      "restaurantes": 602,
+      "pagantes": 28.725067095085112,
+      "comensales_mes": 2123044.2041845056,
+      "ingresos": 11374.956800754491,
+      "costos": 2757.011695342,
+      "margen": 8617.945105412491,
+      "margen_acumulado": 51134.56153014455,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 18,
+      "restaurantes": 675,
+      "pagantes": 32.20833935080141,
+      "comensales_mes": 2380489.7638281425,
+      "ingresos": 12754.31202742406,
+      "costos": 3041.8109076110845,
+      "margen": 9712.501119812974,
+      "margen_acumulado": 60847.06264995752,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 19,
+      "restaurantes": 752,
+      "pagantes": 35.882475839707645,
+      "comensales_mes": 2652041.9294796484,
+      "ingresos": 14209.248362404283,
+      "costos": 3342.215556168886,
+      "margen": 10867.032806235398,
+      "margen_acumulado": 71714.09545619292,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 20,
+      "restaurantes": 833,
+      "pagantes": 39.74747656180382,
+      "comensales_mes": 2937700.7011390254,
+      "ingresos": 15739.765805695171,
+      "costos": 3658.225641015405,
+      "margen": 12081.540164679765,
+      "margen_acumulado": 83795.6356208727,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 21,
+      "restaurantes": 919,
+      "pagantes": 43.8510575753874,
+      "comensales_mes": 3240992.7303082407,
+      "ingresos": 17364.759634374386,
+      "costos": 3993.7425212228195,
+      "margen": 13371.017113151567,
+      "margen_acumulado": 97166.65273402426,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 22,
+      "restaurantes": 1008,
+      "pagantes": 48.097786763863446,
+      "comensales_mes": 3554864.7139833583,
+      "ingresos": 19046.439294286592,
+      "costos": 4430.339250656169,
+      "margen": 14616.100043630424,
+      "margen_acumulado": 111782.75277765468,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 23,
+      "restaurantes": 1102,
+      "pagantes": 52.583096243826894,
+      "comensales_mes": 3886369.9551683147,
+      "ingresos": 20822.595339587126,
+      "costos": 4800.1928178942735,
+      "margen": 16022.402521692853,
+      "margen_acumulado": 127805.15529934753,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 24,
+      "restaurantes": 1200,
+      "pagantes": 57.25926995698029,
+      "comensales_mes": 4231981.802361141,
+      "ingresos": 22674.332493198322,
+      "costos": 5185.784834802086,
+      "margen": 17488.547658396237,
+      "margen_acumulado": 145293.70295774378,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 25,
+      "restaurantes": 1302,
+      "pagantes": 62.126307903323614,
+      "comensales_mes": 4591700.255561838,
+      "ingresos": 24601.65075512018,
+      "costos": 5587.115301379606,
+      "margen": 19014.535453740573,
+      "margen_acumulado": 164308.23841148434,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 26,
+      "restaurantes": 1408,
+      "pagantes": 67.18421008285688,
+      "comensales_mes": 4965525.314770406,
+      "ingresos": 26604.550125352704,
+      "costos": 6004.184217626831,
+      "margen": 20600.36590772587,
+      "margen_acumulado": 184908.60431921022,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 27,
+      "restaurantes": 1519,
+      "pagantes": 72.48069255387756,
+      "comensales_mes": 5356983.63148881,
+      "ingresos": 28701.925880973547,
+      "costos": 6440.926195961191,
+      "margen": 22260.999685012357,
+      "margen_acumulado": 207169.60400422258,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 28,
+      "restaurantes": 1633,
+      "pagantes": 77.92032319979067,
+      "comensales_mes": 5759021.90271312,
+      "ingresos": 30855.987467827385,
+      "costos": 6889.472011547829,
+      "margen": 23966.515456279554,
+      "margen_acumulado": 231136.11946050214,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 29,
+      "restaurantes": 1752,
+      "pagantes": 83.59853413719122,
+      "comensales_mes": 6178693.431447266,
+      "ingresos": 33104.525440069556,
+      "costos": 7357.690889221603,
+      "margen": 25746.834550847954,
+      "margen_acumulado": 256882.9540113501,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 30,
+      "restaurantes": 1875,
+      "pagantes": 89.4676093077817,
+      "comensales_mes": 6612471.566189283,
+      "ingresos": 35428.64452062239,
+      "costos": 7981.874535818934,
+      "margen": 27446.769984803454,
+      "margen_acumulado": 284329.72399615357,
+      "escalon": "pro_8",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 31,
+      "restaurantes": 2002,
+      "pagantes": 95.52754871156212,
+      "comensales_mes": 7060356.30693917,
+      "ingresos": 37828.34470948587,
+      "costos": 9040.80451514958,
+      "margen": 28787.54019433629,
+      "margen_acumulado": 313117.26419048983,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 32,
+      "restaurantes": 2133,
+      "pagantes": 101.77835234853247,
+      "comensales_mes": 7522347.653696929,
+      "ingresos": 40303.62600666002,
+      "costos": 9556.930052884341,
+      "margen": 30746.69595377568,
+      "margen_acumulado": 343863.9601442655,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 33,
+      "restaurantes": 2269,
+      "pagantes": 108.26773627699023,
+      "comensales_mes": 8001972.257964523,
+      "ingresos": 42873.38368922249,
+      "costos": 10092.755038624247,
+      "margen": 32780.62865059824,
+      "margen_acumulado": 376644.5887948637,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 34,
+      "restaurantes": 2408,
+      "pagantes": 114.90026838034045,
+      "comensales_mes": 8492176.816738022,
+      "ingresos": 45499.827203017965,
+      "costos": 10640.399693167237,
+      "margen": 34859.42750985073,
+      "margen_acumulado": 411504.01630471443,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 35,
+      "restaurantes": 2552,
+      "pagantes": 121.77138077517807,
+      "comensales_mes": 9000014.633021358,
+      "ingresos": 48220.74710220177,
+      "costos": 11207.743795715372,
+      "margen": 37013.0033064864,
+      "margen_acumulado": 448517.01961120084,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 36,
+      "restaurantes": 2700,
+      "pagantes": 128.83335740320564,
+      "comensales_mes": 9521959.05531257,
+      "ingresos": 51017.24810969624,
+      "costos": 11790.847456667621,
+      "margen": 39226.40065302861,
+      "margen_acumulado": 487743.42026422947,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     }
+    ],
+    "mes_primer_margen_positivo": 3
+   },
+   "optimista": {
+    "parametros_curva": {
+     "a": 2.0833333333333335,
+     "b": 2
+    },
+    "filas": [
+     {
+      "mes": 1,
+      "restaurantes": 2,
+      "pagantes": 0.4327287185507686,
+      "comensales_mes": 7828.410595229667,
+      "ingresos": 125.04355932936399,
+      "costos": 224.8125125996429,
+      "margen": -99.76895327027891,
+      "margen_acumulado": -99.76895327027891,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 2,
+      "restaurantes": 8,
+      "pagantes": 1.7309148742030744,
+      "comensales_mes": 31313.642380918667,
+      "ingresos": 500.17423731745595,
+      "costos": 330.38214872828286,
+      "margen": 169.7920885891731,
+      "margen_acumulado": 70.02313531889418,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 3,
+      "restaurantes": 19,
+      "pagantes": 4.110922826232302,
+      "comensales_mes": 74369.90065468183,
+      "ingresos": 1187.9138136289578,
+      "costos": 523.9264816307895,
+      "margen": 663.9873319981683,
+      "margen_acumulado": 734.0104673170625,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 4,
+      "restaurantes": 33,
+      "pagantes": 7.140023856087682,
+      "comensales_mes": 129168.77482128951,
+      "ingresos": 2063.218728934505,
+      "costos": 770.255632597616,
+      "margen": 1292.963096336889,
+      "margen_acumulado": 2026.9735636539517,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 5,
+      "restaurantes": 52,
+      "pagantes": 11.250946682319984,
+      "comensales_mes": 203538.6754759713,
+      "ingresos": 3251.132542563463,
+      "costos": 1104.5594803383092,
+      "margen": 2146.573062225154,
+      "margen_acumulado": 4173.546625879106,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 6,
+      "restaurantes": 75,
+      "pagantes": 16.227326945653825,
+      "comensales_mes": 293565.3973211125,
+      "ingresos": 4689.133474851149,
+      "costos": 1509.2430854980958,
+      "margen": 3179.8903893530533,
+      "margen_acumulado": 7353.437015232159,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 7,
+      "restaurantes": 102,
+      "pagantes": 22.0691646460892,
+      "comensales_mes": 399248.940356713,
+      "ingresos": 6377.221525797563,
+      "costos": 1984.3064480769756,
+      "margen": 4392.915077720588,
+      "margen_acumulado": 11746.352092952748,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 8,
+      "restaurantes": 133,
+      "pagantes": 28.776459783626112,
+      "comensales_mes": 520589.3045827729,
+      "ingresos": 8315.396695402704,
+      "costos": 2529.7495680749485,
+      "margen": 5785.647127327755,
+      "margen_acumulado": 17531.9992202805,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 9,
+      "restaurantes": 169,
+      "pagantes": 36.56557671753995,
+      "comensales_mes": 661500.6952969069,
+      "ingresos": 10566.180763331255,
+      "costos": 3163.6663265619727,
+      "margen": 7402.514436769282,
+      "margen_acumulado": 24934.51365704978,
+      "escalon": "hobby_eventos",
+      "muro": "disco",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 10,
+      "restaurantes": 208,
+      "pagantes": 45.00378672927994,
+      "comensales_mes": 814154.7019038852,
+      "ingresos": 13004.530170253853,
+      "costos": 4053.4740506918824,
+      "margen": 8951.05611956197,
+      "margen_acumulado": 33885.56977661175,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 11,
+      "restaurantes": 252,
+      "pagantes": 54.52381853739685,
+      "comensales_mes": 986379.7349989379,
+      "ingresos": 15755.48847549986,
+      "costos": 4824.548775399952,
+      "margen": 10930.939700099909,
+      "margen_acumulado": 44816.50947671166,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 12,
+      "restaurantes": 300,
+      "pagantes": 64.9093077826153,
+      "comensales_mes": 1174261.58928445,
+      "ingresos": 18756.533899404596,
+      "costos": 5665.721202354211,
+      "margen": 13090.812697050385,
+      "margen_acumulado": 57907.32217376205,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 13,
+      "restaurantes": 352,
+      "pagantes": 76.16025446493528,
+      "comensales_mes": 1377800.2647604214,
+      "ingresos": 22007.666441968056,
+      "costos": 6576.991331554656,
+      "margen": 15430.6751104134,
+      "margen_acumulado": 73337.99728417545,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 14,
+      "restaurantes": 408,
+      "pagantes": 88.2766585843568,
+      "comensales_mes": 1596995.761426852,
+      "ingresos": 25508.886103190252,
+      "costos": 7558.3591630012925,
+      "margen": 17950.52694018896,
+      "margen_acumulado": 91288.5242243644,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 15,
+      "restaurantes": 469,
+      "pagantes": 101.47488450015524,
+      "comensales_mes": 1835762.2845813571,
+      "ingresos": 29322.714662735852,
+      "costos": 8627.349122255662,
+      "margen": 20695.36554048019,
+      "margen_acumulado": 111983.88976484459,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 16,
+      "restaurantes": 533,
+      "pagantes": 115.32220349377984,
+      "comensales_mes": 2086271.423628706,
+      "ingresos": 33324.1085612755,
+      "costos": 9748.912358194673,
+      "margen": 23575.196203080824,
+      "margen_acumulado": 135559.0859679254,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 17,
+      "restaurantes": 602,
+      "pagantes": 130.25134428378135,
+      "comensales_mes": 2356351.5891641295,
+      "ingresos": 37638.11135813856,
+      "costos": 10958.09772194142,
+      "margen": 26680.013636197138,
+      "margen_acumulado": 162239.09960412254,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 18,
+      "restaurantes": 675,
+      "pagantes": 146.0459425108844,
+      "comensales_mes": 2642088.5758900126,
+      "ingresos": 42202.20127366034,
+      "costos": 12237.380787934353,
+      "margen": 29964.82048572599,
+      "margen_acumulado": 192203.92008984854,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 19,
+      "restaurantes": 752,
+      "pagantes": 162.70599817508898,
+      "comensales_mes": 2943482.383806355,
+      "ingresos": 47016.378307840845,
+      "costos": 13586.761556173475,
+      "margen": 33429.616751667374,
+      "margen_acumulado": 225633.53684151592,
+      "escalon": "pro_2",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 20,
+      "restaurantes": 833,
+      "pagantes": 180.23151127639514,
+      "comensales_mes": 3260533.0129131563,
+      "ingresos": 52080.642460680094,
+      "costos": 15096.595094964725,
+      "margen": 36984.04736571537,
+      "margen_acumulado": 262617.5842072313,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 21,
+      "restaurantes": 919,
+      "pagantes": 198.83884617407818,
+      "comensales_mes": 3597154.6685080314,
+      "ingresos": 57457.51551184275,
+      "costos": 16607.25738050184,
+      "margen": 40850.25813134091,
+      "margen_acumulado": 303467.8423385722,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 22,
+      "restaurantes": 1008,
+      "pagantes": 218.0952741495874,
+      "comensales_mes": 3945518.9399957517,
+      "ingresos": 63021.95390199944,
+      "costos": 18170.61718762746,
+      "margen": 44851.33671437198,
+      "margen_acumulado": 348319.1790529442,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 23,
+      "restaurantes": 1102,
+      "pagantes": 238.4335239214735,
+      "comensales_mes": 4313454.237971546,
+      "ingresos": 68899.00119047954,
+      "costos": 19821.80619740059,
+      "margen": 49077.19499307895,
+      "margen_acumulado": 397396.3740460231,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 24,
+      "restaurantes": 1200,
+      "pagantes": 259.6372311304612,
+      "comensales_mes": 4697046.3571378,
+      "ingresos": 75026.13559761838,
+      "costos": 21543.258569291724,
+      "margen": 53482.877028326664,
+      "margen_acumulado": 450879.2510743498,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 25,
+      "restaurantes": 1302,
+      "pagantes": 281.7063957765504,
+      "comensales_mes": 5096295.297494512,
+      "ingresos": 81403.35712341593,
+      "costos": 23334.97430330086,
+      "margen": 58068.382820115075,
+      "margen_acumulado": 508947.6338944649,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 26,
+      "restaurantes": 1408,
+      "pagantes": 304.6410178597411,
+      "comensales_mes": 5511201.059041685,
+      "ingresos": 88030.66576787223,
+      "costos": 25196.953399428,
+      "margen": 62833.71236844423,
+      "margen_acumulado": 571781.3462629091,
+      "escalon": "pro_4",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 27,
+      "restaurantes": 1519,
+      "pagantes": 328.6574617393088,
+      "comensales_mes": 5945677.847076932,
+      "ingresos": 94970.58331065194,
+      "costos": 27287.076778528848,
+      "margen": 67683.5065321231,
+      "margen_acumulado": 639464.8527950322,
+      "escalon": "pro_8",
+      "muro": "procesador",
+      "requiere_arquitectura": false
+     },
+     {
+      "mes": 28,
+      "restaurantes": 1633,
+      "pagantes": 353.3229986967026,
+      "comensales_mes": 6391897.251005023,
+      "ingresos": 102098.06619242569,
+      "costos": 29848.895852846705,
+      "margen": 72249.17033957898,
+      "margen_acumulado": 711714.0231346112,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 29,
+      "restaurantes": 1752,
+      "pagantes": 379.07035745047335,
+      "comensales_mes": 6857687.681421188,
+      "ingresos": 109538.15797252285,
+      "costos": 31940.012991827618,
+      "margen": 77598.14498069523,
+      "margen_acumulado": 789312.1681153064,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 30,
+      "restaurantes": 1875,
+      "pagantes": 405.6831736413456,
+      "comensales_mes": 7339134.933027812,
+      "ingresos": 117228.33687127872,
+      "costos": 34101.419782538986,
+      "margen": 83126.91708873973,
+      "margen_acumulado": 872439.0852040461,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 31,
+      "restaurantes": 2002,
+      "pagantes": 433.1614472693194,
+      "comensales_mes": 7836239.005824896,
+      "ingresos": 125168.60288869335,
+      "costos": 36333.116224980804,
+      "margen": 88835.48666371254,
+      "margen_acumulado": 961274.5718677586,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 32,
+      "restaurantes": 2133,
+      "pagantes": 461.5051783343947,
+      "comensales_mes": 8348999.8998124385,
+      "ingresos": 133358.95602476667,
+      "costos": 38635.10231915307,
+      "margen": 94723.8537056136,
+      "margen_acumulado": 1055998.4255733723,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 33,
+      "restaurantes": 2269,
+      "pagantes": 490.930731195847,
+      "comensales_mes": 8881331.820288057,
+      "ingresos": 141861.9180591634,
+      "costos": 41024.9504779884,
+      "margen": 100836.967581175,
+      "margen_acumulado": 1156835.3931545473,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 34,
+      "restaurantes": 2408,
+      "pagantes": 521.0053771351254,
+      "comensales_mes": 9425406.356656518,
+      "ingresos": 150552.44543255423,
+      "costos": 43467.515875621575,
+      "margen": 107084.92955693265,
+      "margen_acumulado": 1263920.3227114799,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 35,
+      "restaurantes": 2552,
+      "pagantes": 552.1618448707808,
+      "comensales_mes": 9989051.919513054,
+      "ingresos": 159555.5817042684,
+      "costos": 45997.94333791781,
+      "margen": 113557.6383663506,
+      "margen_acumulado": 1377477.9610778305,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     },
+     {
+      "mes": 36,
+      "restaurantes": 2700,
+      "pagantes": 584.1837700435376,
+      "comensales_mes": 10568354.30356005,
+      "ingresos": 168808.80509464137,
+      "costos": 48598.66045194449,
+      "margen": 120210.14464269689,
+      "margen_acumulado": 1497688.1057205275,
+      "escalon": "pro_8",
+      "muro": "conexiones",
+      "requiere_arquitectura": true
+     }
+    ],
+    "mes_primer_margen_positivo": 2
+   }
+  }
+ },
+ "optimizacion": {
+  "restricciones": {
+   "n": 1000,
+   "curva": "media",
+   "tarifaPeorCaso": "baja",
+   "tarifaObjetivo": "baja",
+   "minDentro": 0.6,
+   "minMesesEnLinea": 3,
+   "minPlatillos": 80
+  },
+  "evaluadas": 1200,
+  "descartadas": 3600,
+  "top5": [
+   {
+    "margen": 14496.414726348517,
+    "pagantes": 47.71605829748358,
+    "dentro": 0.61,
+    "config": {
+     "precios": {
+      "servicio": 249,
+      "salon": 499
+     },
+     "topes": {
+      "gratuito": {
+       "platillos": 80,
+       "mesas": 10,
+       "cuentas": 3,
+       "lecturas_pdf": 3,
+       "meses_en_linea": 1
+      },
+      "servicio": {
+       "platillos": 300,
+       "mesas": 40,
+       "cuentas": 20,
+       "lecturas_pdf_mes": 10,
+       "meses_en_linea": 3
+      },
+      "salon": {
+       "platillos": 300,
+       "mesas": 100,
+       "cuentas": 50,
+       "lecturas_pdf_mes": 20,
+       "meses_en_linea": 3
+      }
+     },
+     "disco": {
+      "meses_analitica_en_linea": {
+       "gratuito": 1,
+       "servicio": 1,
+       "salon": 1
+      },
+      "archivar": true
+     },
+     "anuncios": {
+      "activo": true,
+      "tarifa": "baja"
+     },
+     "curva": "media",
+     "competencia": {
+      "sustituto": "Fudo Avanzado",
+      "k": 0.5
+     }
+    }
+   },
+   {
+    "margen": 14496.414726348517,
+    "pagantes": 47.71605829748358,
+    "dentro": 0.61,
+    "config": {
+     "precios": {
+      "servicio": 249,
+      "salon": 499
+     },
+     "topes": {
+      "gratuito": {
+       "platillos": 100,
+       "mesas": 10,
+       "cuentas": 3,
+       "lecturas_pdf": 3,
+       "meses_en_linea": 1
+      },
+      "servicio": {
+       "platillos": 300,
+       "mesas": 40,
+       "cuentas": 20,
+       "lecturas_pdf_mes": 10,
+       "meses_en_linea": 3
+      },
+      "salon": {
+       "platillos": 300,
+       "mesas": 100,
+       "cuentas": 50,
+       "lecturas_pdf_mes": 20,
+       "meses_en_linea": 3
+      }
+     },
+     "disco": {
+      "meses_analitica_en_linea": {
+       "gratuito": 1,
+       "servicio": 1,
+       "salon": 1
+      },
+      "archivar": true
+     },
+     "anuncios": {
+      "activo": true,
+      "tarifa": "baja"
+     },
+     "curva": "media",
+     "competencia": {
+      "sustituto": "Fudo Avanzado",
+      "k": 0.5
+     }
+    }
+   },
+   {
+    "margen": 14496.414726348517,
+    "pagantes": 47.71605829748358,
+    "dentro": 0.61,
+    "config": {
+     "precios": {
+      "servicio": 249,
+      "salon": 499
+     },
+     "topes": {
+      "gratuito": {
+       "platillos": 80,
+       "mesas": 10,
+       "cuentas": 4,
+       "lecturas_pdf": 3,
+       "meses_en_linea": 1
+      },
+      "servicio": {
+       "platillos": 300,
+       "mesas": 40,
+       "cuentas": 20,
+       "lecturas_pdf_mes": 10,
+       "meses_en_linea": 3
+      },
+      "salon": {
+       "platillos": 300,
+       "mesas": 100,
+       "cuentas": 50,
+       "lecturas_pdf_mes": 20,
+       "meses_en_linea": 3
+      }
+     },
+     "disco": {
+      "meses_analitica_en_linea": {
+       "gratuito": 1,
+       "servicio": 1,
+       "salon": 1
+      },
+      "archivar": true
+     },
+     "anuncios": {
+      "activo": true,
+      "tarifa": "baja"
+     },
+     "curva": "media",
+     "competencia": {
+      "sustituto": "Fudo Avanzado",
+      "k": 0.5
+     }
+    }
+   },
+   {
+    "margen": 14496.414726348517,
+    "pagantes": 47.71605829748358,
+    "dentro": 0.61,
+    "config": {
+     "precios": {
+      "servicio": 249,
+      "salon": 499
+     },
+     "topes": {
+      "gratuito": {
+       "platillos": 100,
+       "mesas": 10,
+       "cuentas": 4,
+       "lecturas_pdf": 3,
+       "meses_en_linea": 1
+      },
+      "servicio": {
+       "platillos": 300,
+       "mesas": 40,
+       "cuentas": 20,
+       "lecturas_pdf_mes": 10,
+       "meses_en_linea": 3
+      },
+      "salon": {
+       "platillos": 300,
+       "mesas": 100,
+       "cuentas": 50,
+       "lecturas_pdf_mes": 20,
+       "meses_en_linea": 3
+      }
+     },
+     "disco": {
+      "meses_analitica_en_linea": {
+       "gratuito": 1,
+       "servicio": 1,
+       "salon": 1
+      },
+      "archivar": true
+     },
+     "anuncios": {
+      "activo": true,
+      "tarifa": "baja"
+     },
+     "curva": "media",
+     "competencia": {
+      "sustituto": "Fudo Avanzado",
+      "k": 0.5
+     }
+    }
+   },
+   {
+    "margen": 14496.414726348517,
+    "pagantes": 47.71605829748358,
+    "dentro": 0.61,
+    "config": {
+     "precios": {
+      "servicio": 249,
+      "salon": 499
+     },
+     "topes": {
+      "gratuito": {
+       "platillos": 80,
+       "mesas": 10,
+       "cuentas": 5,
+       "lecturas_pdf": 3,
+       "meses_en_linea": 1
+      },
+      "servicio": {
+       "platillos": 300,
+       "mesas": 40,
+       "cuentas": 20,
+       "lecturas_pdf_mes": 10,
+       "meses_en_linea": 3
+      },
+      "salon": {
+       "platillos": 300,
+       "mesas": 100,
+       "cuentas": 50,
+       "lecturas_pdf_mes": 20,
+       "meses_en_linea": 3
+      }
+     },
+     "disco": {
+      "meses_analitica_en_linea": {
+       "gratuito": 1,
+       "servicio": 1,
+       "salon": 1
+      },
+      "archivar": true
+     },
+     "anuncios": {
+      "activo": true,
+      "tarifa": "baja"
+     },
+     "curva": "media",
+     "competencia": {
+      "sustituto": "Fudo Avanzado",
+      "k": 0.5
+     }
+    }
+   }
+  ],
+  "frontera": [
+   {
+    "dentro_del_gratuito": 0.5,
+    "margen": 16878.83072645429,
+    "margen_pct": 0.7546152710908116,
+    "pagantes": 62.074325657421404,
+    "precio_servicio": 249,
+    "mesas": 8,
+    "cuentas": 2,
+    "platillos": 80,
+    "meses_en_linea_servicio": 3,
+    "anuncios": true
+   },
+   {
+    "dentro_del_gratuito": 0.55,
+    "margen": 16100.072255011615,
+    "margen_pct": 0.7582754731776672,
+    "pagantes": 57.38092939862616,
+    "precio_servicio": 249,
+    "mesas": 8,
+    "cuentas": 3,
+    "platillos": 80,
+    "meses_en_linea_servicio": 3,
+    "anuncios": true
+   },
+   {
+    "dentro_del_gratuito": 0.6,
+    "margen": 14496.414726348517,
+    "margen_pct": 0.7671977852859152,
+    "pagantes": 47.71605829748358,
+    "precio_servicio": 249,
+    "mesas": 10,
+    "cuentas": 3,
+    "platillos": 80,
+    "meses_en_linea_servicio": 3,
+    "anuncios": true
+   },
+   {
+    "dentro_del_gratuito": 0.65,
+    "margen": 13935.615661105006,
+    "margen_pct": 0.7764302293109566,
+    "pagantes": 43.80016719931871,
+    "precio_servicio": 249,
+    "mesas": 12,
+    "cuentas": 3,
+    "platillos": 80,
+    "meses_en_linea_servicio": 3,
+    "anuncios": true
+   },
+   {
+    "dentro_del_gratuito": 0.75,
+    "margen": 11983.564134497945,
+    "margen_pct": 0.7934008348662621,
+    "pagantes": 32.038484525059204,
+    "precio_servicio": 249,
+    "mesas": 15,
+    "cuentas": 4,
+    "platillos": 80,
+    "meses_en_linea_servicio": 3,
+    "anuncios": true
+   },
+   {
+    "dentro_del_gratuito": 0.8,
+    "margen": 10469.435338486739,
+    "margen_pct": 0.811718701754236,
+    "pagantes": 22.915414675772777,
+    "precio_servicio": 249,
+    "mesas": 20,
+    "cuentas": 5,
+    "platillos": 80,
+    "meses_en_linea_servicio": 3,
+    "anuncios": true
+   }
+  ],
+  "sensibilidad": {
+   "por_tarifa": {
+    "baja": 14496.414726348517,
+    "media": 34994.326571495185,
+    "alta": 79894.51442276884
+   },
+   "por_curva": {
+    "pesimista": 8150.494447390892,
+    "media": 14496.414726348517,
+    "optimista": 44491.68920129053
+   }
+  }
+ }
+}

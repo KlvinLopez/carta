@@ -1,0 +1,576 @@
+{
+ "version": "2026-11-14",
+ "moneda": "MXN",
+ "leyenda": "origen: medido (lo medí con datos), documento (lo dice otro documento del repositorio), fuente (página o norma citada), supuesto (juicio mío, con rango y forma de medirlo), sin dato",
+ "parametros": {
+  "tam_negocios": {
+   "valor": 773860,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "DENUE 05/2026, rama 7225 + 7224 (mercado-de-carta §2.1)",
+   "nota": "mercado total (TAM): todo lo que prepara alimentos y bebidas"
+  },
+  "sam_clientes_potenciales": {
+   "valor": 104882,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "DENUE 05/2026, clases 722511 + 722412 + 722411 (mercado-de-carta §2.1)",
+   "nota": "antes «núcleo» o «servible»"
+  },
+  "parte_salon": {
+   "valor": 0.03,
+   "min": 0.0,
+   "max": 0.07,
+   "origen": "supuesto",
+   "fuente": "estadística de cartas §4.3: ≈ 3 % rebasa 40 mesas (88–100 % cabe)",
+   "nota": "parte de los registrados que rebasa 40 mesas"
+  },
+  "fx": {
+   "valor": 18.6188,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "FIX de Banxico 12-nov-2026 (planes-y-costo §3.5)",
+   "nota": ""
+  },
+  "iva": {
+   "valor": 0.16,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "tasa general",
+   "nota": ""
+  },
+  "costo_var_gratuito": {
+   "valor": 1.0,
+   "min": 0.5,
+   "max": 2.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 (chico)",
+   "nota": "pesos por restaurante al mes"
+  },
+  "costo_var_servicio": {
+   "valor": 1.9,
+   "min": 1.0,
+   "max": 4.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 (mediano)",
+   "nota": ""
+  },
+  "costo_var_salon": {
+   "valor": 7.5,
+   "min": 4.0,
+   "max": 15.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 (grande)",
+   "nota": ""
+  },
+  "base_fija_por_restaurante": {
+   "valor": 3.0,
+   "min": 2.6,
+   "max": 10.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0: 10 con 100, 3 con 500, 2.6 con 1,000",
+   "nota": "sólo para el piso del corredor"
+  },
+  "comision_pct": {
+   "valor": 0.036,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "planes-y-costo §7.2 (Stripe 3.6 % + 3 pesos, más IVA)",
+   "nota": "se cobra sobre lo que paga el cliente, con IVA"
+  },
+  "comision_fija": {
+   "valor": 3.0,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "planes-y-costo §7.2",
+   "nota": ""
+  },
+  "pago_con_tarjeta": {
+   "valor": 1.0,
+   "min": 0.0,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "fracción que paga con tarjeta; el resto, transferencia sin comisión"
+  },
+  "soporte_servicio": {
+   "valor": 60.0,
+   "min": 30.0,
+   "max": 150.0,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "pesos al mes por cliente de paga: 30 min a 120 la hora; se mide con tickets del piloto"
+  },
+  "soporte_salon": {
+   "valor": 120.0,
+   "min": 60.0,
+   "max": 300.0,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "pesos al mes; el doble de Servicio"
+  },
+  "dominio_usd_anio": {
+   "valor": 25.0,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "dato de Calvin 13-nov (mapa-de-procesos)",
+   "nota": ""
+  },
+  "volumen_usd_gb_mes": {
+   "valor": 0.15,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "docs.railway.com/reference/pricing/plans, 13-nov-2026",
+   "nota": ""
+  },
+  "r2_usd_gb_mes": {
+   "valor": 0.015,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "developers.cloudflare.com/r2/pricing, leída 14-nov-2026",
+   "nota": ""
+  },
+  "r2_gratis_gb": {
+   "valor": 10.0,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "idem",
+   "nota": ""
+  },
+  "r2_gb_gratuito": {
+   "valor": 0.05,
+   "min": 0.02,
+   "max": 0.24,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos §5: 7.5 GB con 148 gratuitos típicos",
+   "nota": ""
+  },
+  "r2_gb_servicio": {
+   "valor": 0.12,
+   "min": 0.06,
+   "max": 0.9,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos §5: 6.6 GB con 55 de paga típicos",
+   "nota": ""
+  },
+  "r2_gb_salon": {
+   "valor": 0.5,
+   "min": 0.2,
+   "max": 2.1,
+   "origen": "supuesto",
+   "fuente": "mapa-de-procesos §5 (0.91 a 2.10 GB con el tope de platillos)",
+   "nota": ""
+  },
+  "cac": {
+   "valor": null,
+   "min": null,
+   "max": null,
+   "origen": "sin dato",
+   "fuente": "",
+   "nota": "costo de conseguir un cliente: se mide con lo gastado en conseguir restaurantes ÷ restaurantes registrados y de paga del piloto"
+  },
+  "ltv": {
+   "valor": null,
+   "min": null,
+   "max": null,
+   "origen": "sin dato",
+   "fuente": "",
+   "nota": "valor de un cliente en el tiempo: ingreso mensual de paga × meses que se queda; se mide con la permanencia del piloto"
+  },
+  "disco_perfiles": {
+   "valor": {
+    "chico": {
+     "mb_mes_visitas": 6.23,
+     "mb_mes_eventos": 6.59,
+     "mb_fijo": 0.138
+    },
+    "mediano": {
+     "mb_mes_visitas": 6.88,
+     "mb_mes_eventos": 6.63,
+     "mb_fijo": 0.174
+    },
+    "grande": {
+     "mb_mes_visitas": 19.08,
+     "mb_mes_eventos": 16.22,
+     "mb_fijo": 0.206
+    },
+    "formal": {
+     "mb_mes_visitas": 7.18,
+     "mb_mes_eventos": 5.56,
+     "mb_fijo": 0.199
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-14-disco-e-historial-datos.json (PostgreSQL 16.15, migraciones 0001-0003, datos generados)",
+   "nota": "MB por restaurante: visitas = 7 tablas de la mesa; eventos = analítica con 10 eventos por visita (supuesto); fijo = restaurante, platillos, mesas, personal"
+  },
+  "mezcla_gratuito": {
+   "valor": {
+    "chico": 0.6,
+    "mediano": 0.25,
+    "grande": 0.05,
+    "formal": 0.1
+   },
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "simulador-de-uso MEZCLAS",
+   "nota": ""
+  },
+  "mezcla_paga": {
+   "valor": {
+    "mediano": 0.5,
+    "grande": 0.25,
+    "formal": 0.25
+   },
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "simulador-de-uso MEZCLAS",
+   "nota": ""
+  },
+  "base_vacia_mb": {
+   "valor": 7.586319,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "pg_database_size de la base migrada y vacía",
+   "nota": ""
+  },
+  "reserva_disco": {
+   "valor": 0.2,
+   "min": 0.0,
+   "max": 0.3,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "WAL, hinchazón y catálogo; se mide con pg_ls_waldir() y pgstattuple en producción"
+  },
+  "disco_gratuito_tipico_mb_publicado": {
+   "valor": 16.7,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos: 0.0167 GB por gratuito típico (12 KB por visita, estimada)",
+   "nota": "sólo para reproducir las cifras publicadas (299)"
+  },
+  "disco_paga_tipico_mb_publicado": {
+   "valor": 285.0,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos: 0.285 GB por paga típico con 12 meses",
+   "nota": "sólo para reproducir las cifras publicadas (17)"
+  },
+  "escalones": {
+   "valor": [
+    {
+     "id": "hobby_sondeo",
+     "nombre": "Hoy: sondeo, 2 procesos, Hobby",
+     "cap_cpu": 148,
+     "volumen_gb": 5,
+     "base_usd": 8.1,
+     "tope_usd": 20,
+     "carga_ref": 148
+    },
+    {
+     "id": "hobby_eventos",
+     "nombre": "Con eventos, 2 procesos, Hobby",
+     "cap_cpu": 1064,
+     "volumen_gb": 5,
+     "base_usd": 8.1,
+     "tope_usd": 12,
+     "carga_ref": 299
+    },
+    {
+     "id": "pro_2",
+     "nombre": "Con eventos, 2 procesos, Pro",
+     "cap_cpu": 1064,
+     "volumen_gb": 50,
+     "base_usd": 20,
+     "tope_usd": 30,
+     "carga_ref": 1064
+    },
+    {
+     "id": "pro_4",
+     "nombre": "Con eventos, 4 procesos, Pro",
+     "cap_cpu": 1896,
+     "volumen_gb": 50,
+     "base_usd": 23,
+     "tope_usd": 44,
+     "carga_ref": 1896
+    },
+    {
+     "id": "pro_8",
+     "nombre": "Con eventos, 8 procesos, Pro",
+     "cap_cpu": 2116,
+     "volumen_gb": 50,
+     "base_usd": 30,
+     "tope_usd": 54,
+     "carga_ref": 2116
+    }
+   ],
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "anuncios-y-capa-del-comensal §0 y mapa-de-procesos §3; base_usd: Hobby 8.1 (factura real) y Pro 20 + 1.7 por proceso de memoria (supuesto: interpolación lineal entre piso y costo al tope)",
+   "nota": "cap_cpu = gratuitos típicos que caben por procesador (p95 de 364 días, CPU a 70 %); el muro de 10,000 conexiones abiertas de Railway sube a 2,116 con 8 procesos y ya no sube con réplicas"
+  },
+  "cap_conexiones": {
+   "valor": 2116,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "anuncios-y-capa-del-comensal: 10,000 conexiones abiertas de Railway",
+   "nota": ""
+  },
+  "peso_servicio_cpu": {
+   "valor": 2.3,
+   "min": 1.5,
+   "max": 3.0,
+   "origen": "documento",
+   "fuente": "anuncios-y-capa-del-comensal: un restaurante de paga pesa 2.3 gratuitos típicos con eventos",
+   "nota": ""
+  },
+  "peso_salon_cpu": {
+   "valor": 6.0,
+   "min": 3.0,
+   "max": 10.0,
+   "origen": "supuesto",
+   "fuente": "mapa-de-procesos: un paga al tope (40 × 12) pesa 8 gratuitos al tope; aquí 6 gratuitos típicos",
+   "nota": ""
+  },
+  "instancia_extra_usd": {
+   "valor": 54.0,
+   "min": 30.0,
+   "max": 90.0,
+   "origen": "supuesto",
+   "fuente": "anuncios-y-capa-del-comensal: réplicas 66 y 92 USD; arriba de 2,116 hay que repetir toda la pila",
+   "nota": "costo de cada instancia adicional de 8 procesos"
+  },
+  "empuja_mesas": {
+   "valor": [
+    [
+     5,
+     0.62
+    ],
+    [
+     10,
+     0.39
+    ],
+    [
+     20,
+     0.15
+    ],
+    [
+     40,
+     0.03
+    ]
+   ],
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "estadística de cartas §4.3: 10 mesas = 39 % (16–71) y 40 mesas = 3 % (0–12) quedan fuera; 5 y 20 interpolados",
+   "nota": "[mesas del tope, parte que lo rebasa]"
+  },
+  "empuja_cuentas": {
+   "valor": [
+    [
+     2,
+     0.5
+    ],
+    [
+     3,
+     0.36
+    ],
+    [
+     5,
+     0.2
+    ],
+    [
+     10,
+     0.06
+    ],
+    [
+     20,
+     0.01
+    ]
+   ],
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "estadística de cartas §4.3: 3 cuentas = 36 % (24–54) y 20 = 1 %; el resto interpolado",
+   "nota": ""
+  },
+  "empuja_platillos": {
+   "valor": [
+    [
+     40,
+     0.527
+    ],
+    [
+     60,
+     0.243
+    ],
+    [
+     80,
+     0.108
+    ],
+    [
+     100,
+     0.041
+    ],
+    [
+     150,
+     0.02
+    ],
+    [
+     300,
+     0.01
+    ]
+   ],
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-14-cobertura-platillos.csv: 148 cartas, 147 de reparto (sesgo)",
+   "nota": "150 y 300 extrapolados"
+  },
+  "traslape_topes": {
+   "valor": 0.0,
+   "min": 0.0,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "estadística de cartas §4.3 da cada tope por separado; con 0 se toma el mayor (cota inferior de los empujados)",
+   "nota": "0 = quien rebasa un tope rebasa todos (se toma el mayor); 1 = grupos distintos (se suman); se mide con mesas, cuentas y platillos reales del piloto"
+  },
+  "empuja_pdf_gratuito": {
+   "valor": 0.0,
+   "min": 0.0,
+   "max": 0.3,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "parte extra que agota las 3 lecturas de PDF y ya no entra por otro tope"
+  },
+  "curvas_pago": {
+   "valor": {
+    "pesimista": {
+     "mediana": 157,
+     "sigma": 0.5,
+     "techo": 0.15,
+     "nota": "paga lo que el plan de menú QR más barato (Neolo 157); sólo 15 % de los que rebasan llega a pagar"
+    },
+    "media": {
+     "mediana": 205,
+     "sigma": 0.6,
+     "techo": 0.35,
+     "nota": "mediana de los planes de menú QR + pedidos con tope bajo (157, 184, 225, 317); 35 % llega a pagar"
+    },
+    "optimista": {
+     "mediana": 652,
+     "sigma": 0.6,
+     "techo": 0.6,
+     "nota": "paga lo que el sustituto con POS más barato (Fudo Avanzado 652); 60 % llega a pagar"
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "precios de planes comparables (comparativo del 13-nov y matriz del 14-nov) como aproximación de lo que el mercado ya paga",
+   "nota": "P(paga) = techo × P(W ≥ precio), W lognormal con esa mediana y σ. NO hay dato de disposición a pagar: la sustituye la prueba del piloto (Van Westendorp y escalera)"
+  },
+  "anuncio_pesos_por_mil": {
+   "valor": {
+    "baja": 3.5,
+    "media": 14.0,
+    "alta": 37.0
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "anuncios-y-capa-del-comensal §2: 0.19 / 0.75 / 1.97 USD por mil visitas, cadena de tres eslabones de fiabilidad baja",
+   "nota": "pesos por mil visitas con la app, anuncios no personalizados"
+  },
+  "visitas_app_gratuito": {
+   "valor": 2050,
+   "min": 800,
+   "max": 3500,
+   "origen": "medido",
+   "fuente": "simulador (113.9 comensales al día × 30 × 0.6 abre la app; el 0.6 es supuesto)",
+   "nota": ""
+  },
+  "visitas_app_servicio": {
+   "valor": 3429,
+   "min": 1500,
+   "max": 6000,
+   "origen": "medido",
+   "fuente": "simulador (típico de paga)",
+   "nota": ""
+  },
+  "meta_12_meses": {
+   "valor": 300,
+   "min": 50,
+   "max": 3000,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "restaurantes registrados a los 12 meses (SOM, escenario); se fija con el plan comercial"
+  },
+  "meta_24_meses": {
+   "valor": 1200,
+   "min": 200,
+   "max": 10000,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "restaurantes registrados a los 24 meses"
+  },
+  "comensales_dia_gratuito": {
+   "valor": 113.9,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "simulador, gratuito típico",
+   "nota": ""
+  },
+  "comensales_dia_servicio": {
+   "valor": 190.5,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "simulador, paga típico",
+   "nota": ""
+  },
+  "sustitutos": {
+   "valor": {
+    "Meniu Business": 225,
+    "Fudo Avanzado": 652,
+    "Fudo Avanzado + módulo de mesas": 745,
+    "Last.app Starter": 1000,
+    "Poster Business": 819,
+    "Fudo Avanzado + cocina": 838
+   },
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "matriz de funciones 2026-11-14 (IVA no declarado salvo Last.app: + IVA)",
+   "nota": ""
+  },
+  "n_referencia": {
+   "valor": 1000,
+   "min": 100,
+   "max": 10000,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "restaurantes registrados con que se evalúa la configuración al optimizar"
+  }
+ }
+}
