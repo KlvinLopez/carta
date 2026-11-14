@@ -149,7 +149,7 @@ DET.precio = {
     const prov = []; D.mercado_planes.forEach(p => { if (!prov.includes(p.proveedor)) prov.push(p.proveedor); });
     this.prov = prov.sort((a, b) => Math.min(...D.mercado_planes.filter(p => p.proveedor === a).map(p => p.precio)) - Math.min(...D.mercado_planes.filter(p => p.proveedor === b).map(p => p.precio)));
     this.oculto = new Set(); this.armado = false;
-    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div><div class="panel" style="margin-top:10px"><h3>El mejor precio depende de cuánto paguen</h3><svg id="svS" viewBox="0 0 960 250" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 600" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><h3>El mejor precio depende de cuánto paguen</h3><svg id="svS" viewBox="0 0 960 250" role="img" font-family="DM Sans, sans-serif"></svg></div><details id="masP" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2);padding:8px 2px">ver más: contra quién compites, la curva de pago y el precio como parte del ingreso</summary><div class="panel" style="margin-top:6px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div></details>`;
     this.rm = RM($("#svP", host)); this.svg = $("#svP", host);
     this.svg.addEventListener("click", ev => { const t = ev.target.closest("[data-prov]"); if (t) { this.oculto.add(t.dataset.prov); refrescar(); } });
     host.addEventListener("click", ev => {
@@ -168,8 +168,8 @@ DET.precio = {
     const rm = this.rm, svg = this.svg, vis = this.prov.filter(p => !this.oculto.has(p)), LH = 29, y0 = 96;
     const A = p => (p <= 1300 ? 210 + 560 * p / 1300 : 770 + 110 * (Math.min(p, 3000) - 1300) / 1700);
     const inv = x => clamp(Math.round(((x - 210) / 560) * 1300), 49, 1299);
-    [0, 250, 500, 750, 1000, 1300].forEach(t => { rm.put("tk" + t, "text", {x: A(t), y: 66, text: mxn(t), size: 11.5, fill: C.t2, anchor: "middle"}); rm.put("tl" + t, "line", {x1: A(t), y1: 74, x2: A(t), y2: y0 + this.prov.length * LH, stroke: C.arena, sw: 1}); });
-    rm.put("tkb", "text", {x: 830, y: 66, text: "≈ 3,000 y más", size: 11.5, fill: C.t2, anchor: "middle"});
+    [0, 250, 500, 750, 1000, 1300].forEach(t => { rm.put("tk" + t, "text", {x: A(t), y: y0 + this.prov.length * LH + 20, text: mxn(t), size: 11.5, fill: C.t2, anchor: "middle"}); rm.put("tl" + t, "line", {x1: A(t), y1: 74, x2: A(t), y2: y0 + this.prov.length * LH, stroke: C.arena, sw: 1}); });
+    rm.put("tkb", "text", {x: 830, y: y0 + this.prov.length * LH + 20, text: "≈ 3,000 y más", size: 11.5, fill: C.t2, anchor: "middle"});
     rm.put("tlb", "line", {x1: 770, y1: 74, x2: 770, y2: y0 + this.prov.length * LH, stroke: C.gris, sw: 1.5, dash: "4 3"});
     this.prov.forEach((pv, i) => {
       const idx = vis.indexOf(pv), on = idx >= 0, y = y0 + (on ? idx : vis.length) * LH, col = PCOL[i % PCOL.length], op = on ? 1 : 0;
@@ -184,12 +184,10 @@ DET.precio = {
     });
     const h = y0 + vis.length * LH;
     const mm = motor(S), mes = mm.meseta;
-    rm.put("mes", "rect", {x: A(mes.desde), y: 78, w: A(mes.hasta) - A(mes.desde), h: h - 78 + 4, rx: 6, fill: C.dorado, op: 0.2, grow: false});
-    rm.put("mest", "text", {x: A(mes.desde), y: h + 22, text: `meseta del margen: ${mxn(mes.desde)} a ${mxn(mes.hasta)} (a menos de 2 % del máximo)`, size: 12, weight: 700, fill: C.dorado});
     const pmax = Math.max(...D.mercado_planes.filter(q => q.precio <= 1300).map(q => q.precio)), meniu = SUSTP["Meniu Business"];
     [["rm", meniu, "Meniu: referencia de Master Chef", C.vino, 0], ["rx", pmax, "extremo alto: referencia de Chef Ejecutivo", C.osc, 1]].forEach(([id, v, tx, col, q]) => {
       rm.put(id + "l", "line", {x1: A(v), y1: 74, x2: A(v), y2: h + 6, stroke: col, sw: 2, dash: "2 4"});
-      rm.put(id + "t", "text", {x: A(v) + (q ? -6 : 6), y: h + 46 + 22 * q, text: tx, size: 12, weight: 700, fill: col, anchor: q ? "end" : "start"});
+      rm.put(id + "t", "text", {x: A(v) + (q ? -6 : 6), y: h + 74 + 20 * q, text: tx, size: 12, weight: 700, fill: col, anchor: q ? "end" : "start"});
     });
     [["sv", "precioServicio", PLAN.paga, C.vino], ["sa", "precioSalon", PLAN.ejec, C.osc]].forEach(([id, key, nom, col], q) => {
       const x = A(S[key]);
@@ -222,7 +220,7 @@ DET.precio = {
     $("[data-regla]", $("#sus")).textContent = `Poner el precio de la regla: ${mxn(regla)} (K = ${S.K})`;
     return {
       leyenda: `<span>Cada color es un proveedor; más claro = plan más barato</span><span><i style="background:${C.vino}"></i>${PLAN.paga}</span><span><i style="background:${C.osc}"></i>${PLAN.ejec}</span>`,
-      cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], [`${mxn(mes.desde)}–${mxn(mes.hasta)}`, `meseta del precio con la curva ${S.curva}: el margen cambia menos de 2 %`, "supuesto"]],
+      cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], ],
       insight: "225 es igualar a Meniu Business, no un óptimo del modelo: el mejor precio se mueve con cuánto paguen los dueños, y eso lo decide la prueba de tres precios del piloto.",
     };
   },

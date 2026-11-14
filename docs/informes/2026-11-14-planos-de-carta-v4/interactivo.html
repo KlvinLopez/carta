@@ -5224,13 +5224,13 @@ const KPIS = [
   {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes gratuitos caben con eventos (Fase 3)", ps: ["hoy (sondeo)", "con servidor grande"], neutro: true},
   {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
   {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
-  {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga"},
+  {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga", solo: true, nota: "Promedio entre Master Chef y Chef Ejecutivo: cambia con la mezcla de planes, no con el escenario."},
   {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes"},
 ];
 function pintaKpis() {
   const r = resumenS(S), el = $("#kpis");
   el.innerHTML = KPIS.map(k => {
-    const c = fila(r, k.clave), tip = `${c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
+    const c = fila(r, k.clave), tip = `${k.nota || c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
     const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv">piso ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
     return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"><b>${k.f(c.recomendado)}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
@@ -5665,7 +5665,7 @@ DET.precio = {
     const prov = []; D.mercado_planes.forEach(p => { if (!prov.includes(p.proveedor)) prov.push(p.proveedor); });
     this.prov = prov.sort((a, b) => Math.min(...D.mercado_planes.filter(p => p.proveedor === a).map(p => p.precio)) - Math.min(...D.mercado_planes.filter(p => p.proveedor === b).map(p => p.precio)));
     this.oculto = new Set(); this.armado = false;
-    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 560" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div><div class="panel" style="margin-top:10px"><h3>El mejor precio depende de cuánto paguen</h3><svg id="svS" viewBox="0 0 960 250" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 600" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><h3>El mejor precio depende de cuánto paguen</h3><svg id="svS" viewBox="0 0 960 250" role="img" font-family="DM Sans, sans-serif"></svg></div><details id="masP" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2);padding:8px 2px">ver más: contra quién compites, la curva de pago y el precio como parte del ingreso</summary><div class="panel" style="margin-top:6px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div></details>`;
     this.rm = RM($("#svP", host)); this.svg = $("#svP", host);
     this.svg.addEventListener("click", ev => { const t = ev.target.closest("[data-prov]"); if (t) { this.oculto.add(t.dataset.prov); refrescar(); } });
     host.addEventListener("click", ev => {
@@ -5684,8 +5684,8 @@ DET.precio = {
     const rm = this.rm, svg = this.svg, vis = this.prov.filter(p => !this.oculto.has(p)), LH = 29, y0 = 96;
     const A = p => (p <= 1300 ? 210 + 560 * p / 1300 : 770 + 110 * (Math.min(p, 3000) - 1300) / 1700);
     const inv = x => clamp(Math.round(((x - 210) / 560) * 1300), 49, 1299);
-    [0, 250, 500, 750, 1000, 1300].forEach(t => { rm.put("tk" + t, "text", {x: A(t), y: 66, text: mxn(t), size: 11.5, fill: C.t2, anchor: "middle"}); rm.put("tl" + t, "line", {x1: A(t), y1: 74, x2: A(t), y2: y0 + this.prov.length * LH, stroke: C.arena, sw: 1}); });
-    rm.put("tkb", "text", {x: 830, y: 66, text: "≈ 3,000 y más", size: 11.5, fill: C.t2, anchor: "middle"});
+    [0, 250, 500, 750, 1000, 1300].forEach(t => { rm.put("tk" + t, "text", {x: A(t), y: y0 + this.prov.length * LH + 20, text: mxn(t), size: 11.5, fill: C.t2, anchor: "middle"}); rm.put("tl" + t, "line", {x1: A(t), y1: 74, x2: A(t), y2: y0 + this.prov.length * LH, stroke: C.arena, sw: 1}); });
+    rm.put("tkb", "text", {x: 830, y: y0 + this.prov.length * LH + 20, text: "≈ 3,000 y más", size: 11.5, fill: C.t2, anchor: "middle"});
     rm.put("tlb", "line", {x1: 770, y1: 74, x2: 770, y2: y0 + this.prov.length * LH, stroke: C.gris, sw: 1.5, dash: "4 3"});
     this.prov.forEach((pv, i) => {
       const idx = vis.indexOf(pv), on = idx >= 0, y = y0 + (on ? idx : vis.length) * LH, col = PCOL[i % PCOL.length], op = on ? 1 : 0;
@@ -5700,12 +5700,10 @@ DET.precio = {
     });
     const h = y0 + vis.length * LH;
     const mm = motor(S), mes = mm.meseta;
-    rm.put("mes", "rect", {x: A(mes.desde), y: 78, w: A(mes.hasta) - A(mes.desde), h: h - 78 + 4, rx: 6, fill: C.dorado, op: 0.2, grow: false});
-    rm.put("mest", "text", {x: A(mes.desde), y: h + 22, text: `meseta del margen: ${mxn(mes.desde)} a ${mxn(mes.hasta)} (a menos de 2 % del máximo)`, size: 12, weight: 700, fill: C.dorado});
     const pmax = Math.max(...D.mercado_planes.filter(q => q.precio <= 1300).map(q => q.precio)), meniu = SUSTP["Meniu Business"];
     [["rm", meniu, "Meniu: referencia de Master Chef", C.vino, 0], ["rx", pmax, "extremo alto: referencia de Chef Ejecutivo", C.osc, 1]].forEach(([id, v, tx, col, q]) => {
       rm.put(id + "l", "line", {x1: A(v), y1: 74, x2: A(v), y2: h + 6, stroke: col, sw: 2, dash: "2 4"});
-      rm.put(id + "t", "text", {x: A(v) + (q ? -6 : 6), y: h + 46 + 22 * q, text: tx, size: 12, weight: 700, fill: col, anchor: q ? "end" : "start"});
+      rm.put(id + "t", "text", {x: A(v) + (q ? -6 : 6), y: h + 74 + 20 * q, text: tx, size: 12, weight: 700, fill: col, anchor: q ? "end" : "start"});
     });
     [["sv", "precioServicio", PLAN.paga, C.vino], ["sa", "precioSalon", PLAN.ejec, C.osc]].forEach(([id, key, nom, col], q) => {
       const x = A(S[key]);
@@ -5738,7 +5736,7 @@ DET.precio = {
     $("[data-regla]", $("#sus")).textContent = `Poner el precio de la regla: ${mxn(regla)} (K = ${S.K})`;
     return {
       leyenda: `<span>Cada color es un proveedor; más claro = plan más barato</span><span><i style="background:${C.vino}"></i>${PLAN.paga}</span><span><i style="background:${C.osc}"></i>${PLAN.ejec}</span>`,
-      cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], [`${mxn(mes.desde)}–${mxn(mes.hasta)}`, `meseta del precio con la curva ${S.curva}: el margen cambia menos de 2 %`, "supuesto"]],
+      cifras: [[`${caros} de ${tot}`, `planes cuestan más que ${PLAN.paga} a ${mxn(S.precioServicio)}`, "propuesta"], [n(100 * kimp) + " %", `del precio de ${CORTO_SUST[S.sustituto]} (${mxn(sust)}): K implícita ${kimp.toFixed(2)}`], [n(100 * m.conv) + " %", `de los que se pasan de Chef pagan a este precio (curva ${S.curva})`, "supuesto"], ],
       insight: "225 es igualar a Meniu Business, no un óptimo del modelo: el mejor precio se mueve con cuánto paguen los dueños, y eso lo decide la prueba de tres precios del piloto.",
     };
   },
@@ -5827,13 +5825,13 @@ DET.sostiene = {
     ban.push([pz.mes_inicio_anuncios, "aquí empiezan los anuncios", C.verde]);
     if (pz.mes_primer_margen_positivo) ban.push([pz.mes_primer_margen_positivo, "primer margen positivo", C.dorado]);
     ban.sort((a, z) => a[0] - z[0]).forEach(([t, tx, col], i) => { const y = 44 + (i % 3) * 22, x = X(t), lb = `⚑ ${tx} · mes ${t}`, w = lb.length * 6.7 + 18, rx = x + w > X0 + W + 40 ? x - w + 4 : x - 4; b += `<line x1="${x}" x2="${x}" y1="${y + 8}" y2="${Ya(filas[t - 1].restaurantes)}" stroke="${col}" stroke-width="1.8" stroke-dasharray="3 3"/><g><rect x="${rx}" y="${y - 10}" width="${w}" height="20" rx="10" fill="${col}"/>${T(rx + 10, y + 4, lb, 11, "#fff", "start", 700)}</g>`; });
-    const yb0 = 420, hb = 70, mxv = Math.max(...filas.map(r => Math.max(r.ingresos, r.costos)), 1), Yb = v => yb0 + hb * (1 - v / mxv);
-    b += T(30, 322, "Ingresos, costos y margen al mes (pesos)", 13.5, C.vino, "start", 700);
-    filas.forEach(r => { const x = X(r.mes) - 11; b += Rc(x, Yb(r.ingresos), 10, yb0 + hb - Yb(r.ingresos), C.vino, 2) + Rc(x + 11, Yb(r.costos), 10, yb0 + hb - Yb(r.costos), C.gris, 2); });
-    const mmx = Math.max(...filas.map(r => Math.abs(r.margen)), 1), Ym = v => yb0 + hb / 2 - (hb / 2) * v / mmx;
-    b += `<polyline points="${filas.map(r => `${X(r.mes)},${Ym(r.margen)}`).join(" ")}" fill="none" stroke="${C.verde}" stroke-width="3"/>`;
+    const yb0 = 420, hb = 70, top = Math.max(...filas.map(q => Math.max(q.ingresos, q.costos, q.margen)), 1), bot = Math.min(0, ...filas.map(q => q.margen)), Yb = v => yb0 + hb * (top - v) / (top - bot), Z = Yb(0);
+    b += T(30, 322, "Ingresos, costos y margen al mes (pesos), en una sola escala", 13.5, C.vino, "start", 700);
+    filas.forEach(q => { const x = X(q.mes) - 11; b += Rc(x, Yb(q.ingresos), 10, Z - Yb(q.ingresos), C.vino, 2) + Rc(x + 11, Yb(q.costos), 10, Z - Yb(q.costos), C.gris, 2); });
+    b += `<line x1="${X0}" x2="${X0 + W}" y1="${Z}" y2="${Z}" stroke="${C.t2}" stroke-width="1.5"/>` + T(X0 - 8, Z + 4, "0", 11, C.t2, "end") + T(X0 - 8, Yb(top) + 8, "$" + n(top), 11, C.t2, "end");
+    b += `<polyline points="${filas.map(q => `${X(q.mes)},${Yb(q.margen)}`).join(" ")}" fill="none" stroke="${C.verde}" stroke-width="3"/>`;
     const r = filas[this.mes - 1];
-    b += `<line x1="${X(this.mes)}" x2="${X(this.mes)}" y1="130" y2="${yb0 + hb}" stroke="${C.tinta}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+    b += `<line x1="${X(this.mes)}" x2="${X(this.mes)}" y1="130" y2="284" stroke="${C.tinta}" stroke-width="1.2" stroke-dasharray="3 3"/><line x1="${X(this.mes)}" x2="${X(this.mes)}" y1="332" y2="${yb0 + hb}" stroke="${C.tinta}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
     b += T(X0 + W, 316, `Mes ${r.mes}: ${n(r.restaurantes)} restaurantes (${n(r.pagantes, 1)} de paga) · ${n(r.comensales_mes / 1000)} mil comensales al mes`, 12.5, C.tinta, "end", 700);
     b += T(X0 + W, yb0 + hb + 26, `Mes ${r.mes}: ingreso ${fmP(r.ingresos)} · costo ${fmP(r.costos)} · margen ${fmP(r.margen)}`, 12.5, C.tinta, "end", 700);
     b += `<rect x="${X0}" y="${yb0 + hb + 16}" width="12" height="12" rx="3" fill="${C.vino}"/>${T(X0 + 18, yb0 + hb + 27, "ingresos", 11.5, C.t2)}<rect x="${X0 + 90}" y="${yb0 + hb + 16}" width="12" height="12" rx="3" fill="${C.gris}"/>${T(X0 + 108, yb0 + hb + 27, "costos", 11.5, C.t2)}<rect x="${X0 + 170}" y="${yb0 + hb + 16}" width="12" height="12" rx="3" fill="${C.verde}"/>${T(X0 + 188, yb0 + hb + 27, "margen", 11.5, C.t2)}`;
