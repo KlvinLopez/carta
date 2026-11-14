@@ -19,12 +19,12 @@ const KPIS = [
   {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes"},
 ];
 function pintaKpis() {
-  const r = resumenS(S), el = $("#kpis");
-  el.innerHTML = KPIS.map(k => {
+  const r = resumenS(S), html = KPIS.map(k => {
     const c = fila(r, k.clave), tip = `${k.nota || c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
-    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv">piso ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
+    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Piso: pagan poco, anuncios adversos y soporte caro">piso ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
     return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"><b>${k.f(c.recomendado)}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
+  $("#kpis").innerHTML = html; const kd = $("#kpisDet"); if (kd) kd.innerHTML = html;
 }
 
 /* minis (visual de cada caja; las barras crecen al entrar) */
@@ -54,6 +54,5 @@ const CAJAS = [
 ];
 const RECS_CORTO = ["Master Chef a $225", "Chef gratis: 25 mesas, 4 cuentas", "12 meses de historial para Master Chef", "Soporte por WhatsApp: $60", "Anuncios en Chef desde el mes 9"];
 function pintaCajas() {
-  const rec = `<button class="box rec" data-id="recomendaciones" style="--i:0"><div class="q">Recomendaciones</div><ol>${RECS_CORTO.map((t, i) => `<li><i>${i + 1}</i>${esc(t)}</li>`).join("")}</ol><div class="abre" style="margin-top:auto">toca para abrir ›</div></button>`;
-  $("#grid").innerHTML = rec + CAJAS.map((c, i) => `<button class="box" data-id="${c.id}" style="--i:${i + 1}" aria-label="${esc(c.q)}"><div class="q">${esc(c.q)}</div><div class="m">${MINI[c.id]()}</div><div class="c">${esc(typeof c.c === "function" ? c.c() : c.c)}</div><div class="abre">toca para abrir ›</div></button>`).join("");
+  $("#grid").innerHTML = CAJAS.map((c, i) => `<button class="box" data-id="${c.id}" style="--i:${i}" aria-label="${esc(c.q)}"><div class="q">${esc(c.q)}</div><div class="m">${MINI[c.id]()}</div><div class="c">${esc(typeof c.c === "function" ? c.c() : c.c)}</div><div class="abre">toca para abrir ›</div></button>`).join("");
 }

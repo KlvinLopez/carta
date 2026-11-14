@@ -1,4 +1,5 @@
 <title>Planos de Carta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=DM+Serif+Display&display=swap" media="print" onload="this.media='all'">
 <style>
 @font-face{font-family:"DM Sans";src:url(data:font/woff2;base64,__SANS__) format("woff2");font-weight:100 1000}
 @font-face{font-family:"DM Serif Display";src:url(data:font/woff2;base64,__SERIF__) format("woff2")}
@@ -41,7 +42,9 @@ h1.op{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(26px,
 .aviso{font-size:12px;color:var(--rojo);font-weight:700}
 .chip:hover{transform:translateY(-1px);box-shadow:0 3px 8px var(--sombra)}
 main{padding-block:12px 28px}
-.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px;position:sticky;top:0;z-index:6;background:var(--crema);padding:8px 0 6px}
+.kpisDet{top:56px;margin:0;padding:8px max(16px,env(safe-area-inset-left,0px)) 6px;gap:8px}.kpisDet .kpi{padding:6px 10px}.kpisDet .kpi b{font-size:clamp(17px,1.6vw,22px)}.kpisDet .kpi .tx{font-size:10.5px;line-height:1.2}.kpisDet .kpi .tri{font-size:10px}
+.btn.gran.dec{background:var(--dorado)}.btn.gran.dec:hover{background:#9a6f08}
 .kpi{all:unset;box-sizing:border-box;cursor:pointer;background:var(--blanco);border-radius:18px;padding:10px 14px;box-shadow:0 3px 10px var(--sombra);display:flex;flex-direction:column;gap:2px;transition:transform .25s cubic-bezier(.34,1.4,.5,1),box-shadow .25s;min-width:0}
 .kpi:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(107,45,62,.22)}
 .kpi b{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(20px,2vw,27px);color:var(--vino);line-height:1.05;white-space:nowrap}
@@ -70,7 +73,6 @@ main{padding-block:12px 28px}
 .fncard b{display:block;font-size:12.5px;color:var(--vino);margin-top:4px}
 .insight ol{margin:6px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:5px}
 .box .abre{font-size:11px;color:var(--tinta2);margin-top:3px}
-.box[data-id="sostiene"]{grid-column:1/-1;min-height:170px}.box[data-id="sostiene"] .m svg{max-height:110px}
 .box.rec{background:var(--vino2);color:var(--crema)}
 .box.rec .q,.box.rec .c,.box.rec .abre{color:#f3d58a}
 .box.rec ol{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--crema)}
@@ -148,7 +150,10 @@ main{padding-block:12px 28px}
 .pulso{animation:pulso 1.3s ease-in-out infinite}
 @keyframes pulso{0%,100%{opacity:1}50%{opacity:.62}}
 /* presentación */
-#intro{position:fixed;inset:0;z-index:50;background:var(--vino);color:var(--crema);display:flex;flex-direction:column;justify-content:center;padding:20px max(16px,4vw) 80px}
+#intro{position:fixed;inset:0;z-index:50;background:radial-gradient(1200px 700px at 50% 40%,#3a1220,#1d0710);color:var(--crema);display:flex;flex-direction:column;justify-content:center;padding:12px max(12px,3vw) 70px}
+.ictl{transition:opacity .4s}.quieto .ictl{opacity:0}.quieto{cursor:none}
+.icta{position:absolute;left:50%;top:64%;transform:translateX(-50%);display:flex;gap:10px;z-index:3}.icta .btn{background:rgba(255,255,255,.16);color:#fff}.icta .btn.gran{background:var(--dorado)}
+#intro .skip{position:absolute;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px))}
 #intro svg{width:100%;height:auto;max-height:calc(100vh - 120px);display:block;margin:0 auto}
 #intro .barras{position:absolute;left:max(16px,4vw);right:max(16px,4vw);bottom:20px;display:flex;gap:6px;align-items:center}
 #intro .barras i{flex:1;height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
@@ -165,9 +170,9 @@ main{padding-block:12px 28px}
 </style>
 <div class="wrap">
   <header class="top">
-    <div><div class="kick">Planos de Carta · 14 de noviembre de 2026 · versión 8</div>
+    <div><div class="kick">Planos de Carta · 14 de noviembre de 2026 · versión 9</div>
     <h1 class="op">Carta hoy, Carta mañana</h1><p class="sub" id="oportunidad"></p></div>
-    <div class="acc"><button class="btn gran" id="verIntro">▶ Ver la presentación</button><span id="pantallaTop"></span><span class="et prop">propuesta · la v1 no cobra</span></div>
+    <div class="acc"><button class="btn gran" id="verIntro">▶ Ver la presentación</button><button class="btn gran dec" id="verDecisiones">Decisiones a tomar</button><span id="pantallaTop"></span><span class="et prop">propuesta · la v1 no cobra</span></div>
   </header>
   <main>
     <div class="kpis" id="kpis"></div>

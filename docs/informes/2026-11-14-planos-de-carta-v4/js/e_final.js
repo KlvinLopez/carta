@@ -272,89 +272,104 @@ DET.k_margen = cuentaDet("Tres márgenes con nombre: de operación, después de 
   const m = motor(S), e = m.ev; return [["Ingresos por suscripción", mxn(Math.round(e.ingresos.suscripcion))], ["Ingresos por anuncios (en régimen)", mxn(Math.round(e.ingresos.anuncios))], ["− Servidor y almacenamiento", "− " + n(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos)], ["− Soporte", "− " + n(e.costos.soporte)], ["− Comisión de tarjeta", "− " + n(e.costos.comision)], ["= Margen de operación (sin captación ni sueldos)", mp(e.margen_operacion), true], ["− Reponer bajas (3 % al mes × costo de conseguir un cliente)", "− " + n(e.captacion.reposicion_de_bajas)], ["= Margen después de captación", mp(e.margen_despues_de_captacion), true], ["Margen neto (sueldos e impuestos valen cero: sin dato)", mp(e.margen_neto), true]];
 }, () => "El margen de operación no incluye sueldos ni impuestos ni conseguir clientes; por eso se muestran los tres.");
 
-/* ===== presentación: cómo cambia pedir en un restaurante (≈ 28 s, teléfonos dibujados; ±3 s, pausa y saltar) ===== */
-const DUR = 5600, NESC = 5, TOTI = DUR * NESC;
+/* ===== presentación de producto: seis tomas, un objeto por toma y una cámara que se mueve (≈ 28 s) ===== */
+const DURS = [4200, 4200, 4200, 5000, 4200, 4400, 3600], NESC = DURS.length, TOTI = DURS.reduce((a, b) => a + b, 0);
+const INI = DURS.map((_, i) => DURS.slice(0, i).reduce((a, b) => a + b, 0));
 const easeO = k => 1 - Math.pow(1 - clamp(k, 0, 1), 3);
+const easeB = k => { k = clamp(k, 0, 1); const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
 const segI = (u, a, b) => clamp((u - a) / (b - a), 0, 1);
 const lerp = (a, b, k) => a + (b - a) * k;
 const FOTO = ["#c9573d", "#d9a441", "#7a9a4a", "#b5527b", "#d9cfc2"];
-const fonoI = (x, y, s, inner, id) => `<g transform="translate(${x},${y}) scale(${s})"><rect width="200" height="400" rx="30" fill="#1a1a1a"/><clipPath id="cp${id}"><rect x="8" y="10" width="184" height="380" rx="24"/></clipPath><rect x="8" y="10" width="184" height="380" rx="24" fill="#fef9f1"/><g clip-path="url(#cp${id})">${inner}</g></g>`;
+const VO = "#2b0d17", CR = "#fef9f1", DO = "#f3d58a";
+const camI = (x, y, z, rot = 0) => `transform="translate(480 270) rotate(${rot}) scale(${z}) translate(${-x} ${-y})"`;
+/* los teléfonos con las pantallas del prototipo: cabecera vino, fotos y botones */
+const fonoI = (x, y, s, inner, id, rot = 0) => `<g transform="translate(${x},${y}) rotate(${rot}) scale(${s}) translate(-100,-200)"><rect x="6" y="14" width="200" height="400" rx="30" fill="#000" opacity=".28"/><rect width="200" height="400" rx="30" fill="#1a1a1a"/><clipPath id="cp${id}"><rect x="8" y="10" width="184" height="380" rx="24"/></clipPath><rect x="8" y="10" width="184" height="380" rx="24" fill="${CR}"/><g clip-path="url(#cp${id})">${inner}</g></g>`;
 const platoI = (y, i, op = 1, dx = 0) => `<g opacity="${op}" transform="translate(${dx},0)">${Rc(18, y, 164, 56, "#fff", 16)}<circle cx="46" cy="${y + 28}" r="19" fill="${FOTO[i % 5]}"/>${Rc(74, y + 12, 70, 8, "#6b2d3e", 4, 'opacity=".75"')}${Rc(74, y + 28, 48, 6, "#b9afa3", 3)}${Rc(74, y + 40, 30, 6, "#b8860b", 3)}<circle cx="160" cy="${y + 28}" r="11" fill="#6b2d3e"/>${Rc(154, y + 27, 12, 2.4, "#fff", 1)}${Rc(159, y + 22, 2.4, 12, "#fff", 1)}</g>`;
-const encabI = (t, f = "#6b2d3e") => Rc(8, 10, 184, 64, f, 0) + T(100, 54, t, 22, "#fef9f1", "middle", 400, true);
-const qrI = (x, y) => { let q = Rc(x, y, 112, 150, "#fff", 14); for (let i = 0; i < 49; i++) { const r = Math.floor(i / 7), c = i % 7; if (((r * 5 + c * 3 + r * c) % 3) !== 0 || (r < 2 && c < 2) || (r < 2 && c > 4) || (r > 4 && c < 2)) q += Rc(x + 14 + c * 12, y + 14 + r * 12, 10, 10, "#1a1a1a", 2); } return q + Rc(x + 14, y + 112, 84, 12, "#6b2d3e", 6); };
-const cap = (t, u) => T(480, 66, t, 36, "#fef9f1", "middle", 400, true, `opacity="${easeO(segI(u, 0, 500))}"`);
-const etiq = (t, hoy) => `<g>${Rc(330, 484, 300, 30, hoy ? "#3f6b3b" : "rgba(0,0,0,0)", 15, hoy ? "" : 'stroke="#f3d58a" stroke-width="1.6"')}${T(480, 504, t, 12.5, hoy ? "#fff" : "#f3d58a", "middle", 700)}</g>`;
+const encabI = (t, f = "#6b2d3e") => Rc(8, 10, 184, 64, f, 0) + T(100, 54, t, 22, CR, "middle", 400, true);
+const qrCeldas = (x, y, w) => { let q = ""; const c = w / 9; for (let i = 0; i < 49; i++) { const r = Math.floor(i / 7), k = i % 7; if (((r * 5 + k * 3 + r * k) % 3) !== 0 || (r < 2 && k < 2) || (r < 2 && k > 4) || (r > 4 && k < 2)) q += Rc(x + c + k * c, y + c + r * c, c * 0.84, c * 0.84, "#1a1a1a", c * 0.18); } return q; };
+/* el acrílico con el QR, que gira despacio: ancho = |cos| y dos caras */
+const atril = (cx, cy, s, a) => { const c = Math.cos(a), w = Math.max(Math.abs(c), 0.02); return `<g transform="translate(${cx},${cy}) scale(${s})"><ellipse cx="0" cy="132" rx="${70 * (0.6 + 0.4 * w)}" ry="10" fill="#000" opacity=".3"/><g transform="scale(${w},1)">${Rc(-72, -112, 144, 224, "rgba(255,255,255,.16)", 22)}${c >= 0 ? Rc(-60, -100, 120, 200, "#fff", 14) + qrCeldas(-48, -86, 96) + Rc(-40, 62, 80, 14, "#6b2d3e", 7) + T(0, 90, "Carta", 16, "#6b2d3e", "middle", 400, true) : Rc(-60, -100, 120, 200, "#6b2d3e", 14) + T(0, 8, "Carta", 30, DO, "middle", 400, true)}</g></g>`; };
+/* rótulo cinético: palabra por palabra, con resorte */
+const rotulo = (txt, u, x, y, size, col = CR, t0 = 200, anchor = "start") => {
+  const cv = rotulo.cv || (rotulo.cv = document.createElement("canvas").getContext("2d")); cv.font = `${size}px "DM Serif Display", serif`;
+  const ps = txt.split(" "), ws = ps.map(p => cv.measureText(p + " ").width), tot = ws.reduce((a, b) => a + b, 0);
+  let cx = anchor === "middle" ? x - tot / 2 : x, o = "";
+  ps.forEach((p, i) => { const k = easeB(segI(u, t0 + i * 150, t0 + i * 150 + 450)), op = easeO(segI(u, t0 + i * 150, t0 + i * 150 + 250)); o += `<g transform="translate(${cx},${y + (1 - k) * 26})" opacity="${op}">${T(0, 0, p, size, col, "start", 400, true)}</g>`; cx += ws[i]; });
+  return o;
+};
+const etiq = (t, hoy) => `<g>${Rc(340, 494, 280, 28, hoy ? "#3f6b3b" : "rgba(0,0,0,0)", 14, hoy ? "" : 'stroke="#f3d58a" stroke-width="1.6"')}${T(480, 513, t, 12.5, hoy ? "#fff" : DO, "middle", 700)}</g>`;
 const ESCENAS = [
-  u => { // 1 · escanear el QR
-    const subir = easeO(segI(u, 0, 1100)), escan = u > 1200 && u < 3000, bienv = u >= 3000;
-    const py = lerp(260, 96, subir);
-    const cam = escan || u < 1200 ? Rc(8, 10, 184, 380, "#2a2a2a", 0) + [[40, 120], [160, 120], [40, 240], [160, 240]].map(([a, b]) => Rc(a - 4, b - 4, 18, 4, "#f3d58a", 2) + Rc(a - 4, b - 4, 4, 18, "#f3d58a", 2)).join("") + Rc(44, 120 + 100 * ((u / 700) % 1), 112, 3, "#f3d58a", 2, `opacity="${escan ? 1 : 0}"`) : "";
-    const pop = easeO(segI(u, 3000, 3600));
-    const wel = bienv ? encabI("Mesa 4") + `<circle cx="100" cy="150" r="${30 * pop}" fill="#b8860b"/>` + T(100, 160, "A", 28 * pop, "#fff", "middle", 700) + Rc(50, 210, 100, 10, "#6b2d3e", 5, `opacity="${pop * 0.7}"`) + Rc(66, 230, 68, 8, "#b9afa3", 4, `opacity="${pop}"`) + Rc(40, 300, 120, 40, "#6b2d3e", 20, `opacity="${pop}"`) + T(100, 326, "Ver el menú", 14, "#fff", "middle", 700, false, `opacity="${pop}"`) : "";
-    return cap("Escaneas el QR de la mesa", u) + Rc(110, 430, 380, 34, "#e6d9c6", 14) + qrI(236, 280) + (escan ? `<line x1="560" y1="${py + 200}" x2="350" y2="350" stroke="#f3d58a" stroke-width="3" stroke-dasharray="6 8" stroke-dashoffset="${-u / 18}"/>` : "") + fonoI(560, py, 0.95, cam + wel, "a") + etiq("En producción hoy", true);
+  u => { // 0 · Presentamos: el acrílico con el QR, y luego «Carta»
+    const kC = easeB(segI(u, 2300, 2900));
+    return `<g ${camI(480, 280, 1 + u / 40000)}>${atril(480, 270, 1.15, 0.5 + u / 1100)}</g>` + T(480, 96, "PRESENTAMOS", 20, DO, "middle", 700, false, `letter-spacing="7" opacity="${easeO(segI(u, 100, 700))}"`) + `<g transform="translate(480,462) scale(${kC})" opacity="${easeO(segI(u, 2300, 2600))}">${T(0, 0, "Carta", 96, CR, "middle", 400, true)}</g>`;
   },
-  u => { // 2 · el menú visual
-    const sc = easeO(segI(u, 700, 3600)) * 230, tap = segI(u, 3800, 4300), agreg = u > 4100;
-    let l = ""; for (let i = 0; i < 6; i++) l += platoI(110 + i * 68 - sc, i);
-    const rip = tap > 0 && tap < 1 ? `<circle cx="160" cy="${110 + 2 * 68 - sc + 28}" r="${10 + 26 * tap}" fill="#b8860b" opacity="${0.5 * (1 - tap)}"/>` : "";
-    const chips = ["Todo", "Entradas", "Fuertes", "Postres"].map((c, i) => Rc(16 + i * 44, 84, 40, 16, i === 0 ? "#6b2d3e" : "#e6d9c6", 8)).join("");
-    const bar = agreg ? Rc(18, 340 + 60 * (1 - easeO(segI(u, 4100, 4600))), 164, 40, "#6b2d3e", 20) + T(100, 365 + 60 * (1 - easeO(segI(u, 4100, 4600))), "Mi orden · 1", 14, "#fff", "middle", 700) : "";
-    return cap("Ves el menú con fotos y eliges", u) + fonoI(380, 90, 1.05, encabI("Carta") + chips + l + rip + bar, "b") + etiq("En producción hoy", true);
+  u => { // 1 · Escanea: la cámara entra al QR, llega un teléfono, barrido de luz
+    const z = lerp(1.1, 2.2, easeO(segI(u, 0, 2600))), ph = easeO(segI(u, 700, 1600)), bar = segI(u, 1700, 3000), ok = easeB(segI(u, 3000, 3500));
+    return `<g ${camI(480, 270, z)}>${atril(480, 270, 1.1, 0)}${bar > 0 && bar < 1 ? `<rect x="${480 - 66}" y="${270 - 100 + 190 * bar}" width="132" height="14" rx="7" fill="#f3d58a" opacity=".75"/>` : ""}${fonoI(lerp(760, 640, ph), lerp(520, 340, ph), 0.8, encabI("Mesa 4") + `<circle cx="100" cy="190" r="30" fill="#b8860b"/>` + Rc(46, 250, 108, 12, "#6b2d3e", 6, 'opacity=".5"'), "s1", lerp(18, 8, ph))}${u > 3000 ? `<circle cx="480" cy="270" r="${46 * ok}" fill="#3f6b3b" opacity=".92"/><path d="M458 270 l16 16 l30 -34" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="${ok}"/>` : ""}</g>` + rotulo("Escanea.", u, 48, 470, 76, CR, 500) + etiq("hoy en producción", true);
   },
-  u => { // 3 · cada quien arma lo suyo y la mesa lo envía junta
-    const col = ["#b8860b", "#6b2d3e", "#3f6b3b"], ps = [40, 230, 420];
-    let f = ps.map((x, i) => {
-      let r = ""; for (let j = 0; j < 3; j++) { const k = easeO(segI(u, 150 + i * 90 + j * 420, 550 + i * 90 + j * 420)); r += platoI(96 + j * 66, i + j * 2, k, (1 - k) * 40); }
-      return fonoI(x, 120, 0.75, Rc(8, 10, 184, 64, "#f3eadb", 0) + `<circle cx="38" cy="42" r="16" fill="${col[i]}"/>` + Rc(64, 36, 70, 10, "#6b2d3e", 5, 'opacity=".7"') + r, "c" + i);
-    }).join("");
-    const dots = ps.map((x, i) => [0, 1].map(j => { const k = easeO(segI(u, 3300 + i * 100 + j * 140, 4200 + i * 100 + j * 140)); return k > 0 && k < 1 ? `<circle cx="${lerp(x + 70, 780, k)}" cy="${lerp(270, 250, k) - 40 * Math.sin(k * Math.PI)}" r="9" fill="${col[i]}"/>` : ""; }).join("")).join("");
-    const nPl = Math.round(9 * segI(u, 150, 3300)), env = u > 4500, pulso = 1 + 0.06 * Math.sin(u / 120) * (env ? 0 : 1);
-    const pill = `<g>${Rc(640, 180, 280, 150, "#fef9f1", 28)}${T(780, 226, "Mesa 4", 26, "#6b2d3e", "middle", 400, true)}${T(780, 258, `${nPl} platillos`, 17, "#1a1a1a", "middle", 700)}<g transform="translate(780,296) scale(${pulso})">${Rc(-76, -20, 152, 40, env ? "#3f6b3b" : "#b8860b", 20)}${T(0, 6, env ? "Enviada ✓" : "Enviar juntos", 15, "#fff", "middle", 700)}</g></g>`;
-    return cap("Cada quien arma lo suyo; la mesa lo envía junta", u) + f + dots + pill + etiq("Fase 3 · aún no construido", false);
+  u => { // 2 · La carta, con fotos: el menú sale del teléfono como tarjetas
+    const sal = i => easeB(segI(u, 600 + i * 170, 1300 + i * 170)), pos = [[-230, -100, -8], [230, -110, 7], [-290, 20, 5], [290, 30, -6], [-210, 140, -4], [215, 145, 6]];
+    let c = ""; pos.forEach(([dx, dy, r], i) => { const k = sal(i); c += `<g transform="translate(${480 + dx * k},${305 + dy * k}) rotate(${r * k}) scale(${0.9 * k})" opacity="${k > 0 ? 1 : 0}">${Rc(-95, -32, 190, 64, "#fff", 18)}<circle cx="-62" cy="0" r="22" fill="${FOTO[i % 5]}"/>${Rc(-30, -16, 84, 9, "#6b2d3e", 4, 'opacity=".75"')}${Rc(-30, 2, 56, 7, "#b9afa3", 3)}${Rc(-30, 16, 36, 7, "#b8860b", 3)}</g>`; });
+    return `<g ${camI(480, 305, 1 + u / 30000)}>${c}${fonoI(480, 305, 0.85, encabI("Carta") + [0, 1, 2, 3].map(i => Rc(16 + i * 44, 84, 40, 16, i ? "#e6d9c6" : "#6b2d3e", 8)).join("") + [0, 1, 2].map(i => platoI(112 + i * 68, i)).join(""), "s2")}</g>` + rotulo("La carta, con fotos.", u, 48, 70, 54, CR, 300) + etiq("hoy en producción", true);
   },
-  u => { // 4 · la comanda llega al teléfono del mesero
-    const k = easeO(segI(u, 500, 2200)), slide = 190 * (1 - easeO(segI(u, 2200, 3000))), ok = u > 3900;
-    const mesa = fonoI(130, 110, 0.85, encabI("Mesa 4") + `<circle cx="100" cy="190" r="34" fill="#3f6b3b"/>` + `<path d="M84 190 l12 12 l22 -24" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` + T(100, 260, "Enviada", 22, "#6b2d3e", "middle", 700), "d");
-    const tick = `<g transform="translate(${slide},0)">${Rc(18, 100, 164, 170, "#fff", 18)}${T(32, 130, "Mesa 4", 18, "#6b2d3e", "start", 700)}${[0, 1, 2, 3].map(i => Rc(32, 146 + i * 18, 90 - (i % 2) * 24, 8, "#b9afa3", 4)).join("")}${Rc(32, 224, 136, 32, ok ? "#3f6b3b" : "#b8860b", 16)}${T(100, 245, ok ? "Atendida ✓" : "Atender", 14, "#fff", "middle", 700)}</g>`;
-    const bell = `<g transform="translate(168,42) rotate(${u > 2200 ? 14 * Math.sin(u / 60) * (1 - segI(u, 2200, 3400)) : 0})"><path d="M-9 8 a9 9 0 0 1 18 0 v6 h-18z" fill="#f3d58a"/><circle cx="0" cy="18" r="3" fill="#f3d58a"/></g>`;
-    const wait = fonoI(650, 110, 0.85, Rc(8, 10, 184, 64, "#4f1728", 0) + T(60, 54, "Mesero", 20, "#fef9f1", "middle", 400, true) + bell + tick, "e");
-    return cap("La comanda llega al teléfono del mesero", u) + mesa + wait + `<line x1="320" y1="280" x2="640" y2="280" stroke="#f3d58a" stroke-width="3" stroke-dasharray="4 10" opacity=".6"/>` + (k > 0 && k < 1 ? `<circle cx="${lerp(320, 640, k)}" cy="280" r="11" fill="#f3d58a"/>` : "") + etiq("Fase 3 · aún no construido", false);
+  u => { // 3 · La mesa pide junta: vista de pájaro, cuatro teléfonos y una sola orden
+    const ph = [[260, 270, 90], [700, 270, -90], [480, 150, 180], [480, 392, 0]], col = ["#b8860b", "#6b2d3e", "#3f6b3b", "#b5527b"];
+    let g = `<circle cx="480" cy="270" r="92" fill="#6b2d3e" opacity=".55"/><circle cx="480" cy="270" r="92" fill="none" stroke="#f3d58a" stroke-width="3" opacity=".4"/>`;
+    ph.forEach(([x, y, r], i) => { g += fonoI(x, y, 0.3, encabI("") + `<circle cx="100" cy="180" r="30" fill="${col[i]}"/>` + [0, 1].map(j => platoI(230 + j * 62, i + j, easeO(segI(u, 300 + i * 120 + j * 300, 700 + i * 120 + j * 300)))).join(""), "s3" + i, r); });
+    let f = ""; ph.forEach(([x, y], i) => [0, 1].forEach(j => { const k = easeO(segI(u, 1100 + i * 140 + j * 220, 2100 + i * 140 + j * 220)); if (k > 0 && k < 1) f += `<circle cx="${lerp(x, 480, k) + (j ? 12 : -12) * Math.sin(k * Math.PI)}" cy="${lerp(y, 270, k) - 36 * Math.sin(k * Math.PI)}" r="${13 - 5 * k}" fill="${col[i]}"/>`; }));
+    const nPl = Math.round(8 * segI(u, 1300, 2500)), ko = easeB(segI(u, 2100, 2700));
+    g += f + `<g transform="translate(480,270) scale(${ko})" opacity="${ko > 0 ? 1 : 0}">${Rc(-78, -52, 156, 104, CR, 20)}${T(0, -14, "Mesa 4", 24, "#6b2d3e", "middle", 400, true)}${T(0, 20, `${nPl} platillos`, 16, "#1a1a1a", "middle", 700)}${Rc(-44, 30, 88, 16, "#b8860b", 8)}</g>`;
+    return `<g ${camI(480, 250, lerp(1, 1.1, easeO(segI(u, 0, 4600))), lerp(0, -3, easeO(segI(u, 0, 4600))))}>${g}</g>` + rotulo("La mesa pide junta.", u, 48, 64, 48, CR, 200) + `<g transform="translate(912,470)" opacity="${easeO(segI(u, 2900, 3400))}">${T(0, 0, "4 teléfonos, 1 orden", 40, DO, "end", 400, true)}</g>` + etiq("Fase 3 · aún no construido", false);
   },
-  u => { // 5 · la mesa pasa por sus estados
-    const nom = ["Abierta", "Cuenta cerrada", "Pagada", "Mesa limpia"], pos = easeO(segI(u, 600, 4700)) * 3, st = Math.min(3, Math.floor(pos + 0.02));
-    const chips = nom.map((t, i) => { const x = 50 + i * 220, on = i === st, pas = i < st; return Rc(x, 270, 200, 64, on ? "#b8860b" : pas ? "#6b2d3e" : "rgba(255,255,255,.14)", 32) + T(x + 100, 310, (pas ? "✓ " : "") + t, 17, on || pas ? "#fff" : "#f3e3e7", "middle", 700); }).join("");
-    const tx = 150 + pos * 220;
-    const tok = `<g transform="translate(${tx},196)"><circle r="26" fill="#fef9f1"/>${Rc(-14, -6, 28, 6, "#6b2d3e", 3)}${Rc(-11, 0, 4, 12, "#6b2d3e", 2)}${Rc(7, 0, 4, 12, "#6b2d3e", 2)}</g>` + T(tx, 250, "Mesa 4", 14, "#f3d58a", "middle", 700);
-    return cap("Y la mesa pasa por sus estados", u) + chips + tok + T(480, 390, "El personal lleva el ciclo; sin cierre por inactividad", 15, "#f3e3e7", "middle", 400, false, `opacity="${easeO(segI(u, 4300, 5000))}"`) + etiq("Fase 3 · aún no construido", false);
+  u => { // 4 · Llega al mesero: la orden se dobla en comanda y viaja al teléfono del mesero
+    const k = easeO(segI(u, 400, 1500)), fold = segI(u, 400, 1100), t = easeO(segI(u, 1300, 2800)), x = lerp(300, 700, t), y = lerp(290, 300, t) - 90 * Math.sin(t * Math.PI), ok = u > 3400;
+    const w = lerp(156, 84, fold), h = lerp(104, 150, fold);
+    const bell = `<g transform="translate(168,42) rotate(${u > 2800 ? 16 * Math.sin(u / 55) * (1 - segI(u, 2800, 3800)) : 0})"><path d="M-9 8 a9 9 0 0 1 18 0 v6 h-18z" fill="${DO}"/><circle cx="0" cy="18" r="3" fill="${DO}"/></g>`;
+    const tick = `<g transform="translate(${190 * (1 - easeO(segI(u, 2700, 3300)))},0)">${Rc(18, 100, 164, 150, "#fff", 18)}${T(32, 130, "Mesa 4", 18, "#6b2d3e", "start", 700)}${[0, 1, 2, 3].map(i => Rc(32, 146 + i * 18, 90 - (i % 2) * 24, 8, "#b9afa3", 4)).join("")}${Rc(32, 214, 136, 28, ok ? "#3f6b3b" : "#b8860b", 14)}${T(100, 233, ok ? "Atendida ✓" : "Atender", 13, "#fff", "middle", 700)}</g>`;
+    return `<g ${camI(lerp(400, 620, easeO(segI(u, 600, 2800))), 290, lerp(1, 1.25, easeO(segI(u, 600, 3200))))}>` + fonoI(260, 300, 0.7, encabI("Mesa 4") + `<circle cx="100" cy="190" r="34" fill="#3f6b3b"/><path d="M84 190 l12 12 l22 -24" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, "s4a") + fonoI(740, 300, 0.7, Rc(8, 10, 184, 64, "#4f1728", 0) + T(60, 54, "Mesero", 20, CR, "middle", 400, true) + bell + tick, "s4b") + (t < 1 ? `<g transform="translate(${x},${y}) rotate(${(1 - t) * -8})">${Rc(-w / 2, -h / 2, w, h, CR, 16)}${fold > 0.6 ? [0, 1, 2].map(i => Rc(-w / 2 + 12, -h / 2 + 24 + i * 18, w - 24 - i * 10, 8, "#b9afa3", 4)).join("") + Rc(-w / 2 + 10, -h / 2 + 8, w - 20, 10, "#6b2d3e", 5) : T(0, 6, "Mesa 4", 22, "#6b2d3e", "middle", 400, true)}</g>` : "") + `</g>` + rotulo("Llega al mesero.", u, 48, 70, 54, CR, 200) + etiq("Fase 3 · aún no construido", false);
+  },
+  u => { // 5 · El personal lleva la mesa: el aro cambia de color por sus estados
+    const nom = ["Abierta", "Cuenta cerrada", "Pagada", "Mesa limpia"], cols = ["#b8860b", "#f3d58a", "#3f6b3b", "#d9cfc2"], pos = easeO(segI(u, 500, 3600)) * 3, st = Math.min(3, Math.floor(pos + 0.02)), a = Math.min(3, st + 1), kk = pos - st;
+    const mix = (c1, c2, k) => { const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)), A = p(c1), B = p(c2); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], k))).join(",")})`; };
+    const col = mix(cols[st], cols[a], clamp(kk * 1.4, 0, 1));
+    return `<g ${camI(480, 270, lerp(1.35, 1.0, easeO(segI(u, 0, 4000))))}><circle cx="480" cy="270" r="112" fill="none" stroke="${col}" stroke-width="22"/><circle cx="480" cy="270" r="92" fill="#6b2d3e"/><rect x="448" y="258" width="64" height="12" rx="6" fill="${CR}"/><rect x="456" y="270" width="9" height="30" rx="4" fill="${CR}"/><rect x="495" y="270" width="9" height="30" rx="4" fill="${CR}"/></g>` + rotulo("El personal lleva la mesa.", u, 48, 70, 54, CR, 200) + [0, 1, 2, 3].map(i => `<g transform="translate(${130 + i * 233},448)">${Rc(-100, -26, 200, 40, i === st ? col : "rgba(255,255,255,.1)", 20)}${T(0, 0, nom[i], 15, i === st ? "#1a1a1a" : "#f3e3e7", "middle", 700)}</g>`).join("") + etiq("Fase 3 · aún no construido", false);
+  },
+  u => { // 6 · cierre
+    const k = easeB(segI(u, 100, 800));
+    return `<g ${camI(480, 270, lerp(1.1, 1, easeO(segI(u, 0, 2500))))}>` + `<g transform="translate(480,250) scale(${k})" opacity="${easeO(segI(u, 100, 400))}">${T(0, 0, "Carta", 120, CR, "middle", 400, true)}</g>` + `</g>` + `<g opacity="${easeO(segI(u, 900, 1500))}">${T(480, 320, "El menú que la mesa arma junta", 32, DO, "middle", 400, true)}</g>`;
   },
 ];
-let tI = 0, pausaI = false, rafI = 0, ultI = 0;
-function cerrarIntro() { cancelAnimationFrame(rafI); $("#intro").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("carta-v8-intro", "1"); } catch (e) { /* ignorar */ } }
+let tI = 0, pausaI = false, rafI = 0, ultI = 0, ocultoT = 0;
+function cerrarIntro() { cancelAnimationFrame(rafI); $("#intro").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("carta-v9-intro", "1"); } catch (e) { /* ignorar */ } }
 function pintaIntro() {
-  const e = Math.min(NESC - 1, Math.floor(tI / DUR)), u = tI - e * DUR;
-  const sv = $("#introSvg"); if (sv) sv.innerHTML = ESCENAS[e](u);
-  $$("#intro .barras i b").forEach((b, k) => { b.style.width = (k < e ? 100 : k === e ? 100 * u / DUR : 0) + "%"; });
+  let e = NESC - 1; for (let i = 0; i < NESC; i++) if (tI < INI[i] + DURS[i]) { e = i; break; }
+  const u = tI - INI[e], g = $("#introG"); if (g) g.innerHTML = ESCENAS[e](u);
+  $$("#intro .barras i b").forEach((b, k) => { b.style.width = (k < e ? 100 : k === e ? 100 * u / DURS[e] : 0) + "%"; });
   const bp = $("#introPausa"); if (bp) bp.textContent = pausaI ? "▶" : "❚❚";
+  const cta = $("#introCta"); if (cta) cta.hidden = e !== NESC - 1 || u < 1700;
 }
 function saltaI(ms) {
-  if (REDUCE) { const e = clamp(Math.floor(tI / DUR) + (ms > 0 ? 1 : -1), 0, NESC - 1); tI = e * DUR + DUR * 0.92; }
+  if (REDUCE) { let e = 0; for (let i = 0; i < NESC; i++) if (tI >= INI[i]) e = i; e = clamp(e + (ms > 0 ? 1 : -1), 0, NESC - 1); tI = INI[e] + DURS[e] * 0.92; }
   else tI = clamp(tI + ms, 0, TOTI - 1);
   pintaIntro();
 }
+function muestraControles() { const el = $("#intro"); if (!el) return; el.classList.remove("quieto"); clearTimeout(ocultoT); ocultoT = setTimeout(() => el.classList.add("quieto"), 2600); }
 function frameIntro(ts) {
   if ($("#intro").hidden) return;
-  if (!pausaI) { tI += clamp(ts - ultI, 0, 100); if (tI >= TOTI) { cerrarIntro(); return; } }
+  if (!pausaI) { tI += clamp(ts - ultI, 0, 100); if (tI >= TOTI) { tI = TOTI - 1; pausaI = true; } }
   ultI = ts; pintaIntro(); rafI = requestAnimationFrame(frameIntro);
 }
 function abrirIntro() {
   const el = $("#intro");
-  el.innerHTML = `<button class="btn skip" data-intro="saltar">Saltar ✕</button><svg id="introSvg" viewBox="0 0 960 540" role="img" aria-label="Cómo cambia pedir en un restaurante" font-family="DM Sans, sans-serif"></svg><div class="barras">${ESCENAS.map(() => "<i><b></b></i>").join("")}<button class="btn" data-intro="menos" aria-label="Atrás 3 segundos">−3 s</button><button class="btn" id="introPausa" data-intro="pausa" aria-label="Pausa o reanudar">❚❚</button><button class="btn" data-intro="mas" aria-label="Adelante 3 segundos">+3 s</button></div>`;
-  el.hidden = false; document.body.style.overflow = "hidden"; tI = 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro();
+  el.innerHTML = `<svg id="introSvg" viewBox="0 0 960 540" role="img" aria-label="Cómo cambia pedir en un restaurante" font-family="DM Sans, sans-serif"><g id="introG"></g></svg><div id="introCta" class="icta" hidden><button class="btn gran" data-intro="saltar">Ver el informe</button><button class="btn" data-intro="repetir">Repetir</button></div><div class="ictl"><button class="btn" data-intro="saltar">Saltar ✕</button></div><div class="barras ictl">${ESCENAS.map(() => "<i><b></b></i>").join("")}<button class="btn" data-intro="menos" aria-label="Atrás 3 segundos">−3 s</button><button class="btn" id="introPausa" data-intro="pausa" aria-label="Pausa o reanudar">❚❚</button><button class="btn" data-intro="mas" aria-label="Adelante 3 segundos">+3 s</button>${BTN_PANTALLA}</div>`;
+  el.hidden = false; document.body.style.overflow = "hidden"; tI = 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); muestraControles();
   cancelAnimationFrame(rafI); rafI = requestAnimationFrame(frameIntro);
-  el.onclick = ev => { const b = ev.target.closest("[data-intro]"); if (!b) return; const a = b.dataset.intro; if (a === "saltar") cerrarIntro(); else if (a === "pausa") { pausaI = !pausaI; pintaIntro(); } else if (a === "menos") saltaI(-3000); else saltaI(3000); };
+  el.onpointermove = muestraControles;
+  el.onclick = ev => { muestraControles(); const b = ev.target.closest("[data-intro]"); if (!b) return; const a = b.dataset.intro; if (a === "saltar") cerrarIntro(); else if (a === "repetir") { tI = 0; pausaI = false; ultI = performance.now(); } else if (a === "pausa") { pausaI = !pausaI; pintaIntro(); } else if (a === "menos") saltaI(-3000); else saltaI(3000); };
 }
 document.addEventListener("keydown", e => {
   if ($("#intro").hidden) return;
+  muestraControles();
   if (e.key === "ArrowLeft") saltaI(-3000); else if (e.key === "ArrowRight") saltaI(3000); else if (e.key === " " && document.activeElement.tagName !== "BUTTON") { e.preventDefault(); pausaI = !pausaI; pintaIntro(); }
 });
 
@@ -365,6 +380,7 @@ pintaCajas(); todo();
 oyentes.push(todo);
 $("#verIntro").addEventListener("click", abrirIntro);
 $("#pantallaTop").innerHTML = BTN_PANTALLA;
+$("#verDecisiones").addEventListener("click", () => abre("recomendaciones"));
 const h0 = location.hash.slice(1);
 if (h0 && DET[h0]) abre(h0, false);
-else { let visto = false; try { visto = localStorage.getItem("carta-v8-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }
+else { let visto = false; try { visto = localStorage.getItem("carta-v9-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }

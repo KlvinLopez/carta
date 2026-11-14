@@ -125,7 +125,7 @@ DET.matriz = {
   nota: "Leídas el 14 de noviembre. Hay un indicio de OlaClick sin comprobar (página borrada de «mesa virtual») y falta la prueba con dos teléfonos. «No publicado» no cuenta como «no lo tiene».",
   montar(host) {
     this.orden = {...ORDEN0}; this.oculF = new Set(); this.oculC = new Set(); this.sinPrecio = false;
-    host.innerHTML = `<div class="viz" style="position:relative"><svg id="svMx" viewBox="0 0 1000 560" role="img" font-family="DM Sans, sans-serif"></svg><div id="fnCard" class="fncard" hidden></div></div><div id="oc" class="seg" style="margin-top:8px"></div>`;
+    host.innerHTML = `<div class="viz" style="position:relative"><svg id="svMx" viewBox="0 0 1100 560" role="img" font-family="DM Sans, sans-serif"></svg><div id="fnCard" class="fncard" hidden></div></div><div id="oc" class="seg" style="margin-top:8px"></div>`;
     const svg = $("#svMx", host); this.rm = RM(svg); const card = $("#fnCard", host);
     svg.addEventListener("click", ev => {
       const t = ev.target.closest("[data-a]"); if (!t) return;
@@ -142,7 +142,7 @@ DET.matriz = {
     host.addEventListener("click", ev => { const r = ev.target.closest("[data-rest]"); if (!r) return; const [a, v] = r.dataset.rest.split(":"); if (a === "fila") this.oculF.delete(+v); else if (a === "col") this.oculC.delete(+v); else if (a === "precio") this.sinPrecio = false; else if (a === "todo") { this.oculF.clear(); this.oculC.clear(); this.sinPrecio = false; this.orden = {...ORDEN0}; } refrescar(); });
   },
   actualizar() {
-    const rm = this.rm, cw = 46, RH = 30, y0 = 150;
+    const rm = this.rm, cw = 42, RH = 30, y0 = 150;
     const cols = MX.trabajos.map((_, j) => j).filter(j => !this.oculC.has(j));
     const val = c => (c === "si" ? 2 : c === "np" ? 1 : 0);
     const cob = f => cols.filter(j => f.celdas[j] === "si").length;
@@ -170,8 +170,8 @@ DET.matriz = {
     // filas
     MX.filas.forEach((f, i) => {
       const idx = filas.findIndex(o => o.i === i), visible = idx >= 0, y = y0 + (visible ? idx : filas.length) * RH, op = visible ? 1 : 0;
-      rm.put("rb" + i, "rect", {x: 14, y: y + 1, w: visible ? 972 : 0, h: RH - 2, rx: 10, fill: idx % 2 ? "rgba(0,0,0,0)" : C.a2, grow: false, op});
-      if (f.nombre === "Meniu Business") rm.put("rm" + i, "rect", {x: 14, y: y + 1, w: visible ? 972 : 0, h: RH - 2, rx: 10, fill: "rgba(184,134,11,.18)", grow: false, op});
+      rm.put("rb" + i, "rect", {x: 14, y: y + 1, w: visible ? 1072 : 0, h: RH - 2, rx: 10, fill: idx % 2 ? "rgba(0,0,0,0)" : C.a2, grow: false, op});
+      if (f.nombre === "Meniu Business") rm.put("rm" + i, "rect", {x: 14, y: y + 1, w: visible ? 1072 : 0, h: RH - 2, rx: 10, fill: "rgba(184,134,11,.18)", grow: false, op});
       rm.put("rl" + i, "text", {x: xp - 12, y: y + 19, text: f.nombre + " " + f.plan, size: 12.5, weight: 700, fill: C.tinta, anchor: "end", op});
       rm.put("rx" + i, "rect", {x: 0, y: y + 3, w: visible ? xp - 8 : 0, h: 22, rx: 8, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-a": "fila:" + i, "data-tip": "Toca para ocultar esta fila", role: "button", tabindex: 0}});
       rm.put("pb" + i, "rect", {x: xp, y: y + 5, w: this.sinPrecio || !visible ? 0 : Math.max(6, wp * f.precio / maxp), h: 18, rx: 6, fill: calor(f.precio), op, title: mxn(f.precio) + " al mes"});
@@ -189,7 +189,7 @@ DET.matriz = {
     });
     // Carta
     const yc = y0 + filas.length * RH + 10;
-    rm.put("lc", "line", {x1: 20, y1: yc - 4, x2: 980, y2: yc - 4, stroke: C.arena, sw: 2});
+    rm.put("lc", "line", {x1: 20, y1: yc - 4, x2: 1080, y2: yc - 4, stroke: C.arena, sw: 2});
     rm.put("cn", "text", {x: xp - 12, y: yc + 22, text: "Carta (propuesta)", size: 13.5, weight: 700, fill: C.dorado, anchor: "end"});
     rm.put("cp", "rect", {x: xp, y: yc + 7, w: this.sinPrecio ? 0 : Math.max(6, wp * S.precioServicio / maxp), h: 18, rx: 6, fill: C.dorado});
     rm.put("cpt", "text", {x: xp + 6, y: yc + 21, text: this.sinPrecio ? "" : mxn(S.precioServicio), size: 11.5, weight: 700, fill: C.tinta});
@@ -202,7 +202,7 @@ DET.matriz = {
     rm.put("br", "line", {x1: defCols.length ? xj + defCols[0] * cw : 0, y1: yc + 36, x2: defCols.length ? xj + defCols[defCols.length - 1] * cw + cw - 10 : 0, y2: yc + 36, stroke: C.dorado, sw: 2});
     rm.put("brt", "text", {x: defCols.length ? xj + (defCols[0] + defCols[defCols.length - 1] + 1) * cw / 2 - 5 : 0, y: yc + 54, text: defCols.length ? "fases futuras · por definir" : "", size: 12.5, weight: 700, fill: C.dorado, anchor: "middle"});
     rm.put("gr", "rect", {x: xj + 2 * cw - 6, y: y0 - 6, w: this.oculC.has(2) ? 0 : cw - 2, h: filas.length * RH + 54 + 8, rx: 12, fill: "rgba(0,0,0,0)", stroke: C.dorado, sw: 2.4, grow: false});
-    $("#svMx").setAttribute("viewBox", `0 0 1000 ${Math.max(430, yc + 70)}`);
+    $("#svMx").setAttribute("viewBox", `0 0 1100 ${Math.max(430, yc + 70)}`);
     const oc = [...this.oculF].map(i => `<button class="btn" data-rest="fila:${i}">↩ ${esc(MX.filas[i].nombre)}</button>`).concat([...this.oculC].map(j => `<button class="btn" data-rest="col:${j}">↩ ${esc(MX.trabajos[j])}</button>`), this.sinPrecio ? [`<button class="btn" data-rest="precio:x">↩ Precio</button>`] : [], (this.oculF.size + this.oculC.size || this.sinPrecio || this.orden.k !== ORDEN0.k || this.orden.dir !== ORDEN0.dir) ? [`<button class="btn dor" data-rest="todo:x">Restablecer</button>`] : []);
     $("#oc").innerHTML = oc.join("");
     return {

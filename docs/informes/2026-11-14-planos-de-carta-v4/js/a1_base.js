@@ -116,8 +116,8 @@ function abre(id, atras = true) {
   abierto = id;
   det.hidden = false; document.body.style.overflow = "hidden";
   const t = typeof d.titulo === "function" ? d.titulo() : d.titulo;
-  det.innerHTML = `<div class="esc" style="padding-inline:max(16px,env(safe-area-inset-left,0px))"><div class="fila" id="escDet"></div></div><div class="dd"><h2 id="dt">${esc(t)}</h2><div class="leyenda" id="ley"></div><p class="desliza">Desliza la gráfica de lado →</p><div id="cuerpo"></div><div id="cif"></div><div class="insight" id="ins"></div>${d.nota ? `<p class="nota">${esc(d.nota)}</p>` : ""}${fuentes(d.fu)}</div>`;
-  actual = d; pintaEscenario(); d.montar($("#cuerpo", det), det);
+  det.innerHTML = `<div class="esc" style="padding-inline:max(16px,env(safe-area-inset-left,0px))"><div class="fila" id="escDet"></div></div><div class="kpis kpisDet" id="kpisDet"></div><div class="dd"><h2 id="dt">${esc(t)}</h2><div class="leyenda" id="ley"></div><p class="desliza">Desliza la gráfica de lado →</p><div id="cuerpo"></div><div id="cif"></div><div class="insight" id="ins"></div>${d.nota ? `<p class="nota">${esc(d.nota)}</p>` : ""}${fuentes(d.fu)}</div>`;
+  actual = d; pintaEscenario(); pintaKpis(); d.montar($("#cuerpo", det), det);
   refrescar(); det.scrollTop = 0; $("[data-cierra]", det).focus();
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
 }

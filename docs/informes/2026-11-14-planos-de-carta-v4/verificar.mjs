@@ -57,8 +57,13 @@ ok(!(await p.$('#esc')), 'no hay barra de escenario');
 ok((await p.$$('.kpi .tri .p')).length >= 3 && (await p.$$('.kpi .tri .m')).length >= 3, 'cada cifra muestra peor (rojo) y mejor (verde) al lado');
 const rec0 = await texto(p, '.kpi[data-kpi="margen"] b');
 ok((await texto(p, '.kpi[data-kpi="margen"] .p')) !== (await texto(p, '.kpi[data-kpi="margen"] .m')), 'peor y mejor difieren en el margen');
-const cr = await p.$eval('#grid .box.rec', (e) => { const r = e.getBoundingClientRect(); return [r.top, r.bottom, innerHeight]; });
-ok(cr[1] <= cr[2], `Recomendaciones se ve sin bajar (${Math.round(cr[1])} de ${cr[2]})`);
+ok(!(await p.$('#grid .box.rec')), 'la caja de recomendaciones salió de la retícula');
+ok(await p.isVisible('#verDecisiones'), 'hay un botón «Decisiones a tomar»');
+await p.click('#verDecisiones'); await p.waitForTimeout(400);
+ok((await p.evaluate(() => abierto)) === 'recomendaciones', '«Decisiones a tomar» abre las recomendaciones');
+ok((await p.$$('#kpisDet .kpi')).length === 6, 'las seis cifras acompañan a cada capítulo');
+await cierra(p);
+const kp = await p.$eval('#kpis', (e) => getComputedStyle(e).position); ok(kp === 'sticky', 'las seis cifras quedan fijas al hacer scroll');
 // cada cifra de arriba se abre
 for (const k of ['potenciales', 'caben', 'sostiene', 'anuncios', 'ingreso', 'margen']) {
   await p.click(`.kpi[data-kpi="${k}"]`); await p.waitForTimeout(250);
@@ -180,7 +185,7 @@ ok((await p.$$('#svG .gh')).length >= 6, 'pagar: una imagen con punto de venta y
 if (png) await p.screenshot({ path: `${png}/v8_pagar.png` });
 await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
-await abre(p, 'recomendaciones');
+await p.click('#verDecisiones'); await p.waitForTimeout(450);
 await p.click('[data-mas="segmentacion"]'); await p.waitForTimeout(150);
 await p.click('#r_segmentacion .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 12, 'recomendaciones: «Probar esta» aplica 12 mesas');
@@ -197,33 +202,55 @@ await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);
 ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
 await p.waitForTimeout(1500);
 const t1 = await p.evaluate(() => tI);
-await p.click('[data-intro="mas"]'); await p.waitForTimeout(100);
+await p.click('.ictl [data-intro="mas"]'); await p.waitForTimeout(100);
 ok((await p.evaluate(() => tI)) - t1 >= 2900, 'presentación: +3 s adelanta');
-await p.click('[data-intro="menos"]'); await p.waitForTimeout(100);
+await p.click('.ictl [data-intro="menos"]'); await p.waitForTimeout(100);
 ok((await p.evaluate(() => tI)) < t1 + 2000, 'presentación: −3 s atrasa');
-await p.click('[data-intro="pausa"]'); const tp = await p.evaluate(() => tI); await p.waitForTimeout(400);
+await p.click('.ictl [data-intro="pausa"]'); const tp = await p.evaluate(() => tI); await p.waitForTimeout(400);
 ok((await p.evaluate(() => tI)) === tp, 'presentación: la pausa detiene el tiempo');
-if (png) { await p.evaluate(() => { pausaI = true; }); for (const [i, ms] of [[1, 3300], [2, 8000], [3, 14500], [4, 19500], [5, 25500]]) { await p.evaluate((t) => { tI = t; pintaIntro(); }, ms); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v8_intro${i}.png` }); } }
-await p.click('[data-intro="saltar"]'); await p.waitForTimeout(200);
+ok((await p.isVisible('#intro [data-pantalla]')) || !(await p.evaluate(() => FSOK)), 'presentación: pantalla completa dentro de la presentación');
+if (png) { await p.evaluate(() => { pausaI = true; }); for (const [i, ms] of [[1, 3800], [2, 7800], [3, 11400], [4, 15600], [5, 20800], [6, 24800], [7, 27700]]) { await p.evaluate((t) => { tI = t; pintaIntro(); }, ms); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v8_intro${i}.png` }); } }
+await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
 await p.reload(); await p.waitForTimeout(400);
 ok(!(await p.isVisible('#intro')), 'la presentación no se repite sola');
 await p.close();
 
-// ---------- otros tamaños: sin desborde y cada caja abre ----------
-for (const [w, h] of [[1280, 720], [400, 860]]) {
-  const q = await nueva(w, h);
-  await sinDesborde(q, `${w} portada`);
-  if (png) await q.screenshot({ path: `${png}/v5_${w}_portada.png`, fullPage: w < 600 });
+// ---------- otros tamaños, y una pasada con las fuentes bloqueadas: nada de texto fuera de su caja ----------
+const fuera = async (q, etiqueta) => {
+  const malos = await q.evaluate(() => {
+    const out = [];
+    document.querySelectorAll('svg').forEach((s) => {
+      const r = s.getBoundingClientRect(); if (!r.width || s.closest('#intro')) return;
+      s.querySelectorAll('text').forEach((t) => { const b = t.getBoundingClientRect(); if (!b.width) return; if (+getComputedStyle(t).opacity < 0.3) return; if (b.left < r.left - 3 || b.right > r.right + 3 || b.top < r.top - 3 || b.bottom > r.bottom + 3) out.push(t.textContent.slice(0, 28)); });
+    });
+    document.querySelectorAll('.kpi, .box .q, .box .c').forEach((e) => { if (e.scrollWidth > e.clientWidth + 2) out.push('caja: ' + e.textContent.slice(0, 28)); });
+    return out;
+  });
+  ok(malos.length === 0, `${etiqueta}: texto dentro de su caja ${malos.slice(0, 4).join(' | ')}`);
+};
+async function pasada(w, h, bloqueadas) {
+  const ctx = await nav.newContext({ viewport: { width: w, height: h } });
+  if (bloqueadas) { await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort()); await ctx.addInitScript(() => { document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = '*{font-family:Arial,Helvetica,sans-serif!important}'; document.head.appendChild(s); }); }); }
+  const q = await ctx.newPage();
+  q.on('console', (m) => m.type() === 'error' && !(bloqueadas && m.text().includes('ERR_FAILED')) && errores.push(`${w}${bloqueadas ? 'f' : ''}: ${m.text()}`));
+  q.on('pageerror', (e) => errores.push(`${w}: ${String(e.stack).split('\n').slice(0, 2).join(' | ')}`));
+  await q.goto(url); await q.evaluate(() => document.fonts.ready);
+  const et = `${w}×${h}${bloqueadas ? ' sin fuentes' : ''}`;
+  await sinDesborde(q, `${et} portada`); await fuera(q, `${et} portada`);
+  if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_portada.png`, fullPage: true });
   const ids = await q.$$eval('.box', (b) => b.map((x) => x.dataset.id));
   for (const id of ids) {
-    await q.click(`.box[data-id="${id}"]`); await q.waitForTimeout(300);
-    await sinDesborde(q, `${w} ${id}`);
+    await q.click(`.box[data-id="${id}"]`); await q.waitForTimeout(w < 600 ? 300 : 700);
+    await sinDesborde(q, `${et} ${id}`); await fuera(q, `${et} ${id}`);
     if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_${id}.png` });
     await q.click('#det [data-cierra]');
   }
-  await q.close();
+  await ctx.close();
 }
+for (const [w, h] of [[1920, 1080], [1366, 768], [1280, 720], [390, 844]]) await pasada(w, h, false);
+await pasada(1440, 900, true);
+await pasada(1280, 720, true);
 await nav.close();
 console.log('errores de consola:', errores.length, errores.slice(0, 6).join(' | '), '· fallas:', fallos);
 process.exit(fallos || errores.length ? 1 : 0);
