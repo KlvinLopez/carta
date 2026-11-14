@@ -141,7 +141,7 @@ const miniCap = () => miniBarras(CAP.escalones.map(e => e.gratuitos), [C.gris, C
 const palMap = Object.fromEntries(DI.palancas.map(p => [p.clave, p]));
 const miniDisco = () => miniBarras(["P00", "P0", "P1", "P2"].map(k => palMap[k].paga), [C.gris, "#cdbba3", C.vino, C.osc], ["hoy", "12 m", "30 d", "archivo"], 140);
 function miniPlanes() {
-  return SV(300, 120, [["Gratuito", "≤ 10 mesas", "0", C.gris], ["Servicio", "11–40", "249–349", C.vino], ["Salón", "> 40", "249–599", C.osc]].map(([a, b, c, col], i) =>
+  return SV(300, 120, [["Gratuito", "≤ 10 mesas", "0", C.gris], ["Servicio", "11–40", "249–349", C.vino], ["Salón", "> 40", "399–599", C.osc]].map(([a, b, c, col], i) =>
     Rc(i * 102, 4, 94, 108, "#fff", 14, `stroke="${C.arena}" stroke-width="1.5"`) + Rc(i * 102, 4, 94, 28, col, 14) + Rc(i * 102, 18, 94, 14, col, 0) + T(i * 102 + 47, 23, a, 12, "#fff", "middle", 700) + T(i * 102 + 47, 58, b, 11.5, C.tinta, "middle") + T(i * 102 + 47, 90, c, 16, C.vino, "middle", 400, true)).join(""));
 }
 function miniPrecio() {
@@ -174,7 +174,7 @@ function marcaCifras(a) { return `<div class="cifras">${a.map(([b, s, tag]) => `
 
 const DET = {
   hueco: {
-    titulo: "El comensal está conectado; 94 de cada 100 negocios no tiene sitio.",
+    titulo: "El comensal está conectado; 94 de cada 100 restaurantes a la carta y bares no declara sitio web.",
     como: "Cada anillo mide qué parte del grupo tiene lo que se pide. Cambia el criterio del negocio.",
     fu: ["inegi_endutih", "inegi_denue"],
     insight: "Carta no le quita un cliente a nadie: sería el primer sitio propio de casi todo el núcleo. Ojo: el DENUE no ve Facebook, Instagram ni WhatsApp.",
@@ -220,15 +220,16 @@ const DET = {
     },
   },
   matriz: {
-    titulo: "Nadie publica el pedido en grupo; es el hueco que Carta ocupa.",
+    titulo: "Ninguna página de precios leída publica el pedido en grupo; es el hueco que Carta quiere ocupar con la Fase 3.",
     como: "Cada fila es un plan real; cada columna, un trabajo. Toca una celda. Filtra por tipo de trabajo.",
     fu: ["paginas_proveedores_14nov", "carta_precio"],
-    insight: "Los precios van de 0 a 1,099 pesos y ninguno publica pedir en grupo. «No publicado» no cuenta como «no lo tiene».",
+    insight: "Los planes leídos cuestan de 0 a 1,243 pesos al mes y ninguno publica pedir en grupo. «No publicado» no cuenta como «no lo tiene».",
+    nota: "Leídas el 14 de noviembre. Hay un indicio de OlaClick sin comprobar (página borrada de «mesa virtual») y falta la prueba con dos teléfonos.",
     controles: () => ctl(`<span class="kick">Trabajos</span>` + [["t", "Todos"], ["m", "Mesa y pedido"], ["o", "Operación"]].map(([k, t], i) => `<button class="opt" data-k="${k}" aria-pressed="${i === 0}">${t}</button>`).join("")),
     pinta(st, el) {
       const k = st.k || "t";
       const idx = {t: MX.trabajos.map((_, i) => i), m: [0, 1, 2, 3], o: [4, 5, 6, 7, 8, 9, 10, 11]}[k];
-      const cw = idx.length > 8 ? 62 : 90, x0 = 230, y0 = 120, ch = 28, carta = ["hoy", "fut", "fut", "fut", "no", "no", "no", "no", "no", "no", "no", "no"];
+      const cw = idx.length > 4 ? 56 : 90, x0 = 285, y0 = 120, ch = 28, carta = ["hoy", "fut", "fut", "fut", "no", "no", "no", "no", "no", "no", "no", "no"];
       const cel = (x, y, e, tip) => {
         const a = `data-tip="${esc(tip)}" tabindex="0"`;
         if (e === "si") return `<rect ${a} x="${x}" y="${y + 3}" width="${cw - 10}" height="${ch - 8}" rx="8" fill="${C.vino}"/>`;
@@ -239,7 +240,7 @@ const DET = {
       };
       const txt = {si: "lo incluye", no: "la página dice que no o es complemento de pago", np: "no publicado", hoy: "Carta, en producción", fut: "Carta, Fase 3: aún no construida"};
       let b = idx.map((j, a) => `<text transform="translate(${x0 + a * cw + cw / 2} ${y0 - 8}) rotate(-45)" font-size="12.5" fill="${j === 2 ? C.osc : C.t2}" font-weight="${j === 2 ? 700 : 400}">${esc(MX.trabajos[j])}</text>`).join("");
-      MX.filas.forEach((f, i) => { const y = y0 + i * ch; b += T(x0 - 12, y + 19, f.nombre, 13, C.tinta, "end", 700) + T(0, y + 19, n(f.precio), 12.5, C.t2); idx.forEach((j, a) => { b += cel(x0 + a * cw + 5, y, f.celdas[j], `${f.nombre} ${f.plan} · ${MX.trabajos[j]}: ${txt[f.celdas[j]]}`); }); });
+      MX.filas.forEach((f, i) => { const y = y0 + i * ch; b += T(x0 - 12, y + 19, f.nombre + " " + f.plan, 12.5, C.tinta, "end", 700) + T(0, y + 19, n(f.precio), 12.5, C.t2); idx.forEach((j, a) => { b += cel(x0 + a * cw + 5, y, f.celdas[j], `${f.nombre} ${f.plan} · ${MX.trabajos[j]}: ${txt[f.celdas[j]]}`); }); });
       const y = y0 + MX.filas.length * ch + 8;
       b += T(x0 - 12, y + 21, "Carta", 14, C.dorado, "end", 700) + T(0, y + 21, "249–349", 12.5, C.dorado, "start", 700);
       idx.forEach((j, a) => { b += cel(x0 + a * cw + 5, y, carta[j], `Carta · ${MX.trabajos[j]}: ${txt[carta[j]]}`); });
@@ -263,12 +264,12 @@ const DET = {
       CAP.escalones.forEach((e, i) => {
         const x = 40 + i * 225, h = 230 * e.gratuitos / mx, hp = 230 * e.paga / mx, on = i === sel;
         b += `<g opacity="${on ? 1 : 0.45}">` + Rc(x, base - h, 90, h, on ? C.vino : C.gris, 12) + Rc(x + 96, base - hp, 70, hp, C.dorado, 12) + T(x + 45, base - h - 10, n(e.gratuitos), 26, C.vino, "middle", 400, true) + T(x + 131, base - hp - 10, n(e.paga), 18, C.dorado, "middle", 400, true) +
-          T(x + 83, base + 22, `${e.procesos} procesos · ${e.plan === "pro" ? "Pro" : "Hobby"}`, 13, C.tinta, "middle", 700) + T(x + 83, base + 42, `${e.usd} USD al mes`, 12, C.t2, "middle") + `</g>`;
+          T(x + 83, base + 22, `${e.procesos} procesos · ${e.plan === "pro" ? "Pro" : "Hobby"}`, 13, C.tinta, "middle", 700) + T(x + 83, base + 42, `${e.usd} USD al mes`, 12, C.t2, "middle") + (i >= 2 ? Rc(x + 6, base - h + 8, 150, 20, "#fff", 10, 'opacity=".92"') + T(x + 45 + 36, base - h + 22, "sin medir en Railway", 11, C.dorado, "middle", 700) : "") + `</g>`;
       });
       b += T(40, 20, "gratuitos típicos (vino) y de paga típicos (dorado) que caben", 13, C.vino, "start", 700) + T(950, 20, "supuesto: simulador de uso", 12, C.dorado, "end", 700);
       el.innerHTML = SV(960, 360, b);
       const e = CAP.escalones[sel];
-      el.insertAdjacentHTML("beforeend", marcaCifras([[n(e.gratuitos), "gratuitos caben · muro: " + muro[sel], "supuesto"], [n(e.paga), "de paga caben · muro: " + e.muro_paga, "supuesto"], [e.usd + " USD", "costo de Railway al mes", ""], [n(e.n_conexiones || 0) || "—", "tope por conexiones", ""]].filter(x => x[0] !== "0")));
+      el.insertAdjacentHTML("beforeend", marcaCifras([[n(e.gratuitos), "gratuitos caben · muro: " + muro[sel], sel >= 2 ? "supuesto · sin medir en Railway" : "supuesto"], [n(e.paga), "de paga caben · muro: " + e.muro_paga, "supuesto"], [e.usd + " USD", "costo de Railway al mes", ""], [n(e.n_conexiones || 0) || "—", "tope por conexiones", ""]].filter(x => x[0] !== "0")));
     },
   },
   disco: {
@@ -276,7 +277,7 @@ const DET = {
     como: "Activa palancas. Se suman en este orden: encender una enciende las anteriores.",
     fu: ["carta_disco", "cloudflare_r2_precios"],
     insight: "La palanca grande no es comprimir, es dónde vive el historial. Guardar lo viejo en frío cuesta ≈ 0.4 pesos al año por restaurante; no se venden datos.",
-    nota: "Sin reserva de 20 %. La palanca «sin 4 índices» ahorra sólo 10 % de su tabla: no vale el riesgo. La del archivo exige un archivador que aún no existe.",
+    nota: "Propuesta de cambio: 3 meses de historial en línea en vez de 12. Sin reserva de 20 %. La palanca «sin 4 índices» ahorra sólo 10 % de su tabla: no vale el riesgo. La del archivo exige un archivador que aún no existe.",
     controles: () => ctl(["P1", "P2", "P3", "P4", "P5"].map(k => `<label class="sw"><input type="checkbox" data-p="${k}"> ${esc(palMap[k].nombre)}</label>`).join("")),
     pinta(st, el) {
       const orden = ["P1", "P2", "P3", "P4", "P5"], on = st.on || 0;
@@ -293,6 +294,7 @@ const DET = {
     como: "Mueve el tope de platillos del gratuito: el anillo muestra a quién deja dentro. Mesas y cuentas son supuesto.",
     fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
     insight: "Con 80 platillos casi todos caben; con 40 más de la mitad pagaría sólo por eso. Dejar 80 para el conjunto; no se concluye sobre los formales (2 negocios).",
+    nota: "Propuesta de cambio frente a lo decidido: tercer plan sobre 40 mesas, lecturas de PDF con tope numérico y 3 meses de historial en línea.",
     controles: () => ctl(`<label>Tope de platillos del gratuito <input type="range" id="rg" min="0" max="${PL.cobertura_platillos.length - 1}" step="1" value="2"> <output id="og">80</output></label>`),
     pinta(st, el) {
       const i = st.r == null ? 2 : +st.r, c = PL.cobertura_platillos[i];
@@ -310,10 +312,10 @@ const DET = {
     },
   },
   precio: {
-    titulo: "Servicio cuesta de 249 a 349; 2,000 queda fuera en todos los casos.",
+    titulo: "A 249–349, Carta costaría más que Meniu, que ya ofrece caja, cocina y pedir desde la mesa por 225.",
     como: "Mueve K (qué tan agresivo entrar) y el soporte; elige el sustituto. La regla: máx(3 × piso; K × sustituto).",
     fu: ["carta_precio", "paginas_proveedores_14nov"],
-    insight: "Elegir el precio es elegir contra quién se compite; K y el soporte lo mueven. K lo decide Calvin. Es una propuesta: la v1 no cobra.",
+    insight: "Carta sólo gana a ese precio si la mesa que pide junta y la sencillez valen la diferencia: lo mide el piloto. K lo decide Calvin; es una propuesta, la v1 no cobra.",
     controles: () => ctl(`<label>K <input type="range" id="rk" min="0.3" max="0.7" step="0.05" value="0.5"> <output id="ok">0.50</output></label><label>Soporte al mes <input type="range" id="rs" min="30" max="150" step="10" value="60"> <output id="os">60</output></label><label>Sustituto <select id="ss">${Object.entries(PR.sustitutos).map(([k, v], i) => `<option value="${k}" ${i == 1 ? "selected" : ""}>${k} (${v})</option>`).join("")}</select></label>`),
     pinta(st, el) {
       const K = st.k == null ? 0.5 : +st.k, S = st.s == null ? 60 : +st.s, sn = st.sus || "Fudo Avanzado", sv = PR.sustitutos[sn];

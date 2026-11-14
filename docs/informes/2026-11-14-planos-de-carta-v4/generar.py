@@ -164,20 +164,18 @@ def g_donde_estamos() -> str:
         ),
     ]
     b = []
-    x0, w, gap = 0, 226, 21.3
-    b.append(ln(20, 38, 948, 38, ARENA, 4))
+    w, gap = 226, 21.3
+    b.append(ln(20, 30, 948, 30, ARENA, 4))
     for i, (fase, nom, est, col, nota) in enumerate(cards):
-        x = x0 + i * (w + gap)
-        b.append(f'<circle cx="{x + 24}" cy="38" r="11" fill="{col}"/>')
-        b.append(rc(x, 70, w, 250, "#fff", 20, 'filter="url(#sombra)"'))
-        b.append(
-            tx(x + 18, 100, fase.upper(), 11, TINTA2, weight=700, extra='letter-spacing="1.2"')
-        )
-        b.append(tx(x + 18, 134, nom, 20, VINO, serif=True))
-        b.append(rc(x + 18, 150, 20 + len(est) * 7.4, 24, col, 12))
-        b.append(tx(x + 28, 166.5, est, 12, "#fff", weight=700))
-        for j, linea in enumerate(_envuelve(nota, 29)):
-            b.append(tx(x + 18, 206 + j * 19, linea, 13.5, TINTA2))
+        x = i * (w + gap)
+        b.append(f'<circle cx="{x + 24}" cy="30" r="12" fill="{col}"/>')
+        b.append(rc(x, 60, w, 290, "#fff", 20, 'filter="url(#sombra)"'))
+        b.append(tx(x + 18, 94, fase.upper(), 12, TINTA2, weight=700, extra='letter-spacing="1.2"'))
+        b.append(tx(x + 18, 132, nom, 18.5, VINO, serif=True))
+        b.append(rc(x + 18, 150, 22 + len(est) * 7.8, 26, col, 13))
+        b.append(tx(x + 29, 168, est, 12.5, "#fff", weight=700))
+        for j, linea in enumerate(_envuelve(nota, 26)):
+            b.append(tx(x + 18, 214 + j * 24, linea, 15.5, TINTA2))
     for i, (num, lab) in enumerate(
         [
             ("< 10 min", "alta de un restaurante (meta < 15)"),
@@ -186,11 +184,11 @@ def g_donde_estamos() -> str:
         ]
     ):
         x = i * 330
-        b.append(tx(x + 8, 396, num, 40, VINO, serif=True))
-        b.append(tx(x + 8, 422, lab, 13, TINTA2))
+        b.append(tx(x + 8, 438, num, 58, VINO, serif=True))
+        b.append(tx(x + 8, 472, lab, 15, TINTA2))
     return svg(
         968,
-        440,
+        490,
         '<defs><filter id="sombra" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6B2D3E" flood-opacity=".14"/></filter></defs>'
         + "".join(b),
     )
@@ -375,8 +373,8 @@ def g_matriz() -> str:
     mt = D["matriz"]
     trab = mt["trabajos"]
     b = []
-    cw, ch = 62, 25
-    x0, y0 = 218, 112
+    cw, ch = 56, 25
+    x0, y0 = 282, 112
     # Carta (futuro): menú QR hoy, pedir/grupo/comanda en Fase 3
     carta = ["hoy", "fut", "fut", "fut", "no", "no", "no", "no", "no", "no", "no", "no"]
     for j, t in enumerate(trab):
@@ -419,7 +417,7 @@ def g_matriz() -> str:
 
     for i, f in enumerate(mt["filas"]):
         y = y0 + i * ch
-        b.append(tx(x0 - 12, y + 18, f["nombre"], 13, TINTA, "end", 700))
+        b.append(tx(x0 - 12, y + 18, f["nombre"] + " " + f["plan"], 12.5, TINTA, "end", 700))
         b.append(tx(0, y + 18, f"{n(f['precio'])}" if f["precio"] else "0", 13, TINTA2, extra=""))
         for j, e in enumerate(f["celdas"]):
             b.append(celda(i, j, e, y))
@@ -468,6 +466,9 @@ def g_capacidad() -> str:
         b.append(tx(x + 75, base - h - 12, n(e["gratuitos"]), 30, VINO, "middle", serif=True))
         b.append(tx(x + 75, base + 22, nombres[i], 13.5, TINTA, "middle", 700))
         b.append(tx(x + 75, base + 42, f"{e['usd']} USD al mes", 12.5, TINTA2, "middle"))
+        if i >= 2:
+            b.append(rc(x + 5, base - h + 10, 140, 20, "#fff", 10, 'opacity=".92"'))
+            b.append(tx(x + 75, base - h + 24, "sin medir en Railway", 11, DORADO, "middle", 700))
         # muro
         b.append(rc(x - 4, base + 54, 158, 26, "none", 13, f'stroke="{DORADO}" stroke-width="1.6"'))
         b.append(tx(x + 75, base + 72, f"muro: {muro[i]}", 11.5, DORADO, "middle", 700))
@@ -511,7 +512,7 @@ def g_disco() -> str:
         ("P0", "12 meses en línea"),
         ("P1", "Analítica 30 días"),
         ("P2", "Historial 3 m + archivo"),
-        ("P5", "Todo: 7 días y 1 mes"),
+        ("P5", "7 días + 1 mes en línea"),
     ]
     b = []
     mx = 440
@@ -527,7 +528,7 @@ def g_disco() -> str:
     )
     for i, (k, nom) in enumerate(sel):
         p = next(x for x in pal if x["clave"] == k)
-        y = 46 + i * 62
+        y = 46 + i * 56
         w = 460 * p["paga"] / mx
         col = (
             GRIS
@@ -536,18 +537,21 @@ def g_disco() -> str:
         )
         if k == "P0":
             col = "#CDBBA3"
-        b.append(rc(190, y, max(w, 4), 40, col, 12))
+        b.append(rc(190, y, max(w, 4), 38, col, 12))
         b.append(tx(180, y + 26, nom, 13.5, TINTA, "end", 700 if k in ("P2",) else 400))
         b.append(tx(190 + max(w, 4) + 10, y + 28, str(p["paga"]), 24, VINO, serif=True))
-    b.append(
-        tx(
-            190,
-            372,
-            "sin reserva de 20 %; las palancas se suman en este orden y la última exige un archivador que aún no existe",
-            12,
-            TINTA2,
-        )
-    )
+    for j, linea in enumerate(
+        [
+            "sin reserva de 20 %; las palancas se suman en este orden",
+            "414 = analítica en bruto sólo 7 días y 1 mes de historial en línea",
+            "la última exige un archivador que aún no existe",
+        ]
+    ):
+        b.append(tx(190, 336 + j * 17, linea, 12, TINTA2))
+    b.append(rc(190, 392, 150, 0, "none", 0))
+    b.append(rc(0, 330, 176, 22, "none", 11, f'stroke="{DORADO}" stroke-width="1.6"'))
+    b.append(tx(88, 345, "propuesta de cambio", 10.5, DORADO, "middle", 700))
+    b.append(tx(0, 376, "3 meses en línea, no 12", 11.5, TINTA2))
     # historial en frío
     b.append(rc(690, 40, 278, 330, "#fff", 22, 'filter="url(#sombra2)"'))
     b.append(
@@ -565,7 +569,7 @@ def g_disco() -> str:
     b.append(tx(724, 296, "No se venden ni se comparten", 13, VINO_OSC, weight=700))
     b.append(tx(724, 316, "datos de usuarios ni de restaurantes.", 12.5, VINO_OSC, weight=700))
     b.append(tx(724, 335, "Se ofrece guardar el historial.", 13, TINTA2))
-    b.append(rc(0, 398, 968, 36, "#fff", 12))
+    b.append(rc(0, 400, 968, 34, "#fff", 12))
     b.append(
         tx(
             484,
@@ -585,22 +589,29 @@ def g_planes() -> str:
         '<defs><filter id="sombra3" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6B2D3E" flood-opacity=".14"/></filter></defs>'
     )
     planes = [
-        ("Gratuito", "≤ 10 mesas · ≤ 3 cuentas", "≤ 80 platillos", "0", GRIS, "1 lugar"),
+        (
+            "Gratuito",
+            "≤ 10 mesas · ≤ 3 cuentas",
+            "≤ 80 platillos",
+            "0",
+            GRIS,
+            "ocupa el disco de 1 gratuito",
+        ),
         (
             "Servicio",
             "11–40 mesas · hasta 20 cuentas",
             "",
             "249 a 349",
             VINO,
-            "2.1 lugares por disco",
+            "ocupa el disco de 2.1 gratuitos",
         ),
         (
             "Salón",
             "> 40 mesas · hasta 50 cuentas",
             "",
-            "249 a 599",
+            "399 (hasta 599)",
             VINO_OSC,
-            "10.1 lugares por disco",
+            "ocupa el disco de 10.1 gratuitos",
         ),
     ]
     for i, (nom, a, c, pr, col, lug) in enumerate(planes):
@@ -613,6 +624,10 @@ def g_planes() -> str:
         b.append(tx(x + 18, 66, a, 13.5, TINTA))
         b.append(tx(x + 18, 86, c or "propuesta de precio", 12.5, TINTA2))
         b.append(tx(x + 18, 112, lug, 12.5, TINTA2, weight=700))
+        if i == 2:
+            b.append(rc(x + 18, 94, 150, 0, "none", 0))
+    b.append(rc(654 + 168, 70, 130, 20, "none", 10, f'stroke="{DORADO}" stroke-width="1.6"'))
+    b.append(tx(654 + 168 + 65, 84, "propuesta de cambio", 10.5, DORADO, "middle", 700))
     # fronteras
     b.append(
         tx(
@@ -771,7 +786,18 @@ def g_precio() -> str:
         x = 8 + i * 116
         pct = ev[key]["pct_de_Fudo Avanzado"] if key else 307
         dentro = pct <= 61
-        b.append(rc(x, 298, 104, 100, "#fff" if dentro else "#F5E6E6", 16))
+        b.append(rc(x, 298, 104, 118, "#fff" if dentro else "#F5E6E6", 16))
+        b.append(
+            tx(
+                x + 52,
+                400,
+                f"{round(100 * (int(lab.replace(',', '')) / 225))} % de Meniu",
+                11.5,
+                "#9B2C2C" if int(lab.replace(",", "")) > 349 else TINTA2,
+                "middle",
+                700,
+            )
+        )
         b.append(tx(x + 52, 334, lab, 26, VINO if dentro else "#9B2C2C", "middle", serif=True))
         b.append(tx(x + 52, 360, f"{pct} %", 16, TINTA, "middle", 700))
         b.append(tx(x + 52, 380, (suf or "de Fudo") if dentro else "fuera", 12, TINTA2, "middle"))
@@ -886,7 +912,7 @@ def g_equilibrio() -> str:
     }
     for (rb, cv), lab, dx, dy in [
         ((16, 5), "16 % rebasan, 5 % pagan", 14, 24),
-        ((39, 10), "39 % rebasan, 10 % pagan", -16, 4),
+        ((39, 10), "39 % rebasan, 10 % pagan", -16, -30),
     ]:
         e = esc3[(rb, cv)]
         b.append(
@@ -969,7 +995,7 @@ def construir_paginas():
     )
     pagina(
         "2 · El hueco",
-        "El comensal está conectado; 94 de cada 100 negocios no tiene sitio.",
+        "El comensal está conectado; 94 de cada 100 restaurantes a la carta y bares no declara sitio web.",
         g_hueco(),
         "Cada anillo mide qué parte del grupo tiene lo que se pide; el centro es la brecha.",
         "Carta no le quita un cliente a nadie: sería el primer sitio propio de casi todo el núcleo.",
@@ -993,11 +1019,12 @@ def construir_paginas():
     )
     pagina(
         "5 · Qué existe y a qué precio",
-        "Nadie publica el pedido en grupo; es el hueco que Carta ocupa.",
+        "Ninguna página de precios leída publica el pedido en grupo; es el hueco que Carta quiere ocupar con la Fase 3.",
         g_matriz(),
         "Cada fila es un plan real; cada columna, un trabajo. Más color, más cubierto.",
-        "Los precios van de 0 a 1,099 pesos y ninguno publica pedir en grupo.",
+        "Los planes leídos cuestan de 0 a 1,243 pesos al mes y ninguno publica pedir en grupo.",
         ["paginas_proveedores_14nov", "carta_precio"],
+        "Leídas el 14 de noviembre. Hay un indicio de OlaClick sin comprobar (página borrada de «mesa virtual») y falta la prueba con dos teléfonos.",
     )
     pagina(
         "6 · Cuántos caben",
@@ -1021,15 +1048,16 @@ def construir_paginas():
         "Los topes de mesas y personal empujan a pagar a ≈ 39 %; el de platillos, a 10.8 %.",
         g_planes(),
         "Arriba, los planes. Abajo, qué fracción de los negocios rebasa cada tope; la barra rosa es el intervalo.",
-        "Los topes empujan a pagar a ≈ 39 % de los de servicio completo, pero ese modelo es supuesto.",
+        "Los topes empujan a ≈ 39 % de los de servicio completo; ese modelo es supuesto.",
         ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
+        "Propuesta de cambio frente a lo decidido: tercer plan sobre 40 mesas, lecturas de PDF con tope numérico y 3 meses de historial en línea.",
     )
     pagina(
         "9 · El precio",
-        "Servicio cuesta de 249 a 349; 2,000 queda fuera en todos los casos.",
+        "A 249–349, Carta costaría más que Meniu, que ya ofrece caja, cocina y pedir desde la mesa por 225.",
         g_precio(),
-        "La banda dorada es el corredor. Los puntos azules son lo que cobra el sustituto; el piso es lo que cuesta atender.",
-        "Elegir el precio es elegir contra quién se compite; K y el soporte lo mueven.",
+        "La banda dorada es el corredor propuesto. Los puntos azules son lo que cobra cada sustituto, sin tope publicado.",
+        "Carta sólo gana a ese precio si la mesa que pide junta y la sencillez valen la diferencia: lo mide el piloto.",
         ["carta_precio", "paginas_proveedores_14nov"],
     )
     pagina(
@@ -1049,7 +1077,7 @@ def palabras(html_frag: str) -> int:
 
 def html_pagina(i: int, p: dict) -> str:
     cuerpo = f'<p class="como"><b>Cómo leerlo.</b> {esc(p["como"])}</p><p class="insight"><b>Insight clave.</b> {esc(p["insight"])}</p>'
-    pal = palabras(cuerpo) - 2 - 2  # sin las dos etiquetas «Cómo leerlo» e «Insight clave»
+    pal = palabras(cuerpo) - 2 - 2 + palabras(p["notas"])  # sin las dos etiquetas; la nota cuenta
     assert pal <= MAX_PALABRAS, f"página {i}: {pal} palabras de texto corrido (tope {MAX_PALABRAS})"
     p["palabras"] = pal
     fuentes = "; ".join(corta(c) for c in p["claves"])
@@ -1083,12 +1111,13 @@ def mini_mercado():
 def _barras_v(vals, cols, etqs, fmt, mx):
     b = []
     for i, v in enumerate(vals):
-        h = 100 * v / mx
+        h = 92 * v / mx
         x = 10 + i * 80
-        b.append(rc(x, 118 - h, 62, max(h, 4), cols[i], 10))
-        b.append(tx(x + 31, 118 - h - 6, fmt(v), 15, VINO, "middle", 700))
-        b.append(tx(x + 31, 140, etqs[i], 12, TINTA2, "middle"))
-    return svg(330, 150, "".join(b), "mini")
+        b.append(rc(x, 108 - h, 62, max(h, 4), cols[i], 10))
+        b.append(tx(x + 31, 108 - h - 6, fmt(v), 15, VINO, "middle", 700))
+        for j, linea in enumerate(etqs[i].split("|")):
+            b.append(tx(x + 31, 126 + j * 12.5, linea, 10.5, TINTA2, "middle"))
+    return svg(330, 162, "".join(b), "mini")
 
 
 def mini_capacidad():
@@ -1096,7 +1125,12 @@ def mini_capacidad():
     return _barras_v(
         [e["gratuitos"] for e in es],
         [GRIS, VINO, VINO, VINO_OSC],
-        ["muro: disco", "procesador", "procesador", "conexiones"],
+        [
+            "muro: disco|",
+            "procesador|",
+            "procesador|sin medir|en Railway",
+            "conexiones|sin medir|en Railway",
+        ],
         n,
         2400,
     )
@@ -1108,7 +1142,12 @@ def mini_disco():
     return _barras_v(
         [pal[k] for k in ks],
         [GRIS, "#CDBBA3", VINO, VINO_OSC],
-        ["hoy", "12 meses", "analítica 30 d", "+ archivo"],
+        [
+            "plan de datos|(24 meses)",
+            "como opera hoy|(12 meses)",
+            "analítica|30 días",
+            "+ historial|archivado",
+        ],
         str,
         140,
     )
@@ -1120,7 +1159,7 @@ def mini_planes():
         [
             ("Gratuito", "≤ 10 mesas", "0", GRIS),
             ("Servicio", "11–40 mesas", "249–349", VINO),
-            ("Salón", "> 40 mesas", "249–599", VINO_OSC),
+            ("Salón", "> 40 mesas", "399–599", VINO_OSC),
         ]
     ):
         x = i * 112
@@ -1146,7 +1185,17 @@ def mini_precio():
     b.append(tx(X(299), 34, "249 a 349", 15, DORADO, "middle", 700))
     for v, nom, dy in [(225, "Meniu 225", 0), (652, "Fudo 652", 0), (745, "+ mesas 745", 22)]:
         b.append(f'<circle cx="{X(v)}" cy="68" r="7" fill="{AZUL}"/>')
-        b.append(tx(min(X(v), 300) if v > 700 else X(v), 112 + dy, nom, 12, AZUL, "middle", 700))
+        b.append(
+            tx(
+                X(v) if v < 700 else 326,
+                112 + dy,
+                nom,
+                12,
+                AZUL,
+                "end" if v > 700 else "middle",
+                700,
+            )
+        )
     b.append(tx(X(0), 20, "sustitutos publicados ●", 11.5, TINTA2, weight=700))
     return svg(330, 150, "".join(b), "mini")
 
