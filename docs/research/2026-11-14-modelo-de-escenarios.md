@@ -1,166 +1,162 @@
-# Modelo de escenarios de Carta: variables globales, tres casos y qué supuestos mandan
+# Modelo de escenarios de Carta: la segmentación de Calvin, el peor caso real y qué hay que medir
 
-**Fecha:** 14 de noviembre de 2026 (revisado el mismo día tras la ronda de la maestra) · **Rama:** `agente/planes-precio-historial` · **Estado:** modelo en código para decidir; la v1 no cobra ni tiene planes. **Este documento lo genera `2026-11-14-corre-escenarios.mjs` desde el modelo: ninguna cifra se transcribe a mano.**
-**Código:** [`…-modelo-de-escenarios.mjs`](2026-11-14-modelo-de-escenarios.mjs) · **Parámetros:** [`…-parametros.json`](2026-11-14-parametros.json) (57; cada uno con valor, rango, origen, fuente y si mueve el resultado) · **Pruebas:** [`…-pruebas.mjs`](2026-11-14-pruebas.mjs) · **Resultados:** [`…-modelo-de-escenarios-resultados.json`](2026-11-14-modelo-de-escenarios-resultados.json).
+**Fecha:** 14 de noviembre de 2026 (tercera vuelta) · **Rama:** `agente/planes-precio-historial` · **La v1 no cobra ni tiene planes.** Este documento lo genera `2026-11-14-corre-escenarios.mjs` desde el modelo: ninguna cifra se transcribe a mano.
 
-**Qué cambió con la revisión** (*antes decía… la revisión mostró…*): (1) *«el óptimo coincide con lo que Calvin ya decidió»* → **los topes del gratuito son consecuencia de cuánto cupo gratis se exige (decisión de Calvin), no un óptimo**; (2) *Master Chef 249 «óptimo»* → **una meseta** y un precio de Chef Ejecutivo que **no sale de la optimización**; (3) *163 / 218 / 580* → **un rango de ≈ 110 a 850 que depende de la curva de pago, que es supuesto**; (4) *los anuncios sostenían el peor caso* → **el peor caso firme es sin anuncios**; los anuncios son **condicionales** (no están aprobados ni construidos); (5) se añadieron soporte del gratuito, bajas, costo de conseguir un cliente, sueldos e impuestos, y el margen se da **antes y después de captación**.
-**Cambios de API (para la sesión que lo incrusta):** los anuncios **no suman** salvo que `supuestos.anuncios_aprobados = true` o `opc.anunciosAprobados = true` (antes sumaban con sólo `config.anuncios.activo`); `configBase()` ahora es un alias de `configInicial()` (la recomendada **sin anuncios**; antes era otra); `margen.pesos` sigue siendo el de operación y se añaden `margen_operacion`, `margen_despues_de_captacion`, `margen_neto`, `se_paga_solo`, `extrapolacion_sin_medir`, `valores_esperados`, `sensibilidad()` y `sensibilidadPrecioOptimo()`; `precioOptimo` devuelve `meseta`; `optimizar` devuelve `tabla_cupo_gratis`, `meseta_precio_servicio`, `precio_salon` y `sensibilidad_traslape` (ya no devuelve `sensibilidad`, que pasó a `sensibilidad()`).
+## Conclusiones
 
-**Marcas.** *medido* · *documento* · *fuente* · ***supuesto*** · *sin dato*. Pesos al mes antes de IVA. Planes: **Chef** (gratis), **Master Chef**, **Chef Ejecutivo** (nombre propuesto; el prototipo, `admin-onboarding.jsx` paso 3, sólo trae los dos primeros). Configuración con que sale todo: **«recomendada sin anuncios»**: Master Chef 299, Chef Ejecutivo 499, Chef con 10 mesas, 3 cuentas y 80 platillos, 12 meses de historial en línea para la paga, **sin anuncios**. Los clientes son **valores esperados** (pueden ser fracciones).
+1. **Chef (gratis) = 91,048 negocios (86.8 %): 15 mesas, 4 cuentas y 150 platillos dejan dentro al 96 % de los negocios de hasta 10 personas** (intervalo del modelo 85 %–100 %); Master Chef 13,614 (13.0 %); Chef Ejecutivo 220 (0.2 %).
+2. **Master Chef a 225 (pegado a Meniu) y Chef Ejecutivo a 1,099 quedan sin pérdidas con anuncios en marcha en las tres curvas; sin anuncios sólo con la curva media o mejor:** +8,048 al mes con 1,000 restaurantes con anuncios, +3,869 sin ellos (curva media) y −156 con la pesimista.
+3. **Peor caso real (todos gratuitos): con 1,000 pesos al mes de su bolsa Calvin carga hasta 811 restaurantes gratuitos y 2.8 millones de comensales al mes (simulados); con anuncios se paga solo desde 54 restaurantes (tarifa baja), 12 (media) y 1,469 (adverso: mitad de tarifa y 30 % de visitas).**
+4. **Margen con 1,000 restaurantes (operación): +8,048 recomendado · −156 peor · +30,650 mejor** pesos al mes; después de captación +7,519 · −263 · +28,908.
+5. **Qué dato medir primero en el piloto: curva · mediana, cuántos rebasan los topes, curva · techo** (§6); y el escalón sube de Hobby a Pro de 2 procesos hacia el mes 11 (§7 y las [banderas de operación](2026-11-14-banderas-de-operacion.md)).
 
----
+**Recomendado** (vino) = curva de pago media (la mediana de Master Chef es el precio de Meniu Business, 225) y anuncios en la tarifa baja ya en marcha · **Peor** (rojo) = curva pesimista y todavía sin anuncios (temporal) · **Mejor** (verde) = curva optimista y anuncios en la tarifa media.
 
-## 0. Conclusiones
+**Qué cambió respecto a la vuelta anterior.** Los anuncios ya no son un interruptor: **el plan gratuito lleva anuncios** (decisión de Calvin) y lo que varía es **cuándo llegan** (`mes_inicio_anuncios`, hoy 9: no antes de construirlos y de que la red apruebe el sitio) y **cuánto dejan**. El peor caso «todo gratuito y sin anuncios» pasó de «peor caso» a **periodo temporal** que paga Calvin. Los planes dejaron de definirse por 10 mesas y 3 cuentas y pasaron a **la segmentación de Calvin** (por tamaño del negocio, traducida a topes).
 
-- **El peor caso firme es sin anuncios y pierde dinero:** −268 / −1,137 / −10,601 pesos al mes con 100 / 1,000 / 10,000 restaurantes. **Los anuncios no están aprobados ni construidos** (la política de seguridad del sitio no los permite; hace falta un ADR, abrirla y cambiar el aviso de privacidad, [anuncios §3.6–3.7]). Si algún día se aprueban, el caso **condicional** da +450 / +6,038 / +61,149 con la tarifa «baja» y anuncio en todas las visitas, **pero con la tarifa a la mitad y anuncio en el 30 % de las visitas** baja a −160 / −61 / +161. **La tarifa «baja» no es una cota inferior.**
-- **Margen esperado con 1,000 restaurantes** (operación; curvas pesimista · media · optimista): **+58 · +6,485 · +46,106** pesos al mes; **después de captación** (bajas 3 % al mes y 600 pesos por cliente de paga, *sin dato: supuesto de trabajo*): **−39 · +5,872 · +42,377**. No incluye sueldos ni impuestos (parámetros en 0).
-- **Mejor caso (todos pagan, 1,000):** +220,481 pesos al mes; **exige repetir la pila de servidores** (extrapolación sin medir).
-- **Los topes del gratuito dependen de cuánto quieres atender gratis:** para que **quepa gratis el 50 / 60 / 70 / 80 %** los topes son **8 mesas y 2 cuentas / 10 mesas y 3 cuentas / 15 mesas y 4 cuentas / 20 mesas y 5 cuentas** y el margen es **9,883 / 7,343 / 4,658 / 3,044** (§4). *No hay un óptimo: cada 10 puntos de cupo gratis cuestan ≈ 2,280 pesos al mes con 1,000.* Con traslape de topes 0.5, los mismos topes dejan dentro 38 % (no 61 %); con 1, 14 %.
-- **El precio de Master Chef es una meseta, no un punto:** con la curva media el margen por restaurante que rebasa topes cambia **menos de 2 %** entre **192 y 247**; el optimizador completo da **225** (meseta 200–225). Pero **el precio óptimo depende de la curva (mediana, sigma, techo), que es supuesto**: con la mediana ±50 % va de 110 a 221 (pesimista), 139 a 300 (media) y 315 a 847 (optimista): **un rango de ≈ 110 a 850 pesos**. **El dato que lo sustituye es la prueba de precio del piloto.**
-- **Qué supuesto mueve más el margen** (±50 %, 1,000 restaurantes, firme): **curva · mediana** (14,071 pesos), **curva · techo** (7,533) y **curva · sigma** (7,084). Con anuncios aprobados, curva · mediana y curva · techo pasan al frente.
-- **Más allá de ≈ 2,030 restaurantes registrados (curva media) hace falta otra arquitectura:** todo costo de ahí en adelante es **extrapolación sin medir**; el modelo lo marca (`requiere_arquitectura`, `extrapolacion_sin_medir`).
+**Cambios de API del `.mjs` (para quien lo incrusta).** (1) `configInicial()` / `configBase()` ahora es **«segmentación de Calvin»** (Master Chef 225, Chef Ejecutivo 1,099, Chef 15 mesas · 4 cuentas · 150 platillos); la anterior es `configTopes10Mesas3Cuentas()`. (2) **Quitado el interruptor** `anuncios_aprobados`: los anuncios **suman en régimen**; `opc.sinAnuncios = true` evalúa el periodo sin ellos; `opc.anunciosAprobados === false` sigue funcionando como alias de `sinAnuncios`. (3) `parteRebasa` usa el modelo conjunto de mesas y cuentas (`empuja_conjunto`, con intervalo); se quitaron `traslape_topes`, `empuja_mesas`, `empuja_cuentas` y `restriccion_min_dentro`; `optimizar` se rige por `restriccion_seguridad_chico`. (4) `conversion(curva, precio, s, plan)` y `precioOptimo(…, plan)` usan `curvas_pago_salon` para Chef Ejecutivo. (5) Nuevas funciones: `todosGratuitos`, `tablaTodosGratuitos`, `nSePagaSolo`, `capacidadConBolsa`, `resumen`, `evaluarPrecios`, `banderas`, `seguridadChico`, `parteSalon`, `interp2`. (6) `proyectar` mete los anuncios desde `mes_inicio_anuncios` y devuelve `financiamiento_maximo`. (7) `sensibilidad` trae `frase` y `medir_primero`.
 
 ---
 
-## 1. Peor caso: firme y condicional (margen de operación al mes)
+## 1. La segmentación de Calvin, traducida a topes
 
-| Restaurantes | **Peor firme: todos gratuitos, sin anuncios** | Condicional: anuncios aprobados, tarifa baja, 100 % de visitas | Condicional adverso: tarifa a la mitad y 30 % de visitas | Condicional: tarifa media |
+**Clientes potenciales = 104,882** (DENUE, mayo de 2026 [medido]). **Chef (gratis)** = 0–5 y 6–10 personas: **91,048 (86.8 %)** · **Master Chef** = 11–30, 31–50 y 51–100: **13,614 (13.0 %)** · **Chef Ejecutivo** = 101–250 y 251 o más: **220 (0.2 %)**.
+
+**Carta no sabe cuánta gente trabaja en un negocio**, así que la frontera se traduce a **topes que el producto sí aplica**, con el modelo de mesas y cuentas de la estadística de cartas (cuentas = ⌈f × personas⌉ con f = 0.35 a 0.50; mesas = cuentas × 2.5 a 4) aplicado a los estratos medidos. **Todo esto es supuesto (modelo, no estadística): el intervalo muestra los extremos del modelo.**
+
+**¿Con qué topes un negocio de hasta 10 personas queda dentro del gratuito?** (central; entre paréntesis, el intervalo del modelo)
+
+| Seguridad que se quiere | Topes de Chef (mesas · cuentas) | Seguridad real | Parte de TODOS los registrados que queda dentro | Negocios de más de 10 personas que se cuelan gratis |
 |---|---|---|---|---|
-| 100 | −268 | +450 | −160 | +2,602 |
-| 1,000 | −1,137 | +6,038 | −61 | +27,563 |
-| 10,000 | −10,601 | +61,149 | +161 | +276,399 |
+| **—** | 10 mesas · 3 cuentas | 91 % (71 %–95 %) | 79 % (62 %–82 %) | 0 % (hasta 0 %) |
+| **—** | 10 mesas · 3 cuentas | 91 % (71 %–95 %) | 79 % (62 %–82 %) | 0 % (hasta 0 %) |
+| **—** | 15 mesas · 4 cuentas | 98 % (87 %–100 %) | 85 % (75 %–88 %) | 0 % (hasta 9 %) |
 
-Sólo el **primer** caso existe hoy. Los otros tres **suponen** que los anuncios se aprueben y se construyan. Costo de atender a un cliente gratuito: **1.1 pesos** con 1,000 restaurantes (incluye 0.5 de soporte, *supuesto de trabajo*: con 1 peso el peor caso empeora 500 pesos al mes con 1,000 restaurantes).
+**Versión conservadora** (la seguridad vale aun en el peor rincón del modelo):
 
-**Por cada cliente de paga, cuántos gratuitos se sostienen** (sin anuncios; margen del cliente de paga ÷ costo del gratuito): **83 / 195 / 210** con 100 / 1,000 / 10,000 restaurantes, configuración recomendada, curva media. Con anuncios **aprobados** cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo = true`, `gratuitos_por_pagante = null`).
-
-## 2. Esperado y mejor caso (operación, y después de captación)
-
-| Restaurantes | Pesimista | Media | Optimista | Mejor: todos pagan |
+| Seguridad que se quiere | Topes de Chef | Seguridad mínima | Dentro (todos) | Se cuelan gratis |
 |---|---|---|---|---|
-| 100 | 1 de paga · **−148** (-92 %) | 3 de paga · **+494** (48 %) | 21 de paga · **+4,465** (69 %) | +22,003 (72 %) |
-| 1,000 | 5 de paga · **+58** (4 %) | 34 de paga · **+6,485** (63 %) | 207 de paga · **+46,106** (72 %) | +220,481 (72 %) |
-| 10,000 | 54 de paga · **+1,364** (8 %) | 341 de paga · **+65,707** (64 %) | 2,072 de paga · **+458,324** (71 %) | +2,211,166 (72 %) |
+| **80 %** | 12 mesas · 3 cuentas | ≥ 87 % | 79 % | hasta 0 % |
+| **90 %** | 16 mesas · 4 cuentas | ≥ 95 % | 85 % | hasta 9 % |
+| **95 %** | 20 mesas · 5 cuentas | ≥ 100 % | 88 % | hasta 32 % |
 
-**Operación → después de captación** (reponer bajas del 3 % mensual a 600 pesos por cliente; *sin dato*):
+**Con el tope de platillos** (un negocio chico puede tener carta larga: 150 platillos deja pasar al ≈ 98 %) **la configuración inicial queda en 15 mesas · 4 cuentas · 150 platillos con 95.8 % de seguridad** (el optimizador la elige: es la de mayor margen que cumple 95 %). **Master Chef** cubre hasta 100 mesas y 30 cuentas (≈ 98 % de los negocios de 11 a 100 personas; arriba de ahí, ≈ 0.4 % de los registrados, que es Chef Ejecutivo). **Chef Ejecutivo** exige subir hoy el tope técnico de **50 cuentas activas** (T-1.6): un negocio de 101 a 250 personas tiene 36 a 125 cuentas de mesero o capitán en el modelo (**cambio de código, no de este informe**).
 
-| Restaurantes | Pesimista | Media | Optimista |
-|---|---|---|---|
-| 100 | −148 → **−158** | +494 → **+433** | +4,465 → **+4,092** |
-| 1,000 | +58 → **−39** | +6,485 → **+5,872** | +46,106 → **+42,377** |
-| 10,000 | +1,364 → **+396** | +65,707 → **+59,574** | +458,324 → **+421,034** |
-
-«Esperado» es un **rango de tres curvas**, no un intervalo estadístico. **Ingreso y costo por cliente (1,000, media):** gratuito 0 pesos de ingreso (sin anuncios) y 1.1 de costo; cliente de paga 299 de ingreso y 79 de costo.
-
----
-
-## 3. El precio de Master Chef: meseta, no punto, y depende de la curva
-
-| Curva | Precio óptimo | **Meseta** (margen a menos de 2 %) | Conversión en el óptimo |
-|---|---|---|---|
-| pesimista | **163** | **148 a 180** | 7 % |
-| media | **218** | **192 a 247** | 16 % |
-| optimista | **580** | **499 a 672** | 35 % |
-
-**Sensibilidad del precio óptimo a los supuestos de la curva:**
-
-| Curva | Óptimo base | Mediana −50 % a +50 % | Sigma −50 % a +50 % | Soporte 0 · 30 · 150 |
+| Seguridad exigida a Chef | Topes | Seguridad real | Dentro de todos | Margen (1,000 restaurantes, curva media) |
 |---|---|---|---|---|
-| pesimista | **163** | 110–221 | 137–216 | 123 · 141 · 246 |
-| media | **218** | 139–300 | 174–320 | 170 · 193 · 306 |
-| optimista | **580** | 315–847 | 505–832 | 537 · 558 · 652 |
+| **80 %** | 10 mesas · 3 cuentas · 80 platillos | 81.4 % | 71 % | 11,254 |
+| **90 %** | 10 mesas · 3 cuentas · 300 platillos | 90.4 % | 78 % | 9,265 |
+| **95 %** | 15 mesas · 4 cuentas · 150 platillos | 95.8 % | 83 % | 8,050 |
 
-**El óptimo es tan bueno como la curva.** Las medianas de la curva son **precios de lista de otros productos** (157 Neolo, 205 la mediana de menú QR con pedidos, 652 Fudo Avanzado, un punto de venta que Carta no es); sigma y techo se eligieron. **Reportar 163 / 218 / 580 como tres puntos sería falso: es un rango de ≈ 110 a 850 pesos.**
+## 2. Precios: Master Chef pegado a Meniu, Chef Ejecutivo hacia arriba
 
-**Segundo anclaje de la disposición a pagar: lo que ya gastan (INEGI, [lo que paga un restaurante](2026-11-14-lo-que-paga-un-restaurante.md)).** La mediana de la curva media (205) es **0.2 % del ingreso** de un negocio de 0 a 10 personas (107,450 al mes), **dentro de la franja de 0.15 % a 0.30 %** que cuestan los menús QR con pedidos: **los dos anclajes se parecen en la curva media**. La optimista (652) es 0.6 % del ingreso del chico (**fuera** de esa franja, en la de los puntos de venta, 0.61 % a 0.93 %) pero sólo 0.1 % del de 11 a 50 personas (**dentro** de la franja de los POS, 0.09 % a 0.14 %): **la curva optimista sólo describe a los de 11 a 50**. El único dato que sustituye ambos anclajes es la **prueba de precio del piloto**.
+Cada precio con tres curvas (pesimista · media · optimista), **1,000 restaurantes registrados**. «Sin pérdidas» = margen de operación **y** después de captación ≥ 0 (con anuncios en marcha · sin anuncios todavía).
 
-### 3.1 Margen contra precio (1,000 restaurantes, operación) y arrepentimiento
+| Master Chef | Pagantes de Master Chef | Margen de operación (con anuncios) | Después de captación | Margen de operación **sin anuncios** | Equilibrio sin anuncios (pagantes) | ¿Sin pérdidas? (con anuncios · sin) |
+|---|---|---|---|---|---|---|
+| **199** | 7.8 · 33.3 · 95.9 | +4,224 · +7,904 · +16,816 | +4,082 · +7,291 · +15,049 | −47 · +3,745 · +12,933 | 9 | sí · no |
+| **225** | 5.8 · 28.6 · 94.5 | +4,123 · +8,048 · +18,984 | +4,017 · +7,519 · +17,243 | −156 · +3,869 · +15,096 | 7.5 | sí · no |
+| **249** | 4.4 · 24.8 · 92.9 | +4,016 · +8,052 · +20,872 | +3,935 · +7,592 · +19,159 | −270 · +3,857 · +16,977 | 6.5 | sí · no |
+| **299** | 2.4 · 18.2 · 88.7 | +3,802 · +7,803 · +24,385 | +3,756 · +7,462 · +22,747 | −492 · +3,580 · +20,471 | 5.1 | sí · no |
 
-| Precio de Master Chef | Pesimista | Media | Optimista | Arrepentimiento máximo | Arrepentimiento esperado (25/50/25 %) |
-|---|---|---|---|---|---|
-| 149 | 1,167 | 5,952 | 18,477 | 45,370 | 12,000 |
-| 199 | 1,038 | 7,266 | 28,219 | 35,628 | 8,940 |
-| 249 | 547 | 7,175 | 37,111 | 26,736 | 6,884 |
-| 299 | 58 | 6,485 | 46,106 | 17,741 | 5,103 |
-| 349 | -322 | 5,465 | 52,378 | 11,469 | 4,140 |
-| 449 | -771 | 3,501 | 60,583 | 3,766 | 3,183 |
-| 599 | -1,020 | 1,475 | 63,847 | 5,791 | 3,442 |
+| Chef Ejecutivo | Pagantes de Chef Ejecutivo | Margen de operación (con anuncios) | Después de captación | Margen de operación **sin anuncios** | Equilibrio sin anuncios (pagantes) | ¿Sin pérdidas? (con anuncios · sin) |
+|---|---|---|---|---|---|---|
+| **799** | 0.3 · 1.1 · 2.5 | +4,176 · +8,059 · +18,467 | +4,067 · +7,523 · +16,722 | −103 · +3,882 · +14,579 | 7.5 | sí · no |
+| **1099** | 0.1 · 0.8 · 2.3 | +4,123 · +8,048 · +18,984 | +4,017 · +7,519 · +17,243 | −156 · +3,869 · +15,096 | 7.5 | sí · no |
+| **1599** | 0 · 0.3 · 1.7 | +4,059 · +7,833 · +19,309 | +3,954 · +7,311 · +17,578 | −221 · +3,653 · +15,419 | 7.5 | sí · no |
 
-**Chef Ejecutivo:** el precio **no sale de la optimización**: con la mejor configuración, mover Chef Ejecutivo de 299 a 999 cambia el margen en **408 pesos al mes** (menos de 2 %); los 499 son **«sugeridos por regla»** (3 × piso con soporte de 120).
+**Lectura.** (1) **Los tres precios altos de Chef Ejecutivo cambian el margen menos de 2 %**: sólo ≈ 0.8 negocio de cada 1,000 es de ese tamaño; su precio **no se decide por margen sino por posicionamiento** (1,099 es lo que cuestan OlaClick Elite y Last.app; 1,599 es el extremo alto sin llegar a Last.app Unlimited, 2,900). (2) **Master Chef: 199 a 299 cambia el margen en menos de 2 %**, pero **cambia los pagantes** (de 33 a 18 con la curva media): como Calvin quiere captar sin pérdidas, **225 (el precio de Meniu) capta 29 y deja +8,048 al mes**. (3) **Sin pérdidas con qué supuestos:** (a) con anuncios en marcha sí en las tres curvas **si la tarifa baja y el 60 % de visitas con anuncio se cumplen** (supuestos sin dato); (b) **sin anuncios, ningún precio evita la pérdida con 1,000 restaurantes si la curva es pesimista** (−156 al mes): ese periodo lo paga Calvin.
 
----
+**Meseta y curva de pago.** Con la curva media, el margen por restaurante que rebasa topes cambia menos de 2 % entre **206 y 266**; con la mediana ±50 % el precio óptimo va de 147 a 324. **El óptimo es tan bueno como la curva (supuesto); lo sustituye la prueba de precio del piloto.**
 
-## 4. Topes del plan gratuito: consecuencia del cupo que se exige, no un óptimo
+## 3. La pregunta del peor caso: todos gratuitos
 
-`restriccion_min_dentro` (hoy 60 %, **decisión de Calvin**, rango 40–80 %) y `traslape_topes` (hoy 0; rango 0 a 1) son **parámetros visibles**. Con traslape 0 sólo cuenta el tope más estricto (por eso cuentas y platillos casi no mueven nada); con más traslape cada tope suma. Si quieres que quepa gratis…
+*«¿Hasta qué punto puedo tener restaurantes que todos son gratuitos, cuántos comensales, y todavía sostener el sistema con sólo anuncios?»* Todos los registrados son gratuitos (nadie paga). **Comensales al mes** = restaurantes × 113.9 comensales al día × 30; el dato por restaurante sale del **simulador de uso (perfiles supuestos), no está medido**, y es más alto de lo que tendría una fonda de 0 a 5 personas. «Costo al mes» = servidor, almacenamiento y soporte (0.5 pesos por gratuito, supuesto): **lo que pone Calvin mientras no hay anuncios**.
 
-| Cupo gratis mínimo | Topes del gratuito | Dentro real | Precio Master Chef | Pagantes (media, 1,000) | **Margen al mes** |
-|---|---|---|---|---|---|
-| **50 %** | 8 mesas · 2 cuentas · 80 platillos | 50 % | 225 (meseta 200–225) | 73 | **9,883** |
-| **60 %** | 10 mesas · 3 cuentas · 80 platillos | 61 % | 225 (meseta 200–225) | 56 | **7,343** |
-| **70 %** | 15 mesas · 4 cuentas · 80 platillos | 73 % | 225 (meseta 200–225) | 38 | **4,658** |
-| **80 %** | 20 mesas · 5 cuentas · 80 platillos | 80 % | 225 (meseta 200–225) | 27 | **3,044** |
+| Restaurantes gratuitos | Comensales al mes (simulado) | **Costo al mes sin anuncios** (pone Calvin) | Resultado con anuncios, tarifa baja | Adverso (mitad de tarifa, 30 % de visitas) | Tarifa media | Escalón de servidor |
+|---|---|---|---|---|---|---|
+| 10 | 34,170 | 197 | −154 | −187 | −25 | hobby_eventos |
+| 25 | 85,425 | 209 | −102 | −182 | +221 | hobby_eventos |
+| 50 | 170,850 | 229 | −14 | −175 | +632 | hobby_eventos |
+| 100 | 341,700 | 268 | +163 | −160 | +1,454 | hobby_eventos |
+| 200 | 683,400 | 346 | +515 | −131 | +3,098 | hobby_eventos |
+| 300 | 1,025,100 | 627 | +664 | −304 | +4,539 | pro_2 |
+| 500 | 1,708,500 | 773 | +1,380 | −235 | +7,837 | pro_2 |
+| 750 | 2,562,750 | 955 | +2,274 | −148 | +11,960 | pro_2 |
+| 1,000 | 3,417,000 | 1,137 | +3,168 | −61 | +16,083 | pro_2 |
+| 1,500 | 5,125,500 | 1,604 | +4,853 | +10 | +24,226 | pro_4 |
+| 2,000 | 6,834,000 | 2,125 | +6,485 | +28 | +32,315 | pro_8 |
+| *Zona extrapolada (sin medir)* | | | | | | |
+| 3,000 | 10,251,000 | 3,708 | +9,207 | −480 | +47,952 | pro_8 (extrapolación) |
+| 5,000 | 17,085,000 | 5,821 | +15,704 | −440 | +80,279 | pro_8 (extrapolación) |
+| 10,000 | 34,170,000 | 10,601 | +32,449 | +161 | +161,599 | pro_8 (extrapolación) |
 
-**Sensibilidad al traslape** (mismos topes de 10 mesas y 3 cuentas): con 0 queda dentro 61 % y el margen es 7,343; con 0.5, 38 % y 12,746; con 1, 14 % y 18,150. **Los números de mesas y cuentas son modelo, no estadística** (estadística de cartas §4.3).
+**Respuesta en una frase:** **con 1,000 pesos al mes de mi bolsa puedo cargar hasta 811 restaurantes gratuitos y 2.8 millones de comensales al mes; desde que hay anuncios, el sistema se paga solo a partir de 54 restaurantes con la tarifa baja (12 con la media), y con el caso adverso (mitad de tarifa y 30 % de visitas) **no se paga solo hasta 1,469 restaurantes**: con menos que eso, la bolsa de Calvin sigue poniendo la diferencia.** Con 500 / 2,000 / 5,000 pesos de bolsa: 500 → 279 restaurantes · 1,000 → 811 restaurantes · 2,000 → 1,896 restaurantes · 5,000 → 2,116 restaurantes (tope medido).
 
----
+**Requisitos para que empiecen los anuncios** (`mes_inicio_anuncios` = 9, supuesto de trabajo): un ADR; abrir la política de seguridad del sitio (`script-src 'self'`); cambiar el aviso de privacidad; que la red apruebe el sitio ([anuncios §3.6–3.7](2026-11-13-anuncios-y-capa-del-comensal.md)); y que **no sean personalizados** (regla dura 10).
 
-## 5. Qué supuesto mueve más el resultado (cada uno ±50 %, 1,000 restaurantes, curva media)
+## 4. Todas las cifras en tres casos
 
-**Firme (sin anuncios), margen de operación; base 6,485:**
+**Recomendado** (vino) = curva de pago media (la mediana de Master Chef es el precio de Meniu Business, 225) y anuncios en la tarifa baja ya en marcha · **Peor** (rojo) = curva pesimista y todavía sin anuncios (temporal) · **Mejor** (verde) = curva optimista y anuncios en la tarifa media.
 
-| Supuesto | Con la mitad | Con 1.5 veces | Efecto (pesos) |
-|---|---|---|---|
-| curva · mediana | −86 | +13,984 | 14,071 |
-| curva · techo | +2,674 | +10,207 | 7,533 |
-| curva · sigma | +1,769 | +8,852 | 7,084 |
-| quién rebasa el tope de mesas | +5,871 | +10,387 | 4,516 |
-| soporte por cliente de paga | +7,529 | +5,441 | 2,088 |
-| soporte por cliente gratuito | +6,727 | +6,244 | 483 |
-| parte que es tamaño Chef Ejecutivo | +6,665 | +6,305 | 360 |
-| pago con tarjeta | +6,795 | +6,485 | 310 |
-| peso de un cliente de paga en el procesador | +6,492 | +6,389 | 103 |
-| bajas mensuales (churn) | +6,485 | +6,485 | 0 |
-
-**Condicional (anuncios aprobados, tarifa baja); base 13,416:**
-
-| Supuesto | Con la mitad | Con 1.5 veces | Efecto |
-|---|---|---|---|
-| curva · mediana | +7,055 | +20,675 | 13,620 |
-| curva · techo | +9,727 | +17,016 | 7,289 |
-| tarifa de anuncios | +9,951 | +16,881 | 6,931 |
-| visitas con la app por gratuito | +9,951 | +16,881 | 6,931 |
-| curva · sigma | +8,850 | +15,710 | 6,861 |
-| quién rebasa el tope de mesas | +12,822 | +17,188 | 4,367 |
-| parte de visitas con anuncio | +9,951 | +13,416 | 3,465 |
-| soporte por cliente de paga | +14,460 | +12,372 | 2,088 |
-| soporte por cliente gratuito | +13,657 | +13,174 | 483 |
-| parte que es tamaño Chef Ejecutivo | +13,589 | +13,243 | 345 |
-
----
-
-## 6. Escalabilidad en el tiempo (adopción **supuesta**: 300 restaurantes a 12 meses, 1200 a 24)
-
-Margen de **operación → después de captación** (bajas 3 % y 600 pesos por cliente de paga; **sin dato**) por curva (pesimista · media · optimista):
-
-| Mes | Restaurantes | De paga (media) | Margen al mes: pesimista · media · optimista | Escalón (media) |
+| Cifra | Recomendado | Peor | Mejor | Qué es |
 |---|---|---|---|---|
-| 6 | 75 | 3 | −159 → −238 | +323 → −179 | +3,301 → +248 | hobby_eventos |
-| 12 | 300 | 10 | −268 → −448 | +1,660 → +524 | +13,575 → +6,669 | pro_2 |
-| 18 | 675 | 23 | −93 → −388 | +4,245 → +2,383 | +31,054 → +19,736 | pro_2 |
-| 24 | 1,200 | 41 | +58 → −365 | +7,769 → +5,090 | +54,163 → +37,872 | pro_4 |
-| 36 | 2,700 | 92 | −311 → −1,037 | +17,061 → +12,470 | +123,419 → +95,507 | pro_8 (extrapolación) |
+| Clientes potenciales (negocios) | **104,882** | 104,882 | 104,882 | dato medido (DENUE 05/2026): no varía con los escenarios |
+| Restaurantes gratuitos que caben (restaurantes) | **279** | 148 | 2,116 | recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones) |
+| Gratuitos que sostiene cada cliente de paga (sin anuncios) (restaurantes) | **132.1** | 131.4 | 124.9 | con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`) |
+| Ingreso por cliente gratuito (pesos al mes) | **4.3** | 0 | 17.2 | sólo anuncios |
+| Ingreso por cliente de paga (pesos al mes) | **247.4** | 242.5 | 245.6 | promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno |
+| Costo por cliente gratuito (pesos al mes) | **1.1** | 1.1 | 1.2 | servidor, almacenamiento y soporte |
+| Margen de operación (pesos al mes) | **+8,048** | −156 | +30,650 | sin captación ni sueldos |
+| Margen después de captación (pesos al mes) | **+7,519** | −263 | +28,908 | resta reponer las bajas y los sueldos (parámetros sin dato) |
+| Punto de equilibrio (clientes de paga) | **0** | 7.5 | 0 | cuántos clientes de paga hacen falta para no perder (el peor caso lo calcula sin anuncios) |
+| Comensales al mes (comensales) | **3,484,556** | 3,430,579 | 3,639,328 | dato por restaurante SIMULADO (perfiles del simulador), no medido |
 
-**Primer mes con margen positivo (curva media):** de operación **4**; después de captación **8**. *Es un artefacto de la curva de adopción supuesta y del costo de captación sin dato: no es una predicción.* **Extrapolación:** desde ≈ 2,030 restaurantes registrados hace falta otra arquitectura; con 5,000 y 100,000 el modelo da instancias que **no existen** (3 y 50) y esos márgenes son **extrapolación sin medir**.
+*Mejor caso teórico «todos pagan» (1,000): +149,485 pesos al mes; no se usa como cota: exigiría repetir la pila de servidores.*
 
----
+## 5. Esperado a 100, 1,000 y 10,000 restaurantes (operación → después de captación)
 
-## 7. Parámetros que no mueven nada (marcados `mueve_resultado: false` en el JSON)
+| Restaurantes | Peor (pesimista, sin anuncios) | Recomendado (media) | Mejor (optimista, tarifa media) |
+|---|---|---|---|
+| 100 | −170 → −180 | **+650 → +597** | +2,919 → +2,745 |
+| 1,000 | −156 → −263 | **+8,048 → +7,519** | +30,650 → +28,908 |
+| 10,000 | −779 → −1,842 | **+81,321 → +76,030** | +306,405 → +288,990 |
 
-`tam_negocios`, `sam_clientes_potenciales`, `costo_var_gratuito`, `costo_var_servicio`, `costo_var_salon`, `base_fija_por_restaurante`, `ltv`, `visitas_app_servicio`. Los de costo variable sólo sirven al piso del corredor; los de mercado son informativos.
+## 6. Qué supuesto mueve más el margen, en llano (1,000 restaurantes, recomendado)
 
-## 8. Límites del modelo (dichos)
+**Qué medir primero en el piloto:** 1. curva · mediana → prueba de precio del piloto (Van Westendorp y escalera) · 2. cuántos rebasan los topes → mesas y cuentas reales de los primeros 10 a 20 restaurantes · 3. curva · techo → prueba de precio del piloto: cuántos de cada 10 aceptan · 4. tarifa de anuncios → prueba pequeña de AdSense con 3 restaurantes · 5. visitas con la app por gratuito → eventos scan del piloto.
 
-- **No hay dato de disposición a pagar, de bajas ni de costo de conseguir un cliente:** son los tres supuestos que más cambian el negocio.
-- **Los muros salen de un simulador** (no de una prueba de carga), con ±2× en lo que depende del CPU de Railway.
-- **Pruebas:** `node 2026-11-14-pruebas.mjs` reproduce las cifras ya publicadas (equilibrio 9.7; 14, 22, 38 y 128 de paga en 5 GB; 298–299, 1,064, 1,896 y 2,116 por escalón; corredor 249, 299 y 349) y las propiedades nuevas (anuncios apagados por defecto, precio 0 sin clientes, extrapolación, orden de la sensibilidad, monotonía de la tabla de cupo).
+| Qué pasa si… | Efecto en el margen (pesos al mes) |
+|---|---|
+| Si cuánto está dispuesto a pagar el dueño promedio fuera la mitad de lo que supusimos, el margen baja de 8,048 a 4,898; si fuera una vez y media, sube a 10,146. | 5,248 |
+| Si cuántos negocios pasan del tope de mesas o cuentas del plan gratuito fuera la mitad de lo que supusimos, el margen baja de 8,048 a 5,864; si fuera una vez y media, sube a 10,232. | 4,368 |
+| Si qué parte de los que rebasan los topes llega a pagar fuera la mitad de lo que supusimos, el margen baja de 8,048 a 5,953; si fuera una vez y media, sube a 10,142. | 4,189 |
+| Si cuánto deja cada mil visitas con anuncio fuera la mitad de lo que supusimos, el margen baja de 8,048 a 5,959; si fuera una vez y media, sube a 10,137. | 4,178 |
+| Si cuántas visitas con la app tiene cada restaurante gratuito fuera la mitad de lo que supusimos, el margen baja de 8,048 a 5,959; si fuera una vez y media, sube a 10,137. | 4,178 |
+| Si en qué parte de las visitas se ve un anuncio fuera la mitad de lo que supusimos, el margen baja de 8,048 a 5,959; si fuera una vez y media, sube a 10,137. | 4,178 |
+| Si cuánto tiempo de soporte requiere cada cliente de paga fuera la mitad de lo que supusimos, el margen sube de 8,048 a 8,952; si fuera una vez y media, baja a 7,143. | 1,809 |
+| Si cuánto tiempo de soporte requiere cada cliente gratuito fuera la mitad de lo que supusimos, el margen sube de 8,048 a 8,291; si fuera una vez y media, baja a 7,805. | 485 |
+
+## 7. Crecimiento mes a mes (adopción **supuesta**: 300 restaurantes a 12 meses y 1200 a 24; anuncios desde el mes 9)
+
+Margen de operación al mes. Peor = pesimista y sin anuncios; recomendado = media; mejor = optimista con tarifa media.
+
+| Mes | Restaurantes | De paga (recomendado) | Peor | **Recomendado** | Mejor | Escalón |
+|---|---|---|---|---|---|---|
+| 3 | 19 | 1 | −186 | **−109** | +106 | hobby_eventos (sin anuncios) |
+| 6 | 75 | 2 | −175 | **+127** | +975 | hobby_eventos (sin anuncios) |
+| 9 | 169 | 5 | +567 | **+1,230** | +4,856 | hobby_eventos |
+| 12 | 300 | 9 | +951 | **+2,128** | +8,936 | pro_2 |
+| 18 | 675 | 20 | +2,650 | **+5,300** | +20,617 | pro_2 |
+| 24 | 1,200 | 35 | +4,936 | **+9,644** | +36,872 | pro_4 |
+| 36 | 2,700 | 79 | +10,665 | **+21,277** | +82,592 | pro_8 |
+
+**Primer mes con margen de operación positivo (recomendado): 5; después de captación: 9.** **Lo más que tendría que poner Calvin, acumulado: 2,227 pesos** (peor caso: 1,936). *Es un artefacto de la curva de adopción supuesta y del costo de captación sin dato: no es una predicción.* **Más allá de ≈ 2,040 restaurantes registrados hace falta otra arquitectura: todo costo de ahí en adelante es extrapolación sin medir.**
+
+## 8. Límites (dichos)
+
+- **No hay dato de disposición a pagar, de bajas ni de costo de conseguir un cliente.** El **peor caso real** depende de la tarifa de anuncios y de la parte de visitas con anuncio, que tampoco tienen dato.
+- **Los topes de mesas y cuentas son un modelo (no estadística):** el intervalo del modelo es amplio (§1).
+- **El dato de comensales por restaurante es simulado** y más alto de lo que tendría un negocio de 0 a 5 personas.
+- **Los muros salen de un simulador**, no de una prueba de carga (±2×).
+- **Pruebas:** `node 2026-11-14-pruebas.mjs` reproduce las cifras publicadas y prueba la segmentación, el peor caso, el resumen, las banderas y la proyección.

@@ -799,6 +799,48 @@
    "tipo": "estadística oficial",
    "consulta": "2026-11-14",
    "nota": "Una consulta a la API pública que usa la propia página (guion 2026-11-14-saic-consulta.py). Estratos 0 a 10, 11 a 50, 51 a 250 y 251 o más. Pesos de 2023."
+  },
+  {
+   "clave": "kanuri_andrews_2019",
+   "autor": "Kanuri, V. K.; Andrews, M.",
+   "año": 2019,
+   "titulo": "Estudio sobre descuentos tras fallas de entrega y renovación de suscripciones de periódico (citado por Nieman Lab)",
+   "publica": "Nieman Lab (nota de Laura Hazard Owen, 15-jul-2019); estudio DOI 10.1177/0022242919859325",
+   "url": "https://www.niemanlab.org/2019/07/nearly-7000-people-threatened-to-cancel-their-newspaper-subscriptions-heres-what-got-them-to-stay/",
+   "tipo": "nota periodística sobre estudio académico (estudio no leído)",
+   "consulta": "2026-11-14",
+   "nota": "6,919 amenazas de cancelar, periódico de EE. UU., enero 2010–marzo 2013."
+  },
+  {
+   "clave": "meniu_precios",
+   "autor": "Meniu",
+   "año": 2026,
+   "titulo": "Planes y precios (Plan Business 225 MXN/mes)",
+   "publica": "meniuapp.com",
+   "url": "https://meniuapp.com/es/plans",
+   "tipo": "página de un competidor",
+   "consulta": "2026-11-14",
+   "nota": "«+4,000 restaurantes» y «4.8 en Google» son afirmaciones de la empresa."
+  },
+  {
+   "clave": "menutiger_precios",
+   "autor": "MenuTiger",
+   "año": 2026,
+   "titulo": "Precios: plan Free 75 pedidos al mes",
+   "publica": "menutiger.com",
+   "url": "https://www.menutiger.com/es/pricing",
+   "tipo": "página de un competidor",
+   "consulta": "2026-11-14"
+  },
+  {
+   "clave": "waitry_precios",
+   "autor": "Waitry",
+   "año": 2026,
+   "titulo": "Precios: Lite 0 €, Premium 60 €",
+   "publica": "waitry.net",
+   "url": "https://waitry.net/es-mx/precios",
+   "tipo": "página de un competidor",
+   "consulta": "2026-11-14"
   }
  ],
  "grupos": [

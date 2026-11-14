@@ -21,15 +21,6 @@
    "nota": "antes «núcleo» o «servible»; informativo, no mueve el cálculo",
    "mueve_resultado": false
   },
-  "parte_salon": {
-   "valor": 0.03,
-   "min": 0.0,
-   "max": 0.07,
-   "origen": "supuesto",
-   "fuente": "estadística de cartas §4.3: ≈ 3 % rebasa 40 mesas (88–100 % cabe)",
-   "nota": "parte de los registrados que rebasa 40 mesas",
-   "mueve_resultado": true
-  },
   "fx": {
    "valor": 18.6188,
    "min": null,
@@ -385,62 +376,6 @@
    "nota": "costo de cada instancia adicional de 8 procesos",
    "mueve_resultado": true
   },
-  "empuja_mesas": {
-   "valor": [
-    [
-     5,
-     0.62
-    ],
-    [
-     10,
-     0.39
-    ],
-    [
-     20,
-     0.15
-    ],
-    [
-     40,
-     0.03
-    ]
-   ],
-   "min": null,
-   "max": null,
-   "origen": "supuesto",
-   "fuente": "estadística de cartas §4.3: 10 mesas = 39 % (16–71) y 40 mesas = 3 % (0–12) quedan fuera; 5 y 20 interpolados",
-   "nota": "[mesas del tope, parte que lo rebasa]",
-   "mueve_resultado": true
-  },
-  "empuja_cuentas": {
-   "valor": [
-    [
-     2,
-     0.5
-    ],
-    [
-     3,
-     0.36
-    ],
-    [
-     5,
-     0.2
-    ],
-    [
-     10,
-     0.06
-    ],
-    [
-     20,
-     0.01
-    ]
-   ],
-   "min": null,
-   "max": null,
-   "origen": "supuesto",
-   "fuente": "estadística de cartas §4.3: 3 cuentas = 36 % (24–54) y 20 = 1 %; el resto interpolado",
-   "nota": "",
-   "mueve_resultado": true
-  },
   "empuja_platillos": {
    "valor": [
     [
@@ -475,24 +410,6 @@
    "nota": "40 a 120 medidos; 150 y 300 son extrapolación (supuesto)",
    "mueve_resultado": true
   },
-  "traslape_topes": {
-   "valor": 0.0,
-   "min": 0.0,
-   "max": 1.0,
-   "origen": "supuesto",
-   "fuente": "estadística de cartas §4.3 da cada tope por separado; con 0 se toma el mayor (cota inferior de los empujados)",
-   "nota": "0 = quien rebasa un tope rebasa todos (se toma el mayor); 1 = grupos distintos (se suman); se mide con mesas, cuentas y platillos reales del piloto",
-   "mueve_resultado": true
-  },
-  "empuja_pdf_gratuito": {
-   "valor": 0.0,
-   "min": 0.0,
-   "max": 0.3,
-   "origen": "supuesto",
-   "fuente": "",
-   "nota": "parte extra que agota las 3 lecturas de PDF y ya no entra por otro tope",
-   "mueve_resultado": true
-  },
   "curvas_pago": {
    "valor": {
     "pesimista": {
@@ -502,10 +419,10 @@
      "nota": "paga lo que el plan de menú QR más barato (Neolo 157); sólo 15 % de los que rebasan llega a pagar"
     },
     "media": {
-     "mediana": 205,
+     "mediana": 225,
      "sigma": 0.6,
      "techo": 0.35,
-     "nota": "mediana de los planes de menú QR + pedidos con tope bajo (157, 184, 225, 317); 35 % llega a pagar"
+     "nota": "paga lo que Meniu Business (225), el competidor principal según Calvin; 35 % de los que rebasan llega a pagar"
     },
     "optimista": {
      "mediana": 652,
@@ -604,24 +521,6 @@
    "nota": "",
    "mueve_resultado": true
   },
-  "anuncios_aprobados": {
-   "valor": false,
-   "min": null,
-   "max": null,
-   "origen": "supuesto",
-   "fuente": "anuncios-y-capa-del-comensal §3.6-3.7",
-   "nota": "HOY NO: la política de seguridad (script-src 'self') no permite anuncios de terceros; hace falta un ADR, abrirla, cambiar el aviso de privacidad y que la red apruebe el sitio. Si es false, los anuncios no suman en ningún escenario salvo los marcados «condicional»",
-   "mueve_resultado": true
-  },
-  "parte_visitas_con_anuncio": {
-   "valor": 1.0,
-   "min": 0.1,
-   "max": 1.0,
-   "origen": "supuesto",
-   "fuente": "",
-   "nota": "parte de las visitas con la app en que el comensal ve un anuncio que paga; la tarifa «baja» NO es una cota inferior",
-   "mueve_resultado": true
-  },
   "soporte_gratuito": {
    "valor": 0.5,
    "min": 0.0,
@@ -667,13 +566,1143 @@
    "nota": "tasa sobre el margen positivo; 0 = antes de impuestos",
    "mueve_resultado": true
   },
-  "restriccion_min_dentro": {
-   "valor": 0.6,
-   "min": 0.4,
-   "max": 0.8,
+  "segmentacion_negocios": {
+   "valor": {
+    "Chef": 91048,
+    "Master Chef": 13614,
+    "Chef Ejecutivo": 220
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "DENUE 05/2026 por estrato de personal (mercado-de-carta §2.1): Chef = 0–5 y 6–10 personas; Master Chef = 11–30, 31–50 y 51–100; Chef Ejecutivo = 101–250 y 251 o más",
+   "nota": "86.8 % / 13.0 % / 0.2 % de los 104,882 clientes potenciales; Carta no sabe cuánta gente trabaja en el negocio: lo traduce a topes",
+   "mueve_resultado": false
+  },
+  "empuja_conjunto": {
+   "valor": {
+    "mesas": [
+     6,
+     8,
+     10,
+     12,
+     15,
+     16,
+     20,
+     25,
+     30,
+     40,
+     60,
+     100,
+     150,
+     250
+    ],
+    "cuentas": [
+     2,
+     3,
+     4,
+     5,
+     6,
+     8,
+     10,
+     15,
+     20,
+     30,
+     50
+    ],
+    "centro": [
+     [
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803
+     ],
+     [
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075,
+      0.2075
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.151,
+      0.151,
+      0.151,
+      0.151,
+      0.151,
+      0.151,
+      0.151,
+      0.151
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.075,
+      0.075,
+      0.075,
+      0.075,
+      0.075,
+      0.075
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0498,
+      0.0498,
+      0.0498,
+      0.0498,
+      0.0498
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.0318,
+      0.0318,
+      0.0318,
+      0.0318
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.02,
+      0.0122,
+      0.0122,
+      0.0122
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.02,
+      0.0088,
+      0.0043,
+      0.0043
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.02,
+      0.0088,
+      0.0043,
+      0.0019
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.02,
+      0.0088,
+      0.0043,
+      0.0016
+     ]
+    ],
+    "minimo": [
+     [
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021,
+      0.3021
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195,
+      0.1195
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688,
+      0.0688
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0463,
+      0.0463,
+      0.0463,
+      0.0463,
+      0.0463
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0318,
+      0.0318,
+      0.0318,
+      0.0318
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0215,
+      0.0215,
+      0.0215,
+      0.0215
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.01,
+      0.01,
+      0.01
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0061,
+      0.0046,
+      0.0046
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0061,
+      0.003,
+      0.0017
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0061,
+      0.003,
+      0.0011
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0061,
+      0.003,
+      0.0011
+     ]
+    ],
+    "maximo": [
+     [
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122,
+      0.6122
+     ],
+     [
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803
+     ],
+     [
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803,
+      0.3803
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488,
+      0.2488
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756,
+      0.1756
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1319,
+      0.1319,
+      0.1319,
+      0.1319,
+      0.1319,
+      0.1319,
+      0.1319
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.1085,
+      0.1085,
+      0.1085,
+      0.1085,
+      0.1085,
+      0.1085
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898,
+      0.0898
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
+      0.0538,
+      0.0538,
+      0.0538,
+      0.0538
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
+      0.0288,
+      0.0288,
+      0.0288,
+      0.0288
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
+      0.0288,
+      0.014,
+      0.0073,
+      0.0073
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
+      0.0288,
+      0.014,
+      0.0056,
+      0.0039
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
+      0.0288,
+      0.014,
+      0.0056,
+      0.0021
+     ]
+    ]
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py: modelo de mesas y cuentas de la estadística de cartas §4.2 (cuentas = ⌈f × personas⌉, f 0.35–0.50; mesas = cuentas × 2.5–4) aplicado a los estratos medidos del DENUE; la forma dentro de cada estrato es supuesto",
+   "nota": "parte de los registrados que rebasa mesas o cuentas del tope (tabla de rejilla; intervalo mínimo–máximo sobre las 9 combinaciones del modelo)",
+   "mueve_resultado": true
+  },
+  "seguridad_chico": {
+   "valor": {
+    "mesas": [
+     6,
+     8,
+     10,
+     12,
+     15,
+     16,
+     20,
+     25,
+     30,
+     40,
+     60,
+     100,
+     150,
+     250
+    ],
+    "cuentas": [
+     2,
+     3,
+     4,
+     5,
+     6,
+     8,
+     10,
+     15,
+     20,
+     30,
+     50
+    ],
+    "centro": [
+     [
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138
+     ],
+     [
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129,
+      0.9129
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      0.978,
+      0.978,
+      0.978,
+      0.978,
+      0.978,
+      0.978,
+      0.978,
+      0.978
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ]
+    ],
+    "minimo": [
+     [
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467,
+      0.4467
+     ],
+     [
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138
+     ],
+     [
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138,
+      0.7138
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653,
+      0.8653
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      0.9496,
+      0.9496,
+      0.9496,
+      0.9496,
+      0.9496,
+      0.9496,
+      0.9496,
+      0.9496
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ]
+    ]
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py (mismo modelo)",
+   "nota": "probabilidad de que un negocio de hasta 10 personas quede dentro de esos topes (gratis); centro y peor rincón del modelo",
+   "mueve_resultado": true
+  },
+  "restriccion_seguridad_chico": {
+   "valor": 0.95,
+   "min": 0.8,
+   "max": 0.99,
    "origen": "decisión de Calvin",
+   "fuente": "«la fonda familiar o la taquería de barrio tiene que ser gratis»",
+   "nota": "con qué seguridad un negocio de hasta 10 personas debe quedar dentro del gratuito; los topes de Chef son consecuencia de este número, no un óptimo",
+   "mueve_resultado": true
+  },
+  "parte_salon": {
+   "valor": 0.004,
+   "min": 0.002,
+   "max": 0.01,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py: parte de los registrados que rebasa 100 mesas o 30 cuentas (0.4 %, intervalo 0.3–0.7 %); por tamaño, 101 o más personas es 0.2 %",
+   "nota": "parte de los registrados que es tamaño Chef Ejecutivo",
+   "mueve_resultado": true
+  },
+  "parte_visitas_con_anuncio": {
+   "valor": 0.6,
+   "min": 0.1,
+   "max": 1.0,
+   "origen": "supuesto",
    "fuente": "",
-   "nota": "parte de los registrados que debe caber en el plan gratuito; los topes del gratuito son consecuencia de este número, no un óptimo",
+   "nota": "parte de las visitas con la app en que el comensal ve un anuncio que paga; sin dato",
+   "mueve_resultado": true
+  },
+  "mes_inicio_anuncios": {
+   "valor": 9,
+   "min": 1,
+   "max": 24,
+   "origen": "supuesto",
+   "fuente": "supuesto de trabajo: no antes de construirlos y de que la red apruebe el sitio",
+   "nota": "mes en que empiezan los anuncios (el plan gratuito LLEVA anuncios, decidido por Calvin; lo que varía es cuándo llegan y cuánto dejan). Requisitos: ADR, abrir la política de seguridad del sitio (script-src 'self'), cambiar el aviso de privacidad y que la red apruebe el sitio (anuncios-y-capa-del-comensal §3.6-3.7). Mientras no empiezan, el costo lo pone Calvin",
+   "mueve_resultado": true
+  },
+  "bolsa_calvin_mes": {
+   "valor": 1000.0,
+   "min": 200.0,
+   "max": 5000.0,
+   "origen": "supuesto",
+   "fuente": "dato de Calvin: «tal vez ahorita lo costeo de mis recursos»; la cifra es supuesto",
+   "nota": "pesos al mes que Calvin está dispuesto a poner mientras no hay anuncios",
+   "mueve_resultado": true
+  },
+  "curvas_pago_salon": {
+   "valor": {
+    "pesimista": {
+     "mediana": 700,
+     "sigma": 0.5,
+     "techo": 0.15,
+     "nota": "paga lo de un POS básico (Soft Restaurant 799, Fudo Pro 838)"
+    },
+    "media": {
+     "mediana": 1100,
+     "sigma": 0.5,
+     "techo": 0.35,
+     "nota": "paga lo de OlaClick Elite (1,099) y Last.app Starter (1,000): un negocio de 51 a 250 personas vende ≈ 3.3 millones al mes [INEGI]"
+    },
+    "optimista": {
+     "mediana": 2000,
+     "sigma": 0.5,
+     "techo": 0.6,
+     "nota": "paga lo de Last.app Growth a Unlimited (1,700–2,900) o MenuTiger Premium (2,216)"
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "precios de planes de gama alta (matriz de funciones, 14-nov) como aproximación; a 101 o más personas un precio de 1,000 es 0.03 % del ingreso [INEGI]",
+   "nota": "misma forma que curvas_pago; sin dato de disposición a pagar",
+   "mueve_resultado": true
+  },
+  "precios_candidatos": {
+   "valor": {
+    "servicio": [
+     199,
+     225,
+     249,
+     299
+    ],
+    "salon": [
+     799,
+     1099,
+     1599
+    ]
+   },
+   "min": null,
+   "max": null,
+   "origen": "decisión de Calvin",
+   "fuente": "«Master Chef pegado a Meniu Business (225)… Chef Ejecutivo hacia el extremo alto del mercado»",
+   "nota": "precios a evaluar",
+   "mueve_resultado": true
+  },
+  "banderas": {
+   "valor": {
+    "cpu": {
+     "aviso": 50,
+     "accion": 70
+    },
+    "disco": {
+     "aviso": 60,
+     "accion": 80
+    },
+    "conexiones": {
+     "aviso": 60,
+     "accion": 80
+    },
+    "memoria": {
+     "aviso": 70,
+     "accion": 85
+    },
+    "costo_por_restaurante": {
+     "aviso": 8,
+     "accion": 15
+    },
+    "costos_sobre_ingresos": {
+     "aviso": 70,
+     "accion": 90
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "70 % del procesador es el tope de diseño [documento: capacidad §3]; los demás umbrales son supuestos de trabajo",
+   "nota": "umbrales de aviso y de acción de las banderas de operación (porcentajes; el costo por restaurante en pesos al mes)",
    "mueve_resultado": true
   },
   "n_referencia": {
