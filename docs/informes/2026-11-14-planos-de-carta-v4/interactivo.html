@@ -182,7 +182,26 @@ main{padding-block:12px 28px}
 #film .fphone{position:absolute;left:1180px;top:116px;width:380px;height:822px;border-radius:52px;box-shadow:0 0 0 11px #100c0a,0 0 0 13px #3a322d,0 70px 130px rgba(0,0,0,.6),0 24px 48px rgba(0,0,0,.4);opacity:0;visibility:hidden}
 #film .fscr{position:absolute;inset:0;border-radius:52px;overflow:hidden;background:#fef9f1}
 #film .fscr .s{position:absolute;left:0;top:0;width:100%;height:100%;display:block;opacity:0;object-fit:cover;object-position:top}
-#film .fscr .s.sc{opacity:1}
+#film .fscr .s.sc{opacity:0}
+#film .fscr .s.re{top:3.9%;height:96.1%}
+#film .fscr .s.pr{top:0;height:100%}
+#film .fvf{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#2b201b,#120d0b)}
+#film .fvf i{position:absolute;width:64px;height:64px;border:4px solid #fdc34d;border-radius:14px}
+#film .fvf i:nth-child(1){left:70px;top:230px;border-right:0;border-bottom:0}#film .fvf i:nth-child(2){right:70px;top:230px;border-left:0;border-bottom:0}#film .fvf i:nth-child(3){left:70px;top:480px;border-right:0;border-top:0}#film .fvf i:nth-child(4){right:70px;top:480px;border-left:0;border-top:0}
+#film .fstat{position:absolute;left:0;right:0;top:0;height:50px;background:rgba(254,248,241,0);color:#fef9f1;z-index:3;pointer-events:none}
+#film .fstat b{position:absolute;left:34px;top:13px;font:700 17px 'DM Sans',sans-serif}
+#film .fstat .isla{position:absolute;left:50%;top:10px;width:104px;height:30px;margin-left:-52px;border-radius:16px;background:#000}
+#film .fstat .ico{position:absolute;right:30px;top:15px;display:flex;gap:4px;align-items:flex-end}
+#film .fstat .ico u{display:block;width:4px;border-radius:1px;background:currentColor}#film .fstat .ico u:nth-child(1){height:6px}#film .fstat .ico u:nth-child(2){height:9px}#film .fstat .ico u:nth-child(3){height:12px}
+#film .fstat .ico em{display:block;width:22px;height:11px;border:1.6px solid currentColor;border-radius:4px;margin-left:6px;background:linear-gradient(90deg,currentColor 75%,transparent 75%)}
+#film .facr{position:absolute;left:1220px;top:230px;width:300px;height:560px;opacity:0;visibility:hidden}
+#film .facr .cuerpo{position:absolute;left:0;top:0;width:300px;height:470px;border-radius:26px;background:linear-gradient(160deg,rgba(255,255,255,.34),rgba(255,255,255,.1));border:2px solid rgba(255,255,255,.4);box-shadow:0 40px 90px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden}
+#film .facr .qr{background:#fff;border-radius:16px;padding:14px;line-height:0}
+#film .facr b{font-family:'DM Serif Display',serif;font-weight:400;font-size:54px;color:#fef9f1;margin-top:6px}
+#film .facr span{font-size:22px;letter-spacing:.2em;text-transform:uppercase;color:#fdc34d;font-weight:600}
+#film .facr .pie{position:absolute;left:60px;top:466px;width:180px;height:44px;border-radius:0 0 22px 22px;background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.06));border:2px solid rgba(255,255,255,.3);border-top:0}
+#film .facr .sw{position:absolute;top:-20px;left:0;width:90px;height:520px;background:linear-gradient(90deg,rgba(253,195,77,0),rgba(253,195,77,.55),rgba(253,195,77,0));transform:skewX(-14deg);opacity:0}
+
 #film .ftap{position:absolute;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:rgba(255,255,255,.34);border:3px solid rgba(255,255,255,.9);opacity:0;left:50%;top:80%}
 #film .ftoast{position:absolute;left:600px;top:110px;width:520px;padding:22px 28px;border-radius:28px;background:#fef9f1;color:#1a1a1a;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:6px;opacity:0;visibility:hidden}
 #film .ftoast b{font-family:'DM Serif Display',serif;font-weight:400;font-size:34px;color:#4f1728}
@@ -7208,10 +7227,22 @@ const FILM_TOMAS = [
   ["05", "ATIENDE", ["El personal", "*lleva la mesa*."], "", "fase3"],
 ];
 const filmPalabras = l => l.split(/(\*[^*]+\*)/).filter(Boolean).map(tr => { const em = tr.startsWith("*"), tx = em ? tr.slice(1, -1) : tr; return (/^ /.test(tx) ? " " : "") + tx.split(" ").filter(Boolean).map(p => `<span class="w">${em ? "<em>" + esc(p) + "</em>" : esc(p)}</span>`).join(" ") + (/ $/.test(tx) ? " " : ""); }).join("");
+/* un QR de adorno: tres cuadros guía y celdas pseudoaleatorias deterministas; no codifica nada */
+const filmQR = () => {
+  const N = 21, c = 11; let x = 7, o = "";
+  const guia = (i, j) => (i < 7 && j < 7) || (i < 7 && j >= N - 7) || (i >= N - 7 && j < 7);
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    x = (x * 1103515245 + 12345) % 2147483648; let on = (x >> 8) % 100 < 48;
+    if (guia(i, j)) { const a = i % (N - 7) === i ? i : i - (N - 7), b = j % (N - 7) === j ? j : j - (N - 7), r = Math.max(Math.abs(a - 3), Math.abs(b - 3)); on = r === 3 || r <= 1; if (i >= N - 7) { const a2 = i - (N - 7), r2 = Math.max(Math.abs(a2 - 3), Math.abs(j - 3)); on = r2 === 3 || r2 <= 1; } if (j >= N - 7 && i < 7) { const b2 = j - (N - 7), r3 = Math.max(Math.abs(i - 3), Math.abs(b2 - 3)); on = r3 === 3 || r3 <= 1; } }
+    if (on) o += `<rect x="${j * c}" y="${i * c}" width="${c}" height="${c}"/>`;
+  }
+  return `<svg viewBox="0 0 ${N * c} ${N * c}" width="190" height="190" fill="#1a1a1a" shape-rendering="crispEdges">${o}</svg>`;
+};
 const filmHtml = () => `<div id="film"><div class="fbg"><img class="ffoto" src="${FILM_IMG.fondo}" alt=""><i class="fg1"></i><i class="fg2"></i><i class="fvig"></i></div>
 <div class="ft ft0"><div class="fhook">${filmPalabras("Todo empieza en *la mesa*.")}</div><div class="fmarca"><b>Carta</b><i></i><span>El menú que la mesa arma junta</span></div></div>
 ${FILM_TOMAS.map((t, i) => `<div class="ft ft${i + 1}"><div class="fkick"><span class="n">${t[0]}</span><i class="rl"></i><span class="lb">${t[1]}</span><span class="tg ${t[4]}">${t[4] === "hoy" ? "hoy en producción" : "Fase 3 · prototipo"}</span></div><h3 class="fh">${t[2].map(l => `<span class="ln">${filmPalabras(l)}</span>`).join("")}</h3>${t[3] ? `<p class="fsub">${esc(t[3])}</p>` : ""}${i === 4 ? `<div class="frail">${["Abierta", "Cuenta cerrada", "Pagada", "Mesa limpia"].map((e, k) => `<div class="fpaso"><span class="pt">${k + 1}</span><span>${e}</span></div>`).join("")}</div>` : ""}</div>`).join("")}
-<div id="fcam"><div class="fphone"><div class="fscr"><img class="s sc" src="${FILM_IMG.scan}" alt=""><img class="s mn" src="${FILM_IMG.menu}" alt=""><img class="s en" src="${FILM_IMG.enc}" alt=""><img class="s gr" src="${FILM_IMG.grupo}" alt=""><img class="s ms" src="${FILM_IMG.mesa}" alt=""><i class="ftap"></i></div></div>
+<div class="facr"><div class="cuerpo"><div class="qr">${filmQR()}</div><b>Mesa 7</b><span>La Ceiba</span><i class="sw"></i></div><div class="pie"></div></div>
+<div id="fcam"><div class="fphone"><div class="fscr"><div class="fvf"><i></i><i></i><i></i><i></i></div><img class="s re sc" src="${FILM_IMG.scan}" alt=""><img class="s re mn" src="${FILM_IMG.menu}" alt=""><img class="s re en" src="${FILM_IMG.enc}" alt=""><img class="s pr gr" src="${FILM_IMG.grupo}" alt=""><img class="s pr ms" src="${FILM_IMG.mesa}" alt=""><div class="fstat"><b>9:41</b><i class="isla"></i><span class="ico"><u></u><u></u><u></u><em></em></span></div><i class="ftap"></i></div></div>
 <div class="ftoast"><b>Comanda nueva</b><span>Mesa 7 · 3 platillos · 4 personas</span></div></div>
 <div class="ft ft6"><div class="fmarca grande"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span></div></div></div>`;
 
@@ -7239,18 +7270,25 @@ function filmLinea() {
   tl.fromTo(q(".ft0 .fmarca"), {autoAlpha: 0, scale: 0.92}, {autoAlpha: 1, scale: 1, duration: 0.8, ease: "power3.out"}, S(0) + 3.0);
   tl.to(q(".ft0"), {autoAlpha: 0, duration: 0.35, ease: "power2.in"}, S(1) - 0.05);
   /* el teléfono: entra en la 1, se queda hasta la 5 */
-  tl.fromTo(q(".fphone"), {y: 220, autoAlpha: 0, scale: 0.94}, {y: 0, autoAlpha: 1, scale: 1, duration: 1.0, ease: "power3.out"}, S(1) + 0.1);
+  tl.fromTo(q(".facr"), {y: 120, autoAlpha: 0, scale: 0.96}, {y: 0, autoAlpha: 1, scale: 1, duration: 0.9, ease: "power3.out"}, S(1) + 0.15);
+  tl.fromTo(q(".fphone"), {y: 360, autoAlpha: 0, scale: 0.55}, {y: 0, autoAlpha: 1, scale: 1, duration: 1.5, ease: "power3.out"}, S(1) + 0.7);
+  tl.fromTo(q(".facr .sw"), {x: -260, autoAlpha: 0}, {x: 340, autoAlpha: 1, duration: 0.7, ease: "power1.inOut"}, S(1) + 1.7);
+  tl.to(q(".facr"), {autoAlpha: 0, scale: 0.92, duration: 0.5, ease: "power2.in"}, S(1) + 2.3);
+  tl.fromTo(q(".fstat"), {color: "#fef9f1"}, {color: "#1a1a1a", duration: 0.3}, S(1) + 2.3);
+  tl.fromTo(q(".fstat"), {color: "#1a1a1a"}, {color: "#fef9f1", duration: 0.3, immediateRender: false}, S(4) + 0.05);
+  tl.fromTo(q(".fstat"), {backgroundColor: "rgba(254,248,241,0)"}, {backgroundColor: "rgba(254,248,241,1)", duration: 0.2, immediateRender: false}, S(3) + 0.05);
+  tl.fromTo(q(".fstat"), {backgroundColor: "rgba(254,248,241,1)"}, {backgroundColor: "rgb(95,35,53)", duration: 0.2, immediateRender: false}, S(4) + 0.05);
   tl.fromTo(q("#fcam"), {scale: 1, x: 0}, {scale: 1.1, duration: Dn(1) + Dn(2) * 0.5, ease: "sine.inOut"}, S(1));
   tl.to(q("#fcam"), {scale: 1, x: -20, duration: Dn(2) * 0.5 + Dn(3) * 0.4, ease: "sine.inOut"}, S(2) + Dn(2) * 0.5);
   tl.to(q("#fcam"), {scale: 1.06, x: 0, duration: Dn(3) * 0.6 + Dn(4) + Dn(5) * 0.5, ease: "sine.inOut"}, S(3) + Dn(3) * 0.4);
   tl.to(q(".fphone"), {y: 160, autoAlpha: 0, duration: 0.7, ease: "power2.in"}, S(6) - 0.1);
   /* pantallas: se apilan y cada una aparece encima de la anterior */
   const pant = (sel, i, t0 = 0) => tl.fromTo(q(sel), {autoAlpha: 0}, {autoAlpha: 1, duration: 0.45, ease: "power1.inOut"}, S(i) + t0);
-  tl.set(q(".s.sc"), {autoAlpha: 1}, 0);
-  pant(".s.mn", 1, 3.0); pant(".s.en", 2, 2.2); pant(".s.gr", 3, 0.05); pant(".s.ms", 4, 0.05);
+  tl.fromTo(q(".s.sc"), {autoAlpha: 0}, {autoAlpha: 1, duration: 0.5}, S(1) + 2.3);
+  pant(".s.mn", 1, 3.6); pant(".s.en", 2, 2.2); pant(".s.gr", 3, 0.05); pant(".s.ms", 4, 0.05);
   /* toque en Continuar (toma 1) y en «+» del menú (toma 2) */
   const toque = (x, y, t) => { tl.set(q(".ftap"), {left: x, top: y}, t - 0.02).fromTo(q(".ftap"), {autoAlpha: 1, scale: 0.4}, {autoAlpha: 0, scale: 1.7, duration: 0.7, ease: "power2.out"}, t); };
-  toque("50%", "49%", S(1) + 2.5); toque("35%", "46%", S(2) + 1.7);
+  toque("50%", "49%", S(1) + 3.3); toque("35%", "46%", S(2) + 1.7);
   /* tomas 1–5: kicker, rótulo palabra por palabra, subtítulo */
   for (let i = 1; i <= 5; i++) {
     const t = ".ft" + i;
