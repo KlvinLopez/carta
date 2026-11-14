@@ -137,7 +137,7 @@ document.addEventListener("click", e => {
   const c = e.target.closest("[data-cierra]"); if (c) { cierra(); return; }
   const ir = e.target.closest("[data-ir]"); if (ir) { abre(ir.dataset.ir, false); return; }
   const ap = e.target.closest("[data-aplica]"); if (ap) { cambiar(JSON.parse(ap.dataset.aplica)); return; }
-  const k = e.target.closest("[data-kpi]"); if (k) { const ir = {potenciales: "mercado2", caben: "disco"}[k.dataset.kpi]; if (ir) irCap(ir); else abre("k_" + k.dataset.kpi); return; }
+  const k = e.target.closest("[data-kpi]"); if (k) { const ir = {potenciales: "mercado2", caben: "recursos7"}[k.dataset.kpi]; if (ir) irCap(ir); else abre("k_" + k.dataset.kpi); return; }
   
   if (e.target.closest("[data-pantalla]")) { pantalla(); return; }
   const es = e.target.closest("[data-esc]"); if (es) { aplicar(es.dataset.esc); return; }

@@ -71,6 +71,7 @@ def main() -> None:
             "__GLOS__", (INV / "2026-11-14-glosario-de-negocio.json").read_text(encoding="utf-8")
         )
         .replace("__BAND__", (INV / "2026-11-14-banderas-de-operacion.json").read_text(encoding="utf-8"))
+        .replace("__RYP__", (INV / "2026-11-14-recursos-y-palancas.json").read_text(encoding="utf-8"))
         .replace("__CLASES__", json.dumps(clases()))
         .replace("__SEG__", (INV / "2026-11-14-segmentacion-datos.json").read_text(encoding="utf-8"))
         .replace("__DATOS__", json.dumps(d, ensure_ascii=False))

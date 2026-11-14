@@ -108,19 +108,23 @@ if (png) await p.screenshot({ path: `${png}/v5_matriz.png` });
 await p.click('#oc [data-rest="todo:x"]'); await p.waitForTimeout(500);
 ok((await p.$$('#oc [data-rest]')).length === 0, 'matriz: restablecer');
 await sinDesborde(p, 'matriz'); await cierra(p);
-// disco
-await abre(p, 'disco');
-await p.click('#svD [data-paso="2"]'); await p.waitForTimeout(400);
-ok(await p.isVisible('#ctl'), 'disco: el tercer paso muestra las palancas');
-const c0 = await texto(p, '.cap.act .capcif .cifra b');
-await p.click('#srv [data-s="0"]'); await p.waitForTimeout(500);
-const c1 = await texto(p, '.cap.act .capcif .cifra b');
-ok(c1 !== c0, `disco: cambiar a Hobby cambia cuántos caben (${c0} → ${c1})`);
-await p.click('#pals [data-ma="0.23"]'); await p.waitForTimeout(500);
-ok((await texto(p, '.cap.act .capcif .cifra b')) !== c1, 'disco: activar palancas cambia cuántos caben');
-ok(/disco|procesador|conexiones/.test(await texto(p, '.cap.act .caphall')), 'disco: dice el cuello de botella');
-if (png) await p.screenshot({ path: `${png}/v5_disco.png` });
-await sinDesborde(p, 'disco'); await cierra(p);
+// capítulo 7: qué nos limita
+await abre(p, 'recursos7');
+ok((await p.$$('#svR [data-rec]')).length === 6, 'capítulo 7: un medidor por recurso');
+const cu0 = await texto(p, '.cap.act .capcif .cifra b');
+ok((await texto(p, '#svR')).includes('Procesador'), 'capítulo 7: hoy frena el procesador');
+await p.click('#estR [data-est="avisos"]'); await p.waitForTimeout(500);
+ok((await texto(p, '#svR')).includes('Disco de la base') && (await texto(p, '#svR')).includes('Con avisos frena'), 'capítulo 7: con avisos el que frena es el disco');
+const c279 = await p.evaluate(() => resumenS(S).cifras.find((c) => c.clave === 'restaurantes_que_caben').recomendado);
+await p.click('#svPal [data-pal="analitica_agregada_por_dia"]'); await p.waitForTimeout(500);
+ok((await p.evaluate(() => S.palancas.length)) === 1, 'capítulo 7: una palanca se enciende');
+ok((await p.evaluate(() => resumenS(S).cifras.find((c) => c.clave === 'restaurantes_que_caben').recomendado)) > c279, 'capítulo 7: la palanca sube cuántos restaurantes caben (también arriba)');
+await p.click('#svPal [data-pal="analitica_agregada_por_dia"]'); await p.waitForTimeout(300);
+await p.click('#svR [data-rec="disco"]'); await p.waitForTimeout(300);
+ok((await texto(p, '#svR')).includes('bytes'), 'capítulo 7: la visita dibujada como pila por tabla');
+ok((await p.$$('#svEsc rect')).length >= 5, 'capítulo 7: la escalera de tamaños');
+if (png) await p.screenshot({ path: `${png}/v9_cap7.png` });
+await sinDesborde(p, 'capítulo 7'); await cierra(p);
 // topes: arrastre con teclado y con puntero
 await abre(p, 'topes');
 const e0 = await texto(p, '.cap.act .capcif .cifra:nth-child(5) b');

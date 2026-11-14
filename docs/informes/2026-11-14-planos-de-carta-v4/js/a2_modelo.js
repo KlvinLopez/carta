@@ -11,7 +11,7 @@ function desdeConfig(c) {
     precioServicio: c.precios.servicio, precioSalon: c.precios.salon,
     topePlatillos: c.topes.gratuito.platillos, topeMesas: c.topes.gratuito.mesas, topeCuentas: c.topes.gratuito.cuentas,
     hist: c.topes.servicio.meses_en_linea, ma: c.disco.meses_analitica_en_linea.gratuito, arch: c.disco.archivar,
-    curva: c.curva, cMed: null, cSig: null, cTec: null, sustituto: c.competencia.sustituto, K: c.competencia.k, soporte: SP.soporte_servicio, servidor: -1, mesAds: SP.mes_inicio_anuncios, bolsa: 1000,
+    curva: c.curva, palancas: [], cMed: null, cSig: null, cTec: null, sustituto: c.competencia.sustituto, K: c.competencia.k, soporte: SP.soporte_servicio, servidor: -1, mesAds: SP.mes_inicio_anuncios, bolsa: 1000,
   };
 }
 const BASE = desdeConfig(MOD.configInicial()); // la segmentación de Calvin: lo recomendado
@@ -28,6 +28,7 @@ function config(s0) {
   Object.assign(c.topes.gratuito, {platillos: s0.topePlatillos, mesas: s0.topeMesas, cuentas: s0.topeCuentas});
   c.topes.servicio.meses_en_linea = s0.hist; c.topes.salon.meses_en_linea = s0.hist;
   c.disco = {meses_analitica_en_linea: {gratuito: s0.ma, servicio: s0.ma, salon: s0.ma}, archivar: s0.arch};
+  c.palancas = s0.palancas || [];
   c.curva = s0.curva; c.competencia = {sustituto: s0.sustituto, k: s0.K};
   return c;
 }

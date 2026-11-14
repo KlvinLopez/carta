@@ -6,7 +6,7 @@ const CAPS = [
   {id: "matriz", q: "¿Qué existe y a qué precio?"},
   {id: "precio", q: "¿Cuánto cobran ellos frente a nosotros?"},
   {id: "topes", q: "¿Qué damos nosotros por ese precio?"},
-  {id: "disco", q: "¿Qué nos limita?"},
+  {id: "recursos7", q: "¿Qué nos limita?"},
   {id: "sostiene", q: "¿Cómo se sostiene?"},
 ];
 let capObs = null;
