@@ -788,6 +788,17 @@
    "tipo": "precio publicado por el proveedor",
    "consulta": "2026-11-14",
    "nota": "El texto extraído no trae las marcas ✓/✗: se asume que la lista de funciones de un plan único (Meniu) es lo que incluye. Poster mostró USD en joinposter.mx; el 13-nov mostraba pesos en joinposter.com/mx: no conciliado."
+  },
+  {
+   "clave": "inegi_saic_ce2024",
+   "autor": "INEGI",
+   "año": 2025,
+   "titulo": "Censos Económicos 2024 (datos de 2023): Sistema Automatizado de Información Censal (SAIC), clases 722511, 722412 y rama 7225 por estrato de personal",
+   "publica": "INEGI",
+   "url": "https://www.inegi.org.mx/app/saic/default.html",
+   "tipo": "estadística oficial",
+   "consulta": "2026-11-14",
+   "nota": "Una consulta a la API pública que usa la propia página (guion 2026-11-14-saic-consulta.py). Estratos 0 a 10, 11 a 50, 51 a 250 y 251 o más. Pesos de 2023."
   }
  ],
  "grupos": [
