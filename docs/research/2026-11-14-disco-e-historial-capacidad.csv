@@ -1,4 +1,5 @@
 palanca,mb_gratuito,mb_paga,N_todo gratuito,N_todo gratuito_con_reserva,N_90/10,N_90/10_con_reserva,N_80/20,N_80/20_con_reserva,N_todo de paga,N_todo de paga_con_reserva
+P00 03 §7 tal como está escrito: eventos 13 meses y sesiones 24 meses en paga (gratuito 30 días),14.3,354.2,349,279,103,82,60,48,14,11
 "P0 hoy: 30 días / 12 meses, todo en línea",14.3,225.4,349,279,141,112,88,70,22,17
 P1 analítica en línea sólo 30 días,14.3,129.0,349,279,193,155,134,107,38,30
 "P2 = P1 + historial en línea 3 meses, resto archivado",14.3,39.0,349,279,298,238,259,207,128,102

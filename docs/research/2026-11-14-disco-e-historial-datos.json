@@ -99,6 +99,19 @@
  },
  "capacidad": [
   {
+   "palanca": "P00 03 §7 tal como está escrito: eventos 13 meses y sesiones 24 meses en paga (gratuito 30 días)",
+   "mb_gratuito": 14.3,
+   "mb_paga": 354.2,
+   "N_todo gratuito": 349,
+   "N_todo gratuito_con_reserva": 279,
+   "N_90/10": 103,
+   "N_90/10_con_reserva": 82,
+   "N_80/20": 60,
+   "N_80/20_con_reserva": 48,
+   "N_todo de paga": 14,
+   "N_todo de paga_con_reserva": 11
+  },
+  {
    "palanca": "P0 hoy: 30 días / 12 meses, todo en línea",
    "mb_gratuito": 14.3,
    "mb_paga": 225.4,

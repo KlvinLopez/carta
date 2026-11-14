@@ -105,6 +105,7 @@ def mb_por_restaurante(plan, mes_visitas, mes_eventos, indices_fk_fuera=False, e
 
 # (nombre, meses de visitas en línea gratuito, paga, meses de eventos gratuito, paga, sin índices FK, factor bytes evento)
 PALANCAS = [
+    ("P00 03 §7 tal como está escrito: eventos 13 meses y sesiones 24 meses en paga (gratuito 30 días)", 1, 24, 1, 13, False, 1.0),
     ("P0 hoy: 30 días / 12 meses, todo en línea", 1, 12, 1, 12, False, 1.0),
     ("P1 analítica en línea sólo 30 días", 1, 12, 1, 1, False, 1.0),
     ("P2 = P1 + historial en línea 3 meses, resto archivado", 1, 3, 1, 1, False, 1.0),

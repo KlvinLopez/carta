@@ -1,236 +1,586 @@
 {
- "parametros": {
-  "k": 0.5,
-  "soporte": {
-   "bajo": 30.0,
-   "base": 60.0,
-   "alto": 150.0
+ "sustitutos": [
+  {
+   "nombre": "Meniu Business",
+   "mxn_mes": 225,
+   "iva": "no declarado",
+   "tope_pedidos": null,
+   "menu_y_pedir_en_mesa": "sí",
+   "comanda_a_mesero": "sí (usuarios meseros, comandas)",
+   "trae_pos": "sí",
+   "nota": "Un solo plan; sin tope de pedidos publicado; trae POS, KDS, mapa de mesas. Marcas ✓/✗ no extraídas del texto de la página"
   },
-  "fijo": {
-   "N=100": 10.0,
-   "N=500": 3.0,
-   "N=1000": 2.6
+  {
+   "nombre": "Fudo Avanzado",
+   "mxn_mes": 652,
+   "iva": "no declarado",
+   "tope_pedidos": null,
+   "menu_y_pedir_en_mesa": "sí (pedido desde la mesa con Carta QR)",
+   "comanda_a_mesero": "sí (app móvil para camareros)",
+   "trae_pos": "sí",
+   "nota": "Sin tope de pedidos publicado; el módulo de mesas (+5 USD) NO hace falta para pedir desde la mesa"
   },
-  "costo_var": {
-   "chico": 1.0,
-   "mediano": 1.9,
-   "grande": 7.5,
-   "formal": 3.6
+  {
+   "nombre": "Fudo Avanzado + módulo de mesas",
+   "mxn_mes": 745,
+   "iva": "no declarado",
+   "tope_pedidos": null,
+   "menu_y_pedir_en_mesa": "sí",
+   "comanda_a_mesero": "sí",
+   "trae_pos": "sí",
+   "nota": "Lo que usaba la primera versión de este informe; la página no lo exige para pedir desde la mesa"
+  },
+  {
+   "nombre": "Soft Restaurant Cloud Lite",
+   "mxn_mes": 699,
+   "iva": "+ IVA",
+   "tope_pedidos": null,
+   "menu_y_pedir_en_mesa": "no (toma pedidos y cobra en mesa con comandera)",
+   "comanda_a_mesero": "sí",
+   "trae_pos": "sí",
+   "nota": "349 sólo con Payments (>50,000 en tarjeta); no trae QR de pedidos"
+  },
+  {
+   "nombre": "Last.app Starter",
+   "mxn_mes": 1000,
+   "iva": "+ IVA",
+   "tope_pedidos": null,
+   "menu_y_pedir_en_mesa": "sí (QR y pedidos en mesa, gratis)",
+   "comanda_a_mesero": "sí",
+   "trae_pos": "sí",
+   "nota": "por sucursal; KDS +250"
+  },
+  {
+   "nombre": "Poster Business",
+   "mxn_mes": 819,
+   "iva": "no declarado",
+   "tope_pedidos": null,
+   "menu_y_pedir_en_mesa": "sólo menú QR y reseñas",
+   "comanda_a_mesero": "sí (comandero y KDS)",
+   "trae_pos": "sí",
+   "nota": "hoy en USD (joinposter.mx); el 13-nov mostraba 837 MXN"
+  },
+  {
+   "nombre": "OlaClick Elite",
+   "mxn_mes": 1099,
+   "iva": "no declarado",
+   "tope_pedidos": "ilimitado",
+   "menu_y_pedir_en_mesa": "no publicado",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "sí",
+   "nota": "POS y facturación"
+  },
+  {
+   "nombre": "MenuTiger Advanced",
+   "mxn_mes": 856,
+   "iva": "no declarado",
+   "tope_pedidos": 2000,
+   "menu_y_pedir_en_mesa": "sí (pedidos QR)",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "no (complemento)",
+   "nota": "KDS incluido"
+  },
+  {
+   "nombre": "MenuTiger Premium",
+   "mxn_mes": 2216,
+   "iva": "no declarado",
+   "tope_pedidos": "ilimitado",
+   "menu_y_pedir_en_mesa": "sí",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "sí",
+   "nota": "gestión de mesas"
+  },
+  {
+   "nombre": "Waitry Premium",
+   "mxn_mes": 1243,
+   "iva": "sin IVA",
+   "tope_pedidos": null,
+   "menu_y_pedir_en_mesa": "sí (pedido y pago en mesa)",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "no publicado",
+   "nota": "60 EUR mensual"
+  },
+  {
+   "nombre": "MenuTiger Regular",
+   "mxn_mes": 317,
+   "iva": "no declarado",
+   "tope_pedidos": 500,
+   "menu_y_pedir_en_mesa": "sí (pedidos QR)",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "no (complemento)",
+   "nota": "con tope"
+  },
+  {
+   "nombre": "OlaClick Premium",
+   "mxn_mes": 465,
+   "iva": "no declarado",
+   "tope_pedidos": 400,
+   "menu_y_pedir_en_mesa": "no publicado",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "sí",
+   "nota": "con tope"
+  },
+  {
+   "nombre": "OlaClick Advanced",
+   "mxn_mes": 184,
+   "iva": "no declarado",
+   "tope_pedidos": 75,
+   "menu_y_pedir_en_mesa": "no publicado",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "sí",
+   "nota": "con tope"
+  },
+  {
+   "nombre": "MenuTiger Free",
+   "mxn_mes": 0,
+   "iva": "no declarado",
+   "tope_pedidos": 75,
+   "menu_y_pedir_en_mesa": "sí (pedidos QR)",
+   "comanda_a_mesero": "no publicado",
+   "trae_pos": "no",
+   "nota": "con tope; gratis"
+  }
+ ],
+ "precio_por_K_y_sustituto": {
+  "Meniu Business": {
+   "S": 225,
+   "K=0.3": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.4": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.5": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.6": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.7": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   }
+  },
+  "Fudo Avanzado": {
+   "S": 652,
+   "K=0.3": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.4": {
+    "precio": 261,
+    "x49": 249,
+    "manda": "sustituto"
+   },
+   "K=0.5": {
+    "precio": 326,
+    "x49": 299,
+    "manda": "sustituto"
+   },
+   "K=0.6": {
+    "precio": 391,
+    "x49": 349,
+    "manda": "sustituto"
+   },
+   "K=0.7": {
+    "precio": 456,
+    "x49": 449,
+    "manda": "sustituto"
+   }
+  },
+  "Fudo Avanzado + módulo de mesas": {
+   "S": 745,
+   "K=0.3": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.4": {
+    "precio": 298,
+    "x49": 249,
+    "manda": "sustituto"
+   },
+   "K=0.5": {
+    "precio": 372,
+    "x49": 349,
+    "manda": "sustituto"
+   },
+   "K=0.6": {
+    "precio": 447,
+    "x49": 399,
+    "manda": "sustituto"
+   },
+   "K=0.7": {
+    "precio": 522,
+    "x49": 499,
+    "manda": "sustituto"
+   }
+  },
+  "Fudo Avanzado, si su precio ya incluye IVA": {
+   "S": 562,
+   "K=0.3": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.4": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.5": {
+    "precio": 281,
+    "x49": 249,
+    "manda": "sustituto"
+   },
+   "K=0.6": {
+    "precio": 337,
+    "x49": 299,
+    "manda": "sustituto"
+   },
+   "K=0.7": {
+    "precio": 393,
+    "x49": 349,
+    "manda": "sustituto"
+   }
+  },
+  "Fudo + mesas, si su precio ya incluye IVA": {
+   "S": 642,
+   "K=0.3": {
+    "precio": 240,
+    "x49": 249,
+    "manda": "piso"
+   },
+   "K=0.4": {
+    "precio": 257,
+    "x49": 249,
+    "manda": "sustituto"
+   },
+   "K=0.5": {
+    "precio": 321,
+    "x49": 299,
+    "manda": "sustituto"
+   },
+   "K=0.6": {
+    "precio": 385,
+    "x49": 349,
+    "manda": "sustituto"
+   },
+   "K=0.7": {
+    "precio": 449,
+    "x49": 399,
+    "manda": "sustituto"
+   }
+  },
+  "Last.app Starter": {
+   "S": 1000,
+   "K=0.3": {
+    "precio": 300,
+    "x49": 299,
+    "manda": "sustituto"
+   },
+   "K=0.4": {
+    "precio": 400,
+    "x49": 399,
+    "manda": "sustituto"
+   },
+   "K=0.5": {
+    "precio": 500,
+    "x49": 499,
+    "manda": "sustituto"
+   },
+   "K=0.6": {
+    "precio": 600,
+    "x49": 599,
+    "manda": "sustituto"
+   },
+   "K=0.7": {
+    "precio": 700,
+    "x49": 699,
+    "manda": "sustituto"
+   }
   }
  },
+ "soporte_K0_5": {
+  "Meniu Business": {
+   "30": {
+    "piso": 55.3,
+    "precio": 135,
+    "x49": 149
+   },
+   "60": {
+    "piso": 85.3,
+    "precio": 240,
+    "x49": 249
+   },
+   "150": {
+    "piso": 175.3,
+    "precio": 556,
+    "x49": 599
+   }
+  },
+  "Fudo Avanzado": {
+   "30": {
+    "piso": 55.3,
+    "precio": 326,
+    "x49": 299
+   },
+   "60": {
+    "piso": 85.3,
+    "precio": 326,
+    "x49": 299
+   },
+   "150": {
+    "piso": 175.3,
+    "precio": 556,
+    "x49": 599
+   }
+  },
+  "Fudo Avanzado + módulo de mesas": {
+   "30": {
+    "piso": 55.3,
+    "precio": 372,
+    "x49": 349
+   },
+   "60": {
+    "piso": 85.3,
+    "precio": 372,
+    "x49": 349
+   },
+   "150": {
+    "piso": 175.3,
+    "precio": 556,
+    "x49": 599
+   }
+  }
+ },
+ "volumen": [
+  {
+   "visitas_mes": 300,
+   "comandas_mes": 390,
+   "sustituto_con_tope_publicado": "MenuTiger Regular",
+   "mxn_con_tope": 317,
+   "precio_regla_K05_solo_con_tope": 240,
+   "precio_regla_K05_con_Meniu_Fudo": 240,
+   "S_con_Meniu_Fudo": 225
+  },
+  {
+   "visitas_mes": 385,
+   "comandas_mes": 500,
+   "sustituto_con_tope_publicado": "MenuTiger Advanced",
+   "mxn_con_tope": 856,
+   "precio_regla_K05_solo_con_tope": 428,
+   "precio_regla_K05_con_Meniu_Fudo": 240,
+   "S_con_Meniu_Fudo": 225
+  },
+  {
+   "visitas_mes": 600,
+   "comandas_mes": 780,
+   "sustituto_con_tope_publicado": "MenuTiger Advanced",
+   "mxn_con_tope": 856,
+   "precio_regla_K05_solo_con_tope": 428,
+   "precio_regla_K05_con_Meniu_Fudo": 240,
+   "S_con_Meniu_Fudo": 225
+  },
+  {
+   "visitas_mes": 900,
+   "comandas_mes": 1170,
+   "sustituto_con_tope_publicado": "MenuTiger Advanced",
+   "mxn_con_tope": 856,
+   "precio_regla_K05_solo_con_tope": 428,
+   "precio_regla_K05_con_Meniu_Fudo": 240,
+   "S_con_Meniu_Fudo": 225
+  },
+  {
+   "visitas_mes": 1800,
+   "comandas_mes": 2340,
+   "sustituto_con_tope_publicado": "OlaClick Elite",
+   "mxn_con_tope": 1099,
+   "precio_regla_K05_solo_con_tope": 550,
+   "precio_regla_K05_con_Meniu_Fudo": 240,
+   "S_con_Meniu_Fudo": 225
+  },
+  {
+   "visitas_mes": 4500,
+   "comandas_mes": 5850,
+   "sustituto_con_tope_publicado": "OlaClick Elite",
+   "mxn_con_tope": 1099,
+   "precio_regla_K05_solo_con_tope": 550,
+   "precio_regla_K05_con_Meniu_Fudo": 240,
+   "S_con_Meniu_Fudo": 225
+  }
+ ],
  "pisos": {
   "chico": {
-   "sin_soporte": 4.0,
-   "con_todo_a_349": 82.1,
-   "con_todo_a_549": 90.4,
-   "con_todo_a_2167": 158.0
+   "249": 79.5,
+   "299": 82.0,
+   "349": 84.4,
+   "399": 86.8,
+   "549": 94.1,
+   "2167": 172.5
   },
   "mediano": {
-   "sin_soporte": 4.9,
-   "con_todo_a_349": 83.0,
-   "con_todo_a_549": 91.3,
-   "con_todo_a_2167": 158.9
+   "249": 80.4,
+   "299": 82.9,
+   "349": 85.3,
+   "399": 87.7,
+   "549": 95.0,
+   "2167": 173.4
   },
   "grande": {
-   "sin_soporte": 10.5,
-   "con_todo_a_349": 88.6,
-   "con_todo_a_549": 96.9,
-   "con_todo_a_2167": 164.5
+   "249": 86.0,
+   "299": 88.5,
+   "349": 90.9,
+   "399": 93.3,
+   "549": 100.6,
+   "2167": 179.0
   },
   "formal": {
-   "sin_soporte": 6.6,
-   "con_todo_a_349": 84.7,
-   "con_todo_a_549": 93.0,
-   "con_todo_a_2167": 160.6
-  }
- },
- "techo": {
-  "chico": {
-   "comandas_mes": 2340,
-   "sustituto_mas_barato": "Fudo Avanzado + módulo de mesas (con POS e inventario)",
-   "mxn": 745,
-   "mediana_de_sustitutos": 1099
-  },
-  "mediano": {
-   "comandas_mes": 2340,
-   "sustituto_mas_barato": "Fudo Avanzado + módulo de mesas (con POS e inventario)",
-   "mxn": 745,
-   "mediana_de_sustitutos": 1099
-  },
-  "grande": {
-   "comandas_mes": 5850,
-   "sustituto_mas_barato": "Poster Business (comandero y KDS)",
-   "mxn": 837,
-   "mediana_de_sustitutos": 1599
-  },
-  "formal": {
-   "comandas_mes": 1950,
-   "sustituto_mas_barato": "Fudo Avanzado + módulo de mesas (con POS e inventario)",
-   "mxn": 745,
-   "mediana_de_sustitutos": 1099
-  }
- },
- "regla_propuesta": {
-  "chico": {
-   "k_por_sustituto": 372,
-   "propuesta_redondeada": 349,
-   "tres_veces_el_piso": 246,
-   "margen_pct": 76
-  },
-  "mediano": {
-   "k_por_sustituto": 372,
-   "propuesta_redondeada": 349,
-   "tres_veces_el_piso": 249,
-   "margen_pct": 76
-  },
-  "grande": {
-   "k_por_sustituto": 418,
-   "propuesta_redondeada": 399,
-   "tres_veces_el_piso": 272,
-   "margen_pct": 77
-  },
-  "formal": {
-   "k_por_sustituto": 372,
-   "propuesta_redondeada": 349,
-   "tres_veces_el_piso": 254,
-   "margen_pct": 76
+   "249": 82.1,
+   "299": 84.6,
+   "349": 87.0,
+   "399": 89.4,
+   "549": 96.7,
+   "2167": 175.1
   }
  },
  "evaluacion": {
+  "249": {
+   "veces_el_piso_mediano": 3.1,
+   "pct_de_Meniu Business": 111,
+   "pct_de_Fudo Avanzado": 38,
+   "pct_de_Fudo Avanzado + módulo de mesas": 33,
+   "pct_ingreso_chico": 0.07,
+   "pct_ingreso_mediano": 0.04,
+   "pct_ingreso_grande": 0.01,
+   "pct_ingreso_formal": 0.01,
+   "pct_ingreso_micro_20_visitas_dia": 0.21
+  },
+  "299": {
+   "veces_el_piso_mediano": 3.6,
+   "pct_de_Meniu Business": 133,
+   "pct_de_Fudo Avanzado": 46,
+   "pct_de_Fudo Avanzado + módulo de mesas": 40,
+   "pct_ingreso_chico": 0.08,
+   "pct_ingreso_mediano": 0.05,
+   "pct_ingreso_grande": 0.01,
+   "pct_ingreso_formal": 0.02,
+   "pct_ingreso_micro_20_visitas_dia": 0.25
+  },
   "349": {
-   "chico": {
-    "veces_el_piso": 4.3,
-    "pct_del_sustituto": 47,
-    "pct_del_ingreso_supuesto": 0.1,
-    "ingreso_supuesto_mes": 414000
-   },
-   "mediano": {
-    "veces_el_piso": 4.2,
-    "pct_del_sustituto": 47,
-    "pct_del_ingreso_supuesto": 0.05,
-    "ingreso_supuesto_mes": 748800
-   },
-   "grande": {
-    "veces_el_piso": 3.9,
-    "pct_del_sustituto": 42,
-    "pct_del_ingreso_supuesto": 0.01,
-    "ingreso_supuesto_mes": 2970000
-   },
-   "formal": {
-    "veces_el_piso": 4.1,
-    "pct_del_sustituto": 47,
-    "pct_del_ingreso_supuesto": 0.02,
-    "ingreso_supuesto_mes": 2025000
-   }
+   "veces_el_piso_mediano": 4.1,
+   "pct_de_Meniu Business": 155,
+   "pct_de_Fudo Avanzado": 54,
+   "pct_de_Fudo Avanzado + módulo de mesas": 47,
+   "pct_ingreso_chico": 0.1,
+   "pct_ingreso_mediano": 0.05,
+   "pct_ingreso_grande": 0.01,
+   "pct_ingreso_formal": 0.02,
+   "pct_ingreso_micro_20_visitas_dia": 0.29
+  },
+  "399": {
+   "veces_el_piso_mediano": 4.5,
+   "pct_de_Meniu Business": 177,
+   "pct_de_Fudo Avanzado": 61,
+   "pct_de_Fudo Avanzado + módulo de mesas": 54,
+   "pct_ingreso_chico": 0.11,
+   "pct_ingreso_mediano": 0.06,
+   "pct_ingreso_grande": 0.02,
+   "pct_ingreso_formal": 0.02,
+   "pct_ingreso_micro_20_visitas_dia": 0.34
   },
   "549": {
-   "chico": {
-    "veces_el_piso": 6.1,
-    "pct_del_sustituto": 74,
-    "pct_del_ingreso_supuesto": 0.15,
-    "ingreso_supuesto_mes": 414000
-   },
-   "mediano": {
-    "veces_el_piso": 6.0,
-    "pct_del_sustituto": 74,
-    "pct_del_ingreso_supuesto": 0.09,
-    "ingreso_supuesto_mes": 748800
-   },
-   "grande": {
-    "veces_el_piso": 5.7,
-    "pct_del_sustituto": 66,
-    "pct_del_ingreso_supuesto": 0.02,
-    "ingreso_supuesto_mes": 2970000
-   },
-   "formal": {
-    "veces_el_piso": 5.9,
-    "pct_del_sustituto": 74,
-    "pct_del_ingreso_supuesto": 0.03,
-    "ingreso_supuesto_mes": 2025000
-   }
+   "veces_el_piso_mediano": 5.8,
+   "pct_de_Meniu Business": 244,
+   "pct_de_Fudo Avanzado": 84,
+   "pct_de_Fudo Avanzado + módulo de mesas": 74,
+   "pct_ingreso_chico": 0.15,
+   "pct_ingreso_mediano": 0.09,
+   "pct_ingreso_grande": 0.02,
+   "pct_ingreso_formal": 0.03,
+   "pct_ingreso_micro_20_visitas_dia": 0.46
   },
   "799": {
-   "chico": {
-    "veces_el_piso": 7.9,
-    "pct_del_sustituto": 107,
-    "pct_del_ingreso_supuesto": 0.22,
-    "ingreso_supuesto_mes": 414000
-   },
-   "mediano": {
-    "veces_el_piso": 7.9,
-    "pct_del_sustituto": 107,
-    "pct_del_ingreso_supuesto": 0.12,
-    "ingreso_supuesto_mes": 748800
-   },
-   "grande": {
-    "veces_el_piso": 7.4,
-    "pct_del_sustituto": 95,
-    "pct_del_ingreso_supuesto": 0.03,
-    "ingreso_supuesto_mes": 2970000
-   },
-   "formal": {
-    "veces_el_piso": 7.7,
-    "pct_del_sustituto": 107,
-    "pct_del_ingreso_supuesto": 0.05,
-    "ingreso_supuesto_mes": 2025000
-   }
+   "veces_el_piso_mediano": 7.5,
+   "pct_de_Meniu Business": 355,
+   "pct_de_Fudo Avanzado": 123,
+   "pct_de_Fudo Avanzado + módulo de mesas": 107,
+   "pct_ingreso_chico": 0.22,
+   "pct_ingreso_mediano": 0.12,
+   "pct_ingreso_grande": 0.03,
+   "pct_ingreso_formal": 0.05,
+   "pct_ingreso_micro_20_visitas_dia": 0.67
   },
   "2000": {
-   "chico": {
-    "veces_el_piso": 13.2,
-    "pct_del_sustituto": 268,
-    "pct_del_ingreso_supuesto": 0.56,
-    "ingreso_supuesto_mes": 414000
-   },
-   "mediano": {
-    "veces_el_piso": 13.2,
-    "pct_del_sustituto": 268,
-    "pct_del_ingreso_supuesto": 0.31,
-    "ingreso_supuesto_mes": 748800
-   },
-   "grande": {
-    "veces_el_piso": 12.7,
-    "pct_del_sustituto": 239,
-    "pct_del_ingreso_supuesto": 0.08,
-    "ingreso_supuesto_mes": 2970000
-   },
-   "formal": {
-    "veces_el_piso": 13.0,
-    "pct_del_sustituto": 268,
-    "pct_del_ingreso_supuesto": 0.11,
-    "ingreso_supuesto_mes": 2025000
-   }
+   "veces_el_piso_mediano": 12.1,
+   "pct_de_Meniu Business": 889,
+   "pct_de_Fudo Avanzado": 307,
+   "pct_de_Fudo Avanzado + módulo de mesas": 268,
+   "pct_ingreso_chico": 0.56,
+   "pct_ingreso_mediano": 0.31,
+   "pct_ingreso_grande": 0.08,
+   "pct_ingreso_formal": 0.11,
+   "pct_ingreso_micro_20_visitas_dia": 1.68
   },
   "500_por_semana": {
-   "chico": {
-    "veces_el_piso": 13.7,
-    "pct_del_sustituto": 291,
-    "pct_del_ingreso_supuesto": 0.61,
-    "ingreso_supuesto_mes": 414000
-   },
-   "mediano": {
-    "veces_el_piso": 13.6,
-    "pct_del_sustituto": 291,
-    "pct_del_ingreso_supuesto": 0.34,
-    "ingreso_supuesto_mes": 748800
-   },
-   "grande": {
-    "veces_el_piso": 13.2,
-    "pct_del_sustituto": 259,
-    "pct_del_ingreso_supuesto": 0.08,
-    "ingreso_supuesto_mes": 2970000
-   },
-   "formal": {
-    "veces_el_piso": 13.5,
-    "pct_del_sustituto": 291,
-    "pct_del_ingreso_supuesto": 0.12,
-    "ingreso_supuesto_mes": 2025000
-   }
+   "veces_el_piso_mediano": 12.5,
+   "pct_de_Meniu Business": 963,
+   "pct_de_Fudo Avanzado": 332,
+   "pct_de_Fudo Avanzado + módulo de mesas": 291,
+   "pct_ingreso_chico": 0.61,
+   "pct_ingreso_mediano": 0.34,
+   "pct_ingreso_grande": 0.08,
+   "pct_ingreso_formal": 0.12,
+   "pct_ingreso_micro_20_visitas_dia": 1.82
   }
  },
- "micro_20_visitas_dia": {
-  "ingreso_mes": 138000,
-  "pct_349_con_iva": 0.29,
-  "pct_2167_con_iva": 1.82
+ "salon": {
+  "Poster Business": {
+   "S": 819,
+   "K=0.3": 249,
+   "K=0.4": 299,
+   "K=0.5": 399,
+   "K=0.6": 449,
+   "K=0.7": 549
+  },
+  "Fudo Avanzado + pantalla de cocina": {
+   "S": 838,
+   "K=0.3": 249,
+   "K=0.4": 299,
+   "K=0.5": 399,
+   "K=0.6": 499,
+   "K=0.7": 549
+  },
+  "Last.app Starter + cocina": {
+   "S": 1250,
+   "K=0.3": 349,
+   "K=0.4": 499,
+   "K=0.5": 599,
+   "K=0.6": 749,
+   "K=0.7": 849
+  },
+  "Meniu Business (trae KDS)": {
+   "S": 225,
+   "K=0.3": 249,
+   "K=0.4": 249,
+   "K=0.5": 249,
+   "K=0.6": 249,
+   "K=0.7": 249
+  }
+ },
+ "iva_fudo": {
+  "fudo_con_modulo_de_mesas": 745,
+  "sin_iva_si_incluido": 642,
+  "precio_regla_K05_si_incluido": 299
  }
 }

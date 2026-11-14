@@ -1,6 +1,7 @@
 # Disco de la base e historial: qué lo llena, cómo reducirlo y cuánto cuesta guardar lo viejo
 
 **Fecha:** 14 de noviembre de 2026 · **Rama:** `agente/planes-precio-historial` · **Estado:** investigación; no cambia código, migraciones ni plan (salvo una fila en `04 §11`). La v1 no cobra ni tiene planes.
+**Revisión (14-nov, ronda de la maestra):** se concilió con `docs/plan/03_Datos_v1.md` §7 (retención oficial), se separaron las dos palancas del «22 → 128», se dijo qué se archiva y qué no, y se marcaron los límites de la medición. Lo que cambió respecto a la primera versión está en una línea al principio de cada bullet que lo toca.
 **Datos:** [`…-datos.json`](2026-11-14-disco-e-historial-datos.json) (por perfil y tabla) · [`…-capacidad.csv`](2026-11-14-disco-e-historial-capacidad.csv) (restaurantes que caben por palanca) · [`…-medicion-bruta.json`](2026-11-14-disco-e-historial-medicion-bruta.json) (tamaños de cada tabla e índice tal como salieron de PostgreSQL).
 **Guion de medición (reproducible):** [`…-correr.sh`](2026-11-14-disco-e-historial-correr.sh) crea una base nueva y aplica las migraciones 0001 a 0003 · [`…-generador.sql`](2026-11-14-disco-e-historial-generador.sql) genera los datos con `generate_series` y semilla fija · [`…-medir.py`](2026-11-14-disco-e-historial-medir.py) lee `pg_total_relation_size` · [`…-modelo.py`](2026-11-14-disco-e-historial-modelo.py) calcula cuántos restaurantes caben.
 
@@ -11,9 +12,9 @@
 ## 0. Conclusiones
 
 - **Una visita pesa 7.1 a 8.5 KB en la base, no los 12 KB que suponía el mapa de procesos** [medida; el mapa decía «12 KB ±2×», estimada]. De eso, **43 a 51 % es analítica** (`evento_analitica`: 366 bytes por evento, 10 eventos por visita [supuesto]) y el resto son las siete tablas de la mesa (3.5 a 4.8 KB). Un restaurante mediano de 1,800 visitas al mes crece **13.5 MB al mes** (grande de 4,500: 35 MB).
-- **Con el diseño de hoy (30 días gratuito, 12 meses de paga) caben 17 restaurantes de paga en 5 GB** (22 sin reserva), **88 con 80 % gratuitos y 20 % de paga** [medida + modelo]. Esto **confirma el 17 y el 85 del mapa de procesos** por un camino distinto: la cifra de 12 KB por visita no cambia mucho el resultado porque el peso se va a los 12 meses de historial, no al tamaño de la visita.
-- **La palanca grande no es comprimir, es dónde vive el historial:** pasar el historial de paga de 12 meses a 3 en línea (el resto archivado en R2) sube los restaurantes de paga que caben de **22 a 128** (×5.8); con la analítica en bruto sólo 7 días y 1 mes de historial en línea, **de 414 a 570 en cualquier mezcla**. Quitar los 4 índices de clave foránea de `evento_analitica` sólo ahorra **10 %** de esa tabla: **no vale el riesgo**.
-- **Guardar lo viejo cuesta casi nada:** un restaurante mediano archiva **0.88 MB al mes (10.6 MB al año)** comprimido, **7.8 veces menos** que en la base [medida; con xz 15.5×]. En R2 Standard son **0.0002 USD al mes por cada año de historial** [fuente: 0.015 USD por GB-mes]; los primeros 10 GB son gratis (≈ 940 restaurantes-año). Guardar **diez años** costaría **≈ 0.4 pesos al año por restaurante**.
+- **Lo que ya dice el plan, `03_Datos_v1.md` §7 (analítica 13 meses, sesiones y comandas 24 meses), llena los 5 GB con 14 restaurantes de paga** (11 con reserva de 20 %) y **60 con 80 % gratuitos / 20 % de paga** (48). *Antes decía 17 con «12 meses de paga»: esa es una propuesta anterior de Calvin, no lo escrito en 03 §7.* Con 12 meses caben 22 (17 con reserva) [medida + modelo]; el mapa de procesos da 17 y 85 con la misma propuesta de 12 meses, y esto lo confirma por otro camino. Esto **confirma el 17 y el 85 del mapa de procesos** por un camino distinto: la cifra de 12 KB por visita no cambia mucho el resultado porque el peso se va a los 12 meses de historial, no al tamaño de la visita.
+- **La palanca grande no es comprimir, es dónde vive el historial.** Dos palancas separadas, de la propuesta de 12 meses (22 de paga): **(1) analítica en línea sólo 30 días: 22 → 38** (sin archivo, sólo una purga más corta); **(2) archivar el historial de paga después de 3 meses: 38 → 128** (exige un archivador y verificación, §3.2). Con la analítica en bruto sólo 7 días y 1 mes de historial en línea, **de 414 a 570 en cualquier mezcla**. Contra lo que dice hoy 03 §7 (14 de paga), (1) y (2) juntas suben a 128: ×9. Quitar los 4 índices de clave foránea de `evento_analitica` sólo ahorra **10 %** de esa tabla: **no vale el riesgo**.
+- **Guardar lo viejo cuesta casi nada** (por lo medido; lo que se guarda exactamente y hasta cuándo es decisión de §3.2 y §4): un restaurante mediano archiva **0.88 MB al mes (10.6 MB al año)** comprimido, **7.8 veces menos** que en la base [medida; con xz 15.5×]. En R2 Standard son **0.0002 USD al mes por cada año de historial** [fuente: 0.015 USD por GB-mes]; los primeros 10 GB son gratis (≈ 940 restaurantes-año). Guardar **diez años** costaría **≈ 0.4 pesos al año por restaurante**, **pero 03 §7 hoy purga a 24 meses**: diez años exige cambiar ese documento (§3.2).
 - **La ley no fija un plazo para Carta, pero sí para el restaurante:** el Código de Comercio (arts. 38 y 46) obliga al comerciante a conservar comprobantes y registros de su negocio **diez años** y el Código Fiscal (art. 30), **cinco**. Si una comanda sin cobro cuenta como tal es **pregunta abierta para un abogado** (§4). **No es opinión legal.**
 - **Decisión de Calvin (13–14 de noviembre): no se venden ni se comparten datos de usuarios ni de restaurantes.** Tres documentos viejos lo proponían (§6); lo decide la maestra si se corrigen.
 
@@ -58,9 +59,10 @@ Restaurantes que caben en **5 GB** con la mezcla de tamaños del simulador (grat
 
 | Palanca (acumulada) | MB gratuito | MB paga | Todo gratuito | 90/10 | 80/20 | Todo de paga |
 |---|---|---|---|---|---|---|
-| **P0** hoy: 30 días / 12 meses, todo en línea | 14.3 | 225.4 | 349 (279) | 141 (112) | 88 (70) | **22 (17)** |
-| **P1** analítica en línea sólo 30 días | 14.3 | 129.0 | 349 (279) | 193 (155) | 134 (107) | 38 (30) |
-| **P2** P1 + historial de paga 3 meses en línea, el resto archivado | 14.3 | 39.0 | 349 (279) | 298 (238) | 259 (207) | **128 (102)** |
+| **P00** lo escrito en 03 §7: analítica 13 meses, sesiones y comandas 24 meses en paga; gratuito 30 días | 14.3 | 354.2 | 349 (279) | 103 (82) | 60 (48) | **14 (11)** |
+| **P0** propuesta anterior de Calvin: 30 días / 12 meses, todo en línea | 14.3 | 225.4 | 349 (279) | 141 (112) | 88 (70) | **22 (17)** |
+| **P1** *(palanca 1)* analítica en línea sólo 30 días | 14.3 | 129.0 | 349 (279) | 193 (155) | 134 (107) | 38 (30) |
+| **P2** *(palanca 2)* P1 + historial de paga 3 meses en línea, el resto archivado | 14.3 | 39.0 | 349 (279) | 298 (238) | 259 (207) | **128 (102)** |
 | **P3** P2 + sin los 4 índices FK de `evento_analitica` | 13.6 | 38.1 | 367 (294) | 311 (249) | 270 (216) | 130 (104) |
 | **P4** P3 + analítica 7 días en bruto, el resto en agregados | 8.8 | 32.0 | 570 (456) | 450 (360) | 372 (297) | 155 (124) |
 | **P5** P4 + historial de paga 1 mes en línea | 8.8 | 12.0 | 570 (456) | 549 (439) | 530 (424) | **414 (331)** |
@@ -97,14 +99,28 @@ Tamaño a archivar por restaurante mediano [medida]: **0.88 MB al mes, 10.6 MB a
 
 **Fuentes y fecha:** R2: <https://developers.cloudflare.com/r2/pricing/> («Last updated Oct 30, 2026»), leída el 14 de noviembre. B2: <https://www.backblaze.com/cloud-storage/pricing> (sin fecha de actualización visible), leída el 14 de noviembre. S3: <https://aws.amazon.com/s3/pricing/>, leída el 14 de noviembre: sólo aparecen las duraciones mínimas; los precios cargan dinámicamente y no los pude leer, así que **no los cito** (ruta: calculadora oficial de AWS o la página de precios en un navegador). **Recomendación: R2 Standard.** Ya es el almacenamiento de fotos y respaldos de Carta (ADR-012, mapa de procesos §5), la salida es gratis (descargar lo antiguo no cuesta) y el ahorro de B2 o de Infrequent Access es de **centavos por restaurante-año**: no compensa un proveedor más ni una penalización por recuperar. El tiempo de recuperación de R2 Standard y B2 es el de un objeto cualquiera (segundos); las clases tipo Glacier tardan horas y no se justifican a este tamaño.
 
-### 3.2 Cómo ofrecerlo (propuesta para la Spec 002; la v1 no tiene planes)
+### 3.2 Qué se archiva exactamente y qué exige la futura tarea
 
-- **Meses en línea por plan** (lo que cuesta capacidad de 5 GB): gratuito 1 (30 días); paga 3 a 12 según la palanca elegida en §2 (3 meses = **128 restaurantes de paga**; 12 meses = **22**).
+**Lo que mi medición archivó fue un caso de prueba, no una propuesta:** incluía `alias` y `notas` y ids de miembro, que **no pueden ir al archivo largo**: la regla dura 10 prohíbe datos personales del comensal en el servidor, y un alias o una nota («sin cebolla para Ana») lo son. **Propuesta de contenido:** por comanda, `mesa.numero`, fechas (creada, atendida, servida), estado, `total_estimado`, `num_comensales` y sus ítems con **nombre y precio congelados del platillo, cantidad y subtotal**. **No va:** alias, color de avatar, `miembro_id`, `notas`, `ip_hash`, `user_agent_fam`. Eso **reduce** el tamaño archivado respecto a los 489 B por visita medidos (que son una cota alta).
+
+**Conciliación con 03 §7:** el documento purga eventos a 13 meses con agregación diaria y sesiones, órdenes y comandas a 24 meses. **Hasta 24 meses, el archivo frío sustituye a la base** (sale de línea, no se amplía la retención) y concilia con 03 §7. **Más de 24 meses es una ampliación que exige cambiar 03 §7** y decidir quién guarda: *Carta* (más tiempo con datos de negocio ajenos) o *el restaurante* (descarga y se queda con su copia). Mi propuesta es lo segundo.
+
+**Requisito para la futura tarea de archivado (reglas duras 8 y 9):** **verificar antes de borrar**: (1) escribir el archivo del mes; (2) releerlo del almacenamiento y comparar conteos y suma de `total_estimado` contra la base; (3) sólo entonces purgar en una transacción; (4) si falla cualquier paso, no se borra nada y se alerta. Ninguna comanda en estado no terminal sale de línea (regla 8). Sin esta verificación **no se debe construir el archivador**.
+
+### 3.3 Cómo ofrecerlo (propuesta para la Spec 002; la v1 no tiene planes)
+
+- **Meses en línea por plan** (lo que cuesta capacidad de 5 GB): gratuito 1 (30 días, **como decidió Calvin el 13-nov**); paga **12 meses es lo decidido por Calvin el 13-nov y cabe hoy sólo 22 restaurantes de paga en 5 GB**. **Propuesta que cambia lo decidido:** 3 meses en línea y el resto en archivo descargable, **porque sube a 128 los que caben en la misma cifra de 5 GB**; lo que se pierde es ver el mes 4 al 12 con un clic (hay que bajar el archivo). Si Calvin mantiene 12 meses en línea, la alternativa es pasar a Pro (20 USD) antes de los 17–22 restaurantes de paga.
 - **Archivo descargable** de lo que sale de línea: un `.json.gz` por mes, **que el propio restaurante descarga** desde el panel («Descargar mi historial de abril»), con aviso antes de que salga de línea. Es la respuesta a «dar un historial grande y la opción de descargar lo viejo para liberar espacio»: **liberar espacio de la base, no del restaurante.**
 - **Años en frío** (en R2, a cargo de Carta): a 10.6 MB por restaurante-año el costo es de centavos; el límite real es **cuánto tiempo se compromete Carta a guardar** (§4: si no es registro contable, no hay obligación; si lo es, la obligación es del comerciante y la copia descargable le basta).
 - **Dato de mercado del valor del historial:** Loyverse cobra **7 USD por tienda al mes (≈ 130 pesos)** el complemento «historial» después de 31 días [fuente: loyverse.com/pricing, leída el 13 de noviembre en el comparativo de precios]. Es el único precio publicado por historial que encontré; vale la pena para el informe de precios (A).
 
 ---
+
+### 3.4 Límites de la medición del disco (dichos)
+
+- **La carga en bloque más `VACUUM (ANALYZE)` no reproduce el inflado por actualizaciones:** en la vida real una comanda cambia de estado dos veces y una sesión se cierra, y cada `UPDATE` deja una versión muerta que ocupa espacio hasta el siguiente `VACUUM` (y fragmenta). Mis tamaños son, por eso, **una cota baja**. Se mide con `pgstattuple` sobre el volumen del piloto.
+- **La reserva de 20 % y la razón de compresión (7.8× con datos sintéticos regulares) son [supuestos]**: se miden con `pg_ls_waldir()` en producción y archivando el primer mes real.
+- **Los 10 eventos por visita y los miembros, ítems y comandas por visita son [supuestos]** del generador; se miden con consultas de lectura al piloto (§8).
 
 ## 4. Ley mexicana: qué plazos de conservación existen
 

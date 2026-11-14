@@ -777,6 +777,17 @@
    "tipo": "estadística oficial",
    "consulta": "2026-11-14",
    "nota": "24 de julio de 2025; no trae ingresos por estrato."
+  },
+  {
+   "clave": "paginas_proveedores_14nov",
+   "autor": "Meniu, Fudo, Poster, MenuTiger, Soft Restaurant, Last.app, Loyverse, Neolo, Waitry",
+   "año": 2026,
+   "titulo": "Páginas de precios y funciones leídas con Chromium el 14 de noviembre de 2026",
+   "publica": "cada proveedor",
+   "url": "https://meniuapp.com/es/plans · https://fu.do/precios · https://joinposter.com/mx/pricing (redirige a joinposter.mx) · https://www.menutiger.com/es/pricing · https://softrestaurant.com/cloud · https://last.app/mx/precios · https://loyverse.com/pricing · https://www.neolo.com/mexico/menu-qr · https://waitry.net/es-mx/precios",
+   "tipo": "precio publicado por el proveedor",
+   "consulta": "2026-11-14",
+   "nota": "El texto extraído no trae las marcas ✓/✗: se asume que la lista de funciones de un plan único (Meniu) es lo que incluye. Poster mostró USD en joinposter.mx; el 13-nov mostraba pesos en joinposter.com/mx: no conciliado."
   }
  ],
  "grupos": [

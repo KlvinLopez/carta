@@ -51,7 +51,7 @@
    "taqueria_fonda_empuja_pct": 0.0
   }
  ],
- "nucleo_por_plan": {
+ "nucleo_por_personal_contraste": {
   "Gratuito": {
    "negocios": 73193,
    "pct": 69.8
@@ -67,66 +67,278 @@
  },
  "planes": {
   "Gratuito": {
-   "precio": 0,
    "perfil": "chico",
    "costo_var": 1.0,
-   "fijo": 3.0,
+   "meses_visitas": 1,
    "mb_en_linea": 13.0,
-   "costo_total": 4.0,
-   "margen_pct": null,
+   "costo_sin_soporte_ni_comision": 4.0,
+   "piso_por_precio": {},
+   "margen_pct_por_precio": {},
    "gratuitos_por_costo": 1.0,
    "gratuitos_por_disco": 1.0,
    "restaurantes_en_5gb_solo_de_este_plan": 384
   },
   "Servicio": {
-   "precio": 349,
    "perfil": "mediano",
    "costo_var": 1.9,
-   "fijo": 3.0,
+   "meses_visitas": 3,
    "mb_en_linea": 27.4,
-   "costo_total": 83.0,
-   "margen_pct": 76,
+   "costo_sin_soporte_ni_comision": 4.9,
+   "piso_por_precio": {
+    "249": 80.4,
+    "299": 82.9,
+    "349": 85.3
+   },
+   "margen_pct_por_precio": {
+    "249": 68,
+    "299": 72,
+    "349": 76
+   },
    "gratuitos_por_costo": 1.2,
    "gratuitos_por_disco": 2.1,
    "restaurantes_en_5gb_solo_de_este_plan": 182
   },
   "Salón": {
-   "precio": 549,
    "perfil": "grande",
    "costo_var": 7.5,
-   "fijo": 3.0,
+   "meses_visitas": 6,
    "mb_en_linea": 130.9,
-   "costo_total": 96.9,
-   "margen_pct": 82,
+   "costo_sin_soporte_ni_comision": 10.5,
+   "piso_por_precio": {
+    "249": 86.0,
+    "399": 93.3,
+    "549": 100.6
+   },
+   "margen_pct_por_precio": {
+    "249": 65,
+    "399": 77,
+    "549": 82
+   },
    "gratuitos_por_costo": 2.6,
    "gratuitos_por_disco": 10.1,
    "restaurantes_en_5gb_solo_de_este_plan": 38
   }
  },
+ "equilibrio": {
+  "249": {
+   "margen_por_pagante": 168.6,
+   "pagantes_para_cubrir_fijo": 15.2
+  },
+  "299": {
+   "margen_por_pagante": 216.1,
+   "pagantes_para_cubrir_fijo": 11.9
+  },
+  "349": {
+   "margen_por_pagante": 263.7,
+   "pagantes_para_cubrir_fijo": 9.7
+  },
+  "399": {
+   "margen_por_pagante": 305.7,
+   "pagantes_para_cubrir_fijo": 8.4
+  },
+  "549": {
+   "margen_por_pagante": 448.4,
+   "pagantes_para_cubrir_fijo": 5.7
+  }
+ },
  "escenarios": [
   {
-   "conversion": 0.03,
-   "pagan_servicio": 8,
-   "pagan_salon": 1,
-   "ingreso_mes": 3336,
-   "costo_fijo_1000_mes": 2569,
-   "punto_de_equilibrio_pagantes": 7.4
+   "rebasan_topes_pct": 16,
+   "conversion_pct": 5,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 8.0,
+   "ingreso_mes": 2542,
+   "costo_de_atender_pagantes": 679,
+   "costo_fijo_1000": 2569,
+   "neto_mes": -706
   },
   {
-   "conversion": 0.05,
-   "pagan_servicio": 14,
-   "pagan_salon": 1,
-   "ingreso_mes": 5560,
-   "costo_fijo_1000_mes": 2569,
-   "punto_de_equilibrio_pagantes": 7.4
+   "rebasan_topes_pct": 16,
+   "conversion_pct": 5,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 8.0,
+   "ingreso_mes": 2867,
+   "costo_de_atender_pagantes": 694,
+   "costo_fijo_1000": 2569,
+   "neto_mes": -397
   },
   {
-   "conversion": 0.1,
-   "pagan_servicio": 27,
-   "pagan_salon": 3,
-   "ingreso_mes": 11120,
-   "costo_fijo_1000_mes": 2569,
-   "punto_de_equilibrio_pagantes": 7.4
+   "rebasan_topes_pct": 16,
+   "conversion_pct": 10,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 16.0,
+   "ingreso_mes": 5084,
+   "costo_de_atender_pagantes": 1357,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 1157
+  },
+  {
+   "rebasan_topes_pct": 16,
+   "conversion_pct": 10,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 16.0,
+   "ingreso_mes": 5734,
+   "costo_de_atender_pagantes": 1389,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 1776
+  },
+  {
+   "rebasan_topes_pct": 16,
+   "conversion_pct": 20,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 32.0,
+   "ingreso_mes": 10168,
+   "costo_de_atender_pagantes": 2714,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 4884
+  },
+  {
+   "rebasan_topes_pct": 16,
+   "conversion_pct": 20,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 32.0,
+   "ingreso_mes": 11468,
+   "costo_de_atender_pagantes": 2777,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 6121
+  },
+  {
+   "rebasan_topes_pct": 39,
+   "conversion_pct": 5,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 19.5,
+   "ingreso_mes": 5980,
+   "costo_de_atender_pagantes": 1632,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 1780
+  },
+  {
+   "rebasan_topes_pct": 39,
+   "conversion_pct": 5,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 19.5,
+   "ingreso_mes": 6880,
+   "costo_de_atender_pagantes": 1675,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 2636
+  },
+  {
+   "rebasan_topes_pct": 39,
+   "conversion_pct": 10,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 39.0,
+   "ingreso_mes": 11961,
+   "costo_de_atender_pagantes": 3263,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 6129
+  },
+  {
+   "rebasan_topes_pct": 39,
+   "conversion_pct": 10,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 39.0,
+   "ingreso_mes": 13761,
+   "costo_de_atender_pagantes": 3350,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 7841
+  },
+  {
+   "rebasan_topes_pct": 39,
+   "conversion_pct": 20,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 78.0,
+   "ingreso_mes": 23922,
+   "costo_de_atender_pagantes": 6526,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 14827
+  },
+  {
+   "rebasan_topes_pct": 39,
+   "conversion_pct": 20,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 78.0,
+   "ingreso_mes": 27522,
+   "costo_de_atender_pagantes": 6700,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 18252
+  },
+  {
+   "rebasan_topes_pct": 71,
+   "conversion_pct": 5,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 35.5,
+   "ingreso_mes": 10764,
+   "costo_de_atender_pagantes": 2957,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 5238
+  },
+  {
+   "rebasan_topes_pct": 71,
+   "conversion_pct": 5,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 35.5,
+   "ingreso_mes": 12464,
+   "costo_de_atender_pagantes": 3040,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 6855
+  },
+  {
+   "rebasan_topes_pct": 71,
+   "conversion_pct": 10,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 71.0,
+   "ingreso_mes": 21529,
+   "costo_de_atender_pagantes": 5915,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 13045
+  },
+  {
+   "rebasan_topes_pct": 71,
+   "conversion_pct": 10,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 71.0,
+   "ingreso_mes": 24929,
+   "costo_de_atender_pagantes": 6079,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 16280
+  },
+  {
+   "rebasan_topes_pct": 71,
+   "conversion_pct": 20,
+   "precio_servicio": 299,
+   "precio_salon": 399,
+   "pagantes": 142.0,
+   "ingreso_mes": 43058,
+   "costo_de_atender_pagantes": 11829,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 28659
+  },
+  {
+   "rebasan_topes_pct": 71,
+   "conversion_pct": 20,
+   "precio_servicio": 349,
+   "precio_salon": 399,
+   "pagantes": 142.0,
+   "ingreso_mes": 49858,
+   "costo_de_atender_pagantes": 12159,
+   "costo_fijo_1000": 2569,
+   "neto_mes": 35130
   }
  ]
 }
