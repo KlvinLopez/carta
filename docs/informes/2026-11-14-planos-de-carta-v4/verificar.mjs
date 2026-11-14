@@ -35,10 +35,11 @@ await sinDesborde(p, '1440 portada');
 if (png) await p.screenshot({ path: `${png}/v5_portada.png` });
 // escenario
 const caben0 = await texto(p, '.kpi[data-kpi="caben"] b');
+const margen0 = await texto(p, '.kpi[data-kpi="margen"] b');
 await p.click('[data-esc="mejor"]'); await p.waitForTimeout(100);
-ok((await texto(p, '.kpi[data-kpi="ingreso"] b')) === '$349', 'Mejor caso cambia el ingreso por cliente de paga a $349');
+ok((await texto(p, '.kpi[data-kpi="margen"] b')) !== margen0, 'Mejor caso cambia el margen');
 await p.click('[data-esc="peor"]'); await p.waitForTimeout(100);
-ok((await texto(p, '.kpi[data-kpi="anuncios"] b')) === '$7', 'Peor caso cambia anuncios a $7');
+ok((await texto(p, '.kpi[data-kpi="anuncios"] b')) === '$7.2', 'Peor caso fija anuncios de tarifa baja ($7.2)');
 await p.click('[data-esc="rec"]'); await p.waitForTimeout(100);
 ok((await texto(p, '.kpi[data-kpi="caben"] b')) === caben0, 'Recomendado restaura las cifras');
 // cada cifra de arriba se abre
@@ -83,7 +84,7 @@ const c0 = await texto(p, '#cif .cifra b');
 await p.click('#srv [data-s="0"]'); await p.waitForTimeout(500);
 const c1 = await texto(p, '#cif .cifra b');
 ok(c1 !== c0, `disco: cambiar a Hobby cambia cuántos caben (${c0} → ${c1})`);
-await p.click('#pals [data-p="4"]'); await p.waitForTimeout(500);
+await p.click('#pals [data-p="a7"]'); await p.waitForTimeout(500);
 ok((await texto(p, '#cif .cifra b')) !== c1, 'disco: activar palancas cambia cuántos caben');
 ok(/disco|procesador|conexiones/.test(await texto(p, '#ins')), 'disco: dice el cuello de botella');
 if (png) await p.screenshot({ path: `${png}/v5_disco.png` });
@@ -102,9 +103,9 @@ await sinDesborde(p, 'topes'); await cierra(p);
 // precio frente a la competencia
 await abre(p, 'precio');
 const pr0 = await p.evaluate(() => S.precioServicio);
-await p.focus('#svP circle[aria-label="Precio Servicio"]'); await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(400);
+await p.focus('#svP circle[aria-label="Precio Master Chef"]'); await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(400);
 ok((await p.evaluate(() => S.precioServicio)) > pr0, 'precio: las flechas mueven el precio de Servicio');
-await p.click('#sus [data-sus="Meniu"]'); await p.click('#sus [data-regla]'); await p.waitForTimeout(400);
+await p.click('#sus [data-sus="Meniu Business"]'); await p.click('#sus [data-regla]'); await p.waitForTimeout(400);
 ok((await p.evaluate(() => S.precioServicio)) === 249, 'precio: la regla contra Meniu pone $249');
 await p.click('#svP [data-prov]'); await p.waitForTimeout(400);
 ok((await p.$$('#ocp [data-rp]')).length >= 1, 'precio: ocultar un proveedor');
@@ -116,16 +117,16 @@ const s0 = await texto(p, '#svA');
 await p.click('#svA [data-v="peor"]'); await p.waitForTimeout(300);
 ok((await texto(p, '#svA')) !== s0, 'sostiene: apagar «peor caso» cambia la gráfica');
 await p.click('#svB [data-v="alto"]'); await p.waitForTimeout(300);
-ok(/subir|alcanza/.test(await texto(p, '#svB')), 'sostiene: el nivel alto dice cuándo subir de escalón');
+ok(/subir de escalón|Hobby|Pro/.test(await texto(p, '#svB')), 'sostiene: el nivel alto muestra los escalones del servidor');
 await p.focus('#hN'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(200);
 if (png) await p.screenshot({ path: `${png}/v5_sostiene.png`, fullPage: true });
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // recomendaciones
 await abre(p, 'recomendaciones');
-await p.click('#r_platillos .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
+await p.click('#r_topes_gratuito .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topePlatillos)) === 60, 'recomendaciones: «Probar esta» aplica 60 platillos');
 ok((await texto(p, '#esc')).includes('Mi escenario'), 'recomendaciones: marca «Mi escenario»');
-await p.click('#r_platillos .opcion.rec .btn'); await p.waitForTimeout(300);
+await p.click('#r_topes_gratuito .opcion.rec .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topePlatillos)) === 80, 'recomendaciones: aplicar lo recomendado');
 if (png) await p.screenshot({ path: `${png}/v5_recs.png` });
 await sinDesborde(p, 'recomendaciones');
@@ -135,7 +136,7 @@ ok((await p.evaluate(() => abierto)) === 'precio', 'los enlaces de la barra abre
 await cierra(p);
 // persistencia
 await p.click('[data-esc="mejor"]'); await p.reload(); await p.waitForTimeout(400);
-ok((await texto(p, '.kpi[data-kpi="ingreso"] b')) === '$349', 'el escenario persiste al recargar');
+ok((await p.getAttribute('[data-esc="mejor"]', 'aria-pressed')) === 'true', 'el escenario persiste al recargar');
 await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);

@@ -58,24 +58,24 @@ DET.mercado = {
   actualizar() {
     const sv = $("#svMer"), X0 = 30, W = 900, tot = M.total;
     const fuera = tot - M.nucleo, resto = M.nucleo - M.zonas17;
-    const segs = [[fuera, C.arena, "Fuera del núcleo", "Fondas para llevar, tacos, mariscos, cafeterías y loncherías"], [resto, C.gris, "Núcleo fuera de las 17 zonas", "Restaurantes y bares de ciudades medianas y pueblos"], [M.zonas17, C.vino, "Núcleo en 17 zonas", "Restaurantes y bares de CDMX, Guadalajara, Monterrey, Puebla…"]];
+    const segs = [[fuera, C.arena, "Fuera de lo que Carta atiende hoy", "Fondas para llevar, tacos, mariscos, cafeterías y loncherías"], [resto, C.gris, "Fuera de las 17 zonas", "Restaurantes y bares de ciudades medianas y pueblos"], [M.zonas17, C.vino, "17 zonas metropolitanas", "Restaurantes y bares de CDMX, Guadalajara, Monterrey, Puebla…"]];
     let b = T(X0, 22, "Mercado total (TAM): " + n(tot) + " restaurantes y bares de México", 15, C.vino, "start", 700);
     let x = X0; const cx = [];
     segs.forEach(([v, c, nom, ej], i) => { const w = W * v / tot; b += `<g class="gh" style="animation-delay:${i * 150}ms" data-tip="${esc(nom + ": " + n(v) + ". Ejemplos: " + ej)}">${Rc(x, 70, w, 46, c, 8)}</g>`; cx.push([x, w]); x += w; });
-    b += T(X0 + 12, 100, "Fuera del núcleo: " + n(fuera) + " · fondas para llevar, tacos, mariscos, cafeterías", 14, C.t2, "start", 700);
-    // núcleo: corchete arriba, con su descripción
-    b += `<polyline points="${cx[1][0]},64 ${cx[1][0]},52 ${X0 + W},52 ${X0 + W},64" fill="none" stroke="${C.vino}" stroke-width="2"/>` + T(cx[1][0] + (W + X0 - cx[1][0]) / 2, 46, "Núcleo: " + n(M.nucleo) + " · restaurantes a la carta, comida corrida, bares y cantinas", 12.5, C.vino, "end", 700);
+    b += T(X0 + 12, 100, "Fuera de lo que Carta atiende hoy: " + n(fuera) + " · fondas para llevar, tacos, mariscos, cafeterías", 14, C.t2, "start", 700);
+    // restaurantes a la carta y bares: corchete arriba, con su descripción
+    b += `<polyline points="${cx[1][0]},64 ${cx[1][0]},52 ${X0 + W},52 ${X0 + W},64" fill="none" stroke="${C.vino}" stroke-width="2"/>` + T(cx[1][0] + (W + X0 - cx[1][0]) / 2, 46, "Restaurantes a la carta y bares: " + n(M.nucleo) + " · comida corrida, cantinas y centros nocturnos", 12.5, C.vino, "end", 700);
     // llamadas debajo, cada nivel con su línea y sus ejemplos
     const c2 = cx[1][0] + cx[1][1] / 2, c3 = cx[2][0] + cx[2][1] / 2;
-    b += `<polyline points="${c2},116 ${c2},142 ${c2 + 12},142" fill="none" stroke="${C.t2}" stroke-width="1.3"/>` + T(c2 - 6, 147, "Núcleo fuera de las 17 zonas: " + n(resto) + " · ciudades medianas y pueblos", 12.5, C.t2, "end", 700);
+    b += `<polyline points="${c2},116 ${c2},142 ${c2 + 12},142" fill="none" stroke="${C.t2}" stroke-width="1.3"/>` + T(c2 - 6, 147, "Fuera de las 17 zonas: " + n(resto) + " · ciudades medianas y pueblos", 12.5, C.t2, "end", 700);
     b += `<polyline points="${c3},116 ${c3},168" fill="none" stroke="${C.osc}" stroke-width="1.3"/>` + T(c3 + 6, 172, "17 zonas metropolitanas: " + n(M.zonas17) + " · CDMX, Guadalajara, Monterrey…", 12.5, C.osc, "end", 700);
-    // barra 2: dentro del núcleo
-    b += T(X0, 204, "Dentro del núcleo (" + n(M.nucleo) + ")", 15, C.vino, "start", 700);
+    // barra 2: dentro de los restaurantes a la carta y bares
+    b += T(X0, 204, "Dentro de los restaurantes a la carta y bares (" + n(M.nucleo) + ")", 15, C.vino, "start", 700);
     const cad = M.nucleo - M.servible, w2 = W * M.servible / M.nucleo;
-    b += `<g class="gh" data-tip="Clientes potenciales (SAM): núcleo sin cadenas grandes. Entre ${n(M.servible_rango[0])} y ${n(M.servible_rango[1])} según cuántos nombres repetidos sean cadenas.">${Rc(X0, 216, w2, 46, C.vino, 8)}</g>${Rc(X0 + w2, 216, W - w2, 46, C.arena, 8, `data-tip="Posibles cadenas: ≈ ${n(cad)} establecimientos con el mismo nombre; casi ninguna lo es"`)}`;
+    b += `<g class="gh" data-tip="Clientes potenciales (SAM): sin cadenas grandes. Entre ${n(M.servible_rango[0])} y ${n(M.servible_rango[1])} según cuántos nombres repetidos sean cadenas.">${Rc(X0, 216, w2, 46, C.vino, 8)}</g>${Rc(X0 + w2, 216, W - w2, 46, C.arena, 8, `data-tip="Posibles cadenas: ≈ ${n(cad)} establecimientos con el mismo nombre; casi ninguna lo es"`)}`;
     b += T(X0 + 14, 245, "Clientes potenciales (SAM) ≈ " + n(M.servible), 15, "#fff", "start", 700) + T(X0 + W - 6, 280, "posibles cadenas ≈ " + n(cad), 11.5, C.t2, "end");
     const [m0, m1] = M.ganable_12m;
-    b += `<g class="gk">${Rc(X0, 208, Math.max(W * m1 / M.nucleo, 6), 62, C.dorado, 3)}</g>` + `<polyline points="${X0 + 3},270 ${X0 + 3},300 ${X0 + 40},300" stroke="${C.dorado}" stroke-width="2" fill="none"/>` + T(X0 + 46, 305, `Meta a 12 meses (SOM): ${m0} a ${n(m1)} clientes (0.1 % a 1 % del núcleo) · escenario`, 13.5, C.dorado, "start", 700);
+    b += `<g class="gk">${Rc(X0, 208, Math.max(W * m1 / M.nucleo, 6), 62, C.dorado, 3)}</g>` + `<polyline points="${X0 + 3},270 ${X0 + 3},300 ${X0 + 40},300" stroke="${C.dorado}" stroke-width="2" fill="none"/>` + T(X0 + 46, 305, `Meta a 12 meses (SOM): ${m0} a ${n(m1)} clientes; el modelo usa 300 (0.1 % a 1 % del mercado de Carta) · escenario`, 13.5, C.dorado, "start", 700);
     b += Rc(X0 + 800, 288, 100, 20, "none", 10, `stroke="${C.dorado}" stroke-width="1.5"`) + T(X0 + 850, 302, "supuesto", 11, C.dorado, "middle", 700);
     // cartas que un lector puede leer
     const m = M.muestra, mot = M.muestra_motivos, tot2 = m.intentos;

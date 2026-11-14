@@ -1,7 +1,7 @@
 "use strict";
 /* ===== utilidades ===== */
 const NS = "http://www.w3.org/2000/svg";
-const M = D.mercado, DI = D.disco, PL = D.planes, PR = D.precio, MX = D.matriz, SERV = D.escalones;
+const M = D.mercado, MX = D.matriz;
 const C = {vino: "#6b2d3e", osc: "#4f1728", dorado: "#b8860b", tinta: "#1a1a1a", t2: "#5b4a3d", arena: "#e6d9c6", a2: "#f3eadb", azul: "#2e7aab", gris: "#b9afa3", verde: "#3f6b3b", rojo: "#9b2c2c", blanco: "#ffffff"};
 const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TC = 18.6188; // pesos por dólar (FIX de Banxico, 12 nov.)
@@ -94,71 +94,6 @@ function tip(e) {
 }
 document.addEventListener("mouseover", tip); document.addEventListener("focusin", tip);
 document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) tt.hidden = true; });
-
-/* ===== escenario global (estado que persiste y recalcula todo) ===== */
-const ORD = ["P1", "P2", "P3", "P4", "P5"];
-const palMap = Object.fromEntries(DI.palancas.map(p => [p.clave, p]));
-const SUST = PR.sustitutos; // Meniu 225, Fudo Avanzado 652, Fudo + mesas 745
-const PRESETS = {
-  rec: {nombre: "Recomendado", precioServicio: 299, precioSalon: 399, topePlatillos: 80, topeMesas: 10, topeCuentas: 3, palancas: 2, servidor: 1, anuncios: "medio", sustituto: "Fudo Avanzado", K: 0.5, soporte: 60, conv: 10},
-  peor: {nombre: "Peor caso", precioServicio: 249, precioSalon: 249, topePlatillos: 120, topeMesas: 40, topeCuentas: 20, palancas: 0, servidor: 0, anuncios: "bajo", sustituto: "Meniu", K: 0.5, soporte: 150, conv: 5},
-  mejor: {nombre: "Mejor caso", precioServicio: 349, precioSalon: 599, topePlatillos: 40, topeMesas: 10, topeCuentas: 3, palancas: 4, servidor: 3, anuncios: "alto", sustituto: "Fudo + mesas", K: 0.5, soporte: 30, conv: 20},
-};
-const LS = "carta-v5-escenario";
-let S = {...PRESETS.rec};
-let MIO = null; // «Mi escenario»: lo último que editó la persona
-try { const g = JSON.parse(localStorage.getItem(LS) || "null"); if (g && g.S) { S = {...PRESETS.rec, ...g.S}; MIO = g.MIO || null; } } catch (e) { /* sin almacenamiento: queda en memoria */ }
-const oyentes = [];
-function emitir() {
-  try { localStorage.setItem(LS, JSON.stringify({S, MIO})); } catch (e) { /* ignorar */ }
-  oyentes.forEach(f => f());
-}
-function cambiar(parche, manual = true) { // manual: lo editó la persona
-  S = {...S, ...parche};
-  if (manual) { S.nombre = "Mi escenario"; MIO = {...S}; }
-  emitir();
-}
-function aplicar(clave) {
-  if (clave === "mio") S = MIO ? {...MIO} : {...S, nombre: "Mi escenario"};
-  else S = {...PRESETS[clave]};
-  emitir();
-}
-
-/* ===== motor provisional (se sustituye por docs/research/2026-11-14-modelo-de-escenarios.mjs cuando llegue) ===== */
-function interp(pts, x) {
-  if (x <= pts[0][0]) return pts[0][1];
-  for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; return y0 + (y1 - y0) * (x - x0) / (x1 - x0); }
-  return pts[pts.length - 1][1];
-}
-const COB = PL.cobertura_platillos.map(c => [c.tope, c.total_empuja_pct]);
-const PTS_MESAS = [[10, 39], [40, 2.9]]; // supuesto: entre el punto del estudio (10 mesas) y la cuota de Salón del DENUE (31+ personas)
-const PTS_CUENTAS = [[3, 36], [20, 2.9]];
-const F = PR.formula;
-const piso = (p, s) => F.costo_var_mediano + F.fijo + (F.stripe_pct * p * (1 + F.iva) + F.stripe_fijo) * (1 + F.iva) + s;
-function reglaPrecio(Sx, K, s) { let p = K * Sx; for (let i = 0; i < 40; i++) p = Math.max(3 * piso(p, s), K * Sx); return p; }
-function redondea(p, s) { if (p < 100) return Math.round(p); let b = Math.floor(p / 50) * 50 - 1; while (b < 3 * piso(b, s)) b += 50; return b; }
-function motor(s) {
-  const e = SERV[s.servidor], act = s.palancas ? ORD[s.palancas - 1] : "P0", p = palMap[act], p0 = palMap.P0, hobby = e.plan === "hobby";
-  const lim = (cpu, disco, con) => [["procesador", cpu], ["disco", disco], ["conexiones abiertas", con]];
-  const dG = hobby ? Math.round(e.disco_g * p.gratuito / p0.gratuito) : Infinity;
-  const dP = hobby ? Math.round(e.disco_p * p.paga / p0.paga) : Infinity;
-  const limG = lim(e.cpu_g, dG, e.con_g), limP = lim(e.cpu_p, dP, e.con_p);
-  const minim = l => l.reduce((a, b) => (b[1] < a[1] ? b : a));
-  const [cuelloG, cabenG] = minim(limG), [cuelloP, cabenP] = minim(limP);
-  const pm = interp(PTS_MESAS, s.topeMesas), pc = interp(PTS_CUENTAS, s.topeCuentas), pp = interp(COB, s.topePlatillos);
-  const emp = Math.max(pm, pc, pp);
-  const f = emp / 100 * s.conv / 100; // fracción de clientes de paga entre los registrados
-  const pisoS = piso(s.precioServicio, s.soporte), margen = s.precioServicio - pisoS;
-  const ads = D.anuncios_mxn[s.anuncios];
-  const costoGrat = PL.planes.Gratuito.costo; // pesos al mes por cliente gratuito (documento planes-y-costo)
-  const fijo = PL.costo_fijo_1000;
-  const VARG = 1.0; // [documento] costo variable de un cliente gratuito, pesos al mes (planes-y-costo)
-  const neto = N => N * f * margen + N * (1 - f) * (ads - VARG) - fijo;
-  return {e, act, limG, limP, cabenG, cabenP, cuelloG, cuelloP, pm, pc, pp, emp, f, pisoS, margen, margenPct: 100 * margen / s.precioServicio, ads, costoGrat,
-    sostiene: margen / costoGrat, equilibrioPagantes: fijo / margen, pagantes1000: 1000 * f, neto, fijo, usd: e.usd};
-}
-const emTxt = m => `${n(m.emp, 1)} %`;
-const NOMSERV = e => `${e.procesos} procesos · ${e.plan === "pro" ? "Pro" : "Hobby"}`;
 
 /* ===== marco del detalle ===== */
 const DET = {};

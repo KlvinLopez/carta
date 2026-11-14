@@ -25,6 +25,19 @@ USADAS = [
 ]  # fmt: skip
 
 
+INV = RAIZ / "docs" / "research"
+
+
+def modelo_js() -> str:
+    """El modelo de escenarios tal cual: sólo se quita `export ` y se devuelven sus funciones en un objeto."""
+    import re
+
+    src = (INV / "2026-11-14-modelo-de-escenarios.mjs").read_text(encoding="utf-8")
+    nombres = re.findall(r"^export (?:async )?(?:function|const) (\w+)", src, flags=re.M)
+    cuerpo = re.sub(r"^export ", "", src, flags=re.M)
+    return "(function(){\n" + cuerpo + "\nreturn {" + ",".join(nombres) + "};\n})()"
+
+
 def b64(p: Path) -> str:
     return base64.b64encode(p.read_bytes()).decode()
 
@@ -43,6 +56,10 @@ def main() -> None:
     plantilla = (AQUI / "interactivo.tpl.html").read_text(encoding="utf-8")
     html = (
         plantilla.replace("__JS__", js)
+        .replace("__MODELO__", modelo_js())
+        .replace("__PARAM__", (INV / "2026-11-14-parametros.json").read_text(encoding="utf-8"))
+        .replace("__RECS__", (INV / "2026-11-14-recomendaciones.json").read_text(encoding="utf-8"))
+        .replace("__GLOS__", (INV / "2026-11-14-glosario-de-negocio.json").read_text(encoding="utf-8"))
         .replace("__DATOS__", json.dumps(d, ensure_ascii=False))
         .replace("__REFS__", json.dumps(refs, ensure_ascii=False))
         .replace("__SANS__", b64(FUENTES / "DMSans-variable-latin.woff2"))
