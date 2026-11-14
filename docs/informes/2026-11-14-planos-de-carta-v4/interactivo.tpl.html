@@ -141,8 +141,8 @@ const miniCap = () => miniBarras(CAP.escalones.map(e => e.gratuitos), [C.gris, C
 const palMap = Object.fromEntries(DI.palancas.map(p => [p.clave, p]));
 const miniDisco = () => miniBarras(["P00", "P0", "P1", "P2"].map(k => palMap[k].paga), [C.gris, "#cdbba3", C.vino, C.osc], ["hoy", "12 m", "30 d", "archivo"], 140);
 function miniPlanes() {
-  return SV(300, 120, [["Gratuito", "≤ 10 mesas", "0", C.gris], ["Servicio", "11–40", "249–349", C.vino], ["Salón", "> 40", "399–599", C.osc]].map(([a, b, c, col], i) =>
-    Rc(i * 102, 4, 94, 108, "#fff", 14, `stroke="${C.arena}" stroke-width="1.5"`) + Rc(i * 102, 4, 94, 28, col, 14) + Rc(i * 102, 18, 94, 14, col, 0) + T(i * 102 + 47, 23, a, 12, "#fff", "middle", 700) + T(i * 102 + 47, 58, b, 11.5, C.tinta, "middle") + T(i * 102 + 47, 90, c, 16, C.vino, "middle", 400, true)).join(""));
+  return SV(300, 124, [["Gratuito", "≤ 10 mesas", "0", C.gris], ["Servicio", "11–40", "249–349", C.vino], ["Salón", "> 40", "399–599", C.osc]].map(([a, b, c, col], i) =>
+    Rc(i * 102, 4, 94, 108, "#fff", 14, `stroke="${C.arena}" stroke-width="1.5"`) + Rc(i * 102, 4, 94, 28, col, 14) + Rc(i * 102, 18, 94, 14, col, 0) + T(i * 102 + 47, 23, a, 12, "#fff", "middle", 700) + T(i * 102 + 47, 58, b, 11.5, C.tinta, "middle") + T(i * 102 + 47, 90, c, 16, C.vino, "middle", 400, true)).join("") + T(255, 120, "propuesta de cambio", 9.5, C.dorado, "middle", 700));
 }
 function miniPrecio() {
   const X = v => 6 + 288 * v / 800;
@@ -158,7 +158,7 @@ function miniEq() {
 /* ---------- cajas ---------- */
 const DEC = ["K: qué tan agresivo entrar (0.3 a 0.7)", "Contra quién se compite: Meniu o Fudo", "Tope de platillos del gratuito: 80 o 60", "Si se ofrece historial y hasta cuándo se guarda", "Soporte: 60 o 150 pesos al mes (se mide)"];
 const CAJAS = [
-  {id: "hueco", q: "¿Está el negocio en línea?", mini: miniDona, c: "94 % del núcleo no tiene sitio propio."},
+  {id: "hueco", q: "¿Está el negocio en línea?", mini: miniDona, c: "94 % del núcleo no declara sitio web."},
   {id: "mercado", q: "¿Cuántos negocios hay?", mini: miniMercado, c: "≈ 100,000 servibles; ganar 100 a 1,000 es escenario."},
   {id: "matriz", q: "¿Qué existe y a qué precio?", mini: miniMatriz, c: "Nadie publica el pedido en grupo."},
   {id: "cap", q: "¿Cuántos caben con eventos?", mini: miniCap, c: "Primero el disco; luego el procesador."},

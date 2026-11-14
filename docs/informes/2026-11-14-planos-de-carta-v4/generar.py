@@ -1226,7 +1226,7 @@ def html_p1() -> str:
             "Mercado",
             "¿Cuántos negocios hay?",
             mini_mercado(),
-            "94 % del núcleo no tiene sitio propio.",
+            "94 % del núcleo no declara sitio web.",
             "inegi_denue",
         ),
         (
