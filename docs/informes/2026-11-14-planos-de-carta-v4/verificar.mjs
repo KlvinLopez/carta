@@ -33,24 +33,13 @@ const sinDesborde = async (p, etiqueta) => {
 const p = await nueva(1440, 900);
 await sinDesborde(p, '1440 portada');
 if (png) await p.screenshot({ path: `${png}/v5_portada.png` });
-// escenario
-const caben0 = await texto(p, '.kpi[data-kpi="caben"] b');
-const margen0 = await texto(p, '.kpi[data-kpi="margen"] b');
-await p.click('[data-esc="mejor"]'); await p.waitForTimeout(100);
-ok((await texto(p, '.kpi[data-kpi="margen"] b')) !== margen0, 'Mejor caso cambia el margen');
-await p.click('[data-esc="peor"]'); await p.waitForTimeout(100);
-ok((await texto(p, '.kpi[data-kpi="margen"] b')) !== margen0, 'Peor caso cambia el margen');
-ok((await texto(p, '.kpi[data-kpi="anuncios"] b')) === '$0', 'sin anuncios, el ingreso por gratuito es $0');
-await p.click('[data-esc="rec"]'); await p.waitForTimeout(100);
-ok((await texto(p, '.kpi[data-kpi="caben"] b')) === caben0, 'Recomendado restaura las cifras');
-await p.click('#esc [data-cupo="0.8"]'); await p.waitForTimeout(150);
-ok((await p.evaluate(() => S.topeMesas)) === 20, 'cupo 80 %: pone los topes de la tabla (20 mesas)');
-await p.click('[data-esc="rec"]'); await p.waitForTimeout(150);
-ok((await p.evaluate(() => S.topeMesas)) === 10, 'Recomendado vuelve a 10 mesas');
-await p.click('#esc [data-ads]'); await p.waitForTimeout(150);
-ok((await texto(p, '#esc')).includes('falta aprobación'), 'anuncios: el aviso dice que hoy no existen');
-ok((await texto(p, '.kpi[data-kpi="anuncios"] b')) !== '$0', 'anuncios (condicional) cambian el ingreso por gratuito');
-await p.click('[data-esc="rec"]'); await p.waitForTimeout(150);
+// los tres escenarios se ven a la vez, sin barra de filtros
+ok(!(await p.$('#esc')), 'no hay barra de escenario');
+ok((await p.$$('.kpi .tri .p')).length >= 3 && (await p.$$('.kpi .tri .m')).length >= 3, 'cada cifra muestra peor (rojo) y mejor (verde) al lado');
+const rec0 = await texto(p, '.kpi[data-kpi="margen"] b');
+ok((await texto(p, '.kpi[data-kpi="margen"] .p')) !== (await texto(p, '.kpi[data-kpi="margen"] .m')), 'peor y mejor difieren en el margen');
+const cr = await p.$eval('#grid .box.rec', (e) => { const r = e.getBoundingClientRect(); return [r.top, r.bottom, innerHeight]; });
+ok(cr[1] <= cr[2], `Recomendaciones se ve sin bajar (${Math.round(cr[1])} de ${cr[2]})`);
 // cada cifra de arriba se abre
 for (const k of ['potenciales', 'caben', 'sostiene', 'anuncios', 'ingreso', 'margen']) {
   await p.click(`.kpi[data-kpi="${k}"]`); await p.waitForTimeout(250);
@@ -60,22 +49,34 @@ for (const k of ['potenciales', 'caben', 'sostiene', 'anuncios', 'ingreso', 'mar
 // ¿en línea?
 await abre(p, 'linea');
 const t0 = await texto(p, '#svLinea');
-await p.click('#svLinea [data-i="0"]'); await p.waitForTimeout(500);
-ok((await texto(p, '#svLinea')) !== t0, 'línea: quitar un tamaño cambia la selección');
+await p.hover('#svLinea [data-i="3"]'); await p.waitForTimeout(500);
+ok((await texto(p, '#svLinea')) !== t0, 'línea: pasar el cursor por un tamaño cambia su ejemplo y sus números');
+ok(!(await texto(p, '#svLinea')).includes('toca un tamaño'), 'línea: sin texto de instrucciones');
 if (png) await p.screenshot({ path: `${png}/v5_linea.png` });
 await sinDesborde(p, 'línea'); await cierra(p);
 // mercado
-await abre(p, 'mercado'); ok((await p.$$('#svMer g[data-tip]')).length >= 8, 'mercado: niveles con ejemplos'); if (png) await p.screenshot({ path: `${png}/v5_mercado.png` }); await sinDesborde(p, 'mercado'); await cierra(p);
+await abre(p, 'mercado');
+const m0 = await texto(p, '#svMer');
+await p.click('#svMer [data-paso="2"]'); await p.waitForTimeout(700);
+ok((await texto(p, '#svMer')) !== m0, 'mercado: tocar un paso parte la barra');
+await p.click('#svMer [data-paso="3"]'); await p.waitForTimeout(500);
+ok((await texto(p, '#svMer')).includes('300'), 'mercado: el último paso llega a la meta de 300');
+await p.click('#svMer [data-seg="d"]'); await p.waitForTimeout(300);
+ok((await texto(p, '#svMer')).includes('El resto del mercado'), 'mercado: tocar un tramo muestra su ejemplo y su número');
+if (png) await p.screenshot({ path: `${png}/v8_mercado.png` });
+await sinDesborde(p, 'mercado'); await cierra(p);
 // matriz interactiva
 await abre(p, 'matriz');
 const fila0 = async () => p.$eval('#svMx text[font-weight="700"]', (e) => e.textContent).catch(() => '');
 const ys = () => p.$$eval('#svMx text.rm', (els) => els.filter((e) => /Business|Avanzado|Advanced|Premium|Starter|Lite|Plan 0|gratis/.test(e.textContent)).map((e) => [e.textContent, e.style.transform]));
 const antes = JSON.stringify(await ys());
+await p.hover('#svMx [data-fn="2"]'); await p.waitForTimeout(250);
+ok(await p.isVisible('#fnCard'), 'matriz: pasar por una columna muestra el dibujo de la función');
 await p.click('#svMx [data-a="ord:precio"]'); await p.waitForTimeout(600);
 const orden1 = JSON.stringify(await ys());
-ok(orden1 !== antes, 'matriz: tocar «Precio» reordena las filas');
-await p.click('#svMx [data-a="ord:precio"]'); await p.waitForTimeout(600);
-ok(JSON.stringify(await ys()) !== orden1, 'matriz: tocarlo otra vez invierte el orden');
+ok(orden1 !== antes, 'matriz: tocar «Precio» invierte el orden por defecto (por precio)');
+await p.click('#svMx [data-a="ord:2"]'); await p.waitForTimeout(600);
+ok(JSON.stringify(await ys()) !== orden1, 'matriz: ordenar por una función reordena las filas');
 await p.click('#svMx [data-a="ord:cob"]'); await p.waitForTimeout(500);
 await p.click('#svMx [data-a="fila:0"]'); await p.waitForTimeout(500);
 ok((await p.$$('#oc [data-rest^="fila"]')).length === 1, 'matriz: ocultar una fila la manda a «restaurar»');
@@ -148,23 +149,17 @@ ok((await p.evaluate(() => S.precioServicio)) > pg0, 'pagar: las flechas mueven 
 await p.click('#svG [data-t="1"]'); await p.waitForTimeout(300);
 ok((await texto(p, '#svG')).includes('11 a 50'), 'pagar: tocar un tamaño muestra su detalle');
 await sinDesborde(p, 'pagar'); await cierra(p);
-await p.click('[data-esc="rec"]'); await p.waitForTimeout(150);
 // recomendaciones
 await abre(p, 'recomendaciones');
 await p.click('#r_topes .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 8, 'recomendaciones: «Probar esta» aplica el cupo de 50 % (8 mesas)');
-ok((await texto(p, '#esc')).includes('Mi escenario'), 'recomendaciones: marca «Mi escenario»');
 await p.click('#r_topes .opcion.rec .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 10, 'recomendaciones: aplicar lo recomendado');
 if (png) await p.screenshot({ path: `${png}/v5_recs.png` });
 await sinDesborde(p, 'recomendaciones');
-// «ir a otra caja» desde la barra de escenario con el detalle abierto
-await p.click('#escDet .chip[data-ir="precio"]'); await p.waitForTimeout(300);
-ok((await p.evaluate(() => abierto)) === 'precio', 'los enlaces de la barra abren su caja');
-await cierra(p);
-// persistencia
-await p.click('[data-esc="mejor"]'); await p.reload(); await p.waitForTimeout(400);
-ok((await p.getAttribute('[data-esc="mejor"]', 'aria-pressed')) === 'true', 'el escenario persiste al recargar');
+// persistencia del escenario que se edita dentro de cada detalle
+await p.reload(); await p.waitForTimeout(400);
+ok((await p.evaluate(() => S.topeMesas)) === 10, 'lo editado dentro del detalle persiste al recargar');
 await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);

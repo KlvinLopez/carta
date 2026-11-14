@@ -1,0 +1,40 @@
+/* ===== dibujos: negocios, teléfonos y funciones (sólo formas rellenas, sin líneas) ===== */
+const toldo = (x, y, w, h = 14, k = 6) => { let r = ""; const a = w / k; for (let i = 0; i < k; i++) r += `<rect x="${x + i * a}" y="${y}" width="${a + 0.5}" height="${h}" fill="${i % 2 ? "#fef9f1" : "#6b2d3e"}"/>`; return r; };
+const mesaD = (x, y) => `<circle cx="${x}" cy="${y}" r="6" fill="#b8860b"/><rect x="${x - 1.5}" y="${y}" width="3" height="8" fill="#b8860b"/>`;
+const gente = (x, y, col = "#4f1728") => `<circle cx="${x}" cy="${y - 9}" r="4" fill="${col}"/><rect x="${x - 4}" y="${y - 4}" width="8" height="12" rx="4" fill="${col}"/>`;
+const caja = (x, y, w, h, f = "#fff", r = 6) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${f}"/>`;
+const sombra = "#f3eadb";
+/* dibujo(tipo): caja de 160×110 */
+function dibujo(k, x = 0, y = 0, s = 1) {
+  let g = caja(0, 100, 160, 6, "#e6d9c6", 3);
+  if (k === "puesto") g += caja(26, 66, 108, 34) + toldo(20, 44, 120, 18, 6) + caja(32, 70, 96, 10, sombra, 4) + `<circle cx="60" cy="62" r="7" fill="#b8860b"/>` + gente(146, 98) + `<rect x="24" y="44" width="3" height="56" fill="#b9afa3"/><rect x="133" y="44" width="3" height="56" fill="#b9afa3"/>`;
+  else if (k === "fonda") g += caja(22, 46, 116, 54) + toldo(16, 34, 128, 14, 8) + caja(34, 58, 28, 42, sombra, 5) + caja(78, 60, 22, 18, sombra, 4) + mesaD(112, 80) + gente(88, 98);
+  else if (k === "barrio") g += caja(14, 36, 132, 64) + toldo(8, 24, 144, 14, 8) + caja(24, 50, 30, 50, sombra, 5) + mesaD(76, 76) + mesaD(104, 76) + mesaD(132, 76) + gente(66, 98) + gente(118, 98, "#6b2d3e");
+  else if (k === "restaurante") g += caja(8, 28, 144, 72) + toldo(4, 16, 152, 14, 10) + caja(16, 44, 14, 56, sombra, 4) + [0, 1, 2, 3].map(i => mesaD(46 + i * 28, 72)).join("") + gente(60, 98) + gente(112, 98, "#b8860b") + `<rect x="136" y="48" width="9" height="24" rx="3" fill="#e6d9c6"/>`;
+  else if (k === "salon") g += caja(6, 24, 100, 76) + toldo(2, 12, 108, 12, 8) + [0, 1, 2].map(i => `<rect x="${14 + i * 30}" y="38" width="22" height="18" rx="3" fill="${sombra}"/>`).join("") + [0, 1].map(i => mesaD(26 + i * 38, 82)).join("") + `<path d="M118 62 l22 -16 l22 16 z" fill="#6b2d3e"/><rect x="139" y="62" width="3" height="38" fill="#b9afa3"/>` + mesaD(140, 84) + gente(150, 98);
+  else if (k === "hotel") g += caja(30, 6, 100, 94) + [0, 1, 2, 3].map(r => [0, 1, 2, 3, 4].map(c => `<rect x="${38 + c * 18}" y="${14 + r * 18}" width="12" height="11" rx="2" fill="${(r + c) % 3 ? sombra : "#b8860b"}"/>`).join("")).join("") + caja(66, 82, 28, 18, "#6b2d3e", 4);
+  else if (k === "grupo") g += [0, 1, 2].map(i => caja(6 + i * 52, 52 - i * 8, 46, 48 + i * 8) + toldo(4 + i * 52, 40 - i * 8, 50, 10, 5) + caja(14 + i * 52, 66 - i * 8, 12, 34 + i * 8, sombra, 3)).join("") + `<circle cx="80" cy="18" r="6" fill="#b8860b"/>`;
+  else if (k === "cadena") g += [0, 1].map(i => caja(8 + i * 78, 44, 66, 56) + toldo(6 + i * 78, 32, 70, 12, 6) + caja(18 + i * 78, 60, 16, 40, sombra, 3)).join("") + `<circle cx="80" cy="76" r="9" fill="#b8860b"/><rect x="74" y="74" width="12" height="4" rx="2" fill="#fff"/>`;
+  else if (k === "puntos") { for (let i = 0; i < 60; i++) g += `<circle cx="${16 + (i % 12) * 12}" cy="${14 + Math.floor(i / 12) * 14}" r="4.4" fill="${i < 3 ? "#b8860b" : "#6b2d3e"}" opacity="${i < 3 ? 1 : 0.5}"/>`; }
+  else g += caja(30, 46, 100, 54) + toldo(24, 34, 112, 14, 8);
+  return `<g transform="translate(${x},${y}) scale(${s})">${g}</g>`;
+}
+/* un teléfono de 120×196 con la pantalla de cada función */
+const TEL = (c, ex = "") => `<rect x="0" y="0" width="120" height="196" rx="20" fill="#1a1a1a"/><rect x="7" y="9" width="106" height="178" rx="14" fill="#fef9f1"/>${c}${ex}`;
+const plato = (y, f = "#fff") => caja(14, y, 92, 24, f, 8) + `<circle cx="28" cy="${y + 12}" r="8" fill="#e6d9c6"/><rect x="42" y="${y + 6}" width="40" height="5" rx="2.5" fill="#6b2d3e" opacity=".7"/><rect x="42" y="${y + 14}" width="26" height="4" rx="2" fill="#b9afa3"/>`;
+function fnDib(j) {
+  let c = "";
+  if (j === 0) { c += caja(34, 24, 52, 52, "#fff", 8); for (let i = 0; i < 25; i++) if ((i * 7 + 3) % 3) c += `<rect x="${40 + (i % 5) * 8.4}" y="${30 + Math.floor(i / 5) * 8.4}" width="6" height="6" fill="#1a1a1a"/>`; c += plato(88) + plato(116); }
+  else if (j === 1) { c += plato(20) + plato(48) + plato(76) + [0, 1, 2].map(i => `<circle cx="96" cy="${32 + i * 28}" r="7" fill="#6b2d3e"/><rect x="92.5" y="${31 + i * 28}" width="7" height="2" fill="#fff"/><rect x="95" y="${28.5 + i * 28}" width="2" height="7" fill="#fff"/>`).join("") + caja(14, 156, 92, 22, "#6b2d3e", 11) + `<rect x="30" y="165" width="60" height="5" rx="2.5" fill="#f3d58a"/>`; }
+  else if (j === 2) { c += ["#6b2d3e", "#b8860b", "#3f6b3b"].map((f, i) => `<circle cx="${32 + i * 28}" cy="34" r="11" fill="${f}"/>`).join("") + plato(58) + plato(86) + plato(114) + caja(14, 150, 92, 28, "#b8860b", 14) + `<rect x="34" y="161" width="52" height="6" rx="3" fill="#fff"/>`; }
+  else if (j === 3) { c += caja(14, 20, 92, 18, "#6b2d3e", 9) + [0, 1, 2].map(i => caja(14, 48 + i * 40, 92, 34) + `<rect x="22" y="${56 + i * 40}" width="40" height="5" rx="2.5" fill="#6b2d3e"/><rect x="22" y="${66 + i * 40}" width="54" height="4" rx="2" fill="#b9afa3"/><circle cx="92" cy="${65 + i * 40}" r="8" fill="${i ? "#e6d9c6" : "#3f6b3b"}"/>`).join(""); }
+  else if (j === 4) { c += [0, 1].map(col => [0, 1, 2].map(r => caja(14 + col * 48, 22 + r * 52, 44, 44, ["#fff", "#f3d58a", "#e6d9c6"][(r + col) % 3]) + `<rect x="${20 + col * 48}" y="${30 + r * 52}" width="26" height="5" rx="2.5" fill="#6b2d3e"/><rect x="${20 + col * 48}" y="${42 + r * 52}" width="32" height="4" rx="2" fill="#b9afa3"/>`).join("")).join(""); }
+  else if (j === 5) { c += caja(14, 20, 92, 32, "#1a1a1a", 8) + `<rect x="60" y="28" width="38" height="8" rx="4" fill="#f3d58a"/>` + [0, 1, 2].map(r => [0, 1, 2].map(q => `<circle cx="${32 + q * 28}" cy="${72 + r * 26}" r="10" fill="#e6d9c6"/>`).join("")).join("") + caja(14, 152, 92, 24, "#3f6b3b", 12); }
+  else if (j === 6) { c += caja(18, 34, 84, 54, "#6b2d3e", 10) + `<rect x="26" y="46" width="22" height="16" rx="3" fill="#f3d58a"/><rect x="26" y="70" width="48" height="5" rx="2.5" fill="#f3e3e7"/>` + caja(26, 106, 68, 26, "#b8860b", 13) + `<rect x="38" y="116" width="44" height="6" rx="3" fill="#fff"/>` + `<circle cx="60" cy="158" r="10" fill="#3f6b3b"/><rect x="55" y="157" width="10" height="3" fill="#fff" transform="rotate(-40 60 158)"/>`; }
+  else if (j === 7) { c += caja(22, 22, 76, 112, "#fff", 8) + [0, 1, 2, 3, 4].map(i => `<rect x="30" y="${34 + i * 14}" width="${i % 2 ? 40 : 58}" height="5" rx="2.5" fill="#b9afa3"/>`).join("") + `<circle cx="78" cy="118" r="14" fill="#b8860b" opacity=".85"/>` + caja(22, 148, 76, 26, "#6b2d3e", 13); }
+  else if (j === 8) { for (let r = 0; r < 5; r++) for (let q = 0; q < 6; q++) c += `<rect x="${16 + q * 15}" y="${34 + r * 22}" width="12" height="17" rx="4" fill="${r === 2 && q === 3 ? "#b8860b" : r === 3 && q === 1 ? "#6b2d3e" : "#f3eadb"}"/>`; c += caja(14, 18, 92, 10, "#6b2d3e", 5); }
+  else if (j === 9) { c += caja(14, 22, 92, 112, "#e6d9c6", 10) + `<path d="M28 118 C 40 70, 70 100, 90 44" stroke="#6b2d3e" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="1 9"/><circle cx="28" cy="118" r="8" fill="#3f6b3b"/><path d="M90 28 a10 10 0 0 1 10 10 c0 8 -10 18 -10 18 s-10 -10 -10 -18 a10 10 0 0 1 10 -10z" fill="#b8860b"/>` + caja(14, 146, 92, 26, "#6b2d3e", 13); }
+  else if (j === 10) { c += [0, 1, 2].map(r => caja(14, 24 + r * 50, 92, 8, "#b9afa3", 4) + [0, 1, 2, 3].map(q => caja(20 + q * 22, 4 + 24 + r * 50 - (12 + ((q + r) % 3) * 6), 16, 12 + ((q + r) % 3) * 6, q === 3 ? "#9b2c2c" : "#6b2d3e", 3)).join("")).join(""); }
+  else { c += [0, 1, 2, 3, 4].map(i => caja(18 + i * 18, 130 - (30 + ((i * 37) % 70)), 14, 30 + ((i * 37) % 70), i === 3 ? "#b8860b" : "#6b2d3e", 4)).join("") + caja(14, 20, 92, 16, "#f3eadb", 8) + `<rect x="22" y="26" width="30" height="5" rx="2.5" fill="#6b2d3e"/>`; }
+  return `<svg viewBox="0 0 120 196" role="img" font-family="DM Sans, sans-serif">${TEL(c)}</svg>`;
+}

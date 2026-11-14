@@ -95,6 +95,17 @@ function tip(e) {
 document.addEventListener("mouseover", tip); document.addEventListener("focusin", tip);
 document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) tt.hidden = true; });
 
+/* ===== pantalla completa (se oculta si el visor no la permite) ===== */
+const FSOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+function pantalla() {
+  const d = document, el = d.documentElement;
+  try {
+    if (d.fullscreenElement || d.webkitFullscreenElement) { const r = (d.exitFullscreen || d.webkitExitFullscreen).call(d); if (r && r.catch) r.catch(() => {}); }
+    else { const r = (el.requestFullscreen || el.webkitRequestFullscreen).call(el); if (r && r.catch) r.catch(() => {}); }
+  } catch (e) { /* el visor no lo permite */ }
+}
+const BTN_PANTALLA = FSOK ? `<button class="btn" data-pantalla="1" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>` : "";
+
 /* ===== marco del detalle ===== */
 const DET = {};
 let abierto = null, actual = null, ultimoFoco = null;
@@ -115,7 +126,8 @@ function refrescar() {
   const out = actual.actualizar ? actual.actualizar() : null;
   if (out && out.cifras) $("#cif", det).innerHTML = cifras(out.cifras);
   if (out && out.leyenda) $("#ley", det).innerHTML = out.leyenda;
-  if (out && out.insight) $("#ins", det).innerHTML = `<b>Insight clave.</b> ${esc(out.insight)}`;
+  if (out && out.puntos) $("#ins", det).innerHTML = `<b>Insight clave.</b><ol>${out.puntos.map(p => `<li>${p}</li>`).join("")}</ol>`;
+  else if (out && out.insight) $("#ins", det).innerHTML = `<b>Insight clave.</b> ${esc(out.insight)}`;
   if (out && out.titulo) $("#dt", det).textContent = out.titulo;
 }
 function cierra() { det.hidden = true; det.innerHTML = ""; abierto = null; actual = null; document.body.style.overflow = ""; tt.hidden = true; history.replaceState(null, "", location.pathname); if (ultimoFoco && document.contains(ultimoFoco)) ultimoFoco.focus(); }
@@ -126,6 +138,7 @@ document.addEventListener("click", e => {
   const ap = e.target.closest("[data-aplica]"); if (ap) { cambiar(JSON.parse(ap.dataset.aplica)); return; }
   const k = e.target.closest("[data-kpi]"); if (k) { abre("k_" + k.dataset.kpi); return; }
   const b = e.target.closest(".box"); if (b && !abierto) { abre(b.dataset.id); return; }
+  if (e.target.closest("[data-pantalla]")) { pantalla(); return; }
   const es = e.target.closest("[data-esc]"); if (es) { aplicar(es.dataset.esc); return; }
   const cu = e.target.closest("[data-cupo]"); if (cu) { fijaCupo(+cu.dataset.cupo); return; }
   const an = e.target.closest("[data-ads]"); if (an) { cambiar({anunciosAprob: !S.anunciosAprob}); return; }

@@ -27,6 +27,10 @@ h1.op{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(26px,
 .btn:active{transform:scale(.97)}
 .btn:focus-visible{outline:3px solid var(--dorado);outline-offset:2px}
 /* barra de escenario */
+.sub{margin:6px 0 0;font-size:clamp(15px,1.5vw,19px);color:var(--tinta2)}
+.acc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:6px}
+.btn.gran{background:var(--vino2);color:#fff;padding:11px 20px;font-size:14px;box-shadow:0 4px 14px var(--sombra)}
+.btn.gran:hover{background:var(--vino);color:#fff}
 .esc{position:sticky;top:0;z-index:5;background:var(--crema);padding-block:8px 8px;border-bottom:1px solid var(--arena)}
 .esc .fila{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
 .esc .lab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta2)}
@@ -40,15 +44,28 @@ main{padding-block:12px 28px}
 .kpi{all:unset;box-sizing:border-box;cursor:pointer;background:var(--blanco);border-radius:18px;padding:10px 14px;box-shadow:0 3px 10px var(--sombra);display:flex;flex-direction:column;gap:2px;transition:transform .25s cubic-bezier(.34,1.4,.5,1),box-shadow .25s;min-width:0}
 .kpi:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(107,45,62,.22)}
 .kpi b{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(20px,2vw,27px);color:var(--vino);line-height:1.05;white-space:nowrap}
-.kpi span{font-size:12px;line-height:1.25;color:var(--tinta)}
-.kpi small{font-size:10px;color:var(--tinta2)}
+.kpi .tx{font-size:12px;line-height:1.25;color:var(--tinta)}
+.kpi .tri{display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;font-style:normal}
+.kpi .tri i{font-style:normal;font-weight:700}
+.kpi .tri .p{color:var(--rojo)}.kpi .tri .m{color:var(--verde)}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .box{all:unset;box-sizing:border-box;cursor:pointer;background:var(--blanco);border-radius:22px;padding:12px 16px;box-shadow:0 3px 12px var(--sombra);display:flex;flex-direction:column;min-height:200px;min-width:0;transition:transform .25s cubic-bezier(.34,1.4,.5,1),box-shadow .25s}
 .box:hover,.box:focus-visible{transform:translateY(-3px);box-shadow:0 8px 20px rgba(107,45,62,.22)}
 .box .q{font-family:"DM Serif Display",serif;font-size:20px;color:var(--vino);line-height:1.1;text-wrap:balance}
 .box .m{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;margin:6px 0 2px}
 .box .m svg{width:100%;height:auto;max-height:120px}
-.box .c{font-size:12.5px;font-weight:700;color:var(--vino2)}
+.box .c{font-size:12.5px;font-weight:700;color:var(--vino2);min-height:2.5em;opacity:0;transform:translateY(5px);transition:opacity .25s,transform .25s}
+.box:hover .c,.box:focus-visible .c{opacity:1;transform:none}
+@media(hover:none){.box .c{opacity:1;transform:none}}
+.box .gh{animation:bucleh 7s cubic-bezier(.34,1.3,.5,1) infinite;animation-delay:calc(var(--i,0)*.45s)}
+.box .gk{animation:buclev 7s cubic-bezier(.34,1.3,.5,1) infinite;animation-delay:calc(var(--i,0)*.45s)}
+@keyframes bucleh{0%{transform:scaleX(0);opacity:1}14%,90%{transform:none;opacity:1}98%{transform:none;opacity:0}100%{transform:scaleX(0);opacity:0}}
+@keyframes buclev{0%{transform:scaleY(0);opacity:1}14%,90%{transform:none;opacity:1}98%{transform:none;opacity:0}100%{transform:scaleY(0);opacity:0}}
+@keyframes fundir{from{opacity:0}to{opacity:1}}
+.fncard{position:absolute;z-index:6;width:140px;background:#fff;border-radius:18px;padding:8px 8px 10px;box-shadow:0 10px 28px rgba(79,23,40,.28);pointer-events:none;text-align:center;animation:fundir .2s ease both}
+.fncard .fn svg{width:100px;height:auto}
+.fncard b{display:block;font-size:12.5px;color:var(--vino);margin-top:4px}
+.insight ol{margin:6px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:5px}
 .box .abre{font-size:11px;color:var(--tinta2);margin-top:3px}
 .box.rec{background:var(--vino2);color:var(--crema)}
 .box.rec .q,.box.rec .c,.box.rec .abre{color:#f3d58a}
@@ -66,7 +83,7 @@ main{padding-block:12px 28px}
 .dd h2{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(25px,3.4vw,38px);line-height:1.1;color:var(--vino);margin:12px 0 10px;text-wrap:balance}
 .leyenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--tinta2);margin:0 0 8px;align-items:center}
 .leyenda i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-1px}
-.viz{background:var(--blanco);border-radius:22px;padding:10px;box-shadow:0 3px 12px var(--sombra);overflow:hidden}
+.viz{background:var(--blanco);border-radius:22px;padding:10px;box-shadow:0 3px 12px var(--sombra);overflow:hidden;position:relative}
 .viz svg{width:100%;height:auto;display:block;touch-action:pan-y}
 .viz svg [data-drag]{cursor:grab;touch-action:none}
 .viz svg text{pointer-events:none}
@@ -138,15 +155,14 @@ main{padding-block:12px 28px}
 @media(max-width:700px){.dos{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:600px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.box{min-height:170px}.viz{overflow-x:auto}.viz svg{min-width:760px}.desliza{display:block!important}.esc .fila{gap:6px}}
 .desliza{display:none;font-size:11.5px;color:var(--tinta2);margin:0 0 6px;font-weight:700}
-@media(prefers-reduced-motion:reduce){#det,.gk,.gh,#intro .sl>*,.pulso{animation:none}.rm,.box,.kpi,.chip,.btn,.pal,#intro .barras i.act b{transition:none}}
+@media(prefers-reduced-motion:reduce){.box .gh,.box .gk,.fncard{animation:none}#det,.gk,.gh,#intro .sl>*,.pulso{animation:none}.rm,.box,.kpi,.chip,.btn,.pal,#intro .barras i.act b{transition:none}}
 </style>
 <div class="wrap">
   <header class="top">
-    <div><div class="kick">Planos de Carta · informe ejecutivo interactivo · 14 de noviembre de 2026 · versión 6</div>
-    <h1 class="op" id="oportunidad"></h1></div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" id="verIntro">▶ Presentación</button><span class="et prop">propuesta · la v1 no cobra</span></div>
+    <div><div class="kick">Planos de Carta · 14 de noviembre de 2026 · versión 8</div>
+    <h1 class="op">Carta hoy, Carta mañana</h1><p class="sub" id="oportunidad"></p></div>
+    <div class="acc"><button class="btn gran" id="verIntro">▶ Ver la presentación</button><span id="pantallaTop"></span><span class="et prop">propuesta · la v1 no cobra</span></div>
   </header>
-  <div class="esc"><div class="fila" id="esc"></div></div>
   <main>
     <div class="kpis" id="kpis"></div>
     <div class="grid" id="grid"></div>

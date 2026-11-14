@@ -195,6 +195,7 @@ function todo() { pintaEscenario(); pintaKpis(); actualizaCajas(); refrescar(); 
 pintaCajas(); todo();
 oyentes.push(todo);
 $("#verIntro").addEventListener("click", abrirIntro);
+$("#pantallaTop").innerHTML = BTN_PANTALLA;
 const h0 = location.hash.slice(1);
 if (h0 && DET[h0]) abre(h0, false);
 else { let visto = false; try { visto = localStorage.getItem("carta-v5-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }
