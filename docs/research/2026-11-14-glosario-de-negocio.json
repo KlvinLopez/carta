@@ -27,7 +27,7 @@
   "termino": "Cliente gratuito",
   "sigla_industria": "—",
   "que_es": "Restaurante en el plan Chef: 10 mesas, 3 cuentas de personal, 80 platillos, con anuncios.",
-  "cifra_de_carta": "Costo ≈ 0.6 pesos al mes; con anuncios deja 7.2 pesos (tarifa baja)",
+  "cifra_de_carta": "Costo ≈ 1.1 pesos al mes (0.6 de servidor y 0.5 de soporte, supuesto); ingreso 0 hoy (los anuncios no están aprobados; condicional: 7.2 pesos con la tarifa baja)",
   "fuente": "modelo de escenarios, 1,000 restaurantes",
   "nota": "Nombre del plan: prototipo, `admin-onboarding.jsx`, paso 3 «Elige tu plan»."
  },
@@ -35,7 +35,7 @@
   "termino": "Cliente de paga",
   "sigla_industria": "—",
   "que_es": "Restaurante en un plan de paga: «Master Chef» (el del prototipo, $799 en esa pantalla; aquí se propone 249 a 349) o «Chef Ejecutivo» (tercer plan; el prototipo sólo tiene dos, el nombre es propuesta nuestra).",
-  "cifra_de_carta": "Master Chef propuesto: 249; Chef Ejecutivo: 499",
+  "cifra_de_carta": "Master Chef: rango 192 a 349, lanzar en 299; Chef Ejecutivo: 499 (sugerido por regla)",
   "fuente": "modelo de escenarios (configuración recomendada)",
   "nota": "Cobro por transferencia o tarjeta."
  },
@@ -43,7 +43,7 @@
   "termino": "Ingreso por cliente al mes",
   "sigla_industria": "ARPU (ingreso promedio por usuario)",
   "que_es": "Cuánto deja un cliente en un mes, antes de IVA. Se da por separado para el gratuito (anuncios) y el de paga (suscripción).",
-  "cifra_de_carta": "Gratuito 7.2 pesos (tarifa baja de anuncios; 28.7 media); Master Chef 249; promedio de todos los registrados con 1,000 restaurantes (curva media) 18.9",
+  "cifra_de_carta": "Gratuito 0 hoy (condicional a anuncios: 7.2 con la tarifa baja, 28.7 con la media); Master Chef 299; promedio de los 1,000 registrados (curva media, sin anuncios) 10.3",
   "fuente": "modelo de escenarios",
   "nota": "El promedio mezcla ambos."
  },
@@ -51,7 +51,7 @@
   "termino": "Costo por cliente al mes",
   "sigla_industria": "—",
   "que_es": "Lo que cuesta atender a un cliente: servidor, almacenamiento y, en los de paga, soporte y comisión de cobro.",
-  "cifra_de_carta": "Gratuito 0.6 pesos; Master Chef 77 (soporte 60, comisión 15.5, servidor ≈ 1.5)",
+  "cifra_de_carta": "Gratuito 1.1 pesos; Master Chef 79 (soporte 60, comisión 17.6, servidor ≈ 1.5)",
   "fuente": "modelo de escenarios; soporte es supuesto",
   "nota": "El soporte es lo que más pesa y se mide en el piloto."
  },
@@ -59,15 +59,15 @@
   "termino": "Margen",
   "sigla_industria": "Margen bruto",
   "que_es": "Ingresos menos costos, en pesos y como porcentaje de los ingresos. Aquí no incluye sueldos, impuestos sobre la renta ni el costo de conseguir clientes.",
-  "cifra_de_carta": "1,000 restaurantes, curva media: 14,496 pesos al mes (77 %)",
+  "cifra_de_carta": "1,000 restaurantes, curva media, sin anuncios: 6,485 pesos al mes de operación (63 %); 5,872 después de captación",
   "fuente": "modelo de escenarios",
-  "nota": "Con las curvas pesimista y optimista: 8,150 y 44,492."
+  "nota": "Con las curvas pesimista y optimista: 58 y 46,106."
  },
  {
   "termino": "Punto de equilibrio",
   "sigla_industria": "Break-even",
   "que_es": "Cuántos clientes de paga hacen falta para que el negocio no pierda: el costo que los anuncios no cubren dividido entre lo que deja cada cliente de paga (precio menos lo que cuesta atenderlo).",
-  "cifra_de_carta": "Sin anuncios, con 1,000 restaurantes: 3.6 clientes de paga; con el costo fijo publicado de 2,569 pesos al mes: 9.7 a 349",
+  "cifra_de_carta": "Sin anuncios, con 1,000 restaurantes: 5.1 clientes de paga (a 299); con el costo fijo publicado de 2,569 pesos al mes: 9.7 a 349",
   "fuente": "modelo de escenarios; tres-planes",
   "nota": "«9.7 pagantes» antes se escribió sin explicar: son 2,569 pesos ÷ 264 pesos de margen por cliente."
  },
@@ -75,7 +75,7 @@
   "termino": "Conversión",
   "sigla_industria": "Tasa de conversión",
   "que_es": "De los restaurantes que rebasan los topes del plan gratuito, qué parte llega a pagar.",
-  "cifra_de_carta": "16 % (curva media, a 218 pesos); supuesto: no hay dato",
+  "cifra_de_carta": "16 % (curva media, a 218 pesos; 8 % a 299); supuesto: no hay dato",
   "fuente": "supuesto: sustituye la prueba del piloto",
   "nota": "Depende del precio."
  },
@@ -99,7 +99,7 @@
   "termino": "Anuncios no personalizados",
   "sigla_industria": "—",
   "que_es": "Anuncios en el menú gratuito que no usan datos del comensal (la regla dura 10 lo impide).",
-  "cifra_de_carta": "Tarifa supuesta: 3.5 / 14 / 37 pesos por mil visitas con la app",
+  "cifra_de_carta": "Condicionales: no están aprobados ni construidos; tarifa supuesta 3.5 / 14 / 37 pesos por mil visitas con la app",
   "fuente": "supuesto: cadena de tres eslabones, fiabilidad baja (anuncios-y-capa-del-comensal §2)",
   "nota": "No hay tarifa publicada para México."
  },
