@@ -1,0 +1,255 @@
+{
+ "version": "2026-11-14",
+ "decisiones": [
+  {
+   "id": "agresividad",
+   "decision": "Qué tan agresivo entrar y contra quién competir (precio de Master Chef)",
+   "recomendacion": "Competir contra Fudo Avanzado (software de restaurante que ya trae pedido desde la mesa y app de meseros) con K = 0.5: **299 al mes antes de IVA** para lanzar. 249 queda como piso defendible; 449 como techo a probar.",
+   "por_que": "Con las tres curvas de pago el margen a 1,000 restaurantes es casi plano de 199 a 299 en la curva media (14,450 · 14,496 · 13,908) y sube mucho con el precio en la optimista (35,549 · 44,492 · 52,246). Una prueba de arrepentimiento (cuánto se deja de ganar frente al mejor precio de cada curva, 25 % pesimista, 50 % media, 25 % optimista) da 6,631 a 249, **5,102 a 299**, 4,078 a 349 y 3,027 a 449: los números empujan hacia arriba si el dueño ve a Carta como un sistema y no como un menú QR. 299 deja a Carta en 46 % del sustituto, 3.6 veces el piso y 0.05 % del ingreso de un negocio de 11 a 50 personas. Es un precio de **lanzamiento con prueba**: se sube con los datos del piloto, no con corazonada.",
+   "alternativas": [
+    {
+     "opcion": "249 (K bajo o contra Meniu)",
+     "pros": "Máxima conversión (48 de paga a 1,000); el mejor margen con la curva media (14,496); margen del 69 % sobre el piso",
+     "contras": "Es el piso ×3: ya no hay colchón si el soporte cuesta más; pierde 26,051 con la curva optimista"
+    },
+    {
+     "opcion": "299 (recomendada)",
+     "pros": "Centro del corredor; 34 de paga; margen 13,908 media, 52,246 optimista",
+     "contras": "Con Meniu como sustituto real, queda 33 % arriba"
+    },
+    {
+     "opcion": "349 (Fudo + mesas, o K = 0.6)",
+     "pros": "24 de paga; el que ya se manejaba; 12,959 media, 58,601 optimista",
+     "contras": "El módulo de mesas de Fudo no hace falta para pedir desde la mesa; es el supuesto más débil"
+    },
+    {
+     "opcion": "449 (K = 0.7 contra Fudo)",
+     "pros": "Menor arrepentimiento si el dueño paga como por un POS (3,027 contra 5,102)",
+     "contras": "13 de paga a 1,000 y el margen medio cae a 11,081; sin prueba de que paguen"
+    }
+   ],
+   "ejemplo": "Un restaurante de 25 mesas (≈ 11 a 50 personas, ingreso medio 737,584 pesos al mes [INEGI]): 299 son 0.05 % de su ingreso y cuestan lo que 3.7 horas de personal (a 80 pesos la hora). Rebasa las 10 mesas del plan gratuito, así que ve la oferta.",
+   "dato_que_la_cambiaria": "La prueba de precio del piloto con tres grupos (249 · 349 · 449): se queda el precio con más pagantes × margen. Y el tope y el IVA reales de Meniu y Fudo."
+  },
+  {
+   "id": "topes_gratuito",
+   "decision": "Topes del plan gratuito (platillos, mesas, cuentas de personal)",
+   "recomendacion": "Dejar lo que Calvin decidió: **10 mesas, 3 cuentas de personal, 80 platillos** (3 lecturas de PDF en total, 1 mes de historial). Es también lo que sale del optimizador con la restricción de dejar dentro al menos al 60 %.",
+   "por_que": "El optimizador no necesitó forzar esos números: con ≥ 60 % dentro del gratuito, 3 meses de historial y 80 platillos de piso, el margen máximo (14,496) cae en 10 mesas y 3 cuentas. Cada punto de generosidad cuesta: 8 mesas dejaría 54 % dentro y +1,604 pesos al mes; 12 o más mesas, 64 % dentro y −560. Los platillos casi no pesan: **un platillo cuesta 1.4 a 1.9 KB** y bajar a 60 empuja a 24.3 % de los negocios sin ahorrar nada. Nota: con traslape 0 sólo cuenta el tope más estricto (por eso cuentas 3 a 5 y platillos 60 a 120 dan el mismo margen); con más traslape cada tope suma.",
+   "alternativas": [
+    {
+     "opcion": "8 mesas, 2 cuentas, 60 platillos",
+     "pros": "Más pagantes (62 contra 48): margen 16,879",
+     "contras": "Sólo 50 % queda dentro; empuja a pagar a negocios que no ven el valor; incumple lo decidido"
+    },
+    {
+     "opcion": "10 mesas, 3 cuentas, 80 platillos (recomendada)",
+     "pros": "61 % dentro; 14,496; lo ya decidido",
+     "contras": "Mesas y cuentas son modelo, no estadística"
+    },
+    {
+     "opcion": "15–20 mesas, 5 cuentas, 100 platillos",
+     "pros": "64 % dentro; más gratuitos (más anuncios)",
+     "contras": "−560 pesos al mes; menos razones para pagar"
+    }
+   ],
+   "ejemplo": "Una fonda de 6 mesas y 3 personas queda **dentro de todos los topes**: Chef gratis, ve anuncios y deja 7.2 pesos al mes (tarifa baja) con un costo de 0.6.",
+   "dato_que_la_cambiaria": "Mesas, cuentas y platillos reales de los primeros 10–20 restaurantes: si 10 mesas empuja a más del 60 %, sube el tope."
+  },
+  {
+   "id": "historial",
+   "decision": "Historial: meses en línea y archivo descargable",
+   "recomendacion": "**12 meses en línea para la paga** (lo que decidió Calvin) y **30 días para el gratuito**, con archivo descargable de lo que sale de línea. *Cambia lo que recomendaba antes (3 meses).*",
+   "por_que": "Con el modelo completo, el historial casi no mueve el margen: 14,499 · 14,496 · 14,492 · 14,485 pesos al mes con 1, 3, 6 y 12 meses, porque la base de paga es chica y el volumen de 50 GB de Railway Pro cabe sobrado: **12 meses de historial para 48 clientes de paga son 6 GB**. Lo que cambia es **cuántos de paga caben mientras se está en Hobby (5 GB)**: 263, 128, 72 y 38; con Pro (50 GB), 2,637 · 1,283 · 724 · 387. El procesador (Pro de 4 procesos) manda mucho antes que el disco. Antes recomendé 3 meses porque comparaba contra Hobby.",
+   "alternativas": [
+    {
+     "opcion": "1 mes",
+     "pros": "Cabe lo máximo en Hobby",
+     "contras": "Casi nada de historial para quien paga"
+    },
+    {
+     "opcion": "3 meses + archivo",
+     "pros": "128 de paga en Hobby",
+     "contras": "Cambia lo decidido; el dueño baja un archivo para ver más atrás"
+    },
+    {
+     "opcion": "12 meses en línea (recomendada) + archivo de lo anterior",
+     "pros": "Cumple lo decidido; en Pro cuesta menos de 1 peso al mes por cliente",
+     "contras": "En Hobby sólo caben 38 de paga: hay que pasar a Pro antes"
+    }
+   ],
+   "ejemplo": "Un restaurante de 25 mesas con 1,800 visitas al mes genera 13.5 MB al mes: 12 meses son 162 MB, **unos 0.45 pesos al mes** de volumen. Puede ver cualquier mes del año y bajar lo anterior.",
+   "dato_que_la_cambiaria": "Cuántos dueños abren el mes anterior (eventos del panel); si casi nadie abre más de 3 meses, se acorta sin costo de producto."
+  },
+  {
+   "id": "soporte",
+   "decision": "Soporte: cuánto se promete y cuánto cuesta",
+   "recomendacion": "Prometer soporte por WhatsApp o correo en horario hábil, con tope de **≈ 60 pesos al mes por cliente de paga** (30 minutos). Medirlo desde el primer día.",
+   "por_que": "El soporte es lo que más pesa en el piso: 30, 60 y 150 pesos dan un piso de 50, 80 y 170 y un precio de la regla (K = 0.5 contra Fudo Avanzado) de 299, 299 y **599**; el margen total a 249 con 1,000 restaurantes es 15,906, 14,496 y 10,267. Con soporte de 150, 299 pierde dinero por cliente de paga en proporción.",
+   "alternativas": [
+    {
+     "opcion": "Autoservicio y correo (30)",
+     "pros": "Piso 50; 15,906 de margen",
+     "contras": "Mal servicio si el dueño no sabe subir su carta"
+    },
+    {
+     "opcion": "WhatsApp en horario (60, recomendada)",
+     "pros": "Equilibrio entre servicio y costo",
+     "contras": "Depende de que 30 minutos alcancen"
+    },
+    {
+     "opcion": "Teléfono y alta hecha por nosotros (150)",
+     "pros": "Mejor conversión probable",
+     "contras": "El precio de la regla sube a 599"
+    }
+   ],
+   "ejemplo": "Un salón de 60 mesas necesita más: se le cobra **Chef Ejecutivo a 499** con soporte propio (120 pesos al mes).",
+   "dato_que_la_cambiaria": "Los tickets y minutos de soporte del piloto: si pasan de 60 pesos al mes por restaurante, se sube el precio o se acota el soporte."
+  },
+  {
+   "id": "anuncios",
+   "decision": "Anuncios en el plan gratuito",
+   "recomendacion": "**Sí, anuncios no personalizados en Chef; no en el piloto.** Primero medir la tarifa con una prueba pequeña de AdSense (3 restaurantes) y no construir nada hasta tenerla. «Sin anuncios» queda como beneficio de Master Chef, como en el prototipo.",
+   "por_que": "Sin anuncios, el peor caso (todos gratuitos) **pierde 637 pesos al mes con 1,000 restaurantes**; con anuncios en la tarifa baja **gana 6,538**. El margen esperado con 1,000 pasa de **7,664 (sin anuncios) a 14,496 (baja), 34,994 (media) y 79,895 (alta)**. **Pero la tarifa no tiene fuente**, 36 % de los ingresos dependen de ella y AdSense puede no aprobar el sitio.",
+   "alternativas": [
+    {
+     "opcion": "Sin anuncios",
+     "pros": "Menú limpio; no toca la regla dura 10; sin riesgo de aprobación",
+     "contras": "El peor caso pierde dinero: exige ≥ 4 clientes de paga con 1,000 restaurantes"
+    },
+    {
+     "opcion": "Con anuncios no personalizados, sólo gratuito (recomendada)",
+     "pros": "El peor caso es sostenible; es un motivo para pasar a Master Chef",
+     "contras": "Tarifa sin dato; riesgo de aprobación; anuncios cerca de los botones pueden dar clics accidentales"
+    },
+    {
+     "opcion": "Con anuncios personalizados",
+     "pros": "Tarifa más alta",
+     "contras": "**Rompe la regla dura 10** (sin datos personales del comensal): descartada"
+    }
+   ],
+   "ejemplo": "La fonda de 6 mesas (1 mes de historial, 80 platillos) con ≈ 2,050 visitas al mes deja 7 pesos con la tarifa baja y 29 con la media: no paga nada, pero **se paga sola** (cuesta 0.6).",
+   "dato_que_la_cambiaria": "El informe de AdSense de la prueba: impresiones, ingresos estimados y RPM; si la tarifa real es menor que la baja, sin anuncios y con ≥ 4 pagantes."
+  },
+  {
+   "id": "avisos_reloj",
+   "decision": "Avisos de reloj desde el servidor (mesa en amarillo o rojo por el tiempo)",
+   "recomendacion": "**No.** Los relojes se calculan en el teléfono con la hora de la última acción, como ya dice el AC-40.9.",
+   "por_que": "Un temporizador en el servidor para ≈ 12,000 mesas (1,000 restaurantes con 12 mesas) sería una consulta por minuto, que cuesta poco, pero **no llega a ningún lado**: sin notificaciones push (fuera de la v1) el aviso sólo viaja por la conexión abierta del teléfono, que ya sabe calcular el color. Se añadiría un proceso más (y un muro más) sin dar nada que el teléfono no tenga.",
+   "alternativas": [
+    {
+     "opcion": "Relojes en el teléfono (recomendada)",
+     "pros": "Cero costo de servidor; ya especificado",
+     "contras": "Si el teléfono duerme no avisa (igual con servidor sin push)"
+    },
+    {
+     "opcion": "Reloj en el servidor con evento al cruzar el umbral",
+     "pros": "Un evento por cruce (≈ 0.1 por segundo con 1,000 restaurantes)",
+     "contras": "Otro proceso; contradice AC-40.9; sin push no despierta el teléfono"
+    }
+   ],
+   "ejemplo": "Un salón de 60 mesas ve en el teléfono del capitán que la mesa 12 pasó 25 minutos sin movimiento: el color se calcula ahí.",
+   "dato_que_la_cambiaria": "Que se apruebe push (hoy fuera de la v1): entonces el reloj del servidor sí tendría sentido."
+  }
+ ],
+ "configuraciones": {
+  "optimizador": {
+   "nombre": "Configuración del optimizador (curva media, tarifa baja)",
+   "config": {
+    "precios": {
+     "servicio": 249,
+     "salon": 499
+    },
+    "topes": {
+     "gratuito": {
+      "platillos": 80,
+      "mesas": 10,
+      "cuentas": 3,
+      "lecturas_pdf": 3,
+      "meses_en_linea": 1
+     },
+     "servicio": {
+      "platillos": 300,
+      "mesas": 40,
+      "cuentas": 20,
+      "lecturas_pdf_mes": 10,
+      "meses_en_linea": 3
+     },
+     "salon": {
+      "platillos": 300,
+      "mesas": 100,
+      "cuentas": 50,
+      "lecturas_pdf_mes": 20,
+      "meses_en_linea": 3
+     }
+    },
+    "disco": {
+     "meses_analitica_en_linea": {
+      "gratuito": 1,
+      "servicio": 1,
+      "salon": 1
+     },
+     "archivar": true
+    },
+    "anuncios": {
+     "activo": true,
+     "tarifa": "baja"
+    },
+    "curva": "media",
+    "competencia": {
+     "sustituto": "Fudo Avanzado",
+     "k": 0.5
+    }
+   }
+  },
+  "lanzamiento": {
+   "nombre": "Configuración de lanzamiento recomendada (Master Chef a 299; 12 meses de historial en línea; lo demás igual)",
+   "config": {
+    "precios": {
+     "servicio": 299,
+     "salon": 499
+    },
+    "topes": {
+     "gratuito": {
+      "platillos": 80,
+      "mesas": 10,
+      "cuentas": 3,
+      "lecturas_pdf": 3,
+      "meses_en_linea": 1
+     },
+     "servicio": {
+      "platillos": 300,
+      "mesas": 40,
+      "cuentas": 20,
+      "lecturas_pdf_mes": 10,
+      "meses_en_linea": 12
+     },
+     "salon": {
+      "platillos": 300,
+      "mesas": 100,
+      "cuentas": 50,
+      "lecturas_pdf_mes": 20,
+      "meses_en_linea": 3
+     }
+    },
+    "disco": {
+     "meses_analitica_en_linea": {
+      "gratuito": 1,
+      "servicio": 1,
+      "salon": 1
+     },
+     "archivar": true
+    },
+    "anuncios": {
+     "activo": true,
+     "tarifa": "baja"
+    },
+    "curva": "media",
+    "competencia": {
+     "sustituto": "Fudo Avanzado",
+     "k": 0.5
+    }
+   }
+  }
+ }
+}
