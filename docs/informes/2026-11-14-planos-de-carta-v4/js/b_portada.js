@@ -66,6 +66,6 @@ const CAJAS = [
 ];
 const RECS_CORTO = ["Master Chef a $299 frente a Fudo Avanzado", "Chef: 10 mesas, 3 cuentas, 80 platillos", "Historial: 12 meses en línea + archivo", "Soporte: $60 al mes por cliente de paga", "Anuncios no personalizados en Chef"];
 function pintaCajas() {
-  $("#grid").innerHTML = CAJAS.map(c => `<button class="box" data-id="${c.id}" aria-label="${esc(c.q)}"><div class="q">${esc(c.q)}</div><div class="m">${MINI[c.id]()}</div><div class="c">${esc(typeof c.c === "function" ? c.c() : c.c)}</div><div class="abre">toca para abrir ›</div></button>`).join("") +
-    `<button class="box rec" data-id="recomendaciones"><div class="q">Recomendaciones</div><ol>${RECS_CORTO.map((t, i) => `<li><i>${i + 1}</i>${esc(t)}</li>`).join("")}</ol><div class="abre" style="margin-top:auto">toca para abrir ›</div></button>`;
+  const rec = `<button class="box rec" data-id="recomendaciones"><div class="q">Recomendaciones</div><ol>${RECS_CORTO.map((t, i) => `<li><i>${i + 1}</i>${esc(t)}</li>`).join("")}</ol><div class="abre" style="margin-top:auto">toca para abrir ›</div></button>`;
+  $("#grid").innerHTML = rec + CAJAS.map(c => `<button class="box" data-id="${c.id}" aria-label="${esc(c.q)}"><div class="q">${esc(c.q)}</div><div class="m">${MINI[c.id]()}</div><div class="c">${esc(typeof c.c === "function" ? c.c() : c.c)}</div><div class="abre">toca para abrir ›</div></button>`).join("");
 }

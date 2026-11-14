@@ -26,7 +26,7 @@ DET.sostiene = {
     const eqN = (s0) => { for (let N = 1; N <= 5000; N += 25) if (margenEn(s0, N) >= 0) return N; return null; };
     const ePeor = eqN(peor);
     return {
-      leyenda: `<span><i style="background:${C.rojo}"></i>peor: todos gratuitos, anuncios de tarifa baja</span><span><i style="background:${C.verde}"></i>mejor: todos pagan</span><span><i style="background:${C.vino}"></i>esperado: curva ${S.curva}, con su rango</span>`,
+      leyenda: `<span><i style="background:${C.rojo}"></i>peor (firme): todos gratuitos, sin anuncios</span><span><i style="background:${C.verde}"></i>mejor: todos pagan</span><span><i style="background:${C.vino}"></i>esperado: curva ${S.curva}, con su rango</span>`,
       cifras: [[mp(m.margen), "margen de operación al mes con 1,000 restaurantes (sin captación ni sueldos)", "supuesto"], [mp(m.margenCapt), "margen después de captación: reponer las bajas con el costo de conseguir un cliente", "supuesto"], [mp(m.margenNeto), "margen neto (con sueldos e impuestos; hoy valen cero: sin dato)", "supuesto"], [ePeor ? n(ePeor) : "no se sostiene", "restaurantes gratuitos para sostenerse sin clientes de paga (peor caso firme, sin anuncios)", "supuesto"], [m.eq == null ? "—" : n(m.eq, 1), "clientes de paga por cada 1,000 que cubren el costo de operación", "supuesto"], [pz.mes_primer_margen_positivo ? "mes " + pz.mes_primer_margen_positivo : "—", "primer mes con margen positivo (escenario esperado)", "supuesto"]],
       insight: ePeor ? `Sin clientes de paga y sin anuncios Carta se sostiene sólo desde ≈ ${n(ePeor)} restaurantes; con clientes de paga, el costo de operación se cubre con ${m.eq == null ? "—" : n(m.eq, 1)} por cada 1,000.` : `Sin clientes de paga y sin anuncios Carta no se sostiene dentro de 5,000 restaurantes: necesita clientes de paga (${m.eq == null ? "—" : n(m.eq, 1)} por cada 1,000 cubren la operación).`,
     };
@@ -39,7 +39,7 @@ DET.sostiene = {
     const X = N => X0 + W * N / 1000, Y = v => Y0 + H * (sl(vmax) - sl(clamp(v, vmin, vmax))) / (sl(vmax) - sl(vmin));
     let b = T(30, 24, "Resultado al mes (pesos) según cuántos restaurantes se registran", 14.5, C.vino, "start", 700);
     [-3000, 0, 3000, 10000, 30000, 100000, 300000].forEach(v => { b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? C.t2 : C.arena}"/>` + T(X0 - 8, Y(v) + 4, (v < 0 ? "−" : "") + n(Math.abs(v)), 11, C.t2, "end"); });
-    b += T(X0 - 8, Y0 - 8, "escala logarítmica en ambos sentidos", 10.5, C.t2, "end");
+    b += T(X0 + W, Y0 - 8, "escala logarítmica en ambos sentidos", 10.5, C.t2, "end");
     [0, 250, 500, 750, 1000].forEach(N => { b += T(X(N), Y0 + H + 20, String(N), 11.5, C.t2, "middle"); });
     b += T(X0 + W / 2, Y0 + H + 40, "restaurantes registrados", 12, C.t2, "middle");
     const serie = (s0) => pasos.map(N => [N, margenEn(s0, N)]);

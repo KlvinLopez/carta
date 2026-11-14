@@ -772,7 +772,7 @@ def g_precio() -> str:
         ("249", "249", ""),
         ("299", "299", ""),
         ("349", "349", ""),
-        ("399", "399", "Salón"),
+        ("399", "399", "Chef Ejecutivo"),
         ("2,000", None, ""),
     ]
     for i, (lab, key, suf) in enumerate(cands):
@@ -1074,8 +1074,8 @@ def palabras(html_frag: str) -> int:
 
 
 def html_pagina(i: int, p: dict) -> str:
-    cuerpo = f'<p class="como"><b>Cómo leerlo.</b> {esc(p["como"])}</p><p class="insight"><b>Insight clave.</b> {esc(p["insight"])}</p>'
-    pal = palabras(cuerpo) - 2 - 2 + palabras(p["notas"])  # sin las dos etiquetas; la nota cuenta
+    cuerpo = f'<p class="insight"><b>Insight clave.</b> {esc(p["insight"])}</p>'
+    pal = palabras(cuerpo) - 2 + palabras(p["notas"])  # sin las dos etiquetas; la nota cuenta
     assert pal <= MAX_PALABRAS, f"página {i}: {pal} palabras de texto corrido (tope {MAX_PALABRAS})"
     p["palabras"] = pal
     fuentes = "; ".join(corta(c) for c in p["claves"])
@@ -1277,7 +1277,7 @@ def html_p1() -> str:
     )
     m_html += f'<div class="mos dec"><div class="mq">Recomendaciones<small>las decides tú</small></div><ol>{d_html}</ol></div>'
     return f"""<section class="pg p1">
-<div class="p1-top"><div><div class="kick">Planos de Carta · informe ejecutivo · 14 de noviembre de 2026 · versión 5</div>
+<div class="p1-top"><div><div class="kick">Planos de Carta · informe ejecutivo · 14 de noviembre de 2026 · versión 6</div>
 <div class="hero">94 de cada 100 restaurantes a la carta y bares no declara sitio web.</div><p class="alcance">Carta les da, en minutos, un menú visual y una orden que la mesa arma junta. La v1 no cobra: planes y precios son propuesta.</p></div>
 <div class="rotulo">{etiqueta("propuesta")}<span>supuestos marcados; sin venta de datos</span></div></div>
 <div class="kpis">{k_html}</div>
