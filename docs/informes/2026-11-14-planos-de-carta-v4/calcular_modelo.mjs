@@ -50,5 +50,18 @@ out.sostiene = {
   optimista: Ns.map((N) => M.evaluar(cfg(), s, N, { curva: 'optimista' }).margen.pesos),
   mejor: Ns.map((N) => M.evaluar(cfg(), s, N, { todosPagan: true }).margen.pesos),
 };
+
+// ---- modelo r4: segmentación, matriz 3 × 3, todos gratuitos, bolsa y precio por mediana
+const seg = JSON.parse(readFileSync(resolve(inv, '2026-11-14-segmentacion-datos.json'), 'utf8'));
+const cob = (mesas) => { const cc = JSON.parse(JSON.stringify(base)); cc.topes.gratuito.mesas = mesas; return { c: ['minimo', 'centro', 'maximo'].map((k) => 100 * M.seguridadChico(cc, s, k)), m: M.evaluar(cc, s, 1000, { curva: 'media' }).margen_operacion }; };
+const c25 = cob(25), c15 = cob(15);
+out.seg = { estratos: seg.estratos, topes: { mesas: base.topes.gratuito.mesas, cuentas: base.topes.gratuito.cuentas, platillos: base.topes.gratuito.platillos }, c25: c25.c, m25: c25.m, c15: c15.c, m15: c15.m };
+out.resumen = M.resumen(base, s, 1000);
+out.matriz = M.matrizEscenarios(base, s, 1000);
+out.tg = M.todosGratuitos(base, s, 1000);
+out.rango = { baja: M.rangoSePagaSolo(base, s, 'baja'), medio: M.rangoSePagaSolo(base, s, 'medio'), adverso: M.rangoSePagaSolo(base, s, 'adverso') };
+out.bolsa = M.rangoBolsa(base, s, 1000);
+const b225 = JSON.parse(JSON.stringify(base)); b225.precios.servicio = 225;
+out.precio = M.sensibilidadPrecio(b225, s, 1000);
 writeFileSync(resolve(aqui, 'datos', 'modelo_v5.json'), JSON.stringify(out, null, 1));
 console.log(JSON.stringify({ capacidad: out.capacidad.map((c) => [c.nombre, c.caben, c.cuello]), disco: out.disco, kpis: out.kpis }, null, 0));
