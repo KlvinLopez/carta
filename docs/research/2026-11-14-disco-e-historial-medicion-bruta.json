@@ -1,0 +1,982 @@
+{
+ "chico": {
+  "tablas": {
+   "evento_analitica": {
+    "filas": 180000,
+    "heap": 36749312,
+    "toast": 0,
+    "indices": 29106176,
+    "total": 65904640
+   },
+   "item_orden": {
+    "filas": 124047,
+    "heap": 12509184,
+    "toast": 0,
+    "indices": 9314304,
+    "total": 21864448
+   },
+   "miembro_sesion": {
+    "filas": 41349,
+    "heap": 4521984,
+    "toast": 0,
+    "indices": 5758976,
+    "total": 10313728
+   },
+   "orden_personal": {
+    "filas": 41349,
+    "heap": 4521984,
+    "toast": 0,
+    "indices": 4628480,
+    "total": 9183232
+   },
+   "comanda": {
+    "filas": 23396,
+    "heap": 3915776,
+    "toast": 0,
+    "indices": 3809280,
+    "total": 7766016
+   },
+   "comanda_orden": {
+    "filas": 41349,
+    "heap": 2498560,
+    "toast": 0,
+    "indices": 4317184,
+    "total": 6848512
+   },
+   "sesion_grupal": {
+    "filas": 18000,
+    "heap": 2269184,
+    "toast": 0,
+    "indices": 2424832,
+    "total": 4726784
+   },
+   "llamada_mesero": {
+    "filas": 5450,
+    "heap": 819200,
+    "toast": 0,
+    "indices": 778240,
+    "total": 1630208
+   },
+   "platillo": {
+    "filas": 300,
+    "heap": 245760,
+    "toast": 0,
+    "indices": 286720,
+    "total": 573440
+   },
+   "importacion_menu": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 32768,
+    "indices": 57344,
+    "total": 180224
+   },
+   "mesa": {
+    "filas": 120,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 81920,
+    "total": 131072
+   },
+   "personal_restaurante": {
+    "filas": 40,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 65536,
+    "total": 114688
+   },
+   "operador_restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "categoria_menu": {
+    "filas": 60,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 49152,
+    "total": 98304
+   },
+   "usuario": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 32768,
+    "total": 73728
+   },
+   "alembic_version": {
+    "filas": 1,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 16384,
+    "total": 57344
+   },
+   "clave_idempotencia": {
+    "filas": 0,
+    "heap": 0,
+    "toast": 0,
+    "indices": 16384,
+    "total": 24576
+   }
+  },
+  "indices": {
+   "evento_analitica": {
+    "idx_evento_restaurante_fecha": 9428992,
+    "idx_evento_tipo": 8962048,
+    "pk_evento_analitica": 4063232,
+    "idx_evento_sesion": 2367488,
+    "idx_evento_mesa": 1941504,
+    "idx_evento_platillo": 1171456,
+    "idx_evento_miembro": 1171456
+   },
+   "item_orden": {
+    "pk_item_orden": 4980736,
+    "idx_item_orden": 3203072,
+    "idx_item_platillo": 1130496
+   },
+   "comanda_orden": {
+    "pk_comanda_orden": 2662400,
+    "uq_comanda_orden_orden_id": 1654784
+   },
+   "miembro_sesion": {
+    "uq_miembro_sesion_id_sesion_id": 2539520,
+    "pk_miembro_sesion": 1736704,
+    "idx_miembro_sesion": 1196032,
+    "idx_miembro_usuario": 286720
+   },
+   "orden_personal": {
+    "idx_orden_miembro": 1736704,
+    "pk_orden_personal": 1687552,
+    "idx_orden_sesion": 1196032,
+    "uq_orden_viva_por_miembro": 8192
+   },
+   "sesion_grupal": {
+    "uq_sesion_grupal_id_restaurante_id": 1204224,
+    "pk_sesion_grupal": 671744,
+    "idx_sesion_cerrada_por": 188416,
+    "idx_sesion_restaurante": 180224,
+    "idx_sesion_mesa": 172032,
+    "uq_sesion_viva_por_mesa": 8192
+   },
+   "comanda": {
+    "uq_comanda_sesion_id_secuencia": 1187840,
+    "idx_comanda_mesa": 1138688,
+    "pk_comanda": 1089536,
+    "idx_comanda_atendida_por": 204800,
+    "idx_comanda_restaurante": 180224,
+    "idx_comanda_abierta": 8192
+   },
+   "llamada_mesero": {
+    "pk_llamada_mesero": 253952,
+    "idx_llamada_sesion": 245760,
+    "idx_llamada_mesa": 81920,
+    "idx_llamada_atendida_por": 65536,
+    "idx_llamada_restaurante": 65536,
+    "idx_llamada_miembro": 57344,
+    "idx_llamada_pendiente": 8192
+   },
+   "platillo": {
+    "uq_platillo_id_restaurante_id": 40960,
+    "idx_platillo_categoria_orden": 40960,
+    "idx_platillo_etiquetas": 40960,
+    "idx_platillo_alergenos": 32768,
+    "pk_platillo": 32768,
+    "idx_platillo_no_disponible_por": 16384,
+    "idx_platillo_restaurante": 16384,
+    "idx_platillo_activo": 16384
+   },
+   "categoria_menu": {
+    "uq_categoria_menu_id_restaurante_id": 16384,
+    "pk_categoria_menu": 16384,
+    "idx_categoria_restaurante": 16384,
+    "uq_categoria_activa_por_nombre": 16384
+   },
+   "mesa": {
+    "idx_mesa_restaurante": 16384,
+    "uq_mesa_activa_por_numero": 16384,
+    "uq_mesa_codigo_publico": 16384,
+    "pk_mesa": 16384,
+    "uq_mesa_id_restaurante_id": 16384
+   },
+   "restaurante": {
+    "idx_restaurante_activo": 16384,
+    "uq_restaurante_slug": 16384,
+    "pk_restaurante": 16384
+   },
+   "personal_restaurante": {
+    "pk_personal_restaurante": 16384,
+    "uq_personal_activo_por_nombre": 16384,
+    "idx_personal_restaurante": 16384,
+    "uq_personal_restaurante_id_restaurante_id": 16384
+   },
+   "operador_restaurante": {
+    "idx_operador_restaurante": 16384,
+    "idx_operador_usuario": 16384,
+    "pk_operador_restaurante": 16384,
+    "uq_operador_restaurante_usuario_id_restaurante_id": 16384
+   },
+   "usuario": {
+    "uq_usuario_firebase_uid": 16384,
+    "pk_usuario": 16384
+   },
+   "alembic_version": {
+    "alembic_version_pkc": 16384
+   },
+   "importacion_menu": {
+    "pk_importacion_menu": 16384,
+    "idx_importacion_solicitado_por": 16384,
+    "idx_importacion_restaurante": 16384,
+    "idx_importacion_cola": 8192
+   },
+   "clave_idempotencia": {
+    "pk_clave_idempotencia": 8192,
+    "idx_idempotencia_purga": 8192
+   }
+  },
+  "base_total": 138419223
+ },
+ "mediano": {
+  "tablas": {
+   "evento_analitica": {
+    "filas": 180000,
+    "heap": 36749312,
+    "toast": 0,
+    "indices": 29499392,
+    "total": 66297856
+   },
+   "item_orden": {
+    "filas": 140088,
+    "heap": 14139392,
+    "toast": 0,
+    "indices": 10182656,
+    "total": 24363008
+   },
+   "miembro_sesion": {
+    "filas": 46696,
+    "heap": 5103616,
+    "toast": 0,
+    "indices": 6537216,
+    "total": 11673600
+   },
+   "orden_personal": {
+    "filas": 46696,
+    "heap": 5103616,
+    "toast": 0,
+    "indices": 5537792,
+    "total": 10674176
+   },
+   "comanda_orden": {
+    "filas": 46696,
+    "heap": 2818048,
+    "toast": 0,
+    "indices": 5029888,
+    "total": 7880704
+   },
+   "comanda": {
+    "filas": 23409,
+    "heap": 3915776,
+    "toast": 0,
+    "indices": 3858432,
+    "total": 7815168
+   },
+   "sesion_grupal": {
+    "filas": 18000,
+    "heap": 2269184,
+    "toast": 0,
+    "indices": 2449408,
+    "total": 4751360
+   },
+   "llamada_mesero": {
+    "filas": 5422,
+    "heap": 811008,
+    "toast": 0,
+    "indices": 802816,
+    "total": 1646592
+   },
+   "platillo": {
+    "filas": 600,
+    "heap": 491520,
+    "toast": 0,
+    "indices": 368640,
+    "total": 901120
+   },
+   "importacion_menu": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 57344,
+    "indices": 57344,
+    "total": 204800
+   },
+   "mesa": {
+    "filas": 120,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 81920,
+    "total": 131072
+   },
+   "personal_restaurante": {
+    "filas": 40,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 65536,
+    "total": 114688
+   },
+   "operador_restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "categoria_menu": {
+    "filas": 60,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 49152,
+    "total": 98304
+   },
+   "usuario": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 32768,
+    "total": 73728
+   },
+   "alembic_version": {
+    "filas": 1,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 16384,
+    "total": 57344
+   },
+   "clave_idempotencia": {
+    "filas": 0,
+    "heap": 0,
+    "toast": 0,
+    "indices": 16384,
+    "total": 24576
+   }
+  },
+  "indices": {
+   "evento_analitica": {
+    "idx_evento_restaurante_fecha": 9494528,
+    "idx_evento_tipo": 9232384,
+    "pk_evento_analitica": 4063232,
+    "idx_evento_sesion": 2433024,
+    "idx_evento_mesa": 1933312,
+    "idx_evento_miembro": 1171456,
+    "idx_evento_platillo": 1171456
+   },
+   "item_orden": {
+    "pk_item_orden": 5144576,
+    "idx_item_orden": 3694592,
+    "idx_item_platillo": 1343488
+   },
+   "comanda_orden": {
+    "pk_comanda_orden": 3072000,
+    "uq_comanda_orden_orden_id": 1957888
+   },
+   "miembro_sesion": {
+    "uq_miembro_sesion_id_sesion_id": 2760704,
+    "pk_miembro_sesion": 2154496,
+    "idx_miembro_sesion": 1302528,
+    "idx_miembro_usuario": 319488
+   },
+   "orden_personal": {
+    "idx_orden_miembro": 2154496,
+    "pk_orden_personal": 2072576,
+    "idx_orden_sesion": 1302528,
+    "uq_orden_viva_por_miembro": 8192
+   },
+   "comanda": {
+    "uq_comanda_sesion_id_secuencia": 1269760,
+    "idx_comanda_mesa": 1138688,
+    "pk_comanda": 1056768,
+    "idx_comanda_atendida_por": 204800,
+    "idx_comanda_restaurante": 180224,
+    "idx_comanda_abierta": 8192
+   },
+   "sesion_grupal": {
+    "uq_sesion_grupal_id_restaurante_id": 1220608,
+    "pk_sesion_grupal": 688128,
+    "idx_sesion_restaurante": 180224,
+    "idx_sesion_cerrada_por": 180224,
+    "idx_sesion_mesa": 172032,
+    "uq_sesion_viva_por_mesa": 8192
+   },
+   "llamada_mesero": {
+    "pk_llamada_mesero": 278528,
+    "idx_llamada_sesion": 262144,
+    "idx_llamada_mesa": 73728,
+    "idx_llamada_restaurante": 65536,
+    "idx_llamada_atendida_por": 57344,
+    "idx_llamada_miembro": 57344,
+    "idx_llamada_pendiente": 8192
+   },
+   "platillo": {
+    "idx_platillo_categoria_orden": 57344,
+    "idx_platillo_etiquetas": 57344,
+    "uq_platillo_id_restaurante_id": 57344,
+    "idx_platillo_alergenos": 49152,
+    "pk_platillo": 49152,
+    "idx_platillo_activo": 16384,
+    "idx_platillo_no_disponible_por": 16384,
+    "idx_platillo_restaurante": 16384
+   },
+   "mesa": {
+    "uq_mesa_activa_por_numero": 16384,
+    "uq_mesa_codigo_publico": 16384,
+    "pk_mesa": 16384,
+    "uq_mesa_id_restaurante_id": 16384,
+    "idx_mesa_restaurante": 16384
+   },
+   "categoria_menu": {
+    "pk_categoria_menu": 16384,
+    "uq_categoria_menu_id_restaurante_id": 16384,
+    "idx_categoria_restaurante": 16384,
+    "uq_categoria_activa_por_nombre": 16384
+   },
+   "restaurante": {
+    "idx_restaurante_activo": 16384,
+    "uq_restaurante_slug": 16384,
+    "pk_restaurante": 16384
+   },
+   "personal_restaurante": {
+    "pk_personal_restaurante": 16384,
+    "uq_personal_activo_por_nombre": 16384,
+    "idx_personal_restaurante": 16384,
+    "uq_personal_restaurante_id_restaurante_id": 16384
+   },
+   "operador_restaurante": {
+    "idx_operador_restaurante": 16384,
+    "idx_operador_usuario": 16384,
+    "pk_operador_restaurante": 16384,
+    "uq_operador_restaurante_usuario_id_restaurante_id": 16384
+   },
+   "usuario": {
+    "uq_usuario_firebase_uid": 16384,
+    "pk_usuario": 16384
+   },
+   "alembic_version": {
+    "alembic_version_pkc": 16384
+   },
+   "importacion_menu": {
+    "pk_importacion_menu": 16384,
+    "idx_importacion_solicitado_por": 16384,
+    "idx_importacion_restaurante": 16384,
+    "idx_importacion_cola": 8192
+   },
+   "clave_idempotencia": {
+    "idx_idempotencia_purga": 8192,
+    "pk_clave_idempotencia": 8192
+   }
+  },
+  "base_total": 145636375
+ },
+ "grande": {
+  "tablas": {
+   "evento_analitica": {
+    "filas": 450000,
+    "heap": 91856896,
+    "toast": 0,
+    "indices": 70262784,
+    "total": 162177024
+   },
+   "item_orden": {
+    "filas": 404619,
+    "heap": 40812544,
+    "toast": 0,
+    "indices": 32202752,
+    "total": 73064448
+   },
+   "miembro_sesion": {
+    "filas": 134873,
+    "heap": 14737408,
+    "toast": 0,
+    "indices": 18104320,
+    "total": 32874496
+   },
+   "orden_personal": {
+    "filas": 134873,
+    "heap": 14737408,
+    "toast": 0,
+    "indices": 13639680,
+    "total": 28409856
+   },
+   "comanda_orden": {
+    "filas": 134873,
+    "heap": 8126464,
+    "toast": 0,
+    "indices": 13819904,
+    "total": 21979136
+   },
+   "comanda": {
+    "filas": 58509,
+    "heap": 9789440,
+    "toast": 0,
+    "indices": 9297920,
+    "total": 19128320
+   },
+   "sesion_grupal": {
+    "filas": 45000,
+    "heap": 5677056,
+    "toast": 0,
+    "indices": 5791744,
+    "total": 11501568
+   },
+   "llamada_mesero": {
+    "filas": 13500,
+    "heap": 2015232,
+    "toast": 0,
+    "indices": 1818624,
+    "total": 3866624
+   },
+   "platillo": {
+    "filas": 900,
+    "heap": 737280,
+    "toast": 0,
+    "indices": 442368,
+    "total": 1220608
+   },
+   "importacion_menu": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 65536,
+    "indices": 57344,
+    "total": 212992
+   },
+   "mesa": {
+    "filas": 120,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 81920,
+    "total": 131072
+   },
+   "personal_restaurante": {
+    "filas": 40,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 65536,
+    "total": 114688
+   },
+   "operador_restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "categoria_menu": {
+    "filas": 60,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 49152,
+    "total": 98304
+   },
+   "usuario": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 32768,
+    "total": 73728
+   },
+   "alembic_version": {
+    "filas": 1,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 16384,
+    "total": 57344
+   },
+   "clave_idempotencia": {
+    "filas": 0,
+    "heap": 0,
+    "toast": 0,
+    "indices": 16384,
+    "total": 24576
+   }
+  },
+  "indices": {
+   "evento_analitica": {
+    "idx_evento_tipo": 22781952,
+    "idx_evento_restaurante_fecha": 22437888,
+    "pk_evento_analitica": 10125312,
+    "idx_evento_sesion": 5758976,
+    "idx_evento_mesa": 3309568,
+    "idx_evento_miembro": 2924544,
+    "idx_evento_platillo": 2924544
+   },
+   "item_orden": {
+    "pk_item_orden": 17498112,
+    "idx_item_orden": 10149888,
+    "idx_item_platillo": 4554752
+   },
+   "miembro_sesion": {
+    "uq_miembro_sesion_id_sesion_id": 8740864,
+    "pk_miembro_sesion": 5029888,
+    "idx_miembro_sesion": 3448832,
+    "idx_miembro_usuario": 884736
+   },
+   "comanda_orden": {
+    "pk_comanda_orden": 8675328,
+    "uq_comanda_orden_orden_id": 5144576
+   },
+   "orden_personal": {
+    "pk_orden_personal": 5152768,
+    "idx_orden_miembro": 5029888,
+    "idx_orden_sesion": 3448832,
+    "uq_orden_viva_por_miembro": 8192
+   },
+   "comanda": {
+    "uq_comanda_sesion_id_secuencia": 3088384,
+    "idx_comanda_mesa": 2670592,
+    "pk_comanda": 2433024,
+    "idx_comanda_atendida_por": 671744,
+    "idx_comanda_restaurante": 425984,
+    "idx_comanda_abierta": 8192
+   },
+   "sesion_grupal": {
+    "uq_sesion_grupal_id_restaurante_id": 2777088,
+    "pk_sesion_grupal": 1916928,
+    "idx_sesion_mesa": 401408,
+    "idx_sesion_restaurante": 344064,
+    "idx_sesion_cerrada_por": 344064,
+    "uq_sesion_viva_por_mesa": 8192
+   },
+   "llamada_mesero": {
+    "pk_llamada_mesero": 614400,
+    "idx_llamada_sesion": 581632,
+    "idx_llamada_restaurante": 180224,
+    "idx_llamada_mesa": 172032,
+    "idx_llamada_atendida_por": 155648,
+    "idx_llamada_miembro": 106496,
+    "idx_llamada_pendiente": 8192
+   },
+   "platillo": {
+    "uq_platillo_id_restaurante_id": 90112,
+    "idx_platillo_etiquetas": 73728,
+    "idx_platillo_alergenos": 65536,
+    "idx_platillo_categoria_orden": 57344,
+    "pk_platillo": 57344,
+    "idx_platillo_activo": 16384,
+    "idx_platillo_no_disponible_por": 16384,
+    "idx_platillo_restaurante": 16384
+   },
+   "personal_restaurante": {
+    "uq_personal_restaurante_id_restaurante_id": 16384,
+    "pk_personal_restaurante": 16384,
+    "uq_personal_activo_por_nombre": 16384,
+    "idx_personal_restaurante": 16384
+   },
+   "mesa": {
+    "uq_mesa_id_restaurante_id": 16384,
+    "idx_mesa_restaurante": 16384,
+    "uq_mesa_activa_por_numero": 16384,
+    "uq_mesa_codigo_publico": 16384,
+    "pk_mesa": 16384
+   },
+   "categoria_menu": {
+    "pk_categoria_menu": 16384,
+    "uq_categoria_menu_id_restaurante_id": 16384,
+    "idx_categoria_restaurante": 16384,
+    "uq_categoria_activa_por_nombre": 16384
+   },
+   "restaurante": {
+    "idx_restaurante_activo": 16384,
+    "uq_restaurante_slug": 16384,
+    "pk_restaurante": 16384
+   },
+   "operador_restaurante": {
+    "idx_operador_restaurante": 16384,
+    "idx_operador_usuario": 16384,
+    "pk_operador_restaurante": 16384,
+    "uq_operador_restaurante_usuario_id_restaurante_id": 16384
+   },
+   "usuario": {
+    "uq_usuario_firebase_uid": 16384,
+    "pk_usuario": 16384
+   },
+   "alembic_version": {
+    "alembic_version_pkc": 16384
+   },
+   "importacion_menu": {
+    "pk_importacion_menu": 16384,
+    "idx_importacion_solicitado_por": 16384,
+    "idx_importacion_restaurante": 16384,
+    "idx_importacion_cola": 8192
+   },
+   "clave_idempotencia": {
+    "pk_clave_idempotencia": 8192,
+    "idx_idempotencia_purga": 8192
+   }
+  },
+  "base_total": 363822103
+ },
+ "formal": {
+  "tablas": {
+   "evento_analitica": {
+    "filas": 150000,
+    "heap": 30621696,
+    "toast": 0,
+    "indices": 24985600,
+    "total": 55648256
+   },
+   "item_orden": {
+    "filas": 179880,
+    "heap": 18145280,
+    "toast": 0,
+    "indices": 12943360,
+    "total": 31129600
+   },
+   "miembro_sesion": {
+    "filas": 44970,
+    "heap": 4915200,
+    "toast": 0,
+    "indices": 6160384,
+    "total": 11108352
+   },
+   "orden_personal": {
+    "filas": 44970,
+    "heap": 4915200,
+    "toast": 0,
+    "indices": 5095424,
+    "total": 10043392
+   },
+   "comanda_orden": {
+    "filas": 44970,
+    "heap": 2711552,
+    "toast": 0,
+    "indices": 4915200,
+    "total": 7659520
+   },
+   "comanda": {
+    "filas": 19569,
+    "heap": 3276800,
+    "toast": 0,
+    "indices": 3112960,
+    "total": 6430720
+   },
+   "sesion_grupal": {
+    "filas": 15000,
+    "heap": 1892352,
+    "toast": 0,
+    "indices": 2203648,
+    "total": 4128768
+   },
+   "llamada_mesero": {
+    "filas": 4497,
+    "heap": 671744,
+    "toast": 0,
+    "indices": 581632,
+    "total": 1286144
+   },
+   "platillo": {
+    "filas": 840,
+    "heap": 688128,
+    "toast": 0,
+    "indices": 417792,
+    "total": 1146880
+   },
+   "importacion_menu": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 65536,
+    "indices": 57344,
+    "total": 212992
+   },
+   "mesa": {
+    "filas": 120,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 81920,
+    "total": 131072
+   },
+   "personal_restaurante": {
+    "filas": 40,
+    "heap": 16384,
+    "toast": 0,
+    "indices": 65536,
+    "total": 114688
+   },
+   "operador_restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "categoria_menu": {
+    "filas": 60,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 65536,
+    "total": 106496
+   },
+   "restaurante": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 49152,
+    "total": 98304
+   },
+   "usuario": {
+    "filas": 10,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 32768,
+    "total": 73728
+   },
+   "alembic_version": {
+    "filas": 1,
+    "heap": 8192,
+    "toast": 0,
+    "indices": 16384,
+    "total": 57344
+   },
+   "clave_idempotencia": {
+    "filas": 0,
+    "heap": 0,
+    "toast": 0,
+    "indices": 16384,
+    "total": 24576
+   }
+  },
+  "indices": {
+   "evento_analitica": {
+    "idx_evento_restaurante_fecha": 8716288,
+    "idx_evento_tipo": 7323648,
+    "pk_evento_analitica": 3391488,
+    "idx_evento_sesion": 2211840,
+    "idx_evento_mesa": 1376256,
+    "idx_evento_platillo": 983040,
+    "idx_evento_miembro": 983040
+   },
+   "item_orden": {
+    "pk_item_orden": 7708672,
+    "idx_item_orden": 3514368,
+    "idx_item_platillo": 1720320
+   },
+   "comanda_orden": {
+    "pk_comanda_orden": 2916352,
+    "uq_comanda_orden_orden_id": 1998848
+   },
+   "miembro_sesion": {
+    "uq_miembro_sesion_id_sesion_id": 2744320,
+    "pk_miembro_sesion": 1982464,
+    "idx_miembro_sesion": 1122304,
+    "idx_miembro_usuario": 311296
+   },
+   "orden_personal": {
+    "pk_orden_personal": 1982464,
+    "idx_orden_miembro": 1982464,
+    "idx_orden_sesion": 1122304,
+    "uq_orden_viva_por_miembro": 8192
+   },
+   "comanda": {
+    "uq_comanda_sesion_id_secuencia": 1105920,
+    "idx_comanda_mesa": 884736,
+    "pk_comanda": 729088,
+    "idx_comanda_atendida_por": 204800,
+    "idx_comanda_restaurante": 180224,
+    "idx_comanda_abierta": 8192
+   },
+   "sesion_grupal": {
+    "uq_sesion_grupal_id_restaurante_id": 1064960,
+    "pk_sesion_grupal": 614400,
+    "idx_sesion_restaurante": 180224,
+    "idx_sesion_mesa": 172032,
+    "idx_sesion_cerrada_por": 163840,
+    "uq_sesion_viva_por_mesa": 8192
+   },
+   "llamada_mesero": {
+    "pk_llamada_mesero": 172032,
+    "idx_llamada_sesion": 172032,
+    "idx_llamada_restaurante": 65536,
+    "idx_llamada_atendida_por": 57344,
+    "idx_llamada_mesa": 57344,
+    "idx_llamada_miembro": 49152,
+    "idx_llamada_pendiente": 8192
+   },
+   "platillo": {
+    "uq_platillo_id_restaurante_id": 81920,
+    "idx_platillo_etiquetas": 65536,
+    "pk_platillo": 57344,
+    "idx_platillo_categoria_orden": 57344,
+    "idx_platillo_alergenos": 57344,
+    "idx_platillo_activo": 16384,
+    "idx_platillo_no_disponible_por": 16384,
+    "idx_platillo_restaurante": 16384
+   },
+   "mesa": {
+    "idx_mesa_restaurante": 16384,
+    "uq_mesa_activa_por_numero": 16384,
+    "uq_mesa_codigo_publico": 16384,
+    "pk_mesa": 16384,
+    "uq_mesa_id_restaurante_id": 16384
+   },
+   "categoria_menu": {
+    "pk_categoria_menu": 16384,
+    "uq_categoria_menu_id_restaurante_id": 16384,
+    "idx_categoria_restaurante": 16384,
+    "uq_categoria_activa_por_nombre": 16384
+   },
+   "restaurante": {
+    "idx_restaurante_activo": 16384,
+    "uq_restaurante_slug": 16384,
+    "pk_restaurante": 16384
+   },
+   "personal_restaurante": {
+    "pk_personal_restaurante": 16384,
+    "uq_personal_activo_por_nombre": 16384,
+    "idx_personal_restaurante": 16384,
+    "uq_personal_restaurante_id_restaurante_id": 16384
+   },
+   "operador_restaurante": {
+    "idx_operador_restaurante": 16384,
+    "idx_operador_usuario": 16384,
+    "pk_operador_restaurante": 16384,
+    "uq_operador_restaurante_usuario_id_restaurante_id": 16384
+   },
+   "usuario": {
+    "uq_usuario_firebase_uid": 16384,
+    "pk_usuario": 16384
+   },
+   "alembic_version": {
+    "alembic_version_pkc": 16384
+   },
+   "importacion_menu": {
+    "pk_importacion_menu": 16384,
+    "idx_importacion_solicitado_por": 16384,
+    "idx_importacion_restaurante": 16384,
+    "idx_importacion_cola": 8192
+   },
+   "clave_idempotencia": {
+    "pk_clave_idempotencia": 8192,
+    "idx_idempotencia_purga": 8192
+   }
+  },
+  "base_total": 138181655
+ }
+}
