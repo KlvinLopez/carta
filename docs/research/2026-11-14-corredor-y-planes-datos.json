@@ -1,0 +1,236 @@
+{
+ "parametros": {
+  "k": 0.5,
+  "soporte": {
+   "bajo": 30.0,
+   "base": 60.0,
+   "alto": 150.0
+  },
+  "fijo": {
+   "N=100": 10.0,
+   "N=500": 3.0,
+   "N=1000": 2.6
+  },
+  "costo_var": {
+   "chico": 1.0,
+   "mediano": 1.9,
+   "grande": 7.5,
+   "formal": 3.6
+  }
+ },
+ "pisos": {
+  "chico": {
+   "sin_soporte": 4.0,
+   "con_todo_a_349": 82.1,
+   "con_todo_a_549": 90.4,
+   "con_todo_a_2167": 158.0
+  },
+  "mediano": {
+   "sin_soporte": 4.9,
+   "con_todo_a_349": 83.0,
+   "con_todo_a_549": 91.3,
+   "con_todo_a_2167": 158.9
+  },
+  "grande": {
+   "sin_soporte": 10.5,
+   "con_todo_a_349": 88.6,
+   "con_todo_a_549": 96.9,
+   "con_todo_a_2167": 164.5
+  },
+  "formal": {
+   "sin_soporte": 6.6,
+   "con_todo_a_349": 84.7,
+   "con_todo_a_549": 93.0,
+   "con_todo_a_2167": 160.6
+  }
+ },
+ "techo": {
+  "chico": {
+   "comandas_mes": 2340,
+   "sustituto_mas_barato": "Fudo Avanzado + módulo de mesas (con POS e inventario)",
+   "mxn": 745,
+   "mediana_de_sustitutos": 1099
+  },
+  "mediano": {
+   "comandas_mes": 2340,
+   "sustituto_mas_barato": "Fudo Avanzado + módulo de mesas (con POS e inventario)",
+   "mxn": 745,
+   "mediana_de_sustitutos": 1099
+  },
+  "grande": {
+   "comandas_mes": 5850,
+   "sustituto_mas_barato": "Poster Business (comandero y KDS)",
+   "mxn": 837,
+   "mediana_de_sustitutos": 1599
+  },
+  "formal": {
+   "comandas_mes": 1950,
+   "sustituto_mas_barato": "Fudo Avanzado + módulo de mesas (con POS e inventario)",
+   "mxn": 745,
+   "mediana_de_sustitutos": 1099
+  }
+ },
+ "regla_propuesta": {
+  "chico": {
+   "k_por_sustituto": 372,
+   "propuesta_redondeada": 349,
+   "tres_veces_el_piso": 246,
+   "margen_pct": 76
+  },
+  "mediano": {
+   "k_por_sustituto": 372,
+   "propuesta_redondeada": 349,
+   "tres_veces_el_piso": 249,
+   "margen_pct": 76
+  },
+  "grande": {
+   "k_por_sustituto": 418,
+   "propuesta_redondeada": 399,
+   "tres_veces_el_piso": 272,
+   "margen_pct": 77
+  },
+  "formal": {
+   "k_por_sustituto": 372,
+   "propuesta_redondeada": 349,
+   "tres_veces_el_piso": 254,
+   "margen_pct": 76
+  }
+ },
+ "evaluacion": {
+  "349": {
+   "chico": {
+    "veces_el_piso": 4.3,
+    "pct_del_sustituto": 47,
+    "pct_del_ingreso_supuesto": 0.1,
+    "ingreso_supuesto_mes": 414000
+   },
+   "mediano": {
+    "veces_el_piso": 4.2,
+    "pct_del_sustituto": 47,
+    "pct_del_ingreso_supuesto": 0.05,
+    "ingreso_supuesto_mes": 748800
+   },
+   "grande": {
+    "veces_el_piso": 3.9,
+    "pct_del_sustituto": 42,
+    "pct_del_ingreso_supuesto": 0.01,
+    "ingreso_supuesto_mes": 2970000
+   },
+   "formal": {
+    "veces_el_piso": 4.1,
+    "pct_del_sustituto": 47,
+    "pct_del_ingreso_supuesto": 0.02,
+    "ingreso_supuesto_mes": 2025000
+   }
+  },
+  "549": {
+   "chico": {
+    "veces_el_piso": 6.1,
+    "pct_del_sustituto": 74,
+    "pct_del_ingreso_supuesto": 0.15,
+    "ingreso_supuesto_mes": 414000
+   },
+   "mediano": {
+    "veces_el_piso": 6.0,
+    "pct_del_sustituto": 74,
+    "pct_del_ingreso_supuesto": 0.09,
+    "ingreso_supuesto_mes": 748800
+   },
+   "grande": {
+    "veces_el_piso": 5.7,
+    "pct_del_sustituto": 66,
+    "pct_del_ingreso_supuesto": 0.02,
+    "ingreso_supuesto_mes": 2970000
+   },
+   "formal": {
+    "veces_el_piso": 5.9,
+    "pct_del_sustituto": 74,
+    "pct_del_ingreso_supuesto": 0.03,
+    "ingreso_supuesto_mes": 2025000
+   }
+  },
+  "799": {
+   "chico": {
+    "veces_el_piso": 7.9,
+    "pct_del_sustituto": 107,
+    "pct_del_ingreso_supuesto": 0.22,
+    "ingreso_supuesto_mes": 414000
+   },
+   "mediano": {
+    "veces_el_piso": 7.9,
+    "pct_del_sustituto": 107,
+    "pct_del_ingreso_supuesto": 0.12,
+    "ingreso_supuesto_mes": 748800
+   },
+   "grande": {
+    "veces_el_piso": 7.4,
+    "pct_del_sustituto": 95,
+    "pct_del_ingreso_supuesto": 0.03,
+    "ingreso_supuesto_mes": 2970000
+   },
+   "formal": {
+    "veces_el_piso": 7.7,
+    "pct_del_sustituto": 107,
+    "pct_del_ingreso_supuesto": 0.05,
+    "ingreso_supuesto_mes": 2025000
+   }
+  },
+  "2000": {
+   "chico": {
+    "veces_el_piso": 13.2,
+    "pct_del_sustituto": 268,
+    "pct_del_ingreso_supuesto": 0.56,
+    "ingreso_supuesto_mes": 414000
+   },
+   "mediano": {
+    "veces_el_piso": 13.2,
+    "pct_del_sustituto": 268,
+    "pct_del_ingreso_supuesto": 0.31,
+    "ingreso_supuesto_mes": 748800
+   },
+   "grande": {
+    "veces_el_piso": 12.7,
+    "pct_del_sustituto": 239,
+    "pct_del_ingreso_supuesto": 0.08,
+    "ingreso_supuesto_mes": 2970000
+   },
+   "formal": {
+    "veces_el_piso": 13.0,
+    "pct_del_sustituto": 268,
+    "pct_del_ingreso_supuesto": 0.11,
+    "ingreso_supuesto_mes": 2025000
+   }
+  },
+  "500_por_semana": {
+   "chico": {
+    "veces_el_piso": 13.7,
+    "pct_del_sustituto": 291,
+    "pct_del_ingreso_supuesto": 0.61,
+    "ingreso_supuesto_mes": 414000
+   },
+   "mediano": {
+    "veces_el_piso": 13.6,
+    "pct_del_sustituto": 291,
+    "pct_del_ingreso_supuesto": 0.34,
+    "ingreso_supuesto_mes": 748800
+   },
+   "grande": {
+    "veces_el_piso": 13.2,
+    "pct_del_sustituto": 259,
+    "pct_del_ingreso_supuesto": 0.08,
+    "ingreso_supuesto_mes": 2970000
+   },
+   "formal": {
+    "veces_el_piso": 13.5,
+    "pct_del_sustituto": 291,
+    "pct_del_ingreso_supuesto": 0.12,
+    "ingreso_supuesto_mes": 2025000
+   }
+  }
+ },
+ "micro_20_visitas_dia": {
+  "ingreso_mes": 138000,
+  "pct_349_con_iva": 0.29,
+  "pct_2167_con_iva": 1.82
+ }
+}

@@ -1,0 +1,7 @@
+palanca,mb_gratuito,mb_paga,N_todo gratuito,N_todo gratuito_con_reserva,N_90/10,N_90/10_con_reserva,N_80/20,N_80/20_con_reserva,N_todo de paga,N_todo de paga_con_reserva
+"P0 hoy: 30 días / 12 meses, todo en línea",14.3,225.4,349,279,141,112,88,70,22,17
+P1 analítica en línea sólo 30 días,14.3,129.0,349,279,193,155,134,107,38,30
+"P2 = P1 + historial en línea 3 meses, resto archivado",14.3,39.0,349,279,298,238,259,207,128,102
+P3 = P2 + sin los 4 índices de clave foránea de evento_analitica,13.6,38.1,367,294,311,249,270,216,130,104
+"P4 = P3 + analítica 7 días en bruto (resto, agregados)",8.8,32.0,570,456,450,360,372,297,155,124
+P5 = P4 + historial en línea 1 mes (archivo desde el 2.º),8.8,12.0,570,456,549,439,530,424,414,331

@@ -1,0 +1,34 @@
+proveedor,plan,precio_mxn_mes_antes_iva,unidad_de_cobro,menu_qr,pedir_mesa,grupo,comanda_app,cocina,pos,pago_mesa,factura,reservas,reparto,inventario,reportes,sucursales,limites_y_notas
+Soft Restaurant 12,Lite,799,licencia,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,Payments baja a 639
+Soft Restaurant 12,Pro,1099,licencia,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,
+Soft Restaurant Cloud,Lite,699,empresa,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,1,no publicado,1,0,2 dispositivos
+Soft Restaurant Cloud,Pro,999,empresa,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,1,no publicado,1,0,5 dispositivos
+Soft Restaurant Cloud,Enterprise,1599,empresa,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,1,no publicado,1,1,10 dispositivos
+Fudo,Avanzado,652,negocio,1,1,no publicado,no publicado,0,1,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,"mesas +5 USD, cocina +10 USD, reparto +15 USD"
+Fudo,Pro,838,negocio,1,1,no publicado,no publicado,0,1,no publicado,no publicado,no publicado,no publicado,1,1,no publicado,"varias cajas, estado de resultados"
+Last.app,Starter,1000,sucursal,no publicado,no publicado,no publicado,no publicado,0,1,no publicado,1,no publicado,no publicado,no publicado,no publicado,0,"2 licencias POS, 100 folios; cocina +250"
+Last.app,Growth,1700,sucursal,no publicado,no publicado,no publicado,no publicado,0,1,no publicado,1,no publicado,no publicado,no publicado,no publicado,0,"4 licencias POS, 200 folios"
+Last.app,Unlimited,2900,sucursal,no publicado,no publicado,no publicado,no publicado,0,1,no publicado,1,no publicado,no publicado,no publicado,no publicado,0,"licencias ilimitadas, 500 folios"
+OlaClick,Advanced,184,negocio,1,no publicado,no publicado,no publicado,no publicado,1,no publicado,0,no publicado,1,no publicado,no publicado,no publicado,75 pedidos/mes; facturación como complemento
+OlaClick,Premium,465,negocio,1,no publicado,no publicado,no publicado,no publicado,1,no publicado,0,no publicado,1,no publicado,no publicado,no publicado,400 pedidos/mes; facturación como complemento
+OlaClick,Elite,1099,negocio,1,no publicado,no publicado,no publicado,no publicado,1,no publicado,1,no publicado,1,no publicado,no publicado,no publicado,pedidos ilimitados; facturación incluida
+OlaClick,Impulso,2979,negocio,1,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,1,no publicado,1,no publicado,copiloto de IA
+MenuTiger,Free,0,negocio,1,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,0,"75 pedidos/mes, 1 local"
+MenuTiger,Regular,317,negocio,1,1,no publicado,no publicado,0,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,1,1,"500 pedidos, 2 locales"
+MenuTiger,Advanced,856,negocio,1,1,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,1,1,"2,000 pedidos, 5 locales"
+MenuTiger,Premium,2216,negocio,1,1,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,1,1,"pedidos ilimitados, gestión de mesas, marca blanca"
+Neolo,Menú QR gratis,0,negocio,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,200 visualizaciones
+Neolo,Plan 0,157,negocio,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,"visualizaciones ilimitadas, alérgenos"
+Meniu,Business,225,negocio,1,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,1,1,1,no publicado,no publicado,prueba 7 días
+Poster,Mini,495,negocio,1,no publicado,no publicado,0,0,1,no publicado,no publicado,0,no publicado,1,no publicado,no publicado,pago anual
+Poster,Business,837,negocio,1,no publicado,no publicado,1,1,1,no publicado,no publicado,0,no publicado,1,no publicado,no publicado,"comandero móvil, KDS"
+Poster,Pro,1179,negocio,1,no publicado,no publicado,1,1,1,no publicado,no publicado,1,no publicado,1,no publicado,no publicado,"reservas, permisos"
+Loyverse,POS gratis,0,tienda,0,no publicado,no publicado,no publicado,1,1,no publicado,no publicado,no publicado,no publicado,1,1,no publicado,analítica 31 días
+Waitry,Lite,0,negocio,1,0,no publicado,no publicado,no publicado,no publicado,0,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,sólo carta
+Waitry,Premium,1243,negocio,1,1,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,1,no publicado,no publicado,no publicado,"pedido y pago en mesa, venta en línea"
+OpenTable,Basic,2774,restaurante,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,"fuente secundaria, EE. UU."
+OpenTable,Core,5567,restaurante,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,"fuente secundaria, EE. UU."
+OpenTable,Pro,9291,restaurante,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,"fuente secundaria, EE. UU."
+Parrot Software,Starter/Pro/All-In-One,,negocio,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publica precio
+Wansoft,Básico/Inventarios/Pro,,negocio,no publicado,no publicado,no publicado,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publica precio
+Soft Restaurant,Menú Digital (complemento),,tableta,1,no publicado,no publicado,1,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publicado,no publica precio

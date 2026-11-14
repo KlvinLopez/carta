@@ -1,0 +1,180 @@
+{
+ "por_perfil": {
+  "chico": {
+   "visitas_mes": 1800,
+   "eventos_por_visita": 10,
+   "bytes_por_visita_sin_eventos": 3463,
+   "bytes_por_evento": 366,
+   "bytes_por_visita_con_eventos": 7124,
+   "parte_eventos": 0.514,
+   "mb_fijos_por_restaurante": 0.138,
+   "mb_mes_sin_eventos": 6.23,
+   "mb_mes_eventos": 6.59,
+   "mb_mes_total": 12.82,
+   "bytes_por_tabla": {
+    "sesion_grupal": 263,
+    "miembro_sesion": 573,
+    "orden_personal": 510,
+    "item_orden": 1215,
+    "comanda": 431,
+    "comanda_orden": 380,
+    "llamada_mesero": 91
+   },
+   "indices_fk_de_evento_parte": 0.101,
+   "platillos": 30,
+   "bytes_por_platillo": 1911
+  },
+  "mediano": {
+   "visitas_mes": 1800,
+   "eventos_por_visita": 10,
+   "bytes_por_visita_sin_eventos": 3822,
+   "bytes_por_evento": 368,
+   "bytes_por_visita_con_eventos": 7506,
+   "parte_eventos": 0.491,
+   "mb_fijos_por_restaurante": 0.174,
+   "mb_mes_sin_eventos": 6.88,
+   "mb_mes_eventos": 6.63,
+   "mb_mes_total": 13.51,
+   "bytes_por_tabla": {
+    "sesion_grupal": 264,
+    "miembro_sesion": 649,
+    "orden_personal": 593,
+    "item_orden": 1354,
+    "comanda": 434,
+    "comanda_orden": 438,
+    "llamada_mesero": 91
+   },
+   "indices_fk_de_evento_parte": 0.101,
+   "platillos": 55,
+   "bytes_por_platillo": 1502
+  },
+  "grande": {
+   "visitas_mes": 4500,
+   "eventos_por_visita": 10,
+   "bytes_por_visita_sin_eventos": 4241,
+   "bytes_por_evento": 360,
+   "bytes_por_visita_con_eventos": 7844,
+   "parte_eventos": 0.459,
+   "mb_fijos_por_restaurante": 0.206,
+   "mb_mes_sin_eventos": 19.08,
+   "mb_mes_eventos": 16.22,
+   "mb_mes_total": 35.3,
+   "bytes_por_tabla": {
+    "sesion_grupal": 256,
+    "miembro_sesion": 731,
+    "orden_personal": 631,
+    "item_orden": 1624,
+    "comanda": 425,
+    "comanda_orden": 488,
+    "llamada_mesero": 86
+   },
+   "indices_fk_de_evento_parte": 0.092,
+   "platillos": 90,
+   "bytes_por_platillo": 1356
+  },
+  "formal": {
+   "visitas_mes": 1500,
+   "eventos_por_visita": 10,
+   "bytes_por_visita_sin_eventos": 4786,
+   "bytes_por_evento": 371,
+   "bytes_por_visita_con_eventos": 8496,
+   "parte_eventos": 0.437,
+   "mb_fijos_por_restaurante": 0.199,
+   "mb_mes_sin_eventos": 7.18,
+   "mb_mes_eventos": 5.56,
+   "mb_mes_total": 12.74,
+   "bytes_por_tabla": {
+    "sesion_grupal": 275,
+    "miembro_sesion": 741,
+    "orden_personal": 670,
+    "item_orden": 2075,
+    "comanda": 429,
+    "comanda_orden": 511,
+    "llamada_mesero": 86
+   },
+   "indices_fk_de_evento_parte": 0.1,
+   "platillos": 80,
+   "bytes_por_platillo": 1365
+  }
+ },
+ "capacidad": [
+  {
+   "palanca": "P0 hoy: 30 días / 12 meses, todo en línea",
+   "mb_gratuito": 14.3,
+   "mb_paga": 225.4,
+   "N_todo gratuito": 349,
+   "N_todo gratuito_con_reserva": 279,
+   "N_90/10": 141,
+   "N_90/10_con_reserva": 112,
+   "N_80/20": 88,
+   "N_80/20_con_reserva": 70,
+   "N_todo de paga": 22,
+   "N_todo de paga_con_reserva": 17
+  },
+  {
+   "palanca": "P1 analítica en línea sólo 30 días",
+   "mb_gratuito": 14.3,
+   "mb_paga": 129.0,
+   "N_todo gratuito": 349,
+   "N_todo gratuito_con_reserva": 279,
+   "N_90/10": 193,
+   "N_90/10_con_reserva": 155,
+   "N_80/20": 134,
+   "N_80/20_con_reserva": 107,
+   "N_todo de paga": 38,
+   "N_todo de paga_con_reserva": 30
+  },
+  {
+   "palanca": "P2 = P1 + historial en línea 3 meses, resto archivado",
+   "mb_gratuito": 14.3,
+   "mb_paga": 39.0,
+   "N_todo gratuito": 349,
+   "N_todo gratuito_con_reserva": 279,
+   "N_90/10": 298,
+   "N_90/10_con_reserva": 238,
+   "N_80/20": 259,
+   "N_80/20_con_reserva": 207,
+   "N_todo de paga": 128,
+   "N_todo de paga_con_reserva": 102
+  },
+  {
+   "palanca": "P3 = P2 + sin los 4 índices de clave foránea de evento_analitica",
+   "mb_gratuito": 13.6,
+   "mb_paga": 38.1,
+   "N_todo gratuito": 367,
+   "N_todo gratuito_con_reserva": 294,
+   "N_90/10": 311,
+   "N_90/10_con_reserva": 249,
+   "N_80/20": 270,
+   "N_80/20_con_reserva": 216,
+   "N_todo de paga": 130,
+   "N_todo de paga_con_reserva": 104
+  },
+  {
+   "palanca": "P4 = P3 + analítica 7 días en bruto (resto, agregados)",
+   "mb_gratuito": 8.8,
+   "mb_paga": 32.0,
+   "N_todo gratuito": 570,
+   "N_todo gratuito_con_reserva": 456,
+   "N_90/10": 450,
+   "N_90/10_con_reserva": 360,
+   "N_80/20": 372,
+   "N_80/20_con_reserva": 297,
+   "N_todo de paga": 155,
+   "N_todo de paga_con_reserva": 124
+  },
+  {
+   "palanca": "P5 = P4 + historial en línea 1 mes (archivo desde el 2.º)",
+   "mb_gratuito": 8.8,
+   "mb_paga": 12.0,
+   "N_todo gratuito": 570,
+   "N_todo gratuito_con_reserva": 456,
+   "N_90/10": 549,
+   "N_90/10_con_reserva": 439,
+   "N_80/20": 530,
+   "N_80/20_con_reserva": 424,
+   "N_todo de paga": 414,
+   "N_todo de paga_con_reserva": 331
+  }
+ ]
+}
