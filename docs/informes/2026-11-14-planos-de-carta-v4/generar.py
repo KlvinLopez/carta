@@ -25,6 +25,7 @@ D = cargar()
 REFS_DATA = json.loads((AQUI / "datos" / "referencias.json").read_text(encoding="utf-8"))
 REFS = {r["clave"]: r for r in REFS_DATA["referencias"]}
 GRUPOS = {g["clave"]: g for g in REFS_DATA["grupos"]}
+MV = json.loads((AQUI / "datos" / "modelo_v5.json").read_text(encoding="utf-8"))
 
 VINO, VINO_OSC, DORADO = "#6B2D3E", "#4F1728", "#B8860B"
 TINTA, TINTA2, ARENA, ARENA2 = "#1A1A1A", "#5B4A3D", "#E6D9C6", "#F3EADB"
@@ -263,15 +264,27 @@ def g_hueco() -> str:
 
 def g_embudo() -> str:
     etapas = [
-        ("Restaurantes y bares de México", M["total"], f"{n(M['total'])}", ARENA, TINTA2),
         (
-            "Núcleo: a la carta, comida corrida, bares",
+            "Mercado total (TAM): restaurantes y bares",
+            M["total"],
+            f"{n(M['total'])}",
+            ARENA,
+            TINTA2,
+        ),
+        (
+            "Restaurantes a la carta y bares",
             M["nucleo"],
             f"{n(M['nucleo'])}",
             GRIS,
             TINTA,
         ),
-        ("Servible: sin cadenas", M["servible"], f"≈ {n(M['servible'])}", VINO, "#fff"),
+        (
+            "Clientes potenciales (SAM): sin cadenas",
+            M["servible"],
+            f"≈ {n(M['servible'])}",
+            VINO,
+            "#fff",
+        ),
         (
             "Primera ola: 17 zonas metropolitanas",
             M["zonas17"],
@@ -297,7 +310,7 @@ def g_embudo() -> str:
     lo12, hi12 = M["ganable_12m"]
     b.append(rc(w(lo12), y, w(hi12) - w(lo12), 48, DORADO, 14))
     b.append(tx(w(lo12) + 14, y + 30, f"{lo12} a {n(hi12)}", 22, "#fff", serif=True))
-    b.append(tx(w(hi12) + 14, y + 30, "Ganable a 12 meses (escenario)", 14, TINTA2))
+    b.append(tx(w(hi12) + 14, y + 30, "Meta a 12 meses (SOM): escenario", 14, TINTA2))
     b.append(rc(w(hi12) + 14, y + 38, 70, 20, "none", 10, f'stroke="{DORADO}" stroke-width="1.5"'))
     b.append(tx(w(hi12) + 49, y + 52, "supuesto", 11, DORADO, "middle", 700))
     # alcanzables por lectura del sitio
@@ -333,7 +346,9 @@ def g_a_quien_primero() -> str:
     b = []
     nombres = ["0–5", "6–10", "11–30", "31–50", "51–100", "101–250", "251+"]
     mx = max(e["n"] for e in est)
-    b.append(tx(0, 22, "Negocios del núcleo por personal ocupado", 15, VINO, weight=700))
+    b.append(
+        tx(0, 22, "Restaurantes a la carta y bares, por personal ocupado", 15, VINO, weight=700)
+    )
     b.append(tx(500, 22, "Porcentaje que declara sitio web", 15, VINO, weight=700))
     for i, e in enumerate(est):
         y = 44 + i * 44
@@ -446,37 +461,35 @@ def g_matriz() -> str:
 
 
 def g_capacidad() -> str:
-    es = CAP["escalones"]
+    es = MV["capacidad"]
     b = []
-    mx = 2400
-    base = 290
-    nombres = ["2 procesos · Hobby", "2 procesos · Pro", "4 procesos · Pro", "8 procesos · Pro"]
-    muro = ["disco de 5 GB", "procesador", "procesador", "10,000 conexiones"]
-    levanta = [
-        None,
-        "pasar a Pro levanta el disco",
-        "más procesos levantan el procesador",
-        "réplicas no suben: mismo muro",
-    ]
+    mx, base = 2300, 290
     for i, e in enumerate(es):
         x = 60 + i * 230
-        h = 250 * e["gratuitos"] / mx
+        h = 250 * e["caben"] / mx
         col = [GRIS, VINO, VINO, VINO_OSC][i]
         b.append(rc(x, base - h, 150, h, col, 14))
-        b.append(tx(x + 75, base - h - 12, n(e["gratuitos"]), 30, VINO, "middle", serif=True))
-        b.append(tx(x + 75, base + 22, nombres[i], 13.5, TINTA, "middle", 700))
-        b.append(tx(x + 75, base + 42, f"{e['usd']} USD al mes", 12.5, TINTA2, "middle"))
+        b.append(tx(x + 75, base - h - 12, n(e["caben"]), 30, VINO, "middle", serif=True))
+        b.append(tx(x + 75, base + 22, e["nombre"], 13.5, TINTA, "middle", 700))
+        b.append(tx(x + 75, base + 42, f"hasta {e['usd']} USD al mes", 12.5, TINTA2, "middle"))
+        b.append(rc(x - 4, base + 54, 158, 26, "none", 13, f'stroke="{DORADO}" stroke-width="1.6"'))
+        muro = (
+            "disco de 5 GB"
+            if e["cuello"] == "disco"
+            else "procesador y conexiones"
+            if i == 3
+            else e["cuello"]
+        )
+        b.append(
+            tx(x + 75, base + 72, muro if i == 3 else f"muro: {muro}", 11.5, DORADO, "middle", 700)
+        )
         if i >= 2:
             b.append(rc(x + 5, base - h + 10, 140, 20, "#fff", 10, 'opacity=".92"'))
             b.append(tx(x + 75, base - h + 24, "sin medir en Railway", 11, DORADO, "middle", 700))
-        # muro
-        b.append(rc(x - 4, base + 54, 158, 26, "none", 13, f'stroke="{DORADO}" stroke-width="1.6"'))
-        b.append(tx(x + 75, base + 72, f"muro: {muro[i]}", 11.5, DORADO, "middle", 700))
         if i > 0:
             b.append(
                 f'<path d="M{x - 52} {base - 40} L{x - 14} {base - 40}" stroke="{DORADO}" stroke-width="2" marker-end="url(#fl)"/>'
             )
-            b.append(tx(x - 33, base - 52, "+", 16, DORADO, "middle", 700))
     b.append(
         '<defs><marker id="fl" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8z" fill="#B8860B"/></marker></defs>'
     )
@@ -484,13 +497,13 @@ def g_capacidad() -> str:
         tx(
             0,
             22,
-            "Restaurantes gratuitos típicos que caben con entrega por eventos",
+            "Restaurantes registrados que caben (configuración recomendada, curva de pago media)",
             14.5,
             VINO,
             weight=700,
         )
     )
-    b.append(tx(960, 22, "supuesto: simulador de uso, 364 días", 11.5, DORADO, "end", 700))
+    b.append(tx(960, 22, "supuesto: modelo de escenarios", 11.5, DORADO, "end", 700))
     b.append(rc(0, 404, 968, 30, "#fff", 12))
     b.append(
         tx(
@@ -506,69 +519,49 @@ def g_capacidad() -> str:
 
 
 def g_disco() -> str:
-    pal = DI["palancas"]
-    sel = [
-        ("P00", "Plan 03 §7 hoy"),
-        ("P0", "12 meses en línea"),
-        ("P1", "Analítica 30 días"),
-        ("P2", "Historial 3 m + archivo"),
-        ("P5", "7 días + 1 mes en línea"),
-    ]
+    filas = MV["disco"]
     b = []
-    mx = 440
+    mx = 460
     b.append(
         tx(
             0,
             22,
-            "Restaurantes de paga que caben en 5 GB, según dónde vive el historial",
+            "Restaurantes que caben en Hobby (5 GB), según cuánta analítica e historial viven en línea",
             14.5,
             VINO,
             weight=700,
         )
     )
-    for i, (k, nom) in enumerate(sel):
-        p = next(x for x in pal if x["clave"] == k)
+    for i, d in enumerate(filas):
         y = 46 + i * 56
-        w = 460 * p["paga"] / mx
-        col = (
-            GRIS
-            if k == "P00"
-            else (VINO if k in ("P1", "P2") else (DORADO if k == "P5" else ARENA))
-        )
-        if k == "P0":
-            col = "#CDBBA3"
-        b.append(rc(190, y, max(w, 4), 38, col, 12))
-        b.append(tx(180, y + 26, nom, 13.5, TINTA, "end", 700 if k in ("P2",) else 400))
-        b.append(tx(190 + max(w, 4) + 10, y + 28, str(p["paga"]), 24, VINO, serif=True))
+        w = 400 * d["caben"] / mx
+        col = [GRIS, VINO, VINO, VINO_OSC, DORADO][i]
+        b.append(rc(230, y, max(w, 4), 38, col, 12))
+        b.append(tx(220, y + 25, d["nombre"], 13.5, TINTA, "end", 700 if i == 1 else 400))
+        b.append(tx(230 + max(w, 4) + 10, y + 28, str(d["caben"]), 24, VINO, serif=True))
     for j, linea in enumerate(
         [
-            "sin reserva de 20 %; las palancas se suman en este orden",
-            "414 = analítica en bruto sólo 7 días y 1 mes de historial en línea",
-            "la última exige un archivador que aún no existe",
+            "con reserva de 20 % del disco; las palancas se suman en este orden",
+            "el análisis recomienda 12 meses de historial de paga en línea",
+            "archivar lo viejo cuesta ≈ 0.4 pesos al año; falta construir el archivador",
         ]
     ):
-        b.append(tx(190, 336 + j * 17, linea, 12, TINTA2))
-    b.append(rc(190, 392, 150, 0, "none", 0))
-    b.append(rc(0, 330, 176, 22, "none", 11, f'stroke="{DORADO}" stroke-width="1.6"'))
-    b.append(tx(88, 345, "propuesta de cambio", 10.5, DORADO, "middle", 700))
-    b.append(tx(0, 376, "3 meses en línea, no 12", 11.5, TINTA2))
-    # historial en frío
-    b.append(rc(690, 40, 278, 330, "#fff", 22, 'filter="url(#sombra2)"'))
+        b.append(tx(230, 336 + j * 17, linea, 12, TINTA2))
     b.append(
         '<defs><filter id="sombra2" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6B2D3E" flood-opacity=".14"/></filter></defs>'
     )
+    b.append(rc(700, 40, 268, 330, "#fff", 22, 'filter="url(#sombra2)"'))
     b.append(
-        tx(710, 72, "EL HISTORIAL, EN FRÍO", 11.5, TINTA2, weight=700, extra='letter-spacing="1.3"')
+        tx(718, 72, "EL HISTORIAL, EN FRÍO", 11.5, TINTA2, weight=700, extra='letter-spacing="1.3"')
     )
-    b.append(tx(710, 128, "0.88 MB", 40, VINO, serif=True))
-    b.append(tx(710, 150, "al mes, por restaurante mediano", 13, TINTA2))
-    b.append(tx(710, 150 + 6, "", 1))
-    b.append(tx(710, 218, "≈ 0.4 pesos", 40, VINO, serif=True))
-    b.append(tx(710, 240, "al año por restaurante, a 10 años", 13, TINTA2))
-    b.append(rc(710, 270, 238, 74, ARENA2, 14))
-    b.append(tx(724, 296, "No se venden ni se comparten", 13, VINO_OSC, weight=700))
-    b.append(tx(724, 316, "datos de usuarios ni de restaurantes.", 12.5, VINO_OSC, weight=700))
-    b.append(tx(724, 335, "Se ofrece guardar el historial.", 13, TINTA2))
+    b.append(tx(718, 128, "0.88 MB", 40, VINO, serif=True))
+    b.append(tx(718, 150, "al mes, por restaurante mediano", 13, TINTA2))
+    b.append(tx(718, 218, "≈ 0.4 pesos", 40, VINO, serif=True))
+    b.append(tx(718, 240, "al año por restaurante, a 10 años", 13, TINTA2))
+    b.append(rc(718, 270, 232, 74, ARENA2, 14))
+    b.append(tx(730, 296, "No se venden ni se comparten", 13, VINO_OSC, weight=700))
+    b.append(tx(730, 316, "datos de usuarios ni de restaurantes.", 12.5, VINO_OSC, weight=700))
+    b.append(tx(730, 335, "Se ofrece guardar el historial.", 13, TINTA2))
     b.append(rc(0, 400, 968, 34, "#fff", 12))
     b.append(
         tx(
@@ -590,7 +583,7 @@ def g_planes() -> str:
     )
     planes = [
         (
-            "Gratuito",
+            "Chef",
             "≤ 10 mesas · ≤ 3 cuentas",
             "≤ 80 platillos",
             "0",
@@ -598,7 +591,7 @@ def g_planes() -> str:
             "ocupa el disco de 1 gratuito",
         ),
         (
-            "Servicio",
+            "Master Chef",
             "11–40 mesas · hasta 20 cuentas",
             "",
             "249 a 349",
@@ -606,10 +599,10 @@ def g_planes() -> str:
             "ocupa el disco de 2.1 gratuitos",
         ),
         (
-            "Salón",
+            "Chef Ejecutivo",
             "> 40 mesas · hasta 50 cuentas",
             "",
-            "399 (hasta 599)",
+            "499 (hasta 599)",
             VINO_OSC,
             "ocupa el disco de 10.1 gratuitos",
         ),
@@ -633,7 +626,7 @@ def g_planes() -> str:
         tx(
             0,
             176,
-            "Qué porcentaje de los negocios de servicio completo empuja a pagar cada tope",
+            "Qué porcentaje de los negocios se pasa de cada límite del plan Chef",
             14.5,
             VINO,
             weight=700,
@@ -729,7 +722,7 @@ def g_precio() -> str:
         tx(
             0,
             22,
-            "Precio de Servicio al mes, sin IVA  (● = sustituto publicado)",
+            "Precio de Master Chef al mes, sin IVA  (● = sustituto publicado)",
             14.5,
             VINO,
             weight=700,
@@ -824,7 +817,15 @@ def g_precio() -> str:
                     700,
                 )
             )
-    b.append(tx(gx, 196, "Con Meniu manda el piso, no K. Salón: 399 con K = 0.5.", 12, TINTA2))
+    b.append(
+        tx(
+            gx,
+            196,
+            "Con Meniu manda el piso, no K. Chef Ejecutivo: 499 con la regla del análisis.",
+            12,
+            TINTA2,
+        )
+    )
     b.append(rc(gx, 214, 328, 184, "#fff", 18))
     b.append(tx(gx + 16, 240, "K lo decide Calvin:", 13.5, VINO, weight=700))
     b.append(tx(gx + 16, 260, "qué tan agresivo entrar.", 13.5, TINTA))
@@ -841,111 +842,91 @@ def g_precio() -> str:
 
 
 def g_equilibrio() -> str:
+    sm = MV["sostiene"]
     b = []
-    eq = PL["equilibrio"]
-    fijo = PL["costo_fijo_1000"]
     x0, y0, w, h = 70, 44, 520, 290
-    pmax, vmin, vmax = 45, -3000, 10000
+    vmin, vmax = -3000, 400000
 
-    def X(p):
-        return x0 + w * p / pmax
+    def sl(v):
+        return math.asinh(v / 1500)
+
+    def X(N):
+        return x0 + w * N / 1000
 
     def Y(v):
-        return y0 + h * (vmax - v) / (vmax - vmin)
+        v = min(max(v, vmin), vmax)
+        return y0 + h * (sl(vmax) - sl(v)) / (sl(vmax) - sl(vmin))
 
     b.append(
         tx(
             0,
             24,
-            "Neto al mes (pesos) por cada 1,000 restaurantes registrados",
+            "Resultado al mes (pesos) según cuántos restaurantes se registran",
             14.5,
             VINO,
             weight=700,
         )
     )
-    for v in (-2569, 0, 5000, 10000):
+    for v in (-3000, 0, 3000, 10000, 30000, 100000, 300000):
         b.append(ln(x0, Y(v), x0 + w, Y(v), TINTA2 if v == 0 else ARENA, 1.6 if v == 0 else 1))
-        b.append(tx(x0 - 8, Y(v) + 4, n(v), 11.5, TINTA2, "end"))
-    for p in (0, 10, 20, 30, 40):
-        b.append(tx(X(p), y0 + h + 22, str(p), 12, TINTA2, "middle"))
+        b.append(tx(x0 - 8, Y(v) + 4, ("−" if v < 0 else "") + n(abs(v)), 11, TINTA2, "end"))
+    for N in (0, 250, 500, 750, 1000):
+        b.append(tx(X(N), y0 + h + 22, str(N), 11.5, TINTA2, "middle"))
     b.append(
-        tx(x0 + w / 2, y0 + h + 44, "pagantes por cada 1,000 registrados", 12.5, TINTA2, "middle")
+        tx(
+            x0 + w / 2,
+            y0 + h + 44,
+            "restaurantes registrados · escala logarítmica en ambos sentidos",
+            12,
+            TINTA2,
+            "middle",
+        )
     )
-    cols = {"249": GRIS, "299": DORADO, "349": VINO}
-    for k, col in cols.items():
-        m = eq[k]["margen_por_pagante"]
-        pts = " ".join(f"{X(p):.1f},{Y(m * p - fijo):.1f}" for p in (0, pmax))
-        b.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="3.2"/>')
-        pc = eq[k]["pagantes_para_cubrir_fijo"]
-        b.append(
-            f'<circle cx="{X(pc):.1f}" cy="{Y(0):.1f}" r="7.5" fill="{col}" stroke="#fff" stroke-width="2"/>'
-        )
-        b.append(
-            tx(
-                X(pmax) + 8,
-                Y(m * pmax - fijo) + 4 if m * pmax - fijo < vmax else y0 + 14,
-                k,
-                12.5,
-                col,
-                weight=700,
-            )
-        )
-    # lectura del cruce (recuadro)
-    b.append(rc(x0 + 330, y0 + 196, 190, 92, "#fff", 14))
-    b.append(tx(x0 + 344, y0 + 218, "Pagantes que cubren el fijo", 12, TINTA2, weight=700))
-    for i, k in enumerate(("349", "299", "249")):
-        b.append(f'<circle cx="{x0 + 352}" cy="{y0 + 238 + i * 18}" r="5.5" fill="{cols[k]}"/>')
-        b.append(
-            tx(
-                x0 + 366,
-                y0 + 242 + i * 18,
-                f"a {k}: {eq[k]['pagantes_para_cubrir_fijo']}",
-                13,
-                TINTA,
-                weight=700,
-            )
-        )
-    esc3 = {
-        (e["rebasan_topes_pct"], e["conversion_pct"]): e
-        for e in PL["escenarios"]
-        if e["precio_servicio"] == 349
-    }
-    for (rb, cv), lab, dx, dy in [
-        ((16, 5), "16 % rebasan, 5 % pagan", 14, 24),
-        ((39, 10), "39 % rebasan, 10 % pagan", -16, -30),
+    Ns = sm["N"]
+
+    def lin(serie, col, wd):
+        return f'<polyline points="{" ".join(f"{X(N):.1f},{Y(v):.1f}" for N, v in zip(Ns, serie))}" fill="none" stroke="{col}" stroke-width="{wd}"/>'
+
+    def cruce(serie):
+        for i in range(1, len(Ns)):
+            if serie[i - 1] < 0 <= serie[i]:
+                return Ns[i - 1] + (Ns[i] - Ns[i - 1]) * (-serie[i - 1]) / (serie[i] - serie[i - 1])
+        return None
+
+    banda = (
+        " ".join(f"{X(N):.1f},{Y(v):.1f}" for N, v in zip(Ns, sm["pesimista"]))
+        + " "
+        + " ".join(f"{X(N):.1f},{Y(v):.1f}" for N, v in reversed(list(zip(Ns, sm["optimista"]))))
+    )
+    b.append(f'<polygon points="{banda}" fill="{VINO}" opacity=".16"/>')
+    for serie, col, wd, dy, nom in [
+        (sm["peor"], "#9B2C2C", 3, 42, "peor"),
+        (sm["esperado"], VINO, 4, 22, "esperado"),
+        (sm["mejor"], VERDE, 3, -12, "mejor"),
     ]:
-        e = esc3[(rb, cv)]
-        b.append(
-            f'<circle cx="{X(e["pagantes"]):.1f}" cy="{Y(e["neto_mes"]):.1f}" r="9" fill="none" stroke="{TINTA}" stroke-width="2.4"/>'
-        )
-        b.append(
-            tx(
-                X(e["pagantes"]) + dx,
-                Y(e["neto_mes"]) + dy,
-                f"{lab}: {e['pagantes']:g} pagantes",
-                11.5,
-                TINTA,
-                "end" if dx < 0 else "start",
-                700,
+        b.append(lin(serie, col, wd))
+        c = cruce(serie)
+        if c:
+            b.append(
+                f'<circle cx="{X(c):.1f}" cy="{Y(0):.1f}" r="7" fill="{col}" stroke="#fff" stroke-width="2"/>'
             )
-        )
-        b.append(
-            tx(
-                X(e["pagantes"]) + dx,
-                Y(e["neto_mes"]) + dy + 15,
-                f"neto {n(e['neto_mes'])} al mes",
-                11.5,
-                TINTA2,
-                "end" if dx < 0 else "start",
-            )
-        )
+            b.append(tx(X(c) + 10, Y(0) + dy, f"equilibrio: {c:.0f}", 11.5, col, weight=700))
+    for i, (col, nom) in enumerate(
+        [
+            ("#9B2C2C", "Peor: todos gratuitos, anuncios de tarifa baja"),
+            (VINO, "Esperado: curva media, con su rango"),
+            (VERDE, "Mejor: todos pagan"),
+        ]
+    ):
+        b.append(f'<circle cx="{x0 + 14}" cy="{y0 + 14 + i * 20}" r="6" fill="{col}"/>')
+        b.append(tx(x0 + 28, y0 + 18 + i * 20, nom, 12, TINTA, weight=700))
     gx = 660
     b.append(tx(gx, 24, "Lo que falta medir", 14.5, VINO, weight=700))
     falta = [
-        ("1", "Cuántos rebasan los topes", "16 % a 71 %"),
-        ("2", "Cuántos de ellos pagan", "5 a 20 %"),
+        ("1", "Cuántos se pasan del plan Chef", "16 % a 71 %"),
+        ("2", "Cuántos de ellos pagan", "15 a 60 % según la curva"),
         ("3", "Cuánto pagarían", "prueba del piloto"),
-        ("4", "Cuánto cuesta el soporte", "60 o 150 al mes"),
+        ("4", "Cuánto cuesta el soporte", "$60 o $150 al mes"),
     ]
     for i, (nu, t1, t2) in enumerate(falta):
         yy = 40 + i * 58
@@ -955,10 +936,14 @@ def g_equilibrio() -> str:
         b.append(tx(gx + 52, yy + 22, t1, 13.5, TINTA, weight=700))
         b.append(tx(gx + 52, yy + 39, t2, 12.5, TINTA2))
     b.append(rc(gx, 280, 308, 150, ARENA2, 16))
+    k = MV["kpis"]
     qs = [
         ("«¿Venden mis datos?»", "No. Se ofrece guardar el historial."),
-        ("«¿Y si nadie paga?»", "Con 16 % y 5 %, −397 al mes: por eso el piloto."),
-        ("«¿Cuántos caben?»", "De 299 a 2,116 gratuitos, con eventos."),
+        ("«¿Y si nadie paga?»", "Con anuncios bajos, desde ≈ 28 restaurantes."),
+        (
+            "«¿Cuántos caben?»",
+            f"De {MV['capacidad'][0]['caben']} a {n(MV['capacidad'][-1]['caben'])}, según el servidor.",
+        ),
     ]
     for i, (q, a_) in enumerate(qs):
         b.append(tx(gx + 14, 306 + i * 42, q, 12.5, VINO, weight=700))
@@ -984,6 +969,19 @@ def pagina(kick, titulo, viz, como, insight, claves, extra_notas=""):
     )
 
 
+def eq_peor() -> int:
+    sm = MV["sostiene"]
+    for i in range(1, len(sm["N"])):
+        if sm["peor"][i - 1] < 0 <= sm["peor"][i]:
+            return round(
+                sm["N"][i - 1]
+                + (sm["N"][i] - sm["N"][i - 1])
+                * (-sm["peor"][i - 1])
+                / (sm["peor"][i] - sm["peor"][i - 1])
+            )
+    return 0
+
+
 def construir_paginas():
     pagina(
         "1 · Dónde estamos",
@@ -1003,7 +1001,7 @@ def construir_paginas():
     )
     pagina(
         "3 · El mercado",
-        "Hay ≈ 100,000 negocios servibles; ganar 100 a 1,000 es un escenario.",
+        "Hay ≈ 100,000 clientes potenciales; ganar 100 a 1,000 en un año es un escenario.",
         g_embudo(),
         "Cada barra es una capa del mercado; la escala es logarítmica, así que cada tramo vale 10 veces lo anterior.",
         "El mercado sobra; lo que falta medir es cuántos dueños prueban y cuántos pagan.",
@@ -1028,29 +1026,29 @@ def construir_paginas():
     )
     pagina(
         "6 · Cuántos caben",
-        "Con eventos caben de 299 a 2,116 restaurantes gratuitos.",
+        f"Con eventos caben de {MV['capacidad'][0]['caben']} a {n(MV['capacidad'][-1]['caben'])} restaurantes, según el servidor.",
         g_capacidad(),
         "Cada barra es un escalón de servidor; el recuadro dorado es el muro que lo frena.",
-        "El primer muro es el disco; pasar a Pro lo levanta. El último, 10,000 conexiones, no se sube.",
+        "El primer muro es el disco; pasar a Pro lo levanta. El último, procesador y conexiones, no se sube con réplicas.",
         ["carta_anuncios", "carta_capacidad", "railway_limites"],
         "En producción hoy aún corre el sondeo hasta que la Fase 3 construya los eventos; ver el archivo histórico.",
     )
     pagina(
         "7 · Qué llena el disco",
-        "Mover el historial a archivo lleva de 14 a 128 restaurantes de paga.",
+        f"Acortar la analítica a 30 días lleva de {MV['disco'][0]['caben']} a {MV['disco'][1]['caben']} los restaurantes que caben en Hobby.",
         g_disco(),
-        "Cada barra suma una palanca a la anterior; más larga, más restaurantes de paga caben en 5 GB.",
-        "La palanca grande no es comprimir, es dónde vive el historial; guardarlo en frío cuesta casi nada.",
+        "Cada barra suma una palanca a la anterior; más larga, más restaurantes caben en 5 GB.",
+        "La palanca grande no es comprimir, es cuánta analítica vive en línea; guardar lo viejo en frío cuesta casi nada.",
         ["carta_disco", "cloudflare_r2_precios"],
     )
     pagina(
         "8 · Tres planes",
-        "Los topes de mesas y personal empujan a pagar a ≈ 39 %; el de platillos, a 10.8 %.",
+        "Los límites de mesas y cuentas sacan de Chef a ≈ 39 %; el de platillos, a 10.8 %.",
         g_planes(),
-        "Arriba, los planes. Abajo, qué fracción de los negocios rebasa cada tope; la barra rosa es el intervalo.",
-        "Los topes empujan a ≈ 39 % de los de servicio completo; ese modelo es supuesto.",
+        "Arriba, los planes. Abajo, qué fracción de los negocios se pasa de cada límite; la barra rosa es el intervalo.",
+        "Los límites sacan de Chef a ≈ 39 % de los negocios; ese modelo es supuesto.",
         ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
-        "Propuesta de cambio frente a lo decidido: tercer plan sobre 40 mesas, lecturas de PDF con tope numérico y 3 meses de historial en línea.",
+        "Propuesta de cambio frente a lo decidido: tercer plan sobre 40 mesas y lecturas de PDF con tope numérico.",
     )
     pagina(
         "9 · El precio",
@@ -1062,10 +1060,10 @@ def construir_paginas():
     )
     pagina(
         "10 · Cómo se sostiene",
-        "Con 9.7 pagantes por 1,000 registrados a 349 se cubre el costo fijo.",
+        f"Con anuncios solos se sostiene desde ≈ {eq_peor()} restaurantes; con clientes de paga, desde ≈ 3 por cada 1,000.",
         g_equilibrio(),
-        "Cada línea es un precio; donde cruza el cero, se cubre el costo fijo de 2,569 pesos al mes.",
-        "Todo depende de dos datos que hoy no existen: cuántos rebasan los topes y cuántos pagan.",
+        "Cada línea es un caso; donde cruza el cero, el negocio se sostiene. La franja es el rango de las tres curvas de pago.",
+        "Todo depende de dos datos que hoy no existen: cuántos se pasan del plan Chef y cuántos de ellos pagan.",
         ["carta_tres_planes", "carta_planes"],
     )
 
@@ -1095,8 +1093,8 @@ def mini_mercado():
     lo, hi = math.log10(50), math.log10(M["total"])
     filas = [
         ("Total", M["total"], ARENA, "773,860"),
-        ("Núcleo", M["nucleo"], GRIS, "104,882"),
-        ("Servible", M["servible"], VINO, "≈ 100,000"),
+        ("A la carta", M["nucleo"], GRIS, "104,882"),
+        ("SAM", M["servible"], VINO, "≈ 100,000"),
         ("17 zonas", M["zonas17"], VINO_OSC, "40,872"),
     ]
     for i, (nom, v, col, txt) in enumerate(filas):
@@ -1121,35 +1119,29 @@ def _barras_v(vals, cols, etqs, fmt, mx):
 
 
 def mini_capacidad():
-    es = CAP["escalones"]
+    es = MV["capacidad"]
     return _barras_v(
-        [e["gratuitos"] for e in es],
+        [e["caben"] for e in es],
         [GRIS, VINO, VINO, VINO_OSC],
         [
             "muro: disco|",
             "procesador|",
             "procesador|sin medir|en Railway",
-            "conexiones|sin medir|en Railway",
+            "procesador|sin medir|en Railway",
         ],
         n,
-        2400,
+        2300,
     )
 
 
 def mini_disco():
-    pal = {p["clave"]: p["paga"] for p in DI["palancas"]}
-    ks = ["P00", "P0", "P1", "P2"]
+    f = MV["disco"]
     return _barras_v(
-        [pal[k] for k in ks],
-        [GRIS, "#CDBBA3", VINO, VINO_OSC],
-        [
-            "plan de datos|(24 meses)",
-            "como opera hoy|(12 meses)",
-            "analítica|30 días",
-            "+ historial|archivado",
-        ],
+        [f[0]["caben"], f[1]["caben"], f[2]["caben"], f[3]["caben"]],
+        [GRIS, VINO, VINO, VINO_OSC],
+        ["plan de datos|de hoy", "analítica|30 días", "historial|3 meses", "analítica|7 días"],
         str,
-        140,
+        460,
     )
 
 
@@ -1157,9 +1149,9 @@ def mini_planes():
     b = []
     for i, (nom, a, pr, col) in enumerate(
         [
-            ("Gratuito", "≤ 10 mesas", "0", GRIS),
-            ("Servicio", "11–40 mesas", "249–349", VINO),
-            ("Salón", "> 40 mesas", "399–599", VINO_OSC),
+            ("Chef", "≤ 10 mesas", "0", GRIS),
+            ("Master Chef", "11–40 mesas", "249–349", VINO),
+            ("Ejecutivo", "> 40 mesas", "499–599", VINO_OSC),
         ]
     ):
         x = i * 112
@@ -1202,52 +1194,73 @@ def mini_precio():
 
 def html_p1() -> str:
     s_pct = round(100 * M["nucleo_con_sitio"] / M["nucleo"], 1)
-    cap_lo, cap_hi = CAP["escalones"][0]["gratuitos"], CAP["escalones"][-1]["gratuitos"]
-    pal = {p["clave"]: p["paga"] for p in DI["palancas"]}
+    k = MV["kpis"]
+    cap = MV["capacidad"]
+    dis = MV["disco"]
     kpis = [
-        (f"{round(100 - s_pct)} %", "del núcleo no declara sitio web", cita("inegi_denue")),
-        ("≈ 100,000", "negocios servibles", cita("carta_mercado")),
-        (f"{n(cap_lo)} → {n(cap_hi)}", "gratuitos caben con eventos", cita("carta_anuncios")),
-        (f"{pal['P00']} → {pal['P2']}", "de paga caben en 5 GB", cita("carta_disco")),
-        ("≈ 39 %", "rebasaría los topes " + etiqueta("supuesto"), cita("carta_tres_planes")),
-        ("9.7", "pagantes por 1,000 cubren el fijo a 349", cita("carta_tres_planes")),
+        (
+            f"{round(100 - s_pct)} %",
+            "del mercado de Carta no declara sitio web",
+            cita("inegi_denue"),
+        ),
+        ("≈ 100,000", "clientes potenciales (SAM)", cita("carta_mercado")),
+        (
+            f"{n(cap[0]['caben'])} → {n(cap[-1]['caben'])}",
+            "restaurantes caben, de Hobby a Pro 8",
+            cita("carta_anuncios"),
+        ),
+        (
+            f"{dis[0]['caben']} → {dis[1]['caben']}",
+            "caben en Hobby con la analítica a 30 días",
+            cita("carta_disco"),
+        ),
+        (
+            f"≈ {round(100 * k['rebasan'])} %",
+            "se pasa del plan Chef " + etiqueta("supuesto"),
+            cita("carta_tres_planes"),
+        ),
+        (
+            f"≈ {round(k['sostiene_sin_anuncios'])}",
+            "gratuitos sostiene cada cliente de paga",
+            cita("carta_tres_planes"),
+        ),
     ]
     k_html = "".join(f'<div class="kpi"><b>{a}</b><span>{b}</span>{c}</div>' for a, b, c in kpis)
     dec = [
-        "K: qué tan agresivo entrar (0.3 a 0.7)",
-        "Contra quién se compite: Meniu o Fudo",
-        "Tope de platillos del gratuito: 80 o 60",
-        "Si se ofrece historial y hasta cuándo se guarda",
-        "Soporte: 60 o 150 pesos al mes (se mide)",
+        "Master Chef a $299 frente a Fudo Avanzado",
+        "Chef: 10 mesas, 3 cuentas y 80 platillos",
+        "Historial: 12 meses en línea + archivo",
+        "Soporte: $60 al mes (se mide en el piloto)",
+        "Anuncios no personalizados en Chef",
     ]
-    d_html = "".join(f"<li><i>{k + 1}</i>{esc(t)}</li>" for k, t in enumerate(dec))
+    d_html = "".join(f"<li><i>{i + 1}</i>{esc(t)}</li>" for i, t in enumerate(dec))
     mos = [
         (
             "Mercado",
             "¿Cuántos negocios hay?",
             mini_mercado(),
-            "94 % del núcleo no declara sitio web.",
+            "94 % del mercado de Carta no declara sitio web.",
             "inegi_denue",
         ),
         (
             "Capacidad con eventos",
             "¿Cuántos caben?",
             mini_capacidad(),
-            "Primero el disco; luego el procesador; al final, 10,000 conexiones.",
+            "Primero el disco; luego el procesador.",
             "carta_anuncios",
         ),
         (
             "Disco e historial",
             "¿Qué llena el disco?",
             mini_disco(),
-            "Archivar el historial multiplica por 9 los de paga.",
+            "La analítica a 30 días multiplica por 6 lo que cabe en Hobby.",
             "carta_disco",
         ),
         (
             "Tres planes",
             "¿A quién deja dentro?",
             mini_planes(),
-            "Los topes empujan a ≈ 39 %; con 80 platillos, 10.8 %.",
+            "Los límites empujan a ≈ 39 %; con 80 platillos, 10.8 %.",
             "carta_tres_planes",
         ),
         (
@@ -1262,10 +1275,10 @@ def html_p1() -> str:
         f'<div class="mos"><div class="mq">{esc(t)}<small>{esc(q)}</small></div>{v}<p class="mc">{esc(c)}</p></div>'
         for t, q, v, c, _ in mos
     )
-    m_html += f'<div class="mos dec"><div class="mq">Decisiones que te tocan<small>sólo tuyas</small></div><ol>{d_html}</ol></div>'
+    m_html += f'<div class="mos dec"><div class="mq">Recomendaciones<small>las decides tú</small></div><ol>{d_html}</ol></div>'
     return f"""<section class="pg p1">
-<div class="p1-top"><div><div class="kick">Planos de Carta · informe ejecutivo · 14 de noviembre de 2026 · versión 4</div>
-<div class="hero">PILOTEAR</div><p class="alcance">con 10 restaurantes reales: la v1 no cobra, así que planes y precio son propuesta.</p></div>
+<div class="p1-top"><div><div class="kick">Planos de Carta · informe ejecutivo · 14 de noviembre de 2026 · versión 5</div>
+<div class="hero">94 de cada 100 restaurantes a la carta y bares no declara sitio web.</div><p class="alcance">Carta les da, en minutos, un menú visual y una orden que la mesa arma junta. La v1 no cobra: planes y precios son propuesta.</p></div>
 <div class="rotulo">{etiqueta("propuesta")}<span>supuestos marcados; sin venta de datos</span></div></div>
 <div class="kpis">{k_html}</div>
 <div class="mosaicos">{m_html}</div>

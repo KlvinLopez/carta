@@ -58,8 +58,12 @@ def cargar5() -> dict:
         ["Carta completa", 20], ["Carta parcial", 7], ["Sin carta en el sitio", 77], ["El sitio lo prohíbe (robots.txt)", 33],
         ["Carta sólo en imagen", 11], ["Sitio caído", 9], ["Otros motivos", 43],
     ]  # fmt: skip
-    emb = json.loads((INV / "2026-11-13-mercado-de-carta-tablas.json").read_text(encoding="utf-8"))["embudo"]["escenarios"]
-    d["mercado"]["metas"] = {k: [emb[k]["12"]["activos"], emb[k]["24"]["activos"]] for k in ("bajo", "medio", "alto")}
+    emb = json.loads((INV / "2026-11-13-mercado-de-carta-tablas.json").read_text(encoding="utf-8"))[
+        "embudo"
+    ]["escenarios"]
+    d["mercado"]["metas"] = {
+        k: [emb[k]["12"]["activos"], emb[k]["24"]["activos"]] for k in ("bajo", "medio", "alto")
+    }
     d["matriz_trabajos_futuros"] = [
         "Pantalla de cocina",
         "Caja (POS)",
