@@ -1,5 +1,5 @@
 <title>Planos de Carta</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=DM+Serif+Display&display=swap" media="print" onload="this.media='all'">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=DM+Serif+Display:ital@0;1&display=swap" media="print" onload="this.media='all'">
 <style>
 @font-face{font-family:"DM Sans";src:url(data:font/woff2;base64,__SANS__) format("woff2");font-weight:100 1000}
 @font-face{font-family:"DM Serif Display";src:url(data:font/woff2;base64,__SERIF__) format("woff2")}
@@ -150,9 +150,45 @@ main{padding-block:12px 28px}
 .pulso{animation:pulso 1.3s ease-in-out infinite}
 @keyframes pulso{0%,100%{opacity:1}50%{opacity:.62}}
 /* presentación */
-#intro{position:fixed;inset:0;z-index:50;background:radial-gradient(1200px 700px at 50% 40%,#3a1220,#1d0710);color:var(--crema);display:flex;flex-direction:column;justify-content:center;padding:12px max(12px,3vw) 70px}
+#intro{position:fixed;inset:0;z-index:50;background:#171210;color:var(--crema);overflow:hidden}
 .ictl{transition:opacity .4s}.quieto .ictl{opacity:0}.quieto{cursor:none}
-.icta{position:absolute;left:50%;top:64%;transform:translateX(-50%);display:flex;gap:10px;z-index:3}.icta .btn{background:rgba(255,255,255,.16);color:#fff}.icta .btn.gran{background:var(--dorado)}
+.icta{position:absolute;left:50%;top:78%;transform:translateX(-50%);display:flex;gap:10px;z-index:3}.icta .btn{background:rgba(255,255,255,.16);color:#fff}.icta .btn.gran{background:var(--dorado)}
+
+/* film de producto */
+#film{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;background:#171210;font-family:'DM Sans',sans-serif}
+#film .fbg,#film .ft,#film #fcam{position:absolute;inset:0}
+#film .ffoto{position:absolute;left:-96px;top:-54px;width:2112px;height:1188px;object-fit:cover;filter:blur(10px) saturate(1.05);opacity:.55}
+#film .fg1{position:absolute;left:-330px;top:360px;width:1300px;height:1300px;border-radius:50%;background:radial-gradient(circle,rgba(107,45,62,.62),rgba(107,45,62,.22) 38%,rgba(107,45,62,0) 66%)}
+#film .fg2{position:absolute;left:890px;top:60px;width:1000px;height:1000px;border-radius:50%;background:radial-gradient(circle,rgba(184,134,11,.5),rgba(184,134,11,.16) 36%,rgba(184,134,11,0) 64%);opacity:.4}
+#film .fvig{position:absolute;inset:0;background:radial-gradient(ellipse 80% 78% at 50% 46%,rgba(10,7,6,0) 42%,rgba(10,7,6,.72) 100%)}
+#film .ft{opacity:0;visibility:hidden}
+#film .fkick{position:absolute;left:140px;top:280px;display:flex;align-items:center;gap:18px;font-weight:700;font-size:24px;letter-spacing:.28em;color:#fdc34d;white-space:nowrap}
+#film .fkick .rl{width:56px;height:2px;background:#fdc34d;display:block}
+#film .tg{margin-left:14px;padding:7px 16px;border-radius:999px;font-size:17px;letter-spacing:.06em;font-weight:600;text-transform:none;color:rgba(254,249,241,.85);border:1.5px solid rgba(254,249,241,.35)}
+#film .tg.hoy{border-color:#7fc17b;color:#a9e3a4}
+#film .fh{margin:0;position:absolute;left:140px;top:350px;font-family:'DM Serif Display',serif;font-weight:400;font-size:112px;line-height:1.08;letter-spacing:-.015em;color:#fef9f1;width:980px}
+#film .fh .ln{display:block;white-space:nowrap}
+#film .w{display:inline-block}
+#film em{font-style:italic;color:#fdc34d}
+#film .fsub{margin:0;position:absolute;left:140px;top:640px;width:900px;font-size:38px;line-height:1.3;color:rgba(254,249,241,.8)}
+#film .fhook{position:absolute;left:150px;top:420px;font-family:'DM Serif Display',serif;font-size:132px;line-height:1.1;color:#fef9f1;white-space:nowrap}
+#film .fmarca{position:absolute;left:150px;top:360px;display:flex;flex-direction:column;gap:30px;opacity:0}
+#film .fmarca b{font-family:'DM Serif Display',serif;font-weight:400;font-size:230px;line-height:1;color:#fef9f1}
+#film .fmarca i{display:block;width:520px;height:2px;background:rgba(253,195,77,.7)}
+#film .fmarca span{font-size:44px;color:rgba(254,249,241,.85)}
+#film .ft6 .fmarca.grande{left:0;right:0;top:300px;align-items:center;text-align:center}
+#film .ft6 .fmarca.grande span{font-family:'DM Serif Display',serif;font-size:72px;color:#fdc34d;font-style:italic}
+#film .fphone{position:absolute;left:1180px;top:116px;width:380px;height:822px;border-radius:52px;box-shadow:0 0 0 11px #100c0a,0 0 0 13px #3a322d,0 70px 130px rgba(0,0,0,.6),0 24px 48px rgba(0,0,0,.4);opacity:0;visibility:hidden}
+#film .fscr{position:absolute;inset:0;border-radius:52px;overflow:hidden;background:#fef9f1}
+#film .fscr .s{position:absolute;left:0;top:0;width:100%;height:100%;display:block;opacity:0}
+#film .fscr .s.sc{opacity:1}
+#film .ftap{position:absolute;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:rgba(255,255,255,.34);border:3px solid rgba(255,255,255,.9);opacity:0;left:50%;top:80%}
+#film .ftoast{position:absolute;left:600px;top:110px;width:520px;padding:22px 28px;border-radius:28px;background:#fef9f1;color:#1a1a1a;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:6px;opacity:0;visibility:hidden}
+#film .ftoast b{font-family:'DM Serif Display',serif;font-weight:400;font-size:34px;color:#4f1728}
+#film .ftoast span{font-size:24px;color:#555}
+#film .frail{position:absolute;left:140px;top:650px;display:flex;flex-direction:column;gap:18px}
+#film .fpaso{display:flex;align-items:center;gap:22px;font-size:40px;color:#fef9f1;font-family:'DM Serif Display',serif}
+#film .fpaso .pt{width:52px;height:52px;border-radius:50%;background:rgba(254,249,241,.18);color:#fef9f1;font:700 24px 'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center}
 #intro .skip{position:absolute;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px))}
 #intro svg{width:100%;height:auto;max-height:calc(100vh - 120px);display:block;margin:0 auto}
 #intro .barras{position:absolute;left:max(16px,4vw);right:max(16px,4vw);bottom:20px;display:flex;gap:6px;align-items:center}

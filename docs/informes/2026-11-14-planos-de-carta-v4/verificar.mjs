@@ -209,6 +209,26 @@ ok((await p.evaluate(() => tI)) < t1 + 2000, 'presentación: −3 s atrasa');
 await p.click('.ictl [data-intro="pausa"]'); const tp = await p.evaluate(() => tI); await p.waitForTimeout(400);
 ok((await p.evaluate(() => tI)) === tp, 'presentación: la pausa detiene el tiempo');
 ok((await p.isVisible('#intro [data-pantalla]')) || !(await p.evaluate(() => FSOK)), 'presentación: pantalla completa dentro de la presentación');
+ok(await p.evaluate(() => !!window.gsap && !!tlF), 'presentación: la línea de tiempo (GSAP) cargó');
+await p.evaluate(() => { pausaI = true; });
+const filmFalla = await p.evaluate(async () => {
+  const mal = []; const f = document.querySelector('#film'), fr = f.getBoundingClientRect(), k = fr.width / 1920;
+  for (const ms of [1500, 3800, 6600, 9800, 14500, 18500, 22800, 24200, 27400]) {
+    tI = ms; pintaIntro(); await new Promise((r) => setTimeout(r, 60));
+    for (const el of f.querySelectorAll('.fh .ln, .fsub, .fkick, .fmarca b, .fmarca span, .fpaso, .ftoast, .fhook')) {
+      let o = 1, n = el; while (n && n !== f) { o *= parseFloat(getComputedStyle(n).opacity); if (getComputedStyle(n).visibility === 'hidden') o = 0; n = n.parentElement; }
+      if (o < 0.9) continue;
+      const r = el.getBoundingClientRect(); if (!r.width) continue;
+      if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.top < fr.top - 1 || r.bottom > fr.bottom + 1) mal.push(ms + ' ' + el.className + ' fuera del cuadro');
+      const ph = document.querySelector('.fphone').getBoundingClientRect();
+      if (getComputedStyle(document.querySelector('.fphone')).opacity > 0.9 && el.matches('.fh .ln, .fsub, .fpaso') && r.right > ph.left - 20 && r.left < ph.right) mal.push(ms + ' ' + el.className + ' choca con el teléfono');
+    }
+    const ph = document.querySelector('.fphone').getBoundingClientRect();
+    if (getComputedStyle(document.querySelector('.fphone')).opacity > 0.9 && (ph.height / fr.height < 0.7 || ph.height / fr.height > 0.85)) mal.push(ms + ' el teléfono ocupa ' + (ph.height / fr.height).toFixed(2) + ' del alto');
+  }
+  return mal;
+});
+ok(filmFalla.length === 0, 'presentación: rótulos dentro del cuadro, sin chocar con el teléfono, teléfono 70–85 % del alto ' + filmFalla.slice(0, 3).join('; '));
 if (png) { await p.evaluate(() => { pausaI = true; }); for (const [i, ms] of [[1, 3800], [2, 7800], [3, 11400], [4, 15600], [5, 20800], [6, 24800], [7, 27700]]) { await p.evaluate((t) => { tI = t; pintaIntro(); }, ms); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v8_intro${i}.png` }); } }
 await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
