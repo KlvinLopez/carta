@@ -3,7 +3,7 @@
    Fuera de la v1 y por eso ausentes: vista 3D/AR y pago. */
 const DURS = [4200, 4200, 4000, 4400, 4000, 4200, 3600], NESC = DURS.length, TOTI = DURS.reduce((a, b) => a + b, 0);
 const INI = DURS.map((_, i) => DURS.slice(0, i).reduce((a, b) => a + b, 0));
-const FILM_IMG = {fondo: "apoyo/fondo-mesa.webp", scan: "apoyo/scan.webp", enc: "apoyo/encontrado.webp", menu: "apoyo/menu.webp", grupo: "apoyo/grupo.webp", mesa: "apoyo/mesa-detalle.webp"};
+const FILM_IMG = {fondo: "apoyo/fondo-mesa.webp", scan: "apoyo/bienvenida.webp", enc: "apoyo/detalle-platillo.webp", menu: "apoyo/menu-inicio.webp", grupo: "apoyo/grupo.webp", mesa: "apoyo/mesa-detalle.webp"};
 let tI = 0, pausaI = false, rafI = 0, ultI = 0, ocultoT = 0, tlF = null;
 
 /* las cinco tomas con número: [número, título, líneas (la cursiva va entre *), subtítulo, marca] */
@@ -17,8 +17,8 @@ const FILM_TOMAS = [
 const filmPalabras = l => l.split(/(\*[^*]+\*)/).filter(Boolean).map(tr => { const em = tr.startsWith("*"), tx = em ? tr.slice(1, -1) : tr; return (/^ /.test(tx) ? " " : "") + tx.split(" ").filter(Boolean).map(p => `<span class="w">${em ? "<em>" + esc(p) + "</em>" : esc(p)}</span>`).join(" ") + (/ $/.test(tx) ? " " : ""); }).join("");
 const filmHtml = () => `<div id="film"><div class="fbg"><img class="ffoto" src="${FILM_IMG.fondo}" alt=""><i class="fg1"></i><i class="fg2"></i><i class="fvig"></i></div>
 <div class="ft ft0"><div class="fhook">${filmPalabras("Todo empieza en *la mesa*.")}</div><div class="fmarca"><b>Carta</b><i></i><span>El menú que la mesa arma junta</span></div></div>
-${FILM_TOMAS.map((t, i) => `<div class="ft ft${i + 1}"><div class="fkick"><span class="n">${t[0]}</span><i class="rl"></i><span class="lb">${t[1]}</span><span class="tg ${t[4]}">${t[4] === "hoy" ? "hoy en producción" : "Fase 3 · aún no construido"}</span></div><h3 class="fh">${t[2].map(l => `<span class="ln">${filmPalabras(l)}</span>`).join("")}</h3>${t[3] ? `<p class="fsub">${esc(t[3])}</p>` : ""}${i === 4 ? `<div class="frail">${["Abierta", "Cuenta cerrada", "Pagada", "Mesa limpia"].map((e, k) => `<div class="fpaso"><span class="pt">${k + 1}</span><span>${e}</span></div>`).join("")}</div>` : ""}</div>`).join("")}
-<div id="fcam"><div class="fphone"><div class="fscr"><img class="s sc" src="${FILM_IMG.scan}" alt=""><img class="s en" src="${FILM_IMG.enc}" alt=""><img class="s mn" src="${FILM_IMG.menu}" alt=""><img class="s gr" src="${FILM_IMG.grupo}" alt=""><img class="s ms" src="${FILM_IMG.mesa}" alt=""><i class="ftap"></i></div></div>
+${FILM_TOMAS.map((t, i) => `<div class="ft ft${i + 1}"><div class="fkick"><span class="n">${t[0]}</span><i class="rl"></i><span class="lb">${t[1]}</span><span class="tg ${t[4]}">${t[4] === "hoy" ? "hoy en producción" : "Fase 3 · prototipo"}</span></div><h3 class="fh">${t[2].map(l => `<span class="ln">${filmPalabras(l)}</span>`).join("")}</h3>${t[3] ? `<p class="fsub">${esc(t[3])}</p>` : ""}${i === 4 ? `<div class="frail">${["Abierta", "Cuenta cerrada", "Pagada", "Mesa limpia"].map((e, k) => `<div class="fpaso"><span class="pt">${k + 1}</span><span>${e}</span></div>`).join("")}</div>` : ""}</div>`).join("")}
+<div id="fcam"><div class="fphone"><div class="fscr"><img class="s sc" src="${FILM_IMG.scan}" alt=""><img class="s mn" src="${FILM_IMG.menu}" alt=""><img class="s en" src="${FILM_IMG.enc}" alt=""><img class="s gr" src="${FILM_IMG.grupo}" alt=""><img class="s ms" src="${FILM_IMG.mesa}" alt=""><i class="ftap"></i></div></div>
 <div class="ftoast"><b>Comanda nueva</b><span>Mesa 7 · 3 platillos · 4 personas</span></div></div>
 <div class="ft ft6"><div class="fmarca grande"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span></div></div></div>`;
 
@@ -47,17 +47,17 @@ function filmLinea() {
   tl.to(q(".ft0"), {autoAlpha: 0, duration: 0.35, ease: "power2.in"}, S(1) - 0.05);
   /* el teléfono: entra en la 1, se queda hasta la 5 */
   tl.fromTo(q(".fphone"), {y: 220, autoAlpha: 0, scale: 0.94}, {y: 0, autoAlpha: 1, scale: 1, duration: 1.0, ease: "power3.out"}, S(1) + 0.1);
-  tl.fromTo(q("#fcam"), {scale: 1, x: 0}, {scale: 1.07, duration: Dn(1) + Dn(2) * 0.5, ease: "sine.inOut"}, S(1));
+  tl.fromTo(q("#fcam"), {scale: 1, x: 0}, {scale: 1.1, duration: Dn(1) + Dn(2) * 0.5, ease: "sine.inOut"}, S(1));
   tl.to(q("#fcam"), {scale: 1, x: -20, duration: Dn(2) * 0.5 + Dn(3) * 0.4, ease: "sine.inOut"}, S(2) + Dn(2) * 0.5);
   tl.to(q("#fcam"), {scale: 1.06, x: 0, duration: Dn(3) * 0.6 + Dn(4) + Dn(5) * 0.5, ease: "sine.inOut"}, S(3) + Dn(3) * 0.4);
   tl.to(q(".fphone"), {y: 160, autoAlpha: 0, duration: 0.7, ease: "power2.in"}, S(6) - 0.1);
   /* pantallas: se apilan y cada una aparece encima de la anterior */
   const pant = (sel, i, t0 = 0) => tl.fromTo(q(sel), {autoAlpha: 0}, {autoAlpha: 1, duration: 0.45, ease: "power1.inOut"}, S(i) + t0);
   tl.set(q(".s.sc"), {autoAlpha: 1}, 0);
-  pant(".s.en", 1, 2.1); pant(".s.mn", 2, 0.05); pant(".s.gr", 3, 0.05); pant(".s.ms", 4, 0.05);
+  pant(".s.mn", 1, 3.0); pant(".s.en", 2, 2.2); pant(".s.gr", 3, 0.05); pant(".s.ms", 4, 0.05);
   /* toque en Continuar (toma 1) y en «+» del menú (toma 2) */
   const toque = (x, y, t) => { tl.set(q(".ftap"), {left: x, top: y}, t - 0.02).fromTo(q(".ftap"), {autoAlpha: 1, scale: 0.4}, {autoAlpha: 0, scale: 1.7, duration: 0.7, ease: "power2.out"}, t); };
-  toque("50%", "85.7%", S(1) + 3.2); toque("89%", "66.5%", S(2) + 1.6);
+  toque("50%", "49%", S(1) + 2.5); toque("35%", "46%", S(2) + 1.7);
   /* tomas 1–5: kicker, rótulo palabra por palabra, subtítulo */
   for (let i = 1; i <= 5; i++) {
     const t = ".ft" + i;
