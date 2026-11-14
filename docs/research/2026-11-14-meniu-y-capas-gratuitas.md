@@ -6,8 +6,8 @@
 
 1. **Meniu no tiene plan gratuito:** un solo plan (Business) a **225 pesos al mes**, 7 días de prueba sin tarjeta; paga semestral ahorra 16 % y anual 26 % (meniuapp.com/es/plans). **Es el modelo contrario a Chef gratis + anuncios.**
 2. **Meniu mete en una sola mensualidad lo que Carta v1 no construirá:** punto de venta, inventario, reservaciones, pedidos por WhatsApp, tarjetas de lealtad, cocina (KDS), multilenguaje, sucursales. **Carta v1 compite en una sola cosa: ordenar en grupo desde la mesa y que llegue al mesero.**
-3. **De los 9 negocios leídos (Meniu incluido), 4 tienen capa gratuita** (MenuTiger 75 pedidos/mes, Loyverse POS gratis, Neolo 200 visitas, Waitry Lite 0 €); Last.app incluye el menú digital sólo dentro de planes de paga; **el límite que ponen es de volumen (pedidos o visitas), no de tamaño del negocio.** Carta propone lo segundo (mesas, cuentas, platillos).
-4. **Nadie de la lista dice tener anuncios en su capa gratuita:** su gratuito se paga con la venta de planes. Carta lo pagaría con anuncios + planes (decisión de Calvin; supuesto sin dato de tarifa).
+3. **De los 9 negocios leídos (Meniu incluido), 4 tienen capa gratuita** (MenuTiger 75 pedidos/mes, Loyverse POS gratis, Neolo 200 visitas, Waitry Lite 0 €); Last.app incluye el menú digital sólo dentro de planes de paga; **sólo 2 de los 4 limitan por volumen (MenuTiger por pedidos, Neolo por visitas); Loyverse limita por historial y Waitry no lista un límite en la página.** Ninguno limita por tamaño del negocio; Carta propone eso (mesas, cuentas, platillos).
+4. **Ninguna de las 9 páginas leídas menciona anuncios en su capa gratuita** (no es prueba de que no los tengan): el gratuito parece pagarse con la venta de planes. Carta lo pagaría con anuncios + planes (decisión de Calvin; supuesto sin dato de tarifa).
 5. **Dato por conseguir:** cuántos de los 4,000 de Meniu pagan realmente (no se publica); ese número es la prueba de la curva de pago.
 
 ## 1. Meniu, página por página (leído el 14-nov-2026)
@@ -32,14 +32,14 @@
 | **Meniu** | No hay (prueba de 7 días) | — | 225 MXN/mes | meniuapp.com/es/plans |
 | **MenuTiger** | Free: pedidos por QR, menú en línea, creador de menús con IA, informes básicos, 1 local | **75 pedidos al mes** | Regular 17 USD/mes (500 pedidos) | menutiger.com/es/pricing |
 | **Last.app** | El menú digital y los pedidos en mesa figuran «Gratis» dentro de los planes; no hay plan gratis | plan desde 1,000 MXN/mes + IVA por sucursal | Starter 1,000 MXN/mes | last.app/mx/precios |
-| **Loyverse** | POS gratis con complementos de paga | historial de ventas de 31 días; módulos de paga | 7 USD/mes (historial ilimitado) | loyverse.com |
-| **Neolo** | Menú QR gratis | **200 visitas**; al pasar, el menú deja de mostrarse a nuevos clientes | Plan 0, desde ≈ 70 MXN/mes con descuentos (precio en pesos de la página) | neolo (página «menú QR gratis») |
+| **Loyverse** | POS gratis con complementos de paga | historial de ventas de 31 días; módulos de paga | 7 USD/mes (historial ilimitado) | https://loyverse.com/pricing |
+| **Neolo** | Menú QR gratis | **200 visitas**; al pasar, el menú deja de mostrarse a nuevos clientes | Plan 0, desde ≈ 70 MXN/mes con descuentos (precio en pesos de la página) | https://www.neolo.com/mexico/menu-qr/ |
 | **Waitry** | Lite: carta digital completa | no listado en la página leída | Premium 60 €/mes (48 € anual) | waitry.net/es-mx/precios |
-| **Fudo** | No hay (prueba gratis) | — | Avanzado 35 USD/mes | fudo (página de precios) |
-| **Poster** | No hay (prueba gratis) | — | 26 USD/mes | poster (página de precios) |
-| **Soft Restaurant Cloud** | No hay | — | desde 699 MXN (condicionado a pagos con tarjeta por la propia empresa) | página de precios |
+| **Fudo** | No hay (prueba gratis) | — | Avanzado 35 USD/mes | https://fu.do/es/precios/ |
+| **Poster** | No hay (prueba gratis) | — | 26 USD/mes | https://joinposter.mx/pricing |
+| **Soft Restaurant Cloud** | No hay | — | desde 699 MXN (condicionado a pagos con tarjeta por la propia empresa) | https://softrestaurant.com/cloud |
 
-**Lectura para Carta:** el patrón dominante en los gratis es **limitar por volumen** (MenuTiger 75 pedidos, Neolo 200 visitas); el límite de Neolo **apaga el menú** al pasarse, algo que Carta no debería hacer (regla 8: ninguna comanda se pierde). La propuesta de Calvin (segmentar por tamaño del negocio) **no tiene antecedente directo en lo leído**: se prueba en el piloto.
+**Lectura para Carta:** de los 4 gratuitos, 2 **limitan por volumen** (MenuTiger 75 pedidos, Neolo 200 visitas), Loyverse por historial y Waitry no lista límite; el límite de Neolo **apaga el menú** al pasarse, algo que Carta no debería hacer (regla 8: ninguna comanda se pierde). La propuesta de Calvin (segmentar por tamaño del negocio) **no tiene antecedente directo en lo leído**: se prueba en el piloto.
 
 ## 3. Datos por conseguir
 - Cuántos clientes de Meniu pagan (no publicado) → pedirlo en una demo o inferirlo de reseñas; el piloto de Carta lo mide en su propia curva.

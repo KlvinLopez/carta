@@ -116,7 +116,7 @@ prueba('el resumen trae diez cifras', rs.cifras.length, 10);
 prueba('cada cifra trae recomendado, peor y mejor', rs.cifras.every((f) => 'recomendado' in f && 'peor' in f && 'mejor' in f), true);
 const mo = rs.cifras.find((f) => f.clave === 'margen_de_operacion');
 prueba('el margen de operación: peor ≤ recomendado ≤ mejor', mo.peor <= mo.recomendado && mo.recomendado <= mo.mejor, true);
-prueba('el resumen define los tres casos', Object.keys(rs.definiciones).join(','), 'recomendado,peor,mejor');
+prueba('el resumen define los cuatro escenarios y la nota', Object.keys(rs.definiciones).join(','), 'recomendado,peor,mejor,piso_de_verdad,nota');
 
 // 9) banderas y proyección
 const bd = M.banderas({ cpu_pct: 75, disco_pct: 40, conexiones_abiertas: null, memoria_pct: 60, costo_por_restaurante: 3, ingresos_mes: 10000, costos_mes: 3000, escalon: 'pro_2' }, s);
@@ -129,6 +129,58 @@ const mi = s.mes_inicio_anuncios;
 prueba('antes del mes de inicio no hay anuncios', pr.filas[mi - 2].ingresos_anuncios, 0);
 prueba('desde el mes de inicio hay anuncios', pr.filas[mi - 1].ingresos_anuncios > 0, true);
 prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0, true);
+
+// 10) CIFRAS DE TITULAR (las que van a pantalla), con tolerancia estrecha (±1 peso, ±0.002 en proporciones)
+{
+  const cfg = M.configInicial();
+  prueba('Chef: topes de configInicial (mesas · cuentas · platillos)', `${cfg.topes.gratuito.mesas}·${cfg.topes.gratuito.cuentas}·${cfg.topes.gratuito.platillos}`, '25·4·150');
+  prueba('cobertura de Chef (centro, con dispersión σ = 0.5)', M.seguridadChico(cfg, s, 'centro'), 0.951, 0.002);
+  prueba('cobertura de Chef (mínimo de las 27 combinaciones)', M.seguridadChico(cfg, s, 'minimo'), 0.867, 0.002);
+  prueba('cobertura de Chef (máximo del modelo, no 100 %)', M.seguridadChico(cfg, s, 'maximo'), 0.98, 0.002);
+  prueba('la dispersión es un parámetro con rango', `${s.sigma_mesas_por_cuenta}|${s.rangos.sigma_mesas_por_cuenta.join('-')}`, '0.5|0-0.75');
+  const margen = (n) => M.evaluarEscenario(n, cfg, s, 1000).margen_operacion;
+  prueba('margen de operación recomendado (1,000)', margen('recomendado'), 8719, 1);
+  prueba('margen de operación peor (1,000)', margen('peor'), -47, 1);
+  prueba('margen de operación mejor (1,000)', margen('mejor'), 32655, 1);
+  prueba('margen de operación piso de verdad (1,000)', margen('piso_de_verdad'), -2031, 1);
+  const mx = M.matrizEscenarios(cfg, s, 1000);
+  const celdas = mx.filas.map((f) => f.celdas.map((x) => Math.round(x.margen_operacion))).flat().join(',');
+  prueba('matriz 3 × 3 curva × anuncios (pesimista, media, optimista; sin, baja, media)', celdas, '-47,4231,17068,4545,8719,21241,17159,21033,32655');
+  prueba('rango de la bolsa de 1,000 pesos (mín–centro–máx)', `${M.rangoBolsa(cfg, s, 1000).minimo}-${M.rangoBolsa(cfg, s, 1000).centro.restaurantes}-${M.rangoBolsa(cfg, s, 1000).maximo}`, '246-811-1896');
+  prueba('con el sondeo de hoy caben 148', M.rangoBolsa(cfg, s, 1000).caben_con_el_sondeo_de_hoy, 148);
+  const rb = M.rangoSePagaSolo(cfg, s, 'baja');
+  const rm = M.rangoSePagaSolo(cfg, s, 'medio');
+  const ra = M.rangoSePagaSolo(cfg, s, 'adverso');
+  prueba('se paga solo, tarifa baja: centro, mínimo, máximo', `${rb.centro}-${rb.minimo}-${rb.maximo}`, '54-25-186');
+  prueba('se paga solo, tarifa media: centro, mínimo, máximo', `${rm.centro}-${rm.minimo}-${rm.maximo}`, '12-6-25');
+  prueba('se paga solo, adverso: centro, mínimo y máximo imposible', `${ra.centro}-${ra.minimo}-${ra.maximo}`, '1469-139-null');
+  prueba('con la tarifa a la mitad, la tarifa baja pasa a 139', rb.por_supuesto.find((v) => v.supuesto === 'tarifa de anuncios').bajo.n, 139);
+  const pr = M.proyectarEscenario('recomendado', cfg, s, 36);
+  const m12 = pr.filas[11];
+  prueba('mes 12 recomendado: ingresos', m12.ingresos, 3682, 1);
+  prueba('mes 12 recomendado: margen de operación', m12.margen_operacion, 2330, 1);
+  prueba('mes 12 recomendado: margen después de captación', m12.margen_despues_de_captacion, 1314, 1);
+  prueba('mes 12 mejor: margen de operación', M.proyectarEscenario('mejor', cfg, s, 36).filas[11].margen_operacion, 9538, 1);
+  prueba('mes 12 peor: margen de operación', M.proyectarEscenario('peor', cfg, s, 36).filas[11].margen_operacion, -300, 1);
+  const sp = M.sensibilidadPrecio(cfg, s, 1000);
+  prueba('precio ganador según la mediana de la curva (150, 225, 300, 450)', sp.por_mediana.map((f) => f.precio_ganador).join(','), '199,249,299,299');
+  prueba('óptimo continuo según la mediana', sp.por_mediana.map((f) => f.optimo_continuo).join(','), '175,234,294,415');
+  prueba('precio ganador según sigma (0.3, 0.45, 0.6, 0.9)', sp.por_sigma.map((f) => f.precio_ganador).join(','), '199,199,249,299');
+  prueba('comensales al mes con 1,000 gratuitos', Math.round(M.todosGratuitos(cfg, s, 1000).comensales_mes / 1000), 3417, 1);
+  prueba('costo al mes sin anuncios con 1,000 gratuitos', M.todosGratuitos(cfg, s, 1000).costo_sin_anuncios, 1137, 1);
+
+  // un escenario «sin anuncios» NO puede traer ingresos por anuncios, en ninguna vía
+  const sinAds = [
+    ['evaluarEscenario(peor)', M.evaluarEscenario('peor', cfg, s, 1000).ingresos.anuncios],
+    ['matriz, fila «sin anuncios»', Math.max(...mx.filas.map((f) => f.celdas.find((x) => x.anuncios === 'sin').ingresos_anuncios))],
+    ['proyectarEscenario(peor), todos los meses', Math.max(...M.proyectarEscenario('peor', cfg, s, 36).filas.map((f) => f.ingresos_anuncios))],
+    ['escenarios(): peor_sin_anuncios', M.escenarios(cfg, s, [1000])[0].peor_sin_anuncios.ingresos.anuncios],
+    ['resumen: el peor lleva 0 de anuncios', M.evaluarEscenario('peor', cfg, s, 100).ingresos.anuncios],
+  ];
+  for (const [nombre, v] of sinAds) prueba(`sin anuncios no trae ingresos por anuncios: ${nombre}`, v, 0);
+  prueba('el piso de verdad sí lleva anuncios (adversos)', M.evaluarEscenario('piso_de_verdad', cfg, s, 1000).ingresos.anuncios > 0, true);
+  prueba('el piso de verdad es peor que el peor', margen('piso_de_verdad') < margen('peor'), true);
+}
 
 console.log(fallas === 0 ? '\nTodas las pruebas pasan.' : `\n${fallas} prueba(s) fallan.`);
 process.exit(fallas === 0 ? 0 : 1);

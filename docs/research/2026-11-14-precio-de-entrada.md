@@ -1,38 +1,50 @@
-# ¿Entrar con un precio bajo para captar y subirlo después?
+# Precio de Master Chef: qué decide el modelo y qué decide el piloto
 
-**Fecha:** 14 de noviembre de 2026 · Evidencia abierta buscada hoy; **lo que no pude verificar en la fuente original está marcado**. Cifras del modelo: [`2026-11-14-modelo-de-escenarios.md`](2026-11-14-modelo-de-escenarios.md).
+**Fecha:** 14 de noviembre de 2026 (ronda 4) · **Generado por `2026-11-14-corre-escenarios.mjs`**: las tablas salen del modelo (`precio_sensibilidad` en el JSON de resultados), no están escritas a mano. Evidencia externa al final, con lo que **no** pude verificar marcado.
 
 ## Conclusiones
 
-1. **No hay evidencia abierta fuerte de que un precio de entrada bajo y una subida después convengan a un SaaS de restaurantes**; lo más cercano son suscripciones de periódicos y de televisión, no software de restaurante.
-2. **Lo que sí aparece en la evidencia: el salto grande molesta, el escalonado y el recordatorio del precio completo ayudan** (Kanuri y Andrews, periódico de EE. UU., 6,919 amenazas de cancelar entre 2010 y 2013, vía nota de Nieman Lab).
-3. **En el modelo, el precio de Master Chef casi no mueve el margen (199 → 8,048 a 225 → 8,052 a 249, pesos al mes con 1,000 restaurantes, curva media) pero sí los pagantes (33 → 29 → 25):** entrar a 199 capta ≈ 5 pagantes más de cada 1,000 registrados, y subir de 199 a 225 después es +13 %; con el margen plano, la ganancia de entrar barato es captación, no dinero.
-4. **Recomendación para Carta: entrar a 225 con el gratuito de Chef como «precio bajo»** (ya es el gancho) y **no** regalar un descuento temporal de paga; si se quiere un precio de lanzamiento, hacerlo explícito con fecha («precio de fundadores hasta X») y subir en escalones pequeños.
-5. **Qué medir en el piloto:** conversión de gratuito a paga con 3 grupos (199, 225, 249) y, a los 6 meses, cuántos se quedan en cada uno.
+1. **El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto.** La curva «media» se construyó con mediana 225 (el precio de Meniu Business) y el óptimo sale 234: **el modelo devuelve su supuesto** (conclusión circular de la versión anterior de este documento, retirada).
+2. **225 es una decisión de posicionamiento de Calvin (quedar pegado a Meniu), no un resultado del modelo.** Con la mediana en 150 gana 199; en 300, 299; en 450, 299 (el óptimo continuo sube a 415).
+3. **La dispersión de la curva (sigma) también cambia al ganador:** con sigma 0.3 gana 199; con 0.9, 299. De 199 a 249 el margen cae con sigma 0.3 (9,122 → 8,083) y sube con 0.9 (8,383 → 8,942).
+4. **Con la curva supuesta, entre 199 y 249 el margen casi no cambia pero sí los pagantes** (199: 34 · 225: 29 · 249: 25): entrar barato compra clientes, no margen.
+5. **No hay evidencia abierta fuerte de que entrar con un precio bajo y subir después convenga a un SaaS de restaurantes** (§3).
 
-## Evidencia
+## 1. Margen de operación al mes según la mediana de la curva de pago (1,000 restaurantes, anuncios en marcha, sigma 0.6, techo 0.35)
+
+| Mediana de la curva de pago (supuesto 225) | Margen a 199 | Margen a 225 | Margen a 249 | Margen a 299 | Gana entre los 4 | Óptimo continuo |
+|---|---|---|---|---|---|---|
+| 150 | 6,720 | 6,591 | 6,426 | 6,045 | **199** | 175 |
+| 225 | 8,573 | 8,719 | 8,724 | 8,471 | **249** | 234 |
+| 300 | 9,787 | 10,285 | 10,581 | 10,793 | **299** | 294 |
+| 450 | 10,828 | 11,826 | 12,615 | 13,941 | **299** | 415 |
+
+## 2. Margen según la dispersión de la curva (mediana 225)
+
+| Sigma de la curva (supuesto 0.6) | Margen a 199 | Margen a 225 | Margen a 249 | Margen a 299 | Gana entre los 4 | Óptimo continuo |
+|---|---|---|---|---|---|---|
+| 0.3 | 9,122 | 8,719 | 8,083 | 6,630 | **199** | 189 |
+| 0.45 | 8,760 | 8,719 | 8,507 | 7,790 | **199** | 205 |
+| 0.6 | 8,573 | 8,719 | 8,724 | 8,471 | **249** | 234 |
+| 0.9 | 8,383 | 8,719 | 8,942 | 9,204 | **299** | 343 |
+
+**Qué resultado del piloto lleva a cada precio** (regla de decisión derivada de la primera tabla; «empate» = precios a menos de 1 % del mejor margen): si la mediana (el precio al que la mitad de los dueños dice que sí) sale cerca de 150 → 199; si sale cerca de 225 → 225 o 249; si sale cerca de 300 → 299; si sale cerca de 450 → 299 (el más alto de los candidatos: valdría probar uno mayor). La **dispersión** (qué tan distintos son los dueños) se lee del mismo piloto: con sigma baja gana el precio más bajo y con sigma alta, el más alto (tabla 2).
+
+**Prueba del piloto:** tres grupos de 10 restaurantes en el límite (199, 249, 299 o el que corresponda) más la escalera de precios de Van Westendorp; se mide cuántos aceptan y a los 6 meses cuántos se quedan en cada grupo.
+
+## 3. Evidencia abierta sobre «entrar barato y subir» (poca, y no es de restaurantes)
 
 | Fuente | Qué es | Qué dice | Qué tan firme |
 |---|---|---|---|
-| Kanuri y Andrews (2019), estudio citado por [Nieman Lab, 15-jul-2019](https://www.niemanlab.org/2019/07/nearly-7000-people-threatened-to-cancel-their-newspaper-subscriptions-heres-what-got-them-to-stay/) (Laura Hazard Owen) | Periódico de EE. UU. (más de 500,000 de circulación), enero de 2010 a marzo de 2013, 6,919 amenazas de cancelar | Un descuento temporal tras una falla **reduce** las renovaciones cuando el precio vuelve; recordar el precio completo y extender el plazo ayudan; «los periódicos que suben el precio de a poco ... tienen más probabilidad de beneficiarse» que quienes pasan de 0.50 a 10 dólares a la semana | **Revisé la nota, no el estudio** (DOI 10.1177/0022242919859325); muestra de un solo periódico; no es SaaS |
-| Datta, Foubert y Van Heerde (2015), *Journal of Marketing Research* | Televisión digital; modo de adquisición y retención | Los clientes que entraron por prueba gratis valen **menos** que los regulares | Sólo vi el resumen de un buscador; no leí el artículo |
-| Mather Economics (benchmarks de blog) | Suscripciones de medios | Elasticidad al precio de entrada entre −1.0 y −2.0; al primer renovar a precio completo, muy baja; cancelaciones del 16 % en la primera renovación | Fuente de la propia consultora, **sin verificar** |
-| Netflix, enero de 2016 | Fin del precio congelado de los clientes de 2 años | Netflix dijo esperar «sólo un poco más de cancelaciones»; UBS estimó 3–4 % | Es **pronóstico**, no resultado medido |
-| Gardete, Schmitt y Stahl (2025) | Documento de trabajo, editor de noticias en línea | Quienes entraron con promoción consumen más tras una subida | **La URL dio 404; no lo leí**: no se usa para ninguna cifra |
+| Kanuri y Andrews (2019), estudio citado por [Nieman Lab, 15-jul-2019](https://www.niemanlab.org/2019/07/nearly-7000-people-threatened-to-cancel-their-newspaper-subscriptions-heres-what-got-them-to-stay/) | Periódico de EE. UU., 6,919 amenazas de cancelar, enero de 2010 a marzo de 2013 | Un descuento temporal tras una falla **reduce** las renovaciones al volver el precio; recordar el precio completo ayuda; subir de a poco conviene más que saltar de 0.50 a 10 dólares a la semana | **Leí la nota, no el estudio** (DOI 10.1177/0022242919859325); un solo periódico; no es SaaS |
+| Datta, Foubert y Van Heerde (2015), *Journal of Marketing Research* | Televisión digital | Los clientes que entraron por prueba gratis valen menos que los regulares | Sólo el resumen de un buscador; no leí el artículo |
+| Netflix, enero de 2016 | Fin del precio congelado | Netflix esperaba «sólo un poco más de cancelaciones»; UBS estimó 3–4 % | **Pronóstico**, no resultado medido |
+| Mather Economics (benchmarks en un blog) | Suscripciones de medios | Elasticidad al precio de entrada de −1.0 a −2.0; 16 % de cancelaciones en la primera renovación | De la propia consultora, **sin verificar** |
+| Gardete, Schmitt y Stahl (2025) | Documento de trabajo | Los que entraron con promoción consumen más tras subir el precio | **La URL dio 404; no se usa** |
 
-**Opinión de blog (marcada como tal):** artículos de prácticas (Subi, appsops) dicen que comunicar el valor reduce las bajas al subir; sin datos propios, no se usan.
+**Opinión de blog (marcada):** artículos de práctica dicen que comunicar el valor reduce las bajas al subir; sin datos propios, no se usan.
 
-## Casos con cifras (modelo, 1,000 restaurantes registrados, curva media)
-
-| Precio de Master Chef | Pagantes | Ingreso de paga al mes | Margen de operación al mes |
-|---|---|---|---|
-| 199 | 33.3 | 6,625 | 7,904 |
-| **225** | 28.6 | 6,445 | 8,048 |
-| 249 | 24.8 | 6,176 | 8,052 |
-
-**Lectura:** el margen es plano; **un precio bajo de entrada compra clientes, no margen.** Si luego se sube de 199 a 225 (+13 %), cada cliente que se va a causa de la subida cuesta 3 % mensual de bajas más el costo de reponerlo (600 pesos supuestos por alta): **ejemplo ilustrativo (el 5 % es un supuesto, sin dato):** si al subir se fuera un 5 % extra de 33 pagantes, serían ≈ 1.7 clientes, ≈ 1,000 pesos de reposición una sola vez.
-
-## Datos por conseguir
+## 4. Datos por conseguir
 - La curva de pago real (prueba de precio del piloto, tres grupos).
-- Si en el piloto los que entraron a 199 se van más al subir (mismo grupo medido a los 6 meses).
-- El artículo original de Kanuri y Andrews (DOI arriba) y el de Datta, Foubert y Van Heerde para confirmar las cifras.
+- Si los que entraron más barato se van más al subir (mismo grupo medido a los 6 meses).
+- Los artículos originales de Kanuri y Andrews y de Datta, Foubert y Van Heerde.

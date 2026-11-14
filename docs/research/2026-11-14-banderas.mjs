@@ -11,6 +11,10 @@ const ban = M.banderas(rec, s);
 const esc = s.escalones;
 const proy = M.proyectar(rec, s, 36, { curva: 'media' });
 const primerMes = (id) => proy.filas.find((f) => f.escalon === id)?.mes ?? null;
+let nArq = null;
+for (let n = 100; n <= 5000; n += 10) { if (M.evaluar(rec, s, n, { curva: 'media' }).capacidad.requiere_arquitectura) { nArq = n; break; } }
+const e1000 = M.evaluar(rec, s, 1000, { curva: 'media' });
+const cpuPct = e1000.capacidad.ratios.procesador * s.banderas.cpu.accion; // ratio 1 = CPU en el tope de diseño (70 %)
 const n0 = (x) => Math.round(x).toLocaleString('en-US');
 const medida = {
   procesador: 'p95 de CPU del servicio `api` en la hora pico (panel de Railway; hoy sin alerta)',
@@ -38,10 +42,11 @@ const md = `# Banderas de operación: qué se mira, cuándo se avisa y qué cues
 ## Conclusiones
 
 1. **Seis banderas bastan:** procesador, disco, conexiones, memoria, costo por restaurante y costos sobre ingresos.
-2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone al 98 % del escalón de 2 procesos (Pro); el escalón de hoy (Hobby, sondeo) cabe ≈ ${esc[0].cap_cpu} restaurantes típicos.
+2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone en ≈ ${n0(cpuPct)} % de procesador (el escalón Pro de 2 procesos se llena al ${s.banderas.cpu.accion} %, el tope de diseño: por eso la tabla avisa en ${s.banderas.cpu.aviso} % y actúa en ${s.banderas.cpu.accion} %); el escalón de hoy (Hobby, sondeo) cabe ≈ ${esc[0].cap_cpu} restaurantes típicos.
 3. **Siguiente paso, costo:** de Hobby a Pro 2 procesos sube ${n0(pasos[2].sube_costo_usd_vs_anterior)} USD base por mes (${esc[1].base_usd} → ${esc[2].base_usd}); entra hacia el mes ${pasos[2].mes_en_que_entra_recomendado ?? '—'} de la proyección recomendada (adopción supuesta).
-4. **Más de ≈ 2,030 restaurantes registrados exige otra arquitectura:** de ahí en adelante todo es extrapolación sin medir.
+4. **Más de ≈ ${n0(nArq)} restaurantes registrados exige otra arquitectura:** de ahí en adelante todo es extrapolación sin medir.
 5. **Dos banderas ya se pueden medir con el primer cliente:** costo por restaurante y costos sobre ingresos.
+6. **Aviso de producto:** un negocio de Chef Ejecutivo (101 a 250 personas) tiene unas 36 a 125 cuentas de personal en el modelo, y el tope técnico es de **50 cuentas activas por restaurante** (T-1.6): hay que subirlo antes de vender ese plan.
 
 ## Banderas
 

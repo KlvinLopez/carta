@@ -5,7 +5,7 @@
 ## Conclusiones
 
 1. **Seis banderas bastan:** procesador, disco, conexiones, memoria, costo por restaurante y costos sobre ingresos.
-2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone al 98 % del escalón de 2 procesos (Pro); el escalón de hoy (Hobby, sondeo) cabe ≈ 148 restaurantes típicos.
+2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone en ≈ 69 % de procesador (el escalón Pro de 2 procesos se llena al 70 %, el tope de diseño: por eso la tabla avisa en 50 % y actúa en 70 %); el escalón de hoy (Hobby, sondeo) cabe ≈ 148 restaurantes típicos.
 3. **Siguiente paso, costo:** de Hobby a Pro 2 procesos sube 12 USD base por mes (8.1 → 20); entra hacia el mes 11 de la proyección recomendada (adopción supuesta).
 4. **Más de ≈ 2,030 restaurantes registrados exige otra arquitectura:** de ahí en adelante todo es extrapolación sin medir.
 5. **Dos banderas ya se pueden medir con el primer cliente:** costo por restaurante y costos sobre ingresos.
