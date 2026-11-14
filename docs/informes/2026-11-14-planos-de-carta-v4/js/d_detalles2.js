@@ -117,9 +117,13 @@ DET.topes = {
       rm.put("cpt" + i, "text", {x: x + 62, y: 374, text: NOMPLAN[p], size: 13, weight: 700, fill: "#fff", anchor: "middle"});
       rm.put("tl" + i, "text", {x: x + 62, y: 414, text: q.estrato + " personas", size: 12.5, weight: 700, fill: C.tinta, anchor: "middle"});
       rm.put("tm" + i, "text", {x: x + 62, y: 434, text: `≈ ${n(mesasDe(q))} mesas`, size: 11, fill: C.t2, anchor: "middle"});
-      rm.put("tc" + i, "text", {x: x + 62, y: 450, text: `≈ ${n(cuentasDe(q))} cuentas`, size: 11, fill: C.t2, anchor: "middle"});
-      rm.put("tn" + i, "text", {x: x + 62, y: 470, text: `${n(q.negocios)} · ${n(100 * q.negocios / tot, 1)} %`, size: 11.5, fill: C.t2, anchor: "middle"});
+      rm.put("tc" + i, "text", {x: x + 62, y: 450, text: `≈ ${n(cuentasDe(q))} ${Math.round(cuentasDe(q)) === 1 ? "cuenta" : "cuentas"}`, size: 11, fill: C.t2, anchor: "middle"});
+      rm.put("tn" + i, "text", {x: x + 62, y: 470, text: `${n(q.negocios)} · ${100 * q.negocios / tot < 0.1 ? "menos de 0.1" : n(100 * q.negocios / tot, 1)} %`, size: 11.5, fill: C.t2, anchor: "middle"});
     });
+    const sMin = 100 * MOD.seguridadChico(c, SP, "minimo"), sCen = 100 * MOD.seguridadChico(c, SP, "centro");
+    rm.put("cr0", "rect", {x: 30, y: 490, w: 900, h: 56, rx: 20, fill: C.a2, grow: false});
+    rm.put("cr1", "text", {x: 52, y: 528, text: `≈ ${n(sMin)}–${n(sCen)} de cada 100`, size: 28, fill: C.vino, serif: true});
+    rm.put("cr2", "text", {x: 360, y: 524, text: `negocios de hasta 10 personas caben en ${PLAN.gratis} (modelo, no medida)`, size: 13.5, weight: 700, fill: C.t2});
     rm.put("lg", "text", {x: 30, y: 250, text: "A qué plan cae cada tamaño de negocio", size: 14, weight: 700, fill: C.vino});
     const por = [0, 1, 2].map(p => SEG.estratos.filter(q => planDe(q, c) === p).reduce((a, q) => a + q.negocios, 0));
     return {

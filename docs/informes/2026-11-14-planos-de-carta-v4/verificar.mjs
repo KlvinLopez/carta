@@ -22,7 +22,26 @@ async function nueva(w, h) {
   return p;
 }
 const texto = (p, sel) => p.$eval(sel, (e) => e.textContent);
-const abre = async (p, id) => { await p.click(`.box[data-id="${id}"]`); await p.waitForTimeout(350); };
+const contraste = async (p, etiqueta) => {
+  const malos = await p.evaluate(() => {
+    const lum = (c) => { const m = c.match(/[\d.]+/g); if (!m) return null; const [r, g, b, a = 1] = m.map(Number); return a === 0 ? null : (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+    const out = [];
+    document.querySelectorAll('svg text').forEach((t) => {
+      if (!/^rgb\(255, 255, 255\)/.test(getComputedStyle(t).fill)) return;
+      const r = t.getBoundingClientRect(); if (!r.width || +getComputedStyle(t).opacity < 0.5) return;
+      for (const e of document.elementsFromPoint(r.x + r.width / 2, r.y + r.height / 2)) {
+        if (e === t || e.tagName === 'text') continue;
+        if (!e.closest('svg') || e.tagName === 'svg') break;
+        const l = lum(getComputedStyle(e).fill); if (l == null) continue;
+        if (l > 0.6) out.push(`${t.textContent.slice(0, 24)} sobre ${getComputedStyle(e).fill}`);
+        break;
+      }
+    });
+    return out;
+  });
+  ok(malos.length === 0, `${etiqueta}: sin texto blanco sobre fondo claro ${malos.slice(0, 3).join(' | ')}`);
+};
+const abre = async (p, id) => { await p.click(`.box[data-id="${id}"]`); await p.waitForTimeout(450); await contraste(p, 'contraste ' + id); };
 const cierra = async (p) => { await p.click('#det [data-cierra]'); await p.waitForTimeout(100); };
 const sinDesborde = async (p, etiqueta) => {
   const d = await p.evaluate(() => { const e = document.getElementById('det'); return [document.documentElement.scrollWidth - innerWidth, e.hidden ? 0 : e.scrollWidth - e.clientWidth]; });
@@ -31,7 +50,7 @@ const sinDesborde = async (p, etiqueta) => {
 
 // ---------- escritorio: cada interacción ----------
 const p = await nueva(1440, 900);
-await sinDesborde(p, '1440 portada');
+await sinDesborde(p, '1440 portada'); await contraste(p, 'contraste portada');
 if (png) await p.screenshot({ path: `${png}/v5_portada.png` });
 // los tres escenarios se ven a la vez, sin barra de filtros
 ok(!(await p.$('#esc')), 'no hay barra de escenario');
