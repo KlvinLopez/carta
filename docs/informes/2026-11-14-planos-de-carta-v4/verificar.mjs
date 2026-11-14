@@ -80,7 +80,11 @@ if (png) await p.screenshot({ path: `${png}/v5_linea.png` });
 await sinDesborde(p, 'línea'); await cierra(p);
 // capítulo 1: círculos anidados
 await abre(p, 'mercado2');
-ok((await p.$$('#svM2 [data-cl]')).length >= 9, 'capítulo 1: un círculo por tipo de negocio');
+ok((await p.$$('#svM2 [data-cl]')).length >= 11, 'capítulo 1: los 11 tipos de negocio se dibujan');
+const c1 = await p.evaluate(() => { const g = [...document.querySelectorAll('#svM2 [data-cl]')].map((e) => { const c = e.querySelector('circle'); return { k: e.dataset.cl, x: +c.getAttribute('cx'), y: +c.getAttribute('cy'), r: +c.getAttribute('r') }; }); const sum = CLASES_D.reduce((a, c) => a + c.n, 0); let sol = 0, fuera = 0; for (let i = 0; i < g.length; i++) { if (Math.hypot(g[i].x - 300, g[i].y - 315) + g[i].r > 275) fuera++; for (let j = i + 1; j < g.length; j++) if (Math.hypot(g[i].x - g[j].x, g[i].y - g[j].y) < g[i].r + g[j].r) sol++; } return { sum, total: M.total, n: g.length, sol, fuera, claves: g.map((x) => x.k).join() }; });
+ok(c1.sum === c1.total && c1.sum === 773860, 'capítulo 1: los círculos suman el total (' + c1.sum + ')');
+ok(c1.sol === 0 && c1.fuera === 0, 'capítulo 1: ningún círculo se encima ni sale del círculo grande (' + c1.sol + ', ' + c1.fuera + ')');
+ok(c1.claves.includes('722513'), 'capítulo 1: Antojitos (el más grande) está dibujado');
 await p.waitForTimeout(1500); await p.hover('#svM2 [data-cl="722511"] circle'); await p.waitForTimeout(300);
 ok((await texto(p, '#svM2')).includes('72,521'), 'capítulo 1: tocar un círculo muestra su cantidad');
 if (png) await p.screenshot({ path: `${png}/v9_cap1.png` });

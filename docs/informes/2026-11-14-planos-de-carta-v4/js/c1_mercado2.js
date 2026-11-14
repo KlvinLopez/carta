@@ -4,20 +4,21 @@ const CLASE_NOM = {
   "722512": ["Pescados y mariscos", "fuera"], "722513": ["Antojitos", "fuera"], "722514": ["Tacos y tortas", "fuera"], "722515": ["Cafeterías y neverías", "fuera"],
   "722516": ["Autoservicio", "fuera"], "722517": ["Pizzas y pollos para llevar", "fuera"], "722518": ["Otros para llevar", "fuera"], "722519": ["Otros alimentos", "fuera"],
 };
-/* empaqueta círculos de área proporcional dentro de un círculo grande: voraz, de mayor a menor */
-function empaqueta(items, R, dens = 0.56) {
-  const tot = items.reduce((a, x) => a + x.n, 0), k = Math.sqrt(dens * R * R / tot);
-  const cs = items.map(x => ({...x, r: Math.max(k * Math.sqrt(x.n), 5)})).sort((a, b) => b.r - a.r), put = [];
-  cs.forEach(c => {
-    let mejor = null;
-    for (let rad = 0; rad <= R - c.r - 4 && !mejor; rad += 3) for (let a = 0; a < 360; a += 6) {
-      const x = rad * Math.cos(a * Math.PI / 180), y = rad * Math.sin(a * Math.PI / 180);
-      if (put.every(p => Math.hypot(p.x - x, p.y - y) >= p.r + c.r + 5)) { mejor = {x, y}; break; }
+/* empaqueta círculos de área proporcional dentro de un círculo grande: relajación (cada uno aparta a sus vecinos y todos se atraen al centro); determinista y sin descartar ninguno */
+function empaqueta(items, R, dens = 0.5) {
+  const tot = items.reduce((a, x) => a + x.n, 0), k = Math.sqrt(dens * R * R / tot), GAP = 4;
+  const cs = items.map(x => ({...x, r: Math.max(k * Math.sqrt(x.n), 5)})).sort((a, b) => b.r - a.r);
+  cs.forEach((c, i) => { const a = i * 2.399963, rad = R * 0.55 * Math.sqrt((i + 0.5) / cs.length); c.x = rad * Math.cos(a); c.y = rad * Math.sin(a); });
+  for (let it = 0; it < 900; it++) {
+    const f = 1 - it / 900;
+    cs.forEach(c => { c.x *= 0.995; c.y *= 0.995; });
+    for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) {
+      const A = cs[i], B = cs[j]; let dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 0.001; const need = A.r + B.r + GAP;
+      if (d < need) { const m = (need - d) / 2 * 0.6, ux = dx / d, uy = dy / d; A.x -= ux * m; A.y -= uy * m; B.x += ux * m; B.y += uy * m; }
     }
-    if (!mejor) mejor = {x: 0, y: 0};
-    c.x = mejor.x; c.y = mejor.y; put.push(c);
-  });
-  return put;
+    cs.forEach(c => { const d = Math.hypot(c.x, c.y), lim = R - c.r - 2; if (d > lim) { c.x *= lim / d; c.y *= lim / d; } });
+  }
+  return cs;
 }
 DET.mercado2 = {
   titulo: "Hay 773,860 restaurantes y bares; 104,882 son clientes potenciales.",
