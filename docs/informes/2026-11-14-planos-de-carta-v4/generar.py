@@ -913,7 +913,7 @@ def g_equilibrio() -> str:
             b.append(tx(X(c) + 10, Y(0) + dy, f"equilibrio: {c:.0f}", 11.5, col, weight=700))
     for i, (col, nom) in enumerate(
         [
-            ("#9B2C2C", "Peor: todos gratuitos, anuncios de tarifa baja"),
+            ("#9B2C2C", "Peor (firme): todos gratuitos, sin anuncios"),
             (VINO, "Esperado: curva media, con su rango"),
             (VERDE, "Mejor: todos pagan"),
         ]
@@ -939,7 +939,7 @@ def g_equilibrio() -> str:
     k = MV["kpis"]
     qs = [
         ("«¿Venden mis datos?»", "No. Se ofrece guardar el historial."),
-        ("«¿Y si nadie paga?»", "Con anuncios bajos, desde ≈ 28 restaurantes."),
+        ("«¿Y si nadie paga?»", "Sin clientes de paga ni anuncios, pierde dinero."),
         (
             "«¿Cuántos caben?»",
             f"De {MV['capacidad'][0]['caben']} a {n(MV['capacidad'][-1]['caben'])}, según el servidor.",
@@ -1060,7 +1060,7 @@ def construir_paginas():
     )
     pagina(
         "10 · Cómo se sostiene",
-        f"Con anuncios solos se sostiene desde ≈ {eq_peor()} restaurantes; con clientes de paga, desde ≈ 3 por cada 1,000.",
+        f"Sin anuncios, el negocio se sostiene con ≈ {round(MV['kpis']['equilibrio_sin_anuncios'])} clientes de paga por cada 1,000 registrados.",
         g_equilibrio(),
         "Cada línea es un caso; donde cruza el cero, el negocio se sostiene. La franja es el rango de las tres curvas de pago.",
         "Todo depende de dos datos que hoy no existen: cuántos se pasan del plan Chef y cuántos de ellos pagan.",
@@ -1221,7 +1221,7 @@ def html_p1() -> str:
         ),
         (
             f"≈ {round(k['sostiene_sin_anuncios'])}",
-            "gratuitos sostiene cada cliente de paga",
+            "gratuitos sostiene cada cliente de paga (sin anuncios)",
             cita("carta_tres_planes"),
         ),
     ]

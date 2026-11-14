@@ -9,14 +9,14 @@ const M = await import(resolve(inv, '2026-11-14-modelo-de-escenarios.mjs'));
 const par = JSON.parse(readFileSync(resolve(inv, '2026-11-14-parametros.json'), 'utf8'));
 const rec = JSON.parse(readFileSync(resolve(inv, '2026-11-14-recomendaciones.json'), 'utf8'));
 const s = M.valores(par);
-const base = rec.configuraciones.lanzamiento.config; // Recomendado
+const base = M.configInicial(); // Recomendado, SIN anuncios (lo que existe hoy)
 const serv = s.escalones.filter((e) => e.id !== 'hobby_sondeo');
 const cfg = (o = {}) => {
   const c = JSON.parse(JSON.stringify(base));
   const ma = o.a7 ? 0.23 : o.a30 === false ? 13 : 1;
   c.disco = { meses_analitica_en_linea: { gratuito: ma, servicio: ma, salon: ma }, archivar: true };
   c.topes.servicio.meses_en_linea = o.hist ?? 12;
-  c.topes.salon.meses_en_linea = Math.min(o.hist ?? 12, 6);
+  c.topes.salon.meses_en_linea = o.hist ?? 12;
   return c;
 };
 function limites(c, es) {
@@ -38,14 +38,13 @@ out.disco = [
   ['Historial de paga 1 mes', { hist: 1, a7: true }],
 ].map(([nombre, o]) => ({ nombre, caben: limites(cfg(o), hobby).lim[1][1] }));
 const ev = M.evaluar(cfg(), s, 1000, { curva: 'media' });
-const c2 = cfg(); c2.anuncios = { activo: false, tarifa: 'baja' };
-const ev2 = M.evaluar(c2, s, 1000, { curva: 'media' });
-out.kpis = { rebasan: ev.rebasan_topes, de_paga_por_1000: ev.clientes.de_paga, margen_pesos: ev.margen.pesos, margen_pct: ev.margen.porcentaje, ingreso_gratuito: ev.por_cliente.ingreso_gratuito, margen_servicio: ev.por_cliente.margen_servicio, sostiene_sin_anuncios: ev2.gratuitos_que_sostiene_un_pagante, equilibrio_sin_anuncios: ev2.equilibrio_pagantes, precio_servicio: base.precios.servicio, precio_salon: base.precios.salon };
+const ev2 = ev;
+out.kpis = { rebasan: ev.rebasan_topes, de_paga_por_1000: ev.clientes.de_paga, margen_pesos: ev.margen.pesos, margen_pct: ev.margen.porcentaje, ingreso_gratuito: ev.por_cliente.ingreso_gratuito, margen_servicio: ev.por_cliente.margen_servicio, sostiene_sin_anuncios: ev.gratuitos_que_sostiene_un_pagante_sin_anuncios, equilibrio_sin_anuncios: ev.equilibrio_pagantes, margen_captacion: ev.margen_despues_de_captacion, precio_servicio: base.precios.servicio, precio_salon: base.precios.salon };
 const s0 = { ...s, curvas_pago: Object.fromEntries(Object.entries(s.curvas_pago).map(([k, v]) => [k, { ...v, techo: 0 }])) };
 const Ns = [1, 20, 40, 60, 80, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 out.sostiene = {
   N: Ns,
-  peor: Ns.map((N) => M.evaluar(cfg(), s0, N, { anuncios: { activo: true, tarifa: 'baja' } }).margen.pesos),
+  peor: Ns.map((N) => M.evaluar(cfg(), s0, N, { anuncios: { activo: false, tarifa: 'baja' }, anunciosAprobados: false }).margen.pesos),
   esperado: Ns.map((N) => M.evaluar(cfg(), s, N, { curva: 'media' }).margen.pesos),
   pesimista: Ns.map((N) => M.evaluar(cfg(), s, N, { curva: 'pesimista' }).margen.pesos),
   optimista: Ns.map((N) => M.evaluar(cfg(), s, N, { curva: 'optimista' }).margen.pesos),
