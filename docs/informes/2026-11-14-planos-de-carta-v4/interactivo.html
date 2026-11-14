@@ -6719,7 +6719,7 @@ DET.pagar = {
       b += `<g class="gh" style="animation-delay:${i * 120}ms">` + Rc(X0, y, Math.min(a, 100) * CW, 34, C.azul, 6) + Rc(X0 + a * CW, y, Math.max((Math.min(z, 100) - a) * CW, 0), 34, "#8fb0d8", 0) + (c > 0 ? Rc(X0 + z * CW, y, Math.max(c * CW, 3), 34, C.dorado, 0) : "") + "</g>";
       let sep = ""; for (let k = 1; k < 100; k++) sep += `<line x1="${X0 + k * CW}" x2="${X0 + k * CW}" y1="${y}" y2="${y + 34}" stroke="#fff" stroke-opacity=".55" stroke-width="1"/>`;
       b += sep;
-      b += T(X0, y + 56, `punto de venta: ${n(a) === n(z) ? n(a) : n(a) + " a " + n(z)} pesos`, 13.5, C.azul, "start", 700);
+      b += T(X0, y + 56, `punto de venta: ${n(a) === n(z) ? n(a) : n(a) + " a " + n(z)} ${n(z) === "1" ? "peso" : "pesos"}`, 13.5, C.azul, "start", 700);
       b += c > 0 ? T(X0 + 330, y + 56, `Carta: ${n(c, 1)} pesos`, 13.5, C.dorado, "start", 700) : T(X0 + 330, y + 56, "Carta: gratis, 0 pesos", 13.5, C.dorado, "start", 700);
     });
     this.sv.innerHTML = b;
