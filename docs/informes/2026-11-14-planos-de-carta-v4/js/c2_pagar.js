@@ -12,7 +12,7 @@ DET.pagar = {
     [0, 0.25, 0.5, 0.75, 1].forEach(v => { b += `<line x1="${X(v)}" x2="${X(v)}" y1="48" y2="${60 + tam.length * 92}" stroke="${C.arena}"/>` + T(X(v), 44, n(v, 2), 11.5, C.t2, "middle"); });
     tam.forEach((t, i) => {
       const y = 62 + i * 92, pc = 100 * precios[i] / t.ingreso, a = 100 * pLo / t.ingreso, z = 100 * pHi / t.ingreso;
-      b += dibujo(tipos[i], 24, y, 0.55) + T(120, y + 26, rot[i], 14, C.tinta, "start", 700) + T(120, y + 46, `${planes[i]} · ingresa ${mxn(t.ingreso)} al mes`, 11.5, C.t2);
+      b += dibujo(tipos[i], 24, y, 0.55) + T(120, y + 26, rot[i], 14, C.tinta, "start", 700) + T(120, y + 46, `${planes[i]} · ${t.ingreso >= 1e6 ? "$" + n(t.ingreso / 1e6, 1) + " M" : "$" + n(t.ingreso / 1e3) + " mil"} al mes`, 11.5, C.t2);
       b += `<g class="gh" style="animation-delay:${i * 120}ms">${Rc(X(a), y + 4, Math.max(X(z) - X(a), 6), 24, C.azul, 8)}</g>` + T(X(Math.min(z, mx)) + 10, y + 22, `punto de venta: ${n(a, 2)} a ${n(z, 2)}`, 13, C.azul, "start", 700);
       b += pc === 0 ? T(X0 + 4, y + 62, "Carta: gratis", 13, C.dorado, "start", 700) : `<g class="gh" style="animation-delay:${i * 120 + 80}ms">${Rc(X0, y + 38, Math.max(X(pc) - X0, 4), 24, C.dorado, 8)}</g>` + T(X(pc) + 10, y + 56, `Carta: ${n(pc, 2)}`, 13, C.dorado, "start", 700);
     });

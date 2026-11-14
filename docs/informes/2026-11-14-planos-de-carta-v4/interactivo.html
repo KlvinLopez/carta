@@ -6674,7 +6674,7 @@ DET.pagar = {
     [0, 0.25, 0.5, 0.75, 1].forEach(v => { b += `<line x1="${X(v)}" x2="${X(v)}" y1="48" y2="${60 + tam.length * 92}" stroke="${C.arena}"/>` + T(X(v), 44, n(v, 2), 11.5, C.t2, "middle"); });
     tam.forEach((t, i) => {
       const y = 62 + i * 92, pc = 100 * precios[i] / t.ingreso, a = 100 * pLo / t.ingreso, z = 100 * pHi / t.ingreso;
-      b += dibujo(tipos[i], 24, y, 0.55) + T(120, y + 26, rot[i], 14, C.tinta, "start", 700) + T(120, y + 46, `${planes[i]} · ingresa ${mxn(t.ingreso)} al mes`, 11.5, C.t2);
+      b += dibujo(tipos[i], 24, y, 0.55) + T(120, y + 26, rot[i], 14, C.tinta, "start", 700) + T(120, y + 46, `${planes[i]} · ${t.ingreso >= 1e6 ? "$" + n(t.ingreso / 1e6, 1) + " M" : "$" + n(t.ingreso / 1e3) + " mil"} al mes`, 11.5, C.t2);
       b += `<g class="gh" style="animation-delay:${i * 120}ms">${Rc(X(a), y + 4, Math.max(X(z) - X(a), 6), 24, C.azul, 8)}</g>` + T(X(Math.min(z, mx)) + 10, y + 22, `punto de venta: ${n(a, 2)} a ${n(z, 2)}`, 13, C.azul, "start", 700);
       b += pc === 0 ? T(X0 + 4, y + 62, "Carta: gratis", 13, C.dorado, "start", 700) : `<g class="gh" style="animation-delay:${i * 120 + 80}ms">${Rc(X0, y + 38, Math.max(X(pc) - X0, 4), 24, C.dorado, 8)}</g>` + T(X(pc) + 10, y + 56, `Carta: ${n(pc, 2)}`, 13, C.dorado, "start", 700);
     });
@@ -7202,7 +7202,7 @@ DET.sostiene = {
     b += T(px, 178, fmP(g.costo_sin_anuncios), 30, C.rojo, "start", 400, true) + T(px, 198, "al mes que pones tú mientras no hay anuncios", 12.5, C.t2);
     b += T(px, 232, "Cuando ya hay anuncios, al mes:", 13, C.t2, "start", 700);
     [["baja", "tarifa baja", C.vino], ["medio", "tarifa media", C.verde], ["adverso", "adverso (la mitad)", C.dorado]].forEach(([k, nm, col], i) => { const r = g.con_anuncios[k]; b += `<circle cx="${px + 6}" cy="${256 + i * 30}" r="6" fill="${col}"/>` + T(px + 20, 261 + i * 30, `${nm}: ${fmP(r.margen)}`, 14, C.tinta, "start", 700) + T(px + 270, 261 + i * 30, r.se_paga_solo ? "se paga solo" : "no alcanza", 12, r.se_paga_solo ? C.verde : C.rojo, "end", 700); });
-    b += `<g transform="translate(${px},352)">${Rc(0, 0, 280, 22, C.a2, 11)}</g>` + T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
+    b += T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
     [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2) + T(px + i * 96, 456, `rango ${rg(rs[k])}`, 11, C.t2); });
     b += T(30, 500, "Vale cuando la Fase 3 (canal de eventos) esté construida; hoy, con sondeo, caben 148. Los umbrales son rangos, no puntos.", 12.5, C.t2);
     b += `<rect x="30" y="462" width="600" height="26" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que este cálculo no incluye: " + bol.no_modelado.join("; "))}" tabindex="0"/>` + T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) y ${n(bol.centro.comensales_mes / 1e6, 2)} M de comensales al mes.`, 14.5, C.osc, "start", 700);
