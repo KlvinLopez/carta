@@ -1,6 +1,6 @@
 # Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** marco, universo del DENUE (§8) y preliminar de plataformas (§9) hechos; lectura de sitios **reanudada con autorización de Calvin** (§11: 102 intentos, 11 contables completos y 5 parciales); §10 es el estado antes de esa autorización. Estadística al cerrar el marco de Google. No cambia código, contrato ni planes.
+**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** marco, universo del DENUE (§8) y preliminar de plataformas (§9) hechos; lectura de sitios **pausada** (límite semanal y ronda de correcciones de revisión, §12) tras 200 intentos con autorización de Calvin (§11: 20 contables completos y 7 parciales); no se retoma hasta confirmación de la maestra. Estadística al cerrar el marco. No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
@@ -31,8 +31,8 @@ Leídos el 13 de noviembre de 2026. Las «Condiciones Específicas del Servicio�
 
 **Uso en memoria.** Los términos prohíben «pre-fetch, index, store» fuera del servicio y la descarga masiva de información de lugares. Ordenar en memoria las respuestas de ≤ 90 solicitudes para elegir candidatos y descartarlas al terminar la ejecución **no es guardarlas**, pero la frontera no está dicha en los términos: es una **lectura mía, no una confirmación de Google ni una opinión legal**. Dos consecuencias que decide Calvin:
 
-1. El guion no escribe a disco nada de Google salvo `place_id,ciudad`; la lista de candidatos con nombre y sitio web sale sólo por la salida de la sesión. Eso obliga a que la lectura de cartas (etapa 2) parta de esa salida en la misma sesión; si la sesión se corta, hay que repetir el marco (otras 81 solicitudes, otro día).
-2. **Derivados.** Las columnas `estrato` («caro» sale del nivel de precio de Google) y la elección «los de más reseñas» son contenido derivado («Don't create content based on Google Maps Content»). Propuesta: en el CSV público el nombre del negocio y su URL salen de la fuente propia del negocio (su sitio o su ficha de reparto), el `place_id` sirve para unir, y `estrato`/`cadena` se anotan sólo si se pueden juzgar desde esa fuente propia. **Pregunta para Calvin o revisión legal antes de la etapa 3.** Si no se aprueba, el estrato «caro» se reporta sin columna.
+1. El guion del marco no escribe a disco nada de Google salvo `place_id,ciudad`; la lista de candidatos con nombre y sitio web sale sólo por la salida de la sesión (ver «Nota de transparencia» sobre el archivo temporal). Si la sesión se pierde, hay que repetir el marco (otras 81 solicitudes, otro día).
+2. **Derivados y lo que sí lleva el CSV de datos.** La elección «los de más reseñas» y el nivel de precio son contenido derivado («Don't create content based on Google Maps Content»): el nivel de precio de Google **no entra** a ningún CSV (el «estrato» de precio se calculará con terciles del rango de precio leído en la carta). **El CSV de datos no lleva `negocio` ni `url`** (corrección del 16 de noviembre: la dirección de partida salió del sitio web de Google, que es contenido de Google; quitarlos evita guardarlo junto al `place_id`): sólo `place_id`, ciudad y lo que se contó en la carta (recuentos, categorías, rango de precio, tipo de negocio y de carta, fecha y notas). **`cadena`** es el juicio del ayudante a partir del texto de la página leída (si lista varias sucursales o es una marca evidente), no de la ficha de Google, y se queda. Con el `place_id` se puede volver a pedir nombre y sitio a Google cuando haga falta. **Lectura mía, no opinión legal:** que Calvin o revisión legal confirmen antes de publicar el CSV fuera del repositorio.
 
 Ningún paso del encargo queda prohibido de forma expresa, por eso **no cierro BLOQUEADA**; sí queda la salvedad de arriba.
 
@@ -49,42 +49,41 @@ Ningún paso del encargo queda prohibido de forma expresa, por eso **no cierro B
 
 **Sonda (una solicitud gastada de 90) [medida aquí]:** `POST places:searchText`, `pageSize` 1, máscara `places.id` → **429** `RESOURCE_EXHAUSTED`, `RATE_LIMIT_EXCEEDED`, métrica `SearchTextRequest`, límite «SearchTextRequest per minute per user», `quota_limit_value` **«0»**. Calvin aún no subía esa cuota; la maestra avisó después y el marco corrió (sección 6).
 
-## 3. Reparto de los 500
+## 3. Reparto de los 500 [corregido el 16 de noviembre; lo calcula `…-muestra-500-reparto.py`]
 
-**Lo que se pidió:** pesar por el consumo de ir a restaurantes = gasto fuera del hogar de la entidad × número de hogares, contrastado con los establecimientos de la rama 7225; las tres zonas metropolitanas grandes primero; mínimo 15 por ciudad; máximo 25 % de N para una.
+**Lo que se pidió:** pesar por el consumo de ir a restaurantes; las tres zonas metropolitanas grandes primero; mínimo 15 por ciudad; máximo 25 % de N para una.
 
-**Camino con fuente (a petición de la maestra): gasto fuera del hogar por persona de la entidad × población de la zona metropolitana.** Es aritmética mía sobre dos cifras oficiales:
+**Método (con fuente en cada insumo):** peso de cada zona = gasto trimestral **por persona** de la entidad en «Alimentos y bebidas consumidas fuera del hogar» × población de la zona. Es aritmética mía sobre dos cifras oficiales:
+- Gasto por hogar y personas por hogar de la entidad, **ENIGH 2024**, INEGI, presentación de resultados de cada entidad (`https://www.inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados_<sufijo>.pdf`, con `<sufijo>` = `cdmx`, `mex`, `jal`, `nl`, `pue`, `qro`, `yuc`, `gto`, `bc`, `son`, `chih`, `slp`, `qroo`, `oax`, `mich`, `ver`, `ags`; descargadas y comprobadas el 16 de noviembre de 2026: el título de cada archivo es el de su entidad). Cifra nacional de contraste: 3,896 pesos por hogar al trimestre y 3.35 personas por hogar en 2024 (el mismo PDF sin sufijo).
+- Población 2020 de la zona: Censo de Población y Vivienda 2020 tal como la publica «Metrópolis de México 2020» (SEDATU, CONAPO, INEGI), <https://www.gob.mx/cms/uploads/sedatu/MM2020_06022024.pdf>.
+- Regla: mínimo 15, máximo 125 (25 % de 500), repartida por iteración (se fija en el tope lo que lo rebasa, luego en el mínimo lo que queda por debajo, y se recalcula con el resto) y redondeo por mayor residuo. **El guion hace el cálculo; la tabla se pega de su salida.**
 
-- Gasto fuera del hogar por hogar y personas por hogar de la entidad: ENIGH 2024 de INEGI (tabla de [`…estadistica-de-cartas-y-personal.md` §8](2026-11-13-estadistica-de-cartas-y-personal.md); por hogar ÷ personas por hogar) [documento].
-- Población de la zona metropolitana: Censo de Población y Vivienda 2020 tal como la publica «Metrópolis de México 2020» (SEDATU, CONAPO, INEGI), cuadro de población por metrópoli, <https://www.gob.mx/cms/uploads/sedatu/MM2020_06022024.pdf> (descargada el 13 de noviembre de 2026) [fuente externa].
-- Regla: reparto proporcional al peso, mínimo 15 por ciudad y máximo 25 % de 500 (125), iterado hasta que se cumpla [medida aquí].
+**Corrección de un error de entrada (16 de noviembre):** la primera versión usaba 667 pesos por persona («nacional») para Aguascalientes, Morelia y Veracruz. Ese 667 salía de un archivo cuyo sufijo `tab` **es Tabasco, no el nacional** (el título del archivo dice «Tabasco»): 2,249 pesos y 3.37 personas son de Tabasco. El nacional 2024 es **3,896 pesos por hogar al trimestre y 3.35 personas por hogar, o sea 1,163 por persona**. Con eso, «Ciudad de México gasta 3.5 veces el promedio nacional» pasa a **≈ 2.0 veces** (7,915 ÷ 3,896 = 2.03). Los archivos por entidad que sí se usaron (todos con nombre de entidad correcto, verificado) dan valores iguales a los de la primera versión; además **sí existen** los de Michoacán (4,297 pesos, 3.42), Veracruz (2,209; 3.22) y Aguascalientes (4,463; 3.44), así que ya no hace falta ningún promedio nacional como sustituto. La primera versión de la tabla tampoco repartía de forma proporcional (hacía fijar al mismo tiempo el tope y el mínimo); con la iteración correcta cambian varias plazas.
 
-Lo que **no** se consiguió: número de hogares por entidad (no hizo falta con este camino) y establecimientos 7225 por zona metropolitana (dato #9: la API de Data México no respondió y la del DENUE pide clave; sólo hay entidad: Estado de México 89,408, CDMX 55,753, Jalisco 48,957, DENUE de mayo de 2026, <https://www.economia.gob.mx/datamexico/es/profile/industry/restaurants-and-other-eating-places>). **El contraste con la rama 7225 queda pendiente.**
+Sustituciones que quedan como supuesto: el Valle de México usa el gasto de la **entidad Ciudad de México** (la zona incluye Estado de México e Hidalgo, de menor gasto: **sobrestima su peso**); Toluca, el del Estado de México; Puebla-Tlaxcala, el de Puebla; Morelia, el de Michoacán; Cancún, el de Quintana Roo; Hermosillo, el de Sonora; el resto, el de su entidad.
 
-Sustituciones que son supuesto: la zona del Valle de México usa el gasto de la **entidad Ciudad de México** (la zona incluye Estado de México e Hidalgo, de menor gasto: sobrestima); Toluca usa el del Estado de México; Puebla-Tlaxcala, el de Puebla; Cancún, el de Quintana Roo; Hermosillo, el de Sonora; Chihuahua, Mérida, Tijuana, León, Querétaro y Oaxaca, el de su entidad. **Aguascalientes, Morelia y Veracruz no tienen cifra de entidad en §8: se les puso el promedio nacional (2,249 ÷ 3.37 = 667 pesos por persona al trimestre) [supuesto].**
+| Zona | Población 2020 | Entidad del gasto | Gasto por persona (pesos al trimestre) | Peso | Plazas |
+|---|---|---|---|---|---|
+| Valle de México | 21,436,911 | Ciudad de México | 2,612 | 59.7 % | 125 |
+| Guadalajara | 5,110,617 | Jalisco | 1,611 | 8.8 % | 70 |
+| Monterrey | 5,322,117 | Nuevo León | 1,160 | 6.6 % | 53 |
+| Tijuana | 2,049,413 | Baja California | 1,826 | 4.0 % | 32 |
+| Toluca | 2,353,924 | México | 1,264 | 3.2 % | 25 |
+| Querétaro | 1,530,820 | Querétaro | 1,812 | 3.0 % | 24 |
+| Puebla-Tlaxcala | 2,776,893 | Puebla | 880 | 2.6 % | 21 |
+| Morelia | 988,704 | Michoacán | 1,256 | 1.3 % | 15 |
+| Hermosillo | 936,263 | Sonora | 1,104 | 1.1 % | 15 |
+| Chihuahua | 988,065 | Chihuahua | 1,088 | 1.1 % | 15 |
+| Oaxaca | 744,912 | Oaxaca | 628 | 0.5 % | 15 |
+| San Luis Potosí | 1,243,980 | San Luis Potosí | 901 | 1.2 % | 15 |
+| Veracruz | 882,011 | Veracruz | 686 | 0.6 % | 15 |
+| Cancún | 934,189 | Quintana Roo | 1,418 | 1.4 % | 15 |
+| Aguascalientes | 1,140,916 | Aguascalientes | 1,297 | 1.6 % | 15 |
+| León | 1,935,928 | Guanajuato | 811 | 1.7 % | 15 |
+| Mérida | 1,324,771 | Yucatán | 1,158 | 1.6 % | 15 |
+| **Total** | | | | 100 % | **500** |
 
-| Ciudad (zona) | Población 2020 | Gasto por persona (pesos al trimestre) | Peso | Plazas |
-|---|---|---|---|---|
-| Valle de México | 21,436,911 | 2,612 (CDMX) | 60.6 % | **125** (tope de 25 %) |
-| Guadalajara | 5,110,617 | 1,611 (Jalisco) | 8.9 % | **76** |
-| Monterrey | 5,322,117 | 1,160 (Nuevo León) | 6.7 % | **57** |
-| Tijuana | 2,049,413 | 1,827 (Baja California) | 4.0 % | **35** |
-| Toluca | 2,353,924 | 1,264 (Edomex) | 3.2 % | **27** |
-| Querétaro | 1,530,820 | 1,812 | 3.0 % | 15 (mínimo) |
-| Puebla-Tlaxcala | 2,776,893 | 880 | 2.6 % | 15 (mínimo) |
-| León | 1,935,928 | 811 (Guanajuato) | 1.7 % | 15 (mínimo) |
-| Mérida | 1,324,771 | 1,158 (Yucatán) | 1.7 % | 15 (mínimo) |
-| Cancún | 934,189 | 1,418 (Quintana Roo) | 1.4 % | 15 (mínimo) |
-| Chihuahua | 988,065 | 1,088 | 1.2 % | 15 (mínimo) |
-| San Luis Potosí | 1,243,980 | 901 | 1.2 % | 15 (mínimo) |
-| Hermosillo | 936,263 | 1,104 (Sonora) | 1.1 % | 15 (mínimo) |
-| Aguascalientes | 1,140,916 | 667 (nacional, supuesto) | 0.8 % | 15 (mínimo) |
-| Morelia | 988,704 | 667 (nacional, supuesto) | 0.7 % | 15 (mínimo) |
-| Oaxaca | 744,912 | 628 | 0.5 % | 15 (mínimo) |
-| Veracruz | 882,011 | 667 (nacional, supuesto) | 0.6 % | 15 (mínimo) |
-| **Total** | | | 100 % | **500** |
-
-**Cambio frente al primer supuesto (el que usó el marco):** Tijuana sube de 18 a 35 y Toluca de 15 a 27; Puebla baja de 23 a 15, Querétaro de 22 a 15, León y Mérida de 18 a 15, Cancún de 16 a 15, y Monterrey de 65 a 57. **El marco ya corrió con el reparto anterior** (82 solicitudes, otras 8 disponibles hoy): le faltan candidatos a Tijuana (33 para 35 plazas) y a Toluca (28 para 27), y sobran en Puebla y Querétaro. Por eso la estadística se reporta **ponderada con esta tabla y sin ponderar**; si Tijuana y Toluca no llegan a su plaza, se dice cuántas faltaron y se pide otro día de cuota. Los pesos de la tabla (60.6 % para el Valle de México) están topados por la regla de 25 %: sin el tope, esa zona llevaría 300 de 500; el tope es decisión de Calvin del encargo.
+**Cambio frente a la primera versión** (la que usó el marco): Guadalajara 76 → 70, Monterrey 57 → 53, Tijuana 35 → 32, Toluca 27 → 25; Querétaro 15 → 24 y Puebla-Tlaxcala 15 → 21; el resto queda en el mínimo de 15. **El marco ya corrió con el primer reparto** (82 + 8 solicitudes), así que a algunas ciudades les sobran candidatos y a otras (Querétaro, Puebla) les faltan plazas; la estadística se pondera con esta tabla y se reporta también sin ponderar.
 
 ## 4. Guion del marco (resumen)
 
@@ -99,7 +98,7 @@ Sustituciones que son supuesto: la zona del Valle de México usa el gasto de la 
 | # | Qué falta | Cómo conseguirlo |
 |---|---|---|
 | 9 (se mantiene; ya no bloquea el reparto, que usa población y gasto) | Establecimientos 7225 por zona metropolitana | DENUE interactivo (<https://www.inegi.org.mx/app/mapa/denue/>) o descarga masiva (<https://www.inegi.org.mx/app/descarga/?ti=6>) filtrando 7225 por municipio; la actualización del DENUE sale el 25 de noviembre de 2026 |
-| 11 (nuevo) | Gasto fuera del hogar de Aguascalientes, Morelia (Michoacán) y Veracruz | Presentaciones por entidad de la ENIGH 2024 (mismo nombre de archivo con el sufijo de la entidad; no se encontró el de Michoacán, Veracruz ni Aguascalientes); mientras tanto, promedio nacional |
+| 11 (nuevo) | Gasto fuera del hogar de Aguascalientes, Michoacán y Veracruz | **Cerrado el 16 de noviembre:** sí existen los archivos de la ENIGH 2024 por entidad (§3); ya se usan |
 | 12 (nuevo) | Si guardar `estrato` y `cadena` derivados de campos de Google es aceptable | Calvin o revisión legal (sección 1, punto 2) |
 | 13 (nuevo) | Cuota de Google para `SearchTextRequest` (hoy 0 por minuto por usuario) | Calvin la sube en la consola de Google Cloud; la maestra avisa |
 
@@ -126,7 +125,7 @@ Se usaron las 8 solicitudes que quedaban (90 de 90) en 4 consultas de 2 páginas
 
 | Motivo de descarte | Intentos | Qué es |
 |---|---|---|
-| Contable | 1 | Taquería Orinoco: carta de la marca en su página de pedidos en línea (32 de comida, 4 de bebidas) |
+| Contable | 1 | Una taquería de Monterrey: carta de la marca en su página de pedidos en línea (32 de comida, 4 de bebidas) |
 | Sitio caído o bloqueo del sitio (503 ×2, 403 ×1) | 3 | La lectura recibió el error y no se reintentó |
 | Límite de peticiones del sitio (429, «reintentar en 3600 s») | 2 | Uno de los dos alcanzó a leer 53 renglones de comida pero no las bebidas: **no se estima** |
 | PDF «ilegible» para la herramienta | 2 | **Limitación del lector, no del PDF:** con `pdftotext` los dos PDF sí extraen texto (≈ 120 y ≈ 230 líneas con precio) |
@@ -142,7 +141,7 @@ Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lot
 
 **Datos de la parada** (entran al mensaje a la maestra): contables acumulados 1 · intentos por contable 11 · ancho del intervalo de 90 % de la mediana y del p90: **no existe con n = 1**.
 
-**Archivos de esta tanda:** [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (1 fila; `negocio` y `url` tal como aparecen en la página leída, no los de la ficha de Google) y [`…-muestra-500-descartes.csv`](2026-11-13-muestra-500-descartes.csv) (`place_id`, ciudad, tanda, motivo; sin nombre). **Nota de transparencia:** la salida del marco, con nombres y sitios web de Google, se redirigió a un archivo del directorio temporal de la sesión (fuera del repositorio; no se subió) y no solo a pantalla: sirve para reanudar sin repetir las solicitudes; se borra al cerrar la sesión o cuando la maestra lo pida.
+**Archivos de esta tanda:** [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (sin `negocio` ni `url`; ver §1 y §12) y [`…-muestra-500-descartes.csv`](2026-11-13-muestra-500-descartes.csv) (`place_id`, ciudad, tanda, motivo; sin nombre). **Nota de transparencia:** la salida del marco, con nombres y sitios web de Google, se redirigió a un archivo del directorio temporal de la sesión (fuera del repositorio; no se subió) y no solo a pantalla: sirve para reanudar sin repetir las solicitudes; se borra al cerrar la sesión o cuando la maestra lo pida.
 
 ### 7.1 Segunda pasada con lector propio (30 intentos) [medida aquí]
 
@@ -166,7 +165,7 @@ Un duodécimo sitio (otra sucursal de la misma marca Orinoco) se leyó en el lot
 
 **Rendimiento y aritmética de la tasa [medida aquí; aritmética mía]:** contables completos 5 ÷ 30 = **0.17**; con el parcial 6 ÷ 30 = 0.20. Intervalo de 90 % de la tasa (método de Wilson): **5 de 30 → 0.08 a 0.31**; 6 de 30 → 0.10 a 0.34. El límite alto toca el umbral de 0.30, pero el estimado está claramente por debajo. Contables acumulados con la primera lectura (1): **6 completos y 1 parcial**.
 
-**Control de calidad.** Recontado por mí 1 de 5 (Tomate Taquería): comida 43 y bebidas 20, **diferencia absoluta 0 (0 %)** contra el ayudante; esa fila queda `conteo = propio`. Las otras quedan `herramienta` sin recuento propio (el mínimo de 10 de este tramo no es posible con 5 filas).
+**Control de calidad.** Recontado por mí 1 de 5 (una taquería de Guadalajara): comida 43 y bebidas 20, **diferencia absoluta 0 (0 %)** contra el ayudante; esa fila queda `conteo = propio`. Las otras quedan `herramienta` sin recuento propio (el mínimo de 10 de este tramo no es posible con 5 filas).
 
 **Datos de la parada:** contables acumulados 6 (+1 parcial) · intentos por contable ≈ 6 · intervalos de 90 % de la mediana y del p90 del total: **no se calculan con n = 6** (totales de 58, 36 y 104 hasta 248).
 
@@ -247,27 +246,34 @@ Lectura: **9 de cada 10 negocios tienen hasta 5 personas y casi ninguno declara 
 | Cancún | 4,572 | 105 | 303 (6.6 %) |
 | Chihuahua | 4,499 | 205 | 266 (5.9 %) |
 | Hermosillo | 3,894 | 83 | 280 (7.2 %) |
-| **Las 17 zonas** | **300,622** | | **12,077 (4.0 %)** |
+| **Las 17 zonas** | **300,622** | | **12,337 (4.1 %)** |
 
 **Cómo se armaron las zonas:** por municipio, con los cuadros de población de «Metrópolis de México 2020» (SEDATU, CONAPO, INEGI), <https://www.gob.mx/cms/uploads/sedatu/MM2020_06022024.pdf>, extraídos con un guion y comprobados contra el total de población de cada zona: **coinciden exactamente en 15 de 17** (el Valle de México con 63 municipios; Hermosillo es una sola metrópoli municipal). Dos casos **no** son exactos y los digo: (1) **Mérida:** el municipio de Umán no se leyó del PDF (su fila viene partida) y se agregó por diferencia contra el total de la zona (73,196 personas); (2) **Puebla-Tlaxcala: la lista está incompleta** (27 municipios; las filas de varios, entre ellos el de Puebla, no se extraen del PDF; el de Puebla se agregó por su presencia en la lista de municipios de la zona y faltan al menos 1.7 millones de habitantes de filas ilegibles): el conteo de Puebla-Tlaxcala (22,086) **subestima** y no debe usarse sin completar la lista a mano. Es un dato por conseguir (#14).
 
-### 8.2 Reparto de contraste (establecimientos 7225 por zona contra gasto × población)
+### 8.2 Reparto de contraste (establecimientos 7225 por zona contra gasto × población) [recalculado el 16 de noviembre con el mismo guion]
 
 | Zona | 7225 | % de las 17 zonas | Plazas por 7225 | Plazas por gasto × población (§3) | Diferencia |
 |---|---|---|---|---|---|
-| Valle de México | 121,210 | 40.3 % | 125 | 125 | 0 |
-| Guadalajara | 27,151 | 9.0 % | 54 | 76 | −22 |
-| Monterrey | 24,220 | 8.1 % | 49 | 57 | −8 |
-| Puebla-Tlaxcala | 22,086 | 7.3 % | 44 | 15 | +29 |
-| Toluca | 13,748 | 4.6 % | 28 | 27 | +1 |
+| Valle de México | 121,210 | 40.3 % | 125 | 125 | +0 |
+| Guadalajara | 27,151 | 9.0 % | 54 | 70 | -16 |
+| Monterrey | 24,220 | 8.1 % | 48 | 53 | -5 |
+| Puebla-Tlaxcala | 22,086 | 7.3 % | 44 | 21 | +23 |
+| Toluca | 13,748 | 4.6 % | 27 | 25 | +2 |
 | León | 12,743 | 4.2 % | 25 | 15 | +10 |
-| Mérida | 9,788 | 3.3 % | 20 | 15 | +5 |
-| Querétaro | 9,848 | 3.3 % | 20 | 15 | +5 |
-| San Luis Potosí, Morelia, Cancún, Chihuahua, Aguascalientes, Oaxaca, Veracruz, Hermosillo | 3,894–8,703 | 1.3–2.9 % | 15 cada una | 15 cada una | 0 |
-| Tijuana | 7,772 | 2.6 % | 15 | 35 | −20 |
+| Querétaro | 9,848 | 3.3 % | 19 | 24 | -5 |
+| Mérida | 9,788 | 3.3 % | 19 | 15 | +4 |
+| Oaxaca | 8,501 | 2.8 % | 17 | 15 | +2 |
+| Aguascalientes | 8,703 | 2.9 % | 17 | 15 | +2 |
+| Cancún | 4,572 | 1.5 % | 15 | 15 | +0 |
+| Chihuahua | 4,499 | 1.5 % | 15 | 15 | +0 |
+| Hermosillo | 3,894 | 1.3 % | 15 | 15 | +0 |
+| Morelia | 6,997 | 2.3 % | 15 | 15 | +0 |
+| Veracruz | 7,198 | 2.4 % | 15 | 15 | +0 |
+| Tijuana | 7,772 | 2.6 % | 15 | 32 | -17 |
+| San Luis Potosí | 7,692 | 2.6 % | 15 | 15 | +0 |
 | **Total** | **300,622** | 100 % | **500** | **500** | |
 
-Con los mismos topes (mínimo 15, máximo 125). **Qué cambia:** por número de establecimientos pesan menos Guadalajara (−22), Tijuana (−20) y Monterrey (−8) y más Puebla (+29, **pero su conteo está subestimado**), León (+10), Mérida y Querétaro (+5). El orden de las tres grandes no cambia. Es la diferencia entre «dónde se gasta más por persona» y «dónde hay más negocios»; la estadística se pondera con los dos y se reporta la sensibilidad.
+Mismas reglas (mínimo 15, máximo 125, iteración y mayor residuo). **Qué cambia:** por número de establecimientos pesan menos Tijuana (−17), Guadalajara (−16), Monterrey (−5) y Querétaro (−5) y más Puebla-Tlaxcala (+23, **pero su conteo está subestimado**, dato #14), León (+10) y Mérida (+4). El orden de las tres grandes no cambia. Es la diferencia entre «dónde se gasta más por persona» y «dónde hay más negocios».
 
 ### 8.3 Respuesta a Calvin: ¿se puede «mapear» el 5, 10, 30 o 50 % de las cartas del país?
 
@@ -275,7 +281,7 @@ Con los mismos topes (mínimo 15, máximo 125). **Qué cambia:** por número de 
 
 **Lo que es técnicamente posible hoy:**
 1. **La lista de negocios, sí y gratis:** el DENUE es público, trae clase, tamaño, ubicación y, cuando lo declararon, su sitio web. No hace falta Google para el marco.
-2. **Leer la carta en línea, solo para una minoría:** declaran sitio web **17,827** de los 741,499 (**2.4 %**), y 555 de los bares. Con la tasa de carta contable completa que medí con sitios propios (**20 de 200 = 0.100**, intervalo de 90 % de 0.07 a 0.14, [medida aquí, §11.2], en negocios populares con sitio y respetando bloqueos, así que probablemente sea optimista para el universo), alcanzables ≈ 17,827 × 0.100 = **≈ 1,780** (rango **1,250 a 2,500**), o sea **0.24 % del universo** (0.17 % a 0.34 %). **Aplicar esa tasa a todos los sitios declarados en el DENUE es un supuesto**: los 200 intentos salen de los negocios con más reseñas del marco de Google, que no son una muestra de los 17,827; el sitio declarado en el DENUE puede además estar desactualizado o ya no existir. **Ni siquiera el 5 % (37,075) es alcanzable por sitios propios.** (La cifra anterior de ≈ 3,000, con la tasa de 0.17 de los primeros 30 intentos, queda sustituida.)
+2. **Leer la carta en línea, solo para una minoría:** declaran sitio web **17,827** de los 741,499 (**2.4 %**), y 555 de los bares. Con la tasa de carta contable completa que medí con sitios propios (**20 de 200 = 0.100**, intervalo de 90 % de 0.07 a 0.14, [medida aquí, §11.2]), **el techo bajo un supuesto** sería ≈ 17,827 × 0.100 = **≈ 1,780** (rango **1,250 a 2,500**), o sea **0.24 % del universo** (0.17 % a 0.34 %). **Ese intervalo sólo trae el error de muestreo de 200 intentos; no cubre el sesgo, y el supuesto es que los sitios del DENUE se parecen a los más reseñados de Google.** Razones para dudar, todas medidas aquí: (a) los 200 intentos fueron **los primeros de una cola ordenada por reseñas** (los más populares, que tienden a tener sitios más cuidados: sobrestima); (b) el marco de Google cubre **705 sitios frente a 12,337 del DENUE en las 17 zonas (5.7 %)** y 17,827 en el país; (c) el sitio web declarado depende del tamaño: **0.8 % de los de 0 a 5 personas, 6.9 % de 6 a 10, 27.9 % de 11 a 30 y 50.8 % de 31 a 50** (§8.1): la mezcla de tamaños de los sitios del DENUE no es la de los populares de Google; (d) el sitio declarado puede estar desactualizado o no existir, y 33 de los 200 intentos (16.5 %) cayeron en un `robots.txt` que prohíbe la lectura. **Dato por conseguir (#16): la tasa medida sobre una muestra al azar, estratificada por tamaño, del DENUE con sitio declarado.** **Ni siquiera el 5 % (37,075) es alcanzable por sitios propios con ninguna de las dos tasas.** (La cifra anterior de ≈ 3,000, con la tasa de 0.17 de los primeros 30 intentos, queda sustituida.)
 3. **Fichas de reparto (Rappi, Uber Eats, DiDi Food):** pueden llegar a más negocios, pero **cuántos del DENUE están ahí y qué dicen sus términos sobre leerlas automáticamente no está medido** (Paso 2); sin esos dos datos no se puede decir un porcentaje. Dato por conseguir (#15).
 4. **Visitar locales o recibir cartas de los propios restaurantes** (el piloto de Carta) es el camino para la mayoría restante: los 657,347 negocios de hasta 5 personas casi no tienen presencia en línea (0.8 %).
 
@@ -300,7 +306,7 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 - **Cifra del universo de aquí en adelante: 741,499** establecimientos de la rama 7225 (archivo del DENUE 05_2026). Difiere de los 740,231 de Data México (mismo corte, mayo de 2026) en 1,268 (0.17 %); los tres estados que Data México desglosa coinciden exacto con el archivo, así que la diferencia no se explica ahí y no se pudo ubicar sin el desglose de Data México de las otras 29 entidades; se usa el archivo por ser la fuente primaria.
 - **El reparto principal sigue siendo gasto × población** (el criterio que pidió Calvin: dónde más se consume); el de establecimientos 7225 es **contraste**.
 - **Puebla-Tlaxcala:** se intentó completar sus municipios con el mismo PDF; las filas que faltan no se pueden asignar a la zona sin población legible (aparecen otros municipios de Puebla, como Tehuacán o San Martín Texmelucan, que pertenecen a otras zonas), así que **no se completa de memoria** y queda anotado (#14).
-- **Propuesta sin ejecutar (la decide Calvin después de ver el rendimiento de A y B):** un **estrato aleatorio sacado del DENUE** entre los **17,827 establecimientos 7225 con sitio web declarado** (12,077 dentro de las 17 zonas; 555 más en bares). Es marco oficial (se puede guardar con sus términos) y permitiría comparar «populares» (los de más reseñas) contra «cualquiera con sitio». No se ha corrido.
+- **Propuesta sin ejecutar (la decide Calvin después de ver el rendimiento de A y B):** un **estrato aleatorio sacado del DENUE** entre los **17,827 establecimientos 7225 con sitio web declarado** (12,337 dentro de las 17 zonas; 555 más en bares). Es marco oficial (se puede guardar con sus términos) y permitiría comparar «populares» (los de más reseñas) contra «cualquiera con sitio». No se ha corrido.
 
 ### 8.4 Datos por conseguir (actualización)
 
@@ -311,6 +317,7 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 | 9 | **Cerrado** para 16 zonas; **Puebla-Tlaxcala incompleta** (#14) |
 | 14 (nuevo) | Lista completa de municipios de Puebla-Tlaxcala (y revisar Mérida/Umán), de la tabla de Metrópolis de México 2020 a mano |
 | 15 (nuevo) | Cuántos negocios del DENUE están en Rappi, Uber Eats y DiDi Food, y qué permiten sus términos (Paso 2) |
+| 16 (nuevo) | Tasa de carta contable medida sobre una **muestra al azar** del DENUE con sitio web declarado, estratificada por tamaño (sustituye al supuesto de que se parece a los más reseñados de Google) |
 
 ## 9. Paso 2 preliminar: robots.txt y condiciones de las plataformas de reparto [leído el 13 de noviembre de 2026 con la herramienta normal de lectura de páginas; sin lectura masiva]
 
@@ -369,17 +376,17 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 
 **Por qué se descartan (87 descartes registrados por `place_id`, sin nombre; el CSV de descartes):** sin carta en el sitio 45 · `robots.txt` lo prohíbe 10 · carta solo en imagen 7 · ficha de un tercero sin platillos 3 · sitio caído 3 · carta sin precios 3 · bloqueo 403 2 · precios no asociables al nombre (PDF en columnas) 2 · misma marca 2 · el resto, 1 cada uno (JavaScript, anti-bot, solo «recomendados», precio «desde», precios codificados, dominio vencido…). **«Carta solo en imagen» (que se mide a petición de la maestra): 7 de 102 intentos (6.9 %)**, 8 si se cuenta el PDF con precios codificados.
 
-**Filas hoy:** 16 en [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (11 completas, 5 parciales con bebidas y total vacíos). Hay filas de cadenas (Villa Marina, Sonora Grill, Cabanna, Madre Café…): la estadística se reporta con y sin cadenas.
+**Filas hoy:** 16 en [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (11 completas, 5 parciales con bebidas y total vacíos). Hay filas de cadenas (grupos de Tijuana, Ciudad de México, Culiacán y otras ciudades): la estadística se reporta con y sin cadenas.
 
-**Control de calidad:** recuenté yo 2 filas (Tomate Taquería, Los Foquitos): **diferencia 0 en comida y en bebidas** en ambas; las otras filas son del ayudante (`herramienta`). Fallos de lectura que el ayudante declaró y que **no se estimaron**: Red Texas (texto con «…» que sugiere truncado: conteo posiblemente bajo, anotado en la fila), Cabanna (un precio máximo de 944 a revisar).
+**Control de calidad:** recuenté yo 2 filas (dos taquerías, de Guadalajara y de Toluca): **diferencia 0 en comida y en bebidas** en ambas; las otras filas son del ayudante (`herramienta`). Fallos de lectura que el ayudante declaró y que **no se estimaron**: una fila de Chihuahua (texto con «…» que sugiere truncado: conteo posiblemente bajo, anotado en la fila), una cadena de mariscos (un precio máximo de 944 a revisar).
 
 **Lo que sigue:** el resto del marco de Google (≈ 620 sitios con web), en lotes de 9; con esta tasa saldrían unos 60 contables más. La estadística (mediana, p90 con intervalo de 90 %) se corre al cerrar el marco de Google.
 
 ### 11.1 Punto de control (183 intentos, tras reconciliar duplicados de registro) [medida aquí]
 
-Al revisar mi registro de intentos encontré **registros duplicados** (un intento anotado dos veces por un fallo mío al juntar dos pasos): se eliminaron y el conteo vigente es el que sigue; los números intermedios que di a la maestra (102 intentos) **eran correctos** (el duplicado apareció después). **183 intentos con el lector: 20 contables completos, 7 parciales, 5 de misma marca, 151 descartes.** Tasa de contables completos 20 ÷ 183 = **0.109, intervalo de 90 % 0.077 a 0.153** [aritmética mía]. El CSV de datos tiene **28 filas** (21 completas contando el Orinoco de la primera lectura, 7 parciales); el de descartes, 156 filas únicas por `place_id` (sin nombre). Ya hay filas de tipos grandes (formales de 100–150 platillos y 250–340 bebidas) y filas muy chicas (Los Parados: 11 + 1).
+Al revisar mi registro de intentos encontré **registros duplicados** (un intento anotado dos veces por un fallo mío al juntar dos pasos): se eliminaron y el conteo vigente es el que sigue; los números intermedios que di a la maestra (102 intentos) **eran correctos** (el duplicado apareció después). **183 intentos con el lector: 20 contables completos, 7 parciales, 5 de misma marca, 151 descartes.** Tasa de contables completos 20 ÷ 183 = **0.109, intervalo de 90 % 0.077 a 0.153** [aritmética mía]. El CSV de datos tiene **28 filas** (21 completas contando el Orinoco de la primera lectura, 7 parciales); el de descartes, 156 filas únicas por `place_id` (sin nombre). Ya hay filas de tipos grandes (formales de 100–150 platillos y 250–340 bebidas) y filas muy chicas (una de 11 platillos y 1 bebida).
 
-**Sensibilidades que se reportarán en la estadística:** (a) quitar las cadenas; (b) quitar las filas de dominio `.shop`/`.store` (posibles páginas generadas por un tercero: Merendero San Pancho, La Guarecita); (c) con y sin parciales para la comida sola.
+**Sensibilidades que se reportarán en la estadística:** (a) quitar las cadenas; (b) quitar las filas de dominio `.shop`/`.store` (posibles páginas generadas por un tercero: dos filas); (c) con y sin parciales para la comida sola.
 
 ### 11.2 Punto de control (200 intentos) [medida aquí]
 
@@ -396,6 +403,31 @@ Al revisar mi registro de intentos encontré **registros duplicados** (un intent
 - **Por dónde retomar:** el orden es el de la cola de la tanda 1 (por `place_id`; los ya intentados están en los CSV de datos y de descartes: `…-muestra-500-datos.csv` y `…-muestra-500-descartes.csv`), luego los candidatos con sitio fuera de la cola, ordenados por reseñas dentro de cada ciudad. Procedimiento que se siguió: el lector (`…-lector.py`) por lotes de 9 en primer plano, un registro automático que descarta lo que no tiene señal de precios (menos de 10 renglones con número) y conteo con ayudante `haiku` (uno a la vez, 3 a 7 sitios por llamada) del resto; recuento propio del 10 %. **Si el archivo de trabajo se pierde** (sesión nueva), el marco se puede reconstruir restando al CSV de ids los `place_id` ya intentados, pero **los nombres y sitios de Google no están en el repositorio**: habría que repetir las 81 solicitudes de Google (cuota diaria de 100, un día de espera).
 
 **Plazo del archivo temporal** (nombres y sitios del marco de Google y textos descargados): se **amplía** a «al terminar el marco de Google o el 20 de noviembre de 2026, lo que ocurra primero» (antes: 15 de noviembre), **por la pausa por límite semanal**: borrarlo el 15 obligaría a repetir las 81 solicitudes para retomar el 16. Se sigue guardando solo en el directorio temporal de la sesión, fuera del repositorio.
+
+## 12. Ronda de correcciones tras la revisión (16 de noviembre de 2026; sobre la rama en a44a59f) [hecho]
+
+Sin leer ningún sitio durante esta ronda (el trabajo en red sigue en pausa hasta que la maestra confirme).
+
+**A. Datos**
+1. **CSV de datos sin `negocio` ni `url`:** la dirección de partida salió del sitio web de Google; era contenido de Google guardado junto al `place_id`, en contra del §1. Quitadas ambas columnas de [`…-muestra-500-datos.csv`](2026-11-13-muestra-500-datos.csv) (28 filas, 21 columnas) y revisadas las notas (sin nombres de negocio). `cadena` se queda: es el juicio del ayudante sobre el texto de la página leída, no de la ficha de Google (§1). El `lector.py` **no** escribía esas columnas (sólo guarda texto y registros en el directorio temporal fuera del repositorio): las escribía mi ayuda de registro del scratchpad, que ya no lo hace. El «sale de la página leída» de §1 y de §7.1 quedó corregido.
+2. **Archivo temporal con nombres y sitios de Google (respuesta al punto 2):** **sigue existiendo** en el scratchpad de esta sesión (la salida del marco, los candidatos con sitio y los textos descargados de 210 sitios). **Se borra como acordado, a más tardar el 20 de noviembre de 2026**, o antes si la maestra lo ordena; hasta entonces permite retomar el marco de Google sin repetir las 81 solicitudes. No se sube al repositorio.
+
+**B. Lector** ([`…-lector.py`](2026-11-13-muestra-500-lector.py), [`…-lector-chromium.mjs`](2026-11-13-muestra-500-lector-chromium.mjs)); pruebas en [`…-lector-pruebas.py`](2026-11-13-muestra-500-lector-pruebas.py) y [`…-lector-chromium-pruebas.mjs`](2026-11-13-muestra-500-lector-chromium-pruebas.mjs), **sin red** (resolvedor de nombres falso; 12 pruebas y las del `.mjs`, en verde)
+3. **Redirecciones y destinos no públicos:** toda URL (la inicial, cada salto de redirección, el `robots.txt` y un PDF en otro dominio) debe ser `http`/`https`, puerto 80 o 443, y resolver **sólo a direcciones públicas** (no privadas, no de bucle local, no de enlace local como `169.254.x`, no compartidas `100.64/10`, no multidifusión ni reservadas; una sola dirección no pública rechaza el nombre, lo que cubre la reasociación de DNS). En cada salto se **vuelve a consultar el `robots.txt` del host al que se llega** y se espera ≥ 2 s por dominio. Las conexiones sin proxy validan además la IP real a la que se conectan. **Límite que queda:** con el proxy de salida de este entorno la conexión va al proxy, así que la validación de IP por conexión no aplica y queda la comprobación previa de cada salto (más la política del proxy). En Chromium, el `.mjs` **intercepta todas las peticiones** (página, redirecciones, imágenes, scripts) y aborta las que van a direcciones no públicas o a puertos distintos de 80/443; al terminar, el lector vuelve a validar la página final y, si cambió de dominio, también su `robots.txt`.
+4. **Agente de usuario:** `lector-automatico-de-cartas/1.0 (lectura de paginas publicas; respeta robots.txt)`: sin «Mozilla/5.0» de adorno, sin datos del usuario ni del proyecto.
+
+**C. Método**
+5. **Alcanzables:** §8.3 punto 2 reescrito como **techo bajo un supuesto**, con los cuatro sesgos que el intervalo no cubre, y la **tasa medida sobre una muestra al azar del DENUE** como dato por conseguir #16. **Nota sobre una cifra del encargo de revisión:** el porcentaje de negocios del DENUE con sitio declarado por tamaño es 0.8 % (0 a 5 personas), 6.9 % (6 a 10), 27.9 % (11 a 30), 50.8 % (31 a 50) y 50–64 % por encima (§8.1); el «28 %» corresponde al estrato de 11 a 30, no al de 0 a 5.
+6. **Sesgo de leíbles:** las cartas contadas (HTML o PDF con texto, de sitios que dejan leer, sin `robots.txt` que lo prohíba) vienen de **sitios más cuidados que el universo**: **no sirven como mediana ni como distribución de platillos o de precios del negocio mexicano típico**; sólo describen «cartas legibles en línea de negocios con sitio y muchas reseñas». Se repite donde se usen (estadística).
+7. **ENIGH:** corregido en §3 (el «nacional» de 2,249 / 3.37 era Tabasco; el nacional es 3,896 y 3.35, o 1,163 por persona; CDMX ≈ 2.0 veces, no 3.5). Revisado el resto de cifras por entidad: los 18 archivos (incluidos Michoacán, Veracruz y Aguascalientes, que sí existen) tienen el título de su entidad y dan las mismas cifras de la primera tabla. **Una nota sobre otro documento:** la frase «el sufijo `tab` es el nacional, no Tabasco» del §8 del informe `2026-11-13-estadistica-de-cartas-y-personal.md` es errónea (no la reescribo aquí por la regla de no tocar otros documentos): corresponde a Tabasco.
+8. **Tabla de §3** recalculada con un guion ([`…-muestra-500-reparto.py`](2026-11-13-muestra-500-reparto.py)): Guadalajara 70, Monterrey 53, Tijuana 32, Toluca 25, Querétaro 24, Puebla-Tlaxcala 21, el Valle de México 125 y las demás 15; coincide con las cifras del encargo de revisión.
+9. **§8.3 con la tasa de 200 intentos:** hecho (≈ 1,780, rango 1,250–2,500, como techo bajo supuesto).
+10. **Total de sitios en las 17 zonas:** **12,337** (4.1 %), no 12,077 (4.0 %): lo suma la tabla `por_zona.web_7225` del JSON (la tabla del §8.1 ya coincidía fila por fila); corregido en el §8.1 y en las notas.
+
+**D. Cómo se retomaría (propuesta; no se ejecuta hasta confirmación)**
+- Pasar primero al **marco del DENUE con sitio web declarado**: muestra al azar **estratificada por tamaño** (0–5, 6–10, 11–30, 31 o más personas) dentro de las 17 zonas, con asignación proporcional a los 12,337 sitios declarados y **orden aleatorio con semilla fija** (20261116), en el directorio temporal; en el repositorio sólo el identificador del DENUE de cada establecimiento y sus conteos, sin nombres, direcciones ni contactos. Mide la tasa que falta (dato #16) y no gasta consultas de Google.
+- El resto del marco de Google queda **en espera**: si el archivo temporal se perdiera, volver a pedirlo a Google rebasa el tope de consultas y lo decide Calvin.
+- Mismo modo: de uno en uno, por tandas de 9 en primer plano, parada ante el primer aviso de límite o negativa del clasificador.
 
 ---
 

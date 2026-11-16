@@ -18,8 +18,12 @@ Uso:  python3 …-lector.py --candidatos cand.json --ids ID1 ID2 … --salida DI
 from __future__ import annotations
 
 import argparse
+import http.client
+import ipaddress
 import json
 import re
+import socket
+import ssl
 import subprocess
 import sys
 import time
@@ -31,7 +35,7 @@ import urllib.robotparser
 from html.parser import HTMLParser
 from pathlib import Path
 
-UA = "Mozilla/5.0 (X11; Linux x86_64) lector-de-cartas/1.0"
+UA = "lector-automatico-de-cartas/1.0 (lectura de paginas publicas; respeta robots.txt)"
 ESPERA_DOMINIO_S = 2.2
 MAX_SUBPAGINAS = 20
 MAX_PDF_BYTES = 10 * 1024 * 1024
@@ -129,20 +133,124 @@ def esperar(dominio: str) -> None:
     _ultimo[dominio] = time.time()
 
 
+MAX_REDIRECCIONES = 5
+PUERTOS = (None, 80, 443)
+_RESOLVER = socket.getaddrinfo  # se sustituye en las pruebas (sin red)
+# Con un proxy de salida (variables *_PROXY) la conexión va al proxy y no al destino: la comprobación de la
+# dirección IP de cada conexión no aplica y queda la comprobación previa de cada salto (más la política del proxy).
+PROXY_ACTIVO = bool(urllib.request.getproxies())
+
+
+class DestinoNoPublico(OSError):
+    """El destino (o un salto de redirección) no resuelve a una dirección IP pública."""
+
+
+class RobotsProhibe(urllib.error.URLError):
+    """El `robots.txt` del destino (en cualquier salto) no permite leer la ruta."""
+
+
+def ip_es_publica(ip: str) -> bool:
+    """Pública = global: no privada, de bucle local, de enlace local (169.254.x), compartida (100.64/10), reservada ni multidifusión."""
+    d = ipaddress.ip_address(str(ip).split("%")[0])
+    if isinstance(d, ipaddress.IPv6Address) and d.ipv4_mapped:
+        d = d.ipv4_mapped
+    return d.is_global and not d.is_multicast and not d.is_reserved
+
+
+def resolver_publico(host: str, puerto: int) -> list[tuple[str, int]]:
+    """Resuelve `host` y devuelve sus direcciones sólo si TODAS son públicas."""
+    info = _RESOLVER(host, puerto, type=socket.SOCK_STREAM)
+    if not info:
+        raise DestinoNoPublico(host)
+    direcciones = []
+    for _familia, _tipo, _proto, _canon, sa in info:
+        if not ip_es_publica(sa[0]):
+            raise DestinoNoPublico(f"{host} -> {sa[0]}")
+        direcciones.append((sa[0], sa[1]))
+    return direcciones
+
+
+def url_permitida(url: str) -> bool:
+    """Esquema http(s), puerto 80/443 y un nombre que resuelva sólo a direcciones públicas."""
+    try:
+        p = urllib.parse.urlparse(url)
+        if p.scheme not in ("http", "https") or not p.hostname or p.port not in PUERTOS:
+            return False
+        resolver_publico(p.hostname, p.port or (443 if p.scheme == "https" else 80))
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+def _crear_conexion(direccion, timeout=PLAZO_S, source_address=None):
+    host, puerto = direccion
+    ultimo: OSError | None = None
+    if PROXY_ACTIVO:
+        return socket.create_connection(direccion, timeout, source_address)
+    for ip, p in resolver_publico(host, puerto):
+        try:
+            return socket.create_connection((ip, p), timeout, source_address)
+        except OSError as e:
+            ultimo = e
+    raise ultimo or DestinoNoPublico(host)
+
+
+class _ConexionHTTP(http.client.HTTPConnection):
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self._create_connection = _crear_conexion
+
+
+class _ConexionHTTPS(http.client.HTTPSConnection):
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self._create_connection = _crear_conexion
+
+
+class _HTTPPublico(urllib.request.HTTPHandler):
+    def http_open(self, req):
+        return self.do_open(_ConexionHTTP, req)
+
+
+class _HTTPSPublico(urllib.request.HTTPSHandler):
+    def https_open(self, req):
+        return self.do_open(_ConexionHTTPS, req, context=ssl.create_default_context())
+
+
+class _Redireccion(urllib.request.HTTPRedirectHandler):
+    max_redirections = MAX_REDIRECCIONES
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        destino = urllib.parse.urljoin(req.full_url, newurl)
+        if not url_permitida(destino):
+            raise DestinoNoPublico(f"redireccion a destino no publico: {destino}")
+        if not permitido(destino):
+            raise RobotsProhibe("robots.txt del destino de la redireccion")
+        esperar(urllib.parse.urlparse(destino).netloc)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_ABRIDOR = urllib.request.build_opener(_HTTPPublico, _HTTPSPublico, _Redireccion)
+
+
 def permitido(url: str) -> bool:
     p = urllib.parse.urlparse(url)
     base = f"{p.scheme}://{p.netloc}"
     if base not in _robots:
         rp = urllib.robotparser.RobotFileParser()
         try:
+            if not url_permitida(base + "/robots.txt"):
+                raise DestinoNoPublico(base)
             esperar(p.netloc)
             req = urllib.request.Request(base + "/robots.txt", headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=PLAZO_S) as r:
+            with _ABRIDOR.open(req, timeout=PLAZO_S) as r:
                 rp.parse(r.read(200_000).decode("utf8", "ignore").splitlines())
             _robots[base] = rp
         except urllib.error.HTTPError as e:
             # 401/403 en robots.txt: se respeta como «no» (criterio de robotparser); 404 y demás: sin restricción
             _robots[base] = None if e.code not in (401, 403) else _cerrado()
+        except DestinoNoPublico:
+            _robots[base] = _cerrado()
         except Exception:
             _robots[base] = None
     rp = _robots[base]
@@ -156,15 +264,18 @@ def _cerrado() -> urllib.robotparser.RobotFileParser:
 
 
 def descargar(url: str, max_bytes: int) -> tuple[int, str, bytes]:
-    """(código, tipo de contenido, cuerpo). Código 0 = error de red. No reintenta."""
+    """(código, tipo de contenido, cuerpo). Códigos: 0 error de red; -1 `robots.txt` lo prohíbe (en cualquier
+    salto); -2 destino no público (en cualquier salto). No reintenta."""
+    if not url_permitida(url):
+        return (-2, "", b"")
     if not permitido(url):
-        return (-1, "", b"")  # -1 = robots.txt lo prohíbe
+        return (-1, "", b"")
     esperar(urllib.parse.urlparse(url).netloc)
     req = urllib.request.Request(
         url, headers={"User-Agent": UA, "Accept-Language": "es-MX,es;q=0.9"}
     )
     try:
-        with urllib.request.urlopen(req, timeout=PLAZO_S) as r:
+        with _ABRIDOR.open(req, timeout=PLAZO_S) as r:
             return (
                 r.status,
                 r.headers.get("Content-Type", ""),
@@ -172,15 +283,37 @@ def descargar(url: str, max_bytes: int) -> tuple[int, str, bytes]:
             )
     except urllib.error.HTTPError as e:
         return (e.code, "", b"")
+    except RobotsProhibe:
+        return (-1, "", b"")
+    except DestinoNoPublico:
+        return (-2, "", b"")
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, RobotsProhibe):
+            return (-1, "", b"")
+        if isinstance(e.reason, DestinoNoPublico):
+            return (-2, "", b"")
+        return (0, "", b"")
     except Exception:
         return (0, "", b"")
 
 
 def chromium(url: str) -> dict | None:
+    """Carga con Chromium (sin disfraces). El `.mjs` aborta toda petición a direcciones no públicas; aquí se
+    vuelve a validar la página final: si cambió de dominio, también debe pasar la IP pública y el `robots.txt`."""
+    if not url_permitida(url):
+        return None
     esperar(urllib.parse.urlparse(url).netloc)
     try:
         r = subprocess.run(["node", str(MJS), url], capture_output=True, text=True, timeout=90)
-        return json.loads(r.stdout) if r.returncode == 0 and r.stdout.strip() else None
+        if r.returncode != 0 or not r.stdout.strip():
+            return None
+        res = json.loads(r.stdout)
+        final = res.get("final_url") or url
+        if urllib.parse.urlparse(final).netloc != urllib.parse.urlparse(url).netloc and not (
+            url_permitida(final) and permitido(final)
+        ):
+            return None
+        return res
     except Exception:
         return None
 
@@ -254,6 +387,9 @@ def leer_negocio(nid: str, web: str, salida: Path) -> dict:
         codigo, tipo, cuerpo = descargar(url, MAX_PDF_BYTES)
         if codigo == -1:
             reg["motivo"] = reg["motivo"] or "robots_txt_lo_prohibe"
+            return []
+        if codigo == -2:
+            reg["motivo"] = reg["motivo"] or "destino_no_publico"
             return []
         if codigo in BLOQUEOS or codigo == 0 or codigo >= 400:
             reg["paginas"].append({"url": url, "codigo": codigo})
