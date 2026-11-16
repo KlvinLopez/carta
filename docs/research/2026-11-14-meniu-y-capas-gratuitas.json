@@ -1,0 +1,82 @@
+{
+ "fecha": "2026-11-14",
+ "competidores": [
+  {
+   "nombre": "Meniu",
+   "capa_gratuita": null,
+   "limite": null,
+   "precio_minimo": {
+    "mxn_mes": 225
+   },
+   "fuente": "https://meniuapp.com/es/plans",
+   "prueba_dias": 7
+  },
+  {
+   "nombre": "MenuTiger",
+   "capa_gratuita": "Free",
+   "limite": "75 pedidos/mes",
+   "precio_minimo": {
+    "usd_mes": 17
+   },
+   "fuente": "https://www.menutiger.com/es/pricing"
+  },
+  {
+   "nombre": "Last.app",
+   "capa_gratuita": null,
+   "limite": null,
+   "precio_minimo": {
+    "mxn_mes_mas_iva": 1000
+   },
+   "fuente": "https://www.last.app/mx/precios"
+  },
+  {
+   "nombre": "Loyverse",
+   "capa_gratuita": "POS gratis",
+   "limite": "31 días de historial",
+   "precio_minimo": {
+    "usd_mes": 7
+   },
+   "fuente": "https://loyverse.com/pricing"
+  },
+  {
+   "nombre": "Neolo",
+   "capa_gratuita": "Menú QR",
+   "limite": "200 visitas",
+   "precio_minimo": null,
+   "fuente": "https://www.neolo.com/mexico/menu-qr/"
+  },
+  {
+   "nombre": "Waitry",
+   "capa_gratuita": "Lite",
+   "limite": null,
+   "precio_minimo": {
+    "eur_mes": 60
+   },
+   "fuente": "https://waitry.net/es-mx/precios"
+  },
+  {
+   "nombre": "Fudo",
+   "capa_gratuita": null,
+   "precio_minimo": {
+    "usd_mes": 35
+   },
+   "fuente": "https://fu.do/es/precios/"
+  },
+  {
+   "nombre": "Poster",
+   "capa_gratuita": null,
+   "precio_minimo": {
+    "usd_mes": 26
+   },
+   "fuente": "https://joinposter.mx/pricing"
+  },
+  {
+   "nombre": "Soft Restaurant Cloud",
+   "capa_gratuita": null,
+   "precio_minimo": {
+    "mxn_mes": 699
+   },
+   "fuente": "https://softrestaurant.com/cloud"
+  }
+ ]
+}

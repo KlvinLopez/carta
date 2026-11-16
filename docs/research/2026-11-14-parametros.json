@@ -1,0 +1,2145 @@
+{
+ "version": "2026-11-14",
+ "moneda": "MXN",
+ "leyenda": "origen: medido (lo medí con datos), documento (lo dice otro documento del repositorio), fuente (página o norma citada), supuesto (juicio mío, con rango y forma de medirlo), sin dato",
+ "parametros": {
+  "tam_negocios": {
+   "valor": 773860,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "DENUE 05/2026, rama 7225 + 7224 (mercado-de-carta §2.1)",
+   "nota": "mercado total (TAM): todo lo que prepara alimentos y bebidas; informativo, no mueve el cálculo",
+   "mueve_resultado": false
+  },
+  "sam_clientes_potenciales": {
+   "valor": 104882,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "DENUE 05/2026, clases 722511 + 722412 + 722411 (mercado-de-carta §2.1)",
+   "nota": "antes «núcleo» o «servible»; informativo, no mueve el cálculo",
+   "mueve_resultado": false
+  },
+  "fx": {
+   "valor": 18.6188,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "FIX de Banxico 12-nov-2026 (planes-y-costo §3.5)",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "iva": {
+   "valor": 0.16,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "tasa general",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "costo_var_gratuito": {
+   "valor": 1.0,
+   "min": 0.5,
+   "max": 2.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 (chico)",
+   "nota": "pesos por restaurante al mes; sólo para el piso y gratuitos_que_sostiene_..._solo_variable (el servidor ya cubre el costo por carga)",
+   "mueve_resultado": false
+  },
+  "costo_var_servicio": {
+   "valor": 1.9,
+   "min": 1.0,
+   "max": 4.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 (mediano)",
+   "nota": "sólo para el piso del corredor",
+   "mueve_resultado": false
+  },
+  "costo_var_salon": {
+   "valor": 7.5,
+   "min": 4.0,
+   "max": 15.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 (grande)",
+   "nota": "sólo para el piso del corredor",
+   "mueve_resultado": false
+  },
+  "base_fija_por_restaurante": {
+   "valor": 3.0,
+   "min": 2.6,
+   "max": 10.0,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0: 10 con 100, 3 con 500, 2.6 con 1,000",
+   "nota": "sólo para el piso del corredor",
+   "mueve_resultado": false
+  },
+  "comision_pct": {
+   "valor": 0.036,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "planes-y-costo §7.2 (Stripe 3.6 % + 3 pesos, más IVA)",
+   "nota": "se cobra sobre lo que paga el cliente, con IVA",
+   "mueve_resultado": true
+  },
+  "comision_fija": {
+   "valor": 3.0,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "planes-y-costo §7.2",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "pago_con_tarjeta": {
+   "valor": 1.0,
+   "min": 0.0,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "fracción que paga con tarjeta; el resto, transferencia sin comisión",
+   "mueve_resultado": true
+  },
+  "soporte_servicio": {
+   "valor": 60.0,
+   "min": 30.0,
+   "max": 150.0,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "pesos al mes por cliente de paga: 30 min a 120 la hora; se mide con tickets del piloto",
+   "mueve_resultado": true
+  },
+  "soporte_salon": {
+   "valor": 120.0,
+   "min": 60.0,
+   "max": 300.0,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "pesos al mes; el doble de Servicio",
+   "mueve_resultado": true
+  },
+  "dominio_usd_anio": {
+   "valor": 25.0,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "dato de Calvin 13-nov (mapa-de-procesos)",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "volumen_usd_gb_mes": {
+   "valor": 0.15,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "docs.railway.com/reference/pricing/plans, 13-nov-2026",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "r2_usd_gb_mes": {
+   "valor": 0.015,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "developers.cloudflare.com/r2/pricing, leída 14-nov-2026",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "r2_gratis_gb": {
+   "valor": 10.0,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "idem",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "r2_gb_gratuito": {
+   "valor": 0.05,
+   "min": 0.02,
+   "max": 0.24,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos §5: 7.5 GB con 148 gratuitos típicos",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "r2_gb_servicio": {
+   "valor": 0.12,
+   "min": 0.06,
+   "max": 0.9,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos §5: 6.6 GB con 55 de paga típicos",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "r2_gb_salon": {
+   "valor": 0.5,
+   "min": 0.2,
+   "max": 2.1,
+   "origen": "supuesto",
+   "fuente": "mapa-de-procesos §5 (0.91 a 2.10 GB con el tope de platillos)",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "ltv": {
+   "valor": null,
+   "min": null,
+   "max": null,
+   "origen": "sin dato",
+   "fuente": "",
+   "nota": "valor de un cliente en el tiempo: ingreso mensual de paga × meses que se queda; se mide con la permanencia del piloto",
+   "mueve_resultado": false
+  },
+  "disco_perfiles": {
+   "valor": {
+    "chico": {
+     "mb_mes_visitas": 6.23,
+     "mb_mes_eventos": 6.59,
+     "mb_fijo": 0.138
+    },
+    "mediano": {
+     "mb_mes_visitas": 6.88,
+     "mb_mes_eventos": 6.63,
+     "mb_fijo": 0.174
+    },
+    "grande": {
+     "mb_mes_visitas": 19.08,
+     "mb_mes_eventos": 16.22,
+     "mb_fijo": 0.206
+    },
+    "formal": {
+     "mb_mes_visitas": 7.18,
+     "mb_mes_eventos": 5.56,
+     "mb_fijo": 0.199
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-14-disco-e-historial-datos.json (PostgreSQL 16.15, migraciones 0001-0003, datos generados)",
+   "nota": "MB por restaurante: visitas = 7 tablas de la mesa; eventos = analítica con 10 eventos por visita (supuesto); fijo = restaurante, platillos, mesas, personal",
+   "mueve_resultado": true
+  },
+  "mezcla_gratuito": {
+   "valor": {
+    "chico": 0.6,
+    "mediano": 0.25,
+    "grande": 0.05,
+    "formal": 0.1
+   },
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "simulador-de-uso MEZCLAS",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "mezcla_paga": {
+   "valor": {
+    "mediano": 0.5,
+    "grande": 0.25,
+    "formal": 0.25
+   },
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "simulador-de-uso MEZCLAS",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "base_vacia_mb": {
+   "valor": 7.586319,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "pg_database_size de la base migrada y vacía",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "reserva_disco": {
+   "valor": 0.2,
+   "min": 0.0,
+   "max": 0.3,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "WAL, hinchazón y catálogo; se mide con pg_ls_waldir() y pgstattuple en producción",
+   "mueve_resultado": true
+  },
+  "disco_gratuito_tipico_mb_publicado": {
+   "valor": 16.7,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos: 0.0167 GB por gratuito típico (12 KB por visita, estimada)",
+   "nota": "sólo para reproducir las cifras publicadas (299)",
+   "mueve_resultado": true
+  },
+  "disco_paga_tipico_mb_publicado": {
+   "valor": 285.0,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "mapa-de-procesos: 0.285 GB por paga típico con 12 meses",
+   "nota": "sólo para reproducir las cifras publicadas (17)",
+   "mueve_resultado": true
+  },
+  "escalones": {
+   "valor": [
+    {
+     "id": "hobby_sondeo",
+     "nombre": "Hoy: sondeo, 2 procesos, Hobby",
+     "cap_cpu": 148,
+     "volumen_gb": 5,
+     "base_usd": 8.1,
+     "tope_usd": 20,
+     "carga_ref": 148
+    },
+    {
+     "id": "hobby_eventos",
+     "nombre": "Con eventos, 2 procesos, Hobby",
+     "cap_cpu": 1064,
+     "volumen_gb": 5,
+     "base_usd": 8.1,
+     "tope_usd": 12,
+     "carga_ref": 299
+    },
+    {
+     "id": "pro_2",
+     "nombre": "Con eventos, 2 procesos, Pro",
+     "cap_cpu": 1064,
+     "volumen_gb": 50,
+     "base_usd": 20,
+     "tope_usd": 30,
+     "carga_ref": 1064
+    },
+    {
+     "id": "pro_4",
+     "nombre": "Con eventos, 4 procesos, Pro",
+     "cap_cpu": 1896,
+     "volumen_gb": 50,
+     "base_usd": 23,
+     "tope_usd": 44,
+     "carga_ref": 1896
+    },
+    {
+     "id": "pro_8",
+     "nombre": "Con eventos, 8 procesos, Pro",
+     "cap_cpu": 2116,
+     "volumen_gb": 50,
+     "base_usd": 30,
+     "tope_usd": 54,
+     "carga_ref": 2116
+    }
+   ],
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "anuncios-y-capa-del-comensal §0 y mapa-de-procesos §3; base_usd: Hobby 8.1 (factura real) y Pro 20 + 1.7 por proceso de memoria (supuesto: interpolación lineal entre piso y costo al tope)",
+   "nota": "cap_cpu = gratuitos típicos que caben por procesador (p95 de 364 días, CPU a 70 %); el muro de 10,000 conexiones abiertas de Railway sube a 2,116 con 8 procesos y ya no sube con réplicas",
+   "mueve_resultado": true
+  },
+  "cap_conexiones": {
+   "valor": 2116,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "anuncios-y-capa-del-comensal: 10,000 conexiones abiertas de Railway",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "peso_servicio_cpu": {
+   "valor": 2.3,
+   "min": 1.5,
+   "max": 3.0,
+   "origen": "documento",
+   "fuente": "anuncios-y-capa-del-comensal: un restaurante de paga pesa 2.3 gratuitos típicos con eventos",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "peso_salon_cpu": {
+   "valor": 6.0,
+   "min": 3.0,
+   "max": 10.0,
+   "origen": "supuesto",
+   "fuente": "mapa-de-procesos: un paga al tope (40 × 12) pesa 8 gratuitos al tope; aquí 6 gratuitos típicos",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "instancia_extra_usd": {
+   "valor": 54.0,
+   "min": 30.0,
+   "max": 90.0,
+   "origen": "supuesto",
+   "fuente": "anuncios-y-capa-del-comensal: réplicas 66 y 92 USD; arriba de 2,116 hay que repetir toda la pila",
+   "nota": "costo de cada instancia adicional de 8 procesos",
+   "mueve_resultado": true
+  },
+  "empuja_platillos": {
+   "valor": [
+    [
+     40,
+     0.527
+    ],
+    [
+     60,
+     0.243
+    ],
+    [
+     80,
+     0.108
+    ],
+    [
+     100,
+     0.041
+    ],
+    [
+     150,
+     0.02
+    ],
+    [
+     300,
+     0.01
+    ]
+   ],
+   "min": null,
+   "max": null,
+   "origen": "medido (muestra con sesgo)",
+   "fuente": "2026-11-14-cobertura-platillos.csv: 148 cartas, 147 de reparto (sesgo hacia cartas de reparto, que subestiman a los formales)",
+   "nota": "40 a 120 medidos; 150 y 300 son extrapolación (supuesto)",
+   "mueve_resultado": true
+  },
+  "curvas_pago": {
+   "valor": {
+    "pesimista": {
+     "mediana": 157,
+     "sigma": 0.5,
+     "techo": 0.15,
+     "nota": "paga lo que el plan de menú QR más barato (Neolo 157); sólo 15 % de los que rebasan llega a pagar"
+    },
+    "media": {
+     "mediana": 225,
+     "sigma": 0.6,
+     "techo": 0.35,
+     "nota": "paga lo que Meniu Business (225), el competidor principal según Calvin; 35 % de los que rebasan llega a pagar"
+    },
+    "optimista": {
+     "mediana": 652,
+     "sigma": 0.6,
+     "techo": 0.6,
+     "nota": "paga lo que el sustituto con POS más barato (Fudo Avanzado 652); 60 % llega a pagar"
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "precios de planes comparables (comparativo del 13-nov y matriz del 14-nov) como aproximación de lo que el mercado ya paga",
+   "nota": "Rangos: mediana ±50 %, sigma 0.3 a 0.9, techo 0.05 a 0.8. P(paga) = techo × P(W ≥ precio), W lognormal con esa mediana y σ. NO hay dato de disposición a pagar: la sustituye la prueba del piloto (Van Westendorp y escalera)",
+   "mueve_resultado": true
+  },
+  "anuncio_pesos_por_mil": {
+   "valor": {
+    "baja": 3.5,
+    "media": 14.0,
+    "alta": 37.0
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "anuncios-y-capa-del-comensal §2: 0.19 / 0.75 / 1.97 USD por mil visitas, cadena de tres eslabones de fiabilidad baja",
+   "nota": "pesos por mil visitas con la app, anuncios no personalizados",
+   "mueve_resultado": true
+  },
+  "visitas_app_gratuito": {
+   "valor": 2050,
+   "min": 800,
+   "max": 3500,
+   "origen": "supuesto",
+   "fuente": "salida del simulador de uso (113.9 comensales al día × 30 × 0.6 que abre la app); el 0.6 y el 113.9 son supuestos del simulador",
+   "nota": "se mide con eventos scan del piloto",
+   "mueve_resultado": true
+  },
+  "visitas_app_servicio": {
+   "valor": 3429,
+   "min": 1500,
+   "max": 6000,
+   "origen": "supuesto",
+   "fuente": "salida del simulador de uso (típico de paga)",
+   "nota": "no mueve el resultado: la paga no lleva anuncios",
+   "mueve_resultado": false
+  },
+  "meta_12_meses": {
+   "valor": 300,
+   "min": 50,
+   "max": 3000,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "restaurantes registrados a los 12 meses (SOM, escenario); se fija con el plan comercial",
+   "mueve_resultado": true
+  },
+  "meta_24_meses": {
+   "valor": 1200,
+   "min": 200,
+   "max": 10000,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "restaurantes registrados a los 24 meses",
+   "mueve_resultado": true
+  },
+  "comensales_dia_gratuito": {
+   "valor": 113.9,
+   "min": 40,
+   "max": 250,
+   "origen": "supuesto",
+   "fuente": "salida del simulador de uso (perfiles supuestos con mesas y visitas)",
+   "nota": "sólo para contar comensales en la proyección",
+   "mueve_resultado": true
+  },
+  "comensales_dia_servicio": {
+   "valor": 190.5,
+   "min": 80,
+   "max": 600,
+   "origen": "supuesto",
+   "fuente": "salida del simulador de uso",
+   "nota": "sólo para contar comensales en la proyección",
+   "mueve_resultado": true
+  },
+  "sustitutos": {
+   "valor": {
+    "Meniu Business": 225,
+    "Fudo Avanzado": 652,
+    "Fudo Avanzado + módulo de mesas": 745,
+    "Last.app Starter": 1000,
+    "Poster Business": 819,
+    "Fudo Avanzado + cocina": 838
+   },
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "matriz de funciones 2026-11-14 (IVA no declarado salvo Last.app: + IVA)",
+   "nota": "",
+   "mueve_resultado": true
+  },
+  "soporte_gratuito": {
+   "valor": 0.5,
+   "min": 0.0,
+   "max": 3.0,
+   "origen": "supuesto",
+   "fuente": "supuesto de trabajo: 15 segundos de atención al mes por cliente gratuito a 120 pesos la hora",
+   "nota": "pesos al mes por cliente gratuito (SUPUESTO sin fuente: 15 s al mes); rango 0–3 (el efecto en la bolsa y en los umbrales sale de `rangoBolsa` y `rangoSePagaSolo`, no de este texto); con 1 peso el peor caso con anuncios a 100 restaurantes pierde casi todo su margen",
+   "mueve_resultado": true
+  },
+  "churn_mensual": {
+   "valor": 0.03,
+   "min": 0.01,
+   "max": 0.08,
+   "origen": "supuesto",
+   "fuente": "sin dato: supuesto de trabajo",
+   "nota": "parte de los clientes de paga que se da de baja cada mes; se mide con la permanencia del piloto",
+   "mueve_resultado": true
+  },
+  "cac": {
+   "valor": 600.0,
+   "min": 0.0,
+   "max": 3000.0,
+   "origen": "supuesto",
+   "fuente": "sin dato: supuesto de trabajo (≈ 5 horas de ventas y alta a 120 pesos la hora)",
+   "nota": "costo de conseguir un cliente de paga, en pesos",
+   "mueve_resultado": true
+  },
+  "sueldos_mes": {
+   "valor": 0.0,
+   "min": 0.0,
+   "max": 60000.0,
+   "origen": "supuesto",
+   "fuente": "no incluidos hoy",
+   "nota": "sueldos del equipo (pesos al mes); 0 = el margen es antes de sueldos",
+   "mueve_resultado": true
+  },
+  "impuestos_tasa": {
+   "valor": 0.0,
+   "min": 0.0,
+   "max": 0.3,
+   "origen": "supuesto",
+   "fuente": "no incluidos hoy",
+   "nota": "tasa sobre el margen positivo; 0 = antes de impuestos",
+   "mueve_resultado": true
+  },
+  "segmentacion_negocios": {
+   "valor": {
+    "Chef": 91048,
+    "Master Chef": 13614,
+    "Chef Ejecutivo": 220
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "DENUE 05/2026 por estrato de personal (mercado-de-carta §2.1): Chef = 0–5 y 6–10 personas; Master Chef = 11–30, 31–50 y 51–100; Chef Ejecutivo = 101–250 y 251 o más",
+   "nota": "86.8 % / 13.0 % / 0.2 % de los 104,882 clientes potenciales; Carta no sabe cuánta gente trabaja en el negocio: lo traduce a topes",
+   "mueve_resultado": false
+  },
+  "empuja_conjunto": {
+   "valor": {
+    "mesas": [
+     6,
+     8,
+     10,
+     12,
+     15,
+     16,
+     20,
+     25,
+     30,
+     40,
+     60,
+     100,
+     150,
+     250
+    ],
+    "cuentas": [
+     2,
+     3,
+     4,
+     5,
+     6,
+     8,
+     10,
+     15,
+     20,
+     30,
+     50
+    ],
+    "centro": [
+     [
+      0.5265,
+      0.4881,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818,
+      0.4818
+     ],
+     [
+      0.4576,
+      0.3808,
+      0.3683,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648,
+      0.3648
+     ],
+     [
+      0.4319,
+      0.3359,
+      0.317,
+      0.31,
+      0.3067,
+      0.3051,
+      0.3051,
+      0.3051,
+      0.3051,
+      0.3051,
+      0.3051
+     ],
+     [
+      0.4061,
+      0.2909,
+      0.2658,
+      0.2553,
+      0.2487,
+      0.2457,
+      0.2457,
+      0.2457,
+      0.2457,
+      0.2457,
+      0.2457
+     ],
+     [
+      0.3803,
+      0.2459,
+      0.2082,
+      0.1943,
+      0.1844,
+      0.1797,
+      0.1775,
+      0.1775,
+      0.1775,
+      0.1775,
+      0.1775
+     ],
+     [
+      0.3803,
+      0.2267,
+      0.189,
+      0.1716,
+      0.1617,
+      0.1557,
+      0.1535,
+      0.1529,
+      0.1529,
+      0.1529,
+      0.1529
+     ],
+     [
+      0.3803,
+      0.2267,
+      0.1827,
+      0.1618,
+      0.1453,
+      0.1348,
+      0.1303,
+      0.1287,
+      0.1287,
+      0.1287,
+      0.1287
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.1573,
+      0.1328,
+      0.113,
+      0.0995,
+      0.0914,
+      0.0875,
+      0.0869,
+      0.0869,
+      0.0869
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.123,
+      0.0999,
+      0.0822,
+      0.0718,
+      0.0654,
+      0.0641,
+      0.0641,
+      0.0641
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0931,
+      0.0708,
+      0.0559,
+      0.0449,
+      0.0421,
+      0.0417,
+      0.0417
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0454,
+      0.0278,
+      0.0216,
+      0.0202,
+      0.02
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.021,
+      0.0112,
+      0.0081,
+      0.0072
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.02,
+      0.0088,
+      0.0049,
+      0.0031
+     ],
+     [
+      0.3803,
+      0.2075,
+      0.151,
+      0.1195,
+      0.0898,
+      0.0632,
+      0.0432,
+      0.02,
+      0.0088,
+      0.0043,
+      0.0019
+     ]
+    ],
+    "minimo": [
+     [
+      0.3366,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944,
+      0.2944
+     ],
+     [
+      0.3021,
+      0.2178,
+      0.2053,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202,
+      0.202
+     ],
+     [
+      0.3021,
+      0.1897,
+      0.1585,
+      0.1519,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496,
+      0.1496
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.132,
+      0.1155,
+      0.1108,
+      0.1092,
+      0.1092,
+      0.1092,
+      0.1092,
+      0.1092,
+      0.1092
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0964,
+      0.0847,
+      0.0789,
+      0.078,
+      0.078,
+      0.078,
+      0.078,
+      0.078
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0931,
+      0.0791,
+      0.0708,
+      0.0698,
+      0.0698,
+      0.0698,
+      0.0698,
+      0.0698
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0711,
+      0.0553,
+      0.0512,
+      0.05,
+      0.05,
+      0.05,
+      0.05
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0488,
+      0.0398,
+      0.0359,
+      0.0359,
+      0.0359,
+      0.0359
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0341,
+      0.0245,
+      0.0239,
+      0.0239,
+      0.0239
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.016,
+      0.0134,
+      0.0132,
+      0.0132
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0066,
+      0.0051,
+      0.005
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0061,
+      0.0031,
+      0.002
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0061,
+      0.003,
+      0.0012
+     ],
+     [
+      0.3021,
+      0.1756,
+      0.1195,
+      0.0898,
+      0.0688,
+      0.0463,
+      0.0318,
+      0.0122,
+      0.0061,
+      0.003,
+      0.0011
+     ]
+    ],
+    "maximo": [
+     [
+      0.5953,
+      0.5661,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634,
+      0.5634
+     ],
+     [
+      0.5265,
+      0.4973,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891,
+      0.4891
+     ],
+     [
+      0.5007,
+      0.4423,
+      0.4179,
+      0.4082,
+      0.4055,
+      0.4018,
+      0.4018,
+      0.4018,
+      0.4018,
+      0.4018,
+      0.4018
+     ],
+     [
+      0.475,
+      0.4019,
+      0.3775,
+      0.3678,
+      0.3626,
+      0.3588,
+      0.3565,
+      0.3565,
+      0.3565,
+      0.3565,
+      0.3565
+     ],
+     [
+      0.4319,
+      0.3442,
+      0.3117,
+      0.2971,
+      0.2893,
+      0.2818,
+      0.2795,
+      0.278,
+      0.278,
+      0.278,
+      0.278
+     ],
+     [
+      0.4319,
+      0.3442,
+      0.3035,
+      0.2841,
+      0.2763,
+      0.2688,
+      0.2665,
+      0.2645,
+      0.2645,
+      0.2645,
+      0.2645
+     ],
+     [
+      0.4061,
+      0.3038,
+      0.255,
+      0.2307,
+      0.2203,
+      0.2108,
+      0.2061,
+      0.2033,
+      0.2029,
+      0.2029,
+      0.2029
+     ],
+     [
+      0.4061,
+      0.2892,
+      0.2323,
+      0.2031,
+      0.1901,
+      0.1769,
+      0.1709,
+      0.1661,
+      0.1644,
+      0.1642,
+      0.1642
+     ],
+     [
+      0.3803,
+      0.2634,
+      0.2065,
+      0.1774,
+      0.1617,
+      0.1448,
+      0.1364,
+      0.13,
+      0.1284,
+      0.1276,
+      0.1276
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1838,
+      0.1497,
+      0.1315,
+      0.1092,
+      0.0974,
+      0.0876,
+      0.0843,
+      0.0834,
+      0.0833
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1368,
+      0.1159,
+      0.0878,
+      0.0724,
+      0.057,
+      0.051,
+      0.0486,
+      0.0482
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.0767,
+      0.0578,
+      0.0369,
+      0.0266,
+      0.0221,
+      0.0211
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
+      0.0308,
+      0.0181,
+      0.0119,
+      0.0102
+     ],
+     [
+      0.3803,
+      0.2488,
+      0.1756,
+      0.1319,
+      0.1085,
+      0.075,
+      0.0538,
+      0.0288,
+      0.0145,
+      0.0071,
+      0.0045
+     ]
+    ]
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py: modelo de mesas y cuentas de la estadística de cartas §4.2 (cuentas = ⌈f × personas⌉, f 0.35–0.50; mesas = cuentas × 2.5–4) aplicado a los estratos medidos del DENUE; la forma dentro de cada estrato es supuesto",
+   "nota": "parte de los registrados que rebasa mesas o cuentas del tope (tabla de rejilla; intervalo mínimo–máximo sobre las 27 combinaciones del modelo: f, mesas por cuenta y dispersión)",
+   "mueve_resultado": true
+  },
+  "seguridad_chico": {
+   "valor": {
+    "mesas": [
+     6,
+     8,
+     10,
+     12,
+     15,
+     16,
+     20,
+     25,
+     30,
+     40,
+     60,
+     100,
+     150,
+     250
+    ],
+    "cuentas": [
+     2,
+     3,
+     4,
+     5,
+     6,
+     8,
+     10,
+     15,
+     20,
+     30,
+     50
+    ],
+    "centro": [
+     [
+      0.5455,
+      0.5897,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969,
+      0.5969
+     ],
+     [
+      0.6248,
+      0.7132,
+      0.7277,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302,
+      0.7302
+     ],
+     [
+      0.6545,
+      0.765,
+      0.7868,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916,
+      0.7916
+     ],
+     [
+      0.6841,
+      0.8168,
+      0.8458,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531,
+      0.8531
+     ],
+     [
+      0.7138,
+      0.8686,
+      0.9121,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218,
+      0.9218
+     ],
+     [
+      0.7138,
+      0.8907,
+      0.9342,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464,
+      0.9464
+     ],
+     [
+      0.7138,
+      0.8907,
+      0.9414,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561,
+      0.9561
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.9708,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879,
+      0.9879
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976,
+      0.9976
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.9129,
+      0.978,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ]
+    ],
+    "minimo": [
+     [
+      0.4661,
+      0.4998,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029,
+      0.5029
+     ],
+     [
+      0.5455,
+      0.5791,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885,
+      0.5885
+     ],
+     [
+      0.5751,
+      0.6425,
+      0.6706,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818,
+      0.6818
+     ],
+     [
+      0.6048,
+      0.689,
+      0.7171,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283,
+      0.7283
+     ],
+     [
+      0.6545,
+      0.7555,
+      0.7929,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097,
+      0.8097
+     ],
+     [
+      0.6545,
+      0.7555,
+      0.8023,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247,
+      0.8247
+     ],
+     [
+      0.6841,
+      0.802,
+      0.8582,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862,
+      0.8862
+     ],
+     [
+      0.6841,
+      0.8188,
+      0.8844,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918,
+      0.918
+     ],
+     [
+      0.7138,
+      0.8485,
+      0.914,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476,
+      0.9476
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9402,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794,
+      0.9794
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944,
+      0.9944
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.7138,
+      0.8653,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ]
+    ],
+    "maximo": [
+     [
+      0.7642,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128,
+      0.8128
+     ],
+     [
+      0.8039,
+      0.901,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122,
+      0.9122
+     ],
+     [
+      0.8039,
+      0.9334,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614,
+      0.9614
+     ],
+     [
+      0.8039,
+      0.9496,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888,
+      0.9888
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     [
+      0.8039,
+      0.9496,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ]
+    ]
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py (mismo modelo)",
+   "nota": "probabilidad de que un negocio de hasta 10 personas quede dentro de esos topes (gratis); centro (σ = 0.5) y peor rincón de las 27 combinaciones",
+   "mueve_resultado": true
+  },
+  "sigma_mesas_por_cuenta": {
+   "valor": 0.5,
+   "min": 0.0,
+   "max": 0.75,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py: dispersión lognormal (en ln) de las mesas por cuenta de personal; 0 = la versión anterior, determinista",
+   "nota": "mesas de un negocio = cuentas × m × exp(σ·z); SIN dato: el piloto debe medir mesas y cuentas por negocio (alta de los primeros 10 a 20 restaurantes: `mesa` y `personal_restaurante` activos por restaurante, sin datos personales)",
+   "mueve_resultado": true
+  },
+  "restriccion_seguridad_chico": {
+   "valor": 0.95,
+   "min": 0.8,
+   "max": 0.99,
+   "origen": "decisión de Calvin",
+   "fuente": "«la fonda familiar o la taquería de barrio tiene que ser gratis»",
+   "nota": "con qué seguridad un negocio de hasta 10 personas debe quedar dentro del gratuito; los topes de Chef son consecuencia de este número, no un óptimo",
+   "mueve_resultado": true
+  },
+  "parte_salon": {
+   "valor": 0.004,
+   "min": 0.002,
+   "max": 0.01,
+   "origen": "supuesto",
+   "fuente": "2026-11-14-segmentacion.py: parte de los registrados que rebasa 100 mesas o 30 cuentas (0.4 %, intervalo 0.3–0.7 %); por tamaño, 101 o más personas es 0.2 %",
+   "nota": "parte de los registrados que es tamaño Chef Ejecutivo",
+   "mueve_resultado": true
+  },
+  "parte_visitas_con_anuncio": {
+   "valor": 0.6,
+   "min": 0.1,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "parte de las visitas con la app en que se SIRVE un anuncio que paga (incluye tasa de llenado y bloqueadores; no se modelan por separado). No es el mismo descuento que el 0.6 de `visitas_app_gratuito` (comensales que abren la app): son dos supuestos distintos que coinciden en el número; sin dato",
+   "mueve_resultado": true
+  },
+  "mes_inicio_anuncios": {
+   "valor": 9,
+   "min": 1,
+   "max": 24,
+   "origen": "supuesto",
+   "fuente": "supuesto de trabajo: no antes de construirlos y de que la red apruebe el sitio",
+   "nota": "mes en que empiezan los anuncios (el plan gratuito LLEVA anuncios, decidido por Calvin; lo que varía es cuándo llegan y cuánto dejan). Requisitos: ADR, abrir la política de seguridad del sitio (script-src 'self'), cambiar el aviso de privacidad y que la red apruebe el sitio (anuncios-y-capa-del-comensal §3.6-3.7). Mientras no empiezan, el costo lo pone Calvin",
+   "mueve_resultado": true
+  },
+  "bolsa_calvin_mes": {
+   "valor": 1000.0,
+   "min": 200.0,
+   "max": 5000.0,
+   "origen": "supuesto",
+   "fuente": "dato de Calvin: «tal vez ahorita lo costeo de mis recursos»; la cifra es supuesto",
+   "nota": "pesos al mes que Calvin está dispuesto a poner mientras no hay anuncios",
+   "mueve_resultado": true
+  },
+  "curvas_pago_salon": {
+   "valor": {
+    "pesimista": {
+     "mediana": 700,
+     "sigma": 0.5,
+     "techo": 0.15,
+     "nota": "paga lo de un POS básico (Soft Restaurant 799, Fudo Pro 838)"
+    },
+    "media": {
+     "mediana": 1100,
+     "sigma": 0.5,
+     "techo": 0.35,
+     "nota": "paga lo de OlaClick Elite (1,099) y Last.app Starter (1,000): un negocio de 51 a 250 personas vende ≈ 3.3 millones al mes [INEGI]"
+    },
+    "optimista": {
+     "mediana": 2000,
+     "sigma": 0.5,
+     "techo": 0.6,
+     "nota": "paga lo de Last.app Growth a Unlimited (1,700–2,900) o MenuTiger Premium (2,216)"
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "precios de planes de gama alta (matriz de funciones, 14-nov) como aproximación; a 101 o más personas un precio de 1,000 es 0.03 % del ingreso [INEGI]",
+   "nota": "misma forma que curvas_pago; sin dato de disposición a pagar",
+   "mueve_resultado": true
+  },
+  "precios_candidatos": {
+   "valor": {
+    "servicio": [
+     199,
+     225,
+     249,
+     299
+    ],
+    "salon": [
+     799,
+     1099,
+     1599
+    ]
+   },
+   "min": null,
+   "max": null,
+   "origen": "decisión de Calvin",
+   "fuente": "«Master Chef pegado a Meniu Business (225)… Chef Ejecutivo hacia el extremo alto del mercado»",
+   "nota": "precios a evaluar",
+   "mueve_resultado": true
+  },
+  "banderas": {
+   "valor": {
+    "cpu": {
+     "aviso": 50,
+     "accion": 70
+    },
+    "disco": {
+     "aviso": 60,
+     "accion": 80
+    },
+    "conexiones": {
+     "aviso": 60,
+     "accion": 80
+    },
+    "memoria": {
+     "aviso": 70,
+     "accion": 85
+    },
+    "costo_por_restaurante": {
+     "aviso": 8,
+     "accion": 15
+    },
+    "costos_sobre_ingresos": {
+     "aviso": 70,
+     "accion": 90
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "70 % del procesador es el tope de diseño [documento: capacidad §3]; los demás umbrales son supuestos de trabajo",
+   "nota": "umbrales de aviso y de acción de las banderas de operación (porcentajes; el costo por restaurante en pesos al mes)",
+   "mueve_resultado": true
+  },
+  "n_referencia": {
+   "valor": 1000,
+   "min": 100,
+   "max": 10000,
+   "origen": "supuesto",
+   "fuente": "",
+   "nota": "restaurantes registrados con que se evalúa la configuración al optimizar",
+   "mueve_resultado": true
+  },
+  "factores_disco_eventos": {
+   "valor": {
+    "un_indice": 0.7992,
+    "tipos_chicos": 0.7989,
+    "ambos": 0.6092,
+    "agregada_por_dia_cota_alta": 0.1101,
+    "agregada_por_dia_con_platillos_de_la_copia": 0.0462,
+    "platillos_cota": 150,
+    "platillos_en_la_copia": 60,
+    "retencion_7_dias": 0.2333
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con 145 bytes por fila y 31 días × (5 tipos + platillos): la cota usa los 150 platillos que permite el plan gratuito y 'con_platillos_de_la_copia' los 60 de la copia",
+   "nota": "fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy",
+   "mueve_resultado": true
+  },
+  "bytes_por_evento": {
+   "valor": {
+    "hoy": 353,
+    "heap": 216,
+    "indices": 137,
+    "columnas": {
+     "id": 8.0,
+     "restaurante_id": 16.0,
+     "mesa_id": 16.0,
+     "sesion_id": 16.0,
+     "miembro_id": 16.0,
+     "platillo_id": 16.0,
+     "tipo": 8.8,
+     "propiedades": 10.6,
+     "ip_hash": 65.0,
+     "user_agent_fam": 6.747333333333334,
+     "ocurrido_en": 8.0
+    },
+    "indices_bytes_total": {
+     "idx_evento_tipo": 6840320,
+     "idx_evento_sesion": 1875968,
+     "idx_evento_mesa": 1327104,
+     "idx_evento_miembro": 1875968,
+     "idx_evento_platillo": 1261568,
+     "pk_evento_analitica": 4063232,
+     "idx_evento_restaurante_fecha": 7331840
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-14-recursos-medicion.json (pg_column_size medio por columna; tamaño de cada índice)",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "idempotencia_bytes_por_fila": {
+   "valor": 530,
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "100,000 filas de clave_idempotencia con respuesta jsonb de ≈ 339 bytes (con su índice de purga)",
+   "nota": "la tabla está vacía hasta la Fase 3 (hoy ningún servicio la usa)",
+   "mueve_resultado": false
+  },
+  "claves_idempotencia_por_visita": {
+   "valor": 3,
+   "min": 1,
+   "max": 8,
+   "origen": "supuesto",
+   "fuente": "una por orden confirmada, una por comanda y una por llamada [supuesto]",
+   "nota": "se mide al construir la Fase 3 (contar filas de clave_idempotencia por sesión)",
+   "mueve_resultado": false
+  },
+  "rss_worker_mb": {
+   "valor": 160,
+   "min": 120,
+   "max": 250,
+   "origen": "medido",
+   "fuente": "modelo-de-capacidad: ≈ 160 MB por worker en reposo [medida aquí]",
+   "nota": "memoria residente de un proceso de la API",
+   "mueve_resultado": false
+  },
+  "mb_por_linea_abierta": {
+   "valor": 0.023,
+   "min": 0.02,
+   "max": 0.026,
+   "origen": "medido",
+   "fuente": "eventos-frente-a-sondeo: ≈ 20–26 KB por conexión abierta (RSS +98 MB con 5,000 y +258 MB con 10,000)",
+   "nota": "memoria del proceso por teléfono conectado",
+   "mueve_resultado": false
+  },
+  "mb_por_restaurante_sondeo": {
+   "valor": 0.1,
+   "min": 0.02,
+   "max": 0.5,
+   "origen": "supuesto",
+   "fuente": "cachés de menú y estado en memoria; sin dato",
+   "nota": "memoria por restaurante registrado con el sondeo de hoy",
+   "mueve_resultado": false
+  },
+  "ram_max_servicio_mb": {
+   "valor": 48000,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "docs.railway.com/reference/pricing/plans, leída el 14-nov-2026: Hobby 48 GB y 48 vCPU por servicio (con réplicas)",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "workers_hoy": {
+   "valor": 2,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "modelo-de-capacidad §1: WORKERS=2",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "db_pool_por_worker": {
+   "valor": 20,
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "app/core/config.py: DB_POOL_SIZE 10 + DB_MAX_OVERFLOW 10",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "pg_max_conexiones": {
+   "valor": 100,
+   "min": 100,
+   "max": 100,
+   "origen": "supuesto",
+   "fuente": "Postgres de Railway ≈ 100 [estimada: falta `SHOW max_connections`, modelo-de-capacidad §5]",
+   "nota": "conexiones máximas de la base",
+   "mueve_resultado": false
+  },
+  "ms_conexion_por_peticion": {
+   "valor": 3.0,
+   "min": 1.8,
+   "max": 3.5,
+   "origen": "medido",
+   "fuente": "modelo-de-capacidad: 1.8–3.5 ms por petición (CPU), tiempo que una petición retiene su conexión [estimada: la retención real puede ser mayor]",
+   "nota": "milisegundos que una petición usa una conexión de la base",
+   "mueve_resultado": false
+  },
+  "peticiones_por_segundo_tope_sondeo": {
+   "valor": 600,
+   "min": 420,
+   "max": 600,
+   "origen": "medido",
+   "fuente": "modelo-de-capacidad §1: tope duro ≈ 600 peticiones/s con 2 workers (≈ 148 restaurantes registrados típicos)",
+   "nota": "tope del procesador con el sondeo de hoy",
+   "mueve_resultado": false
+  },
+  "factor_estado_memoria_60s": {
+   "valor": 1.87,
+   "min": 1.0,
+   "max": 1.87,
+   "origen": "medido",
+   "fuente": "eventos-frente-a-sondeo: 0.88 → 0.47 ms de CPU por comensal con estado en memoria 60 s invalidado por NOTIFY (÷ 0.47)",
+   "nota": "cuánto sube el tope del procesador con esa palanca (sólo en el sondeo)",
+   "mueve_resultado": false
+  },
+  "factor_lineas_ociosas": {
+   "valor": 0.7,
+   "min": 0.5,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "sin dato: parte de las líneas abiertas que quedaría si se cierran a los 2 min de ociosidad; se mide contando líneas por restaurante",
+   "nota": "palanca de líneas abiertas",
+   "mueve_resultado": false
+  },
+  "lineas_max_railway": {
+   "valor": 10000,
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "eventos-frente-a-sondeo: ≈ 10,000 conexiones abiertas simultáneas de Railway «subject to change»; no aclara si es por servicio o por dominio",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "precios_railway_usd": {
+   "valor": {
+    "ram_gb_mes": 10.0,
+    "cpu_vcpu_mes": 20.0,
+    "volumen_gb_mes": 0.15,
+    "salida_gb": 0.05,
+    "hobby_suscripcion": 5.0,
+    "pro_suscripcion": 20.0
+   },
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "docs.railway.com/reference/pricing/plans, leída el 14-nov-2026",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "historial_03_7": {
+   "valor": {
+    "visitas_meses": 24,
+    "analitica_meses": 13
+   },
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "docs/plan/03_Datos_v1.md §7: analítica 13 meses, sesiones, órdenes y comandas 24 meses; NO distingue por plan; hoy nada lo limpia (planes-y-costo)",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "factor_pico_simultaneo": {
+   "valor": 0.63,
+   "min": 0.5,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "cifra que la revisión de la sesión maestra calculó para el peor caso (148 → ≈ 93): no tiene origen en un documento del repositorio",
+   "nota": "cuánto baja la capacidad de procesador si todos los restaurantes están en su hora pico a la vez",
+   "mueve_resultado": false
+  },
+  "incertidumbre_procesador": {
+   "valor": 2.0,
+   "min": 1.5,
+   "max": 2.5,
+   "origen": "supuesto",
+   "fuente": "modelo-de-capacidad: ±2× hasta medir en Railway (600 peticiones/s medidas en local con 2 núcleos; rango 420–600; Hobby no dice cuántos núcleos entrega)",
+   "nota": "factor ± sobre toda cifra que depende del procesador",
+   "mueve_resultado": false
+  },
+  "visitas_mes_gratuito": {
+   "valor": 1800,
+   "min": 1500,
+   "max": 4500,
+   "origen": "documento",
+   "fuente": "planes-y-costo §0 y disco-e-historial: 1,800 visitas al mes (chico y mediano; grande 4,500, formal 1,500)",
+   "nota": "visitas (sesiones de mesa) al mes de un gratuito típico",
+   "mueve_resultado": false
+  }
+ }
+}

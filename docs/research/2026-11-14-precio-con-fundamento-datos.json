@@ -1,0 +1,417 @@
+{
+ "modelo_3_grupos": {
+  "modelo": "menú y pedido, operación, sucursales",
+  "n": 8,
+  "planes_usados": [
+   "Soft Restaurant Cloud Lite",
+   "Soft Restaurant Cloud Pro",
+   "Soft Restaurant Cloud Enterprise",
+   "MenuTiger Free",
+   "MenuTiger Regular",
+   "MenuTiger Advanced",
+   "MenuTiger Premium",
+   "Meniu Business"
+  ],
+  "coeficientes_mxn": {
+   "intercepto": {
+    "estimado": -32,
+    "p5": -375,
+    "p95": 283
+   },
+   "menu_y_pedido": {
+    "estimado": -32,
+    "p5": -375,
+    "p95": 283
+   },
+   "operacion": {
+    "estimado": 944,
+    "p5": 224,
+    "p95": 1712
+   },
+   "sucursales": {
+    "estimado": 445,
+    "p5": -224,
+    "p95": 1080
+   }
+  },
+  "error_absoluto_medio_dejando_uno_fuera": 486,
+  "error_de_predecir_el_promedio": 556,
+  "mejora_sobre_el_promedio": true,
+  "valor_paquete_carta_mxn": {
+   "estimado": -63,
+   "p5": -751,
+   "p95": 566
+  }
+ },
+ "modelo_2_grupos": {
+  "modelo": "menú y pedido, operación (sin sucursales, casi nunca publicadas)",
+  "n": 21,
+  "planes_usados": [
+   "Soft Restaurant Cloud Lite",
+   "Soft Restaurant Cloud Pro",
+   "Soft Restaurant Cloud Enterprise",
+   "Fudo Avanzado",
+   "Fudo Pro",
+   "Last.app Starter",
+   "Last.app Growth",
+   "Last.app Unlimited",
+   "OlaClick Advanced",
+   "OlaClick Premium",
+   "OlaClick Elite",
+   "OlaClick Impulso",
+   "MenuTiger Free",
+   "MenuTiger Regular",
+   "MenuTiger Advanced",
+   "MenuTiger Premium",
+   "Meniu Business",
+   "Poster Mini",
+   "Poster Business",
+   "Poster Pro",
+   "Waitry Premium"
+  ],
+  "coeficientes_mxn": {
+   "intercepto": {
+    "estimado": -850,
+    "p5": -1321,
+    "p95": 209
+   },
+   "menu_y_pedido": {
+    "estimado": 1044,
+    "p5": -12,
+    "p95": 1471
+   },
+   "operacion": {
+    "estimado": 1219,
+    "p5": 632,
+    "p95": 1838
+   }
+  },
+  "error_absoluto_medio_dejando_uno_fuera": 575,
+  "error_de_predecir_el_promedio": 604,
+  "mejora_sobre_el_promedio": true,
+  "valor_paquete_carta_mxn": {
+   "estimado": 193,
+   "p5": -163,
+   "p95": 616
+  }
+ },
+ "deltas": [
+  {
+   "proveedor": "Soft Restaurant 12",
+   "de": "Lite",
+   "a": "Pro",
+   "precio_de": 799,
+   "precio_a": 1099,
+   "sube": 300,
+   "sube_pct": 38,
+   "funciones_nuevas": [],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "13-nov"
+  },
+  {
+   "proveedor": "Soft Restaurant Cloud",
+   "de": "Lite",
+   "a": "Pro",
+   "precio_de": 699,
+   "precio_a": 999,
+   "sube": 300,
+   "sube_pct": 43,
+   "funciones_nuevas": [],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "5 dispositivos; 13-nov"
+  },
+  {
+   "proveedor": "Soft Restaurant Cloud",
+   "de": "Pro",
+   "a": "Enterprise",
+   "precio_de": 999,
+   "precio_a": 1599,
+   "sube": 600,
+   "sube_pct": 60,
+   "funciones_nuevas": [
+    "sucursales"
+   ],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "10 dispositivos, multisucursal; 13-nov"
+  },
+  {
+   "proveedor": "Fudo",
+   "de": "Avanzado",
+   "a": "Pro",
+   "precio_de": 652,
+   "precio_a": 838,
+   "sube": 186,
+   "sube_pct": 29,
+   "funciones_nuevas": [],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "Avanzado + varias cajas, turnos, estado de resultados; 14-nov"
+  },
+  {
+   "proveedor": "Last.app",
+   "de": "Starter",
+   "a": "Growth",
+   "precio_de": 1000,
+   "precio_a": 1700,
+   "sube": 700,
+   "sube_pct": 70,
+   "funciones_nuevas": [
+    "inventario"
+   ],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "4 licencias POS, 200 folios; 14-nov"
+  },
+  {
+   "proveedor": "Last.app",
+   "de": "Growth",
+   "a": "Unlimited",
+   "precio_de": 1700,
+   "precio_a": 2900,
+   "sube": 1200,
+   "sube_pct": 71,
+   "funciones_nuevas": [],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "licencias ilimitadas, 500 folios; 14-nov"
+  },
+  {
+   "proveedor": "OlaClick",
+   "de": "Advanced",
+   "a": "Premium",
+   "precio_de": 184,
+   "precio_a": 465,
+   "sube": 281,
+   "sube_pct": 153,
+   "funciones_nuevas": [],
+   "tope_de": 75,
+   "tope_a": 400,
+   "notas": "idem"
+  },
+  {
+   "proveedor": "OlaClick",
+   "de": "Premium",
+   "a": "Elite",
+   "precio_de": 465,
+   "precio_a": 1099,
+   "sube": 634,
+   "sube_pct": 136,
+   "funciones_nuevas": [
+    "factura"
+   ],
+   "tope_de": 400,
+   "tope_a": "ilimitado",
+   "notas": "idem"
+  },
+  {
+   "proveedor": "OlaClick",
+   "de": "Elite",
+   "a": "Impulso",
+   "precio_de": 1099,
+   "precio_a": 2979,
+   "sube": 1880,
+   "sube_pct": 171,
+   "funciones_nuevas": [],
+   "tope_de": "ilimitado",
+   "tope_a": "ilimitado",
+   "notas": "copiloto de IA; idem"
+  },
+  {
+   "proveedor": "MenuTiger",
+   "de": "Free",
+   "a": "Regular",
+   "precio_de": 0,
+   "precio_a": 317,
+   "sube": 317,
+   "sube_pct": null,
+   "funciones_nuevas": [
+    "sucursales"
+   ],
+   "tope_de": 75,
+   "tope_a": 500,
+   "notas": "2 locales; POS como complemento (30 USD); 14-nov"
+  },
+  {
+   "proveedor": "MenuTiger",
+   "de": "Regular",
+   "a": "Advanced",
+   "precio_de": 317,
+   "precio_a": 856,
+   "sube": 539,
+   "sube_pct": 170,
+   "funciones_nuevas": [
+    "cocina"
+   ],
+   "tope_de": 500,
+   "tope_a": 2000,
+   "notas": "5 locales; KDS; POS complemento; 14-nov"
+  },
+  {
+   "proveedor": "MenuTiger",
+   "de": "Advanced",
+   "a": "Premium",
+   "precio_de": 856,
+   "precio_a": 2216,
+   "sube": 1360,
+   "sube_pct": 159,
+   "funciones_nuevas": [
+    "pos"
+   ],
+   "tope_de": 2000,
+   "tope_a": "ilimitado",
+   "notas": "locales ilimitados; gestión de mesas; marca blanca; 14-nov"
+  },
+  {
+   "proveedor": "Neolo",
+   "de": "Menú QR gratis",
+   "a": "Plan 0",
+   "precio_de": 0,
+   "precio_a": 157,
+   "sube": 157,
+   "sube_pct": null,
+   "funciones_nuevas": [],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "es un paquete de hosting con menú QR incluido; alérgenos; estadísticas de escaneo; 14-nov"
+  },
+  {
+   "proveedor": "Poster",
+   "de": "Mini",
+   "a": "Business",
+   "precio_de": 484,
+   "precio_a": 819,
+   "sube": 335,
+   "sube_pct": 69,
+   "funciones_nuevas": [
+    "comanda_app",
+    "cocina"
+   ],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "300 productos; comandero móvil, KDS; 14-nov"
+  },
+  {
+   "proveedor": "Poster",
+   "de": "Business",
+   "a": "Pro",
+   "precio_de": 819,
+   "precio_a": 1154,
+   "sube": 335,
+   "sube_pct": 41,
+   "funciones_nuevas": [
+    "reservas"
+   ],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "1,500 productos; reservas; 14-nov"
+  },
+  {
+   "proveedor": "Waitry",
+   "de": "Lite",
+   "a": "Premium",
+   "precio_de": 0,
+   "precio_a": 1243,
+   "sube": 1243,
+   "sube_pct": null,
+   "funciones_nuevas": [],
+   "tope_de": null,
+   "tope_a": null,
+   "notas": "60 EUR mensual / 48 anual; 14-nov"
+  }
+ ],
+ "complementos": [
+  {
+   "proveedor": "Fudo",
+   "funcion": "gestión de mesas",
+   "mxn_mes": 93,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Fudo",
+   "funcion": "ventas por comensal (separar cuentas)",
+   "mxn_mes": 37,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Fudo",
+   "funcion": "pantalla de cocina",
+   "mxn_mes": 186,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Fudo",
+   "funcion": "apps de reparto",
+   "mxn_mes": 279,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Fudo",
+   "funcion": "tu delivery (tienda en línea)",
+   "mxn_mes": 559,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Fudo",
+   "funcion": "recepcionista de IA",
+   "mxn_mes": 745,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "MenuTiger",
+   "funcion": "POS en la nube",
+   "mxn_mes": 559,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "MenuTiger",
+   "funcion": "gestión de impresoras de cocina",
+   "mxn_mes": 372,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "MenuTiger",
+   "funcion": "dominio de marca blanca",
+   "mxn_mes": 540,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Poster",
+   "funcion": "Poster QR (menú y reseñas)",
+   "mxn_mes": 130,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Poster",
+   "funcion": "sitio de pedidos",
+   "mxn_mes": 354,
+   "unidad": "negocio"
+  },
+  {
+   "proveedor": "Last.app",
+   "funcion": "pantalla de cocina",
+   "mxn_mes": 250,
+   "unidad": "sucursal"
+  },
+  {
+   "proveedor": "Loyverse",
+   "funcion": "historial de ventas (más de 31 días)",
+   "mxn_mes": 130,
+   "unidad": "tienda"
+  },
+  {
+   "proveedor": "Loyverse",
+   "funcion": "gestión de empleados",
+   "mxn_mes": 465,
+   "unidad": "tienda"
+  },
+  {
+   "proveedor": "Loyverse",
+   "funcion": "inventario avanzado",
+   "mxn_mes": 465,
+   "unidad": "tienda"
+  }
+ ]
+}
