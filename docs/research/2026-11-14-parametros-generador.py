@@ -142,6 +142,16 @@ p("precios_railway_usd", {"ram_gb_mes": 10.0, "cpu_vcpu_mes": 20.0, "volumen_gb_
 p("historial_03_7", {"visitas_meses": 24, "analitica_meses": 13}, origen="documento", fuente="docs/plan/03_Datos_v1.md §7: analítica 13 meses, sesiones, órdenes y comandas 24 meses; NO distingue por plan; hoy nada lo limpia (planes-y-costo)", mueve=False)
 p("factor_pico_simultaneo", 0.63, 0.5, 1.0, "supuesto", "cifra que la revisión de la sesión maestra calculó para el peor caso (148 → ≈ 93): no tiene origen en un documento del repositorio", "cuánto baja la capacidad de procesador si todos los restaurantes están en su hora pico a la vez", mueve=False)
 p("incertidumbre_procesador", 2.0, 1.5, 2.5, "supuesto", "modelo-de-capacidad: ±2× hasta medir en Railway (600 peticiones/s medidas en local con 2 núcleos; rango 420–600; Hobby no dice cuántos núcleos entrega)", "factor ± sobre toda cifra que depende del procesador", mueve=False)
+# --- cobertura del tope de platillos (ronda 7): DOS COTAS de sesgo opuesto, marcada como SUPUESTO ---
+_cp = _j.load(open(__import__("os").path.join(AQUI, "2026-11-16-cobertura-platillos-datos.json")))
+_alta = [[t, round(1 - f, 3)] for t, f in [(40, .527), (60, .243), (80, .108), (100, .041), (150, .02), (300, .01)]]
+p("cobertura_platillos", {
+    "alta": {"todo": _alta, "comida": _alta},
+    "baja": {"todo": [[x["tope"], x["cobertura"]] for x in _cp["total"]], "comida": [[x["tope"], x["cobertura"]] for x in _cp["comida"]]},
+    "n_baja": _cp["n"], "por_tipo_baja": _cp["por_tipo"], "maximo_comida_baja": _cp["maximo_comida"], "maximo_total_baja": _cp["maximo_total"]},
+  origen="supuesto", fuente="ALTA: 148 cartas de plataformas de reparto (sesgo hacia cartas CORTAS y sin bebidas); sólo 40 a 120 están medidos, 150 y 300 son extrapolación. BAJA: 56 cartas completas de sitios propios (sesgo hacia cartas LARGAS y negocios formales; 2026-11-16-cobertura-platillos.py). Las dos muestras no cuentan «platillo» con la misma regla; NO se sabe cuál es la cobertura real",
+  nota="porcentaje de negocios con carta ≤ tope; 'comida' = el tope cuenta sólo comida (bebidas sin tope); en la cota alta se usa la misma tabla (el reparto no trae bebidas)")
+p("cota_platillos", "alta", origen="supuesto", fuente="cota que usan por omisión `seguridadChico` y `parteRebasa`; la otra cota se pide con `s.cota_platillos = 'baja'`", mueve=False)
 p("visitas_mes_gratuito", 1800, 1500, 4500, "documento", "planes-y-costo §0 y disco-e-historial: 1,800 visitas al mes (chico y mediano; grande 4,500, formal 1,500)", "visitas (sesiones de mesa) al mes de un gratuito típico", mueve=False)
 out = dict(version="2026-11-14", moneda="MXN",
            leyenda="origen: medido (lo medí con datos), documento (lo dice otro documento del repositorio), fuente (página o norma citada), supuesto (juicio mío, con rango y forma de medirlo), sin dato",

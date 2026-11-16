@@ -4,7 +4,7 @@
 
 ## Conclusiones
 
-1. **Chef (gratis) = 91,048 negocios (86.8 %, medido): con 25 mesas, 4 cuentas y 150 platillos, 95.1 % de los negocios de hasta 10 personas quedan dentro (intervalo del modelo 86.7 %–98 %); es un MODELO, no una medida:** sólo los conteos por estrato son medidos; personas → cuentas → mesas y su dispersión (σ = 0.5) son supuestos. Con los topes anteriores (15 mesas) y la misma dispersión sólo 89.4 % (mínimo 77.7 %).
+1. **Chef (gratis) = 91,048 negocios (86.8 %, medido). Con 25 mesas, 4 cuentas y 150 platillos la cobertura de los negocios de hasta 10 personas es un RANGO, no una cifra: 50.3 % con la cota baja (56 cartas completas de sitios propios: largas y formales) a 95.1 % con la cota alta (148 cartas de reparto: cortas y sin bebidas); contando sólo comida, 95.1 % a 97.1 %. No se sabe cuál es la cobertura real** (el piloto debe contar la carta real de sus negocios). Mesas y cuentas son un MODELO (σ = 0.5 supuesto; intervalo 86.7 %–95.1 % con la cota alta); sólo los conteos por estrato son medidos.
 2. **Margen de operación con 1,000 restaurantes (pesos al mes): +8,719 recomendado · −47 peor · +32,655 mejor · −2,031 piso de verdad.** De la brecha entre «mejor» y la curva optimista con tarifa baja, 11,622 vienen sólo de la tarifa media de anuncios (§5).
 3. **Peor caso real (todos gratuitos): con 1,000 pesos al mes de la bolsa de Calvin caben 811 restaurantes gratuitos (rango 246 a 1,896 según el soporte por gratuito, que no tiene fuente) y 2.8 millones de comensales al mes (simulados); sólo vale con el canal de eventos construido: con el sondeo de hoy caben 148.**
 4. **Los anuncios pagan el sistema desde 54 (rango 25 a 186) restaurantes con la tarifa baja, 12 (rango 6 a 25) con la media y 1,469 (rango 139 a imposible) en el adverso: son rangos, no puntos** (con la tarifa a la mitad la tarifa baja pasa de 54 a 139; con el soporte por gratuito en 3 pesos, el adverso queda en no se paga solo).
@@ -14,7 +14,7 @@
 
 **Recomendado** = curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha · **Peor** = curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa) · **Mejor** = curva de pago optimista y anuncios en la tarifa media · **Piso de verdad** = curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango. *Cada escenario mueve dos ejes a la vez (curva de pago y anuncios): la matriz de §5 los separa.*
 
-**Qué cambió en la ronda 4 (API del `.mjs`, versión `2026-11-14-r6`).** Firmas anteriores intactas. Nuevo: `ESCENARIOS` (una sola definición de cada escenario), `evaluarEscenario`, `proyectarEscenario`, `matrizEscenarios`, `rangoSePagaSolo`, `rangoBolsa`, `sensibilidadPrecio`, `NO_MODELADO`; `valores()` añade `s.rangos`; `seguridadChico` acepta `'maximo'`; `resumen` trae `piso_de_verdad` en cada cifra; la rejilla del optimizador llega a 60 mesas y 10 cuentas. **`configInicial()` cambia el tope de mesas de Chef de 15 a 25** (consecuencia de la dispersión de mesas por cuenta; los demás topes y precios no cambian).
+**Qué cambió en la ronda 4 (API del `.mjs`, versión `2026-11-16-r7`).** Firmas anteriores intactas. Nuevo: `ESCENARIOS` (una sola definición de cada escenario), `evaluarEscenario`, `proyectarEscenario`, `matrizEscenarios`, `rangoSePagaSolo`, `rangoBolsa`, `sensibilidadPrecio`, `NO_MODELADO`; `valores()` añade `s.rangos`; `seguridadChico` acepta `'maximo'`; `resumen` trae `piso_de_verdad` en cada cifra; la rejilla del optimizador llega a 60 mesas y 10 cuentas. **`configInicial()` cambia el tope de mesas de Chef de 15 a 25** (consecuencia de la dispersión de mesas por cuenta; los demás topes y precios no cambian).
 
 ---
 
@@ -40,7 +40,7 @@
 | **90 %** | 25 mesas · 5 cuentas | ≥ 92 % | 87 % | hasta 32 % |
 | **95 %** | 40 mesas · 5 cuentas | ≥ 98 % | 88 % | hasta 32 % |
 
-**Con el tope de platillos y las lecturas de PDF** (un negocio chico puede tener carta larga; **hay dos muestras de cartas con sesgos opuestos**: 148 cartas de reparto, sesgadas a cartas cortas, y sitios propios, sesgados a cartas largas y formales: el 150 es un juicio entre ambas) **la configuración inicial queda en 25 mesas · 4 cuentas · 150 platillos con 95.1 % de seguridad** (el optimizador la elige: la de mayor margen que cumple 95 %; **está en el borde de la restricción**, no por encima). **Con 15 mesas, que era la elección antes de la dispersión, ya no cumple:** 89.4 %.
+**Cobertura por platillos: DOS COTAS de sesgo opuesto (SUPUESTO; no se sabe la real).** Con 150 platillos contando todo: **52 % (sitios propios, cota baja; 56 cartas) a 98 % (reparto, cota alta; en esa muestra sólo 40 a 120 están medidos y el 150 es extrapolación)**; dentro de 150, por tipo: fondas y taquerías 7 de 8, cafeterías 9 de 11, casuales 9 de 21, formales 3 de 14. Las dos muestras no cuentan «platillo» con la misma regla. **Con el tope de platillos y las lecturas de PDF** (un negocio chico puede tener carta larga; **hay dos muestras de cartas con sesgos opuestos**: 148 cartas de reparto, sesgadas a cartas cortas, y sitios propios, sesgados a cartas largas y formales: el 150 es un juicio entre ambas) **la configuración inicial queda en 25 mesas · 4 cuentas · 150 platillos con 95.1 % de seguridad** (el optimizador la elige: la de mayor margen que cumple 95 %; **está en el borde de la restricción**, no por encima). **Con 15 mesas, que era la elección antes de la dispersión, ya no cumple:** 89.4 %.
 
 | Seguridad exigida a Chef | Topes | Seguridad real | Dentro de todos | Margen de operación a Master Chef 225 (1,000 restaurantes, curva media) |
 |---|---|---|---|---|
@@ -49,6 +49,20 @@
 | **95 %** | 25 mesas · 4 cuentas · 150 platillos | 95.1 % | 83 % | 8,719 |
 
 **Master Chef** cubre hasta 100 mesas y 30 cuentas (≈ 95 % de los negocios de 11 a 100 personas; arriba de esos topes queda ≈ 0.8 % de los registrados, que pasan a Chef Ejecutivo; por personal, Chef Ejecutivo es 0.2 %). **Chef Ejecutivo** exige subir el tope técnico de **50 cuentas activas** por restaurante (T-1.6): un negocio de 101 a 250 personas tiene 36 a 125 cuentas de personal en el modelo (**cambio de código, no de este informe**).
+
+### Tope de platillos del plan Chef: la decisión sigue ABIERTA (cobertura y margen por opción, con las dos cotas)
+
+Cobertura de los negocios de hasta 10 personas (mesas, cuentas, platillos y PDF) y margen de operación con 1,000 restaurantes (curva media, anuncios en marcha). **Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).**
+
+| Opción | Cobertura de Chef, cota baja (sitios propios) | Cobertura de Chef, cota alta (reparto) | Margen con la cota baja | Margen con la cota alta |
+|---|---|---|---|---|
+| Tope de 150 platillos, bebidas incluidas (la propuesta actual) | 50.3 % | 95.1 % | +18,592 | +8,719 |
+| Tope de 150 que cuenta sólo comida (las bebidas no tienen tope) | 97.1 % | 95.1 % | +8,288 | +8,719 |
+| Subir el tope a 200 platillos (bebidas incluidas) | 71.1 % | 95.5 % | +13,978 | +8,630 |
+| Subir el tope a 300 platillos (bebidas incluidas) | 81.5 % | 96.1 % | +11,671 | +8,504 |
+| Quitar el tope de platillos y limitar sólo por mesas y cuentas | 97.1 % | 97.1 % | +8,288 | +8,288 |
+
+*Contando sólo comida las dos cotas casi coinciden (95.1 % y 97.1 %): en la muestra de sitios propios, ninguna carta pasa de 122 platillos de comida. «No se sabe la cobertura real»: el dato que cierra la decisión es la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra.*
 
 ## 2. Precios: Master Chef pegado a Meniu, Chef Ejecutivo hacia arriba
 

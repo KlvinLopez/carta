@@ -137,7 +137,7 @@ ChIJGREWxdL-0YURQPHPhQfnq40,CDMX y Estado de México,1,1 (lector propio),robots_
 ChIJ_QxnPbSJzYUROHBUvKdSXz4,Toluca,1,1 (lector propio),sitio_caido
 ChIJ7b5g1IGuKIQRQtS79Jq5yN0,Guadalajara y Zapopan,1,1 (lector propio),sin_carta_en_sitio
 ChIJE0M7ZF6tKIQR40RnXV6Kc30,Guadalajara y Zapopan,1,1 (lector propio),misma_marca_que_otra_fila_se_conserva_una
-ChIJSSbgSUH_0YUR2CVKgY1oniA,CDMX y Estado de México,1,1 (lector propio),misma_marca_que_otra_fila_se_conserva_una (grupo Azul)
+ChIJSSbgSUH_0YUR2CVKgY1oniA,CDMX y Estado de México,1,1 (lector propio),misma_marca_que_otra_fila_se_conserva_una
 ChIJJZS4vZq9YoYR2dKkUe3yU1o,Monterrey,1,1 (lector propio),tienda_en_linea_sin_carta
 ChIJuTnJeEhI2YARRx_5BUoMdQo,Tijuana,1,1 (lector propio),ficha_de_directorio_menu_mixto_de_varios_puestos
 ChIJO-JYDOO9YoYRDMsmtoR9QsU,Monterrey,1,1 (lector propio),carta_en_imagen
@@ -172,3 +172,440 @@ ChIJtWWa2r2JzYUR6pyeptf23lk,Toluca,1,1 (lector propio),robots_txt_lo_prohibe
 ChIJ1W2zQJb_0YURmNO68XXA1wk,CDMX y Estado de México,1,1 (lector propio),sin_carta_en_sitio
 ChIJHXUq8u29YoYR5C8n87-qnjk,Monterrey,1,1 (lector propio),solo_destacados_sin_carta_completa
 ChIJTwUkUqmvKIQR8C_cDaSq__Q,Guadalajara y Zapopan,1,1 (lector propio),sin_carta_en_sitio
+ChIJG4PBPSoD0oUR2UUAOmvdm6k,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJjSqaxoyXYoYRl88F0RHEXwc,Monterrey,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJA12GlmyuKIQR4dyFYYrs4yU,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ6TWCNACvKIQRXaX3tuZz5A8,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ141TIDBBw4URPqBRbdzo5Vw,Veracruz,2,1 (lector propio),sin_carta_en_sitio
+ChIJaVbKec2-K4QR_X1b6D9Ip5w,León,2,1 (lector propio),bloqueo_403
+ChIJAQAAAO-9YoYR8UkWVc-cb40,Monterrey,2,1 (lector propio),sitio_caido
+ChIJh8d0rFy9YoYRxJCuXQeBM98,Monterrey,2,1 (lector propio),sin_carta_en_sitio
+ChIJBxy1QD5I2YAR-p4VvFrYTXM,Tijuana,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJddrupRevKIQRqE1-Wra_gZo,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJoYG-QQ2-YoYRmPOf98m_7Og,Monterrey,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJHelenvj_zYUR7usHqmqB4tY,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJN-dHF-2JzYURZI-qJON-gKA,Toluca,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJy5qtvfjBz4URjk-i1rLg0RQ,Puebla,2,1 (lector propio),sin_carta_en_sitio
+ChIJF3lHCT_50YURx2n6CowjUOk,CDMX y Estado de México,2,1 (lector propio),sin_carta_en_sitio
+ChIJuaaJ16qZKoQRnS1ftbgfuWg,San Luis Potosí,2,1 (lector propio),sin_carta_en_sitio
+ChIJHRydjxXBz4URpJTKiaR5rCM,Puebla,2,1 (lector propio),sin_carta_en_sitio
+ChIJB8dAJ4LBYoYRsXaz47cw7kQ,Morelia,2,1 (lector propio),sin_carta_en_sitio
+ChIJL4cV9alJ2YARs0Is6v68e8M,Tijuana,2,1 (lector propio),sitio_de_cadena_con_locales_fuera_de_mexico_y_sin_precios
+ChIJH9xB5N29YoYROvAvF_LEL9E,Monterrey,2,1 (lector propio),tienda_en_linea_sin_carta_completa
+ChIJy1MLlOWVYoYRMO-t_OrijEE,Monterrey,2,1 (lector propio),carta_incompleta_solo_una_categoria_cargada
+ChIJa0KZLEe_K4QRbX1LKooWMTA,León,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJjaoQKKv40YUR_e-5CAKPsxY,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJrbEVnkAix4URRANztsUc80o,Oaxaca,2,1 (lector propio),sin_carta_en_sitio
+ChIJo_Vpg-bAz4URHiqkQoZKdsI,Puebla,2,1 (lector propio),robots_txt_lo_prohibe
+ChIJpfqdSc740YURmiCKhfZG1-k,CDMX y Estado de México,2,1 (lector propio),sin_carta_en_sitio
+ChIJTcSDmQYSLYQRqH7xJXDx_Y4,Morelia,2,1 (lector propio),http_404
+ChIJ-xnEVjavKIQRXgt_6MQucZE,Guadalajara y Zapopan,2,1 (lector propio),sin_carta_en_sitio
+ChIJv5COIJaJzYURoGoK0jB_AWs,Toluca,2,1 (lector propio),sin_carta_en_sitio
+ChIJqe6clb7_0YURcmZKa-_X_Fw,CDMX y Estado de México,2,1 (lector propio),sitio_caido
+ChIJxwULGBpb04URw4Yd1Vr-2S4,Querétaro,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJKbyvvN3_0YUR8AHALhQ2dmQ,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJx2e5Ojwix4URbo17sHbAOco,Oaxaca,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJdfcSPUlI2YARH1Yae5zn8n8,Tijuana,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJxwcurt3Az4URAa53pkT3oyo,Puebla,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJC_qyvz9I2YARHUfu9qF2n-U,Tijuana,2,1 (lector propio),sin_carta_en_sitio
+ChIJPWU5EaJ2Vo8RExzEg7LP8dY,Mérida,2,1 (lector propio),sin_carta_en_sitio
+ChIJU12e42v_0YURSpojQ93vQTE,CDMX y Estado de México,2,1 (lector propio),sin_carta_en_sitio
+ChIJ49DkolO_K4QRo7D2srdHH_4,León,2,1 (lector propio),sin_carta_en_sitio
+ChIJDZ_TgmgnFA0RzSlAKmP60Ds,Mérida,2,1 (lector propio),sin_carta_en_sitio
+ChIJrVoDKiv50YURHIyItBol2NY,CDMX y Estado de México,2,1 (lector propio),sin_carta_en_sitio
+ChIJR_oa5nH_0YURQOJFQonG5Iw,CDMX y Estado de México,2,1 (lector propio),sin_precios_en_la_carta
+ChIJDUX5CEYoTI8RcqrJB82Wp2Q,Cancún,2,1 (lector propio),sin_precios_en_la_carta
+ChIJp_TjY77Hz4UROpI4_OVO14w,Puebla,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJM1x5LlW-K4QRrPy1SMe-04E,León,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJzeVocO-9YoYRSn7o8GZPRAg,Monterrey,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJfx6s8ceJzYURne9d64ejU14,Toluca,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJXR-D9SVBw4UR1tc8b7BOYc0,Veracruz,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJPULSBWXuKYQR6hXdKGkSSsA,Aguascalientes,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ265yBYJxVo8RgZivLjyyjW4,Mérida,2,1 (lector propio),sin_carta_en_sitio
+ChIJLxfNE2r_0YURsWGMYDYbKiw,CDMX y Estado de México,2,1 (lector propio),precios_no_asociables_en_texto
+ChIJ60llPTr_0YURR_z02s0iock,CDMX y Estado de México,2,1 (lector propio),carta_en_imagen
+ChIJg15dJkgoTI8Rhd_yJiNdwGY,Cancún,2,1 (lector propio),sin_carta_en_sitio
+ChIJGSP_hj8ix4URc6svzwWpLrw,Oaxaca,2,1 (lector propio),precios_no_asociables_en_texto
+ChIJyRf9SUyEzoYRH-Pc_cN_z_E,Hermosillo,2,1 (lector propio),http_404
+ChIJZX8r8NDHz4UR0vWnRVoRS-U,Puebla,2,1 (lector propio),sin_carta_en_sitio
+ChIJs2PapIqsKIQRbRbMk1g2sOc,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJNxB_zLEjx4URZMz-L1GbE3Q,Oaxaca,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJgamjH8P40YURXOOSlQRq_UY,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJZZX1-C6-YoYR6iNpD2r7NlA,Monterrey,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJlWHzUATvKYQRPPOFENrt3b0,Aguascalientes,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJa_yK8O29YoYRUqfdaOIeSoY,Monterrey,2,1 (lector propio),sin_carta_en_sitio
+ChIJZXP1dHCuKIQRH5O1u0t5ks8,Guadalajara y Zapopan,2,1 (lector propio),sitio_caido
+ChIJe1pWLjxI2YARVckKcZgXOfw,Tijuana,2,1 (lector propio),sin_carta_en_sitio
+ChIJ21ofQ2__0YURQwj8ZtOo77M,CDMX y Estado de México,2,1 (lector propio),http_404
+ChIJp_j4FeLBz4URaPiCCPkQd0E,Puebla,2,1 (lector propio),sitio_caido
+ChIJN_5k1dJa04URrPGVNXDu7iE,Querétaro,2,1 (lector propio),robots_txt_lo_prohibe
+ChIJtRleWRfvKYQRz5z3SQWXebo,Aguascalientes,2,1 (lector propio),sitio_caido
+ChIJ69IWUtXGz4UR0FeOgoq33Hc,Puebla,2,1 (lector propio),sin_carta_en_sitio
+ChIJa8c_X83-0YURF9tYo_Kd1qc,CDMX y Estado de México,2,1 (lector propio),carta_incompleta_solo_paquetes_y_menus_de_evento
+ChIJK7lS3vCFzoYRMZ1Y_65j3kI,Hermosillo,2,1 (lector propio),sin_precios_por_platillo_en_la_carta
+ChIJte48Hdr_0YURW5WMzL17cEQ,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJF_9vjFnHz4URfFowgQ6Sjfo,Puebla,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJob9WhsutKIQR5C44rau7MCY,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJG8-I0Qu_K4QRk46JA9At0a8,León,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJAZT3MMP_0YURFL41Xyaau-8,CDMX y Estado de México,2,1 (lector propio),robots_txt_lo_prohibe
+ChIJC59z952_YoYRG2kEq7wNApk,Monterrey,2,1 (lector propio),sin_carta_en_sitio
+ChIJv4eXzbbAK4QRd7LeRuyt-O0,León,2,1 (lector propio),bloqueo_503
+ChIJ0-q3zoP-0YURj1W38UQhjoo,CDMX y Estado de México,2,1 (lector propio),sin_carta_en_sitio
+ChIJc2kI6j4ix4URrzjRsNKqhBM,Oaxaca,2,1 (lector propio),sin_carta_en_sitio
+ChIJo1pwqaFL2YAREtBSxMTTRPw,Tijuana,2,1 (lector propio),sin_carta_en_sitio
+ChIJAQAAwNxH2YARqedkG6NUj4o,Tijuana,2,1 (lector propio),sin_carta_en_sitio
+ChIJY20t0KVH2YARustUHfp62o4,Tijuana,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJfVSYB6GuKIQRo9_l-8LxvQA,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJU1NB-PlH2YAR646aJBFxV9A,Tijuana,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJcdXlpu5wVo8RRReyI4LAR1I,Mérida,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJjYUIhhkjx4URk0tssjKAGJo,Oaxaca,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ73V_r0m9YoYR76978Yy1Pao,Monterrey,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJWQSXBd1Aw4UR7RwpYFkVCR8,Veracruz,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJQUALfyXHz4URbD5QjcFWGXk,Puebla,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJT-5CvgOvKIQRus1S5YLFCcY,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJfygufsdGw4URUXrUOiUwVXg,Veracruz,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJSzEn5_VJ2YARETy5ixSa96U,Tijuana,2,1 (lector propio),sin_carta_en_sitio
+ChIJ0e5FYIlJ2YARztRx6i5pCAg,Tijuana,2,1 (lector propio),sin_carta_en_sitio
+ChIJtcC-e6KJzYUR-NKxQDpQhoE,Toluca,2,1 (lector propio),precios_no_asociables_en_texto
+ChIJEZKE30P_0YURp8id6kZbn4Y,CDMX y Estado de México,2,1 (lector propio),tienda_en_linea_de_cafe_sin_carta
+ChIJ5cFx7ZmaNw0RygAl29Ghcxg,León,2,1 (lector propio),sitio_de_restaurante_fuera_de_mexico
+ChIJYaLGpfErTI8RwWMknGQGKOg,Cancún,2,1 (lector propio),sin_carta_en_texto_menus_por_sucursal_en_pdf_con_404
+ChIJ_R-Xd0dI2YAR9caWMVMla64,Tijuana,2,1 (lector propio),carta_en_imagen
+ChIJr5X0veqJzYURzouUpYUUMJ0,Toluca,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJv_QFrnMOLYQRQYZcTi2lyrU,Morelia,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ4QfFACmwKIQR6i5WsKhfCLo,Guadalajara y Zapopan,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJRykPsddxVo8RbS2NwKGHsTk,Mérida,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ0237-Qq_K4QRXs0zAOjbXkc,León,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJDVZ6Op7_0YUR-_48JJitQyQ,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJmcOSfyz50YURZWXuG67w9zo,CDMX y Estado de México,2,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJQRvGK06EzoYRXznkR4BUgrg,Hermosillo,2,1 (lector propio),sin_carta_en_sitio
+ChIJO1t-vgYSLYQRRV7MTYU0svQ,Morelia,2,1 (lector propio),carta_en_imagen
+ChIJHcd22zC9YoYRLTiFuRoqyOE,Monterrey,2,1 (lector propio),sin_carta_en_sitio
+ChIJBevULvArTI8RZ6jvZnQf0ec,Cancún,2,1 (lector propio),sin_carta_en_sitio
+ChIJ2zk_-oGvKIQRq69DGGpHjD8,Guadalajara y Zapopan,2,1 (lector propio),sin_carta_en_sitio
+ChIJpVd1Jjy9YoYR7NZ4LTiuuB4,Monterrey,2,1 (lector propio),precios_sin_nombre_un_precio_sin_nombre_en_el_menu_y_sin_carta_de_bebidas
+ChIJQ2QGK3z_0YURtJrsKwdxl0A,CDMX y Estado de México,2,1 (lector propio),sin_precios_en_la_carta
+ChIJrz0NdQwhx4URZuLuXl8lgJM,Oaxaca,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJV2fiaFiZKoQRBwN5OOdR-gk,San Luis Potosí,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJpZO9QrxGw4URbQ1UkWDw6CY,Veracruz,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ3wRlpLSYKoQRMpJJYbNekNg,San Luis Potosí,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJKWIzU9TGz4URvKPuW4Y3vwE,Puebla,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJNXHxnAOuKIQRKg9pZnx0Qb8,Guadalajara y Zapopan,3,1 (lector propio),sitio_caido
+ChIJffOpQDBD6oYRK3MnYdjDWyk,Chihuahua,3,1 (lector propio),http_500
+ChIJaabLcP-_YoYRR3Fj-AY9V1I,Monterrey,3,1 (lector propio),sin_carta_en_sitio
+ChIJKRZ4s7eYKoQRSiWieqX6WOI,San Luis Potosí,3,1 (lector propio),sin_carta_en_sitio
+ChIJscNirlu9YoYRJMkFnXz4fao,Monterrey,3,1 (lector propio),sin_carta_en_sitio
+ChIJ7xYmmflAw4URybLxwgVlwYs,Veracruz,3,1 (lector propio),sin_carta_en_sitio
+ChIJrZCaCG7_0YURdUmZxq2L0Fs,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJDykoE8U_04URB3gu4vtHwO4,Querétaro,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ5x0kaH3uKYQRAIPV94ZLCbc,Aguascalientes,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ-Rqz_O29YoYR4VyKU9ooNzI,Monterrey,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJs_prDqtJ2YAR0ztKKmd1uAM,Tijuana,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJq9PUxei9YoYRKuxbjzITRq4,Monterrey,3,1 (lector propio),sin_carta_en_sitio
+ChIJE6Bjxp5a04URLzXL5WHipiY,Querétaro,3,1 (lector propio),sin_carta_en_sitio
+ChIJYedqY1NK2YAR0Te92aOhoZo,Tijuana,3,1 (lector propio),precios_no_asociables_en_texto
+ChIJl2aecejAz4URNV59bfFDqsM,Puebla,3,1 (lector propio),sin_carta_en_sitio
+ChIJNSVTJgFa04URGuB0DewnHwg,Querétaro,3,1 (lector propio),sin_carta_en_sitio
+ChIJzUoWsiKsKIQRDf1t3lt9HnY,Guadalajara y Zapopan,3,1 (lector propio),sin_carta_en_texto_solo_categorias
+ChIJE2QjOAD_0YURgYassGxtrpU,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJIQLgle452YARRCk-9X5UmG0,Tijuana,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJe3wFkS7_0YURdupnTNtz_Wc,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJaUSDWn2vKIQRJgajrJumeI0,Guadalajara y Zapopan,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ6xJuAQCtKIQRG2b7MUC0m14,Guadalajara y Zapopan,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ4WJA3l9b04URNdWDCLWOE1U,Querétaro,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJe5L0p0efKoQRE5aTLMXSQ1k,San Luis Potosí,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJpRW_-NRa04URGF1CLxGIWGU,Querétaro,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJYxLWKo-vKIQRVm7jbALPlb4,Guadalajara y Zapopan,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ5_FyKaOJzYUR-4NPNSUTnJs,Toluca,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ6Wx2Ac_40YURqrt0XHOCyME,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJgbGwJdP-0YURz_jZyoK4kXs,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJQczoZDfHz4URJSgV739G5FM,Puebla,3,1 (lector propio),sin_carta_en_sitio
+ChIJZeCB5zL50YUR5RdtnhO1NRA,CDMX y Estado de México,3,1 (lector propio),sin_carta_en_sitio
+ChIJVQSoViFb04URtl9DyE8a4Wo,Querétaro,3,1 (lector propio),bloqueo_429
+ChIJSUEQXBopTI8RotFwtfedxdk,Cancún,3,1 (lector propio),sin_carta_en_sitio
+ChIJHTuQ8petKIQRx2VsSI9Z760,Guadalajara y Zapopan,3,1 (lector propio),sin_carta_en_sitio
+ChIJvTwaRWM42YAR8hkujTBDzHk,Tijuana,3,1 (lector propio),precios_no_asociables_en_texto
+ChIJc0KdaF1xVo8RMxAN5ZnZcfk,Mérida,3,1 (lector propio),carta_incompleta
+ChIJGe_Dzuu9YoYRP6kugxKGW2Y,Monterrey,3,1 (lector propio),sin_precios
+ChIJQ6y___3uKYQRFNtf_wThB6E,Aguascalientes,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ8YrMJ1JI2YARO742jOGPWnM,Tijuana,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJP1EGde5Bw4URtE43XRkQfek,Veracruz,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJpRN4b1CsKIQRM6Xbnz_pTqI,Guadalajara y Zapopan,3,1 (lector propio),sin_carta_en_sitio
+ChIJcxi2DcuYKoQR_Qgd9tUJjoI,San Luis Potosí,3,1 (lector propio),sin_carta_en_sitio
+ChIJmShRBaOJzYUR5fvWHo6sH_0,Toluca,3,1 (lector propio),sitio_caido
+ChIJG1zw-mp3Vo8R88SfY2aAPBI,Mérida,3,1 (lector propio),sin_carta_en_sitio
+ChIJrbca1gq_K4QRT4cKG_y30h0,León,3,1 (lector propio),sitio_caido
+ChIJVTUMOVe9YoYRARG7lnER_rw,Monterrey,3,1 (lector propio),sin_carta_en_sitio
+ChIJ401kcQC9YoYRB51SfyL8HVo,Monterrey,3,1 (lector propio),directorio_de_tercero
+ChIJtRrVEdD_0YURW3r7djImfAw,CDMX y Estado de México,3,1 (lector propio),sin_carta_en_texto_tienda_en_linea
+ChIJ2bU98sutKIQROay02dU6nEk,Guadalajara y Zapopan,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJRxaNx3dTh4YRHpZ6lffale4,San Luis Potosí,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ4aCjUeKxKIQRGDzSjR32yrA,Guadalajara y Zapopan,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJe3mM6j7-0YUR49zlzn5nKGQ,CDMX y Estado de México,3,1 (lector propio),sin_carta_en_sitio
+ChIJuZ4KxG3uKYQRo1yzXuOA5D8,Aguascalientes,3,1 (lector propio),sin_carta_en_sitio
+ChIJndji94OvKIQRhKGfA0OCvkQ,Guadalajara y Zapopan,3,1 (lector propio),sin_carta_en_sitio
+ChIJcwPeqNDtKYQRuMIhM59Jc74,Aguascalientes,3,1 (lector propio),carta_en_imagen
+ChIJb2Vh3UevKIQRfXG1yUuNwWQ,Guadalajara y Zapopan,3,1 (lector propio),sin_carta_en_sitio
+ChIJdScNsMEmFA0RkRmpWx6A-b0,Mérida,3,1 (lector propio),bloqueo_403
+ChIJjz_ohBNF04UR5nC-oWpW6Wk,Puebla,3,1 (lector propio),sin_carta_en_sitio
+ChIJa4uR4hnHz4URvWDsKAVBLoo,Puebla,3,1 (lector propio),precios_sin_nombre
+ChIJj8vXcIW9YoYRTlO5tDsFQjY,Monterrey,3,1 (lector propio),sin_precios_en_texto
+ChIJ7UDdEbz_0YURaZDWI447jsc,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ2wzCz9P-0YURyhGi3awINbY,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJgYL2n-fAz4URby64Rj3L74U,Puebla,3,1 (lector propio),robots_txt_lo_prohibe
+ChIJdZh_Xpn_0YURGnmU5mGSwzg,CDMX y Estado de México,3,1 (lector propio),sin_carta_en_sitio
+ChIJxRlcuNVE04URlWQbRmAEemA,Querétaro,3,1 (lector propio),sin_carta_en_sitio
+ChIJM_ShBOjAz4UR7p340wvxhzk,Puebla,3,1 (lector propio),sin_precios
+ChIJ6yzH7P3_0YURiwIHQobkwtU,CDMX y Estado de México,3,1 (lector propio),columnas_mezcladas
+ChIJ-fZkejb_0YURhhcblCLnOtM,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJYTjd6Q5D6oYR0io-XX8g-v8,Chihuahua,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJY5CEXRmvKIQRPdm-h8G3qVg,Guadalajara y Zapopan,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJi_5O5Mj40YUROxiF4-3u758,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJpxfxVTlb04URT-v_El5BX-M,Querétaro,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJTaHDVcz-0YURpOtBDmMfmHA,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJkRUusCr50YURJP5_jM6sSkY,CDMX y Estado de México,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJnwLYcWmZKoQRpAg7565AWCQ,San Luis Potosí,3,1 (lector propio),sin_carta_en_sitio
+ChIJy-f7s1BD6oYRvw5CE1e6Wy8,Chihuahua,3,1 (lector propio),sin_carta_en_sitio
+ChIJNWJjqUj_0YURvpl0LzOj5XQ,CDMX y Estado de México,3,1 (lector propio),robots_txt_lo_prohibe
+ChIJ-zsb3fgRLYQR4NXAtYSpLpQ,Morelia,3,1 (lector propio),sitio_caido
+ChIJmzGe_8b_0YURMjW5AQ1MQSI,CDMX y Estado de México,3,1 (lector propio),sin_carta_en_sitio
+ChIJaZazF71xVo8R73YowFu2T3g,Mérida,3,1 (lector propio),sin_carta_en_sitio
+ChIJqS3WjQ-9YoYRzRtyJzryBJA,Monterrey,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJgfaUfNO_YoYRfsZXgv2pyWI,Monterrey,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJE8Io8lNAw4URpZlhQ-SpTiE,Veracruz,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJe-7Ci4KVYoYRXwyi9umR7nU,Monterrey,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJYTowa27uKYQR110SEngLX6s,Aguascalientes,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJQRcMRLiYKoQRuJxILU_zS3Y,San Luis Potosí,3,1 (lector propio),sin_carta_en_sitio
+ChIJzd9j8AqvKIQR5jHRBhhEJh4,Guadalajara y Zapopan,3,1 (lector propio),robots_txt_lo_prohibe
+ChIJ98sEIMuYKoQR1N5i5c-Zxys,San Luis Potosí,3,1 (lector propio),bloqueo_403
+ChIJn70uUKhJ2YARms_8m-Kcmh8,Tijuana,3,1 (lector propio),sin_carta_en_sitio
+ChIJF54dL3MOLYQRTmdZvaZ6FZo,Morelia,3,1 (lector propio),sin_carta_en_sitio
+ChIJVSXdXHCuKIQRfGlh-G8STfY,Guadalajara y Zapopan,3,1 (lector propio),sitio_caido
+ChIJTcJJ2ge_K4QRfDO3gXElJcA,León,3,1 (lector propio),carta_en_imagen
+ChIJcy_BADz50YURGUNHYaCWhJ4,CDMX y Estado de México,3,1 (lector propio),sitio_ajeno
+ChIJw87oCCBxVo8R_tcENtUANnI,Mérida,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ83nTEZgjx4URqbCYAM_fTS0,Oaxaca,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJbxjLSB-sKIQRKTF9kXB-2A8,Guadalajara y Zapopan,3,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJFbzP2QuEzoYR4x3HnHtuQHs,Hermosillo,3,1 (lector propio),sin_carta_en_sitio
+ChIJO4R9bOmKzYURc4M-ToeIcmc,Toluca,3,1 (lector propio),precios_no_asociables_en_texto
+ChIJAR5XCcWFzoYRJrjxxzDGuB0,Hermosillo,3,1 (lector propio),sin_carta_en_sitio
+ChIJEX5DWX2GzoYRRaBlT9-wHAM,Hermosillo,3,1 (lector propio),sin_carta_en_sitio
+ChIJazsNP9v_0YURcpA0b692xDw,CDMX y Estado de México,3,1 (lector propio),sin_carta_en_sitio
+ChIJWWS7KoBzVo8RFDQ4eS6nufM,Mérida,3,1 (lector propio),sin_carta_en_sitio
+ChIJAQAArPZE04URehTFSCvXQA0,Querétaro,3,1 (lector propio),precios_no_asociables_en_texto
+ChIJPRilRwm_K4QRDQCzBjQGivE,León,3,1 (lector propio),carta_incompleta_pdf_grande_y_fuente_codificada
+ChIJayioybpGw4URaxHutx8MYoA,Veracruz,3,1 (lector propio),precios_sin_nombre
+ChIJGaUq_HL50YURAlaWFs30GJk,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJGXhaWsO9YoYRyWBMxg9djl8,Monterrey,4,1 (lector propio),sin_carta_en_sitio
+ChIJz4z0otpxVo8RuCE1iDTypWg,Mérida,4,1 (lector propio),sin_carta_en_sitio
+ChIJtfDSIaK9YoYRv3T3NSveYwk,Monterrey,4,1 (lector propio),sin_carta_en_sitio
+ChIJvTOjTGUOLYQRdban1ZLl6MQ,Morelia,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJpXjak6xJ2YARsXKUd3ZqySY,Tijuana,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ95AFMwy9YoYR-94Ky3_8ErM,Monterrey,4,1 (lector propio),sin_carta_en_sitio
+ChIJ3zgKWiq9YoYREVTpH802bu8,Monterrey,4,1 (lector propio),sin_carta_en_sitio
+ChIJQ2usNd29YoYRx7ccBrJpHvY,Monterrey,4,1 (lector propio),sin_carta_en_sitio
+ChIJi-JM6-xxVo8Rn5y7YhRuM3k,Mérida,4,1 (lector propio),sitio_caido
+ChIJE00eUVBD6oYR0LergzaPN-4,Chihuahua,4,1 (lector propio),sin_carta_en_sitio
+ChIJXYSBqtpC6oYRARY1E_NrrV4,Chihuahua,4,1 (lector propio),sitio_caido
+ChIJjdohCiUix4URqKcre4w-ieU,Oaxaca,4,1 (lector propio),sitio_caido
+ChIJaeq-8WNxVo8RtZCeMHma3bc,Mérida,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJGwcDVpND6oYRy5WHNr8dj1A,Chihuahua,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJlcq698yFzoYRlrikSjOzThs,Hermosillo,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJB66kiPK9YoYRGFEAP4UV5_g,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJYW10bbtL2YARmrji8YYEPaI,Tijuana,4,1 (lector propio),sin_carta_en_sitio
+ChIJnYMisJqvKIQRCtfbkYvYlwU,Guadalajara y Zapopan,4,1 (lector propio),sitio_caido
+ChIJseySUF1xVo8RBmLvDoDCEOY,Mérida,4,1 (lector propio),sin_carta_en_sitio
+ChIJmTvOOI5J2YAR_WCk1ohPlV8,Tijuana,4,1 (lector propio),precios_no_asociables_en_texto
+ChIJD2pGAeMNLYQR3TyC7uhqdks,Morelia,4,1 (lector propio),robots_txt_lo_prohibe
+ChIJL3ZAvJq9YoYRkd6_TeHJNdM,Monterrey,4,1 (lector propio),sin_carta_en_texto_tienda_en_linea
+ChIJrRnhAjqvKIQRQpATv8GNAKA,Guadalajara y Zapopan,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJAQCsxUf_0YURpEWg_AUkZ7k,CDMX y Estado de México,4,1 (lector propio),sitio_caido
+ChIJk0RYMZiJzYURHj_ovRajYfk,Toluca,4,1 (lector propio),sin_carta_en_sitio
+ChIJ5UnXS9KtKIQRagBZ4r4AG5M,Guadalajara y Zapopan,4,1 (lector propio),sin_carta_en_sitio
+ChIJX6UXeixb04URsBRMvFWSc_g,Querétaro,4,1 (lector propio),sin_carta_en_sitio
+ChIJ6RTtUcAmFA0RTrLitRCVIX0,Mérida,4,1 (lector propio),sin_carta_en_sitio
+ChIJVfpS5ae9YoYRvVPYjTxnFYc,Monterrey,4,1 (lector propio),sin_carta_en_texto_tienda_en_linea
+ChIJ0c6mLD9D6oYR3GghDQchonk,Chihuahua,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ17z9B-O9YoYRPuRzAO8xAxA,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ_yH-NbiYKoQRDZa1yaokCSQ,San Luis Potosí,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJG_t6u5eDTo8RtRdbUnsSLy8,Cancún,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJQ8qBu72uKIQRKqseR52s00Y,Guadalajara y Zapopan,4,1 (lector propio),sin_carta_en_sitio
+ChIJG8qQSQDHz4URPcSw4wzfi4A,Puebla,4,1 (lector propio),sin_carta_en_sitio
+ChIJM1pbWQD_0YURurv0fryHXcw,CDMX y Estado de México,4,1 (lector propio),precios_no_asociables_en_texto
+ChIJDetRFeIrTI8RWglGMWI3dNI,Cancún,4,1 (lector propio),sin_carta_en_sitio
+ChIJWYxBxTKXYoYRkqoFan5ebHo,Monterrey,4,1 (lector propio),sin_carta_en_sitio
+ChIJB4mCXUcix4URc6Pqb9S6jy0,Oaxaca,4,1 (lector propio),sin_carta_en_sitio
+ChIJr2nOB1K9YoYRKX28EDF7llU,Monterrey,4,1 (lector propio),precios_no_asociables_en_texto
+ChIJBaV5G8X_0YUR9mKRI4k9cZM,CDMX y Estado de México,4,1 (lector propio),sin_carta_en_sitio
+ChIJ2ygj1b2_YoYRycjPWejktDc,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJeW36w9L50YURyZ4GVzIB9aE,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJhagah7NGw4UR16T4-7_IMqs,Veracruz,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJkXYe9Df_0YURNMyz40KPYCY,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJVUa9wL-JzYUREz2vmPmYO0g,Toluca,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJP5xgoflAw4URaJpv0XvfXx8,Veracruz,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJObOpZ-69YoYRcApHVIvBujw,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJQUhPu7CvKIQRRvmxWmXTT4U,Guadalajara y Zapopan,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJx40Joqu_K4QRcfPbRLdZ3Zw,León,4,1 (lector propio),sin_carta_en_sitio
+ChIJeYGJaOzGz4URN-5kG_NuAKc,Puebla,4,1 (lector propio),bloqueo_429
+ChIJjQM4LpqaNw0ROBMZKSsuzX4,León,4,1 (lector propio),sin_carta_en_sitio
+ChIJXbEh-9T-0YURR3fqK61giQQ,CDMX y Estado de México,4,1 (lector propio),sin_carta_en_texto
+ChIJR9xyHOu9YoYRPAjSCxRyYeM,Monterrey,4,1 (lector propio),carta_incompleta
+ChIJTSu5rx9Bw4URjbWBbnP-qII,Veracruz,4,1 (lector propio),nombres_sin_precio
+ChIJd098blFI2YARManfVTBLtgo,Tijuana,4,1 (lector propio),carta_incompleta
+ChIJFf0gf-XAz4UR62tOzAFG88g,Puebla,4,1 (lector propio),sin_carta_en_texto
+ChIJOco_7j5I2YARHXIJfEmllAs,Tijuana,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJR6f09G2vKIQRu1iyVWDucNM,Guadalajara y Zapopan,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJLZOwNswtTI8Rc40nDUpVNbc,Cancún,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJzYj3CgGiKoQRUQUjg2wbxXw,San Luis Potosí,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJy4cBRbBxVo8R1n9MXxF-wcM,Mérida,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJUb9lU0T_0YURX-sq2i-sH38,CDMX y Estado de México,4,1 (lector propio),sin_carta_en_sitio
+ChIJhWyixUhZ04URzv4rhpfZmsI,Querétaro,4,1 (lector propio),bloqueo_403
+ChIJ73_7aWKCTo8RhbXS2MCtTLk,Cancún,4,1 (lector propio),sin_carta_en_sitio
+ChIJCeCh99P40YURp8dWCIfVkxI,CDMX y Estado de México,4,1 (lector propio),http_404
+ChIJeV90F2uvKIQRL4EALrqDrjg,Guadalajara y Zapopan,4,1 (lector propio),sitio_caido
+ChIJw0zxQMPAz4UR6fBDoFwpyAA,Puebla,4,1 (lector propio),precios_no_asociables_en_texto
+ChIJ0_cCGICuKIQRqLU9n77CRks,Guadalajara y Zapopan,4,1 (lector propio),tienda_en_linea_sin_carta
+ChIJKddXQAb_0YUR3efC0bLZcXQ,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJv8Bo4iS9YoYRXhRUWy4WL6U,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ1WC8e8iXK4QR8LUdz--zGuM,León,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJvWNSt1RI2YARlcooXCU7VGs,Tijuana,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJT293rSa9YoYRAaofpYhligU,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJS90J2az40YURyMKOSjhhHqg,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJr4oZZyD50YURN_CoikQWby0,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJrWx5Cim_YoYRkjazbO5R7QI,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJPfRaMFf50YURn0WPMdi7aUM,CDMX y Estado de México,4,1 (lector propio),sin_carta_en_sitio
+ChIJHS92gjP50YUR0FecWnd5xLI,CDMX y Estado de México,4,1 (lector propio),sitio_caido
+ChIJKyyCkxZxVo8R7uWRSnwJTII,Mérida,4,1 (lector propio),sin_carta_en_sitio
+ChIJnZj0n_FC6oYRZ_6n_rn72HQ,Chihuahua,4,1 (lector propio),sin_carta_en_sitio
+ChIJ9cR8BET_0YURr9cvQGxPfwk,CDMX y Estado de México,4,1 (lector propio),sin_carta_en_sitio
+ChIJC2LQwhL_0YURBM2ECsTLKRU,CDMX y Estado de México,4,1 (lector propio),sin_carta_en_sitio
+ChIJSzhxnquFzoYRb_FZ7J2hNls,Hermosillo,4,1 (lector propio),carta_incompleta_plataforma_de_terceros
+ChIJV8srJC69YoYRCJVob4Wq4tY,Monterrey,4,1 (lector propio),carta_incompleta
+ChIJ_--34puaNw0RyAEWMcByBgQ,León,4,1 (lector propio),fuera_de_mexico
+ChIJt4h5q4CGzoYRri2DkxKRMrE,Hermosillo,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJVfmuoCaJzYURGNqGKYkPLOY,Toluca,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJW3Xa6Ui_K4QRuXSpdLAID_o,León,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJz2GzAf7uKYQRwU9KrV98q88,Aguascalientes,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJcWeIyb7_0YURZK-1_-cukbE,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJAYP4EoH_0YURpuLDZolWS5s,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJoYiGF06vKIQRem1TgiGTAHo,Guadalajara y Zapopan,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJV4IiY3u9YoYRNVd5DiRPM9Y,Monterrey,4,1 (lector propio),precios_no_asociables_en_texto
+ChIJbQzJICFEw4URBrurgv7F5Uo,Veracruz,4,1 (lector propio),sin_carta_en_sitio
+ChIJh8maKTFBw4URjVFHqbVTFJ4,Veracruz,4,1 (lector propio),sin_carta_en_sitio
+ChIJQdqfUzNb04URXNt3K_obJKo,Querétaro,4,1 (lector propio),sin_carta_en_sitio
+ChIJ32RydTiuKIQRQpAQaHqufac,Guadalajara y Zapopan,4,1 (lector propio),sin_carta_en_sitio
+ChIJq6r6gTD_0YUR_m34q6-Nho4,CDMX y Estado de México,4,1 (lector propio),sin_carta_en_sitio
+ChIJVVVVVebAz4URuI60F5qjLgk,Puebla,4,1 (lector propio),sin_carta_en_sitio
+ChIJxzw9Jwa9YoYRJAZ_yk11OSw,Monterrey,4,1 (lector propio),carta_incompleta_solo_pagina_de_inicio
+ChIJ3a0XnA69YoYRO43xheyo-Ic,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJL9znCVJD6oYRMxfVUEDp8D0,Chihuahua,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJHx_bibyvKIQR4olRimZrHQ8,Guadalajara y Zapopan,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJx4BxUhO-YoYRRjkvKLykzKQ,Monterrey,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJvc6CeEhI2YARFf1E-N3Q3pU,Tijuana,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJwe2eSuquKIQRrFVKGb6BT6o,Guadalajara y Zapopan,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJsb0jbND40YURqGXQnLNHEV4,CDMX y Estado de México,4,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJoeYFzRu9YoYRL1DiEfb_JUM,Monterrey,4,1 (lector propio),sitio_caido
+ChIJjXdV_-29YoYRaQuI5wIaVfY,Monterrey,4,1 (lector propio),sitio_caido
+ChIJ67TgVlD_0YURr1ibqPvCaJQ,CDMX y Estado de México,4,1 (lector propio),precios_no_asociables_en_texto
+ChIJGRS-SzD_0YUROyJMdTg46As,CDMX y Estado de México,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJzX7qFf8B0oURmafnkQQ6kfQ,CDMX y Estado de México,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ7woJAOUrTI8R2t4ieY7pe-c,Cancún,5,1 (lector propio),precios_no_asociables_en_texto
+ChIJrbwKTOe9YoYRDvGKFdgdhBw,Monterrey,5,1 (lector propio),sin_carta_en_sitio
+ChIJs3Y7QTxI2YARpqHWxR8i6gA,Tijuana,5,1 (lector propio),sin_carta_en_sitio
+ChIJB6UmsNRE04URbh_1EtgvGZY,Querétaro,5,1 (lector propio),sin_carta_en_sitio
+ChIJu4re2tJE04UR5bF0cnnDFjs,Querétaro,5,1 (lector propio),sin_carta_en_sitio
+ChIJ-ST6VHEtTI8RStb5-AzU8Sg,Cancún,5,1 (lector propio),precios_no_asociables_en_texto
+ChIJnY5WCc0pTI8RDXRfIUsWRM4,Cancún,5,1 (lector propio),sin_precios
+ChIJlTAVfb6FzoYR4ABF0UVKIQY,Hermosillo,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJmU-9Fs852YAROf9PnU5Ta3c,Tijuana,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJT6L6daIoTI8RHSkSgu6MCGM,Cancún,5,1 (lector propio),sin_carta_en_sitio
+ChIJR9WPUZi9YoYRCKD78U-taEI,Monterrey,5,1 (lector propio),sin_carta_en_sitio
+ChIJoYThBUuEzoYRpbfa7PjdRQM,Hermosillo,5,1 (lector propio),sin_carta_en_sitio
+ChIJf8-JYUfHz4URNzTKLbang1c,Puebla,5,1 (lector propio),sin_carta_en_sitio
+ChIJy1Hb1Ky_K4QRzOOCHjYfz3I,León,5,1 (lector propio),sitio_caido
+ChIJO2h9SwD_0YURWe3fmIKWY7A,CDMX y Estado de México,5,1 (lector propio),sin_carta_en_sitio
+ChIJqfriFPMrTI8R3YQ_CVWNDjs,Cancún,5,1 (lector propio),precios_no_asociables_en_texto
+ChIJrUVOrJ2uKIQRD_rj0a6TTVI,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJZchifpjvKYQRTI9kYp36ebA,Aguascalientes,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJzSJ85_KrKIQR5PH_2fvfjF4,Guadalajara y Zapopan,5,1 (lector propio),sin_carta_en_sitio
+ChIJD9mc55mvKIQRTmvR-eT0BM8,Guadalajara y Zapopan,5,1 (lector propio),sitio_caido
+ChIJb5cDNe-9YoYRldZ6O-7DdEs,Monterrey,5,1 (lector propio),robots_txt_lo_prohibe
+ChIJQ11IrDn_0YURx17mDNOe5bY,CDMX y Estado de México,5,1 (lector propio),sin_carta_en_sitio
+ChIJr1hDNJ69YoYRnZubTAjdk4w,Monterrey,5,1 (lector propio),tienda_en_linea_sin_carta
+ChIJuWVf7kj50YURwknZPEaiP4E,CDMX y Estado de México,5,1 (lector propio),precios_sin_nombre
+ChIJXUxkEBCXYoYRGzuU55D6yDo,Monterrey,5,1 (lector propio),tienda_en_linea_sin_carta
+ChIJ7RH5rbtGw4URQcYkhMsDYPM,Veracruz,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJk-iNSgC9YoYRx-KmN3AlYeM,Monterrey,5,1 (lector propio),sin_carta_en_sitio
+ChIJVVVVVRqvKIQR1lUrKhCDHYE,Guadalajara y Zapopan,5,1 (lector propio),sin_carta_en_sitio
+ChIJ9Z9GRGvBz4URJYgCy8m3D5E,Puebla,5,1 (lector propio),sin_carta_en_sitio
+ChIJd0a143y9YoYRWC3psejb8Mc,Monterrey,5,1 (lector propio),sin_carta_en_sitio
+ChIJMcZxdtSZKoQREIGfBsHrge4,San Luis Potosí,5,1 (lector propio),precios_no_asociables_en_texto
+ChIJPQ5vHpqaNw0RLjMdfUTyr08,León,5,1 (lector propio),fuera_de_mexico
+ChIJG7laIpha04UR0lN4WWAFl4g,Querétaro,5,1 (lector propio),sin_carta_en_texto
+ChIJMXJclGy-YoYR_1dat9EKOHM,Monterrey,5,1 (lector propio),sin_carta_en_texto
+ChIJAyr-KzHHz4URgWd2gZPOqbM,Puebla,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJqSuR9oL_0YURH6sQSAuMbgA,CDMX y Estado de México,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ_TWgErMuTI8Rvt9ARob_SAE,Cancún,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJL7TGr60OLYQR6iAfv4JIPY8,Morelia,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJh0T9pLaJzYURWyPvmXD6_bU,Toluca,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJI8iBl5-uKIQR67T1kD4Vluc,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ505CaXtH2YAR-bVWzcQ2vCw,Tijuana,5,1 (lector propio),precios_no_asociables_en_texto
+ChIJZdJF6wC_K4QRACxdUHvYFno,León,5,1 (lector propio),robots_txt_lo_prohibe
+ChIJjQl9q5eaNw0RZC1uLDD6f9k,León,5,1 (lector propio),sin_carta_en_sitio
+ChIJ_7O0A0m_YoYRSvX8QomFd-Q,Monterrey,5,1 (lector propio),sin_carta_en_sitio
+ChIJ7ZsQfUZI2YARDp9JTwNR32k,Tijuana,5,1 (lector propio),robots_txt_lo_prohibe
+ChIJ59A7ZSZBw4URVa2uNkLyP3c,Veracruz,5,1 (lector propio),sin_carta_en_texto
+ChIJB570AZaJzYURA9Z78oDdAww,Toluca,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ8W9Gbf1H2YARzerM9Azb8AY,Tijuana,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ4eBY8-uuKIQRzmPvkgHlZEA,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ7zN521PHz4URajdI1Mrgjyw,Puebla,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ6RLqF3XHz4URF_RT4CUvRuI,Puebla,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJw2rVaWauKIQRo_Sx5zUXlQ8,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJXQS9u0Nb04URJj_g1XBEPfM,Querétaro,5,1 (lector propio),http_526
+ChIJxc24dgCvKIQRxa-EfrnAbjw,Guadalajara y Zapopan,5,1 (lector propio),robots_txt_lo_prohibe
+ChIJ5zeHJgLHz4UR9376NSAHkCA,Puebla,5,1 (lector propio),sin_carta_en_sitio
+ChIJ5RSYR6tJ2YARFb3nni79gNw,Tijuana,5,1 (lector propio),sin_carta_en_sitio
+ChIJcUtxGtSYKoQRO3dF-MMe05o,San Luis Potosí,5,1 (lector propio),sin_carta_en_sitio
+ChIJYcSBPX3uKYQREnyaar4h-U8,Aguascalientes,5,1 (lector propio),sin_carta_en_sitio
+ChIJC5okJEHHz4URWozDMu38ry4,Puebla,5,1 (lector propio),sin_carta_en_sitio
+ChIJhdEL_iOsKIQR5QS1JkZDqBc,Guadalajara y Zapopan,5,1 (lector propio),sin_carta_en_sitio
+ChIJceEN0Tgix4UR5srA2dX0V8Q,Oaxaca,1,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJZz6k2l5xVo8RCHyQRKV94bM,Mérida,1,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJgx45CIn_0YURE_gmcp_8FCA,CDMX y Estado de México,5,1 (lector propio),sin_carta_solo_precios_desde
+ChIJaWLI94y9YoYRFMx7lsctGqM,Monterrey,5,1 (lector propio),sin_carta_en_sitio
+ChIJr44dgirHz4URbsKyO9Zs_-s,Puebla,5,1 (lector propio),carta_en_imagen
+ChIJF0lXG5aJzYURmUXBF1V9xfs,Toluca,5,1 (lector propio),http_404
+ChIJc7MnUZ8oTI8RLz5t6PMh7HQ,Cancún,5,1 (lector propio),sitio_caido
+ChIJZ3b7Bjdb04URPYwOrZTi3Lc,Querétaro,5,1 (lector propio),sin_carta_en_sitio
+ChIJAaW17Cpb04UROK2iVI57Gmw,Querétaro,5,1 (lector propio),sin_precios
+ChIJy3B9PTr_0YURRKo_xM0AlTo,CDMX y Estado de México,5,1 (lector propio),precios_sin_nombre_columnas_mezcladas
+ChIJaXpUHDdBw4UREBg-ftir9Hg,Veracruz,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJYwChIZpH2YARxW13j6JUILQ,Tijuana,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJJ3Egy4mlKIQRVw6l2eHqTpA,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJB4qu6e2uKIQRYL8kfbMcfoA,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJQ5jrEsP_0YURO3GrRWWM5t4,CDMX y Estado de México,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJk6zPBIL_0YURESWN2HjIXIU,CDMX y Estado de México,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJ7Y5NmrCvKIQRX6Tdpp9jTxo,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJVTLDeLm_YoYRlmu2QD7HsHo,Monterrey,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJeZtl6XoVLYQRmQRh5qPr-NA,Morelia,5,1 (lector propio),http_500
+ChIJeTlnOz1b04URBGqYeQayaMs,Querétaro,5,1 (lector propio),http_522
+ChIJXQh2gdmtKIQRdflTMAkNyf4,Guadalajara y Zapopan,5,1 (lector propio),sin_carta_en_sitio
+ChIJvz6GPY0jx4UR3JTaraeqfd8,Oaxaca,5,1 (lector propio),sin_carta_en_sitio
+ChIJH_cAEAUnFA0RL5GiMkxsRjk,Mérida,5,1 (lector propio),sin_carta_en_sitio
+ChIJV7fPkE6_K4QRczKd5DfekkY,León,5,1 (lector propio),carta_incompleta_precios_ausentes_en_pdf_a_columnas
+ChIJI1XbRc6FzoYRPReoXNElxeI,Hermosillo,5,1 (lector propio),sin_precios
+ChIJMUC_LtGvKIQRDTKZeCNwu_E,Guadalajara y Zapopan,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJIyt0Sbn-0YURPIOgm6HPAxk,CDMX y Estado de México,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJM5Uva0yFzoYRpCrPDqB1iG0,Hermosillo,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJE-AvmylF04URNwcyzF9qYQI,Querétaro,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJD7_WhkVI2YARYCyRjPQ4Wm0,Tijuana,5,1 (lector propio),misma_marca_mismo_sitio_web_se_conserva_uno
+ChIJN9dKPD__0YURqP5dRDa0nbE,San Luis Potosí,5,1 (lector propio),sin_carta_en_sitio
+ChIJlZ-mxE2sKIQRPeo6PYIAKao,Guadalajara y Zapopan,5,1 (lector propio),sitio_caido
+ChIJtzYpjJmaNw0RfENHa4P0N9k,León,5,1 (lector propio),sin_carta_en_sitio
+ChIJUzAKWceJzYURu4FAaT4kz4I,Toluca,5,1 (lector propio),sin_carta_en_sitio
+ChIJzYKAZH3_0YURaqCuXMt_lhM,CDMX y Estado de México,5,1 (lector propio),sin_carta_en_sitio
+ChIJF-zkzX9p04URB4VEzag6jIM,Querétaro,5,1 (lector propio),sin_carta_en_sitio
+ChIJ-yk71oOFzoYRbXG5Kx3W4Ic,Hermosillo,5,1 (lector propio),platillos_sin_precio_dominio_shop
+ChIJzSYupxS-YoYRz5yeOSAn6Gk,Monterrey,5,1 (lector propio),mayoria_sin_precio
+ChIJ0cvTA429YoYRfIn45dwL8rA,Monterrey,5,1 (lector propio),sin_carta_en_sitio
+ChIJrfB9xjr_0YUROHhUI3FrqFw,CDMX y Estado de México,5,1 (lector propio),precios_no_asociables_en_texto

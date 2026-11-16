@@ -257,7 +257,7 @@ Precios en **pesos al mes antes de IVA** salvo lo marcado, leídos de la página
 
 ## 5. Lo alcanzable
 
-[`muestra-500-cartas.md` §8.3](2026-11-13-muestra-500-cartas.md) concluyó primero que **≈ 3,000 cartas** se podían leer por sitio web; **la medición más reciente (§11 de ese informe, punto de control del 13 de noviembre en la rama de la muestra, 102 intentos) baja la tasa de carta contable a 10 ÷ 102 = 0.098 (intervalo de 90 %: 0.06 a 0.16)**, así que se corrige: **≈ 1,750 cartas (1,070 a 2,850)** de los 17,827 sitios declarados de la rama 7225 (**≈ 0.24 %** del universo; aritmética mía). La tasa se midió en restaurantes con muchas reseñas: aplicarla a todos los sitios declarados es un **[supuesto]**. Aquí sólo lo que eso significa para el mercado:
+[`muestra-500-cartas.md` §0](2026-11-13-muestra-500-cartas.md) **supera** las cifras anteriores de cartas «alcanzables» por sitio web (≈ 3,000 y luego ≈ 1,780, que aplicaban a todos los sitios declarados la tasa de 0.10 de los negocios **más reseñados de Google**). Lo medido por la rama de la muestra (16 de noviembre de 2026): **en las 17 zonas metropolitanas, por sitio declarado en el DENUE, 0 cartas leíbles en 200 intentos (166 sitios distintos); cota superior al 90 %: 1.6 % de los sitios, unos 200 de 12,337; fuera de esas zonas no se midió, y no hay cifra nacional ni para el núcleo.** Mide cartas que el lector puede leer en texto, no cuántos negocios tienen carta. Por el marco de Google (los sitios más reseñados) 55 de 525 (10.5 %), que **no se puede extrapolar** al DENUE. **Dato nuevo para el argumento de mercado: de los negocios que declaran sitio web en el DENUE (muestra de las 17 zonas), menos de la mitad lo mantiene vivo (43 % de los dominios ya no existen; sólo 39 % lleva a una página viva del negocio).** Aquí sólo lo que eso significa para el mercado:
 
 | | Núcleo | Con sitio web declarado | Sin sitio web |
 |---|---|---|---|
@@ -269,7 +269,7 @@ Precios en **pesos al mes antes de IVA** salvo lo marcado, leídos de la página
 
 **Lectura:**
 
-1. **La lectura de sitios alcanza a lo más 6,170 del núcleo (con la tasa de 0.098, a ≈ 600; intervalo 370 a 990):** una pieza útil para **medir** (precios, tamaño de carta), **no para vender**. Es **la parte que ya declara sitio web**.
+1. **Sólo 6,170 del núcleo declaran sitio web, y menos de la mitad de los sitios declarados sigue vivo (en la muestra de las 17 zonas).** La lectura de sitios es una pieza útil para **medir** (precios, tamaño de carta) si acaso, **no para vender**; no hay cifra de cuántas cartas se pueden leer en el país ni en el núcleo.
 2. **Para Carta el negocio está en la otra parte: los 98,712 sin sitio.** Su carta, si existe en línea, está en Instagram, en un PDF de WhatsApp o en el reparto; **Carta sería su primera página**. Ésos no se «alcanzan» leyendo un sitio: **se alcanzan visitándolos o recibiendo la carta de ellos mismos** (el piloto y el alta desde PDF).
 3. **Los 3,733 de 11 personas o más con sitio** son los primeros candidatos a **pagar** (ya invirtieron en presencia en línea y tienen más mesas): una lista corta y medible para el piloto. Cruzarla con las 17 zonas da la primera ola.
 4. **Meta progresiva mes a mes:** es tuya; este informe sólo fija **lo que no puede pasar**: que el 5 % del universo (37,075) **se lea** por sitios propios (es imposible: los sitios declarados son 17,827 en total).

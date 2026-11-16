@@ -1,5 +1,5 @@
 {
- "version": "2026-11-14-r6",
+ "version": "2026-11-16-r7",
  "fecha": "2026-11-14",
  "config_palancas": [],
  "definicion_restaurante_tipico": "un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)",
