@@ -31,6 +31,16 @@ DB = f"carta_med_palancas_{n}"
 sql("postgres", f"CREATE DATABASE {DB} TEMPLATE carta_med_mediano")
 t = lambda q: int(sql(DB, q, uno=True))  # noqa: E731
 
+# El generador de datos es BENIGNO: deja miembro_id y platillo_id en NULL y deja ip_hash y navegador constantes, así que sus índices sólo
+# indexan NULL o un valor repetido. Se rellenan en la COPIA con valores variados (datos SINTÉTICOS, no medidos en producción):
+#  · miembro_id: un miembro de la misma sesión · platillo_id (dish_view e item_add): un platillo cualquiera del restaurante
+#  · ip_hash: 64 caracteres hexadecimales distintos por sesión y día · user_agent_fam: una de 8 familias
+sql(DB, """update evento_analitica e set miembro_id = (select m.id from miembro_sesion m where m.sesion_id = e.sesion_id order by m.id limit 1)""")
+sql(DB, """update evento_analitica e set platillo_id = (select p.id from platillo p where p.restaurante_id = e.restaurante_id order by md5(p.id::text || e.id::text) limit 1) where e.tipo in ('dish_view', 'item_add')""")
+sql(DB, """update evento_analitica set ip_hash = md5(coalesce(sesion_id::text, '') || ocurrido_en::date::text) || md5(coalesce(sesion_id::text, '') || 'sal'),
+           user_agent_fam = (array['Chrome','Safari','Firefox','Edge','Samsung','Opera','WebView','Otro'])[1 + (abs(hashtext(coalesce(sesion_id::text, ''))) % 8)]""")
+sql(DB, "vacuum full analyze evento_analitica")
+
 filas = t("select count(*) from evento_analitica")
 visitas = t("select count(*) from sesion_grupal")
 rest = t("select count(*) from restaurante")
@@ -92,6 +102,7 @@ import gzip
 crudo = "\n".join(f[0] for f in sesiones_json).encode()
 sal = dict(base=base, columnas_bytes_medios=cols, indices_bytes=indices, agregada_por_dia=dia, compacta=compacta, compacta_un_indice=compacta_un_indice, original_un_indice=un_indice,
            idempotencia=idem, visita_tablas_bytes=visita_tablas, gzip_sesion_json=dict(crudo=len(crudo), comprimido=len(gzip.compress(crudo)), filas=len(sesiones_json)),
-           base_de_trabajo=DB, nota="medido en PostgreSQL local sobre una copia de carta_med_mediano; 10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]")
+           base_de_trabajo=DB, nota="MEDIDO CON DATOS SINTÉTICOS en PostgreSQL local sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]); miembro, platillo, ip_hash y navegador rellenados con valores variados (ver el guion); con tráfico real pesaría distinto",
+           platillos_en_la_copia=t("select count(*) from platillo") // rest, platillos_distintos_en_eventos=t("select count(distinct platillo_id) from evento_analitica"))
 json.dump(sal, open(os.path.join(AQUI, "2026-11-14-recursos-medicion.json"), "w"), ensure_ascii=False, indent=1)
 print(json.dumps({k: sal[k] for k in ("base", "agregada_por_dia", "compacta", "compacta_un_indice", "original_un_indice", "idempotencia")}, indent=1))

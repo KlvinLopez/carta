@@ -9,6 +9,7 @@
 3. **Siguiente paso, costo:** de Hobby a Pro 2 procesos sube 12 USD base por mes (8.1 → 20); entra hacia el mes 11 de la proyección recomendada (adopción supuesta).
 4. **Más de ≈ 2,030 restaurantes registrados exige otra arquitectura:** de ahí en adelante todo es extrapolación sin medir.
 5. **Dos banderas ya se pueden medir con el primer cliente:** costo por restaurante y costos sobre ingresos.
+6. **Aviso de producto:** un negocio de Chef Ejecutivo (101 a 250 personas) tiene unas 36 a 125 cuentas de personal en el modelo, y el tope técnico es de **50 cuentas activas por restaurante** (T-1.6): hay que subirlo antes de vender ese plan.
 
 ## Banderas
 

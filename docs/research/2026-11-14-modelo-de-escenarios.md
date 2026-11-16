@@ -10,9 +10,11 @@
 4. **Los anuncios pagan el sistema desde 54 (rango 25 a 186) restaurantes con la tarifa baja, 12 (rango 6 a 25) con la media y 1,469 (rango 139 a imposible) en el adverso: son rangos, no puntos** (con la tarifa a la mitad la tarifa baja pasa de 54 a 139; con el soporte por gratuito en 3 pesos, el adverso queda en no se paga solo).
 5. **Qué medir primero en el piloto: curva · mediana, cuántos rebasan los topes, curva · techo;** y el precio de Master Chef (199, 225, 249, 299) **no lo decide este modelo**: lo decide la prueba de precios ([precio de entrada](2026-11-14-precio-de-entrada.md)).
 
+**Supuesto de historial en TODAS las cifras de costo, bolsa, margen y escalón:** el plan gratuito guarda **1 mes (30 días)** de visitas y analítica. **Es una propuesta que contradice 03 §7 (13 y 24 meses) y hoy nada purga.** Sin purga (12 meses acumulados) la bolsa de 1,000 pesos carga 236 restaurantes en vez de 811, y el margen recomendado con 1,000 restaurantes es +3,827 en vez de +8,719 (el disco obliga a otro tamaño de servidor: pro_8, y ya exige otra arquitectura).
+
 **Recomendado** = curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha · **Peor** = curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa) · **Mejor** = curva de pago optimista y anuncios en la tarifa media · **Piso de verdad** = curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango. *Cada escenario mueve dos ejes a la vez (curva de pago y anuncios): la matriz de §5 los separa.*
 
-**Qué cambió en la ronda 4 (API del `.mjs`, versión `2026-11-14-r4`).** Firmas anteriores intactas. Nuevo: `ESCENARIOS` (una sola definición de cada escenario), `evaluarEscenario`, `proyectarEscenario`, `matrizEscenarios`, `rangoSePagaSolo`, `rangoBolsa`, `sensibilidadPrecio`, `NO_MODELADO`; `valores()` añade `s.rangos`; `seguridadChico` acepta `'maximo'`; `resumen` trae `piso_de_verdad` en cada cifra; la rejilla del optimizador llega a 60 mesas y 10 cuentas. **`configInicial()` cambia el tope de mesas de Chef de 15 a 25** (consecuencia de la dispersión de mesas por cuenta; los demás topes y precios no cambian).
+**Qué cambió en la ronda 4 (API del `.mjs`, versión `2026-11-14-r6`).** Firmas anteriores intactas. Nuevo: `ESCENARIOS` (una sola definición de cada escenario), `evaluarEscenario`, `proyectarEscenario`, `matrizEscenarios`, `rangoSePagaSolo`, `rangoBolsa`, `sensibilidadPrecio`, `NO_MODELADO`; `valores()` añade `s.rangos`; `seguridadChico` acepta `'maximo'`; `resumen` trae `piso_de_verdad` en cada cifra; la rejilla del optimizador llega a 60 mesas y 10 cuentas. **`configInicial()` cambia el tope de mesas de Chef de 15 a 25** (consecuencia de la dispersión de mesas por cuenta; los demás topes y precios no cambian).
 
 ---
 
@@ -38,13 +40,13 @@
 | **90 %** | 25 mesas · 5 cuentas | ≥ 92 % | 87 % | hasta 32 % |
 | **95 %** | 40 mesas · 5 cuentas | ≥ 98 % | 88 % | hasta 32 % |
 
-**Con el tope de platillos y las lecturas de PDF** (un negocio chico puede tener carta larga) **la configuración inicial queda en 25 mesas · 4 cuentas · 150 platillos con 95.1 % de seguridad** (el optimizador la elige: la de mayor margen que cumple 95 %; **está en el borde de la restricción**, no por encima). **Con 15 mesas, que era la elección antes de la dispersión, ya no cumple:** 89.4 %.
+**Con el tope de platillos y las lecturas de PDF** (un negocio chico puede tener carta larga; **hay dos muestras de cartas con sesgos opuestos**: 148 cartas de reparto, sesgadas a cartas cortas, y sitios propios, sesgados a cartas largas y formales: el 150 es un juicio entre ambas) **la configuración inicial queda en 25 mesas · 4 cuentas · 150 platillos con 95.1 % de seguridad** (el optimizador la elige: la de mayor margen que cumple 95 %; **está en el borde de la restricción**, no por encima). **Con 15 mesas, que era la elección antes de la dispersión, ya no cumple:** 89.4 %.
 
-| Seguridad exigida a Chef | Topes | Seguridad real | Dentro de todos | Margen (1,000 restaurantes, curva media) |
+| Seguridad exigida a Chef | Topes | Seguridad real | Dentro de todos | Margen de operación a Master Chef 225 (1,000 restaurantes, curva media) |
 |---|---|---|---|---|
-| **80 %** | 12 mesas · 3 cuentas · 150 platillos | 80 % | 69 % | 11,985 |
-| **90 %** | 20 mesas · 4 cuentas · 100 platillos | 90.3 % | 78 % | 9,799 |
-| **95 %** | 25 mesas · 4 cuentas · 150 platillos | 95.1 % | 83 % | 8,722 |
+| **80 %** | 12 mesas · 3 cuentas · 150 platillos | 80 % | 69 % | 11,981 |
+| **90 %** | 20 mesas · 4 cuentas · 100 platillos | 90.3 % | 78 % | 9,796 |
+| **95 %** | 25 mesas · 4 cuentas · 150 platillos | 95.1 % | 83 % | 8,719 |
 
 **Master Chef** cubre hasta 100 mesas y 30 cuentas (≈ 95 % de los negocios de 11 a 100 personas; arriba de esos topes queda ≈ 0.8 % de los registrados, que pasan a Chef Ejecutivo; por personal, Chef Ejecutivo es 0.2 %). **Chef Ejecutivo** exige subir el tope técnico de **50 cuentas activas** por restaurante (T-1.6): un negocio de 101 a 250 personas tiene 36 a 125 cuentas de personal en el modelo (**cambio de código, no de este informe**).
 
@@ -121,7 +123,8 @@ Cada precio con tres curvas (pesimista · media · optimista), **1,000 restauran
 | Cifra | Recomendado | Peor | Mejor | Piso de verdad | Qué es |
 |---|---|---|---|---|---|
 | Clientes potenciales (negocios) | **104,882** | 104,882 | 104,882 | 104,882 | dato medido (DENUE 05/2026): no varía con los escenarios |
-| Restaurantes gratuitos que caben (restaurantes) | **279** | 148 | 2,116 | 148 | recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones) |
+| Restaurantes gratuitos que caben (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga) (restaurantes) | **279** | 148 | 2,116 | 148 | con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (por líneas abiertas, tope de diseño supuesto) |
+| Restaurantes gratuitos que caben SIN purga (12 meses de historial acumulado) (restaurantes) | **23** | 23 | 236 | 23 | lo que hay hoy: nada limpia; el disco manda desde el segundo mes de operación |
 | Gratuitos que sostiene cada cliente de paga (sin anuncios) (restaurantes) | **132.3** | 131.4 | 125.3 | 16.3 | con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`) |
 | Ingreso por cliente gratuito (pesos al mes) | **4.3** | 0 | 17.2 | 1.1 | sólo anuncios |
 | Ingreso por cliente de paga (pesos al mes) | **265.7** | 257 | 262.5 | 257 | promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno |

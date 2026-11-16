@@ -81,6 +81,9 @@ def es_marca(nombre: str) -> bool:
 
 
 def main(rutas: list[str]) -> int:
+    if not rutas:
+        print("Uso: python3 -I 2026-11-13-mercado-de-carta-modelo.py RUTA_DENUE_1.csv [RUTA_DENUE_2.csv ...]  (CSV del DENUE, codificación latin-1; ver mercado-de-carta §2.1)", file=sys.stderr)
+        return 2
     # Segmentos: nombre -> (clases) ; se acumula por clase y estrato, con y sin sitio web.
     por_clase_estrato: dict[str, Counter] = defaultdict(Counter)
     web_clase_estrato: dict[str, Counter] = defaultdict(Counter)

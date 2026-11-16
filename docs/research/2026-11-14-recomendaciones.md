@@ -19,13 +19,13 @@
 
 **De qué supuesto depende y qué pasa si falla.** **Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato).** Medido: sólo los conteos por estrato. Con 15 mesas la seguridad sería 89.4 %, no 95 %; con el peor rincón del modelo, ningún tope de la rejilla estrecha lo cumple salvo 60 mesas · 5 cuentas · 100 platillos. **Si falla:** si las fondas tienen más mesas, algunas pagan sin querer; se corrige subiendo el tope (el piloto lo muestra en una semana).
 
-**Cifras del modelo.** Para 80 / 90 / 95 % de seguridad: 12 mesas y 3 cuentas (150 platillos) · 20 mesas y 4 cuentas (100 platillos) · 25 mesas y 4 cuentas (150 platillos); margen 11,985 · 9,799 · 8,722 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).
+**Cifras del modelo.** Para 80 / 90 / 95 % de seguridad: 12 mesas y 3 cuentas (150 platillos) · 20 mesas y 4 cuentas (100 platillos) · 25 mesas y 4 cuentas (150 platillos); margen a Master Chef 225 11,981 · 9,796 · 8,719 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).
 
 | Opción | A favor | En contra |
 |---|---|---|
-| Seguridad 80 %: 12 mesas, 3 cuentas, 150 platillos | margen 11,985 | 80 % de los de hasta 10 personas dentro; 69 % de todos |
-| Seguridad 90 %: 20 mesas, 4 cuentas, 100 platillos | margen 9,799 | 90.3 % de los de hasta 10 personas dentro; 78 % de todos |
-| Seguridad 95 %: 25 mesas, 4 cuentas, 150 platillos | margen 8,722 | 95.1 % de los de hasta 10 personas dentro; 83 % de todos |
+| Seguridad 80 %: 12 mesas, 3 cuentas, 150 platillos | margen 11,981 a Master Chef 225 | 80 % de los de hasta 10 personas dentro; 69 % de todos |
+| Seguridad 90 %: 20 mesas, 4 cuentas, 100 platillos | margen 9,796 a Master Chef 225 | 90.3 % de los de hasta 10 personas dentro; 78 % de todos |
+| Seguridad 95 %: 25 mesas, 4 cuentas, 150 platillos | margen 8,719 a Master Chef 225 | 95.1 % de los de hasta 10 personas dentro; 83 % de todos |
 
 **Ejemplo.** Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 40 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.
 

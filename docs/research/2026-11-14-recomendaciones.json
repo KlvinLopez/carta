@@ -1,26 +1,26 @@
 {
- "version": "2026-11-14-r4",
+ "version": "2026-11-14-r6",
  "decisiones": [
   {
    "id": "segmentacion",
    "decision": "Segmentación: qué entra en cada plan y con qué topes",
    "recomendacion": "**Chef (gratis) = 25 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, 95.1 % de los negocios de hasta 10 personas quedan gratis (intervalo del modelo 86.7 %–98 %).",
    "depende": "**Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato).** Medido: sólo los conteos por estrato. Con 15 mesas la seguridad sería 89.4 %, no 95 %; con el peor rincón del modelo, ningún tope de la rejilla estrecha lo cumple salvo 60 mesas · 5 cuentas · 100 platillos. **Si falla:** si las fondas tienen más mesas, algunas pagan sin querer; se corrige subiendo el tope (el piloto lo muestra en una semana).",
-   "cifras": "Para 80 / 90 / 95 % de seguridad: 12 mesas y 3 cuentas (150 platillos) · 20 mesas y 4 cuentas (100 platillos) · 25 mesas y 4 cuentas (150 platillos); margen 11,985 · 9,799 · 8,722 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).",
+   "cifras": "Para 80 / 90 / 95 % de seguridad: 12 mesas y 3 cuentas (150 platillos) · 20 mesas y 4 cuentas (100 platillos) · 25 mesas y 4 cuentas (150 platillos); margen a Master Chef 225 11,981 · 9,796 · 8,719 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).",
    "alternativas": [
     {
      "opcion": "Seguridad 80 %: 12 mesas, 3 cuentas, 150 platillos",
-     "pros": "margen 11,985",
+     "pros": "margen 11,981 a Master Chef 225",
      "contras": "80 % de los de hasta 10 personas dentro; 69 % de todos"
     },
     {
      "opcion": "Seguridad 90 %: 20 mesas, 4 cuentas, 100 platillos",
-     "pros": "margen 9,799",
+     "pros": "margen 9,796 a Master Chef 225",
      "contras": "90.3 % de los de hasta 10 personas dentro; 78 % de todos"
     },
     {
      "opcion": "Seguridad 95 %: 25 mesas, 4 cuentas, 150 platillos",
-     "pros": "margen 8,722",
+     "pros": "margen 8,719 a Master Chef 225",
      "contras": "95.1 % de los de hasta 10 personas dentro; 83 % de todos"
     }
    ],
@@ -300,7 +300,9 @@
     275
    ],
    "pagantes": 46.14692315946915,
-   "margen": 11985.494711706539
+   "margen": 11985.494711706539,
+   "precio_de_la_config": 225,
+   "margen_al_precio_de_la_config": 11980.67543648144
   },
   {
    "seguridad": 0.9,
@@ -315,7 +317,9 @@
     275
    ],
    "pagantes": 32.76213294818085,
-   "margen": 9798.709952976124
+   "margen": 9798.709952976124,
+   "precio_de_la_config": 225,
+   "margen_al_precio_de_la_config": 9795.53897664733
   },
   {
    "seguridad": 0.95,
@@ -330,7 +334,9 @@
     275
    ],
    "pagantes": 26.428339018517487,
-   "margen": 8721.729952546495
+   "margen": 8721.729952546495,
+   "precio_de_la_config": 225,
+   "margen_al_precio_de_la_config": 8719.199775839821
   }
  ]
 }

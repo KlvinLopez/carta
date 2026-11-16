@@ -1,8 +1,12 @@
 # Tres planes: topes, a quién empujan a pagar y cuánto dejan
 
+> **⚠ SUPERADO (14-nov-2026, ronda 4).** Este documento define los planes con 10 mesas y 3 cuentas (Servicio 349 / Salón 399). **Lo vigente** es la segmentación de Calvin (Chef gratis 25 mesas · 4 cuentas · 150 platillos; Master Chef 225; Chef Ejecutivo 1,099) en [`2026-11-14-modelo-de-escenarios.md`](2026-11-14-modelo-de-escenarios.md) y [`2026-11-14-recomendaciones.md`](2026-11-14-recomendaciones.md). Las cifras de aquí («10 mesas empuja a 39 %», rango 16–71 %) son **constantes escritas a mano en `tres-planes.py` y son supuestos del modelo de mesas de entonces, sin dato.**
+
 **Fecha:** 14 de noviembre de 2026 (revisada el mismo día tras la ronda de la maestra) · **Rama:** `agente/planes-precio-historial` · **Estado:** propuesta para la futura Spec 002; **la v1 no cobra ni tiene planes**. No cambia plan, código ni contrato (salvo una fila en `04 §11`).
 **Qué cambió con la revisión:** *antes definía los planes por el personal del DENUE («Gratuito = 0–5 personas, 69.8 %») y decía que «los del tamaño gratuito nunca pagan»; esa frontera es un corte que Carta no conoce. Ahora la frontera son los **topes que el producto puede aplicar** (mesas, cuentas de personal, platillos), con a quién dejan dentro y a quién empujan; el corte por personal queda como contraste. También se corrigió el punto de equilibrio (era 7.4; es 9.7) y se marca lo que cambia lo que Calvin ya decidió.*
 **Datos:** [`…-datos.json`](2026-11-14-tres-planes-datos.json) · [`…-cobertura-platillos.csv`](2026-11-14-cobertura-platillos.csv) · **Guion:** [`…-tres-planes.py`](2026-11-14-tres-planes.py) (`python3 -I`; lee el CSV de 148 cartas y los datos de [precio](2026-11-14-precio-con-fundamento.md) y [disco](2026-11-14-disco-e-historial.md)).
+
+**Sesgos de las muestras de cartas (ronda 6).** Hay dos muestras con sesgos opuestos: **148 cartas de reparto** (sesgo hacia cartas **cortas**) y la muestra de **sitios propios** (sesgo hacia cartas **largas y formales**). Ninguna representa a la taquería de barrio: el tope de 150 platillos de Chef es un juicio entre ambas, no una medida.
 
 **Marcas.** **[medida]** = conteo mío sobre datos del repositorio. **[documento]** = otro documento. **[supuesto]** = juicio o modelo, con el dato que lo cerraría en §7. Pesos al mes. **«IVA no declarado»** donde la página del competidor no lo dice.
 
