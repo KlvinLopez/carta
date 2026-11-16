@@ -14,7 +14,7 @@ DET.sostiene = {
   nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
   montar(host) {
     this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
-    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
+    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
     const sv = $("#svK", host); this.sv = sv;
     host.addEventListener("click", ev => {
       const t = ev.target.closest("[data-vista]"); if (t) { this.v = +t.dataset.vista; refrescar(); return; }
@@ -55,8 +55,9 @@ DET.sostiene = {
     [["baja", "tarifa baja", C.vino], ["medio", "tarifa media", C.verde], ["adverso", "adverso (la mitad)", C.dorado]].forEach(([k, nm, col], i) => { const r = g.con_anuncios[k]; b += `<circle cx="${px + 6}" cy="${256 + i * 30}" r="6" fill="${col}"/>` + T(px + 20, 261 + i * 30, `${nm}: ${fmP(r.margen)}`, 14, C.tinta, "start", 700) + T(px + 270, 261 + i * 30, r.se_paga_solo ? "se paga solo" : "no alcanza", 12, r.se_paga_solo ? C.verde : C.rojo, "end", 700); });
     b += T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
     [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2) + T(px + i * 96, 456, `rango ${rg(rs[k])}`, 11, C.t2); });
-    b += T(30, 500, "Vale cuando la Fase 3 (canal de eventos) esté construida; hoy, con sondeo, caben 148. Los umbrales son rangos, no puntos.", 12.5, C.t2);
-    b += `<rect x="30" y="462" width="600" height="26" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que este cálculo no incluye: " + bol.no_modelado.join("; "))}" tabindex="0"/>` + T(30, 480, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) y ${n(bol.centro.comensales_mes / 1e6, 2)} M de comensales al mes.`, 14.5, C.osc, "start", 700);
+    const bolSin = conCache("bolsaSin" + S.bolsa, () => MOD.rangoBolsa(MOD.conHistorialGratuito(c, s, 12), s, S.bolsa));
+    b += `<rect x="30" y="462" width="900" height="24" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que este cálculo no incluye: " + bol.no_modelado.join("; "))}" tabindex="0"/>` + T(30, 478, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) con historial a 30 días (propuesta);`, 14, C.osc, "start", 700) + T(30, 498, `sin purga caben ${n(bolSin.centro.restaurantes)}: hoy nada limpia el disco. El costo y el margen suponen la purga a 30 días.`, 14, C.rojo, "start", 700);
+    b += T(30, 524, "Vale con la Fase 3 (canal de eventos); hoy, con sondeo, caben 148 con 30 días y 23 sin purga. Los umbrales son rangos.", 12, C.t2);
     sv.innerHTML = b;
     const hd = $("#hN", sv), inv = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
     arrastrable(hd, sv, pt => { this.N = inv(pt.x); this.pinta(); }, (d, mult) => { this.N = clamp(this.N + d * mult * 10, 10, 2000); this.pinta(); });
@@ -204,8 +205,8 @@ const TARJ = {
     rec: 1,
   },
   historial: {
-    que: "12 meses de historial en línea para Master Chef",
-    cif: () => ["12 meses", "Chef: 1 mes; archivo descargable"],
+    que: "12 meses de historial en línea para Master Chef y 30 días para Chef (propuesta)",
+    cif: () => ["12 meses", "Master Chef; Chef: 30 días (propuesta: hoy nada purga) y archivo descargable"],
     si: () => `Cada cliente de paga pesa ${n(evalS({...S, hist: 12}).capacidad.mb_por_restaurante.servicio)} MB con 12 meses y ${n(evalS({...S, hist: 3}).capacidad.mb_por_restaurante.servicio)} con 3.`,
     rec: 1,
   },

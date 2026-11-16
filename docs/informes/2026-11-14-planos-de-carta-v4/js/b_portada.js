@@ -12,16 +12,18 @@ const fila = (r, k) => r.cifras.find(c => c.clave === k);
 const pesos = v => (v == null ? "—" : mxn(Math.round(v * 10) / 10));
 const KPIS = [
   {id: "potenciales", clave: "clientes_potenciales", f: v => n(v), txt: "clientes potenciales (SAM)", solo: true},
-  {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes gratuitos caben con eventos (Fase 3)", ps: ["hoy (sondeo)", "con servidor grande"], neutro: true},
+  {id: "caben", clave: "restaurantes_que_caben_sin_purga", f: v => n(v), txt: "restaurantes gratuitos caben hoy, sin purga del historial", ps: ["", ""], neutro: true, especial: "caben"},
   {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
   {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
   {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga", solo: true, nota: "Promedio entre Master Chef y Chef Ejecutivo: cambia con la mezcla de planes, no con el escenario."},
-  {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes"},
+  {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes (historial a 30 días)", especial: "margen"},
 ];
 function pintaKpis() {
   const r = resumenS(S), html = KPIS.map(k => {
-    const c = fila(r, k.clave), tip = `${k.nota || c.nota}. Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
-    const tri = k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Estrés: pagan poco, los anuncios dejan la mitad y el soporte cuesta más">estrés ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
+    const c = fila(r, k.clave), c30 = fila(r, "restaurantes_que_caben"), sinP = k.especial === "margen" ? conCache("kpiSinPurga", () => MOD.resumen(MOD.conHistorialGratuito(config(S), sup(S), 12), sup(S)).cifras.find(x => x.clave === "margen_de_operacion").recomendado) : null;
+    const extra = k.especial === "caben" ? ` Con historial del gratuito a 30 días (propuesta que contradice 03 §7): ${n(c30.recomendado)} con avisos, ${n(c30.peor)} con el sondeo de hoy, ${n(c30.mejor)} con el servidor más grande. Restaurante típico: 1,800 visitas al mes y 114 comensales al día (supuesto).` : k.especial === "margen" ? ` Supone historial a 30 días (propuesta); sin purga: ${sinP >= 0 ? "+" : ""}${mp(sinP)}.` : "";
+    const tip = `${k.nota || c.nota}.${extra} Recomendado: ${r.definiciones.recomendado}. Peor: ${r.definiciones.peor}. Mejor: ${r.definiciones.mejor}.`;
+    const tri = k.especial === "caben" ? `<span class="tri ne"><i class="p">con 30 días (propuesta) ${n(c30.recomendado)}</i><i class="m">servidor grande ${n(c30.mejor)}</i></span>` : k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${k.f(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${k.f(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Estrés: pagan poco, los anuncios dejan la mitad y el soporte cuesta más">estrés ${k.f(c.piso_de_verdad)}</i>` : ""}</span>`;
     return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"><b>${k.f(c.recomendado)}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
   $("#kpis").innerHTML = html; const kd = $("#kpisDet"); if (kd) kd.innerHTML = html;
