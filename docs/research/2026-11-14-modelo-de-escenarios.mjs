@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-14-r6';
+export const VERSION = '2026-11-16-r7';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -149,9 +149,24 @@ export function interp2(g, mesas, cuentas, clave = 'centro') {
 export function parteRebasa(config, s, clave = 'centro') {
   const g = config.topes.gratuito;
   const conj = clamp(interp2(s.empuja_conjunto, g.mesas, g.cuentas, clave), 0, 1);
-  const plat = interp(s.empuja_platillos, g.platillos);
+  const plat = 1 - coberturaPlatillos(config, s);
   const pdf = s.empuja_pdf_gratuito ?? 0;
   return clamp(1 - (1 - conj) * (1 - plat) * (1 - pdf), 0, 1);
+}
+
+/**
+ * Cobertura del tope de platillos del plan gratuito: parte de los negocios con carta ≤ tope. Es un RANGO con DOS COTAS de sesgo opuesto
+ * (`s.cota_platillos`: 'alta' = 148 cartas de reparto, cortas y sin bebidas; 'baja' = 56 cartas completas de sitios propios, largas y
+ * formales). **No se sabe cuál es la cobertura real.** El tope puede contar todo o sólo comida (`topes.gratuito.platillos_cuenta` =
+ * 'todo' | 'comida'; las bebidas quedan sin tope); `platillos` Infinity o null = sin tope.
+ */
+export function coberturaPlatillos(config, s, opc = {}) {
+  const g = config.topes.gratuito;
+  const tope = opc.tope ?? g.platillos;
+  if (tope == null || tope === Infinity) return 1;
+  const cota = opc.cota ?? s.cota_platillos ?? 'alta';
+  const cuenta = opc.cuenta ?? g.platillos_cuenta ?? 'todo';
+  return interp(s.cobertura_platillos[cota][cuenta], tope);
 }
 
 /** Parte de los registrados que rebasa también los topes de Master Chef (es de tamaño Chef Ejecutivo). */
@@ -168,7 +183,49 @@ export function parteSalon(config, s) {
 export function seguridadChico(config, s, clave = 'centro') {
   const g = config.topes.gratuito;
   const conj = clamp(interp2(s.seguridad_chico, g.mesas, g.cuentas, clave), 0, 1);
-  return conj * (1 - interp(s.empuja_platillos, g.platillos)) * (1 - (s.empuja_pdf_gratuito ?? 0));
+  return conj * coberturaPlatillos(config, s) * (1 - (s.empuja_pdf_gratuito ?? 0));
+}
+
+/**
+ * Cobertura conjunta del plan Chef (negocios de hasta 10 personas dentro de mesas, cuentas, platillos y lecturas de PDF) con las DOS cotas
+ * del tope de platillos, contando todo y contando sólo comida. `clave` = 'centro' | 'minimo' | 'maximo' (intervalo del modelo de mesas y
+ * cuentas). Es una probabilidad bajo supuestos; no una medida.
+ */
+export function coberturaChef(config, s, clave = 'centro', tope = undefined) {
+  const out = {};
+  for (const cuenta of ['todo', 'comida']) {
+    out[cuenta] = {};
+    for (const cota of ['alta', 'baja']) {
+      const c = tope === undefined ? config : { ...config, topes: { ...config.topes, gratuito: { ...config.topes.gratuito, platillos: tope } } };
+      out[cuenta][cota] = seguridadChico({ ...c, topes: { ...c.topes, gratuito: { ...c.topes.gratuito, platillos_cuenta: cuenta } } }, { ...s, cota_platillos: cota }, clave);
+    }
+  }
+  return out;
+}
+
+/**
+ * Las opciones abiertas para el tope de platillos del plan Chef (decisión de Calvin): qué cuesta cada una en cobertura (con las dos
+ * cotas) y en margen de operación con `n` restaurantes (curva media). Margen = más pagantes cuanto menos cobertura: una cobertura baja
+ * «mejora» el margen porque obliga a más gente a pagar, a costa de cobrar a quien debía ser gratis.
+ */
+export function opcionesTopePlatillos(config, s, n = 1000) {
+  const opciones = [
+    { id: 'actual', nombre: 'Tope de 150 platillos, bebidas incluidas (la propuesta actual)', tope: 150, cuenta: 'todo' },
+    { id: 'solo_comida', nombre: 'Tope de 150 que cuenta sólo comida (las bebidas no tienen tope)', tope: 150, cuenta: 'comida' },
+    { id: 'subir_200', nombre: 'Subir el tope a 200 platillos (bebidas incluidas)', tope: 200, cuenta: 'todo' },
+    { id: 'subir_300', nombre: 'Subir el tope a 300 platillos (bebidas incluidas)', tope: 300, cuenta: 'todo' },
+    { id: 'sin_tope', nombre: 'Quitar el tope de platillos y limitar sólo por mesas y cuentas', tope: Infinity, cuenta: 'todo' },
+  ];
+  return opciones.map((o) => {
+    const c = { ...config, topes: { ...config.topes, gratuito: { ...config.topes.gratuito, platillos: o.tope, platillos_cuenta: o.cuenta } } };
+    const porCota = {};
+    for (const cota of ['alta', 'baja']) {
+      const ss = { ...s, cota_platillos: cota };
+      const e = evaluar(c, ss, n, { curva: 'media' });
+      porCota[cota] = { cobertura_platillos: coberturaPlatillos(c, ss), cobertura_chef: seguridadChico(c, ss, 'centro'), dentro_de_todos: 1 - parteRebasa(c, ss), pagantes: e.clientes.de_paga, margen_operacion: e.margen_operacion };
+    }
+    return { ...o, tope: o.tope === Infinity ? null : o.tope, por_cota: porCota };
+  });
 }
 
 /** Parte de los que rebasan que llega a pagar a ese precio, según la curva (lognormal con techo). Precio ≤ 0 = nadie «paga». */
@@ -1037,7 +1094,7 @@ export function optimizar(s, restricciones = {}, base = configInicial()) {
   const porNivel = new Map();
   for (const e of evaluadas) { const k = nivelDe(e); const p = porNivel.get(k); if (!p || e.margen > p.margen) porNivel.set(k, e); }
   const frontera = [...porNivel.entries()].sort((a, b) => a[0] - b[0]).map(([nivel, e]) => ({ seguridad_chico_desde: nivel, seguridad_chico: e.seguridad_chico, dentro_de_todos: e.dentro, margen: e.margen, pagantes: e.pagantes, precio_servicio: e.mejor_precio, mesas: e.mesas, cuentas: e.cuentas, platillos: e.platillos }));
-  const tabla = [0.8, 0.9, 0.95].map((x) => { const v = evaluadas.filter((e) => e.seguridad_chico >= x - 1e-9).sort((a, b) => b.margen - a.margen)[0]; if (!v) return { seguridad: x, sin_solucion: true }; const cP = JSON.parse(JSON.stringify(v.config)); cP.precios.servicio = base.precios.servicio; const mP = evaluar(cP, s, r.n, { curva: r.curva, sinAnuncios: r.sinAnuncios }); return v ? { seguridad: x, seguridad_real: v.seguridad_chico, dentro_de_todos: v.dentro, mesas: v.mesas, cuentas: v.cuentas, platillos: v.platillos, precio_servicio: v.mejor_precio, meseta_precio: v.meseta, pagantes: v.pagantes, margen: v.margen, precio_de_la_config: base.precios.servicio, margen_al_precio_de_la_config: mP.margen_operacion } : { seguridad: x, sin_solucion: true }; });
+  const tabla = [0.8, 0.9, 0.95].map((x) => { const v = evaluadas.filter((e) => e.seguridad_chico >= x - 1e-9).sort((a, b) => b.margen - a.margen)[0]; const segBaja = v ? seguridadChico(v.config, { ...s, cota_platillos: 'baja' }, r.clave) : null; if (!v) return { seguridad: x, sin_solucion: true }; const cP = JSON.parse(JSON.stringify(v.config)); cP.precios.servicio = base.precios.servicio; const mP = evaluar(cP, s, r.n, { curva: r.curva, sinAnuncios: r.sinAnuncios }); return v ? { seguridad: x, seguridad_real: v.seguridad_chico, dentro_de_todos: v.dentro, mesas: v.mesas, cuentas: v.cuentas, platillos: v.platillos, precio_servicio: v.mejor_precio, meseta_precio: v.meseta, pagantes: v.pagantes, margen: v.margen, seguridad_con_cota_baja: segBaja, precio_de_la_config: base.precios.servicio, margen_al_precio_de_la_config: mP.margen_operacion } : { seguridad: x, sin_solucion: true }; });
   const claves = ['centro', 'minimo'];
   const sensibilidadClave = Object.fromEntries(claves.map((k) => [k, mejor ? { seguridad_chico: seguridadChico(mejor.config, s, k), dentro_de_todos: 1 - parteRebasa(mejor.config, s, k === 'minimo' ? 'maximo' : 'centro') } : null]));
   return { restricciones: r, mejor, meseta_precio_servicio: mejor ? mejor.meseta : null, precio_salon: salon, top5: validas.slice(0, 5), frontera, tabla_cupo_gratis: tabla, sensibilidad_modelo_mesas_cuentas: sensibilidadClave, evaluadas: evaluadas.length, descartadas };

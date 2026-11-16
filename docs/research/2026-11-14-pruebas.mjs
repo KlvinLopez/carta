@@ -241,6 +241,25 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('margen de operación recomendado con 15 mesas (1,000)', M.evaluar(c15, s, 1000, { curva: 'media' }).margen_operacion, 9996, 1);
 }
 
+// 12b) COBERTURA DEL TOPE DE PLATILLOS (ronda 7): dos cotas de sesgo opuesto, no se sabe la real
+{
+  const cfg = M.configInicial();
+  const cp = (cuenta, cota, tope) => M.coberturaPlatillos(cfg, { ...s, cota_platillos: cota }, { tope, cuenta });
+  prueba('muestra de sitios propios: cobertura de 80, 150, 200 y 300 platillos contando todo', [80, 150, 200, 300].map((x) => Math.round(cp('todo', 'baja', x) * 100)).join(','), '25,52,73,84');
+  prueba('muestra de sitios propios, sólo comida: 80 → 75 % y 150 → 100 %', `${Math.round(cp('comida', 'baja', 80) * 100)}-${Math.round(cp('comida', 'baja', 150) * 100)}`, '75-100');
+  prueba('cota alta (reparto) a 150 platillos: 98 %', Math.round(cp('todo', 'alta', 150) * 100), 98);
+  prueba('dentro de 150 por tipo: fondas y taquerías, cafeterías y formales', ['taqueria_fonda', 'cafeteria', 'formal'].map((k) => `${s.cobertura_platillos.por_tipo_baja[k].dentro_de_150_total}/${s.cobertura_platillos.por_tipo_baja[k].n}`).join(','), '7/8,9/11,3/14');
+  const cc = M.coberturaChef(cfg, s);
+  prueba('cobertura del plan Chef contando todo: cota baja y cota alta', `${Math.round(cc.todo.baja * 1000) / 10}-${Math.round(cc.todo.alta * 1000) / 10}`, '50.3-95.1');
+  prueba('cobertura del plan Chef contando sólo comida: cota baja y cota alta', `${Math.round(cc.comida.baja * 1000) / 10}-${Math.round(cc.comida.alta * 1000) / 10}`, '97.1-95.1');
+  prueba('cobertura del plan Chef sin tope de platillos', Math.round(M.coberturaChef(cfg, s, 'centro', Infinity).todo.baja * 1000) / 10, 97.1);
+  const op = Object.fromEntries(M.opcionesTopePlatillos(cfg, s, 1000).map((o) => [o.id, o]));
+  prueba('opciones del tope: cobertura de Chef con la cota baja (actual, sólo comida, 200, 300, sin tope)', ['actual', 'solo_comida', 'subir_200', 'subir_300', 'sin_tope'].map((k) => Math.round(op[k].por_cota.baja.cobertura_chef * 1000) / 10).join(','), '50.3,97.1,71.1,81.5,97.1');
+  prueba('opciones del tope: margen con la cota alta (actual, sólo comida, 200, 300, sin tope)', ['actual', 'solo_comida', 'subir_200', 'subir_300', 'sin_tope'].map((k) => Math.round(op[k].por_cota.alta.margen_operacion)).join(','), '8719,8719,8630,8504,8288');
+  prueba('opciones del tope: margen con la cota baja del tope actual', Math.round(op.actual.por_cota.baja.margen_operacion), 18592, 1);
+  prueba('la cota por omisión sigue siendo la alta (los números anteriores no cambian)', s.cota_platillos, 'alta');
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
@@ -248,6 +267,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const gens = [['node', '2026-11-14-corre-escenarios.mjs', ['2026-11-14-modelo-de-escenarios-resultados.json', '2026-11-14-modelo-de-escenarios.md', '2026-11-14-chequeo-de-margenes.md', '2026-11-14-precio-de-entrada.md', '2026-11-14-recomendaciones.json', '2026-11-14-recomendaciones.md']],
     ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
     ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
+    ['python3', '2026-11-16-cobertura-platillos.py', ['2026-11-16-cobertura-platillos-datos.json']],
     ['python3', '2026-11-14-parametros-generador.py', ['2026-11-14-parametros.json']]];
   for (const [cmd, script, salidas] of gens) {
     const args = cmd === 'python3' ? ['-I', join(aqui, script)] : [join(aqui, script)];

@@ -1,10 +1,10 @@
-# Recomendaciones: siete decisiones con su supuesto, sus alternativas y la prueba que las cierra
+# Recomendaciones: ocho decisiones con su supuesto, sus alternativas y la prueba que las cierra
 
 **Fecha:** 14 de noviembre de 2026 (ronda 4; apoyado en el [modelo](2026-11-14-modelo-de-escenarios.md)) · **Generado por `2026-11-14-corre-escenarios.mjs`** · [JSON](2026-11-14-recomendaciones.json).
 
 ## Conclusiones
 
-1. **Planes por tamaño: Chef (gratis) 25 mesas · 4 cuentas · 150 platillos; Master Chef hasta 100 mesas y 30 cuentas; Chef Ejecutivo lo demás.** Es un modelo (σ = 0.5 supuesto): 95.1 % de los negocios de hasta 10 personas quedan dentro (86.7 %–98 %).
+1. **Planes por tamaño: Chef (gratis) 25 mesas · 4 cuentas · 150 platillos; Master Chef hasta 100 mesas y 30 cuentas; Chef Ejecutivo lo demás.** Cobertura de los negocios de hasta 10 personas: **rango 50.3 % a 95.1 %** según la muestra de cartas (sesgos opuestos; no se sabe la real); el tope de platillos queda **abierto** (decisión 2).
 2. **Master Chef 225 y Chef Ejecutivo 1,099 son decisiones de posicionamiento de Calvin, no resultados del modelo;** el modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba del piloto. Margen de operación con 1,000 restaurantes: +8,719 recomendado, −47 peor, +32,655 mejor, −2,031 piso de verdad.
 3. **Los anuncios llegan hacia el mes 9 (supuesto); mientras tanto, 1,000 pesos al mes cargan 811 restaurantes gratuitos (rango 246–1,896), con el canal de eventos construido.**
 4. **Lo que más cambia el resultado: curva · mediana, cuántos rebasan los topes, curva · techo.** Se miden en el piloto.
@@ -15,7 +15,7 @@
 
 ## 1. Segmentación: qué entra en cada plan y con qué topes
 
-**Recomendación.** **Chef (gratis) = 25 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, 95.1 % de los negocios de hasta 10 personas quedan gratis (intervalo del modelo 86.7 %–98 %).
+**Recomendación.** **Chef (gratis) = 25 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, la cobertura de los negocios de hasta 10 personas es un **rango: 50.3 % (cota baja, sitios propios) a 95.1 % (cota alta, reparto)**; no se sabe cuál es la real, y el tope de platillos queda abierto (decisión siguiente).
 
 **De qué supuesto depende y qué pasa si falla.** **Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato).** Medido: sólo los conteos por estrato. Con 15 mesas la seguridad sería 89.4 %, no 95 %; con el peor rincón del modelo, ningún tope de la rejilla estrecha lo cumple salvo 60 mesas · 5 cuentas · 100 platillos. **Si falla:** si las fondas tienen más mesas, algunas pagan sin querer; se corrige subiendo el tope (el piloto lo muestra en una semana).
 
@@ -33,7 +33,28 @@
 
 ---
 
-## 2. Precios de Master Chef y Chef Ejecutivo
+## 2. Tope de platillos del plan Chef (ABIERTA para Calvin)
+
+**Recomendación.** **No recomiendo un tope todavía: la cobertura real no se sabe.** Con 150 platillos contando todo, cubre 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.
+
+**De qué supuesto depende y qué pasa si falla.** **De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio** (la muestra de sitios propios sobrerrepresenta a formales y cadenas; la de reparto, a cartas cortas). **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.
+
+**Cifras del modelo.** Tope de 150 platillos, bebidas incluidas (la propuesta actual): cobertura de Chef 50.3 % (cota baja) a 95.1 % (cota alta); margen +18,592 a +8,719 · Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): cobertura de Chef 97.1 % (cota baja) a 95.1 % (cota alta); margen +8,288 a +8,719 · Subir el tope a 200 platillos (bebidas incluidas): cobertura de Chef 71.1 % (cota baja) a 95.5 % (cota alta); margen +13,978 a +8,630 · Subir el tope a 300 platillos (bebidas incluidas): cobertura de Chef 81.5 % (cota baja) a 96.1 % (cota alta); margen +11,671 a +8,504 · Quitar el tope de platillos y limitar sólo por mesas y cuentas: cobertura de Chef 97.1 % (cota baja) a 97.1 % (cota alta); margen +8,288 a +8,288.
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Tope de 150 que cuenta sólo comida (las bebidas no tienen tope) | Casi no deja a nadie afuera (cobertura ≈ 97 %) | Hay que clasificar comida y bebida al importar |
+| Subir el tope a 200 platillos (bebidas incluidas) | Cobertura de 71 % con la cota baja | Sigue dependiendo de una muestra sesgada |
+| Subir el tope a 300 platillos (bebidas incluidas) | Cobertura de 81 % con la cota baja | Sigue dependiendo de una muestra sesgada |
+| Quitar el tope de platillos y limitar sólo por mesas y cuentas | Cobertura sólo por mesas y cuentas; simple de explicar | Sin freno para quien suba cartas enormes (costo de disco y de lectura de PDF) |
+
+**Ejemplo.** Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe ni en 200.
+
+**La prueba o el dato que la cierra.** La carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron.
+
+---
+
+## 3. Precios de Master Chef y Chef Ejecutivo
 
 **Recomendación.** **Master Chef 225 es una decisión de posicionamiento de Calvin (pegado a Meniu Business), no un resultado del modelo; Chef Ejecutivo 1,099 (igual que OlaClick Elite y Last.app Starter-Growth) también.** El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto.
 
@@ -54,7 +75,7 @@
 
 ---
 
-## 3. Anuncios en Chef: cuándo llegan y cuánto dejan
+## 4. Anuncios en Chef: cuándo llegan y cuánto dejan
 
 **Recomendación.** **El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 811 restaurantes (rango 246 a 1,896).
 
@@ -74,7 +95,7 @@
 
 ---
 
-## 4. Cuánta bolsa poner mientras no hay anuncios
+## 5. Cuánta bolsa poner mientras no hay anuncios
 
 **Recomendación.** **1,000 pesos al mes** alcanzan para 811 restaurantes gratuitos (rango 246 a 1,896); acumulado, Calvin pone hasta **2,032 pesos** en el caso recomendado, 20,594 en el peor y 88,023 en el piso de verdad.
 
@@ -95,7 +116,7 @@
 
 ---
 
-## 5. Historial: meses en línea y archivo descargable
+## 6. Historial: meses en línea y archivo descargable
 
 **Recomendación.** **12 meses en línea para la paga (decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**
 
@@ -114,7 +135,7 @@
 
 ---
 
-## 6. Soporte
+## 7. Soporte
 
 **Recomendación.** **WhatsApp o correo en horario hábil para la paga (≈ 60 pesos al mes por cliente) y autoservicio para el gratuito (0.5, sin fuente).**
 
@@ -134,7 +155,7 @@
 
 ---
 
-## 7. Avisos de reloj desde el servidor
+## 8. Avisos de reloj desde el servidor
 
 **Recomendación.** **No.** Los relojes se calculan en el teléfono (AC-40.9).
 
