@@ -170,16 +170,25 @@ def resolver_publico(host: str, puerto: int) -> list[tuple[str, int]]:
     return direcciones
 
 
-def url_permitida(url: str) -> bool:
-    """Esquema http(s), puerto 80/443 y un nombre que resuelva sólo a direcciones públicas."""
+def clasificar_url(url: str) -> str:
+    """'ok' | 'invalido' (esquema, puerto o nombre) | 'no_publico' (resuelve a una IP no pública) | 'no_resuelve'."""
     try:
         p = urllib.parse.urlparse(url)
         if p.scheme not in ("http", "https") or not p.hostname or p.port not in PUERTOS:
-            return False
+            return "invalido"
         resolver_publico(p.hostname, p.port or (443 if p.scheme == "https" else 80))
-    except (OSError, ValueError):
-        return False
-    return True
+    except DestinoNoPublico:
+        return "no_publico"
+    except ValueError:
+        return "invalido"
+    except OSError:
+        return "no_resuelve"
+    return "ok"
+
+
+def url_permitida(url: str) -> bool:
+    """Esquema http(s), puerto 80/443 y un nombre que resuelva sólo a direcciones públicas."""
+    return clasificar_url(url) == "ok"
 
 
 def _crear_conexion(direccion, timeout=PLAZO_S, source_address=None):
@@ -266,7 +275,10 @@ def _cerrado() -> urllib.robotparser.RobotFileParser:
 def descargar(url: str, max_bytes: int) -> tuple[int, str, bytes]:
     """(código, tipo de contenido, cuerpo). Códigos: 0 error de red; -1 `robots.txt` lo prohíbe (en cualquier
     salto); -2 destino no público (en cualquier salto). No reintenta."""
-    if not url_permitida(url):
+    clase = clasificar_url(url)
+    if clase == "no_resuelve":
+        return (0, "", b"")  # el nombre no existe: sitio caído
+    if clase != "ok":
         return (-2, "", b"")
     if not permitido(url):
         return (-1, "", b"")

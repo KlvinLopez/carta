@@ -92,6 +92,15 @@ class Pruebas(unittest.TestCase):
         ):
             self.assertFalse(lector.url_permitida(url), url)
 
+    def test_clasificacion_de_la_url(self):
+        self.assertEqual(lector.clasificar_url("http://sin-resolver.example/"), "no_resuelve")
+        self.assertEqual(lector.clasificar_url("http://interno.example/"), "no_publico")
+        self.assertEqual(lector.clasificar_url("ftp://publico.example/"), "invalido")
+        self.assertEqual(lector.clasificar_url("http://publico.example:22/"), "invalido")
+        self.assertEqual(lector.clasificar_url("https://publico.example/"), "ok")
+        # un nombre que no existe es un sitio caído (código 0), no «destino no público» (-2)
+        self.assertEqual(lector.descargar("http://sin-resolver.example/", 1000)[0], 0)
+
     def test_url_aceptada(self):
         self.assertTrue(lector.url_permitida("https://publico.example/menu"))
         self.assertTrue(lector.url_permitida("http://otro-publico.example:80/menu.pdf"))
