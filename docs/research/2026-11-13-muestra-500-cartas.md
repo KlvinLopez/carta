@@ -18,6 +18,7 @@ Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviem
 
 - **Lo firme (los controles lo confirman, §14):** el cero del DENUE **no** es del lector (lee 10 de 10 aciertos conocidos) ni de la resolución de nombres (0 de 20 «caídos» responden por una segunda vía). **43 % de los dominios declarados en el DENUE ya no existen** (71 de 166 sitios distintos) y sólo **39 % llevan a una página viva del negocio**.
 - **Techo de cartas alcanzables por sitio propio declarado en el DENUE: ≤ ≈ 290** (17,827 × 1.6 %), **≤ 0.04 % del universo** de 741,499 establecimientos de la rama 7225 (DENUE 05_2026, §8). Ni el 5 % (37,075) ni siquiera el 1 % son alcanzables por esta vía.
+- **Actualización tras la tanda 3 (§16): Google acumula 34 completas de 356 sitios distintos = 0.096 (0.073–0.124); quedan 250 sin intentar (≈ 20 completos más, ≈ 55 en total).**
 - **La vía que sí da cartas es el marco de Google (≈ 10 % de los sitios distintos con carta completa y legible; 27 de 276 con 90 % de confianza de 7 a 13 %, §15)**, pero describe **cartas legibles en línea de negocios con sitio y muchas reseñas**: un sesgo fuerte; no sirve como mediana de platillos ni de precios del negocio típico (§12.6). Sin embargo, no puede extrapolarse al universo: el DENUE mide justo lo contrario.
 - **Decisión de la maestra (16 de noviembre):** el marco del DENUE **se cierra** (no rinde); se retoma el de Google que ya está leído a medias (504 sitios pendientes, orden aleatorio con semilla, tandas de hasta 125 intentos, sin consultas nuevas a Google; **tanda 2 hecha: §15, quedan 375**); lo que no se lea antes del 20 de noviembre se queda sin leer.
 - **Para Calvin (vigente):** el 500 de la muestra se alcanza a lo sumo en la parte de Google (≈ 70 cartas completas esperadas en todo el marco con la tasa de 0.10); **no hay forma de «mapear» el 5, 10, 30 o 50 % del país por sitios propios**; los restaurantes sin presencia en línea (≈ 99 %) sólo se alcanzan con sus propias cartas (piloto) o por visita. Las plataformas de reparto quedan fuera por sus términos (§9).
@@ -525,6 +526,23 @@ Eso es lo que sustenta «el campo de sitio web del DENUE está desactualizado»:
 **Sesgos de lo leído (se repite):** son cartas **legibles en línea de negocios con sitio propio y muchas reseñas**; entre los completos hay cadenas y negocios formales de 100–150 platillos y 250–400 bebidas (vinos y destilados); **no representan al negocio mexicano típico** (§12.6). **Observaciones de calidad:** un «sitio de restaurante» de la lista de Google era de España (se descarta: fuera de México); en 2 casos el sitio es mayormente una tienda de café (se cuenta solo la carta); en un caso la cifra de bebidas es mínima porque vinos y destilados no tienen precio en el texto.
 
 **Pendiente del marco de Google:** **375 sitios sin intentar** de los 504 (la lista sigue en el directorio temporal; se borra a más tardar el 20 de noviembre o al terminar, lo que ocurra primero). Con la tasa de 0.098 por sitio distinto, lo que queda daría ≈ 35 completas más (≈ 65 en todo el marco). **No se calcula todavía la estadística (mediana, p90 con intervalo)**: con 28 filas completas y estos sesgos sirve solo como prueba de método.
+
+## 16. Marco de Google: tanda 3 (125 intentos más) [medida aquí; 16 de noviembre de 2026]
+
+Misma cola aleatoria (semilla 20261117), mismas reglas, mismo lector. **125 intentos registrados, 45 «misma marca» sin pedir: 80 sitios distintos.**
+
+| | Intentos |
+|---|---|
+| **Contables completos** | **7** |
+| Parciales (una de comida o de bebidas, la otra no legible) | 8 |
+| Misma marca | 45 |
+| Descartes | 65 |
+
+**Tasas** [aritmética mía, intervalo de 90 % de Wilson]: **tanda 3: 7 de 80 sitios distintos = 0.087 (0.048–0.154)**; **acumulado del marco: 34 de 356 sitios distintos = 0.096 (0.073–0.124)** (34 de 454 si «misma marca» cuenta como intento: 0.075, 0.057–0.098). La tanda 3 coincide con la 2 (0.086) y con la 1 (0.103): la tasa no se mueve con el orden de lectura.
+
+**Motivos de descarte (80 registros sin «misma marca»):** sin carta en el sitio 35 · sitio caído 5 · precios no asociables 4 · `robots.txt` 3 · carta sólo en imagen 2 · carta sin precios 3 (incluye una en texto) · bloqueo 403 2 · precios sin nombre 2 · HTTP 500 1 · bloqueo 429 1 · directorio o sitio ajeno 2 · tienda en línea sin carta 1 · columnas mezcladas 1 · carta incompleta 2 · sólo categorías 1.
+
+**Pendiente:** **250 sitios sin intentar** (375 − 125). Con 0.096 por sitio distinto quedarían ≈ 20 completos más (≈ 55 en todo el marco): **500 no se alcanza**. El archivo temporal con nombres y sitios sigue en el directorio de la sesión y se borra el 20 de noviembre o al terminar la cola. La estadística (medianas, p90, intervalos por remuestreo) se corre una sola vez al cerrar el marco, con el aviso de sesgo de leíbles.
 
 ---
 
