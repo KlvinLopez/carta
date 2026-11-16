@@ -8,6 +8,7 @@
       "Bash(uv run pytest*)",
       "Bash(uv run alembic *)",
       "Bash(uv run python scripts/*)",
+      "Bash(python3 docs/research/2026-11-13-muestra-500-lector.py *)",
       "Bash(uv pip install *)",
       "Bash(npm --prefix frontend *)",
       "Bash(docker compose up *)",
