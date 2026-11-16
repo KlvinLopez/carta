@@ -456,6 +456,37 @@ Sin leer ningún sitio durante esta ronda (el trabajo en red sigue en pausa hast
 
 **Archivo temporal:** los textos descargados de esta tanda y el archivo de candidatos con sitios del DENUE (que sí es abierto) quedan en el directorio temporal de la sesión; el de Google se borra el 20 de noviembre como acordado.
 
+## 14. Controles de la tanda 1 del DENUE (16 de noviembre de 2026) [medida aquí]
+
+La maestra pidió dos controles antes de dar firme el 0 de 200, porque esta tanda corrió con un lector distinto del que leyó el marco de Google (ahora valida que el nombre resuelva a una IP pública) y desde un contenedor que sale por un proxy. **Resultado: los dos controles confirman el 0 de 200; el cero no es del lector ni de la resolución de nombres.**
+
+**Control 1: el lector de hoy sobre 10 aciertos conocidos.** Se eligieron 10 de las 20 cartas completas del marco de Google al azar (semilla 20261116) y se volvieron a leer con el lector actual: **lee 10 de 10**, con las mismas páginas y casi los mismos renglones con precio (TqZfkA 2,157 contra 2,154; l5_p7I 384 contra 373; las otras ocho, idénticos; todas con el mismo número de páginas). Por lo tanto el lector nuevo (IP pública, `robots.txt` por salto, agente de usuario nuevo) no pierde cartas que el anterior leía. (Los sufijos son los de los `place_id`; en el repositorio sólo está el identificador.)
+
+**Control 2: «sitio caído» por una segunda vía.** Script [`…-muestra-denue-control.py`](2026-11-13-muestra-denue-control.py): pide sólo la portada (y `robots.txt`) a través del proxy de salida, que resuelve los nombres por su cuenta, por https (el proxy sólo admite túneles: con http responde 405), sin seguir redirecciones, sin guardar contenido y con el mismo agente de usuario. De **20 «sitio caído» elegidos al azar** (semilla 20261116; 16 con nombre que no resuelve localmente y 4 que sí resuelven): **0 de 20 responden 200.** Los 16 que no resuelven localmente tampoco los alcanza el proxy («502 Bad Gateway» en el túnel), así que la resolución local **no** falla. De los 4 que resuelven: un error de TLS (en http daba 409), un 500, un tiempo agotado y un 522 (origen caído).
+
+**Control 3: «sitio caído» separado, sobre los 81.** Con la resolución local para los 81 y el mismo script para los 10 que sí resuelven:
+
+| Qué pasa con el sitio declarado en el DENUE | Sitios |
+|---|---|
+| El nombre no existe (no resuelve; en la muestra de 16 el proxy tampoco lo alcanza) | 71 |
+| El nombre existe pero no responde (tiempo agotado, 522 origen caído) | 3 |
+| Error de certificado o de TLS (en http algunos responden 404 o 409) | 5 |
+| Responde con error del servidor (500) | 1 |
+| Redirige y el lector no pudo seguir (la portada por https da 301) | 1 |
+| **Total «sitio caído»** | **81** |
+
+**¿Cuántos de los 166 sitios distintos llevan a una página viva del negocio?** 
+- **Página leída del negocio (con o sin carta): 64 de 166 (38.6 %)**: 51 sin carta o sin precios, 12 con carta que no se pudo contar y 1 parcial.
+- Viva pero bloquea la lectura (`robots.txt`, 403, 503): 12 (7.2 %); no se puede verificar si es el negocio.
+- Viva pero ocupada por otro sitio o por una tienda de otro giro: 4 (2.4 %).
+- Red social o plataforma (no se lee): 5 (3 %).
+- **Caída o con error: 81 (48.8 %)**; de ellas, **71 (42.8 % de los 166)** con el nombre del dominio inexistente.
+Eso es lo que sustenta «el campo de sitio web del DENUE está desactualizado»: **casi la mitad de los sitios declarados no abre y menos de cuatro de cada diez llevan a una página viva del negocio**.
+
+**Tasa corregida o confirmada:** **confirmada**: 0 contables completos en 200 intentos (0 en 166 sitios distintos); intervalo de 90 % de la tasa **0 a 1.3 %** (0 en 166: 0 a 1.6 %). Techo de cartas alcanzables por sitios propios: ≤ ≈ 290 (17,827 × 1.6 %), ≤ 0.04 % del universo.
+
+**Lo que los controles no descartan:** (a) una sola tanda de 200, en un orden aleatorio; (b) el lector no resuelve JavaScript pesado ni PDF en columnas (12 casos); (c) la tasa del marco de Google (0.100) mide otra población (los más reseñados). No se abrió otra tanda.
+
 ---
 
 *Etapa 3 (estadística e informe completo) se agrega cuando haya contables suficientes.*
