@@ -43,6 +43,29 @@ Con dominio .shop/.store (completas): 3
 | Sólo completas | 56 | 106.6 (85.9–127.8) | 76.0 (57.5–102.0) | 0-9 | 1–400 | 141.0 (112.8–197.5) | 272.0 (180.5–300.5) | 299.2 (254.0–331.8) |
 | Completas + parciales con bebidas | 63 | 105.8 (86.8–125.8) | 77.0 (60.0–103.0) | 20-29 | 1–400 | 141.0 (115.5–189.7) | 267.2 (184.2–298.0) | 296.2 (247.9–309.0) |
 
+#### Cobertura por tope (conteos; completas, sin ponderar)
+
+| Qué | ≤ 80 | ≤ 150 | ≤ 200 | ≤ 300 |
+|---|---|---|---|---|
+| Platillos totales (n = 56) | 14 de 56 (25 %) | 29 de 56 (52 %) | 41 de 56 (73 %) | 47 de 56 (84 %) |
+| Sólo comida, mismos negocios (n = 56) | 42 de 56 (75 %) | 56 de 56 (100 %) | 56 de 56 (100 %) | 56 de 56 (100 %) |
+
+| Tipo (platillos totales dentro de 150) | n | ≤ 150 |
+|---|---|---|
+| taqueria_fonda | 8 | 7 de 8 (88 %) |
+| cafeteria | 11 | 9 de 11 (82 %) |
+| casual | 21 | 9 de 21 (43 %) |
+| formal | 14 | 3 de 14 (21 %) |
+| bar_cantina | 2 | 1 de 2 (50 %) |
+
+#### Sensibilidad: si el conteo de las tandas 1 a 3 (regla de variantes anterior) estuviera inflado (se resta ese porcentaje)
+
+| Inflado supuesto | Mediana de platillos | ≤ 150 |
+|---|---|---|
+| 0 % | 146.5 | 29 de 56 (52 %) |
+| 5 % | 143.9 | 31 de 56 (55 %) |
+| 10 % | 139.9 | 37 de 56 (66 %) |
+
 #### Curva de cobertura de topes (platillos totales, completas, sin ponderar)
 
 | Tope | % de negocios con ≤ tope (IC 90 %) |

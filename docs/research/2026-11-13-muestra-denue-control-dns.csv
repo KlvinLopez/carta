@@ -1,0 +1,82 @@
+denue_id,zona,estrato,nombre_del_dominio,motivo_registrado
+10133176,Puebla-Tlaxcala,6-10,no_existe,sitio_caido
+10179181,Oaxaca,0-5,resuelve,http_500
+10203345,Aguascalientes,0-5,no_existe,sitio_caido
+10263074,Querétaro,6-10,no_existe,sitio_caido
+10263701,León,11-30,no_existe,sitio_caido
+10451409,Guadalajara,0-5,no_existe,sitio_caido
+10468387,Toluca,0-5,no_existe,sitio_caido
+10606760,Valle de México,0-5,no_existe,sitio_caido
+10618987,Valle de México,0-5,no_existe,sitio_caido
+11069739,Monterrey,0-5,no_existe,sitio_caido
+11183910,Guadalajara,6-10,no_existe,sitio_caido
+11249807,Valle de México,0-5,no_existe,sitio_caido
+1132581,León,11-30,no_existe,sitio_caido
+11346696,Querétaro,0-5,no_existe,sitio_caido
+11371741,Tijuana,0-5,no_existe,sitio_caido
+11379767,Monterrey,31+,no_existe,sitio_caido
+11502116,Valle de México,11-30,no_existe,sitio_caido
+11671428,Oaxaca,31+,no_existe,sitio_caido
+117057,Tijuana,11-30,no_existe,sitio_caido
+11722932,Puebla-Tlaxcala,0-5,no_existe,sitio_caido
+11729086,Monterrey,11-30,no_existe,sitio_caido
+11774230,Monterrey,0-5,no_existe,sitio_caido
+154564,Tijuana,11-30,no_existe,sitio_caido
+1702692,Guadalajara,11-30,no_existe,sitio_caido
+1706095,Guadalajara,11-30,no_existe,sitio_caido
+1916671,Guadalajara,11-30,no_existe,sitio_caido
+1996410,Valle de México,0-5,no_existe,sitio_caido
+2263495,Valle de México,6-10,no_existe,sitio_caido
+2440317,Toluca,11-30,no_existe,sitio_caido
+2563403,Morelia,0-5,no_existe,sitio_caido
+2681822,Morelia,0-5,no_existe,sitio_caido
+2976440,Monterrey,6-10,no_existe,sitio_caido
+3063991,Oaxaca,11-30,no_existe,sitio_caido
+3610077,Querétaro,11-30,no_existe,sitio_caido
+3632710,Cancún,0-5,no_existe,sitio_caido
+3667957,San Luis Potosí,31+,no_existe,sitio_caido
+3871902,Hermosillo,6-10,no_existe,sitio_caido
+4580736,Mérida,6-10,no_existe,sitio_caido
+567844,Chihuahua,6-10,no_existe,sitio_caido
+607556,Chihuahua,0-5,no_existe,sitio_caido
+6286502,Tijuana,31+,resuelve,http_404
+6287631,Tijuana,11-30,no_existe,sitio_caido
+6314603,Valle de México,11-30,resuelve,sitio_caido
+6346002,Guadalajara,31+,no_existe,sitio_caido
+6367129,Monterrey,31+,no_existe,sitio_caido
+6396649,Hermosillo,6-10,no_existe,sitio_caido
+6398624,Hermosillo,11-30,resuelve,http_522
+6446970,Monterrey,0-5,no_existe,sitio_caido
+649583,Valle de México,6-10,no_existe,sitio_caido
+653636,Valle de México,0-5,no_existe,sitio_caido
+6698321,Valle de México,11-30,no_existe,sitio_caido
+675635,Valle de México,31+,no_existe,sitio_caido
+6800755,Tijuana,11-30,no_existe,sitio_caido
+6879018,Aguascalientes,11-30,resuelve,sitio_caido
+6943459,Aguascalientes,0-5,no_existe,sitio_caido
+6976603,Morelia,0-5,no_existe,sitio_caido
+7232415,Valle de México,0-5,no_existe,sitio_caido
+778107,Valle de México,0-5,no_existe,sitio_caido
+7867518,Guadalajara,6-10,no_existe,sitio_caido
+8024132,Cancún,0-5,resuelve,sitio_caido
+8400200,Guadalajara,11-30,no_existe,sitio_caido
+8697057,Valle de México,11-30,no_existe,sitio_caido
+8723725,Valle de México,11-30,no_existe,sitio_caido
+8779879,Veracruz,11-30,no_existe,sitio_caido
+896535,Valle de México,11-30,resuelve,http_409
+9160027,Cancún,6-10,no_existe,sitio_caido
+9412680,Valle de México,6-10,no_existe,sitio_caido
+9435863,Valle de México,11-30,no_existe,sitio_caido
+9439562,Tijuana,6-10,no_existe,sitio_caido
+9441021,Valle de México,6-10,no_existe,sitio_caido
+9483938,Valle de México,6-10,no_existe,sitio_caido
+9484372,Valle de México,6-10,resuelve,sitio_caido
+9486628,Monterrey,6-10,resuelve,sitio_caido
+9620749,Valle de México,11-30,no_existe,sitio_caido
+9666177,Querétaro,0-5,no_existe,sitio_caido
+9737731,Valle de México,0-5,resuelve,http_409
+9792401,Guadalajara,0-5,no_existe,sitio_caido
+9805526,Chihuahua,0-5,no_existe,sitio_caido
+9842808,Guadalajara,6-10,no_existe,sitio_caido
+9863041,Valle de México,0-5,no_existe,sitio_caido
+990492,Valle de México,0-5,no_existe,sitio_caido

@@ -176,6 +176,41 @@ def cobertura(v, w=None):
         print(f"| {tope} | {100 * b:.0f} % ({100 * pct(s, 0.05):.0f}–{100 * pct(s, 0.95):.0f}) |")
 
 
+def porcentaje(valores, tope):
+    return f"{sum(1 for x in valores if x <= tope)} de {len(valores)} ({100 * sum(1 for x in valores if x <= tope) / len(valores):.0f} %)"
+
+
+def cobertura_exacta(comp, filas):
+    """Cobertura por tope (conteos, sin remuestreo): total, sólo comida y por tipo; y la sensibilidad a un conteo inflado."""
+    print("\n#### Cobertura por tope (conteos; completas, sin ponderar)")
+    topes = (80, 150, 200, 300)
+    tot = [f["total"] for f in comp]
+    comida = [f["comida"] for f in comp]
+    print("\n| Qué | " + " | ".join(f"≤ {t}" for t in topes) + " |\n|---|" + "---|" * len(topes))
+    print(
+        f"| Platillos totales (n = {len(tot)}) | "
+        + " | ".join(porcentaje(tot, t) for t in topes)
+        + " |"
+    )
+    print(
+        f"| Sólo comida, mismos negocios (n = {len(comida)}) | "
+        + " | ".join(porcentaje(comida, t) for t in topes)
+        + " |"
+    )
+    print("\n| Tipo (platillos totales dentro de 150) | n | ≤ 150 |\n|---|---|---|")
+    for t in ("taqueria_fonda", "cafeteria", "casual", "formal", "bar_cantina"):
+        v = [f["total"] for f in comp if f["tipo"] == t]
+        if v:
+            print(f"| {t} | {len(v)} | {porcentaje(v, 150)} |")
+    print(
+        "\n#### Sensibilidad: si el conteo de las tandas 1 a 3 (regla de variantes anterior) estuviera inflado (se resta ese porcentaje)"
+    )
+    print("\n| Inflado supuesto | Mediana de platillos | ≤ 150 |\n|---|---|---|")
+    for infl in (0.0, 0.05, 0.10):
+        v = [f["total"] * (1 - infl) if f["tanda"] in ("1", "2", "3") else f["total"] for f in comp]
+        print(f"| {100 * infl:.0f} % | {statistics.median(v):.1f} | {porcentaje(v, 150)} |")
+
+
 def main():
     filas = cargar()
     comp = [f for f in filas if f["total"] is not None]
@@ -231,6 +266,7 @@ def main():
             ("Completas + parciales con bebidas", [f["bebidas"] for f in con_bebidas], None),
         ],
     )
+    cobertura_exacta(comp, filas)
     print("\n#### Curva de cobertura de topes (platillos totales, completas, sin ponderar)")
     cobertura(tot)
     print("\n#### Curva de cobertura de topes (ponderada por el reparto)")
