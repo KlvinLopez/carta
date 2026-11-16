@@ -2132,6 +2132,179 @@
    "nota": "factor ± sobre toda cifra que depende del procesador",
    "mueve_resultado": false
   },
+  "cobertura_platillos": {
+   "valor": {
+    "alta": {
+     "todo": [
+      [
+       40,
+       0.473
+      ],
+      [
+       60,
+       0.757
+      ],
+      [
+       80,
+       0.892
+      ],
+      [
+       100,
+       0.959
+      ],
+      [
+       150,
+       0.98
+      ],
+      [
+       300,
+       0.99
+      ]
+     ],
+     "comida": [
+      [
+       40,
+       0.473
+      ],
+      [
+       60,
+       0.757
+      ],
+      [
+       80,
+       0.892
+      ],
+      [
+       100,
+       0.959
+      ],
+      [
+       150,
+       0.98
+      ],
+      [
+       300,
+       0.99
+      ]
+     ]
+    },
+    "baja": {
+     "todo": [
+      [
+       40,
+       0.107
+      ],
+      [
+       60,
+       0.179
+      ],
+      [
+       80,
+       0.25
+      ],
+      [
+       100,
+       0.286
+      ],
+      [
+       120,
+       0.429
+      ],
+      [
+       150,
+       0.518
+      ],
+      [
+       200,
+       0.732
+      ],
+      [
+       300,
+       0.839
+      ]
+     ],
+     "comida": [
+      [
+       40,
+       0.268
+      ],
+      [
+       60,
+       0.607
+      ],
+      [
+       80,
+       0.75
+      ],
+      [
+       100,
+       0.911
+      ],
+      [
+       120,
+       0.982
+      ],
+      [
+       150,
+       1.0
+      ],
+      [
+       200,
+       1.0
+      ],
+      [
+       300,
+       1.0
+      ]
+     ]
+    },
+    "n_baja": 56,
+    "por_tipo_baja": {
+     "bar_cantina": {
+      "n": 2,
+      "dentro_de_150_total": 1,
+      "dentro_de_150_comida": 2
+     },
+     "cafeteria": {
+      "n": 11,
+      "dentro_de_150_total": 9,
+      "dentro_de_150_comida": 11
+     },
+     "casual": {
+      "n": 21,
+      "dentro_de_150_total": 9,
+      "dentro_de_150_comida": 21
+     },
+     "formal": {
+      "n": 14,
+      "dentro_de_150_total": 3,
+      "dentro_de_150_comida": 14
+     },
+     "taqueria_fonda": {
+      "n": 8,
+      "dentro_de_150_total": 7,
+      "dentro_de_150_comida": 8
+     }
+    },
+    "maximo_comida_baja": 122,
+    "maximo_total_baja": 494
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "ALTA: 148 cartas de plataformas de reparto (sesgo hacia cartas CORTAS y sin bebidas); sólo 40 a 120 están medidos, 150 y 300 son extrapolación. BAJA: 56 cartas completas de sitios propios (sesgo hacia cartas LARGAS y negocios formales; 2026-11-16-cobertura-platillos.py). Las dos muestras no cuentan «platillo» con la misma regla; NO se sabe cuál es la cobertura real",
+   "nota": "porcentaje de negocios con carta ≤ tope; 'comida' = el tope cuenta sólo comida (bebidas sin tope); en la cota alta se usa la misma tabla (el reparto no trae bebidas)",
+   "mueve_resultado": true
+  },
+  "cota_platillos": {
+   "valor": "alta",
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "cota que usan por omisión `seguridadChico` y `parteRebasa`; la otra cota se pide con `s.cota_platillos = 'baja'`",
+   "nota": "",
+   "mueve_resultado": false
+  },
   "visitas_mes_gratuito": {
    "valor": 1800,
    "min": 1500,

@@ -1,10 +1,10 @@
 {
- "version": "2026-11-14-r6",
+ "version": "2026-11-16-r7",
  "decisiones": [
   {
    "id": "segmentacion",
    "decision": "Segmentación: qué entra en cada plan y con qué topes",
-   "recomendacion": "**Chef (gratis) = 25 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, 95.1 % de los negocios de hasta 10 personas quedan gratis (intervalo del modelo 86.7 %–98 %).",
+   "recomendacion": "**Chef (gratis) = 25 mesas, 4 cuentas de personal, 150 platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, la cobertura de los negocios de hasta 10 personas es un **rango: 50.3 % (cota baja, sitios propios) a 95.1 % (cota alta, reparto)**; no se sabe cuál es la real, y el tope de platillos queda abierto (decisión siguiente).",
    "depende": "**Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato).** Medido: sólo los conteos por estrato. Con 15 mesas la seguridad sería 89.4 %, no 95 %; con el peor rincón del modelo, ningún tope de la rejilla estrecha lo cumple salvo 60 mesas · 5 cuentas · 100 platillos. **Si falla:** si las fondas tienen más mesas, algunas pagan sin querer; se corrige subiendo el tope (el piloto lo muestra en una semana).",
    "cifras": "Para 80 / 90 / 95 % de seguridad: 12 mesas y 3 cuentas (150 platillos) · 20 mesas y 4 cuentas (100 platillos) · 25 mesas y 4 cuentas (150 platillos); margen a Master Chef 225 11,981 · 9,796 · 8,719 al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).",
    "alternativas": [
@@ -26,6 +26,37 @@
    ],
    "ejemplo": "Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 40 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.",
    "prueba": "Medir mesas y cuentas por negocio en los primeros 10 a 20 restaurantes: `mesa` y `personal_restaurante` activos por restaurante al darse de alta (sin datos personales)."
+  },
+  {
+   "id": "tope_platillos",
+   "decision": "Tope de platillos del plan Chef (ABIERTA para Calvin)",
+   "recomendacion": "**No recomiendo un tope todavía: la cobertura real no se sabe.** Con 150 platillos contando todo, cubre 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.",
+   "depende": "**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio** (la muestra de sitios propios sobrerrepresenta a formales y cadenas; la de reparto, a cartas cortas). **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.",
+   "cifras": "Tope de 150 platillos, bebidas incluidas (la propuesta actual): cobertura de Chef 50.3 % (cota baja) a 95.1 % (cota alta); margen +18,592 a +8,719 · Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): cobertura de Chef 97.1 % (cota baja) a 95.1 % (cota alta); margen +8,288 a +8,719 · Subir el tope a 200 platillos (bebidas incluidas): cobertura de Chef 71.1 % (cota baja) a 95.5 % (cota alta); margen +13,978 a +8,630 · Subir el tope a 300 platillos (bebidas incluidas): cobertura de Chef 81.5 % (cota baja) a 96.1 % (cota alta); margen +11,671 a +8,504 · Quitar el tope de platillos y limitar sólo por mesas y cuentas: cobertura de Chef 97.1 % (cota baja) a 97.1 % (cota alta); margen +8,288 a +8,288.",
+   "alternativas": [
+    {
+     "opcion": "Tope de 150 que cuenta sólo comida (las bebidas no tienen tope)",
+     "pros": "Casi no deja a nadie afuera (cobertura ≈ 97 %)",
+     "contras": "Hay que clasificar comida y bebida al importar"
+    },
+    {
+     "opcion": "Subir el tope a 200 platillos (bebidas incluidas)",
+     "pros": "Cobertura de 71 % con la cota baja",
+     "contras": "Sigue dependiendo de una muestra sesgada"
+    },
+    {
+     "opcion": "Subir el tope a 300 platillos (bebidas incluidas)",
+     "pros": "Cobertura de 81 % con la cota baja",
+     "contras": "Sigue dependiendo de una muestra sesgada"
+    },
+    {
+     "opcion": "Quitar el tope de platillos y limitar sólo por mesas y cuentas",
+     "pros": "Cobertura sólo por mesas y cuentas; simple de explicar",
+     "contras": "Sin freno para quien suba cartas enormes (costo de disco y de lectura de PDF)"
+    }
+   ],
+   "ejemplo": "Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe ni en 200.",
+   "prueba": "La carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron."
   },
   {
    "id": "precios",
@@ -301,6 +332,7 @@
    ],
    "pagantes": 46.14692315946915,
    "margen": 11985.494711706539,
+   "seguridad_con_cota_baja": 0.4231024,
    "precio_de_la_config": 225,
    "margen_al_precio_de_la_config": 11980.67543648144
   },
@@ -318,6 +350,7 @@
    ],
    "pagantes": 32.76213294818085,
    "margen": 9798.709952976124,
+   "seguridad_con_cota_baja": 0.2692404,
    "precio_de_la_config": 225,
    "margen_al_precio_de_la_config": 9795.53897664733
   },
@@ -335,6 +368,7 @@
    ],
    "pagantes": 26.428339018517487,
    "margen": 8721.729952546495,
+   "seguridad_con_cota_baja": 0.5028744,
    "precio_de_la_config": 225,
    "margen_al_precio_de_la_config": 8719.199775839821
   }

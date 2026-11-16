@@ -1,5 +1,5 @@
 {
- "version": "2026-11-14-r6",
+ "version": "2026-11-16-r7",
  "config_inicial": {
   "nombre": "segmentación de Calvin",
   "precios": {
@@ -10057,6 +10057,7 @@
     ],
     "pagantes": 46.14692315946915,
     "margen": 11985.494711706539,
+    "seguridad_con_cota_baja": 0.4231024,
     "precio_de_la_config": 225,
     "margen_al_precio_de_la_config": 11980.67543648144
    },
@@ -10074,6 +10075,7 @@
     ],
     "pagantes": 32.76213294818085,
     "margen": 9798.709952976124,
+    "seguridad_con_cota_baja": 0.2692404,
     "precio_de_la_config": 225,
     "margen_al_precio_de_la_config": 9795.53897664733
    },
@@ -10091,6 +10093,7 @@
     ],
     "pagantes": 26.428339018517487,
     "margen": 8721.729952546495,
+    "seguridad_con_cota_baja": 0.5028744,
     "precio_de_la_config": 225,
     "margen_al_precio_de_la_config": 8719.199775839821
    }
@@ -11754,6 +11757,331 @@
    "nota": "adopción supuesta; sin dato de bajas ni de costo de captación"
   }
  },
+ "cobertura_platillos": {
+  "tabla": {
+   "alta": {
+    "todo": [
+     [
+      40,
+      0.473
+     ],
+     [
+      60,
+      0.757
+     ],
+     [
+      80,
+      0.892
+     ],
+     [
+      100,
+      0.959
+     ],
+     [
+      150,
+      0.98
+     ],
+     [
+      300,
+      0.99
+     ]
+    ],
+    "comida": [
+     [
+      40,
+      0.473
+     ],
+     [
+      60,
+      0.757
+     ],
+     [
+      80,
+      0.892
+     ],
+     [
+      100,
+      0.959
+     ],
+     [
+      150,
+      0.98
+     ],
+     [
+      300,
+      0.99
+     ]
+    ]
+   },
+   "baja": {
+    "todo": [
+     [
+      40,
+      0.107
+     ],
+     [
+      60,
+      0.179
+     ],
+     [
+      80,
+      0.25
+     ],
+     [
+      100,
+      0.286
+     ],
+     [
+      120,
+      0.429
+     ],
+     [
+      150,
+      0.518
+     ],
+     [
+      200,
+      0.732
+     ],
+     [
+      300,
+      0.839
+     ]
+    ],
+    "comida": [
+     [
+      40,
+      0.268
+     ],
+     [
+      60,
+      0.607
+     ],
+     [
+      80,
+      0.75
+     ],
+     [
+      100,
+      0.911
+     ],
+     [
+      120,
+      0.982
+     ],
+     [
+      150,
+      1
+     ],
+     [
+      200,
+      1
+     ],
+     [
+      300,
+      1
+     ]
+    ]
+   },
+   "n_baja": 56,
+   "por_tipo_baja": {
+    "bar_cantina": {
+     "n": 2,
+     "dentro_de_150_total": 1,
+     "dentro_de_150_comida": 2
+    },
+    "cafeteria": {
+     "n": 11,
+     "dentro_de_150_total": 9,
+     "dentro_de_150_comida": 11
+    },
+    "casual": {
+     "n": 21,
+     "dentro_de_150_total": 9,
+     "dentro_de_150_comida": 21
+    },
+    "formal": {
+     "n": 14,
+     "dentro_de_150_total": 3,
+     "dentro_de_150_comida": 14
+    },
+    "taqueria_fonda": {
+     "n": 8,
+     "dentro_de_150_total": 7,
+     "dentro_de_150_comida": 8
+    }
+   },
+   "maximo_comida_baja": 122,
+   "maximo_total_baja": 494
+  },
+  "nota": "DOS COTAS de sesgo opuesto; NO se sabe cuál es la cobertura real",
+  "por_tipo_baja": {
+   "bar_cantina": {
+    "n": 2,
+    "dentro_de_150_total": 1,
+    "dentro_de_150_comida": 2
+   },
+   "cafeteria": {
+    "n": 11,
+    "dentro_de_150_total": 9,
+    "dentro_de_150_comida": 11
+   },
+   "casual": {
+    "n": 21,
+    "dentro_de_150_total": 9,
+    "dentro_de_150_comida": 21
+   },
+   "formal": {
+    "n": 14,
+    "dentro_de_150_total": 3,
+    "dentro_de_150_comida": 14
+   },
+   "taqueria_fonda": {
+    "n": 8,
+    "dentro_de_150_total": 7,
+    "dentro_de_150_comida": 8
+   }
+  }
+ },
+ "cobertura_chef_por_cota": {
+  "centro": {
+   "todo": {
+    "alta": 0.951384,
+    "baja": 0.5028744
+   },
+   "comida": {
+    "alta": 0.951384,
+    "baja": 0.9708
+   }
+  },
+  "minimo_del_modelo_de_mesas": {
+   "todo": {
+    "alta": 0.8667119999999999,
+    "baja": 0.4581192
+   },
+   "comida": {
+    "alta": 0.8667119999999999,
+    "baja": 0.8844
+   }
+  },
+  "topes": {
+   "mesas": 25,
+   "cuentas": 4,
+   "platillos": 150
+  }
+ },
+ "opciones_tope_platillos": [
+  {
+   "id": "actual",
+   "nombre": "Tope de 150 platillos, bebidas incluidas (la propuesta actual)",
+   "tope": 150,
+   "cuenta": "todo",
+   "por_cota": {
+    "alta": {
+     "cobertura_platillos": 0.98,
+     "cobertura_chef": 0.951384,
+     "dentro_de_todos": 0.825846,
+     "pagantes": 30.47900728545592,
+     "margen_operacion": 8719.199775839821
+    },
+    "baja": {
+     "cobertura_platillos": 0.518,
+     "cobertura_chef": 0.5028744,
+     "dentro_de_todos": 0.4365186000000001,
+     "pagantes": 98.6113022173236,
+     "margen_operacion": 18592.165302076486
+    }
+   }
+  },
+  {
+   "id": "solo_comida",
+   "nombre": "Tope de 150 que cuenta sólo comida (las bebidas no tienen tope)",
+   "tope": 150,
+   "cuenta": "comida",
+   "por_cota": {
+    "alta": {
+     "cobertura_platillos": 0.98,
+     "cobertura_chef": 0.951384,
+     "dentro_de_todos": 0.825846,
+     "pagantes": 30.47900728545592,
+     "margen_operacion": 8719.199775839821
+    },
+    "baja": {
+     "cobertura_platillos": 1,
+     "cobertura_chef": 0.9708,
+     "dentro_de_todos": 0.8427,
+     "pagantes": 27.529557288405364,
+     "margen_operacion": 8287.848177101738
+    }
+   }
+  },
+  {
+   "id": "subir_200",
+   "nombre": "Subir el tope a 200 platillos (bebidas incluidas)",
+   "tope": 200,
+   "cuenta": "todo",
+   "por_cota": {
+    "alta": {
+     "cobertura_platillos": 0.9841503749927885,
+     "cobertura_chef": 0.955413184042999,
+     "dentro_de_todos": 0.8293435210064228,
+     "pagantes": 29.866941109943987,
+     "margen_operacion": 8629.686231414726
+    },
+    "baja": {
+     "cobertura_platillos": 0.732,
+     "cobertura_chef": 0.7106256,
+     "dentro_de_todos": 0.6168564,
+     "pagantes": 67.05218724888273,
+     "margen_operacion": 13977.984552880838
+    }
+   }
+  },
+  {
+   "id": "subir_300",
+   "nombre": "Subir el tope a 300 platillos (bebidas incluidas)",
+   "tope": 300,
+   "cuenta": "todo",
+   "por_cota": {
+    "alta": {
+     "cobertura_platillos": 0.99,
+     "cobertura_chef": 0.961092,
+     "dentro_de_todos": 0.834273,
+     "pagantes": 29.004282286930632,
+     "margen_operacion": 8503.523976470777
+    },
+    "baja": {
+     "cobertura_platillos": 0.839,
+     "cobertura_chef": 0.8145011999999999,
+     "dentro_de_todos": 0.7070253,
+     "pagantes": 51.27262976466229,
+     "margen_operacion": 11670.894178283015
+    }
+   }
+  },
+  {
+   "id": "sin_tope",
+   "nombre": "Quitar el tope de platillos y limitar sólo por mesas y cuentas",
+   "tope": null,
+   "cuenta": "todo",
+   "por_cota": {
+    "alta": {
+     "cobertura_platillos": 1,
+     "cobertura_chef": 0.9708,
+     "dentro_de_todos": 0.8427,
+     "pagantes": 27.529557288405364,
+     "margen_operacion": 8287.848177101738
+    },
+    "baja": {
+     "cobertura_platillos": 1,
+     "cobertura_chef": 0.9708,
+     "dentro_de_todos": 0.8427,
+     "pagantes": 27.529557288405364,
+     "margen_operacion": 8287.848177101738
+    }
+   }
+  }
+ ],
  "seguridad_chef": {
   "con_dispersion": {
    "centro": 0.951384,

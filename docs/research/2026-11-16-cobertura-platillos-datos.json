@@ -1,0 +1,182 @@
+{
+ "n": 56,
+ "fuente": "2026-11-16-muestra-56-completas.csv (copia de la rama agente/muestra-500-cartas @ ec1435f)",
+ "sesgo": "cartas legibles en línea de negocios con sitio propio y muchas reseñas: sesgo hacia cartas largas y negocios formales; el reparto (cota alta) sesga hacia cartas cortas y sin bebidas",
+ "total": [
+  {
+   "tope": 40,
+   "cobertura": 0.107,
+   "n": 56,
+   "ic90": [
+    0.056,
+    0.194
+   ]
+  },
+  {
+   "tope": 60,
+   "cobertura": 0.179,
+   "n": 56,
+   "ic90": [
+    0.11,
+    0.277
+   ]
+  },
+  {
+   "tope": 80,
+   "cobertura": 0.25,
+   "n": 56,
+   "ic90": [
+    0.168,
+    0.355
+   ]
+  },
+  {
+   "tope": 100,
+   "cobertura": 0.286,
+   "n": 56,
+   "ic90": [
+    0.198,
+    0.393
+   ]
+  },
+  {
+   "tope": 120,
+   "cobertura": 0.429,
+   "n": 56,
+   "ic90": [
+    0.326,
+    0.538
+   ]
+  },
+  {
+   "tope": 150,
+   "cobertura": 0.518,
+   "n": 56,
+   "ic90": [
+    0.41,
+    0.624
+   ]
+  },
+  {
+   "tope": 200,
+   "cobertura": 0.732,
+   "n": 56,
+   "ic90": [
+    0.626,
+    0.817
+   ]
+  },
+  {
+   "tope": 300,
+   "cobertura": 0.839,
+   "n": 56,
+   "ic90": [
+    0.743,
+    0.904
+   ]
+  }
+ ],
+ "comida": [
+  {
+   "tope": 40,
+   "cobertura": 0.268,
+   "n": 56,
+   "ic90": [
+    0.183,
+    0.374
+   ]
+  },
+  {
+   "tope": 60,
+   "cobertura": 0.607,
+   "n": 56,
+   "ic90": [
+    0.497,
+    0.707
+   ]
+  },
+  {
+   "tope": 80,
+   "cobertura": 0.75,
+   "n": 56,
+   "ic90": [
+    0.645,
+    0.832
+   ]
+  },
+  {
+   "tope": 100,
+   "cobertura": 0.911,
+   "n": 56,
+   "ic90": [
+    0.828,
+    0.956
+   ]
+  },
+  {
+   "tope": 120,
+   "cobertura": 0.982,
+   "n": 56,
+   "ic90": [
+    0.924,
+    0.996
+   ]
+  },
+  {
+   "tope": 150,
+   "cobertura": 1.0,
+   "n": 56,
+   "ic90": [
+    0.954,
+    1.0
+   ]
+  },
+  {
+   "tope": 200,
+   "cobertura": 1.0,
+   "n": 56,
+   "ic90": [
+    0.954,
+    1.0
+   ]
+  },
+  {
+   "tope": 300,
+   "cobertura": 1.0,
+   "n": 56,
+   "ic90": [
+    0.954,
+    1.0
+   ]
+  }
+ ],
+ "por_tipo": {
+  "bar_cantina": {
+   "n": 2,
+   "dentro_de_150_total": 1,
+   "dentro_de_150_comida": 2
+  },
+  "cafeteria": {
+   "n": 11,
+   "dentro_de_150_total": 9,
+   "dentro_de_150_comida": 11
+  },
+  "casual": {
+   "n": 21,
+   "dentro_de_150_total": 9,
+   "dentro_de_150_comida": 21
+  },
+  "formal": {
+   "n": 14,
+   "dentro_de_150_total": 3,
+   "dentro_de_150_comida": 14
+  },
+  "taqueria_fonda": {
+   "n": 8,
+   "dentro_de_150_total": 7,
+   "dentro_de_150_comida": 8
+  }
+ },
+ "maximo_comida": 122,
+ "maximo_total": 494
+}
