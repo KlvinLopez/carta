@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-14-r5';
+export const VERSION = '2026-11-14-r6';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -221,8 +221,9 @@ export function sensibilidadPrecioOptimo(s, plan = 'servicio') {
 export function mbPorRestaurante(plan, config, s) {
   const mezcla = plan === 'gratuito' ? s.mezcla_gratuito : plan === 'servicio' ? s.mezcla_paga : { grande: 1 };
   const ef = efectosPalancas(config, s);
-  const mv = plan === 'gratuito' ? config.topes[plan].meses_en_linea : Math.min(config.topes[plan].meses_en_linea, ef.meses_paga_en_linea ?? Infinity);
-  const me = config.disco.meses_analitica_en_linea[plan];
+  const hg = plan === 'gratuito' ? ef.historial_gratuito_meses : null;
+  const mv = Math.min(plan === 'gratuito' ? (hg ?? config.topes[plan].meses_en_linea) : config.topes[plan].meses_en_linea, ef.meses_paga_en_linea ?? Infinity);
+  const me = hg ?? config.disco.meses_analitica_en_linea[plan];
   let t = 0;
   for (const [perfil, w] of Object.entries(mezcla)) {
     const d = s.disco_perfiles[perfil];
@@ -243,13 +244,14 @@ export function cabenEnVolumen(mbPorRest, s, volumenGb = 5) {
  * ni `migrations/`. `medido` = se midió en PostgreSQL local (2026-11-14-recursos-medir.py); si no, es estimada con su supuesto.
  */
 export const PALANCAS = {
+  historial_gratuito_30_dias: { recurso: 'disco', nombre: 'Historial del plan gratuito a 30 días (visitas y analítica), con archivo descargable', esfuerzo: 'medio', riesgo: 'medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes', regla_que_toca: 'CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga', medido: true },
   analitica_agregada_por_dia: { recurso: 'disco', nombre: 'Analítica agregada por día en vez de una fila por evento', esfuerzo: 'medio', riesgo: 'medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo', regla_que_toca: 'ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica', medido: true },
-  retencion_analitica_7_dias: { recurso: 'disco', nombre: 'Guardar la analítica en bruto sólo 7 días (después, agregada)', esfuerzo: 'chico', riesgo: 'bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial', regla_que_toca: 'ninguna dura (regla 9 habla de entidades con historial; el evento no lo es)', medido: false },
+  retencion_analitica_7_dias: { recurso: 'disco', nombre: 'Guardar la analítica en bruto sólo 7 días (después, agregada)', esfuerzo: 'chico', riesgo: 'bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial', regla_que_toca: 'CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial)', medido: false },
   indices_de_evento_minimos: { recurso: 'disco', nombre: 'Dejar sólo dos índices en la analítica (llave y restaurante-fecha)', esfuerzo: 'chico', riesgo: 'medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos', regla_que_toca: 'convención de /migracion (índice en toda FK con cascada); pide ADR', medido: true },
   tipos_mas_chicos: { recurso: 'disco', nombre: 'Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)', esfuerzo: 'medio', riesgo: 'bajo: migración con reescritura de la tabla', regla_que_toca: 'ninguna', medido: true },
   purga_claves_idempotencia: { recurso: 'disco', nombre: 'Purgar las claves de idempotencia a las 24 horas', esfuerzo: 'chico', riesgo: 'bajo si la ventana de reintento del teléfono es menor de 24 h', regla_que_toca: 'ninguna', medido: true },
   archivar_sesiones_cerradas: { recurso: 'disco', nombre: 'Archivar en R2 las sesiones cerradas con más de 3 meses y quitarlas de la base', esfuerzo: 'grande', riesgo: 'alto: se vuelve a leer el historial del archivo; un error pierde datos', regla_que_toca: 'regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes', medido: false },
-  estado_en_memoria_60s: { recurso: 'procesador', nombre: 'Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)', esfuerzo: 'medio', riesgo: 'bajo-medio: cambia ADR-004 (vida máxima 2 s)', regla_que_toca: 'ninguna; cambia un ADR', medido: true },
+  estado_en_memoria_60s: { recurso: 'procesador', nombre: 'Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)', esfuerzo: 'medio', riesgo: 'bajo-medio: cambia ADR-004 (vida máxima 2 s). EXTRAPOLA una medición por comensal (0.88 → 0.47 ms) a todo el procesador, y DEJA DE IMPORTAR cuando lleguen los avisos de la Fase 3', regla_que_toca: 'ninguna; cambia un ADR', medido: true },
   cerrar_lineas_ociosas: { recurso: 'lineas', nombre: 'Cerrar la línea abierta a los 2 minutos sin cambios y reabrirla al volver', esfuerzo: 'medio', riesgo: 'bajo: el teléfono ya vuelve al sondeo si la línea falla', regla_que_toca: 'ninguna', medido: false },
   pool_acotado: { recurso: 'conexiones_bd', nombre: 'Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)', esfuerzo: 'chico', riesgo: 'bajo; hay que verificar `SHOW max_connections` en Railway', regla_que_toca: 'ninguna', medido: false },
 };
@@ -269,6 +271,7 @@ export function efectosPalancas(config, s) {
   return {
     eventos_disco: eventos,
     meses_paga_en_linea: p.has('archivar_sesiones_cerradas') ? 3 : null,
+    historial_gratuito_meses: p.has('historial_gratuito_30_dias') ? 1 : null,
     cap_cpu_sondeo: p.has('estado_en_memoria_60s') ? s.factor_estado_memoria_60s : 1,
     lineas_factor: p.has('cerrar_lineas_ociosas') ? s.factor_lineas_ociosas : 1,
     pool_por_worker: p.has('pool_acotado') ? 10 : s.db_pool_por_worker,
@@ -651,14 +654,15 @@ export function resumen(config, s, n = 1000) {
   const peor = evaluarEscenario('peor', config, s, n);
   const mejor = evaluarEscenario('mejor', config, s, n);
   const piso = evaluarEscenario('piso_de_verdad', config, s, n);
-  const cap = (id) => { const e = s.escalones.find((x) => x.id === id); const mb = mbPorRestaurante('gratuito', config, s); return Math.min(e.cap_cpu, s.cap_conexiones, Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / mb)); };
+  const cap = (id, cfg = config) => { const e = s.escalones.find((x) => x.id === id); const mb = mbPorRestaurante('gratuito', cfg, s); return Math.min(e.cap_cpu, s.cap_conexiones, Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / mb)); };
   const fila = (clave, nombre, unidad, r, p, m, nota, pv) => ({ clave, nombre, unidad, recomendado: r, peor: p, mejor: m, piso_de_verdad: pv, nota });
   return {
     n,
     definiciones: { ...Object.fromEntries(Object.entries(ESCENARIOS).map(([k, v]) => [k, v.definicion])), nota: 'el techo teórico «todos pagan» va aparte, en `todos_pagan`' },
     cifras: [
       fila('clientes_potenciales', 'Clientes potenciales', 'negocios', s.sam_clientes_potenciales, s.sam_clientes_potenciales, s.sam_clientes_potenciales, 'dato medido (DENUE 05/2026): no varía con los escenarios', s.sam_clientes_potenciales),
-      fila('restaurantes_que_caben', 'Restaurantes gratuitos que caben', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)', cap('hobby_sondeo')),
+      fila('restaurantes_que_caben', 'Restaurantes gratuitos que caben (con historial del gratuito de ' + (efectosPalancas(config, s).historial_gratuito_meses ?? config.topes.gratuito.meses_en_linea) + ' mes: PROPUESTA, hoy nada purga)', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (por líneas abiertas, tope de diseño supuesto)', cap('hobby_sondeo')),
+      fila('restaurantes_que_caben_sin_purga', 'Restaurantes gratuitos que caben SIN purga (12 meses de historial acumulado)', 'restaurantes', cap('hobby_eventos', conHistorialGratuito(config, s, 12)), cap('hobby_sondeo', conHistorialGratuito(config, s, 12)), cap('pro_8', conHistorialGratuito(config, s, 12)), 'lo que hay hoy: nada limpia; el disco manda desde el segundo mes de operación', cap('hobby_sondeo', conHistorialGratuito(config, s, 12))),
       fila('gratuitos_por_cliente_de_paga', 'Gratuitos que sostiene cada cliente de paga (sin anuncios)', 'restaurantes', rec.gratuitos_que_sostiene_un_pagante_sin_anuncios, peor.gratuitos_que_sostiene_un_pagante_sin_anuncios, mejor.gratuitos_que_sostiene_un_pagante_sin_anuncios, 'con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`)', piso.gratuitos_que_sostiene_un_pagante_sin_anuncios),
       fila('ingreso_por_cliente_gratuito', 'Ingreso por cliente gratuito', 'pesos al mes', rec.por_cliente.ingreso_gratuito, peor.por_cliente.ingreso_gratuito, mejor.por_cliente.ingreso_gratuito, 'sólo anuncios', piso.por_cliente.ingreso_gratuito),
       fila('ingreso_por_cliente_de_paga', 'Ingreso por cliente de paga', 'pesos al mes', rec.por_cliente.ingreso_por_pagante, peor.por_cliente.ingreso_por_pagante, mejor.por_cliente.ingreso_por_pagante, 'promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno', piso.por_cliente.ingreso_por_pagante),
@@ -699,6 +703,19 @@ function topesDeTamano(config, s, id) {
   return { id, procesos, mb_por_restaurante: mb, lineas_por_restaurante: sondeo ? 0 : lineasPorRest, procesador, memoria, disco, conexiones_bd, lineas, fotos: null, conexiones_por_restaurante: conexionesPorRest, pool_total: piscina, supera_postgres: piscina > s.pg_max_conexiones, memoria_mb_a_tope: procesos * s.rss_worker_mb + Math.min(procesador, disco) * memPorRest };
 }
 
+/**
+ * Copia de `config` con el historial del plan gratuito en `meses` (visitas y analítica en línea). `meses` = número o '03§7' (lo que dice
+ * 03_Datos_v1 §7 sin distinguir por plan: 24 meses de sesiones y comandas y 13 de analítica). Si `config.palancas` trae
+ * 'historial_gratuito_30_dias', la palanca manda (1 mes).
+ */
+export function conHistorialGratuito(config, s, meses) {
+  if (efectosPalancas(config, s).historial_gratuito_meses != null) return config;
+  const c = JSON.parse(JSON.stringify(config));
+  if (meses === '03§7') { c.topes.gratuito.meses_en_linea = s.historial_03_7.visitas_meses; c.disco.meses_analitica_en_linea.gratuito = s.historial_03_7.analitica_meses; }
+  else { c.topes.gratuito.meses_en_linea = meses; c.disco.meses_analitica_en_linea.gratuito = meses; }
+  return c;
+}
+
 const RECURSOS = ['procesador', 'memoria', 'disco', 'conexiones_bd', 'lineas', 'fotos'];
 const NOMBRE_RECURSO = { procesador: 'Procesador (el trabajo de la API)', memoria: 'Memoria de la API', disco: 'Disco de la base de datos', conexiones_bd: 'Conexiones a la base de datos', lineas: 'Líneas abiertas con los teléfonos', fotos: 'Almacenamiento de fotos y respaldos (R2)' };
 
@@ -713,8 +730,16 @@ const minimoDe = (t) => { const c = RECURSOS.filter((r) => t[r] != null).map((r)
 export function recursos(config, s, estado = {}) {
   const idHoy = estado.tamano ?? 'hobby_sondeo';
   const idEv = estado.tamano_eventos ?? 'hobby_eventos';
+  // «hoy» = lo que hay: NADA purga (planes-y-costo; 03 §7 da 13 y 24 meses sin distinguir por plan). El disco depende de cuántos meses de
+  // historial haya acumulado el restaurante: por defecto 12 («un año de operación sin purga»); la curva completa va en `disco_por_historial`.
+  const mesesH = estado.meses_historial ?? 12;
+  const cfg0 = config;
+  config = conHistorialGratuito(cfg0, s, mesesH);
   const hoy = topesDeTamano(config, s, idHoy);
   const ev = topesDeTamano(config, s, idEv);
+  const cfg30 = conHistorialGratuito({ ...cfg0, palancas: [...new Set([...(cfg0.palancas ?? []), 'historial_gratuito_30_dias'])] }, s, mesesH);
+  const hoy30 = topesDeTamano(cfg30, s, idHoy);
+  const ev30 = topesDeTamano(cfg30, s, idEv);
   const [cuelloHoy] = minimoDe(hoy);
   const [cuelloEv] = minimoDe(ev);
   const mesEventos = s.comensales_dia_gratuito * 30;
@@ -742,10 +767,17 @@ export function recursos(config, s, estado = {}) {
   const evaluarPalanca = (id) => {
     const pl = PALANCAS[id];
     const r = pl.recurso;
-    const base = { ...config, palancas: (config.palancas ?? []).filter((x) => x !== id) };
-    const con = { ...config, palancas: [...new Set([...(config.palancas ?? []), id])] };
+    const quita = (c) => ({ ...c, palancas: (c.palancas ?? []).filter((x) => x !== id) });
+    const pon = (c) => ({ ...c, palancas: [...new Set([...(c.palancas ?? []), id])] });
+    const base = conHistorialGratuito(quita(cfg0), s, mesesH);
+    const con = conHistorialGratuito(pon(cfg0), s, mesesH);
     const a = { h: topesDeTamano(base, s, idHoy), e: topesDeTamano(base, s, idEv) };
     const d = { h: topesDeTamano(con, s, idHoy), e: topesDeTamano(con, s, idEv) };
+    // la misma palanca evaluada sobre la base «ya con el historial del gratuito a 30 días»
+    const b30 = conHistorialGratuito({ ...quita(cfg0), palancas: [...(quita(cfg0).palancas ?? []), 'historial_gratuito_30_dias'] }, s, mesesH);
+    const c30 = conHistorialGratuito({ ...pon(cfg0), palancas: [...(pon(cfg0).palancas ?? []), 'historial_gratuito_30_dias'] }, s, mesesH);
+    const a30 = topesDeTamano(b30, s, idEv);
+    const d30 = topesDeTamano(c30, s, idEv);
     const fila = { id, nombre: pl.nombre, esfuerzo: pl.esfuerzo, riesgo: pl.riesgo, regla_que_toca: pl.regla_que_toca, medido: pl.medido };
     if (id === 'purga_claves_idempotencia') {
       const mbMes = (s.visitas_mes_gratuito * s.claves_idempotencia_por_visita * s.idempotencia_bytes_por_fila) / 1e6;
@@ -754,9 +786,10 @@ export function recursos(config, s, estado = {}) {
     const k = r === 'disco' ? 'disco' : r;
     const dif = (x, y) => (x == null || y == null ? null : y - x);
     const sig = { ...fila, mb_por_restaurante_antes: a.h.mb_por_restaurante, mb_por_restaurante_despues: d.h.mb_por_restaurante, restaurantes_antes: { hoy: a.h[k], con_eventos: a.e[k] }, restaurantes_despues: { hoy: d.h[k], con_eventos: d.e[k] }, ganancia_restaurantes: { hoy: dif(a.h[k], d.h[k]), con_eventos: dif(a.e[k], d.e[k]) } };
-    sig.antes = r === 'disco' ? `${n(a.h.mb_por_restaurante, 1)} MB al mes por restaurante · caben ${a.e.disco}` : `caben ${a.h[k] ?? a.e[k]}`;
-    sig.despues = r === 'disco' ? `${n(d.h.mb_por_restaurante, 1)} MB al mes por restaurante · caben ${d.e.disco}` : `caben ${d.h[k] ?? d.e[k]}`;
-    sig.ganancia = r === 'disco' ? `${n(a.h.mb_por_restaurante - d.h.mb_por_restaurante, 1)} MB menos por restaurante al mes; caben ${d.e.disco - a.e.disco >= 0 ? '+' : ''}${d.e.disco - a.e.disco} restaurantes en el mismo disco` : r === 'procesador' ? `caben +${d.h.procesador - a.h.procesador} restaurantes con el sondeo de hoy` : r === 'lineas' ? `caben +${d.e.lineas - a.e.lineas} restaurantes antes de topar las 10,000 líneas` : `evita pasarse de las ${s.pg_max_conexiones} conexiones de la base con más procesos (${d.h.supera_postgres ? 'aún las pasa' : 'ya no'})`;
+    sig.sobre_historial_30_dias = r === 'disco' ? { restaurantes_antes: a30.disco, restaurantes_despues: d30.disco, ganancia: d30.disco - a30.disco } : null;
+    sig.antes = r === 'disco' ? `${n(a.h.mb_por_restaurante, 1)} MB por restaurante · caben ${a.e.disco}` : `caben ${a.h[k] ?? a.e[k]}`;
+    sig.despues = r === 'disco' ? `${n(d.h.mb_por_restaurante, 1)} MB por restaurante · caben ${d.e.disco}` : `caben ${d.h[k] ?? d.e[k]}`;
+    sig.ganancia = r === 'disco' ? `${n(a.h.mb_por_restaurante - d.h.mb_por_restaurante, 1)} MB menos por restaurante (acumulados con el historial supuesto); caben ${d.e.disco - a.e.disco >= 0 ? '+' : ''}${d.e.disco - a.e.disco} restaurantes en el mismo disco` : r === 'procesador' ? `caben +${d.h.procesador - a.h.procesador} restaurantes con el sondeo de hoy` : r === 'lineas' ? `caben +${d.e.lineas - a.e.lineas} restaurantes antes de topar las 10,000 líneas` : `evita pasarse de las ${s.pg_max_conexiones} conexiones de la base con más procesos (${d.h.supera_postgres ? 'aún las pasa' : 'ya no'})`;
     return sig;
   };
   const porRecurso = (r) => Object.keys(PALANCAS).filter((id) => PALANCAS[id].recurso === r).map(evaluarPalanca);
@@ -769,27 +802,54 @@ export function recursos(config, s, estado = {}) {
     limite_hoy: { restaurantes: hoy[r], texto: r === 'fotos' ? `sin tope práctico: ${s.r2_gratis_gb} GB gratis (≈ ${Math.floor(s.r2_gratis_gb / s.r2_gb_gratuito)} gratuitos) y después ${n(s.r2_gb_gratuito * s.r2_usd_gb_mes * s.fx, 3)} pesos por restaurante al mes` : limiteTexto(hoy, r) + ` (${eHoy.nombre})` },
     restaurantes_hoy: hoy[r],
     restaurantes_con_eventos: ev[r],
+    con_historial_30_dias: { restaurantes_hoy: hoy30[r], restaurantes_con_eventos: ev30[r], es_cuello_hoy: r === minimoDe(hoy30)[0], es_cuello_con_eventos: r === minimoDe(ev30)[0], nota: 'si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)' },
     comensales_mes_hoy: hoy[r] == null ? null : hoy[r] * mesEventos,
     comensales_mes_con_eventos: ev[r] == null ? null : ev[r] * mesEventos,
     es_cuello_hoy: r === cuelloHoy,
     es_cuello_con_eventos: r === cuelloEv,
-    medido: { procesador: 'medido en local (±2×); falta medir en Railway', memoria: 'proceso y línea medidos; el resto supuesto', disco: 'medido en PostgreSQL local (10 restaurantes medianos, un mes)', conexiones_bd: 'estimada: falta `SHOW max_connections` en Railway', lineas: 'tope de Railway leído en su documentación; consumo medido en local', fotos: 'documento (mapa de procesos) y precio de Cloudflare' }[r],
+    medido: { procesador: 'medido en local (±2×); falta medir en Railway: no se sabe cuántos núcleos entrega Hobby', memoria: 'proceso y línea medidos; el resto supuesto', disco: 'medido con datos sintéticos en PostgreSQL local (10 restaurantes medianos, un mes); depende de los meses de historial que se guarden (hoy nada purga)', conexiones_bd: 'estimada: falta `SHOW max_connections` en Railway', lineas: 'TOPE DE DISEÑO SUPUESTO, sin medir: 10,000 conexiones de Railway (documentación, «subject to change») ÷ 4.7 líneas por restaurante (relación del simulador de capacidad); el consumo por línea sí se midió en local', fotos: 'documento (mapa de procesos) y precio de Cloudflare' }[r],
     palancas: porRecurso(r),
   }));
   const escalera = Object.keys(PROCESOS).map((id) => {
     const e = s.escalones.find((x) => x.id === id);
     const t = topesDeTamano(config, s, id);
     const [muro, cabe] = minimoDe(t);
-    return { id, tamano: NOMBRE_TAMANO[id], procesos: t.procesos, disco_gb: e.volumen_gb, costo_usd_base: e.base_usd, costo_usd_con_carga: e.tope_usd, costo_pesos_base: e.base_usd * s.fx, restaurantes_que_caben: cabe, recurso_que_obliga_a_subir: muro, por_recurso: Object.fromEntries(RECURSOS.map((r) => [r, t[r]])), supera_postgres: t.supera_postgres };
+    const t30 = topesDeTamano(cfg30, s, id);
+    const [muro30, cabe30] = minimoDe(t30);
+    return { restaurantes_con_historial_30_dias: cabe30, recurso_que_obliga_a_subir_con_historial_30_dias: muro30, id, tamano: NOMBRE_TAMANO[id], procesos: t.procesos, disco_gb: e.volumen_gb, costo_usd_base: e.base_usd, costo_usd_con_carga: e.tope_usd, costo_pesos_base: e.base_usd * s.fx, restaurantes_que_caben: cabe, recurso_que_obliga_a_subir: muro, por_recurso: Object.fromEntries(RECURSOS.map((r) => [r, t[r]])), supera_postgres: t.supera_postgres };
   });
   const ultimo = escalera[escalera.length - 1];
   escalera.push({ id: 'otra_pila', tamano: 'Una segunda copia de toda la pila (extrapolación sin medir)', procesos: 16, costo_usd_base: null, costo_usd_con_carga: s.escalones.at(-1).tope_usd + s.instancia_extra_usd, restaurantes_que_caben: ultimo.restaurantes_que_caben * 2, recurso_que_obliga_a_subir: 'líneas abiertas', extrapolacion_sin_medir: true });
   const railway = 8.1;
   const dominio = s.dominio_usd_anio / 12;
+  // la curva del disco según los meses de historial que acumule el gratuito, y desde qué mes manda el disco
+  const meses = [1, 3, 6, 12, '03§7'];
+  const procHoy = topesDeTamano(cfg0, s, idHoy).procesador;
+  const procEv = topesDeTamano(cfg0, s, idEv).procesador;
+  const curvaDisco = meses.map((mm) => {
+    const c = conHistorialGratuito({ ...cfg0, palancas: (cfg0.palancas ?? []).filter((x) => x !== 'historial_gratuito_30_dias') }, s, mm);
+    const th = topesDeTamano(c, s, idHoy);
+    const te = topesDeTamano(c, s, idEv);
+    return { meses_historial: mm, etiqueta: mm === '03§7' ? 'lo que dice 03 §7 (24 meses de sesiones y 13 de analítica)' : `${mm} ${mm === 1 ? 'mes' : 'meses'}`, mb_por_restaurante: th.mb_por_restaurante, restaurantes_por_disco: th.disco, cuello_hoy: minimoDe(th)[0], cuello_con_eventos: minimoDe(te)[0], restaurantes_cuello_hoy: minimoDe(th)[1], restaurantes_cuello_con_eventos: minimoDe(te)[1] };
+  });
+  const primerMesDisco = (cap) => { for (let mm = 1; mm <= 36; mm++) { const c = conHistorialGratuito({ ...cfg0, palancas: [] }, s, mm); if (topesDeTamano(c, s, idHoy).disco < cap) return mm; } return null; };
+  const caben30 = curvaDisco[0].restaurantes_por_disco;
+  const actividad = [0.5, 1, 2].map((f) => ({ factor_de_actividad: f, procesador_hoy: Math.floor(procHoy / f), procesador_con_eventos: Math.floor(procEv / f), disco: Math.floor(hoy.disco / f), disco_con_historial_30_dias: Math.floor(caben30 / f), nota: 'el doble de visitas y de comensales por restaurante divide a la mitad lo que cabe (aproximado: el disco fijo por restaurante es despreciable)' }));
+  const pico = { factor: s.factor_pico_simultaneo, procesador_hoy: Math.floor(procHoy * s.factor_pico_simultaneo), procesador_con_eventos: Math.floor(procEv * s.factor_pico_simultaneo), nota: 'si todos los restaurantes están en su hora pico a la vez; factor SUPUESTO (calculado en la revisión de la maestra para el peor caso, sin origen en un documento)' };
+  const rango = { factor: s.incertidumbre_procesador, procesador_hoy: [Math.floor(procHoy / s.incertidumbre_procesador), Math.floor(procHoy * s.incertidumbre_procesador)], procesador_con_eventos: [Math.floor(procEv / s.incertidumbre_procesador), Math.floor(procEv * s.incertidumbre_procesador)], nota: '600 peticiones por segundo medidas en local con 2 núcleos (rango 420–600); no se sabe cuántos núcleos entrega Hobby: ±2× hasta medir en Railway' };
+  const cond = `procesador (${procHoy}, de ${rango.procesador_hoy[0]} a ${rango.procesador_hoy[1]}) o disco, según cuánto historial se guarde y cuánto rinda el servidor: con historial del gratuito a 30 días el disco aguanta ${caben30} y manda el ${caben30 > procHoy ? 'procesador' : 'disco'}; sin purga manda el disco desde el mes ${primerMesDisco(procHoy)} de operación de un restaurante`;
   return {
     config_palancas: config.palancas ?? [],
-    cuello_hoy: { recurso: cuelloHoy, nombre: NOMBRE_RECURSO[cuelloHoy], restaurantes: hoy[cuelloHoy], comensales_mes: hoy[cuelloHoy] * mesEventos },
-    cuello_con_eventos: { recurso: cuelloEv, nombre: NOMBRE_RECURSO[cuelloEv], restaurantes: ev[cuelloEv], comensales_mes: ev[cuelloEv] * mesEventos },
+    definicion_restaurante_tipico: `un gratuito típico = ${s.visitas_mes_gratuito} visitas al mes y ${s.comensales_dia_gratuito} comensales al día (SUPUESTO del simulador, rango ${s.rangos.comensales_dia_gratuito[0]}–${s.rangos.comensales_dia_gratuito[1]}), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)`,
+    estado: { meses_historial: mesesH, nota: 'hoy NADA purga; por defecto se supone un restaurante con 12 meses de historial acumulado (sin purga)' },
+    disco_por_historial: curvaDisco,
+    mes_desde_el_que_manda_el_disco: { con_sondeo: primerMesDisco(procHoy), con_eventos: primerMesDisco(procEv) },
+    sensibilidad_actividad: actividad,
+    pico_simultaneo: pico,
+    rango_procesador: rango,
+    cuello_condicional: cond,
+    cuello_hoy: { recurso: cuelloHoy, nombre: NOMBRE_RECURSO[cuelloHoy], restaurantes: hoy[cuelloHoy], comensales_mes: hoy[cuelloHoy] * mesEventos, con_historial_30_dias: { recurso: minimoDe(hoy30)[0], restaurantes: minimoDe(hoy30)[1] }, rango_si_es_procesador: rango.procesador_hoy },
+    cuello_con_eventos: { recurso: cuelloEv, nombre: NOMBRE_RECURSO[cuelloEv], restaurantes: ev[cuelloEv], comensales_mes: ev[cuelloEv] * mesEventos, con_historial_30_dias: { recurso: minimoDe(ev30)[0], restaurantes: minimoDe(ev30)[1] }, rango_si_es_procesador: rango.procesador_con_eventos },
     hoy: {
       fecha: '2026-11-14',
       servicios: [
@@ -977,7 +1037,7 @@ export function optimizar(s, restricciones = {}, base = configInicial()) {
   const porNivel = new Map();
   for (const e of evaluadas) { const k = nivelDe(e); const p = porNivel.get(k); if (!p || e.margen > p.margen) porNivel.set(k, e); }
   const frontera = [...porNivel.entries()].sort((a, b) => a[0] - b[0]).map(([nivel, e]) => ({ seguridad_chico_desde: nivel, seguridad_chico: e.seguridad_chico, dentro_de_todos: e.dentro, margen: e.margen, pagantes: e.pagantes, precio_servicio: e.mejor_precio, mesas: e.mesas, cuentas: e.cuentas, platillos: e.platillos }));
-  const tabla = [0.8, 0.9, 0.95].map((x) => { const v = evaluadas.filter((e) => e.seguridad_chico >= x - 1e-9).sort((a, b) => b.margen - a.margen)[0]; return v ? { seguridad: x, seguridad_real: v.seguridad_chico, dentro_de_todos: v.dentro, mesas: v.mesas, cuentas: v.cuentas, platillos: v.platillos, precio_servicio: v.mejor_precio, meseta_precio: v.meseta, pagantes: v.pagantes, margen: v.margen } : { seguridad: x, sin_solucion: true }; });
+  const tabla = [0.8, 0.9, 0.95].map((x) => { const v = evaluadas.filter((e) => e.seguridad_chico >= x - 1e-9).sort((a, b) => b.margen - a.margen)[0]; if (!v) return { seguridad: x, sin_solucion: true }; const cP = JSON.parse(JSON.stringify(v.config)); cP.precios.servicio = base.precios.servicio; const mP = evaluar(cP, s, r.n, { curva: r.curva, sinAnuncios: r.sinAnuncios }); return v ? { seguridad: x, seguridad_real: v.seguridad_chico, dentro_de_todos: v.dentro, mesas: v.mesas, cuentas: v.cuentas, platillos: v.platillos, precio_servicio: v.mejor_precio, meseta_precio: v.meseta, pagantes: v.pagantes, margen: v.margen, precio_de_la_config: base.precios.servicio, margen_al_precio_de_la_config: mP.margen_operacion } : { seguridad: x, sin_solucion: true }; });
   const claves = ['centro', 'minimo'];
   const sensibilidadClave = Object.fromEntries(claves.map((k) => [k, mejor ? { seguridad_chico: seguridadChico(mejor.config, s, k), dentro_de_todos: 1 - parteRebasa(mejor.config, s, k === 'minimo' ? 'maximo' : 'centro') } : null]));
   return { restricciones: r, mejor, meseta_precio_servicio: mejor ? mejor.meseta : null, precio_salon: salon, top5: validas.slice(0, 5), frontera, tabla_cupo_gratis: tabla, sensibilidad_modelo_mesas_cuentas: sensibilidadClave, evaluadas: evaluadas.length, descartadas };

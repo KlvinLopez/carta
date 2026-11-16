@@ -6,6 +6,8 @@
 **Marcas.** **[medido]** = cifra de INEGI (Censos Económicos 2024, año de referencia **2023**, Sistema Automatizado de Información Censal, consultado el 14 de noviembre de 2026) o aritmética mía sobre ella. **[fuente]** = página de un proveedor. **[documento]** = otro documento del repositorio. ***[supuesto]*** = juicio, con su forma de medirlo en §6. Pesos de 2023 (los censos no se actualizaron a 2026). «Ingreso» = ingresos por suministro de bienes y servicios. **«Excedente» = ingresos totales − total de gastos − remuneraciones** de los mismos censos: **no es utilidad** (incluye lo que se lleva el dueño y no descuenta impuestos ni depreciación).
 **Estratos de personal del SAIC:** 0 a 10, 11 a 50, 51 a 250 y 251 o más (**no** son los del DENUE que usan otros informes).
 
+> **Lo que estas cifras NO son (ronda 6).** (1) **Son promedios** (total ÷ negocios), no medianas: los negocios grandes jalan el promedio y el INEGI no publica la mediana. (2) **Sólo cubren la clase 722511** (restaurantes con servicio completo): quedan fuera antojitos, tacos y cafeterías (otras clases del SCIAN), que son la mayoría de los negocios chicos; el «chico» típico de aquí **no es la fonda familiar o la taquería** (dato por conseguir: la misma consulta para las clases 722412, 722411 y 722513). (3) El año de referencia es **2023** (Censos Económicos 2024), en pesos de 2023. (4) **El rango de punto de venta (652 a 1,000) son precios publicados por los proveedores (algunos más IVA)**: para negocios de 0 a 10 personas, que en su mayoría no tienen punto de venta, es «lo que costaría **si lo contratara**» (supuesto), no lo que pagan hoy.
+
 ---
 
 ## 0. Conclusiones

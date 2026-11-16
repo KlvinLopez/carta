@@ -1,5 +1,5 @@
 {
- "version": "2026-11-14-r4",
+ "version": "2026-11-14-r6",
  "config_inicial": {
   "nombre": "segmentación de Calvin",
   "precios": {
@@ -9193,13 +9193,23 @@
    },
    {
     "clave": "restaurantes_que_caben",
-    "nombre": "Restaurantes gratuitos que caben",
+    "nombre": "Restaurantes gratuitos que caben (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga)",
     "unidad": "restaurantes",
     "recomendado": 279,
     "peor": 148,
     "mejor": 2116,
     "piso_de_verdad": 148,
-    "nota": "recomendado = escalón Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (10,000 conexiones)"
+    "nota": "con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (por líneas abiertas, tope de diseño supuesto)"
+   },
+   {
+    "clave": "restaurantes_que_caben_sin_purga",
+    "nombre": "Restaurantes gratuitos que caben SIN purga (12 meses de historial acumulado)",
+    "unidad": "restaurantes",
+    "recomendado": 23,
+    "peor": 23,
+    "mejor": 236,
+    "piso_de_verdad": 23,
+    "nota": "lo que hay hoy: nada limpia; el disco manda desde el segundo mes de operación"
    },
    {
     "clave": "gratuitos_por_cliente_de_paga",
@@ -10046,7 +10056,9 @@
      275
     ],
     "pagantes": 46.14692315946915,
-    "margen": 11985.494711706539
+    "margen": 11985.494711706539,
+    "precio_de_la_config": 225,
+    "margen_al_precio_de_la_config": 11980.67543648144
    },
    {
     "seguridad": 0.9,
@@ -10061,7 +10073,9 @@
      275
     ],
     "pagantes": 32.76213294818085,
-    "margen": 9798.709952976124
+    "margen": 9798.709952976124,
+    "precio_de_la_config": 225,
+    "margen_al_precio_de_la_config": 9795.53897664733
    },
    {
     "seguridad": 0.95,
@@ -10076,7 +10090,9 @@
      275
     ],
     "pagantes": 26.428339018517487,
-    "margen": 8721.729952546495
+    "margen": 8721.729952546495,
+    "precio_de_la_config": 225,
+    "margen_al_precio_de_la_config": 8719.199775839821
    }
   ],
   "frontera": [

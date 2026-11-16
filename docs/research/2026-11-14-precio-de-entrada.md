@@ -44,7 +44,10 @@
 
 **Opinión de blog (marcada):** artículos de práctica dicen que comunicar el valor reduce las bajas al subir; sin datos propios, no se usan.
 
-## 4. Datos por conseguir
+## 4. Antes de cobrar Chef Ejecutivo
+Un negocio de 101 a 250 personas tiene unas 36 a 125 cuentas de personal en el modelo y el tope técnico es de **50 cuentas activas por restaurante** (T-1.6): hay que subirlo antes de vender ese plan (cambio de código, no de este informe).
+
+## 5. Datos por conseguir
 - La curva de pago real (prueba de precio del piloto, tres grupos).
 - Si los que entraron más barato se van más al subir (mismo grupo medido a los 6 meses).
 - Los artículos originales de Kanuri y Andrews y de Datta, Foubert y Van Heerde.

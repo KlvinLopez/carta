@@ -86,6 +86,7 @@ for x in (249, 299, 349, 399, 549):
     m = x - piso(pl["costo_var"], x)
     equilibrio[str(x)] = dict(margen_por_pagante=round(m, 1), pagantes_para_cubrir_fijo=round(COSTO_FIJO_1000 / m, 1))
 
+# [SUPERADO por 2026-11-14-modelo-de-escenarios.mjs] Las constantes 0.16, 0.39 y 0.71 (rebasan 10 mesas) están ESCRITAS A MANO: son SUPUESTOS del modelo de mesas de la primera ronda, sin dato.
 # 5) ingresos por cada 1,000 registrados: la conversión se aplica a quienes REBASAN los topes del
 # gratuito (10 mesas ≈ 39 %, rango 16–71 % de los restaurantes de servicio completo [supuesto: modelo de
 # mesas]); de esos, el 3 % (de todos) rebasa 40 mesas y es Salón; el resto es Servicio

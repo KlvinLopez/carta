@@ -1909,45 +1909,48 @@
   },
   "factores_disco_eventos": {
    "valor": {
-    "un_indice": 0.7335,
-    "tipos_chicos": 0.7002,
-    "ambos": 0.5279,
-    "agregada_por_dia_cota_alta": 0.0593,
+    "un_indice": 0.7992,
+    "tipos_chicos": 0.7989,
+    "ambos": 0.6092,
+    "agregada_por_dia_cota_alta": 0.1101,
+    "agregada_por_dia_con_platillos_de_la_copia": 0.0462,
+    "platillos_cota": 150,
+    "platillos_en_la_copia": 60,
     "retencion_7_dias": 0.2333
    },
    "min": null,
    "max": null,
    "origen": "medido",
-   "fuente": "2026-11-14-recursos-medir.py sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]); la agregada por día es COTA ALTA: 31 días × (5 tipos + 55 platillos) filas de 211 bytes (el generador no asigna platillo a los eventos, por eso no se usa la medición directa)",
-   "nota": "fracción de lo que ocupa hoy la analítica (heap + índices) que quedaría con cada palanca; 1 = igual que hoy",
+   "fuente": "2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con 145 bytes por fila y 31 días × (5 tipos + platillos): la cota usa los 150 platillos que permite el plan gratuito y 'con_platillos_de_la_copia' los 60 de la copia",
+   "nota": "fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy",
    "mueve_resultado": true
   },
   "bytes_por_evento": {
    "valor": {
-    "hoy": 368,
-    "heap": 204,
-    "indices": 164,
+    "hoy": 353,
+    "heap": 216,
+    "indices": 137,
     "columnas": {
      "id": 8.0,
      "restaurante_id": 16.0,
      "mesa_id": 16.0,
      "sesion_id": 16.0,
-     "miembro_id": 0.0,
-     "platillo_id": 0.0,
+     "miembro_id": 16.0,
+     "platillo_id": 16.0,
      "tipo": 8.8,
      "propiedades": 10.6,
      "ip_hash": 65.0,
-     "user_agent_fam": 14.0,
+     "user_agent_fam": 6.747333333333334,
      "ocurrido_en": 8.0
     },
     "indices_bytes_total": {
-     "idx_evento_tipo": 9232384,
-     "idx_evento_sesion": 2433024,
-     "idx_evento_mesa": 1933312,
-     "idx_evento_miembro": 1171456,
-     "idx_evento_platillo": 1171456,
+     "idx_evento_tipo": 6840320,
+     "idx_evento_sesion": 1875968,
+     "idx_evento_mesa": 1327104,
+     "idx_evento_miembro": 1875968,
+     "idx_evento_platillo": 1261568,
      "pk_evento_analitica": 4063232,
-     "idx_evento_restaurante_fecha": 9494528
+     "idx_evento_restaurante_fecha": 7331840
     }
    },
    "min": null,
@@ -2097,6 +2100,36 @@
    "origen": "fuente",
    "fuente": "docs.railway.com/reference/pricing/plans, leída el 14-nov-2026",
    "nota": "",
+   "mueve_resultado": false
+  },
+  "historial_03_7": {
+   "valor": {
+    "visitas_meses": 24,
+    "analitica_meses": 13
+   },
+   "min": null,
+   "max": null,
+   "origen": "documento",
+   "fuente": "docs/plan/03_Datos_v1.md §7: analítica 13 meses, sesiones, órdenes y comandas 24 meses; NO distingue por plan; hoy nada lo limpia (planes-y-costo)",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "factor_pico_simultaneo": {
+   "valor": 0.63,
+   "min": 0.5,
+   "max": 1.0,
+   "origen": "supuesto",
+   "fuente": "cifra que la revisión de la sesión maestra calculó para el peor caso (148 → ≈ 93): no tiene origen en un documento del repositorio",
+   "nota": "cuánto baja la capacidad de procesador si todos los restaurantes están en su hora pico a la vez",
+   "mueve_resultado": false
+  },
+  "incertidumbre_procesador": {
+   "valor": 2.0,
+   "min": 1.5,
+   "max": 2.5,
+   "origen": "supuesto",
+   "fuente": "modelo-de-capacidad: ±2× hasta medir en Railway (600 peticiones/s medidas en local con 2 núcleos; rango 420–600; Hobby no dice cuántos núcleos entrega)",
+   "nota": "factor ± sobre toda cifra que depende del procesador",
    "mueve_resultado": false
   },
   "visitas_mes_gratuito": {

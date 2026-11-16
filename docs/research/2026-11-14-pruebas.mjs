@@ -1,5 +1,7 @@
 // Pruebas del modelo de escenarios: reproduce las cifras ya publicadas. Uso: node 2026-11-14-pruebas.mjs
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import * as M from './2026-11-14-modelo-de-escenarios.mjs';
@@ -33,10 +35,10 @@ prueba('propuesta anterior (12 meses todo)', paga(12, 12), 22);
 prueba('analítica 30 días', paga(12, 1), 38);
 prueba('analítica 30 días + historial 3 meses en línea', paga(3, 1), 128);
 
-// 3) escalera de capacidad en gratuitos típicos: 299 (disco, Hobby con eventos), 1,064, 1,896, 2,116
+// 3) cifra HISTÓRICA del mapa de procesos (sin reserva de disco y con 16.7 MB estimados por gratuito): 299. Reemplazada por 279 (medido, con reserva del 20 %): se conserva sólo para reproducir lo publicado.
 const sPub = { ...s, disco_gratuito_tipico_mb_publicado_activo: true };
 const capDisco = Math.floor((5000 * 1 - s.base_vacia_mb) / sPub.disco_gratuito_tipico_mb_publicado);
-prueba('Hobby con eventos: 5 GB ÷ 16.7 MB', capDisco, 299, 1);
+prueba('cifra histórica publicada (reemplazada por 279): 5 GB ÷ 16.7 MB', capDisco, 299, 1);
 const porId = Object.fromEntries(s.escalones.map((e) => [e.id, e]));
 prueba('Pro, 2 procesos (procesador)', porId.pro_2.cap_cpu, 1064);
 prueba('Pro, 4 procesos (procesador)', porId.pro_4.cap_cpu, 1896);
@@ -112,7 +114,7 @@ prueba('el costo con ese número de restaurantes no pasa de la bolsa', M.todosGr
 
 // 8) resumen en tres casos
 const rs = M.resumen(c, s, 1000);
-prueba('el resumen trae diez cifras', rs.cifras.length, 10);
+prueba('el resumen trae once cifras', rs.cifras.length, 11);
 prueba('cada cifra trae recomendado, peor y mejor', rs.cifras.every((f) => 'recomendado' in f && 'peor' in f && 'mejor' in f), true);
 const mo = rs.cifras.find((f) => f.clave === 'margen_de_operacion');
 prueba('el margen de operación: peor ≤ recomendado ≤ mejor', mo.peor <= mo.recomendado && mo.recomendado <= mo.mejor, true);
@@ -182,37 +184,76 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('el piso de verdad es peor que el peor', margen('piso_de_verdad') < margen('peor'), true);
 }
 
-// 11) RECURSOS Y PALANCAS (ronda 5): cuello de botella, límites por recurso, palancas y escalera
+// 11) RECURSOS Y PALANCAS (rondas 5 y 6): el disco depende de los meses de historial; hoy NADA purga
 {
   const cfg = M.configInicial();
-  const R = M.recursos(cfg, s);
+  const R = M.recursos(cfg, s); // por defecto: 12 meses de historial acumulado, sin purga
   const rec = (id) => R.recursos.find((x) => x.recurso === id);
-  prueba('cuello de botella hoy (sondeo): recurso y restaurantes', `${R.cuello_hoy.recurso}-${R.cuello_hoy.restaurantes}`, 'procesador-148');
-  prueba('cuello con eventos: recurso y restaurantes', `${R.cuello_con_eventos.recurso}-${R.cuello_con_eventos.restaurantes}`, 'disco-279');
-  prueba('límite de cada recurso hoy (procesador, memoria, disco, conexiones BD)', [rec('procesador'), rec('memoria'), rec('disco'), rec('conexiones_bd')].map((x) => x.restaurantes_hoy).join(','), '148,476800,279,3288');
-  prueba('límite de cada recurso con eventos (procesador, disco, conexiones BD, líneas)', [rec('procesador'), rec('disco'), rec('conexiones_bd'), rec('lineas')].map((x) => x.restaurantes_con_eventos).join(','), '1064,279,23644,2116');
+  const curva = R.disco_por_historial;
+  prueba('curva del disco por meses de historial (1, 3, 6, 12, 03 §7)', curva.map((x) => x.restaurantes_por_disco).join(','), '279,93,47,23,15');
+  prueba('el cuello hoy cambia con el historial: 1 mes procesador; desde 3 meses disco', curva.map((x) => x.cuello_hoy).join(','), 'procesador,disco,disco,disco,disco');
+  prueba('el disco manda desde el mes 2 de operación con el sondeo y desde el mes 1 con avisos', `${R.mes_desde_el_que_manda_el_disco.con_sondeo}-${R.mes_desde_el_que_manda_el_disco.con_eventos}`, '2-1');
+  prueba('cuello hoy sin purga (12 meses): recurso y restaurantes', `${R.cuello_hoy.recurso}-${R.cuello_hoy.restaurantes}`, 'disco-23');
+  prueba('cuello hoy con historial a 30 días: recurso y restaurantes', `${R.cuello_hoy.con_historial_30_dias.recurso}-${R.cuello_hoy.con_historial_30_dias.restaurantes}`, 'procesador-148');
+  prueba('cuello con avisos con historial a 30 días: recurso y restaurantes', `${R.cuello_con_eventos.con_historial_30_dias.recurso}-${R.cuello_con_eventos.con_historial_30_dias.restaurantes}`, 'disco-279');
+  prueba('rango ±2× del procesador hoy y con avisos', `${R.rango_procesador.procesador_hoy.join('-')}|${R.rango_procesador.procesador_con_eventos.join('-')}`, '74-296|532-2128');
+  prueba('148 frente a 279 está dentro del margen ±2× (no se puede afirmar quién manda)', R.rango_procesador.procesador_hoy[1] >= 279, true);
+  prueba('sensibilidad: con el doble de actividad el procesador hoy baja a 74', R.sensibilidad_actividad[2].procesador_hoy, 74);
+  prueba('sensibilidad: con todos en su hora pico a la vez el procesador hoy baja a 93', R.pico_simultaneo.procesador_hoy, 93);
+  prueba('límite de cada recurso hoy sin purga (procesador, memoria, disco, conexiones BD)', [rec('procesador'), rec('memoria'), rec('disco'), rec('conexiones_bd')].map((x) => x.restaurantes_hoy).join(','), '148,476800,23,3288');
+  prueba('límite de cada recurso hoy con historial a 30 días', [rec('procesador'), rec('disco')].map((x) => x.con_historial_30_dias.restaurantes_hoy).join(','), '148,279');
+  prueba('límite con avisos (procesador, conexiones BD, líneas; tope de diseño supuesto)', [rec('procesador'), rec('conexiones_bd'), rec('lineas')].map((x) => x.restaurantes_con_eventos).join(','), '1064,23644,2116');
   prueba('las líneas abiertas no existen hoy', rec('lineas').restaurantes_hoy, null);
   prueba('sólo un recurso es cuello hoy y sólo uno con eventos', `${R.recursos.filter((x) => x.es_cuello_hoy).length}-${R.recursos.filter((x) => x.es_cuello_con_eventos).length}`, '1-1');
-  prueba('escalera: restaurantes que caben por tamaño', R.escalera.slice(0, 5).map((e) => e.restaurantes_que_caben).join(','), '148,279,1064,1896,2116');
-  prueba('escalera: recurso que obliga a subir', R.escalera.slice(0, 5).map((e) => e.recurso_que_obliga_a_subir).join(','), 'procesador,disco,procesador,procesador,lineas');
+  prueba('escalera sin purga: restaurantes que caben por tamaño', R.escalera.slice(0, 5).map((e) => e.restaurantes_que_caben).join(','), '23,23,236,236,236');
+  prueba('escalera con historial a 30 días: restaurantes que caben por tamaño', R.escalera.slice(0, 5).map((e) => e.restaurantes_con_historial_30_dias).join(','), '148,279,1064,1896,2116');
+  prueba('escalera con historial a 30 días: recurso que obliga a subir', R.escalera.slice(0, 5).map((e) => e.recurso_que_obliga_a_subir_con_historial_30_dias).join(','), 'procesador,disco,procesador,procesador,lineas');
   prueba('lo que pagamos hoy: total en USD al mes', Math.round(R.hoy.total_usd_mes * 100) / 100, 10.18, 0.01);
-  const pal = (id, k) => rec(M.PALANCAS[id].recurso).palancas.find((p) => p.id === id).ganancia_restaurantes[k];
-  prueba('palanca analítica agregada por día: +restaurantes por disco', pal('analitica_agregada_por_dia', 'con_eventos'), 239);
-  prueba('palanca retención 7 días: +restaurantes por disco', pal('retencion_analitica_7_dias', 'con_eventos'), 168);
-  prueba('palanca tipos más chicos: +restaurantes por disco', pal('tipos_mas_chicos', 'con_eventos'), 48);
-  prueba('palanca índices mínimos: +restaurantes por disco', pal('indices_de_evento_minimos', 'con_eventos'), 42);
-  prueba('palanca estado en memoria 60 s: +restaurantes con el sondeo', pal('estado_en_memoria_60s', 'hoy'), 128);
-  prueba('palanca cerrar líneas ociosas: +restaurantes antes del tope de líneas', pal('cerrar_lineas_ociosas', 'con_eventos'), 906);
-  prueba('el archivo de sesiones toca las reglas 8 y 9', /regla 9/.test(M.PALANCAS.archivar_sesiones_cerradas.regla_que_toca) && /regla 8/.test(M.PALANCAS.archivar_sesiones_cerradas.regla_que_toca), true);
+  const pal = (id) => rec(M.PALANCAS[id].recurso).palancas.find((p) => p.id === id);
+  prueba('palanca 1, historial del gratuito a 30 días: +restaurantes por disco (sin purga → 30 días)', pal('historial_gratuito_30_dias').ganancia_restaurantes.con_eventos, 256);
+  prueba('palanca analítica agregada, sobre la base con historial a 30 días', pal('analitica_agregada_por_dia').sobre_historial_30_dias.ganancia, 216);
+  prueba('palanca retención 7 días, sobre la base con historial a 30 días', pal('retencion_analitica_7_dias').sobre_historial_30_dias.ganancia, 168);
+  prueba('palanca tipos más chicos, sobre la base con historial a 30 días', pal('tipos_mas_chicos').sobre_historial_30_dias.ganancia, 31);
+  prueba('palanca índices mínimos, sobre la base con historial a 30 días', pal('indices_de_evento_minimos').sobre_historial_30_dias.ganancia, 31);
+  prueba('palanca estado en memoria 60 s: +restaurantes con el sondeo', pal('estado_en_memoria_60s').ganancia_restaurantes.hoy, 128);
+  prueba('palanca cerrar líneas ociosas: +restaurantes antes del tope de líneas', pal('cerrar_lineas_ociosas').ganancia_restaurantes.con_eventos, 906);
+  const todasRegla = (id, re) => re.test(M.PALANCAS[id].regla_que_toca);
+  prueba('el historial a 30 días contradice 03 §7 y toca la regla 9', todasRegla('historial_gratuito_30_dias', /03_Datos_v1.md §7/) && todasRegla('historial_gratuito_30_dias', /regla 9/), true);
+  prueba('el archivo de sesiones toca las reglas 8 y 9', todasRegla('archivar_sesiones_cerradas', /regla 9/) && todasRegla('archivar_sesiones_cerradas', /regla 8/), true);
   prueba('toda palanca dice si es medida o estimada', Object.values(M.PALANCAS).every((p) => typeof p.medido === 'boolean'), true);
-  // las palancas mueven el modelo: más restaurantes caben por disco y baja el costo de disco
-  const conPal = { ...cfg, palancas: ['analitica_agregada_por_dia'] };
-  const caben = (c) => M.resumen(c, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').recomendado;
-  prueba('resumen: restaurantes que caben sin palancas', caben(cfg), 279);
-  prueba('resumen: restaurantes que caben con la analítica agregada', caben(conPal), 518);
-  prueba('las palancas bajan los MB por restaurante gratuito', M.mbPorRestaurante('gratuito', conPal, s) < M.mbPorRestaurante('gratuito', cfg, s), true);
-  prueba('sin palancas el disco por restaurante gratuito es 14.3 MB', M.mbPorRestaurante('gratuito', cfg, s), 14.27, 0.05);
-  prueba('el cuello cambia si se ensancha el disco: con Pro el procesador manda', M.recursos(cfg, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
+  // resumen: dice con qué retención
+  const caben = (c, k = 'restaurantes_que_caben') => M.resumen(c, s, 1000).cifras.find((f) => f.clave === k).recomendado;
+  prueba('resumen: restaurantes que caben (historial del gratuito a 1 mes: propuesta)', caben(cfg), 279);
+  prueba('resumen: restaurantes que caben SIN purga (12 meses)', caben(cfg, 'restaurantes_que_caben_sin_purga'), 23);
+  prueba('resumen: el nombre de la cifra dice la retención', /historial del gratuito de 1 mes: PROPUESTA/.test(M.resumen(cfg, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').nombre), true);
+  prueba('resumen: con la analítica agregada caben más', caben({ ...cfg, palancas: ['analitica_agregada_por_dia'] }) > 279, true);
+  prueba('las palancas bajan los MB por restaurante gratuito', M.mbPorRestaurante('gratuito', { ...cfg, palancas: ['analitica_agregada_por_dia'] }, s) < M.mbPorRestaurante('gratuito', cfg, s), true);
+  prueba('con Pro (50 GB) y historial a 30 días manda el procesador', M.recursos({ ...cfg, palancas: ['historial_gratuito_30_dias'] }, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
+  prueba('el procesador y los avisos del escenario están marcados como supuestos o medidos en local', /local/.test(rec('procesador').medido) && /SUPUESTO/.test(rec('lineas').medido), true);
+}
+
+// 12) cifras de titular de r4 que faltaba fijar (ronda 6): negocios por plan, 15 mesas, cobertura
+{
+  const cfg = M.configInicial();
+  prueba('negocios por plan (Chef, Master Chef, Chef Ejecutivo)', `${s.segmentacion_negocios.Chef}/${s.segmentacion_negocios['Master Chef']}/${s.segmentacion_negocios['Chef Ejecutivo']}`, '91048/13614/220');
+  const c15 = { ...cfg, topes: { ...cfg.topes, gratuito: { ...cfg.topes.gratuito, mesas: 15 } } };
+  prueba('cobertura de Chef con 15 mesas (centro, con dispersión)', M.seguridadChico(c15, s, 'centro'), 0.894, 0.002);
+  prueba('margen de operación recomendado con 15 mesas (1,000)', M.evaluar(c15, s, 1000, { curva: 'media' }).margen_operacion, 9996, 1);
+}
+
+// 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
+  const entorno = { ...process.env, CARTA_SALIDA: tmp };
+  const gens = [['node', '2026-11-14-corre-escenarios.mjs', ['2026-11-14-modelo-de-escenarios-resultados.json', '2026-11-14-modelo-de-escenarios.md', '2026-11-14-chequeo-de-margenes.md', '2026-11-14-precio-de-entrada.md', '2026-11-14-recomendaciones.json', '2026-11-14-recomendaciones.md']],
+    ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
+    ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
+    ['python3', '2026-11-14-parametros-generador.py', ['2026-11-14-parametros.json']]];
+  for (const [cmd, script, salidas] of gens) {
+    const args = cmd === 'python3' ? ['-I', join(aqui, script)] : [join(aqui, script)];
+    execFileSync(cmd, args, { env: entorno, stdio: 'ignore' });
+    for (const f of salidas) prueba(`el archivo commiteado coincide con la salida del generador: ${f}`, readFileSync(join(aqui, f), 'utf8') === readFileSync(join(tmp, f), 'utf8'), true);
+  }
 }
 
 console.log(fallas === 0 ? '\nTodas las pruebas pasan.' : `\n${fallas} prueba(s) fallan.`);

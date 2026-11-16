@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 import * as M from './2026-11-14-modelo-de-escenarios.mjs';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
+const salida_dir = process.env.CARTA_SALIDA ?? aqui; // las pruebas regeneran en una carpeta temporal y comparan con lo commiteado
 const par = JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8'));
 const seg = JSON.parse(readFileSync(join(aqui, '2026-11-14-segmentacion-datos.json'), 'utf8'));
 const s = M.valores(par);
@@ -37,6 +38,8 @@ const tg = M.tablaTodosGratuitos(rec, s);
 const bolsas = [500, 1000, 2000, 5000].map((b) => M.capacidadConBolsa(rec, s, b));
 const rangos = { baja: M.rangoSePagaSolo(rec, s, 'baja'), adverso: M.rangoSePagaSolo(rec, s, 'adverso'), medio: M.rangoSePagaSolo(rec, s, 'medio') };
 const nsolo = { baja: rangos.baja.centro, adverso: rangos.adverso.centro, medio: rangos.medio.centro };
+const bolsaSinPurga = M.capacidadConBolsa(M.conHistorialGratuito(rec, s, 12), s, 1000);
+const margenSinPurga = M.evaluar(M.conHistorialGratuito(rec, s, 12), s, 1000, { curva: 'media' });
 const bolsasR = [500, 1000, 2000, 5000].map((b) => M.rangoBolsa(rec, s, b));
 const segC = { centro: M.seguridadChico(rec, s, 'centro'), minimo: M.seguridadChico(rec, s, 'minimo'), maximo: M.seguridadChico(rec, s, 'maximo') };
 const topesAnt = { ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, mesas: 15 } } };
@@ -78,7 +81,7 @@ const resultados = { version: M.VERSION, config_inicial: rec, config_topes_10_me
   precio_sensibilidad: sensP,
   umbrales: { se_paga_solo: rangos, bolsas: bolsasR, no_modelado: M.NO_MODELADO },
   extrapolacion: { n_desde_el_que_hace_falta_otra_arquitectura_curva_media: nArq } };
-writeFileSync(join(aqui, '2026-11-14-modelo-de-escenarios-resultados.json'), JSON.stringify(resultados, null, 1));
+writeFileSync(join(salida_dir, '2026-11-14-modelo-de-escenarios-resultados.json'), JSON.stringify(resultados, null, 1));
 
 
 // ------------------------------------------------------------------ formato
@@ -114,7 +117,7 @@ chq.piso = { fila: mes(proyPiso, 12), desglose: desglose(mes(proyPiso, 12)) };
 // ------------------------------------------------------------------ informe del modelo
 const topesFila = (x) => `| **${pc(x.seguridad)}** | ${x.mesas} mesas · ${x.cuentas} cuentas | ${pc(x.seguridad_chico.centro)} (${pc(x.seguridad_chico.min)}–${pc(x.seguridad_chico.max)}) | ${pc(x.sin_dispersion.centro)} | ${pc(x.dentro_todos.centro)} | ${pc(x.fuga_de_mas_de_10_personas.centro)} (hasta ${pc(x.fuga_de_mas_de_10_personas.max)}) |`;
 const consFila = (x) => (x.sin_solucion ? '' : `| **${pc(x.nivel)}** | ${x.mesas} mesas · ${x.cuentas} cuentas | ≥ ${pc(x.seguridad_minima)} | ${pc(x.dentro_todos.centro)} | hasta ${pc(x.fuga_de_mas_de_10_personas.max)} |`);
-const tcFila = (x) => `| **${pc(x.seguridad)}** | ${x.mesas} mesas · ${x.cuentas} cuentas · ${x.platillos} platillos | ${pc1(x.seguridad_real)} | ${pc(x.dentro_de_todos)} | ${n0(x.margen)} |`;
+const tcFila = (x) => `| **${pc(x.seguridad)}** | ${x.mesas} mesas · ${x.cuentas} cuentas · ${x.platillos} platillos | ${pc1(x.seguridad_real)} | ${pc(x.dentro_de_todos)} | ${n0(x.margen_al_precio_de_la_config)} |`;
 const sensFilas = (sn, k = 8) => sn.filas.slice(0, k).map((f) => `| ${f.frase} | ${n0(f.efecto)} |`).join('\n');
 const proyFila = (m) => `| ${m} | ${n0(mes(proy.media, m).restaurantes)} | ${n0(mes(proy.media, m).pagantes)} | ${sg(mes(proyPeor, m).margen_operacion)} | **${sg(mes(proy.media, m).margen_operacion)}** | ${sg(mes(proyMejor, m).margen_operacion)} | ${sg(mes(proyPiso, m).margen_operacion)} | ${mes(proy.media, m).escalon}${mes(proy.media, m).con_anuncios ? '' : ' (sin anuncios todavía)'} |`;
 const cifra = (id) => res.cifras.find((f) => f.clave === id);
@@ -133,6 +136,8 @@ const md = `# Modelo de escenarios de Carta: la segmentación de Calvin, el peor
 3. **Peor caso real (todos gratuitos): con ${n0(b1000.bolsa)} pesos al mes de la bolsa de Calvin caben ${n0(b1000.centro.restaurantes)} restaurantes gratuitos (rango ${n0(b1000.minimo)} a ${n0(b1000.maximo)} según el soporte por gratuito, que no tiene fuente) y ${comensalesMillones(b1000.centro.comensales_mes)} millones de comensales al mes (simulados); sólo vale con el canal de eventos construido: con el sondeo de hoy caben ${b1000.caben_con_el_sondeo_de_hoy}.**
 4. **Los anuncios pagan el sistema desde ${rg(rangos.baja)} restaurantes con la tarifa baja, ${rg(rangos.medio)} con la media y ${rg(rangos.adverso)} en el adverso: son rangos, no puntos** (con la tarifa a la mitad la tarifa baja pasa de ${nn(rangos.baja.centro)} a ${nn(rangos.baja.por_supuesto[0].bajo.n)}; con el soporte por gratuito en ${s.rangos.soporte_gratuito[1]} pesos, el adverso queda en ${nn(rangos.adverso.por_supuesto.find((v) => v.supuesto === 'soporte por cliente gratuito').alto.n)}).
 5. **Qué medir primero en el piloto: ${sens.medir_primero.slice(0, 3).map((x) => x.supuesto).join(', ')};** y el precio de Master Chef (199, 225, 249, 299) **no lo decide este modelo**: lo decide la prueba de precios ([precio de entrada](2026-11-14-precio-de-entrada.md)).
+
+**Supuesto de historial en TODAS las cifras de costo, bolsa, margen y escalón:** el plan gratuito guarda **${rec.topes.gratuito.meses_en_linea} mes (30 días)** de visitas y analítica. **Es una propuesta que contradice 03 §7 (13 y 24 meses) y hoy nada purga.** Sin purga (12 meses acumulados) la bolsa de ${n0(b1000.bolsa)} pesos carga ${n0(bolsaSinPurga.restaurantes)} restaurantes en vez de ${n0(b1000.centro.restaurantes)}, y el margen recomendado con 1,000 restaurantes es ${sg(margenSinPurga.margen_operacion)} en vez de ${sg(mop.recomendado)} (el disco obliga a otro tamaño de servidor: ${margenSinPurga.capacidad.escalon}${margenSinPurga.capacidad.requiere_arquitectura ? ', y ya exige otra arquitectura' : ''}).
 
 ${lineaDef}
 
@@ -158,9 +163,9 @@ ${seg.topes_chef.map(topesFila).join('\n')}
 |---|---|---|---|---|
 ${seg.topes_chef_conservador.map(consFila).join('\n')}
 
-**Con el tope de platillos y las lecturas de PDF** (un negocio chico puede tener carta larga) **la configuración inicial queda en ${cs.mesas} mesas · ${cs.cuentas} cuentas · ${cs.platillos} platillos con ${pc1(mejor.seguridad_chico)} de seguridad** (el optimizador la elige: la de mayor margen que cumple ${pc(opt.restricciones.seguridad)}; **está en el borde de la restricción**, no por encima). **Con 15 mesas, que era la elección antes de la dispersión, ya no cumple:** ${pc1(compTopes.seguridad.centro)}.
+**Con el tope de platillos y las lecturas de PDF** (un negocio chico puede tener carta larga; **hay dos muestras de cartas con sesgos opuestos**: 148 cartas de reparto, sesgadas a cartas cortas, y sitios propios, sesgados a cartas largas y formales: el 150 es un juicio entre ambas) **la configuración inicial queda en ${cs.mesas} mesas · ${cs.cuentas} cuentas · ${cs.platillos} platillos con ${pc1(mejor.seguridad_chico)} de seguridad** (el optimizador la elige: la de mayor margen que cumple ${pc(opt.restricciones.seguridad)}; **está en el borde de la restricción**, no por encima). **Con 15 mesas, que era la elección antes de la dispersión, ya no cumple:** ${pc1(compTopes.seguridad.centro)}.
 
-| Seguridad exigida a Chef | Topes | Seguridad real | Dentro de todos | Margen (1,000 restaurantes, curva media) |
+| Seguridad exigida a Chef | Topes | Seguridad real | Dentro de todos | Margen de operación a Master Chef ${rec.precios.servicio} (1,000 restaurantes, curva media) |
 |---|---|---|---|---|
 ${tc.map(tcFila).join('\n')}
 
@@ -258,7 +263,7 @@ ${[3, 6, 9, 12, 18, 24, 36].map(proyFila).join('\n')}
 - **Ingresos de anuncios sin modelar:** ${M.NO_MODELADO.join('; ')}.
 - **Pruebas:** \`node 2026-11-14-pruebas.mjs\` fija con tolerancia estrecha las cifras de titular y prueba que ningún escenario «sin anuncios» tenga ingresos por anuncios.
 `;
-writeFileSync(join(aqui, '2026-11-14-modelo-de-escenarios.md'), md);
+writeFileSync(join(salida_dir, '2026-11-14-modelo-de-escenarios.md'), md);
 
 // ------------------------------------------------------------------ chequeo de márgenes
 const linea = (nombre, f) => `| ${nombre} | ${n0(f.fila.restaurantes)} | ${n0(f.fila.pagantes)} | ${n0(f.fila.ingresos_suscripcion)} | ${n0(f.fila.ingresos_anuncios)} | **${n0(f.fila.ingresos)}** | ${n0(f.fila.costos)} | ${n0(f.fila.captacion)} | **${sg(f.fila.margen_despues_de_captacion)}** |`;
@@ -302,7 +307,7 @@ ${chq.recomendado.desglose.partes.map((x, i) => `| ${x.concepto} | ${n1(x.por_ca
 ## 4. Lo que no incluye
 Sueldos (0), impuestos (0), ni gasto de ventas más allá de ${s.cac} pesos por cliente de paga; bajas y captación sin dato. Ingresos de anuncios sin modelar: ${M.NO_MODELADO.join('; ')}.
 `;
-writeFileSync(join(aqui, '2026-11-14-chequeo-de-margenes.md'), chequeoMd);
+writeFileSync(join(salida_dir, '2026-11-14-chequeo-de-margenes.md'), chequeoMd);
 
 // ------------------------------------------------------------------ precio de entrada (sensibilidad generada por el modelo)
 const tabMed = `| Mediana de la curva de pago (supuesto 225) | ${sensP.precios.map((p) => `Margen a ${p}`).join(' | ')} | Gana entre los 4 | Óptimo continuo |\n|---|${sensP.precios.map(() => '---').join('|')}|---|---|\n${sensP.por_mediana.map((f) => `| ${f.mediana} | ${f.margenes.map((x) => n0(x.margen_operacion)).join(' | ')} | **${f.precio_ganador}** | ${f.optimo_continuo} |`).join('\n')}`;
@@ -352,15 +357,15 @@ Un negocio de 101 a 250 personas tiene unas 36 a 125 cuentas de personal en el m
 - Los artículos originales de Kanuri y Andrews y de Datta, Foubert y Van Heerde.
 `;
 function precios_pagantes() { return [199, 225, 249].map((p) => `${p}: ${n0(prS(p).por_curva.media.pagantes)}`).join(' · '); }
-writeFileSync(join(aqui, '2026-11-14-precio-de-entrada.md'), entrada);
+writeFileSync(join(salida_dir, '2026-11-14-precio-de-entrada.md'), entrada);
 
 // ------------------------------------------------------------------ recomendaciones
 const R = [
   { id: 'segmentacion', decision: 'Segmentación: qué entra en cada plan y con qué topes',
     recomendacion: `**Chef (gratis) = ${cs.mesas} mesas, ${cs.cuentas} cuentas de personal, ${cs.platillos} platillos; Master Chef = hasta 100 mesas y 30 cuentas; Chef Ejecutivo = lo que pase de ahí.** Con eso, ${pc1(segC.centro)} de los negocios de hasta 10 personas quedan gratis (intervalo del modelo ${pc1(segC.minimo)}–${pc1(segC.maximo)}).`,
     depende: `**Del modelo de mesas y cuentas y de su dispersión (σ = ${s.sigma_mesas_por_cuenta}, supuesto sin dato).** Medido: sólo los conteos por estrato. Con 15 mesas la seguridad sería ${pc1(compTopes.seguridad.centro)}, no 95 %; con el peor rincón del modelo, ningún tope de la rejilla estrecha lo cumple salvo ${(() => { const r = M.optimizar(s, { clave: 'minimo' }).tabla_cupo_gratis[2]; return `${r.mesas} mesas · ${r.cuentas} cuentas · ${r.platillos} platillos`; })()}. **Si falla:** si las fondas tienen más mesas, algunas pagan sin querer; se corrige subiendo el tope (el piloto lo muestra en una semana).`,
-    cifras: `Para 80 / 90 / 95 % de seguridad: ${tc.map((x) => `${x.mesas} mesas y ${x.cuentas} cuentas (${x.platillos} platillos)`).join(' · ')}; margen ${tc.map((x) => n0(x.margen)).join(' · ')} al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).`,
-    alternativas: tc.map((x) => ({ opcion: `Seguridad ${pc(x.seguridad)}: ${x.mesas} mesas, ${x.cuentas} cuentas, ${x.platillos} platillos`, pros: `margen ${n0(x.margen)}`, contras: `${pc1(x.seguridad_real)} de los de hasta 10 personas dentro; ${pc(x.dentro_de_todos)} de todos` })),
+    cifras: `Para 80 / 90 / 95 % de seguridad: ${tc.map((x) => `${x.mesas} mesas y ${x.cuentas} cuentas (${x.platillos} platillos)`).join(' · ')}; margen a Master Chef ${rec.precios.servicio} ${tc.map((x) => n0(x.margen_al_precio_de_la_config)).join(' · ')} al mes con 1,000 restaurantes. Chef Ejecutivo exige subir el tope técnico de 50 cuentas activas (T-1.6).`,
+    alternativas: tc.map((x) => ({ opcion: `Seguridad ${pc(x.seguridad)}: ${x.mesas} mesas, ${x.cuentas} cuentas, ${x.platillos} platillos`, pros: `margen ${n0(x.margen_al_precio_de_la_config)} a Master Chef ${rec.precios.servicio}`, contras: `${pc1(x.seguridad_real)} de los de hasta 10 personas dentro; ${pc(x.dentro_de_todos)} de todos` })),
     ejemplo: `Una fonda de 6 mesas y 3 personas queda dentro (Chef); un restaurante de 40 mesas (≈ 11 a 50 personas) pasa a Master Chef; un salón de 60 mesas y 12 cuentas también; un hotel con 150 mesas y 40 cuentas es Chef Ejecutivo.`,
     prueba: 'Medir mesas y cuentas por negocio en los primeros 10 a 20 restaurantes: `mesa` y `personal_restaurante` activos por restaurante al darse de alta (sin datos personales).' },
   { id: 'precios', decision: 'Precios de Master Chef y Chef Ejecutivo',
@@ -406,7 +411,7 @@ const R = [
     ejemplo: 'El capitán de un salón de 60 mesas ve en su teléfono que la mesa 12 lleva 25 minutos sin movimiento.',
     prueba: 'Que se apruebe push.' },
 ];
-writeFileSync(join(aqui, '2026-11-14-recomendaciones.json'), JSON.stringify({ version: M.VERSION, decisiones: R, configuraciones: { segmentacion_de_calvin: { nombre: 'Segmentación de Calvin (configInicial)', config: rec }, topes_10_mesas_3_cuentas: { nombre: 'Topes 10 mesas / 3 cuentas (la anterior)', config: antes } }, tabla_cupo_gratis: tc }, null, 1));
+writeFileSync(join(salida_dir, '2026-11-14-recomendaciones.json'), JSON.stringify({ version: M.VERSION, decisiones: R, configuraciones: { segmentacion_de_calvin: { nombre: 'Segmentación de Calvin (configInicial)', config: rec }, topes_10_mesas_3_cuentas: { nombre: 'Topes 10 mesas / 3 cuentas (la anterior)', config: antes } }, tabla_cupo_gratis: tc }, null, 1));
 let r = `# Recomendaciones: siete decisiones con su supuesto, sus alternativas y la prueba que las cierra
 
 **Fecha:** 14 de noviembre de 2026 (ronda 4; apoyado en el [modelo](2026-11-14-modelo-de-escenarios.md)) · **Generado por \`2026-11-14-corre-escenarios.mjs\`** · [JSON](2026-11-14-recomendaciones.json).
@@ -426,5 +431,5 @@ R.forEach((d, i) => {
   r += `\n## ${i + 1}. ${d.decision}\n\n**Recomendación.** ${d.recomendacion}\n\n**De qué supuesto depende y qué pasa si falla.** ${d.depende}\n\n**Cifras del modelo.** ${d.cifras}\n\n| Opción | A favor | En contra |\n|---|---|---|\n${d.alternativas.map((a) => `| ${a.opcion} | ${a.pros} | ${a.contras} |`).join('\n')}\n\n**Ejemplo.** ${d.ejemplo}\n\n**La prueba o el dato que la cierra.** ${d.prueba}\n\n---\n`;
 });
 r += `\n## 8. Datos por conseguir (resumen)\n\nCurva de pago real · mesas, cuentas y platillos por negocio (para acotar el modelo y σ) · bajas y costo de conseguir un cliente (**sin dato**) · tarifa de anuncios, parte de visitas con anuncio, tasa de llenado y aprobación de la red · soporte por cliente (gratuito y de paga) · comensales por restaurante real · eventos por visita · costo real de Railway con el sondeo de hoy.\n`;
-writeFileSync(join(aqui, '2026-11-14-recomendaciones.md'), r);
+writeFileSync(join(salida_dir, '2026-11-14-recomendaciones.md'), r);
 console.log('ok. topes optimizador:', mejor.mesas, mejor.cuentas, mejor.platillos, 'seguridad', mejor.seguridad_chico.toFixed(3), 'nArq', nArq, 'bolsa1000', b1000.centro.restaurantes, 'rangos', JSON.stringify({ b: rangos.baja.centro, a: rangos.adverso.centro, m: rangos.medio.centro }));
