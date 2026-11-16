@@ -3,15 +3,32 @@ const TAM = ["0 a 5 personas", "6 a 10", "11 a 30", "31 a 50", "51 a 100", "101 
 const EJTAM = [["fonda", "Fonda o taquería de barrio"], ["barrio", "Restaurante de barrio"], ["restaurante", "Restaurante con meseros"], ["salon", "Con terraza o salón"], ["restaurante", "Con varias áreas y gerente"], ["hotel", "Restaurante de hotel"], ["grupo", "Grupo de locales"]];
 DET.linea = {
   titulo: "El comensal ya está conectado; la mayoría de los negocios, no.",
-  fu: ["inegi_endutih", "inegi_denue"],
-  nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea».",
+  fu: ["inegi_endutih", "inegi_denue", "carta_mercado", "carta_muestra"],
+  nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea». La tira de sitios sale de la muestra de las 17 zonas metropolitanas (166 sitios declarados en el DENUE, 200 intentos de lectura, 16 de noviembre de 2026): fuera de esas zonas no se midió y no hay cifra nacional ni para el núcleo.",
   montar(host) {
     this.sel = 0;
-    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 500" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 500" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 250" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
+    this.pintaSitios();
     const svg = $("#svLinea", host); this.rm = RM(svg); this.svg = svg;
     const elige = ev => { const t = ev.target.closest("[data-i]"); if (t && +t.dataset.i !== this.sel) { this.sel = +t.dataset.i; refrescar(); } };
     svg.addEventListener("mouseover", elige); svg.addEventListener("click", elige); svg.addEventListener("focusin", elige);
     svg.addEventListener("keydown", ev => { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); this.sel = clamp(this.sel + (ev.key === "ArrowDown" ? 1 : -1), 0, TAM.length - 1); refrescar(); const f = $(`[data-i="${this.sel}"]`, svg); if (f) f.focus(); } });
+  },
+  /* los sitios que declaran los negocios en el DENUE: de 166 (muestra de 17 zonas metropolitanas), cuántos siguen vivos */
+  pintaSitios() {
+    const X0 = 30, W = 1040, tot = 166, seg = [["viva", 64, C.verde, "llevan a una página viva del negocio"], ["caida", 81, C.rojo, "están caídos"], ["bloq", 12, C.dorado, "bloquean la lectura"], ["red", 5, C.t2, "son sólo una red social"], ["otro", 4, C.gris, "los ocupa otro sitio"]];
+    let b = T(30, 28, "De 166 sitios que los negocios declaran en el DENUE, ¿cuántos siguen vivos?", 15, C.vino, "start", 700) + Rc(840, 8, 230, 28, C.dorado, 14) + T(955, 27, "17 zonas metropolitanas", 12.5, "#fff", "middle", 700);
+    let x = X0; const pos = {};
+    seg.forEach(([k, v, col, nom], i) => {
+      const w = W * v / tot; pos[k] = [x, w];
+      b += `<g class="gh" style="animation-delay:${i * 90}ms" data-tip="${esc2(v + " de 166 (" + n(100 * v / tot) + " %): " + nom)}">${Rc(x, 52, Math.max(w - 2, 3), 44, col, i === 0 ? 10 : 2)}</g>`;
+      x += w;
+    });
+    b += T(pos.viva[0] + pos.viva[1] / 2, 80, "64 · 39 %", 18, "#fff", "middle", 700) + T(pos.caida[0] + pos.caida[1] / 2, 80, "81 · 49 %", 18, "#fff", "middle", 700) + T(pos.bloq[0] + pos.bloq[1] / 2, 80, "12", 14, "#fff", "middle", 700);
+    b += T(pos.viva[0], 122, "llevan a una página viva del negocio", 13.5, C.verde, "start", 700) + T(pos.caida[0], 122, "están caídos", 13.5, C.rojo, "start", 700) + T(pos.caida[0], 140, "71 con el dominio que ya no existe", 12, C.t2) + T(pos.bloq[0] - 6, 122, "12 bloquean la lectura", 12.5, C.dorado, "start", 700);
+    [["red", "5 son sólo una red social", 160], ["otro", "4 los ocupa otro sitio", 184]].forEach(([k, txt, y]) => { const cx = pos[k][0] + pos[k][1] / 2; b += `<line x1="${cx}" x2="${cx}" y1="96" y2="${y - 12}" stroke="${C.gris}" stroke-width="1.5"/>` + T(cx - 6, y, txt, 12.5, C.t2, "end", 700); });
+    b += T(30, 232, "Ni entre los que declaran sitio la mayoría lo mantiene vivo: sólo 39 % lleva a una página viva del negocio.", 14.5, C.osc, "start", 700);
+    $("#svSitios").innerHTML = b;
   },
   actualizar() {
     const rm = this.rm, X0 = 170, W = 400, Y0 = 134, RH = 46, sel = this.sel, cfg = config(S);
@@ -65,65 +82,6 @@ DET.linea = {
         `Los clientes más fáciles de sumar, gratis y de boca en boca: la fonda familiar y la taquería de barrio (0 a 5 personas) y el restaurante de barrio con 8 a 10 mesas. Por debajo de 31 personas declaran sitio ${n(100 * con / tot, 1)} de cada 100; de 11 a 30, ${n(M.estratos[2].pct_sitio / 10, 1)} de cada 10.`,
         "Los demás costarán más trabajo, conforme el producto demuestre su valor a bajo costo.",
       ],
-    };
-  },
-};
-
-/* ===== detalle: ¿Cuántos negocios hay? (una barra que se parte por niveles) ===== */
-const NIV = () => [
-  {nom: "Restaurantes y bares de México", n: M.total, kd: "grupo", ej: "Todo el sector: tacos, mariscos, cafés, restaurantes y bares", sig: "TAM"},
-  {tot: M.total, keep: M.nucleo, nomK: "Clientes potenciales (SAM): restaurantes a la carta y bares", nomD: "Fondas para llevar, tacos, mariscos y cafés", kd: "restaurante", dd: "puesto", sig: ""},
-  {tot: M.nucleo, keep: M.servible, nomK: "Sin cadenas", nomD: "Posibles cadenas", kd: "barrio", dd: "cadena", sig: "SAM"},
-  {tot: M.servible, keep: SP.meta_12_meses, nomK: "Meta a 12 meses (SOM)", nomD: "El resto del mercado", kd: "puntos", dd: "barrio", sig: "SOM"},
-];
-const ETAPAS = ["México", "A la carta y bares", "Sin cadenas", "Meta a 12 meses"];
-DET.mercado = {
-  titulo: "Hay 104,882 clientes potenciales; ganar 100 a 1,000 en un año es un escenario.",
-  fu: ["inegi_denue", "carta_mercado", "carta_muestra"],
-  nota: "Mercado total (TAM): todos los negocios que algún día podrían usar algo como Carta. Clientes potenciales (SAM): restaurantes a la carta y bares, lo que Carta atiende hoy (sin sus posibles cadenas, ≈ 100,000: entre 96,021 y 104,855 según el umbral). Meta a 12 meses (SOM): escenario, no dato.",
-  montar(host) {
-    this.paso = 0; this.sel = "k"; this.auto = true;
-    host.innerHTML = `<div class="viz"><svg id="svMer" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
-    const svg = $("#svMer", host); this.rm = RM(svg);
-    svg.addEventListener("click", ev => {
-      const e = ev.target.closest("[data-paso]"); if (e) { this.auto = false; this.paso = +e.dataset.paso; this.sel = "k"; refrescar(); return; }
-      const s = ev.target.closest("[data-seg]"); if (s) { this.auto = false; this.sel = s.dataset.seg; refrescar(); }
-    });
-    svg.addEventListener("mouseover", ev => { const s = ev.target.closest("[data-seg]"); if (s && s.dataset.seg !== this.sel) { this.sel = s.dataset.seg; refrescar(); } });
-    const marcha = () => { if (actual !== this || !this.auto || this.paso >= 3 || REDUCE) return; setTimeout(() => { if (actual === this && this.auto) { this.paso++; this.sel = "k"; refrescar(); marcha(); } }, 1700); };
-    this.marcha = marcha; setTimeout(marcha, 900);
-  },
-  actualizar() {
-    const rm = this.rm, N = NIV(), p = this.paso, X0 = 30, W = 900, Y = 110, H = 74;
-    ETAPAS.forEach((t, i) => {
-      const on = i === p, x = 30 + i * 226;
-      rm.put("pb" + i, "rect", {x, y: 14, w: 212, h: 38, rx: 19, fill: on ? C.vino : i < p ? "#d9b9c1" : C.a2, grow: false, cursor: "pointer", attrs: {"data-paso": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": t}});
-      rm.put("pt" + i, "text", {x: x + 106, y: 38, text: `${i + 1} · ${t}`, size: 13, weight: 700, fill: on ? "#fff" : i < p ? C.osc : C.t2, anchor: "middle"});
-    });
-    const nv = p === 0 ? {tot: M.total, keep: M.total, nomK: N[0].nom, nomD: "", kd: "grupo", dd: "", sig: "TAM"} : N[p];
-    const wk = Math.max(W * nv.keep / nv.tot, p === 3 ? 8 : 0), wd = W - wk;
-    rm.put("bk", "rect", {x: X0, y: Y, w: wk, h: H, rx: 16, fill: p === 3 ? C.dorado : C.vino, attrs: {"data-seg": "k", cursor: "pointer"}, cursor: "pointer"});
-    rm.put("bd", "rect", {x: X0 + wk, y: Y, w: wd, h: H, rx: 16, fill: C.arena, cursor: "pointer", attrs: {"data-seg": "d"}});
-    rm.put("tt", "text", {x: X0, y: Y - 10, text: `${n(nv.tot)} ${p === 0 ? "restaurantes y bares" : p === 1 ? "restaurantes y bares" : p === 2 ? "a la carta y bares" : "clientes potenciales"}`, size: 14, weight: 700, fill: C.vino});
-    rm.put("kl", "text", {x: X0, y: Y + H + 26, text: `${n(nv.keep)}`, size: 24, fill: p === 3 ? C.dorado : C.vino, serif: true});
-    rm.put("kn", "text", {x: X0, y: Y + H + 46, text: nv.nomK, size: 12.5, weight: 700, fill: C.t2});
-    rm.put("dl", "text", {x: X0 + W, y: Y + H + 26, text: p === 0 ? "" : n(nv.tot - nv.keep), size: 24, fill: C.t2, anchor: "end", serif: true});
-    rm.put("dn", "text", {x: X0 + W, y: Y + H + 46, text: nv.nomD, size: 12.5, weight: 700, fill: C.t2, anchor: "end"});
-    // lo que se ve del tramo elegido: un dibujo y su número
-    const k = this.sel === "k" || p === 0, dib = k ? nv.kd : nv.dd, num = k ? nv.keep : nv.tot - nv.keep, nom = k ? nv.nomK : nv.nomD, ejem = k ? (p === 0 ? N[0].ej : ["", "Restaurantes de barrio, de mesero y bares", "Un negocio con un dueño, no una cadena", "100 a 1,000 restaurantes en un año"][p]) : ["", "Tacos, mariscos y cafés quedan fuera hoy", "Mismo nombre repetido; casi ninguno es cadena", "Los demás clientes potenciales, por conquistar"][p];
-    rm.put("pn", "rect", {x: 30, y: 270, w: 900, h: 230, rx: 22, fill: C.a2, grow: false});
-    const g = rm.put("ej", "g", {x: 60, y: 300});
-    const clave = p + ":" + (k ? "k" : "d");
-    if (this.ult !== clave) { this.ult = clave; g.innerHTML = dibujo(dib || "grupo", 0, 0, 1.6); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
-    rm.put("pnum", "text", {x: 360, y: 360, text: n(num), size: 64, fill: k && p === 3 ? C.dorado : C.vino, serif: true});
-    rm.put("pnom", "text", {x: 360, y: 396, text: nom, size: 16, weight: 700, fill: C.tinta});
-    rm.put("pej", "text", {x: 360, y: 424, text: ejem, size: 13.5, fill: C.t2});
-    rm.put("pz", "text", {x: 360, y: 466, text: p === 1 ? `${n(M.zonas17)} están en las 17 zonas metropolitanas` : p === 2 ? `entre ${n(M.servible_rango[0])} y ${n(M.servible_rango[1])} según el umbral de cadena` : p === 3 ? "escenario medio del modelo: 300; el alto llega a 1,000" : "", size: 12.5, weight: 700, fill: C.osc});
-    const m = M.muestra;
-    return {
-      leyenda: `<span><i style="background:${C.vino}"></i>lo que se queda</span><span><i style="background:${C.arena}"></i>lo que sale</span><span><i style="background:${C.dorado}"></i>meta a 12 meses (escenario)</span>`,
-      cifras: [[n(M.nucleo), "clientes potenciales (SAM); sin cadenas, ≈ " + n(M.servible)], ["100 a 1,000", "meta a 12 meses (SOM)", "supuesto"], ["≈ " + n(m.alcanzables), "cartas que un lector puede leer del sitio de un negocio", "supuesto"]],
-      insight: "El mercado sobra; lo que falta medir es cuántos dueños prueban Carta y cuántos pagan.",
     };
   },
 };

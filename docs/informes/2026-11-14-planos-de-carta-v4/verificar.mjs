@@ -89,6 +89,13 @@ await p.waitForTimeout(1500); await p.hover('#svM2 [data-cl="722511"] circle'); 
 ok((await texto(p, '#svM2')).includes('72,521'), 'capítulo 1: tocar un círculo muestra su cantidad');
 if (png) await p.screenshot({ path: `${png}/v9_cap1.png` });
 await sinDesborde(p, 'capítulo 1');
+// capítulo 2: los sitios declarados siguen vivos o no
+await abre(p, 'linea');
+const sit = await texto(p, '#svSitios');
+ok(sit.includes('166') && sit.includes('64 · 39 %') && sit.includes('81 · 49 %') && sit.includes('17 zonas metropolitanas'), 'capítulo 2: de 166 sitios declarados, 39 % vivos, 49 % caídos, marca de 17 zonas');
+ok((await p.$$('#svSitios .gh')).length === 5 && (await p.evaluate(() => [...document.querySelectorAll('#svSitios .gh')].map((g) => +g.getAttribute('data-tip').split(' ')[0]).reduce((a, b) => a + b, 0))) === 166, 'capítulo 2: las cinco categorías suman 166');
+ok(!(await p.evaluate(() => document.documentElement.innerHTML.includes('1,780') || document.documentElement.innerHTML.includes('alcanzables'))), 'capítulo 2: la cifra de «alcanzables» ya no se pinta');
+await sinDesborde(p, 'capítulo 2 sitios'); await cierra(p);
 // matriz interactiva
 await abre(p, 'matriz');
 const fila0 = async () => p.$eval('#svMx text[font-weight="700"]', (e) => e.textContent).catch(() => '');
@@ -148,6 +155,7 @@ ok((await texto(p, '#svR')).includes('bytes'), 'capítulo 7: la visita dibujada 
 ok((await p.$$('#svEsc rect')).length >= 5, 'capítulo 7: la escalera de tamaños');
 if (png) await p.screenshot({ path: `${png}/v9_cap7.png` });
 await sinDesborde(p, 'capítulo 7'); await cierra(p);
+
 // topes: arrastre con teclado y con puntero
 await abre(p, 'topes');
 const e0 = await texto(p, '.cap.act .capcif .cifra:nth-child(5) b');
@@ -159,6 +167,20 @@ await p.mouse.move(box[0], box[1]); await p.mouse.down(); await p.mouse.move(box
 ok((await p.evaluate(() => S.topeMesas)) > 25, 'topes: arrastrar el asa de mesas la mueve');
 ok((await p.$$('#svT [id], #svT .rm')).length > 20 && (await texto(p, '#svT')).includes('Chef Ejecutivo'), 'topes: muestra a qué plan cae cada tamaño');
 if (png) await p.screenshot({ path: `${png}/v5_topes.png` });
+const t6 = await texto(p, '#svT');
+ok(t6.includes('dos muestras') && t6.includes('sesgos opuestos'), 'topes: la marca del platillo dice «dos muestras, sesgos opuestos»');
+ok(/\d+\.\d–\d+\.\d % se queda en Chef/.test(t6), 'topes: «se queda en Chef» es una banda entre las dos cotas');
+await p.evaluate(() => cambiar({ topeMesas: 25, topeCuentas: 4, topePlatillos: 150, platSel: 'todo' })); await p.waitForTimeout(400);
+const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP); return [c.todo.baja, c.todo.alta, c.comida.baja, c.comida.alta].map((v) => +(100 * v).toFixed(1)); });
+ok(cobT.join() === '50.3,95.1,97.1,95.1', 'topes: cobertura de Chef con 150 platillos: todo 50.3 / 95.1, sólo comida 97.1 / 95.1 (' + cobT.join(' ') + ')');
+await p.click('#platSel [data-ps="comida"]'); await p.waitForTimeout(500);
+ok((await p.evaluate(() => S.platSel)) === 'comida' && (await texto(p, '#svT')).includes('95.1–97.1'), 'topes: «sólo comida» cierra la banda a 95.1–97.1');
+await p.click('#platSel [data-ps="sin"]'); await p.waitForTimeout(500);
+ok((await p.evaluate(() => config(S).topes.gratuito.platillos)) === Infinity && (await texto(p, '#svT')).includes('sin tope'), 'topes: «sin tope» deja los platillos sin límite');
+await p.click('#platSel [data-ps="todo"]'); await p.waitForTimeout(300);
+const mg0 = await p.evaluate(() => [evalS(S).margen_operacion, evalCota(S, 'baja').margen_operacion].map(Math.round));
+ok(mg0.join() === '8719,18592', 'topes: margen con 1,000 restaurantes 8,719 (cota alta) y 18,592 (cota baja) (' + mg0.join(' ') + ')');
+ok((await p.evaluate(() => document.querySelector('#svT [data-tip*="no es un margen real"]') !== null)), 'topes: el margen de la cota baja avisa que no es un margen real');
 await sinDesborde(p, 'topes'); await cierra(p);
 // precio frente a la competencia
 await abre(p, 'precio');
@@ -209,6 +231,8 @@ if (png) await p.screenshot({ path: `${png}/v8_pagar.png` });
 await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
 await p.click('#verDecisiones'); await p.waitForTimeout(450);
+ok((await p.$$('.rcard')).length === 8 && (await p.evaluate(() => REC.decisiones[1].id)) === 'tope_platillos', 'decisiones: ocho, y la 2 es el tope de platillos');
+ok((await texto(p, '#r_tope_platillos')).includes('abierta'), 'decisiones: el tope de platillos se presenta como abierta');
 await p.click('[data-mas="segmentacion"]'); await p.waitForTimeout(150);
 await p.click('#r_segmentacion .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 12, 'recomendaciones: «Probar esta» aplica 12 mesas');

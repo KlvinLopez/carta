@@ -171,6 +171,7 @@ const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 /* tarjetas: qué hacer (5 a 8 palabras), por qué (una cifra), qué pasa si no (una línea); lo demás, detrás de «ver más» */
 const PARCHES = {
   segmentacion: [{topeMesas: 12, topeCuentas: 3, topePlatillos: 150}, {topeMesas: 20, topeCuentas: 4, topePlatillos: 100}, {topeMesas: 25, topeCuentas: 4, topePlatillos: 150}],
+  tope_platillos: [{platSel: "comida"}, {topePlatillos: 200, platSel: "todo"}, {topePlatillos: 300, platSel: "todo"}, {platSel: "sin"}],
   precios: [{precioServicio: 199, precioSalon: 1099}, {precioServicio: 225, precioSalon: 1099}, {precioServicio: 249, precioSalon: 1099}, {precioServicio: 299, precioSalon: 1099}],
   anuncios: [{mesAds: 3}, {mesAds: 9}, {mesAds: 99}],
   bolsa: [{bolsa: 500}, {bolsa: 1000}, {bolsa: 2000}, {bolsa: 5000}],
@@ -180,6 +181,12 @@ const PARCHES = {
 };
 const segC = (mesas, cuentas, plat) => 100 * MOD.seguridadChico({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas, platillos: plat}}}, SP);
 const TARJ = {
+  tope_platillos: {
+    que: "Tope de platillos de Chef: abierta, sin recomendación",
+    cif: () => { const cb = MOD.coberturaChef(config({...S, platSel: "todo", topePlatillos: 150}), SP).todo; return [n(100 * cb.baja) + "–" + n(100 * cb.alta) + " %", "de los negocios chicos queda en Chef con 150 platillos: dos muestras de cartas con sesgos opuestos"]; },
+    si: () => { const cb = MOD.coberturaChef(config({...S, platSel: "todo", topePlatillos: 150}), SP).comida; return `Si el tope cuenta sólo comida la banda se cierra en ${n(100 * cb.alta)}–${n(100 * cb.baja)} %: no depende de qué muestra tenga razón.`; },
+    rec: -1,
+  },
   segmentacion: {
     que: "Chef gratis: 25 mesas, 4 cuentas, 150 platillos",
     cif: () => [n(segC(25, 4, 150), 1) + " %", "de los negocios de hasta 10 personas queda en Chef (modelo)"],
@@ -224,7 +231,7 @@ const TARJ = {
   },
 };
 DET.recomendaciones = {
-  titulo: "Seis recomendaciones: qué hacer, por qué y qué pasa si no.",
+  titulo: "Ocho decisiones: qué hacer, por qué y qué pasa si no.",
   fu: ["carta_precio", "carta_tres_planes", "carta_disco", "calvin_posturas"],
   nota: "Recomendaciones del análisis, no decisiones: las decide Calvin. Planes y precios son propuesta; la v1 no cobra. «Chef Ejecutivo» es nombre propuesto.",
   montar(host) {

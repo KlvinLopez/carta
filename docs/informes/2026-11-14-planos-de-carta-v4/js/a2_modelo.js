@@ -11,7 +11,7 @@ function desdeConfig(c) {
     precioServicio: c.precios.servicio, precioSalon: c.precios.salon,
     topePlatillos: c.topes.gratuito.platillos, topeMesas: c.topes.gratuito.mesas, topeCuentas: c.topes.gratuito.cuentas,
     hist: c.topes.servicio.meses_en_linea, ma: c.disco.meses_analitica_en_linea.gratuito, arch: c.disco.archivar,
-    curva: c.curva, palancas: [], cMed: null, cSig: null, cTec: null, sustituto: c.competencia.sustituto, K: c.competencia.k, soporte: SP.soporte_servicio, servidor: -1, mesAds: SP.mes_inicio_anuncios, bolsa: 1000,
+    platSel: "todo", curva: c.curva, palancas: [], cMed: null, cSig: null, cTec: null, sustituto: c.competencia.sustituto, K: c.competencia.k, soporte: SP.soporte_servicio, servidor: -1, mesAds: SP.mes_inicio_anuncios, bolsa: 1000,
   };
 }
 const BASE = desdeConfig(MOD.configInicial()); // la segmentación de Calvin: lo recomendado
@@ -25,7 +25,7 @@ function cambiar(parche) { S = {...S, ...parche}; emitir(); }
 function config(s0) {
   const c = MOD.configInicial();
   c.precios = {servicio: s0.precioServicio, salon: s0.precioSalon};
-  Object.assign(c.topes.gratuito, {platillos: s0.topePlatillos, mesas: s0.topeMesas, cuentas: s0.topeCuentas});
+  Object.assign(c.topes.gratuito, {platillos: s0.platSel === "sin" ? Infinity : s0.topePlatillos, platillos_cuenta: s0.platSel === "comida" ? "comida" : "todo", mesas: s0.topeMesas, cuentas: s0.topeCuentas});
   c.topes.servicio.meses_en_linea = s0.hist; c.topes.salon.meses_en_linea = s0.hist;
   c.disco = {meses_analitica_en_linea: {gratuito: s0.ma, servicio: s0.ma, salon: s0.ma}, archivar: s0.arch};
   c.palancas = s0.palancas || [];
@@ -41,6 +41,9 @@ function sup(s0) {
 }
 const evalS = (s0, n = 1000, opc = {}) => MOD.evaluar(config(s0), sup(s0), n, {curva: s0.curva, ...opc});
 const resumenS = (s0, n = 1000) => MOD.resumen(config(s0), sup(s0), n);
+/* las dos muestras de cartas con sesgos opuestos: «alta» (reparto, cartas cortas; por omisión) y «baja» (sitios propios, cartas largas) */
+const supCota = (s0, cota) => ({...sup(s0), cota_platillos: cota});
+const evalCota = (s0, cota, n = 1000) => MOD.evaluar(config(s0), supCota(s0, cota), n, {curva: s0.curva});
 function motor(s0) {
   const c = config(s0), s = sup(s0), ev = MOD.evaluar(c, s, 1000, {curva: s0.curva});
   const cL = Math.max(ev.capacidad.carga_en_gratuitos_tipicos / 1000, 1e-9), dL = Math.max((ev.capacidad.disco_mb - SP.base_vacia_mb) / 1000, 1e-9);

@@ -76,7 +76,7 @@ DET.disco = {
 const TRK = [
   {k: "topeMesas", nom: "Mesas", min: 5, max: 60, step: 1, tag: "supuesto", tip: "Modelo de mesas y cuentas por tamaño: no hay estadística de mesas en México"},
   {k: "topeCuentas", nom: "Cuentas", min: 2, max: 20, step: 1, tag: "supuesto", tip: "Modelo: se mide con los primeros restaurantes"},
-  {k: "topePlatillos", nom: "Platillos", min: 40, max: 300, step: 10, tag: "medida", tip: "148 cartas leídas; sesgo hacia abajo"},
+  {k: "topePlatillos", nom: "Platillos", min: 40, max: 300, step: 10, tag: "dos muestras,|sesgos opuestos", tip: "148 cartas de plataformas de reparto (cortas, sin bebidas) dan 98 % dentro de 150; 56 cartas completas de sitios propios (largas, formales) dan 52 %. La cobertura real está entre las dos y no se sabe dónde."},
 ];
 const COLPLAN = [C.vino, C.dorado, C.osc], NOMPLAN = [PLAN.gratis, PLAN.paga, PLAN.ejec];
 DET.topes = {
@@ -84,7 +84,8 @@ DET.topes = {
   fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
   nota: "Segmentación de Calvin: gratis los dos tamaños chicos (0 a 5 y 6 a 10 personas), plan medio los tres de en medio, plan caro los dos grandes. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato. Chef Ejecutivo es nombre propuesto.",
   montar(host) {
-    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 590" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 590" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="platSel" style="margin-top:8px"><span class="selr">El tope de platillos:</span><button class="btn" data-ps="todo">cuenta todo (bebidas incluidas)</button><button class="btn" data-ps="comida">sólo comida</button><button class="btn" data-ps="sin">sin tope</button></div>`;
+    host.addEventListener("click", ev => { const b = ev.target.closest("[data-ps]"); if (b) cambiar({platSel: b.dataset.ps}); });
     this.rm = RM($("#svT", host)); this.svg = $("#svT", host); this.armado = false;
   },
   actualizar() {
@@ -96,17 +97,22 @@ DET.topes = {
       rm.put("f" + i, "rect", {x: X0, y: y - 8, w: px - X0, h: 16, rx: 8, fill: C.vino, grow: false});
       const h = rm.put("h" + i, "circle", {x: px, y, r: 15, fill: C.vino, stroke: "#fff", sw: 3, cursor: "grab", attrs: {"aria-label": "Tope de " + t.nom.toLowerCase(), "aria-valuemin": t.min, "aria-valuemax": t.max, "aria-valuenow": v, "data-tip": t.tip}});
       rm.put("hv" + i, "text", {x: px, y: y + 4, text: String(v), size: 11, weight: 700, fill: "#fff", anchor: "middle"});
-      rm.put("tg" + i, "text", {x: X0 + W + 26, y: y + 5, text: t.tag, size: 11, weight: 700, fill: t.tag === "medida" ? C.verde : C.dorado});
+      const tl = t.tag.split("|"); rm.put("tg" + i, "text", {x: X0 + W + 16, y: y + 5 - (tl.length > 1 ? 7 : 0), text: tl[0], size: 11, weight: 700, fill: C.dorado}); if (tl.length > 1) rm.put("tg" + i + "b", "text", {x: X0 + W + 16, y: y + 19 - 7, text: tl[1], size: 11, weight: 700, fill: C.dorado});
       if (!this.armado) { const set = val => cambiar({[t.k]: clamp(Math.round(val / t.step) * t.step, t.min, t.max)}); arrastrable(h, svg, pt => set(t.min + (pt.x - X0) / W * (t.max - t.min)), (d, mult) => set(S[t.k] + d * mult * t.step)); }
     });
     this.armado = true;
+    $$("#platSel [data-ps]").forEach(b => b.setAttribute("aria-pressed", b.dataset.ps === S.platSel));
+    if (S.platSel === "sin") { rm.put("tg2b", "text", {x: X0 + W + 16, y: 62 + 2 * 70 + 12, text: "", size: 11}); rm.put("hv2", "text", {x: X0 + W * (S.topePlatillos - 40) / 260, y: 62 + 2 * 70 + 4, text: "∞", size: 11, weight: 700, fill: "#fff", anchor: "middle"}); rm.put("tg2", "text", {x: X0 + W + 16, y: 62 + 2 * 70 + 5 - 7, text: "sin tope", size: 11, weight: 700, fill: C.dorado}); }
+    { const hh = rm.get("h2"); if (hh) hh.style.opacity = S.platSel === "sin" ? 0.35 : 1; }
     // lo que cambia con los topes: ingreso, costo y margen al mes con 1,000 restaurantes
     [["Ingreso", e.ingresos.total, C.vino], ["Costo", e.costos.total, C.t2], ["Margen", e.margen_operacion, e.margen_operacion >= 0 ? C.verde : C.rojo]].forEach(([nm, v, col], i) => {
       rm.put("m" + i, "text", {x: 620 + i * 112, y: 78, text: nm, size: 13, weight: 700, fill: C.t2});
       rm.put("mv" + i, "text", {x: 620 + i * 112, y: 118, text: mp(v), size: 30, fill: col, serif: true});
     });
     rm.put("mt", "text", {x: 620, y: 150, text: "al mes con 1,000 restaurantes registrados", size: 12.5, fill: C.t2});
-    rm.put("md", "text", {x: 620, y: 190, text: `${n(100 * (1 - e.rebasan_topes), 1)} % se queda en ${PLAN.gratis}`, size: 15, weight: 700, fill: C.vino});
+    const dent = cota => 100 * (1 - MOD.parteRebasa(c, supCota(S, cota))), d1 = dent("baja"), d2 = dent("alta"), dLo = Math.min(d1, d2), dHi = Math.max(d1, d2);
+    rm.put("md", "text", {x: 620, y: 190, text: Math.abs(dHi - dLo) < 0.5 ? `${n(dHi, 1)} % se queda en ${PLAN.gratis}` : `${n(dLo, 1)}–${n(dHi, 1)} % se queda en ${PLAN.gratis}`, size: 15, weight: 700, fill: C.vino, attrs: {"data-tip": "Banda entre las dos muestras de cartas: la de sitios propios (cartas largas, cota baja) y la de reparto (cartas cortas, cota alta). Se cierra al elegir «sólo comida» o «sin tope», que no dependen de cuál muestra tenga razón. Las cifras fijas de arriba usan la cota alta (cartas cortas)."}});
+    { const mgB = evalCota(S, "baja").margen_operacion, mgA = e.margen_operacion; rm.put("mgb", "text", {x: 620, y: 240, text: Math.abs(mgB - mgA) < 1 ? "" : `con cartas largas (cota baja): ${mp(mgB)}`, size: 12, weight: 700, fill: C.t2, attrs: {"data-tip": "Supone que la mitad de los negocios chicos rebasa el tope y acepta pagar: no es un margen real."}}); }
     rm.put("me", "text", {x: 620, y: 214, text: `${n(e.clientes.de_paga, 1)} clientes de paga por cada 1,000`, size: 13, fill: C.t2});
     // la segmentación: a qué plan cae cada tamaño
     const tot = SEG.estratos.reduce((a, q) => a + q.negocios, 0);
@@ -120,21 +126,21 @@ DET.topes = {
       rm.put("tc" + i, "text", {x: x + 62, y: 450, text: `≈ ${n(cuentasDe(q))} ${Math.round(cuentasDe(q)) === 1 ? "cuenta" : "cuentas"}`, size: 11, fill: C.t2, anchor: "middle"});
       rm.put("tn" + i, "text", {x: x + 62, y: 470, text: `${n(q.negocios)} · ${100 * q.negocios / tot < 0.1 ? "menos de 0.1" : n(100 * q.negocios / tot, 1)} %`, size: 11.5, fill: C.t2, anchor: "middle"});
     });
-    const filaCob = mesas => { const cc = config({...S, topeMesas: mesas}); return [100 * MOD.seguridadChico(cc, SP, "minimo"), 100 * MOD.seguridadChico(cc, SP, "centro"), 100 * MOD.seguridadChico(cc, SP, "maximo"), evalS({...S, topeMesas: mesas}).margen_operacion]; };
+    const cuentaTope = S.platSel === "comida" ? "comida" : "todo", filaCob = mesas => { const cc = config({...S, topeMesas: mesas}), cb = MOD.coberturaChef(cc, SP)[cuentaTope]; return [100 * Math.min(cb.alta, cb.baja), 100 * cb.alta, 100 * Math.max(cb.alta, cb.baja), evalS({...S, topeMesas: mesas}).margen_operacion]; };
     const alt = S.topeMesas === 15 ? 25 : 15;
     [[S.topeMesas, "tu asa"], [alt, alt === 15 ? "alternativa" : "recomendada"]].forEach(([me, tag], i) => {
       const [mi, ce, ma, mg] = filaCob(me), y = 488 + i * 44;
       rm.put("cr0" + i, "rect", {x: 30, y, w: 900, h: 38, rx: 16, fill: i ? "rgba(0,0,0,0)" : C.a2, grow: false});
       rm.put("cr1" + i, "text", {x: 48, y: y + 26, text: `${me} mesas · ${tag}`, size: 14, weight: 700, fill: i ? C.t2 : C.vino});
-      rm.put("cr2" + i, "text", {x: 260, y: y + 26, text: `≈ ${n(ce, 1)} de cada 100 chicos caben en ${PLAN.gratis} (rango ${n(mi, 1)}–${n(ma, 1)}, modelo, no medida)`, size: 13.5, fill: C.tinta});
+      rm.put("cr2" + i, "text", {x: 260, y: y + 26, text: `${Math.abs(ma - mi) < 0.5 ? "≈ " + n(ma, 1) : n(mi, 1) + "–" + n(ma, 1)} de cada 100 chicos caben en ${PLAN.gratis} (modelo)`, size: 13.5, fill: C.tinta});
       rm.put("cr3" + i, "text", {x: 920, y: y + 26, text: `margen ${mp(mg)} al mes`, size: 14, weight: 700, fill: mg >= 0 ? C.verde : C.rojo, anchor: "end"});
     });
     rm.put("lg", "text", {x: 30, y: 250, text: "A qué plan cae cada tamaño de negocio", size: 14, weight: 700, fill: C.vino});
     const por = [0, 1, 2].map(p => SEG.estratos.filter(q => planDe(q, c) === p).reduce((a, q) => a + q.negocios, 0));
     return {
       leyenda: COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("") + `<span>Arrastra una asa o usa las flechas</span>`,
-      cifras: [[n(100 * MOD.seguridadChico(c, SP, "minimo")) + "–" + n(100 * MOD.seguridadChico(c, SP, "maximo")) + " %", `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: modelo, no medida`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
-      insight: `Con ${S.topeMesas} mesas, ${S.topeCuentas} cuentas y ${S.topePlatillos} platillos, ${n(100 * por[0] / tot, 1)} % de los negocios queda en ${PLAN.gratis}; ese plan lleva anuncios y lo pagan los demás.`,
+      cifras: [[(() => { const cb = MOD.coberturaChef(c, SP)[S.platSel === "comida" ? "comida" : "todo"]; return Math.abs(cb.alta - cb.baja) < 0.005 ? n(100 * cb.alta) + " %" : n(100 * Math.min(cb.alta, cb.baja)) + "–" + n(100 * Math.max(cb.alta, cb.baja)) + " %"; })(), `de los negocios de hasta 10 personas cabe en ${PLAN.gratis}: banda entre dos muestras de cartas con sesgos opuestos`, "supuesto"], [n(100 * por[0] / tot, 1) + " %", `de los negocios queda en ${PLAN.gratis} (gratis)`, "supuesto"], [n(100 * por[1] / tot, 1) + " %", `queda en ${PLAN.paga}`, "supuesto"], [n(100 * por[2] / tot, 1) + " %", `queda en ${PLAN.ejec}`, "supuesto"], [mp(e.margen_operacion), "margen de operación al mes con 1,000 restaurantes", "supuesto"]],
+      insight: `Con ${S.topeMesas} mesas, ${S.topeCuentas} cuentas y ${S.platSel === "sin" ? "sin tope de platillos" : S.platSel === "comida" ? S.topePlatillos + " platillos de comida (las bebidas no cuentan)" : S.topePlatillos + " platillos"}, ${n(100 * por[0] / tot, 1)} % de los negocios queda en ${PLAN.gratis}. ${S.platSel === "todo" ? "El tope de platillos depende de cuál de dos muestras de cartas tenga razón; «sólo comida» o «sin tope» cierran la banda." : "Con esta regla la banda se cierra: ya no depende de qué muestra tenga razón."}`,
     };
   },
 };

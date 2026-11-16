@@ -58,6 +58,8 @@ def b64(p: Path) -> str:
 
 def main() -> None:
     d = cargar5()
+    # la cifra de cartas «alcanzables» (1,780) quedó superada por la muestra de las 17 zonas: no viaja
+    d["mercado"] = {k: v for k, v in d["mercado"].items() if k not in ("muestra", "muestra_motivos")}
     refs_all = json.loads((AQUI / "datos" / "referencias.json").read_text(encoding="utf-8"))
     refs = {}
     for r in refs_all["referencias"]:
