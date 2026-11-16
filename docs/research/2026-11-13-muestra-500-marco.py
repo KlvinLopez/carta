@@ -323,9 +323,7 @@ def main() -> int:
             if a.ya:
                 with open(a.ya) as f:
                     vistos = {r["place_id"] for r in csv.DictReader(f)}
-            nuevos = {
-                c: [p for p in ls if p["id"] not in vistos] for c, ls in por_ciudad.items()
-            }
+            nuevos = {c: [p for p in ls if p["id"] not in vistos] for c, ls in por_ciudad.items()}
             for c, ls in elegir(nuevos).items():
                 print(f"## {c}: {len(ls)} nuevos")
                 for p in ls:
