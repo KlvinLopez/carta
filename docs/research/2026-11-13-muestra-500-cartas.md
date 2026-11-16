@@ -1,11 +1,29 @@
-# Muestra de 500 cartas de México: etapa 0 (términos de Google, reparto y marco)
+# Muestra de 500 cartas de México: marcos, lectura de sitios y lo que se alcanza
 
-**Fecha:** 13 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** marco, universo del DENUE (§8) y preliminar de plataformas (§9) hechos; lectura **retomada el 16 de noviembre** por el marco del DENUE (§13: tanda 1 de 200 intentos cerrada, 0 contables completos); a la espera de la decisión de la maestra antes de otra tanda. Marco de Google (§11) en espera. Estadística sin preparar. No cambia código, contrato ni planes.
+**Fecha:** 13 a 16 de noviembre de 2026 · **Rama:** `agente/muestra-500-cartas` · **Estado:** ver §0 (conclusión vigente). Este documento es **vivo**: arriba la conclusión de hoy; las secciones numeradas son el historial y las superadas están marcadas. No cambia código, contrato ni planes.
 **Guion del marco:** [`…-muestra-500-marco.py`](2026-11-13-muestra-500-marco.py) (sólo biblioteca estándar; prueba en seco con `--seco`).
 
 Marcas: **[medida aquí]**, **[fuente externa]** (enlace; leída el 13 de noviembre de 2026), **[documento]** (otro documento del repositorio) y **[supuesto]** (juicio; entra en «datos por conseguir»).
 
 ---
+
+## 0. Conclusión vigente (16 de noviembre de 2026)
+
+**Dos vías de lectura de sitios propios, medidas, dan resultados muy distintos:**
+
+| Marco | Intentos | Cartas completas | Tasa (intervalo de 90 %) | Qué es |
+|---|---|---|---|---|
+| **Google** (los negocios con sitio y más reseñados de las 17 zonas; primeros 200 de una cola por reseñas) | 200 | 20 | **0.100 (0.07–0.14)** | §11, §11.2 |
+| **DENUE** con sitio web declarado (muestra al azar estratificada por tamaño, semilla 20261116; marco de 12,337) | 200 (166 sitios distintos) | **0** | **0 (cota alta 1.3–1.6 %)** | §13, §14 (controles) |
+
+- **Lo firme (los controles lo confirman, §14):** el cero del DENUE **no** es del lector (lee 10 de 10 aciertos conocidos) ni de la resolución de nombres (0 de 20 «caídos» responden por una segunda vía). **43 % de los dominios declarados en el DENUE ya no existen** (71 de 166 sitios distintos) y sólo **39 % llevan a una página viva del negocio**.
+- **Techo de cartas alcanzables por sitio propio declarado en el DENUE: ≤ ≈ 290** (17,827 × 1.6 %), **≤ 0.04 % del universo** de 741,499 establecimientos de la rama 7225 (DENUE 05_2026, §8). Ni el 5 % (37,075) ni siquiera el 1 % son alcanzables por esta vía.
+- **La vía que sí da cartas es el marco de Google (≈ 10 % de los sitios distintos con carta completa y legible; 27 de 276 con 90 % de confianza de 7 a 13 %, §15)**, pero describe **cartas legibles en línea de negocios con sitio y muchas reseñas**: un sesgo fuerte; no sirve como mediana de platillos ni de precios del negocio típico (§12.6). Sin embargo, no puede extrapolarse al universo: el DENUE mide justo lo contrario.
+- **Decisión de la maestra (16 de noviembre):** el marco del DENUE **se cierra** (no rinde); se retoma el de Google que ya está leído a medias (504 sitios pendientes, orden aleatorio con semilla, tandas de hasta 125 intentos, sin consultas nuevas a Google; **tanda 2 hecha: §15, quedan 375**); lo que no se lea antes del 20 de noviembre se queda sin leer.
+- **Para Calvin (vigente):** el 500 de la muestra se alcanza a lo sumo en la parte de Google (≈ 70 cartas completas esperadas en todo el marco con la tasa de 0.10); **no hay forma de «mapear» el 5, 10, 30 o 50 % del país por sitios propios**; los restaurantes sin presencia en línea (≈ 99 %) sólo se alcanzan con sus propias cartas (piloto) o por visita. Las plataformas de reparto quedan fuera por sus términos (§9).
+
+**Superado y conservado como historial** (cada sección lleva su fecha): la tasa de 0.17 de los primeros 30 intentos (§7.1) y la cifra de ≈ 3,000 alcanzables (§8.3, sustituida dos veces: ≈ 1,780 con la tasa de 200 intentos de Google y ahora ≤ ≈ 290 con la del DENUE); el reparto de 18/35/65… (§3, corregido el 16 de noviembre); el «estado exacto» del 13 de noviembre (§10); y el supuesto de que los sitios del DENUE se parecen a los más reseñados (§8.3, §12.5), que la tanda del DENUE desmiente.
+
 
 ## 1. Términos de Google: qué se puede guardar
 
@@ -117,7 +135,7 @@ Sustituciones que quedan como supuesto: el Valle de México usa el gasto de la *
 
 Se usaron las 8 solicitudes que quedaban (90 de 90) en 4 consultas de 2 páginas: taquería y mariscos en Tijuana, taquería y cafetería en Toluca. Resultado: **61 candidatos nuevos** (33 Tijuana, 28 Toluca; ya con el filtro de cerrados y «muy caro»), que se sumaron al CSV de ids (975 filas). Con eso Tijuana queda con 66 candidatos para 35 plazas y Toluca con 56 para 27. **La cuota de Google de este marco está agotada**; más candidatos exigen otro día.
 
-## 7. Tanda 1: parada por rendimiento bajo [medida aquí]
+## 7. Tanda 1: parada por rendimiento bajo [medida aquí; histórico: la tasa de 0.09 de aquí se sustituyó por §11.2]
 
 **Qué se hizo.** Cola de la tanda 1: rebanada proporcional (~20 % de cada plaza; 99 contables) con los candidatos que traen sitio web, en orden de reseñas dentro de cada ciudad y una sola vez por marca (287 intentos máximos; los 193 candidatos sin sitio **no se intentaron**: sesgo hacia negocios con sitio propio, que reduce a los que sólo viven en redes sociales). Lectura con ayudantes `haiku`, uno a la vez, 6 sitios por lote, máximo 3 páginas por negocio, sin reintentar 403/429/503.
 
@@ -335,7 +353,7 @@ Son márgenes de una **muestra al azar simple**: la nuestra no lo es (se eligió
 - Los números de la primera pasada (conteos de platillos por negocio, sin copiar cartas) siguen en el repositorio; no se copió contenido de las cartas, solo conteos y la URL de cada ficha.
 - **Uber Eats**: no se leyó ninguna ficha de esa plataforma en ninguna pasada (la primera pasada solo usó Rappi); **no se leerá**, porque sus términos lo prohíben.
 
-## 10. Estado exacto (13 de noviembre de 2026)
+## 10. Estado exacto (13 de noviembre de 2026) [histórico: superado por §0]
 
 **Hecho**
 - Etapa 0: términos de Google (§1–2), reparto con fuente (§3), guion del marco (§4).
@@ -486,6 +504,27 @@ Eso es lo que sustenta «el campo de sitio web del DENUE está desactualizado»:
 **Tasa corregida o confirmada:** **confirmada**: 0 contables completos en 200 intentos (0 en 166 sitios distintos); intervalo de 90 % de la tasa **0 a 1.3 %** (0 en 166: 0 a 1.6 %). Techo de cartas alcanzables por sitios propios: ≤ ≈ 290 (17,827 × 1.6 %), ≤ 0.04 % del universo.
 
 **Lo que los controles no descartan:** (a) una sola tanda de 200, en un orden aleatorio; (b) el lector no resuelve JavaScript pesado ni PDF en columnas (12 casos); (c) la tasa del marco de Google (0.100) mide otra población (los más reseñados). No se abrió otra tanda.
+
+## 15. Marco de Google retomado en orden aleatorio: tanda 2 (125 intentos más) [medida aquí; 16 de noviembre de 2026]
+
+**Diseño** (decisión de la maestra, 16 de noviembre): los 504 candidatos con sitio del marco de Google aún sin leer, en **orden aleatorio con semilla fija 20261117** (no por reseñas, para que la tasa de lo que falta sea comparable), sin ninguna consulta nueva a Google, con el lector de la rama, un ayudante `haiku` a la vez y en lotes de 9; versionados sólo `place_id` y conteos. Un intento cuyo sitio web ya se había intentado (el mismo sitio de una cadena) se anota como «misma marca» sin pedir nada.
+
+**Resultado de la tanda 2 (129 intentos registrados, de ellos 48 «misma marca» sin pedir: 81 sitios distintos):**
+
+| | Intentos |
+|---|---|
+| **Contables completos** | **7** |
+| Parciales (una de comida o de bebidas, la otra no legible) | 9 |
+| Misma marca (mismo sitio web que otro intento; no se pide) | 48 |
+| Descartes | 65 |
+
+**Tasas** [aritmética mía, intervalo de 90 % de Wilson]: **tanda 2: 7 de 81 sitios distintos = 0.086 (0.048–0.152)**; **tanda 1 (por reseñas): 20 de 195 sitios distintos = 0.103 (0.072–0.144)**; **acumulado: 27 de 276 sitios distintos = 0.098 (0.072–0.131)**. Contando como intento también los «misma marca»: 7/129 = 0.054 (0.03–0.10) y 27/329 = 0.082 (0.058–0.109). **Orden por reseñas contra orden aleatorio: las tasas son compatibles (0.103 y 0.086, con intervalos que se traslapan)**: el sesgo de haber empezado por los más reseñados es pequeño dentro de este marco; el sesgo grande es el del marco mismo (sitios con muchas reseñas), no el del orden.
+
+**Motivos de descarte de la tanda 2 (113 registros: 65 descartes y 48 «misma marca»):** misma marca 48 · sin carta en el sitio 34 · sitio caído 5 · `robots.txt` 3 · HTTP 404 3 · carta sin precios 3 · precios no asociables 3 · carta solo en imagen 3 · bloqueo 403, sitio de cadena con locales fuera de México, tienda en línea y carta incompleta, 1 cada uno. **Contables completos acumulados con el marco de Google: 27** (28 filas completas con el Orinoco de la primera lectura) **y 16 parciales**; `muestra-500-datos.csv` tiene 44 filas.
+
+**Sesgos de lo leído (se repite):** son cartas **legibles en línea de negocios con sitio propio y muchas reseñas**; entre los completos hay cadenas y negocios formales de 100–150 platillos y 250–400 bebidas (vinos y destilados); **no representan al negocio mexicano típico** (§12.6). **Observaciones de calidad:** un «sitio de restaurante» de la lista de Google era de España (se descarta: fuera de México); en 2 casos el sitio es mayormente una tienda de café (se cuenta solo la carta); en un caso la cifra de bebidas es mínima porque vinos y destilados no tienen precio en el texto.
+
+**Pendiente del marco de Google:** **375 sitios sin intentar** de los 504 (la lista sigue en el directorio temporal; se borra a más tardar el 20 de noviembre o al terminar, lo que ocurra primero). Con la tasa de 0.098 por sitio distinto, lo que queda daría ≈ 35 completas más (≈ 65 en todo el marco). **No se calcula todavía la estadística (mediana, p90 con intervalo)**: con 28 filas completas y estos sesgos sirve solo como prueba de método.
 
 ---
 
