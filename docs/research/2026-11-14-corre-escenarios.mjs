@@ -16,10 +16,10 @@ const N = [100, 1000, 10000];
 
 // ------------------------------------------------------------------ cálculo
 const rec = M.configInicial();
-const tres = M.configTresPlanes25Mesas(); // la configuración de las rondas 4 a 7 (Chef 25 · 4 · 150, Master Chef, Chef Ejecutivo)
+const tres = { ...M.configTresPlanes25Mesas(), carga: 'tipica' }; // HISTÓRICO, con la carga típica (comparación rotulada: con la carga por topes 25 mesas × 180 visitas no cabe en la arquitectura de hoy) // la configuración de las rondas 4 a 7 (Chef 25 · 4 · 150, Master Chef, Chef Ejecutivo)
 const opt = M.optimizar(s, {}, tres); // la restricción de ≥ 95 % de ≤ 10 personas era del plan anterior
 const mejor = opt.mejor;
-const antes = M.configTopes10Mesas3Cuentas();
+const antes = { ...M.configTopes10Mesas3Cuentas(), carga: 'tipica' }; // HISTÓRICO, con la carga típica
 
 const resumenEsc = (e) => ({ n: e.n, gratuitos: e.clientes.gratuito, pagantes: e.clientes.de_paga, ingresos: e.ingresos.total, anuncios: e.ingresos.anuncios, suscripcion: e.ingresos.suscripcion, costos: e.costos.total, margen_operacion: e.margen_operacion, margen_despues_de_captacion: e.margen_despues_de_captacion, margen_pct: e.margen.porcentaje, escalon: e.capacidad.escalon, muro: e.capacidad.muro_que_manda, requiere_arquitectura: e.capacidad.requiere_arquitectura, instancias: e.capacidad.instancias, extrapolacion_sin_medir: e.extrapolacion_sin_medir, equilibrio_pagantes: e.equilibrio_pagantes, se_paga_solo: e.se_paga_solo, gratuitos_por_pagante: e.gratuitos_que_sostiene_un_pagante, gratuitos_por_pagante_sin_anuncios: e.gratuitos_que_sostiene_un_pagante_sin_anuncios, ingreso_por_gratuito: e.por_cliente.ingreso_gratuito, costo_por_gratuito: e.por_cliente.costo_gratuito, ingreso_por_pagante: e.por_cliente.ingreso_por_pagante, costo_por_pagante: e.por_cliente.costo_servicio, comensales_mes: e.comensales_mes });
 const esc = M.escenarios(rec, s, N).map((r) => ({ n: r.n, peor_sin_anuncios: resumenEsc(r.peor_firme), peor_anuncios_tarifa_baja: resumenEsc(r.peor_anuncios_tarifa_baja), peor_anuncios_adversos: resumenEsc(r.peor_anuncios_adversos), peor_anuncios_tarifa_media: resumenEsc(r.peor_anuncios_tarifa_media), mejor: resumenEsc(r.mejor), esperado: Object.fromEntries(curvas.map((c) => [c, resumenEsc(r.esperado[c])])) }));
@@ -61,6 +61,7 @@ const estratos = ['centro', 'minimo', 'maximo'].map((k) => [k, M.coberturaEstrat
 const estratosBaja = M.coberturaEstratos(rec, s, 'centro', 'baja');
 const alternativas = [[5, 1], [6, 1], [6, 2], [8, 2], [10, 3]].map(([mesas, cuentas]) => { const c = { ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, mesas, cuentas } } }; const e = M.coberturaEstratos(c, s, 'centro'); const m = M.evaluar(c, s, 1000, { curva: 'media' }); return { mesas, cuentas, dentro_0_5: e.dentro_0_5, cae_6_10: e.cae_en_master_6_10, pagantes: m.clientes.de_paga, margen_operacion: m.margen_operacion }; });
 const res = M.resumen(rec, s, 1000);
+const cargaG = M.cargaGratuita(rec, s);
 const msj = M.mensajes(rec, s);
 const meta = M.meta12Meses(rec, s);
 const chef = M.potencialChef(rec, s);
@@ -274,7 +275,7 @@ ${tg.extrapolada_sin_medir.map(filaTG).join('\n')}
 |---|---|---|---|
 ${['baja', 'medio', 'adverso'].map((c) => `| ${c === 'baja' ? 'Tarifa baja' : c === 'medio' ? 'Tarifa media' : 'Adverso'} | **${nn(rangos[c].centro)}** | ${nn(rangos[c].minimo)} – ${rangos[c].maximo == null ? 'imposible' : n0(rangos[c].maximo)} | ${rangos[c].por_supuesto.map((v) => `${v.supuesto}: ${v.bajo.variante} → ${nn(v.bajo.n)}, ${v.alto.variante} → ${nn(v.alto.n)}`).join('; ')} |`).join('\n')}
 
-**La bolsa de Calvin, como rango** (restaurantes gratuitos que caben, según el soporte por gratuito):
+**La bolsa de Calvin, como rango** (restaurantes gratuitos que caben con la carga de sus topes: ${n0(cargaG.visitas_mes)} visitas al mes cada uno, la misma definición que usa «¿Qué nos limita?», según el soporte por gratuito):
 
 | Bolsa al mes | Centro (soporte ${s.soporte_gratuito}) | Mínimo – máximo | Por soporte (pesos por gratuito → restaurantes) |
 |---|---|---|---|
@@ -475,7 +476,7 @@ const R = [
   { id: 'bolsa', decision: 'Cuánta bolsa poner mientras no hay anuncios',
     recomendacion: `**${n0(b1000.bolsa)} pesos al mes** alcanzan para ${n0(b1000.centro.restaurantes)} restaurantes gratuitos (rango ${n0(b1000.minimo)} a ${n0(b1000.maximo)}); acumulado, Calvin pone hasta **${n0(proy.media.financiamiento_maximo)} pesos** en el caso recomendado, ${n0(proyPeor.financiamiento_maximo)} en el peor y ${n0(proyPiso.financiamiento_maximo)} en el piso de verdad.`,
     depende: '**Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.',
-    cifras: `Bolsa ${bolsasR.map((b) => n0(b.bolsa)).join(' / ')} → ${bolsasR.map((b) => `${n0(b.centro.restaurantes)} (${n0(b.minimo)}–${n0(b.maximo)})`).join(' / ')} restaurantes.`,
+    cifras: `Bolsa ${bolsasR.map((b) => n0(b.bolsa)).join(' / ')} → ${bolsasR.map((b) => `${n0(b.centro.restaurantes)} (${n0(b.minimo)}–${n0(b.maximo)})`).join(' / ')} restaurantes gratuitos (con la carga de sus topes; sólo gratuitos, sin la mezcla de paga que usa «¿Qué nos limita?»: ${n0(res.cifras.find((f) => f.clave === 'restaurantes_que_caben').recomendado)} registrados con avisos).`,
     alternativas: bolsasR.map((b) => ({ opcion: `${n0(b.bolsa)} pesos al mes`, pros: `${n0(b.centro.restaurantes)} restaurantes y ${comensalesMillones(b.centro.comensales_mes)} M de comensales`, contras: `rango ${n0(b.minimo)}–${n0(b.maximo)} según el soporte` })),
     ejemplo: `Con ${n0(b1000.bolsa)} pesos al mes pagas servidor y soporte básico de ≈ ${n0(b1000.centro.restaurantes)} fondas y taquerías gratuitas.`,
     prueba: 'El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte.' },

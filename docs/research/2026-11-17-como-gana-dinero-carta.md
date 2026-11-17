@@ -7,10 +7,10 @@
 ## Conclusiones
 
 1. **Hoy Carta no le paga a su fundador: `sueldo_fundador` está en 0 y no hay valor por omisión inventado.** La tabla de §1 da niveles de referencia (múltiplos del salario mínimo general: 315.04 pesos por día en 2026 [fuente]) y, para cada uno, cuántos restaurantes y clientes de paga hacen falta.
-2. **Con un sueldo de 28,732 pesos al mes (3 salarios mínimos), el margen después de captación lo cubre con 1,660 restaurantes registrados y 192 de paga en el recomendado (mes 32 de la proyección); en el peor, 14,010; en el mejor, 490.**
+2. **Con un sueldo de 28,732 pesos al mes (3 salarios mínimos), el margen después de captación lo cubre con 1,730 restaurantes registrados y 200 de paga en el recomendado (mes 34 de la proyección); en el peor, 13,190; en el mejor, 520.**
 3. **Carta no es hoy una plataforma tipo Airbnb o Uber: es una herramienta gratuita con anuncios más suscripción, que sirve a un comensal que ya está sentado, sin transacción dentro (§3).** El hueco frente a Meniu (que no tiene plan gratuito) es el negocio de 0 a 5 personas: 73,193 de 104,882 clientes potenciales, de los que caben en Chef 35,427 (supuesto) (§4).
 4. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe con una spec nueva, después del piloto) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
-5. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción 225 por restaurante de paga; anuncios 4.3 a 45.5 por restaurante gratuito; **comisión por transacción (fuera de la v1) 322 por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
+5. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción 225 por restaurante de paga; anuncios 2.6 a 27.3 por restaurante gratuito; **comisión por transacción (fuera de la v1) 322 por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
 6. **Secuencia recomendada:** piloto = suscripción; con la Spec 002 «Planes», después del piloto = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
 
 ## 1. Sueldo del fundador en el modelo
@@ -19,20 +19,20 @@
 
 | Sueldo al mes | Veces el mínimo | Escenario | Restaurantes registrados necesarios | Clientes de paga | Mes en que el margen después de captación lo cubre | Margen después de sueldo: 1,000 restaurantes · mes 12 · mes 24 |
 |---|---|---|---|---|---|---|
-| 9,577 | 1 | recomendado | 550 | 64 | mes 21 | +8,361 · −7,691 · +5,432 |
-|  |  | peor | 4,940 (exige otra arquitectura) | 116 | mes 57 | −7,609 · −9,927 · −8,564 |
-|  |  | mejor | 165 | 63 | mes 14 | +49,207 · −2,491 · +39,576 |
-| 28,732 | 3 | recomendado | 1,660 (exige otra arquitectura) | 192 | mes 32 | −10,794 · −26,846 · −13,723 |
-|  |  | peor | 14,010 (exige otra arquitectura) | 328 | más de 60 meses | −26,764 · −29,082 · −27,719 |
-|  |  | mejor | 490 | 187 | mes 20 | +30,052 · −21,646 · +20,421 |
-| 47,886 | 5 | recomendado | 2,680 (exige otra arquitectura) | 311 | mes 40 | −29,948 · −46,000 · −32,877 |
-|  |  | peor | más de 20,000 | — | más de 60 meses | −45,918 · −48,236 · −46,873 |
-|  |  | mejor | 830 (exige otra arquitectura) | 317 | mes 24 | +10,898 · −40,800 · +1,267 |
-| 95,772 | 10 | recomendado | 5,360 (exige otra arquitectura) | 621 | mes 55 | −77,834 · −93,886 · −80,763 |
-|  |  | peor | más de 20,000 | — | más de 60 meses | −93,804 · −96,122 · −94,759 |
-|  |  | mejor | 1,630 (exige otra arquitectura) | 623 | mes 32 | −36,988 · −88,686 · −46,619 |
+| 9,577 | 1 | recomendado | 600 | 70 | mes 22 | +6,928 · −8,149 · +3,702 |
+|  |  | peor | 4,680 (exige otra arquitectura) | 110 | mes 54 | −7,611 · −9,719 · −8,472 |
+|  |  | mejor | 178 | 68 | mes 14 | +44,907 · −3,768 · +34,415 |
+| 28,732 | 3 | recomendado | 1,730 | 200 | mes 34 | −12,227 · −27,304 · −15,453 |
+|  |  | peor | 13,190 (exige otra arquitectura) | 309 | más de 60 meses | −26,766 · −28,874 · −27,627 |
+|  |  | mejor | 520 | 199 | mes 21 | +25,752 · −22,923 · +15,260 |
+| 47,886 | 5 | recomendado | 2,930 (exige otra arquitectura) | 340 | mes 42 | −31,381 · −46,458 · −34,607 |
+|  |  | peor | más de 20,000 | — | más de 60 meses | −45,920 · −48,028 · −46,781 |
+|  |  | mejor | 890 (exige otra arquitectura) | 340 | mes 25 | +6,598 · −42,077 · −3,894 |
+| 95,772 | 10 | recomendado | 5,860 (exige otra arquitectura) | 679 | mes 58 | −79,267 · −94,344 · −82,493 |
+|  |  | peor | más de 20,000 | — | más de 60 meses | −93,806 · −95,914 · −94,667 |
+|  |  | mejor | 1,750 (exige otra arquitectura) | 669 | mes 34 | −41,288 · −89,963 · −51,780 |
 
-**Sin sueldo** (referencia): margen después de captación con 1,000 restaurantes +17,938 (recomendado), +1,968 (peor), +58,784 (mejor). El piso de verdad no cubre ningún sueldo.
+**Sin sueldo** (referencia): margen después de captación con 1,000 restaurantes +16,505 (recomendado), +1,966 (peor), +54,484 (mejor). El piso de verdad no cubre ningún sueldo.
 
 **Sigue sin modelar:** impuestos (ISR e IVA); contabilidad y trámites; seguridad social y prestaciones; costos de ventas más allá del costo de conseguir un cliente de paga. El margen es antes de captación, sueldos e impuestos; un sueldo real cuesta más que el sueldo bruto.
 
@@ -51,7 +51,7 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 ### 2.2 Anuncios al comensal del plan gratuito (no personalizados) (vigente)
 
 - **A quién se le cobra:** el anunciante, a través de una red de anuncios (hoy se supone AdSense); anunciantes típicos: marcas de bebidas y consumo, bancos y comercios locales (por definir).
-- **Potencial (pesos al mes):** por restaurante gratuito 4.3 (tarifa baja) · 17.2 (media) · 45.5 (alta).
+- **Potencial (pesos al mes):** por restaurante gratuito 2.6 (tarifa baja) · 10.3 (media) · 27.3 (alta).
 - **Supuestos:** tarifa por mil visitas, visitas con la app, parte con anuncio y que la red apruebe el sitio.
 - **Qué exige:** ADR, abrir la política de seguridad del sitio, aviso de privacidad y aprobación de la red; sin anuncios personalizados (regla 10).
 - **Cuándo cabría:** hacia el mes 9 (supuesto) o después de la Fase 3.
@@ -75,7 +75,7 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 ### 2.5 Pago del comensal por quitar anuncios o por funciones propias (FUERA de la v1)
 
 - **A quién se le cobra:** el comensal (suscripción tipo «Carta+»).
-- **Potencial (pesos al mes):** por restaurante 495.5 (rango 165.2 a 1,981.9) (techo, repartido entre los restaurantes que visita cada comensal).
+- **Potencial (pesos al mes):** por restaurante 297.3 (rango 99.1 a 1,189.1) (techo, repartido entre los restaurantes que visita cada comensal).
 - **Supuestos:** comensales únicos al mes, conversión y precio (29 pesos del prototipo): supuestos sin dato.
 - **Qué exige:** cuenta o perfil del comensal: contradice «Qué NO construir» y la regla 10 (sin datos personales del comensal en el servidor); ADR y spec.
 - **Cuándo cabría:** no antes de una v2.
@@ -97,7 +97,7 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 
 | Personas | Negocios [medido, DENUE] | En Chef | En Master Chef | Anuncios de Chef al mes (tarifa baja / media / alta) | Suscripción de Master Chef si todos pagaran | Con la curva pesimista / media / optimista |
 |---|---|---|---|---|---|---|
-| 0 a 5 | 73,193 | 35,427 | 37,766 | 152,513 / 610,053 / 1,612,284 | 8,497,345 | 300,617 / 1,487,035 / 4,904,186 |
+| 0 a 5 | 73,193 | 35,427 | 37,766 | 91,508 / 366,032 / 967,370 | 8,497,345 | 300,617 / 1,487,035 / 4,904,186 |
 | 6 a 10 | 17,855 | 0 | 17,855 | 0 / 0 / 0 | 4,017,375 | 142,126 / 703,041 / 2,318,601 |
 | 11 a 30 | 10,809 | 0 | 10,809 | 0 / 0 / 0 | 2,432,025 | 86,040 / 425,604 / 1,403,627 |
 | 31 a 50 | 2,263 | 0 | 2,263 | 0 / 0 / 0 | 509,175 | 18,013 / 89,106 / 293,867 |
@@ -121,9 +121,9 @@ El restaurante de paga **no muestra anuncios**: su ingreso de anuncios es 0 y ca
 
 | Tarifa base | Genérica (por mil) | Personalizada (por mil) | Por gratuito en la v1 | Por gratuito en la v2 | Cambio | Rango v2 | Por 1,000 restaurantes v1 → v2 |
 |---|---|---|---|---|---|---|---|
-| baja | 3.5 | 5.3 | 4.3 | 4.7 | +0 | 4.3 a 9 | 3,806 → 4,187 |
-| media | 14 | 21 | 17.2 | 18.9 | +2 | 17.3 a 35.8 | 15,224 → 16,747 |
-| alta | 37 | 55.5 | 45.5 | 50.1 | +5 | 45.6 a 94.7 | 40,236 → 44,260 |
+| baja | 3.5 | 5.3 | 2.6 | 2.8 | +0 | 2.6 a 5.4 | 2,284 → 2,512 |
+| media | 14 | 21 | 10.3 | 11.4 | +1 | 10.4 a 21.5 | 9,135 → 10,048 |
+| alta | 37 | 55.5 | 27.3 | 30 | +3 | 27.4 a 56.8 | 24,142 → 26,556 |
 
 *La tarifa base y las visitas son supuestos (ver modelo); con 116 de paga por cada 1,000 el ingreso de anuncios sale sólo de los gratuitos. Se mide con una prueba pequeña de AdSense con 3 restaurantes y, para la v2, con el registro voluntario.*
 
@@ -177,10 +177,10 @@ El restaurante de paga **no muestra anuncios**: su ingreso de anuncios es 0 y ca
 
 - **A quién sirve:** Al restaurante y a la cafetería de México, desde la fonda de 0 a 5 personas hasta el negocio de 100, y al comensal que ya está sentado.
 - **Qué le resuelve:** Sube la carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo.
-- **Quién paga y cuánto:** restaurante: Master Chef 225 pesos al mes (deja 149 al restaurante de paga tras costos); Chef es gratis; anunciante: 4.3 a 45.5 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato); comensal: nada.
+- **Quién paga y cuánto:** restaurante: Master Chef 225 pesos al mes (deja 149 al restaurante de paga tras costos); Chef es gratis; anunciante: 2.6 a 27.3 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato); comensal: nada.
 - **Fuentes de ingreso por etapa:** **Piloto:** Suscripción de Master Chef (se prueba el precio con tres grupos) · **Con la Spec 002 «Planes», después del piloto (hacia el mes 9, supuesto):** Anuncios en Chef; visibilidad pagada con spec nueva · **Más adelante (v2):** Tarjetas de lealtad y otras funciones de Meniu, comisión o pago del comensal sólo con ADR y spec.
-- **Costos:** infraestructura de hoy ≈ 10.2 USD al mes; un gratuito cuesta 1.2 pesos al mes y un cliente de paga sostiene 125 gratuitos sin anuncios; el costo grande: el soporte de cada cliente de paga.
-- **Meta de 12 meses:** 300 restaurantes, margen de operación del mes 12 +5,749 pesos (recomendado).
+- **Costos:** infraestructura de hoy ≈ 10.2 USD al mes; un gratuito cuesta 1 pesos al mes y un cliente de paga sostiene 144 gratuitos sin anuncios; el costo grande: el soporte de cada cliente de paga.
+- **Meta de 12 meses:** 300 restaurantes, margen de operación del mes 12 +5,292 pesos (recomendado).
 - **Qué hay que medir:** La curva de pago de Master Chef (prueba de tres precios). · Mesas y cuentas por negocio de 0 a 5 personas (cuántos caben en Chef). · La carta real del piloto (cuántos platillos). · La tarifa de anuncios y la parte de visitas con anuncio (prueba con 3 restaurantes). · CPU, memoria y conexiones en Railway.
 
 ## 7. Secuencia recomendada

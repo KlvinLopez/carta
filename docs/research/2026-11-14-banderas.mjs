@@ -33,7 +33,8 @@ const estado = {
   costo_por_restaurante: 'se puede medir desde el primer mes con restaurantes',
   costos_sobre_ingresos: 'se puede medir desde el primer mes con ingresos',
 };
-const pasos = esc.map((e, i) => ({ id: e.id, nombre: e.nombre, capacidad_restaurantes_tipicos: e.cap_cpu, volumen_gb: e.volumen_gb, costo_usd_base: e.base_usd, costo_usd_tope: e.tope_usd, mes_en_que_entra_recomendado: primerMes(e.id), sube_costo_usd_vs_anterior: i ? e.base_usd - esc[i - 1].base_usd : 0 }));
+const cabenPorEscalon = (id) => { const c = M.conHistorialGratuito({ ...rec, palancas: [...new Set([...(rec.palancas ?? []), 'historial_gratuito_30_dias'])] }, s, 1); const tt = M.topesDeTamano(c, s, id, id === 'hobby_sondeo' ? 'sondeo' : 'eventos', 'topes'); return Math.min(...['procesador', 'memoria', 'disco', 'conexiones_bd', 'lineas'].map((r) => tt[r]).filter((x) => typeof x === 'number')); };
+const pasos = esc.map((e, i) => ({ id: e.id, nombre: e.nombre, capacidad_restaurantes_tipicos: e.cap_cpu, restaurantes_registrados_que_caben: cabenPorEscalon(e.id), volumen_gb: e.volumen_gb, costo_usd_base: e.base_usd, costo_usd_tope: e.tope_usd, mes_en_que_entra_recomendado: primerMes(e.id), sube_costo_usd_vs_anterior: i ? e.base_usd - esc[i - 1].base_usd : 0 }));
 const filas = ban.map((b) => ({ id: b.id, nombre: b.nombre, que_se_mide: medida[b.id], umbral_aviso: b.umbral_aviso, umbral_accion: b.umbral_accion, que_hacer: b.que_hacer, estado_de_la_medicion: estado[b.id] }));
 writeFileSync(join(salida_dir, '2026-11-14-banderas-de-operacion.json'), JSON.stringify({ version: M.VERSION, banderas: filas, escalones: pasos, nota: 'mes en que entra = primer mes de la proyección recomendada (adopción supuesta)' }, null, 1));
 const md = `# Banderas de operación: qué se mira, cuándo se avisa y qué cuesta el siguiente paso
@@ -43,7 +44,7 @@ const md = `# Banderas de operación: qué se mira, cuándo se avisa y qué cues
 ## Conclusiones
 
 1. **Seis banderas bastan:** procesador, disco, conexiones, memoria, costo por restaurante y costos sobre ingresos.
-2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone en ≈ ${n0(cpuPct)} % de procesador (el escalón Pro de 2 procesos se llena al ${s.banderas.cpu.accion} %, el tope de diseño: por eso la tabla avisa en ${s.banderas.cpu.aviso} % y actúa en ${s.banderas.cpu.accion} %); el escalón de hoy (Hobby, sondeo) cabe ≈ ${esc[0].cap_cpu} restaurantes típicos.
+2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone en ≈ ${n0(cpuPct)} % de procesador (el escalón Pro de 2 procesos se llena al ${s.banderas.cpu.accion} %, el tope de diseño: por eso la tabla avisa en ${s.banderas.cpu.aviso} % y actúa en ${s.banderas.cpu.accion} %); el escalón de hoy (Hobby, sondeo) cabe ≈ ${n0(pasos[0].restaurantes_registrados_que_caben)} restaurantes registrados (carga por topes, mezcla de paga e historial del gratuito a 30 días).
 3. **Siguiente paso, costo:** de Hobby a Pro 2 procesos sube ${n0(pasos[2].sube_costo_usd_vs_anterior)} USD base por mes (${esc[1].base_usd} → ${esc[2].base_usd}); entra hacia el mes ${pasos[2].mes_en_que_entra_recomendado ?? '—'} de la proyección recomendada (adopción supuesta).
 4. **Más de ≈ ${n0(nArq)} restaurantes registrados exige otra arquitectura:** de ahí en adelante todo es extrapolación sin medir.
 5. **Dos banderas ya se pueden medir con el primer cliente:** costo por restaurante y costos sobre ingresos.
@@ -59,9 +60,11 @@ ${filas.map((f) => `| ${f.nombre} | ${f.que_se_mide} | ${f.umbral_aviso} % | ${f
 
 ## Escalones de servidor y costo del paso
 
-| Escalón | Capacidad (restaurantes típicos, simulador) | Disco | USD base al mes | Sube vs el anterior | Entra en el mes (recomendado) |
-|---|---|---|---|---|---|
-${pasos.map((p) => `| ${p.nombre} | ${n0(p.capacidad_restaurantes_tipicos)} | ${p.volumen_gb} GB | ${p.costo_usd_base} | +${p.sube_costo_usd_vs_anterior} | ${p.mes_en_que_entra_recomendado ?? 'no entra en 36 meses'} |`).join('\n')}
+**Unidad:** la columna «Capacidad del procesador» está en unidades de gratuito típico del simulador (1,800 visitas al mes: documento); la columna «Restaurantes registrados que caben» es la cuenta de «¿Qué nos limita?» con la carga por topes, la mezcla de paga y el historial del gratuito a 30 días (el menor de los recursos).
+
+| Escalón | Capacidad del procesador (gratuitos típicos, simulador) | Restaurantes registrados que caben | Disco | USD base al mes | Sube vs el anterior | Entra en el mes (recomendado) |
+|---|---|---|---|---|---|---|
+${pasos.map((p) => `| ${p.nombre} | ${n0(p.capacidad_restaurantes_tipicos)} | ${n0(p.restaurantes_registrados_que_caben)} | ${p.volumen_gb} GB | ${p.costo_usd_base} | +${p.sube_costo_usd_vs_anterior} | ${p.mes_en_que_entra_recomendado ?? 'no entra en 36 meses'} |`).join('\n')}
 
 **Datos por conseguir:** p95 real de CPU con tráfico de piloto, bytes por visita real, conexiones SSE por restaurante, y la factura real de Railway del primer mes.
 `;

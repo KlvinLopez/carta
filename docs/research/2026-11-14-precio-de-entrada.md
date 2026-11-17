@@ -6,7 +6,7 @@
 
 1. **El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto.** La curva «media» se construyó con mediana 225 (el precio de Meniu Business) y el óptimo sale 234: **el modelo devuelve su supuesto** (conclusión circular de la versión anterior de este documento, retirada).
 2. **225 es una decisión de posicionamiento de Calvin (quedar pegado a Meniu), no un resultado del modelo.** Con la mediana en 150 gana 199; en 300, 299; en 450, 299 (el óptimo continuo sube a 415).
-3. **La dispersión de la curva (sigma) también cambia al ganador:** con sigma 0.3 gana 199; con 0.9, 299. De 199 a 249 el margen cae con sigma 0.3 (21,629 → 17,489) y sube con 0.9 (18,684 → 20,914).
+3. **La dispersión de la curva (sigma) también cambia al ganador:** con sigma 0.3 gana 199; con 0.9, 299. De 199 a 249 el margen cae con sigma 0.3 (20,261 → 16,002) y sube con 0.9 (17,274 → 19,463).
 4. **Con la curva supuesta, entre 199 y 249 el margen casi no cambia pero sí los pagantes** (199: 135 · 225: 116 · 249: 100): entrar barato compra clientes, no margen.
 5. **No hay evidencia abierta fuerte de que entrar con un precio bajo y subir después convenga a un SaaS de restaurantes** (§3).
 
@@ -14,19 +14,19 @@
 
 | Mediana de la curva de pago (supuesto 225) | Margen a 199 | Margen a 225 | Margen a 249 | Margen a 299 | Gana entre los 4 | Óptimo continuo |
 |---|---|---|---|---|---|---|
-| 150 | 12,055 | 11,538 | 10,972 | 9,452 | **199** | 175 |
-| 225 | 19,439 | 20,024 | 20,043 | 19,035 | **249** | 234 |
-| 300 | 24,281 | 26,266 | 27,447 | 28,295 | **299** | 294 |
-| 450 | 28,786 | 32,765 | 35,913 | 40,844 | **299** | 415 |
+| 150 | 10,548 | 10,003 | 9,327 | 7,778 | **199** | 175 |
+| 225 | 18,040 | 18,591 | 18,583 | 17,528 | **225** | 234 |
+| 300 | 22,952 | 24,908 | 26,065 | 26,864 | **299** | 294 |
+| 450 | 27,522 | 31,486 | 34,619 | 39,515 | **299** | 415 |
 
 ## 2. Margen según la dispersión de la curva (mediana 225)
 
 | Sigma de la curva (supuesto 0.6) | Margen a 199 | Margen a 225 | Margen a 249 | Margen a 299 | Gana entre los 4 | Óptimo continuo |
 |---|---|---|---|---|---|---|
-| 0.3 | 21,629 | 20,024 | 17,489 | 11,785 | **199** | 189 |
-| 0.45 | 20,184 | 20,024 | 19,179 | 16,322 | **199** | 205 |
-| 0.6 | 19,439 | 20,024 | 20,043 | 19,035 | **249** | 234 |
-| 0.9 | 18,684 | 20,024 | 20,914 | 21,960 | **299** | 343 |
+| 0.3 | 20,261 | 18,591 | 16,002 | 10,130 | **199** | 189 |
+| 0.45 | 18,795 | 18,591 | 17,711 | 14,793 | **199** | 205 |
+| 0.6 | 18,040 | 18,591 | 18,583 | 17,528 | **225** | 234 |
+| 0.9 | 17,274 | 18,591 | 19,463 | 20,476 | **299** | 343 |
 
 **Qué resultado del piloto lleva a cada precio** (regla de decisión derivada de la primera tabla; «empate» = precios a menos de 1 % del mejor margen): si la mediana (el precio al que la mitad de los dueños dice que sí) sale cerca de 150 → 199; si sale cerca de 225 → 225 o 249; si sale cerca de 300 → 299; si sale cerca de 450 → 299 (el más alto de los candidatos: valdría probar uno mayor). La **dispersión** (qué tan distintos son los dueños) se lee del mismo piloto: con sigma baja gana el precio más bajo y con sigma alta, el más alto (tabla 2).
 

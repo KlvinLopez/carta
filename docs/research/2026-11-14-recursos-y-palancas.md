@@ -2,7 +2,7 @@
 
 **Fecha:** 14 de noviembre de 2026 (ronda 6) · **Generado por `2026-11-14-recursos.mjs`** desde `recursos(config, s)` del modelo ([JSON](2026-11-14-recursos-y-palancas.json)); disco medido con [`2026-11-14-recursos-medir.py`](2026-11-14-recursos-medir.py) en PostgreSQL local, **con datos sintéticos** (el generador deja `miembro_id` y `platillo_id` nulos; se rellenaron con valores variados en la copia). **Las palancas son propuestas: no se tocó `app/` ni `migrations/`.**
 
-**Qué es un «restaurante típico» (en toda cifra de capacidad):** un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal). Con el **doble** de actividad lo que cabe se divide entre 2 (86 por procesador y 91 por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de 173 a 108 (factor 0.63, supuesto).
+**Qué es un «restaurante típico» (en toda cifra de capacidad):** un gratuito carga lo de sus topes: 6 mesas × 180 visitas por mesa al mes = 1080 visitas (el 180 sale de las 1800 visitas con 10 mesas del simulador: SUPUESTO sin medir; todos al tope = cota alta), 150 platillos y 1 cuenta(s) de personal. Con el **doble** de actividad lo que cabe se divide entre 2 (86 por procesador y 91 por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de 173 a 108 (factor 0.63, supuesto).
 
 ## De qué se compone el disco promedio (y por qué ya no es 279)
 
@@ -83,7 +83,7 @@
 
 **Cómo funciona hoy.** Cada teléfono con la app abierta le pregunta al servidor cada 3 segundos si algo cambió; casi siempre la respuesta es «nada nuevo», pero cada pregunta gasta procesador. Con los avisos de la Fase 3, el servidor sólo habla cuando hay un cambio. Ruta: `app/api/publico/sesion.py` (estado con ETag) y `app/services/sesion.py`.
 
-**Consumo.** 1 gratuito típico = 1 unidad de carga; un cliente de paga pesa 2.3; con el sondeo un teléfono pregunta cada 3 s (≈ 4.1 peticiones/s por restaurante registrado, medido en el tope)
+**Consumo.** unidad de carga = un gratuito típico del simulador (1800 visitas al mes); un gratuito por topes pesa 0.60; un cliente de paga pesa 2.3; con el sondeo un teléfono pregunta cada 3 s (≈ 4.1 peticiones/s por restaurante registrado, medido en el tope)
 
 **Límite hoy:** 173 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 880 restaurantes. **No es el cuello sin purga.**
 
@@ -101,7 +101,7 @@
 
 **Cómo funciona hoy.** Cada visita deja filas en `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden` y `llamada_mesero`, y **diez filas de analítica en `evento_analitica`**; las tablas y sus índices viven en el volumen de PostgreSQL. Ruta: `app/db/models.py`; analítica en `app/services/analitica.py`.
 
-**Consumo.** 96.7 MB por restaurante gratuito típico con — meses de historial (1,800 visitas al mes), 7.5 KB por visita [medido con datos sintéticos].
+**Consumo.** 96.7 MB por restaurante registrado sin purga (12 meses acumulados); con el historial del gratuito a 30 días, 21.9 MB (un gratuito 7.9 MB con 1 mes; uno de paga 129 MB con 12 meses), 7.5 KB por visita [medido con datos sintéticos].
 
 **Límite hoy:** 41 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 41 restaurantes. **🔴 Es el cuello de botella de hoy (sin purga).**
 
@@ -198,7 +198,7 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 | **Acotar conexiones a la base** | Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos. | 0 % |
 
 
-**Efecto en los números del modelo.** Las palancas entran en `config.palancas` y mueven `resumen`: «restaurantes gratuitos que caben **con el historial que dice `config` (30 días, propuesta)**» = 279; **sin purga (12 meses acumulados)** = 23; con la analítica agregada por día (sobre 30 días): 495.
+**Efecto en los números del modelo.** Las palancas entran en `config.palancas` y mueven `resumen`: «restaurantes gratuitos que caben **con el historial que dice `config` (30 días, propuesta)**» = 182; **sin purga (12 meses acumulados)** = 41; con la analítica agregada por día (sobre 30 días): 222.
 
 ## 5. La escalera: el tamaño del servidor que rentamos
 

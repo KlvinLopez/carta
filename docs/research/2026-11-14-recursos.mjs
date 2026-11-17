@@ -62,7 +62,7 @@ const md = `# Recursos y palancas: qué pagamos, cuánto aguanta cada pieza y c�
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** ${tip}. Con el **doble** de actividad lo que cabe se divide entre 2 (${n0(ac[2].procesador_hoy)} por procesador y ${n0(ac[2].disco_con_historial_30_dias)} por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de ${n0(rE('procesador').restaurantes_hoy)} a ${n0(R.pico_simultaneo.procesador_hoy)} (factor ${R.pico_simultaneo.factor}, supuesto).
 
-## De qué se compone el disco promedio (y por qué ya no es 279)
+## De qué se compone el disco promedio (y por qué ya no es ${n0(R.composicion_del_disco.cifra_de_antes)})
 
 ${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos e historial a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (antes: ${n0(c.cifra_de_antes)}).
 - **Mezcla:** ${n1(c.parte_que_paga * 1000)} de paga por cada 1,000 restaurantes registrados. Un gratuito guarda ${n0(c.meses_de_historial.gratuito)} mes (${n1(c.mb_por_restaurante.gratuito)} MB) y uno de paga ${n0(c.meses_de_historial.paga)} meses (${n1(c.mb_por_restaurante.paga)} MB); promedio ${n1(c.mb_por_restaurante.promedio)} MB.
@@ -125,7 +125,7 @@ ${R.recursos.map((r, i) => `### 2.${i + 1} ${r.nombre}
 
 **Cómo funciona hoy.** ${r.como_funciona}
 
-**Consumo.** ${r.consumo_por_restaurante.nota ? r.consumo_por_restaurante.nota : ''}${r.recurso === 'disco' ? `${n1(r.consumo_por_restaurante.valor)} MB por restaurante gratuito típico con ${n0(r.consumo_por_restaurante.meses_historial)} meses de historial (${n0(s.visitas_mes_gratuito)} visitas al mes), ${n1(totalVisita / 1000)} KB por visita [medido con datos sintéticos].` : ''}${r.recurso === 'memoria' ? `${s.rss_worker_mb} MB fijos por proceso; ${n1(r.consumo_por_restaurante.sondeo)} MB por restaurante con el sondeo (supuesto) y ${n1(r.consumo_por_restaurante.eventos)} MB con avisos (la línea abierta cuesta ${s.mb_por_linea_abierta * 1000} KB [medido]).` : ''}
+**Consumo.** ${r.consumo_por_restaurante.nota ? r.consumo_por_restaurante.nota : ''}${r.recurso === 'disco' ? `${n1(r.consumo_por_restaurante.valor)} MB por restaurante registrado sin purga (12 meses acumulados); con el historial del gratuito a 30 días, ${n1(R.composicion_del_disco.mb_por_restaurante.promedio)} MB (un gratuito ${n1(R.composicion_del_disco.mb_por_restaurante.gratuito)} MB con ${n0(R.composicion_del_disco.meses_de_historial.gratuito)} mes; uno de paga ${n1(R.composicion_del_disco.mb_por_restaurante.paga)} MB con ${n0(R.composicion_del_disco.meses_de_historial.paga)} meses), ${n1(totalVisita / 1000)} KB por visita [medido con datos sintéticos].` : ''}${r.recurso === 'memoria' ? `${s.rss_worker_mb} MB fijos por proceso; ${n1(r.consumo_por_restaurante.sondeo)} MB por restaurante con el sondeo (supuesto) y ${n1(r.consumo_por_restaurante.eventos)} MB con avisos (la línea abierta cuesta ${s.mb_por_linea_abierta * 1000} KB [medido]).` : ''}
 
 **Límite hoy:** ${r.restaurantes_hoy > 100000 ? 'sin tope práctico (más de 100,000 restaurantes)' : r.limite_hoy.texto}. **Con avisos:** ${r.restaurantes_con_eventos == null || r.restaurantes_con_eventos > 100000 ? 'sin tope práctico' : `${n0(r.restaurantes_con_eventos)} restaurantes`}. **${r.es_cuello_hoy ? '🔴 Es el cuello de botella de hoy (sin purga).' : r.es_cuello_con_eventos ? '🔴 Es el cuello de botella con avisos (sin purga).' : 'No es el cuello sin purga.'}**${r.recurso === 'lineas' ? ' **Es un tope de diseño supuesto, sin medir.**' : ''}
 
