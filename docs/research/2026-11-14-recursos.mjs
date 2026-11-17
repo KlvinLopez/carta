@@ -38,6 +38,7 @@ const bytesEvento = s.bytes_por_evento.hoy;
 const parteEventos = (10 * bytesEvento) / totalVisita;
 
 const hist30 = rE('disco').palancas.find((p) => p.id === 'historial_gratuito_30_dias');
+const tableroR = M.palancasEnTablero(rec, s);
 const top3 = [{ nombre: hist30.nombre, ganancia: `${hist30.ganancia} (de ${n0(rE('disco').restaurantes_hoy)} a ${n0(rE('disco').con_historial_30_dias.restaurantes_hoy)} por disco)` }, ...rE('disco').palancas.filter((p) => ['analitica_agregada_por_dia', 'retencion_analitica_7_dias'].includes(p.id)).map((p) => ({ nombre: p.nombre, ganancia: `${p.ganancia}; sobre la base con historial a 30 días: +${p.sobre_historial_30_dias.ganancia}` }))];
 const salida = { version: M.VERSION, fecha: '2026-11-14', ...R, palancas_catalogo: Object.entries(M.PALANCAS).map(([id, p]) => ({ id, ...p })), top3_palancas: top3.map((p) => ({ id: p.id, nombre: p.nombre, ganancia: p.ganancia, recurso: p.recurso })),
   disco_a_fondo: { medido_en: med.base_de_trabajo, nota: med.nota, bytes_por_visita_por_tabla: porTabla, bytes_por_visita_total: totalVisita, parte_de_la_visita_que_es_analitica: parteEventos, bytes_por_evento: { total: bytesEvento, heap: s.bytes_por_evento.heap, indices: s.bytes_por_evento.indices }, columnas_bytes_medios: colFila, suma_columnas: sumaCols, indices_por_evento: idxEv, medicion_palancas: med },
@@ -46,7 +47,7 @@ writeFileSync(join(salida_dir, '2026-11-14-recursos-y-palancas.json'), JSON.stri
 
 const tope = (x, aus) => (x == null ? aus : x > 100000 ? 'sin tope práctico' : n0(x));
 const fila = (r) => `| **${r.nombre}** | ${tope(r.restaurantes_hoy, r.recurso === 'fotos' ? 'sin tope práctico' : 'no existe hoy')} | ${tope(r.restaurantes_con_eventos, 'sin tope práctico')} | ${tope(r.con_historial_30_dias.restaurantes_hoy, r.recurso === 'fotos' ? 'sin tope práctico' : 'no existe hoy')} | ${tope(r.con_historial_30_dias.restaurantes_con_eventos, 'sin tope práctico')} | ${r.es_cuello_hoy ? '**🔴 SÍ**' : 'no'} / ${r.con_historial_30_dias.es_cuello_hoy ? '**🔴 SÍ**' : 'no'} | ${r.es_cuello_con_eventos ? '**🔴 SÍ**' : 'no'} / ${r.con_historial_30_dias.es_cuello_con_eventos ? '**🔴 SÍ**' : 'no'} | ${r.medido} |`;
-const palRows = (r) => r.palancas.map((p) => `| **${p.accion}** · ${p.que_es} | ${p.antes} | ${p.despues} | ${p.ganancia}${p.sobre_historial_30_dias ? ` · sobre la base con historial a 30 días: ${p.sobre_historial_30_dias.ganancia >= 0 ? '+' : ''}${p.sobre_historial_30_dias.ganancia} restaurantes` : ''} | ${p.esfuerzo} | ${p.riesgo} | ${p.regla_que_toca} | ${p.medido ? 'medida con datos sintéticos' : 'estimada'} |`).join('\n');
+const palRows = (r) => r.palancas.filter((p) => p.en_tablero).map((p) => `| **${p.accion}** · ${p.que_es} | ${p.antes} | ${p.despues} | ${p.ganancia}${p.sobre_historial_30_dias ? ` · sobre la base con historial a 30 días: ${p.sobre_historial_30_dias.ganancia >= 0 ? '+' : ''}${p.sobre_historial_30_dias.ganancia} restaurantes` : ''} | ${p.esfuerzo} | ${p.riesgo} | ${p.regla_que_toca} | ${p.medido ? 'medida con datos sintéticos' : 'estimada'} |`).join('\n');
 const esc = R.escalera.map((e) => `| ${e.tamano} | ${e.costo_usd_base == null ? '—' : `${n1(e.costo_usd_base)} a ${n1(e.costo_usd_con_carga)}`} | ${n0(e.restaurantes_que_caben)} · **${e.recurso_que_obliga_a_subir}** | ${e.restaurantes_con_historial_30_dias == null ? '—' : `${n0(e.restaurantes_con_historial_30_dias)} · **${e.recurso_que_obliga_a_subir_con_historial_30_dias}**`} |`).join('\n');
 const srv = R.hoy.servicios.map((x) => `| ${x.servicio} | ${x.plan} | ${x.costo_usd_mes == null ? 'incluido' : n1(x.costo_usd_mes)} | ${x.detalle} |`).join('\n');
 const dh = R.disco_por_historial;
@@ -128,8 +129,17 @@ ${porTabla.sort((a, b) => b.total_por_visita - a.total_por_visita).map((x) => `|
 
 Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de ${s.factores_disco_eventos.platillos_cota} platillos** (el gratuito permite 150; la copia tiene ${s.factores_disco_eventos.platillos_en_la_copia}: con ellos el factor es ${s.factores_disco_eventos.agregada_por_dia_con_platillos_de_la_copia} en vez de ${s.factores_disco_eventos.agregada_por_dia_cota_alta}). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
 
-${R.recursos.filter((r) => r.palancas.length).map((r) => `### ${r.nombre}\n\n| Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |\n|---|---|---|---|---|---|---|---|\n${palRows(r)}\n`).join('\n')}
+${R.recursos.filter((r) => r.palancas.some((p) => p.en_tablero)).map((r) => `### ${r.nombre}\n\n| Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |\n|---|---|---|---|---|---|---|---|\n${palRows(r)}\n`).join('\n')}
 **Memoria y fotos:** ninguna palanca por ahora.
+
+### Ajustes menores (fuera del tablero)
+
+**Regla del tablero:** ${tableroR.regla}; umbral ${Math.round(tableroR.umbral * 100)} % (un juicio: con 10 % entrarían también índices y tipos, +11 %; entre 12 % y 43 % la lista no cambia). Las demás palancas quedan aquí; siguen en el JSON.
+
+| Ajuste menor | Qué es | Sube la capacidad del recurso que toca (máximo) |
+|---|---|---|
+${tableroR.ajustes_menores.map((id) => `| **${M.PALANCAS[id].accion}** | ${M.PALANCAS[id].que_es} | ${n1(tableroR.palancas[id].ganancia_maxima * 100)} % |`).join('\n')}
+
 
 **Efecto en los números del modelo.** Las palancas entran en \`config.palancas\` y mueven \`resumen\`: «restaurantes gratuitos que caben **con el historial que dice \`config\` (30 días, propuesta)**» = ${n0(kpiBase.recomendado)}; **sin purga (12 meses acumulados)** = ${n0(M.resumen(rec, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben_sin_purga').recomendado)}; con la analítica agregada por día (sobre 30 días): ${n0(kpiAgregada.recomendado)}.
 

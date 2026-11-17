@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r8",
+ "version": "2026-11-17-r11",
  "fecha": "2026-11-14",
  "config_palancas": [],
  "estado_elegido": {
@@ -326,6 +326,8 @@
     {
      "id": "estado_en_memoria_60s",
      "nombre": "Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)",
+     "en_tablero": true,
+     "ganancia_de_capacidad": 0.8648648648648649,
      "accion": "Guardar estado en memoria 60 s",
      "que_es": "El servidor recuerda el estado de cada mesa un minuto y sólo lo recalcula cuando la base avisa.",
      "esfuerzo": "medio",
@@ -416,6 +418,8 @@
     {
      "id": "historial_gratuito_30_dias",
      "nombre": "Historial del plan gratuito a 30 días (visitas y analítica), con archivo descargable",
+     "en_tablero": true,
+     "ganancia_de_capacidad": 11.130434782608695,
      "accion": "Guardar 30 días en el gratuito",
      "que_es": "El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra.",
      "esfuerzo": "medio",
@@ -448,6 +452,8 @@
     {
      "id": "analitica_agregada_por_dia",
      "nombre": "Analítica agregada por día en vez de una fila por evento",
+     "en_tablero": true,
+     "ganancia_de_capacidad": 0.7741935483870968,
      "accion": "Contar por día, no por evento",
      "que_es": "En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo.",
      "esfuerzo": "medio",
@@ -480,6 +486,8 @@
     {
      "id": "retencion_analitica_7_dias",
      "nombre": "Guardar la analítica en bruto sólo 7 días (después, agregada)",
+     "en_tablero": true,
+     "ganancia_de_capacidad": 0.6021505376344085,
      "accion": "Borrar analítica cruda a 7 días",
      "que_es": "Los eventos sueltos se conservan una semana y después sólo queda el conteo por día.",
      "esfuerzo": "chico",
@@ -512,6 +520,8 @@
     {
      "id": "indices_de_evento_minimos",
      "nombre": "Dejar sólo dos índices en la analítica (llave y restaurante-fecha)",
+     "en_tablero": false,
+     "ganancia_de_capacidad": 0.11111111111111116,
      "accion": "Quitar índices que sobran",
      "que_es": "La tabla de analítica deja sólo los dos índices que de verdad se usan.",
      "esfuerzo": "chico",
@@ -544,6 +554,8 @@
     {
      "id": "tipos_mas_chicos",
      "nombre": "Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)",
+     "en_tablero": false,
+     "ganancia_de_capacidad": 0.11111111111111116,
      "accion": "Usar tipos de dato más chicos",
      "que_es": "Los campos de la analítica pasan de texto largo a números y huellas cortas.",
      "esfuerzo": "medio",
@@ -576,6 +588,8 @@
     {
      "id": "purga_claves_idempotencia",
      "nombre": "Purgar las claves de idempotencia a las 24 horas",
+     "en_tablero": false,
+     "ganancia_de_capacidad": 0,
      "accion": "Purgar claves de reintento diario",
      "que_es": "Las claves que evitan duplicar una orden al reintentar se borran al día siguiente.",
      "esfuerzo": "chico",
@@ -592,6 +606,8 @@
     {
      "id": "archivar_sesiones_cerradas",
      "nombre": "Archivar en R2 las sesiones cerradas con más de 3 meses y quitarlas de la base",
+     "en_tablero": false,
+     "ganancia_de_capacidad": 0,
      "accion": "Archivar sesiones viejas en R2",
      "que_es": "Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base.",
      "esfuerzo": "grande",
@@ -655,6 +671,8 @@
     {
      "id": "pool_acotado",
      "nombre": "Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)",
+     "en_tablero": false,
+     "ganancia_de_capacidad": 0,
      "accion": "Acotar conexiones a la base",
      "que_es": "Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos.",
      "esfuerzo": "chico",
@@ -713,6 +731,8 @@
     {
      "id": "cerrar_lineas_ociosas",
      "nombre": "Cerrar la línea abierta a los 2 minutos sin cambios y reabrirla al volver",
+     "en_tablero": true,
+     "ganancia_de_capacidad": 0.4281663516068053,
      "accion": "Cerrar líneas sin movimiento",
      "que_es": "La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola.",
      "esfuerzo": "medio",

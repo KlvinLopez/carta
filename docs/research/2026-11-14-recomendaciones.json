@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r8",
+ "version": "2026-11-17-r11",
  "decisiones": [
   {
    "id": "dos_planes",
@@ -39,34 +39,34 @@
   },
   {
    "id": "tope_platillos",
-   "decision": "Tope de platillos del plan Chef (ABIERTA para Calvin)",
-   "recomendacion": "**No recomiendo un tope todavía: la cobertura real no se sabe.** Con 150 platillos contando todo, cubre 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.",
-   "depende": "**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio** (la muestra de sitios propios sobrerrepresenta a formales y cadenas; la de reparto, a cartas cortas). **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.",
-   "cifras": "Tope de 150 platillos, bebidas incluidas (la propuesta actual): cobertura de Chef (≤ 10 personas, referencia) 20.6 % (cota baja) a 38.9 % (cota alta); margen +24,098 a +20,024 · Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): cobertura de Chef (≤ 10 personas, referencia) 39.7 % (cota baja) a 38.9 % (cota alta); margen +19,847 a +20,024 · Subir el tope a 200 platillos (bebidas incluidas): cobertura de Chef (≤ 10 personas, referencia) 29.1 % (cota baja) a 39.1 % (cota alta); margen +22,211 a +19,987 · Subir el tope a 300 platillos (bebidas incluidas): cobertura de Chef (≤ 10 personas, referencia) 33.3 % (cota baja) a 39.3 % (cota alta); margen +21,267 a +19,936 · Quitar el tope de platillos y limitar sólo por mesas y cuentas: cobertura de Chef (≤ 10 personas, referencia) 39.7 % (cota baja) a 39.7 % (cota alta); margen +19,847 a +19,847.",
+   "decision": "Tope de platillos del plan Chef (DECIDIDA por Calvin el 17-nov: cuenta todo, bebidas incluidas)",
+   "recomendacion": "**El tope de 150 platillos cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026).** La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.",
+   "depende": "**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio**. **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.",
+   "cifras": "Alternativas descartadas el 17 de noviembre: Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): dentro de Chef de 0 a 5 personas 49.4 % (cota baja) · Subir el tope a 200 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 36.2 % (cota baja) · Subir el tope a 300 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 41.4 % (cota baja) · Quitar el tope de platillos y limitar sólo por mesas y cuentas: dentro de Chef de 0 a 5 personas 49.4 % (cota baja).",
    "alternativas": [
     {
-     "opcion": "Tope de 150 que cuenta sólo comida (las bebidas no tienen tope)",
-     "pros": "Casi no deja a nadie afuera (cobertura ≈ 40 %)",
-     "contras": "Hay que clasificar comida y bebida al importar"
+     "opcion": "Tope de 150 que cuenta sólo comida (las bebidas no tienen tope) (descartada el 17-nov)",
+     "pros": "Casi no deja a nadie afuera",
+     "contras": "Hay que clasificar comida y bebida"
     },
     {
-     "opcion": "Subir el tope a 200 platillos (bebidas incluidas)",
-     "pros": "Cobertura de 29 % con la cota baja",
+     "opcion": "Subir el tope a 200 platillos (bebidas incluidas) (descartada el 17-nov)",
+     "pros": "Más cobertura con la cota baja",
      "contras": "Sigue dependiendo de una muestra sesgada"
     },
     {
-     "opcion": "Subir el tope a 300 platillos (bebidas incluidas)",
-     "pros": "Cobertura de 33 % con la cota baja",
+     "opcion": "Subir el tope a 300 platillos (bebidas incluidas) (descartada el 17-nov)",
+     "pros": "Más cobertura con la cota baja",
      "contras": "Sigue dependiendo de una muestra sesgada"
     },
     {
-     "opcion": "Quitar el tope de platillos y limitar sólo por mesas y cuentas",
-     "pros": "Cobertura sólo por mesas y cuentas; simple de explicar",
-     "contras": "Sin freno para quien suba cartas enormes (costo de disco y de lectura de PDF)"
+     "opcion": "Quitar el tope de platillos y limitar sólo por mesas y cuentas (descartada el 17-nov)",
+     "pros": "Cobertura sólo por mesas y cuentas",
+     "contras": "Sin freno para cartas enormes"
     }
    ],
-   "ejemplo": "Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe ni en 200.",
-   "prueba": "La carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron."
+   "ejemplo": "Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe.",
+   "prueba": "Pendiente: la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron."
   },
   {
    "id": "precios",
@@ -243,6 +243,7 @@
     "topes": {
      "gratuito": {
       "platillos": 150,
+      "platillos_cuenta": "todo",
       "mesas": 6,
       "cuentas": 1,
       "lecturas_pdf": 3,

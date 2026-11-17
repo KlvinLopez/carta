@@ -4,7 +4,7 @@
 
 ## Conclusiones
 
-1. **Dos planes (decisión de Calvin, 17-nov): Chef gratis con 6 mesas y 1 cuenta; Master Chef 225 para todo lo demás; Chef Ejecutivo apagado.** Con el modelo cabe el 48.4 % de los negocios de 0 a 5 personas (42.4 %–54.5 %) y ninguno de 6 a 10; el tope de platillos queda **abierto** (decisión 2).
+1. **Dos planes (decisión de Calvin, 17-nov): Chef gratis con 6 mesas y 1 cuenta; Master Chef 225 para todo lo demás; Chef Ejecutivo apagado.** Con el modelo cabe el 48.4 % de los negocios de 0 a 5 personas (42.4 %–54.5 %) y ninguno de 6 a 10; el tope de platillos **cuenta todo, bebidas incluidas** (decidido el 17-nov; decisión 2).
 2. **Master Chef 225 es una decisión de posicionamiento de Calvin, no un resultado del modelo;** el modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba del piloto. Margen de operación con 1,000 restaurantes: +20,024 recomendado, +2,390 peor, +65,664 mejor, −1,109 piso de verdad.
 3. **Los anuncios llegan hacia el mes 9 (supuesto); mientras tanto, 1,000 pesos al mes cargan 811 restaurantes gratuitos (rango 246–1,896), con el canal de eventos construido.**
 4. **Lo que más cambia el resultado: curva · mediana, curva · techo, cuántos rebasan los topes.** Se miden en el piloto.
@@ -35,24 +35,24 @@
 
 ---
 
-## 2. Tope de platillos del plan Chef (ABIERTA para Calvin)
+## 2. Tope de platillos del plan Chef (DECIDIDA por Calvin el 17-nov: cuenta todo, bebidas incluidas)
 
-**Recomendación.** **No recomiendo un tope todavía: la cobertura real no se sabe.** Con 150 platillos contando todo, cubre 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.
+**Recomendación.** **El tope de 150 platillos cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026).** La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.
 
-**De qué supuesto depende y qué pasa si falla.** **De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio** (la muestra de sitios propios sobrerrepresenta a formales y cadenas; la de reparto, a cartas cortas). **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.
+**De qué supuesto depende y qué pasa si falla.** **De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio**. **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.
 
-**Cifras del modelo.** Tope de 150 platillos, bebidas incluidas (la propuesta actual): cobertura de Chef (≤ 10 personas, referencia) 20.6 % (cota baja) a 38.9 % (cota alta); margen +24,098 a +20,024 · Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): cobertura de Chef (≤ 10 personas, referencia) 39.7 % (cota baja) a 38.9 % (cota alta); margen +19,847 a +20,024 · Subir el tope a 200 platillos (bebidas incluidas): cobertura de Chef (≤ 10 personas, referencia) 29.1 % (cota baja) a 39.1 % (cota alta); margen +22,211 a +19,987 · Subir el tope a 300 platillos (bebidas incluidas): cobertura de Chef (≤ 10 personas, referencia) 33.3 % (cota baja) a 39.3 % (cota alta); margen +21,267 a +19,936 · Quitar el tope de platillos y limitar sólo por mesas y cuentas: cobertura de Chef (≤ 10 personas, referencia) 39.7 % (cota baja) a 39.7 % (cota alta); margen +19,847 a +19,847.
+**Cifras del modelo.** Alternativas descartadas el 17 de noviembre: Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): dentro de Chef de 0 a 5 personas 49.4 % (cota baja) · Subir el tope a 200 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 36.2 % (cota baja) · Subir el tope a 300 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 41.4 % (cota baja) · Quitar el tope de platillos y limitar sólo por mesas y cuentas: dentro de Chef de 0 a 5 personas 49.4 % (cota baja).
 
 | Opción | A favor | En contra |
 |---|---|---|
-| Tope de 150 que cuenta sólo comida (las bebidas no tienen tope) | Casi no deja a nadie afuera (cobertura ≈ 40 %) | Hay que clasificar comida y bebida al importar |
-| Subir el tope a 200 platillos (bebidas incluidas) | Cobertura de 29 % con la cota baja | Sigue dependiendo de una muestra sesgada |
-| Subir el tope a 300 platillos (bebidas incluidas) | Cobertura de 33 % con la cota baja | Sigue dependiendo de una muestra sesgada |
-| Quitar el tope de platillos y limitar sólo por mesas y cuentas | Cobertura sólo por mesas y cuentas; simple de explicar | Sin freno para quien suba cartas enormes (costo de disco y de lectura de PDF) |
+| Tope de 150 que cuenta sólo comida (las bebidas no tienen tope) (descartada el 17-nov) | Casi no deja a nadie afuera | Hay que clasificar comida y bebida |
+| Subir el tope a 200 platillos (bebidas incluidas) (descartada el 17-nov) | Más cobertura con la cota baja | Sigue dependiendo de una muestra sesgada |
+| Subir el tope a 300 platillos (bebidas incluidas) (descartada el 17-nov) | Más cobertura con la cota baja | Sigue dependiendo de una muestra sesgada |
+| Quitar el tope de platillos y limitar sólo por mesas y cuentas (descartada el 17-nov) | Cobertura sólo por mesas y cuentas | Sin freno para cartas enormes |
 
-**Ejemplo.** Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe ni en 200.
+**Ejemplo.** Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe.
 
-**La prueba o el dato que la cierra.** La carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron.
+**La prueba o el dato que la cierra.** Pendiente: la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron.
 
 ---
 
