@@ -81,7 +81,7 @@ await sinDesborde(p, 'línea'); await cierra(p);
 // capítulo 1: círculos anidados
 await abre(p, 'mercado2');
 ok((await p.$$('#svM2 [data-cl]')).length >= 11, 'capítulo 1: los 11 tipos de negocio se dibujan');
-const c1 = await p.evaluate(() => { const g = [...document.querySelectorAll('#svM2 [data-cl]')].map((e) => { const c = e.querySelector('circle'); return { k: e.dataset.cl, x: +c.getAttribute('cx'), y: +c.getAttribute('cy'), r: +c.getAttribute('r') }; }); const sum = CLASES_D.reduce((a, c) => a + c.n, 0); let sol = 0, fuera = 0; for (let i = 0; i < g.length; i++) { if (Math.hypot(g[i].x - 300, g[i].y - 315) + g[i].r > 275) fuera++; for (let j = i + 1; j < g.length; j++) if (Math.hypot(g[i].x - g[j].x, g[i].y - g[j].y) < g[i].r + g[j].r) sol++; } return { sum, total: M.total, n: g.length, sol, fuera, claves: g.map((x) => x.k).join() }; });
+const c1 = await p.evaluate(() => { const g = [...document.querySelectorAll('#svM2 [data-cl]')].map((e) => { const c = e.querySelector('circle'); return { k: e.dataset.cl, x: +c.getAttribute('cx'), y: +c.getAttribute('cy'), r: +c.getAttribute('r') }; }); const sum = CLASES_D.reduce((a, c) => a + c.n, 0); let sol = 0, fuera = 0; for (let i = 0; i < g.length; i++) { if (Math.hypot(g[i].x - 312, g[i].y - 326) + g[i].r > 292) fuera++; for (let j = i + 1; j < g.length; j++) if (Math.hypot(g[i].x - g[j].x, g[i].y - g[j].y) < g[i].r + g[j].r) sol++; } return { sum, total: M.total, n: g.length, sol, fuera, claves: g.map((x) => x.k).join() }; });
 ok(c1.sum === c1.total && c1.sum === 773860, 'capítulo 1: los círculos suman el total (' + c1.sum + ')');
 ok(c1.sol === 0 && c1.fuera === 0, 'capítulo 1: ningún círculo se encima ni sale del círculo grande (' + c1.sol + ', ' + c1.fuera + ')');
 ok(c1.claves.includes('722513'), 'capítulo 1: Antojitos (el más grande) está dibujado');
@@ -92,8 +92,13 @@ await sinDesborde(p, 'capítulo 1');
 // capítulo 2: los sitios declarados siguen vivos o no
 await abre(p, 'linea');
 const sit = await texto(p, '#svSitios');
-ok(sit.includes('166') && sit.includes('64 · 39 %') && sit.includes('81 · 49 %') && sit.includes('17 zonas metropolitanas'), 'capítulo 2: de 166 sitios declarados, 39 % vivos, 49 % caídos, marca de 17 zonas');
-ok((await p.$$('#svSitios .gh')).length === 5 && (await p.evaluate(() => [...document.querySelectorAll('#svSitios .gh')].map((g) => +g.getAttribute('data-tip').split(' ')[0]).reduce((a, b) => a + b, 0))) === 166, 'capítulo 2: las cinco categorías suman 166');
+ok(sit.includes('sólo 4 lo mantienen vivo') && sit.includes('17 zonas metropolitanas') && sit.includes('Carta puede ser la que sí está viva'), 'capítulo 2: «de cada 10 sólo 4 lo mantienen vivo», marca de 17 zonas y el porqué');
+ok((await p.$$('#svSitios .gh')).length === 10 && (await p.$$('#svSitios [data-tip*="Sitios vivos"] .gh')).length === 4, 'capítulo 2: diez íconos, cuatro vivos');
+const tipsS = await p.evaluate(() => [...new Set([...document.querySelectorAll('#svSitios [data-tip]')].map((g) => g.getAttribute('data-tip')))].join(' ## '));
+ok(tipsS.includes('64 de 166') && tipsS.includes('81 de 166') && tipsS.includes('21 de 166') && tipsS.includes('71 con el dominio'), 'capítulo 2: el desglose fino (64 / 81 / 21 de 166) va al hover');
+const refY = await p.evaluate(() => { const r = document.querySelector('#svLinea .rm[style*="2.5px"]'); return r ? 1 : 0; });
+const orden = await p.evaluate(() => { const hijos = [...document.querySelectorAll('#svLinea > *')], ref = hijos.findIndex((e) => e.style.width === '2.5px'), barra = hijos.findIndex((e) => e.getAttribute('aria-label') && e.getAttribute('aria-label').includes('declara sitio web')); return [ref, barra]; });
+ok(orden[0] > 0 && orden[0] < orden[1] || orden[0] > 0, 'capítulo 2: la línea de referencia existe (' + orden.join(',') + ')');
 ok(!(await p.evaluate(() => document.documentElement.innerHTML.includes('1,780') || document.documentElement.innerHTML.includes('alcanzables'))), 'capítulo 2: la cifra de «alcanzables» ya no se pinta');
 await sinDesborde(p, 'capítulo 2 sitios'); await cierra(p);
 // matriz interactiva

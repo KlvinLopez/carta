@@ -145,7 +145,11 @@ main{padding-block:12px 28px}
 .rcard .si i{font-style:normal;font-weight:700;color:var(--rojo);margin-right:6px}
 .rcard .acc2{display:flex;gap:8px;flex-wrap:wrap}
 .ejemplo{font-size:13px;background:var(--arena2);border-radius:14px;padding:8px 12px;margin-top:10px;color:var(--tinta)}
-.tt{position:fixed;pointer-events:none;background:var(--tinta);color:#fff;font-size:12.5px;padding:7px 10px;border-radius:10px;z-index:40;max-width:280px}
+.tt{position:fixed;pointer-events:none;background:var(--crema,#fef9f1);color:var(--tinta);padding:14px 16px 14px;border-radius:20px;z-index:40;width:max-content;max-width:min(320px,calc(100vw - 16px));box-shadow:0 18px 44px rgba(79,23,40,.28),0 2px 6px rgba(79,23,40,.12);border-top:4px solid var(--dorado)}
+.tt .tt-t{display:block;font-family:'DM Serif Display',serif;font-weight:400;font-size:17px;line-height:1.2;color:var(--vino);margin-bottom:2px}
+.tt .tt-c{display:block;font-family:'DM Serif Display',serif;font-size:32px;line-height:1.1;color:var(--dorado);margin:2px 0 4px}
+.tt .tt-b{display:block;height:8px;border-radius:4px;background:rgba(79,23,40,.12);margin:6px 0 8px;overflow:hidden}.tt .tt-b i{display:block;height:100%;background:var(--vino);border-radius:4px}
+.tt p{margin:0;font-size:13px;line-height:1.4;color:var(--tinta)}
 .sr{position:absolute;left:-9999px}
 .pulso{animation:pulso 1.3s ease-in-out infinite}
 @keyframes pulso{0%,100%{opacity:1}50%{opacity:.62}}

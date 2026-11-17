@@ -84,16 +84,38 @@ function arrastrable(el, svg, onMove, onKey) {
   if (onKey) el.addEventListener("keydown", ev => { if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) { ev.preventDefault(); onKey(ev.key === "ArrowRight" || ev.key === "ArrowUp" ? 1 : -1, ev.shiftKey ? 5 : 1); } });
 }
 const tt = $("#tt");
+/* un hover es un panel: título, una cifra (o mini barra) y una frase. `data-tip="título|cifra|frase"` lo da armado; un texto suelto se parte solo
+   (título = primera frase, cifra = primer número destacado). `data-tipp="0.39"` añade una barra de proporción. */
+const CIFRA_RE = /([−+$]?\d[\d,.]*(?: ?(?:%|M\b|mil\b|USD|MB|GB|KB|pesos|restaurantes|visitas|meses|días|×))?)/;
+function armaPanel(txt, prop) {
+  let tit = "", cif = "", fra = "";
+  if (txt.includes("|")) { const q = txt.split("|"); tit = q[0]; cif = q[1] || ""; fra = q.slice(2).join(" "); }
+  else if (txt.length <= 46) tit = txt;
+  else {
+    const m = txt.match(/^(.{12,70}?)(?:[:.] |\. |: )/);
+    if (m) { tit = m[1]; fra = txt.slice(m[0].length); } else { fra = txt; }
+    const c = (tit + " " + fra).match(CIFRA_RE); if (c && c[1].replace(/\D/g, "").length) cif = c[1];
+  }
+  return `<span class="tt-i"></span>${tit ? `<b class="tt-t">${esc(tit)}</b>` : ""}${cif ? `<span class="tt-c">${esc(cif)}</span>` : ""}${prop != null && prop !== "" ? `<span class="tt-b"><i style="width:${clamp(100 * +prop, 0, 100)}%"></i></span>` : ""}${fra ? `<p>${esc(fra)}</p>` : ""}`;
+}
+let ttEl = null;
+function colocaPanel(t) {
+  const r = t.getBoundingClientRect(), w = tt.offsetWidth, h = tt.offsetHeight;
+  let x = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8), y = r.top - h - 12;
+  if (y < 8) y = Math.min(r.bottom + 12, innerHeight - h - 8);
+  tt.style.left = x + "px"; tt.style.top = Math.max(8, y) + "px";
+}
 function tip(e) {
   const t = e.target.closest ? e.target.closest("[data-tip]") : null;
-  if (!t) { tt.hidden = true; return; }
-  tt.textContent = t.dataset.tip; tt.hidden = false;
-  const r = t.getBoundingClientRect();
-  tt.style.left = clamp(r.left + r.width / 2 - 140, 8, innerWidth - 292) + "px";
-  tt.style.top = Math.max(8, r.top - tt.offsetHeight - 8) + "px";
+  if (!t) { tt.hidden = true; ttEl = null; return; }
+  if (t === ttEl && !tt.hidden) return;
+  ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp); tt.hidden = false; colocaPanel(t);
 }
 document.addEventListener("mouseover", tip); document.addEventListener("focusin", tip);
-document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) tt.hidden = true; });
+document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } });
+/* en teléfono no hay hover: un toque abre el panel y otro toque fuera lo cierra */
+document.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target.closest ? e.target.closest("[data-tip]") : null; if (t) { if (t === ttEl && !tt.hidden) { tt.hidden = true; ttEl = null; } else { ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp); tt.hidden = false; colocaPanel(t); } } else { tt.hidden = true; ttEl = null; } });
+addEventListener("scroll", () => { if (!tt.hidden && ttEl && !document.body.contains(ttEl)) { tt.hidden = true; ttEl = null; } }, {passive: true});
 
 /* ===== pantalla completa (se oculta si el visor no la permite) ===== */
 const FSOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);

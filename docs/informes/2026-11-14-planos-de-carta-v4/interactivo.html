@@ -145,7 +145,11 @@ main{padding-block:12px 28px}
 .rcard .si i{font-style:normal;font-weight:700;color:var(--rojo);margin-right:6px}
 .rcard .acc2{display:flex;gap:8px;flex-wrap:wrap}
 .ejemplo{font-size:13px;background:var(--arena2);border-radius:14px;padding:8px 12px;margin-top:10px;color:var(--tinta)}
-.tt{position:fixed;pointer-events:none;background:var(--tinta);color:#fff;font-size:12.5px;padding:7px 10px;border-radius:10px;z-index:40;max-width:280px}
+.tt{position:fixed;pointer-events:none;background:var(--crema,#fef9f1);color:var(--tinta);padding:14px 16px 14px;border-radius:20px;z-index:40;width:max-content;max-width:min(320px,calc(100vw - 16px));box-shadow:0 18px 44px rgba(79,23,40,.28),0 2px 6px rgba(79,23,40,.12);border-top:4px solid var(--dorado)}
+.tt .tt-t{display:block;font-family:'DM Serif Display',serif;font-weight:400;font-size:17px;line-height:1.2;color:var(--vino);margin-bottom:2px}
+.tt .tt-c{display:block;font-family:'DM Serif Display',serif;font-size:32px;line-height:1.1;color:var(--dorado);margin:2px 0 4px}
+.tt .tt-b{display:block;height:8px;border-radius:4px;background:rgba(79,23,40,.12);margin:6px 0 8px;overflow:hidden}.tt .tt-b i{display:block;height:100%;background:var(--vino);border-radius:4px}
+.tt p{margin:0;font-size:13px;line-height:1.4;color:var(--tinta)}
 .sr{position:absolute;left:-9999px}
 .pulso{animation:pulso 1.3s ease-in-out infinite}
 @keyframes pulso{0%,100%{opacity:1}50%{opacity:.62}}
@@ -4975,16 +4979,38 @@ function arrastrable(el, svg, onMove, onKey) {
   if (onKey) el.addEventListener("keydown", ev => { if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) { ev.preventDefault(); onKey(ev.key === "ArrowRight" || ev.key === "ArrowUp" ? 1 : -1, ev.shiftKey ? 5 : 1); } });
 }
 const tt = $("#tt");
+/* un hover es un panel: título, una cifra (o mini barra) y una frase. `data-tip="título|cifra|frase"` lo da armado; un texto suelto se parte solo
+   (título = primera frase, cifra = primer número destacado). `data-tipp="0.39"` añade una barra de proporción. */
+const CIFRA_RE = /([−+$]?\d[\d,.]*(?: ?(?:%|M\b|mil\b|USD|MB|GB|KB|pesos|restaurantes|visitas|meses|días|×))?)/;
+function armaPanel(txt, prop) {
+  let tit = "", cif = "", fra = "";
+  if (txt.includes("|")) { const q = txt.split("|"); tit = q[0]; cif = q[1] || ""; fra = q.slice(2).join(" "); }
+  else if (txt.length <= 46) tit = txt;
+  else {
+    const m = txt.match(/^(.{12,70}?)(?:[:.] |\. |: )/);
+    if (m) { tit = m[1]; fra = txt.slice(m[0].length); } else { fra = txt; }
+    const c = (tit + " " + fra).match(CIFRA_RE); if (c && c[1].replace(/\D/g, "").length) cif = c[1];
+  }
+  return `<span class="tt-i"></span>${tit ? `<b class="tt-t">${esc(tit)}</b>` : ""}${cif ? `<span class="tt-c">${esc(cif)}</span>` : ""}${prop != null && prop !== "" ? `<span class="tt-b"><i style="width:${clamp(100 * +prop, 0, 100)}%"></i></span>` : ""}${fra ? `<p>${esc(fra)}</p>` : ""}`;
+}
+let ttEl = null;
+function colocaPanel(t) {
+  const r = t.getBoundingClientRect(), w = tt.offsetWidth, h = tt.offsetHeight;
+  let x = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8), y = r.top - h - 12;
+  if (y < 8) y = Math.min(r.bottom + 12, innerHeight - h - 8);
+  tt.style.left = x + "px"; tt.style.top = Math.max(8, y) + "px";
+}
 function tip(e) {
   const t = e.target.closest ? e.target.closest("[data-tip]") : null;
-  if (!t) { tt.hidden = true; return; }
-  tt.textContent = t.dataset.tip; tt.hidden = false;
-  const r = t.getBoundingClientRect();
-  tt.style.left = clamp(r.left + r.width / 2 - 140, 8, innerWidth - 292) + "px";
-  tt.style.top = Math.max(8, r.top - tt.offsetHeight - 8) + "px";
+  if (!t) { tt.hidden = true; ttEl = null; return; }
+  if (t === ttEl && !tt.hidden) return;
+  ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp); tt.hidden = false; colocaPanel(t);
 }
 document.addEventListener("mouseover", tip); document.addEventListener("focusin", tip);
-document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) tt.hidden = true; });
+document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } });
+/* en teléfono no hay hover: un toque abre el panel y otro toque fuera lo cierra */
+document.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target.closest ? e.target.closest("[data-tip]") : null; if (t) { if (t === ttEl && !tt.hidden) { tt.hidden = true; ttEl = null; } else { ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp); tt.hidden = false; colocaPanel(t); } } else { tt.hidden = true; ttEl = null; } });
+addEventListener("scroll", () => { if (!tt.hidden && ttEl && !document.body.contains(ttEl)) { tt.hidden = true; ttEl = null; } }, {passive: true});
 
 /* ===== pantalla completa (se oculta si el visor no la permite) ===== */
 const FSOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
@@ -5166,6 +5192,55 @@ function fnDib(j) {
   return `<svg viewBox="0 0 120 196" role="img" font-family="DM Sans, sans-serif">${TEL(c)}</svg>`;
 }
 
+
+/* ===== escenas del negocio: una ilustración de 264×190 con luz, profundidad y gente (la paleta de Carta) ===== */
+const ESC_DEFS = `<defs>
+<linearGradient id="esCielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4d9ae"/><stop offset=".55" stop-color="#fbeed6"/><stop offset="1" stop-color="#fef9f1"/></linearGradient>
+<linearGradient id="esPared" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e6cc"/><stop offset="1" stop-color="#e3c9a2"/></linearGradient>
+<linearGradient id="esParedV" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a3b50"/><stop offset="1" stop-color="#5a1c30"/></linearGradient>
+<linearGradient id="esSuelo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8c4a4"/><stop offset="1" stop-color="#c2aa86"/></linearGradient>
+<linearGradient id="esTecho" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d3447"/><stop offset="1" stop-color="#4f1728"/></linearGradient>
+<radialGradient id="esLuz" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".95"/><stop offset="1" stop-color="#ffd36b" stop-opacity="0"/></radialGradient>
+<linearGradient id="esVidrio" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd98a"/><stop offset="1" stop-color="#e9a94d"/></linearGradient>
+</defs>`;
+const esLuz = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#esLuz)"/>`;
+const esVent = (x, y, w, h, luz = true) => (luz ? esLuz(x + w / 2, y + h / 2, Math.max(w, h) * 0.9) : "") + `<rect x="${x - 2}" y="${y - 2}" width="${w + 4}" height="${h + 4}" rx="4" fill="#5a1c30"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="url(#esVidrio)"/><rect x="${x + w / 2 - 1}" y="${y}" width="2" height="${h}" fill="#5a1c30" opacity=".55"/><rect x="${x}" y="${y + h * 0.62}" width="${w}" height="${h * 0.38}" fill="#fff" opacity=".14"/>`;
+const esToldo = (x, y, w, h, k, a = "#6b2d3e", b = "#fef9f1") => { let o = ""; const q = w / k; for (let i = 0; i < k; i++) o += `<path d="M${x + i * q} ${y} h${q + 0.4} v${h} q${-q / 2} 7 ${-q - 0.4} 0z" fill="${i % 2 ? b : a}"/>`; return o + `<rect x="${x}" y="${y}" width="${w}" height="4" fill="#000" opacity=".12"/>`; };
+const esArbol = (x, y, s = 1) => `<g transform="translate(${x},${y}) scale(${s})"><ellipse cx="0" cy="2" rx="16" ry="3.5" fill="#000" opacity=".12"/><rect x="-2.5" y="-26" width="5" height="28" rx="2" fill="#7b5a3c"/><circle cx="0" cy="-36" r="15" fill="#6f9446"/><circle cx="-10" cy="-28" r="10" fill="#5c7f3a"/><circle cx="10" cy="-29" r="11" fill="#86a95a"/></g>`;
+const esGente = (x, y, c = "#4f1728", s = 1) => `<g transform="translate(${x},${y}) scale(${s})"><ellipse cx="0" cy="1" rx="8" ry="2.4" fill="#000" opacity=".18"/><rect x="-5.5" y="-22" width="11" height="22" rx="5.5" fill="${c}"/><circle cx="0" cy="-28" r="5.5" fill="#e0b48a"/><path d="M-5.6 -29 q5.6 -8 11.2 0 q-5.6 -3 -11.2 0z" fill="#2a1a14"/></g>`;
+const esMesa = (x, y, s = 1, sombrilla = false) => `<g transform="translate(${x},${y}) scale(${s})"><ellipse cx="0" cy="2" rx="15" ry="3" fill="#000" opacity=".14"/>${sombrilla ? `<rect x="-1" y="-48" width="2" height="48" fill="#7b5a3c"/><path d="M-26 -42 q26 -24 52 0z" fill="#b8860b"/><path d="M-26 -42 q13 -10 26 -10 q-13 4 -26 10z" fill="#f3d58a" opacity=".7"/>` : ""}<rect x="-1.5" y="-12" width="3" height="12" fill="#6b2d3e"/><ellipse cx="0" cy="-12" rx="13" ry="4.5" fill="#f3d58a"/><ellipse cx="0" cy="-13" rx="13" ry="4" fill="#fef9f1"/><circle cx="-4" cy="-15" r="2.4" fill="#b8860b"/></g>`;
+const esFocos = (x0, x1, y, caida = 7) => { let o = `<path d="M${x0} ${y} Q${(x0 + x1) / 2} ${y + caida} ${x1} ${y}" fill="none" stroke="#5a1c30" stroke-width="1.2" opacity=".6"/>`; const n = Math.round((x1 - x0) / 14); for (let i = 0; i <= n; i++) { const t = i / n, xx = x0 + (x1 - x0) * t, yy = y + 2 * caida * t * (1 - t) * 1; o += esLuz(xx, yy + 2, 7) + `<circle cx="${xx}" cy="${yy + 2}" r="2.3" fill="#fff3c4"/>`; } return o; };
+const esLetrero = (cx, y, w, t, col = "#4f1728") => `<rect x="${cx - w / 2}" y="${y}" width="${w}" height="19" rx="9.5" fill="${col}"/><rect x="${cx - w / 2 + 2}" y="${y + 2}" width="${w - 4}" height="15" rx="7.5" fill="none" stroke="#f3d58a" stroke-width="1" opacity=".7"/><text x="${cx}" y="${y + 13.5}" font-size="11" font-weight="700" fill="#f3d58a" text-anchor="middle" font-family="DM Sans, sans-serif" letter-spacing=".8">${t}</text>`;
+function escena(k) {
+  let g = `<rect width="264" height="190" rx="18" fill="url(#esCielo)"/><circle cx="222" cy="34" r="16" fill="#fff3c4" opacity=".9"/><circle cx="222" cy="34" r="30" fill="url(#esLuz)" opacity=".7"/><rect y="158" width="264" height="32" fill="url(#esSuelo)"/><rect y="156" width="264" height="3" fill="#fff" opacity=".35"/>`;
+  if (k === "fonda") {
+    g += esArbol(26, 160, 1.05) + `<ellipse cx="140" cy="162" rx="92" ry="6" fill="#000" opacity=".15"/><rect x="58" y="78" width="164" height="82" fill="url(#esPared)"/><path d="M50 80 L140 52 L230 80z" fill="url(#esTecho)"/><path d="M50 80 L140 52 L140 58 L58 82z" fill="#fff" opacity=".1"/>` +
+      esToldo(66, 92, 94, 15, 8) + esVent(70, 112, 36, 30) + esVent(116, 112, 30, 30, false) + `<rect x="172" y="104" width="30" height="56" rx="4" fill="#5a1c30"/><rect x="175" y="108" width="24" height="50" rx="3" fill="#2a1a14"/>${esLuz(187, 134, 32)}<circle cx="195" cy="134" r="1.8" fill="#f3d58a"/>` +
+      esLetrero(140, 62, 84, "FONDA") + `<rect x="120" y="140" width="26" height="14" rx="2" fill="#2a1a14"/><text x="133" y="150" font-size="6" fill="#f3d58a" text-anchor="middle" font-family="DM Sans, sans-serif">menú del día</text>` + esFocos(66, 214, 90, 8) + esGente(104, 160, "#6b2d3e") + esGente(170, 161, "#b8860b") + esMesa(214, 160, 0.9);
+  } else if (k === "barrio") {
+    g += esArbol(238, 160, 0.95) + `<ellipse cx="128" cy="162" rx="102" ry="6" fill="#000" opacity=".15"/><rect x="28" y="70" width="188" height="90" fill="url(#esParedV)"/><rect x="28" y="70" width="188" height="6" fill="#fff" opacity=".08"/>` +
+      esToldo(22, 86, 200, 17, 12, "#b8860b", "#fef9f1") + esVent(40, 112, 44, 30) + `<rect x="100" y="108" width="58" height="52" rx="4" fill="#fef9f1" opacity=".12"/><circle cx="129" cy="122" r="8" fill="#e9a94d"/><rect x="123" y="130" width="12" height="26" rx="6" fill="#7b5a3c"/>${esLuz(129, 130, 34)}<path d="M110 150 h38 v8 h-38z" fill="#2a1a14" opacity=".55"/>` +
+      esVent(174, 112, 34, 30) + esLetrero(122, 56, 112, "TAQUERÍA", "#2a1a14") + esFocos(28, 214, 82, 8) + esGente(88, 160, "#fef9f1") + esGente(150, 161, "#e9a94d") + esGente(190, 160, "#6b2d3e") + `<rect x="24" y="146" width="16" height="14" rx="3" fill="#b9afa3"/><circle cx="32" cy="140" r="9" fill="#7a9a4a"/>`;
+  } else if (k === "restaurante") {
+    g += esArbol(22, 160, 1) + esArbol(244, 160, 0.9) + `<ellipse cx="132" cy="162" rx="108" ry="6" fill="#000" opacity=".15"/><rect x="40" y="62" width="184" height="98" fill="url(#esPared)"/><rect x="40" y="62" width="184" height="10" fill="#4f1728"/>` +
+      esToldo(36, 76, 192, 17, 12) + esVent(52, 102, 42, 38) + esVent(170, 102, 42, 38) + `<rect x="106" y="98" width="52" height="62" rx="5" fill="#4f1728"/><rect x="110" y="102" width="20" height="58" fill="url(#esVidrio)" opacity=".8"/><rect x="134" y="102" width="20" height="58" fill="url(#esVidrio)" opacity=".8"/>${esLuz(132, 130, 46)}` +
+      esLetrero(132, 40, 132, "RESTAURANTE") + esFocos(40, 224, 98, 7) + esMesa(72, 162, 0.9) + esMesa(192, 162, 0.9) + esGente(112, 163, "#4f1728") + esGente(158, 163, "#b8860b") + `<rect x="212" y="110" width="3" height="50" fill="#b9afa3"/><circle cx="213.5" cy="106" r="6" fill="#f3d58a"/>${esLuz(213.5, 106, 18)}`;
+  } else if (k === "salon") {
+    g += esArbol(236, 160, 1.1) + `<ellipse cx="120" cy="162" rx="112" ry="6" fill="#000" opacity=".15"/><rect x="30" y="66" width="138" height="94" fill="url(#esPared)"/><path d="M26 70 L99 46 L172 70z" fill="url(#esTecho)"/>` +
+      esVent(42, 92, 36, 40) + esVent(120, 92, 36, 40) + `<rect x="86" y="96" width="26" height="64" rx="4" fill="#4f1728"/>${esLuz(99, 128, 34)}` + esLetrero(99, 48, 84, "TERRAZA") + esFocos(26, 250, 84, 9) +
+      esMesa(190, 160, 1.15, true) + esMesa(226, 161, 1, true) + esMesa(150, 166, 0.8) + esGente(176, 162, "#6b2d3e") + esGente(204, 163, "#b8860b") + esGente(240, 163, "#4f1728") + `<rect x="30" y="148" width="14" height="12" rx="3" fill="#b9afa3"/><circle cx="37" cy="142" r="8" fill="#7a9a4a"/>`;
+  } else if (k === "hotel") {
+    g += esArbol(20, 160, 0.9) + esArbol(246, 160, 0.9) + `<ellipse cx="132" cy="162" rx="112" ry="6" fill="#000" opacity=".15"/><rect x="62" y="26" width="140" height="134" fill="url(#esParedV)"/><rect x="62" y="26" width="140" height="8" fill="#f3d58a" opacity=".5"/>`;
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) g += `<rect x="${72 + c * 25}" y="${42 + r * 25}" width="16" height="16" rx="3" fill="${(r * 5 + c) % 3 ? "#e9a94d" : "#3d1020"}"/>` + ((r * 5 + c) % 3 ? esLuz(80 + c * 25, 50 + r * 25, 14) : "");
+    g += esToldo(100, 128, 64, 12, 6, "#b8860b", "#fef9f1") + `<rect x="112" y="136" width="40" height="24" rx="3" fill="#2a1a14"/>${esLuz(132, 148, 34)}` + `<rect x="130" y="8" width="4" height="22" fill="#b9afa3"/><path d="M134 8 l22 7 l-22 7z" fill="#b8860b"/>` + esLetrero(132, 104, 76, "HOTEL", "#2a1a14") + esGente(82, 163, "#fef9f1") + esGente(184, 163, "#b8860b") + esGente(46, 164, "#6b2d3e", 0.9);
+  } else {
+    g += esArbol(18, 160, 0.9) + `<ellipse cx="132" cy="162" rx="116" ry="6" fill="#000" opacity=".15"/>`;
+    [[16, 92, 70], [96, 70, 90], [176, 84, 76]].forEach(([x, y, h], i) => { g += `<rect x="${x}" y="${y}" width="74" height="${160 - y}" fill="url(#${i === 1 ? "esParedV" : "esPared"})"/>` + esToldo(x - 3, y + 14, 80, 13, 7, i === 1 ? "#f3d58a" : "#6b2d3e", "#fef9f1") + esVent(x + 10, y + 36, 24, 26) + esVent(x + 42, y + 36, 22, 26, false) + `<rect x="${x + 24}" y="${y + 66}" width="26" height="${94 - (y - 70) - 66 + 4}" rx="3" fill="#2a1a14" opacity=".8"/>`; });
+    g += esLetrero(132, 40, 110, "× 3 LOCALES", "#4f1728") + esFocos(16, 250, 82, 8) + esGente(84, 163) + esGente(164, 163, "#b8860b") + esGente(232, 163, "#6b2d3e");
+  }
+  return `<svg viewBox="0 0 264 190" width="264" height="190" font-family="DM Sans, sans-serif">${ESC_DEFS}${g}</svg>`;
+}
+
 /* ===== la historia con scroll: cada capítulo ocupa la pantalla (pregunta, una visual grande, el hallazgo); el detalle, en «ver más» ===== */
 const CAPS = [
   {id: "mercado2", q: "¿Cuántos negocios hay en México?"},
@@ -5281,15 +5356,15 @@ const CLASE_NOM = {
 function empaqueta(items, R, dens = 0.5) {
   const tot = items.reduce((a, x) => a + x.n, 0), k = Math.sqrt(dens * R * R / tot), GAP = 4;
   const cs = items.map(x => ({...x, r: Math.max(k * Math.sqrt(x.n), 5)})).sort((a, b) => b.r - a.r);
-  cs.forEach((c, i) => { const a = i * 2.399963, rad = R * 0.55 * Math.sqrt((i + 0.5) / cs.length); c.x = rad * Math.cos(a); c.y = rad * Math.sin(a); });
+  cs.forEach((c, i) => { const a = i * 2.399963, rad = R * 0.55 * Math.sqrt((i + 0.5) / cs.length); c.x = rad * Math.cos(a); c.y = rad * Math.sin(a); c.per = c.r <= 24; if (c.per) { const ang = -0.5 + 0.4 * (cs.filter((q, j) => j < i && q.r <= 24).length); c.x = (R - c.r - 2) * Math.cos(ang); c.y = (R - c.r - 2) * Math.sin(ang); } });
   for (let it = 0; it < 900; it++) {
     const f = 1 - it / 900;
-    cs.forEach(c => { c.x *= 0.995; c.y *= 0.995; });
+    cs.forEach(c => { if (!c.per) { c.x *= 0.995; c.y *= 0.995; } });
     for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) {
       const A = cs[i], B = cs[j]; let dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 0.001; const need = A.r + B.r + GAP;
       if (d < need) { const m = (need - d) / 2 * 0.6, ux = dx / d, uy = dy / d; A.x -= ux * m; A.y -= uy * m; B.x += ux * m; B.y += uy * m; }
     }
-    cs.forEach(c => { const d = Math.hypot(c.x, c.y), lim = R - c.r - 2; if (d > lim) { c.x *= lim / d; c.y *= lim / d; } });
+    cs.forEach(c => { const d = Math.hypot(c.x, c.y) || 1, lim = R - c.r - 2; if (c.per) { c.x *= lim / d; c.y *= lim / d; } else if (d > lim) { c.x *= lim / d; c.y *= lim / d; } });
   }
   return cs;
 }
@@ -5298,7 +5373,7 @@ DET.mercado2 = {
   fu: ["inegi_denue", "carta_mercado"],
   nota: "INEGI, DENUE de mayo de 2026, ramas 7224 y 7225 (SCIAN). Clientes potenciales (SAM): a la carta y comida corrida, bares y centros nocturnos. Sin sus posibles cadenas son ≈ 100,000 (96,021 a 104,855 según el umbral). Meta a 12 meses (SOM): 300 restaurantes, un escenario del modelo, no un dato.",
   montar(host) {
-    host.innerHTML = `<div class="viz"><svg id="svM2" viewBox="0 0 1100 620" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svM2" viewBox="0 0 1400 620" preserveAspectRatio="xMinYMid meet" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.sv = $("#svM2", host); this.sel = null;
     this.sv.addEventListener("mouseover", ev => { const t = ev.target.closest("[data-cl]"); const k = t ? t.dataset.cl : null; if (k !== this.sel) { this.sel = k; this.pinta(); } });
     this.sv.addEventListener("click", ev => { const t = ev.target.closest("[data-cl]"); this.sel = t ? t.dataset.cl : null; this.pinta(); });
@@ -5312,9 +5387,9 @@ DET.mercado2 = {
   },
   pinta() {
     const gpc = this.ya ? "" : 'class="gp"'; this.ya = true;
-    const sv = this.sv, R = 275, CX = 300, CY = 315, sel = this.sel;
+    const sv = this.sv, R = 292, CX = 312, CY = 326, sel = this.sel;
     const items = CLASES_D.map(c => ({clave: c.clave, n: c.n, nom: (CLASE_NOM[c.clave] || [c.clave, "fuera"])[0], tipo: (CLASE_NOM[c.clave] || [0, "fuera"])[1]}));
-    const pk = empaqueta(items, R - 6);
+    const pk = empaqueta(items, R - 6, 0.58);
     let b = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="${C.a2}"/>` + T(CX, CY - R - 14, `Restaurantes y bares de México · ${n(M.total)}`, 15, C.vino, "middle", 700);
     pk.forEach((c, i) => {
       const nuc = c.tipo === "núcleo", on = sel === c.clave, x = CX + c.x, y = CY + c.y;
@@ -5324,19 +5399,19 @@ DET.mercado2 = {
       b += `</g></g>`;
     });
     // pequeños: etiquetas fuera con línea guía
-    let ly = 90; pk.filter(c => c.r <= 26).sort((a, z) => a.y - z.y).forEach(c => {
+    let ly = 70; pk.filter(c => c.r <= 26).sort((a, z) => a.y - z.y).forEach(c => {
       const x = CX + c.x, y = CY + c.y, nuc = c.tipo === "núcleo";
       b += `<line x1="${x}" y1="${y}" x2="${CX + R + 18}" y2="${ly}" stroke="${nuc ? C.vino : C.gris}" stroke-width="1.5"/>` + T(CX + R + 26, ly + 4, `${c.nom} · ${n(c.n)}`, 12.5, nuc ? C.vino : C.t2, "start", 700);
       ly += 24;
     });
     // el panel de la derecha: lo que se ve de lo elegido, o el resumen
-    const px = 720, so = 800, el = sel ? items.find(c => c.clave === sel) : null;
-    b += Rc(px, 330, 360, 250, "#fff", 24) ;
+    const px = 900, so = 900, el = sel ? items.find(c => c.clave === sel) : null;
+    b += Rc(px, 330, 440, 250, "#fff", 24) ;
     if (el) { b += T(px + 22, 372, el.nom, 20, C.vino, "start", 400, true) + T(px + 22, 428, n(el.n), 48, el.tipo === "núcleo" ? C.vino : C.t2, "start", 400, true) + T(px + 22, 452, `${n(100 * el.n / M.total, 1)} % del total`, 14, C.t2) + T(px + 22, 492, el.tipo === "núcleo" ? "Cliente potencial (SAM)" : "Fuera de lo que Carta atiende hoy", 13.5, el.tipo === "núcleo" ? C.vino : C.t2, "start", 700); }
     else { b += T(px + 22, 372, "Toca un círculo", 20, C.vino, "start", 400, true) + T(px + 22, 428, n(M.nucleo), 48, C.vino, "start", 400, true) + T(px + 22, 452, "clientes potenciales (SAM)", 14, C.t2) + T(px + 22, 492, `= ${n(100 * M.nucleo / M.total, 1)} % del total`, 13.5, C.vino, "start", 700); }
     // la meta a 12 meses: 300 puntos dorados en un grid chico
     b += T(so, 60, "Meta a 12 meses (SOM)", 16, C.dorado, "start", 700) + T(so, 112, "300", 44, C.dorado, "start", 400, true) + T(so + 100, 106, "restaurantes: un escenario", 13.5, C.t2);
-    for (let i = 0; i < 100; i++) b += `<circle ${gpc} style="animation-delay:${800 + i * 10}ms" cx="${so + 8 + (i % 20) * 13.5}" cy="${150 + Math.floor(i / 20) * 14}" r="4.4" fill="${C.dorado}"/>`;
+    for (let i = 0; i < 100; i++) b += `<circle ${gpc} style="animation-delay:${800 + i * 10}ms" cx="${so + 8 + (i % 20) * 12.4}" cy="${150 + Math.floor(i / 20) * 14}" r="4.4" fill="${C.dorado}"/>`;
     b += T(so, 232, "cada punto = 3 restaurantes", 12, C.t2);
     sv.innerHTML = b;
   },
@@ -5385,72 +5460,73 @@ DET.linea = {
   nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea». La tira de sitios sale de la muestra de las 17 zonas metropolitanas (166 sitios declarados en el DENUE, 200 intentos de lectura, 16 de noviembre de 2026; controles del marco en muestra-500-cartas §14, con sus datos en muestra-denue-descartes.csv y muestra-denue-control-dns.csv): fuera de esas zonas no se midió y no hay cifra nacional ni para el núcleo.",
   montar(host) {
     this.sel = 0;
-    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 500" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 250" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 500" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
     this.pintaSitios();
     const svg = $("#svLinea", host); this.rm = RM(svg); this.svg = svg;
     const elige = ev => { const t = ev.target.closest("[data-i]"); if (t && +t.dataset.i !== this.sel) { this.sel = +t.dataset.i; refrescar(); } };
     svg.addEventListener("mouseover", elige); svg.addEventListener("click", elige); svg.addEventListener("focusin", elige);
     svg.addEventListener("keydown", ev => { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); this.sel = clamp(this.sel + (ev.key === "ArrowDown" ? 1 : -1), 0, TAM.length - 1); refrescar(); const f = $(`[data-i="${this.sel}"]`, svg); if (f) f.focus(); } });
   },
-  /* los sitios que declaran los negocios en el DENUE: de 166 (muestra de 17 zonas metropolitanas), cuántos siguen vivos */
+  /* los sitios que declaran los negocios en el DENUE: de 166 (muestra de 17 zonas metropolitanas), sólo 4 de cada 10 siguen vivos */
   pintaSitios() {
-    const X0 = 30, W = 1040, tot = 166, seg = [["viva", 64, C.verde, "llevan a una página viva del negocio"], ["caida", 81, C.rojo, "están caídos"], ["bloq", 12, C.dorado, "bloquean la lectura"], ["red", 5, C.t2, "son sólo una red social"], ["otro", 4, C.gris, "los ocupa otro sitio"]];
-    let b = T(30, 28, "De 166 sitios que los negocios declaran en el DENUE, ¿cuántos siguen vivos?", 15, C.vino, "start", 700) + Rc(840, 8, 230, 28, C.dorado, 14) + T(955, 27, "17 zonas metropolitanas", 12.5, "#fff", "middle", 700);
-    let x = X0; const pos = {};
-    seg.forEach(([k, v, col, nom], i) => {
-      const w = W * v / tot; pos[k] = [x, w];
-      b += `<g class="gh" style="animation-delay:${i * 90}ms" data-tip="${esc2(v + " de 166 (" + n(100 * v / tot) + " %): " + nom)}">${Rc(x, 52, Math.max(w - 2, 3), 44, col, i === 0 ? 10 : 2)}</g>`;
-      x += w;
-    });
-    b += T(pos.viva[0] + pos.viva[1] / 2, 80, "64 · 39 %", 18, "#fff", "middle", 700) + T(pos.caida[0] + pos.caida[1] / 2, 80, "81 · 49 %", 18, "#fff", "middle", 700) + T(pos.bloq[0] + pos.bloq[1] / 2, 80, "12", 14, "#fff", "middle", 700);
-    b += T(pos.viva[0], 122, "llevan a una página viva del negocio", 13.5, C.verde, "start", 700) + T(pos.caida[0], 122, "están caídos", 13.5, C.rojo, "start", 700) + T(pos.caida[0], 140, "71 con el dominio que ya no existe", 12, C.t2) + T(pos.bloq[0] - 6, 122, "12 bloquean la lectura", 12.5, C.dorado, "start", 700);
-    [["red", "5 son sólo una red social", 160], ["otro", "4 los ocupa otro sitio", 184]].forEach(([k, txt, y]) => { const cx = pos[k][0] + pos[k][1] / 2; b += `<line x1="${cx}" x2="${cx}" y1="96" y2="${y - 12}" stroke="${C.gris}" stroke-width="1.5"/>` + T(cx - 6, y, txt, 12.5, C.t2, "end", 700); });
-    b += T(30, 232, "Ni entre los que declaran sitio la mayoría lo mantiene vivo: sólo 39 % lleva a una página viva del negocio.", 14.5, C.osc, "start", 700);
+    const tienda = (x, y, vivo, i) => {
+      if (vivo) return `<g class="gh" style="animation-delay:${i * 70}ms"><ellipse cx="${x + 38}" cy="${y + 96}" rx="40" ry="5" fill="#000" opacity=".14"/><circle cx="${x + 38}" cy="${y + 62}" r="46" fill="#ffd36b" opacity=".35"/><rect x="${x + 8}" y="${y + 34}" width="60" height="60" rx="6" fill="#f6e6cc"/>${[0, 1, 2, 3, 4].map(q => `<path d="M${x + 4 + q * 14.4} ${y + 22} h14.6 v14 q-7.3 8 -14.6 0z" fill="${q % 2 ? "#fef9f1" : "#6b2d3e"}"/>`).join("")}<rect x="${x + 16}" y="${y + 50}" width="22" height="22" rx="3" fill="#ffd98a"/><rect x="${x + 44}" y="${y + 52}" width="16" height="42" rx="3" fill="#4f1728"/><circle cx="${x + 38}" cy="${y + 6}" r="11" fill="${C.verde}"/><path d="M${x + 32} ${y + 6} l4 4 l8 -9" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+      return `<g class="gh" style="animation-delay:${i * 70}ms"><ellipse cx="${x + 38}" cy="${y + 96}" rx="40" ry="5" fill="#000" opacity=".08"/><rect x="${x + 8}" y="${y + 34}" width="60" height="60" rx="6" fill="#d8d0c4"/>${[0, 1, 2, 3, 4].map(q => `<path d="M${x + 4 + q * 14.4} ${y + 22} h14.6 v14 q-7.3 8 -14.6 0z" fill="${q % 2 ? "#e6e0d6" : "#a89f93"}"/>`).join("")}<rect x="${x + 16}" y="${y + 50}" width="22" height="22" rx="3" fill="#8f877b"/><path d="M${x + 16} ${y + 72} L${x + 38} ${y + 50} M${x + 16} ${y + 50} L${x + 38} ${y + 72}" stroke="#d8d0c4" stroke-width="2"/><rect x="${x + 44}" y="${y + 52}" width="16" height="42" rx="3" fill="#6f675c"/><path d="M${x + 44} ${y + 66} L${x + 60} ${y + 60} M${x + 44} ${y + 80} L${x + 60} ${y + 74}" stroke="#d8d0c4" stroke-width="3"/><circle cx="${x + 38}" cy="${y + 6}" r="11" fill="${C.rojo}"/><path d="M${x + 33} ${y + 1} l10 10 M${x + 43} ${y + 1} l-10 10" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></g>`;
+    };
+    const tip = (txt, pr) => `data-tip="${esc2(txt)}" data-tipp="${pr}"`;
+    let b = `<rect x="860" y="12" width="210" height="28" rx="14" fill="${C.dorado}"/>` + T(965, 31, "17 zonas metropolitanas", 12.5, "#fff", "middle", 700);
+    b += T(30, 52, "De cada 10 negocios que declaran sitio web,", 30, C.vino, "start", 400, true) + T(30, 90, "sólo 4 lo mantienen vivo.", 30, C.rojo, "start", 400, true);
+    for (let i = 0; i < 10; i++) {
+      const vivo = i < 4, x = 30 + i * 102, grupo = vivo ? tip("Sitios vivos|64 de 166 · 39 %|llevan a una página viva del negocio", 0.39) : i < 9 ? tip("Sitios caídos|81 de 166 · 49 %|están caídos; 71 con el dominio que ya no existe", 0.49) : tip("Otros|21 de 166 · 13 %|12 bloquean la lectura, 5 son sólo una red social y 4 los ocupa otro sitio", 0.13);
+      b += `<g ${grupo} tabindex="0">${tienda(x, 106, vivo, i)}</g>`;
+    }
+    b += T(30, 226, "Cada ícono son ≈ 17 de los 166 sitios declarados en el DENUE. Su presencia en línea está abandonada: Carta puede ser la que sí está viva.", 14, C.osc, "start", 700);
     $("#svSitios").innerHTML = b;
   },
   actualizar() {
-    const rm = this.rm, X0 = 170, W = 400, Y0 = 134, RH = 46, sel = this.sel, cfg = config(S);
-    rm.put("g0", "rect", {x: 30, y: 12, w: 1040, h: 46, rx: 23, fill: C.vino, grow: false});
-    rm.put("gp", "rect", {x: 52, y: 22, w: 15, h: 26, rx: 4, fill: "#fef9f1", grow: false});
-    rm.put("gq", "rect", {x: 55, y: 26, w: 9, h: 16, rx: 2, fill: C.vino, grow: false});
-    rm.put("gt", "text", {x: 82, y: 42, text: `${M.usa_internet_pct} % de los mexicanos usa internet; casi todos (${Math.round(M.celular_pct)} %) desde el celular`, size: 16, weight: 700, fill: "#fff"});
+    const rm = this.rm, X0 = 216, W = 290, Y0 = 134, RH = 46, sel = this.sel, cfg = config(S), wi = W * M.usa_internet_pct / 100, wc = wi * M.celular_pct / 100;
+    rm.put("gl0", "text", {x: X0 - 12, y: 36, text: "Mexicanos que usan internet", size: 13, weight: 700, fill: C.vino, anchor: "end"});
+    rm.put("g0", "rect", {x: X0, y: 16, w: wi, h: 28, rx: 14, fill: C.vino, grow: false});
+    rm.put("gv0", "text", {x: X0 + wi + 12, y: 36, text: `${M.usa_internet_pct} %`, size: 16, weight: 700, fill: C.vino});
+    rm.put("gl1", "text", {x: X0 - 12, y: 64, text: "…y de ellos, desde el celular", size: 13, fill: C.t2, anchor: "end"});
+    rm.put("g1", "rect", {x: X0, y: 48, w: wc, h: 22, rx: 11, fill: C.vino2 || "#6b2d3e", grow: false});
+    rm.put("gv1", "text", {x: X0 + wc + 12, y: 64, text: `${Math.round(M.celular_pct)} % de ellos`, size: 13, weight: 700, fill: C.t2});
     rm.put("t2", "text", {x: 30, y: 100, text: "Negocios que declaran sitio web, por tamaño (personas ocupadas)", size: 14, weight: 700, fill: C.dorado});
-    const xl = X0 + W * M.usa_internet_pct / 100;
-    rm.put("ref", "rect", {x: xl - 1, y: Y0 - 14, w: 2.5, h: RH * 7 - 6, rx: 1, fill: C.vino, grow: false, op: 0.5});
-    rm.put("reft", "text", {x: xl, y: Y0 - 20, text: `${M.usa_internet_pct} %`, size: 12, weight: 700, fill: C.vino, anchor: "middle"});
     M.estratos.forEach((e, i) => {
       const y = Y0 + i * RH, on = i === sel, op = on ? 1 : 0.62;
-      if (on) rm.put("band", "rect", {x: 20, y: y - 6, w: 620, h: RH - 4, rx: 14, fill: C.a2, grow: false});
+      if (on) rm.put("band", "rect", {x: 20, y: y - 6, w: 560, h: RH - 4, rx: 14, fill: C.a2, grow: false});
       rm.put("l" + i, "text", {x: X0 - 12, y: y + 20, text: TAM[i], size: 13.5, weight: on ? 700 : 400, fill: C.tinta, anchor: "end", op: on ? 1 : 0.8});
       rm.put("k" + i, "rect", {x: X0, y: y + 4, w: W, h: 24, rx: 12, fill: on ? "#fff" : C.a2});
       rm.put("f" + i, "rect", {x: X0, y: y + 4, w: Math.max(W * e.pct_sitio / 100, 4), h: 24, rx: 12, fill: C.dorado, op});
       rm.put("v" + i, "text", {x: X0 + W + 12, y: y + 22, text: `${n(e.pct_sitio, 1)} %`, size: 15, weight: 700, fill: C.tinta, op: on ? 1 : 0.8});
-      rm.put("h" + i, "rect", {x: 20, y: y - 6, w: 620, h: RH - 4, rx: 14, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-i": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": `${TAM[i]}: ${n(e.pct_sitio, 1)} % declara sitio web`}});
+      rm.put("h" + i, "rect", {x: 20, y: y - 6, w: 560, h: RH - 4, rx: 14, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-i": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": `${TAM[i]}: ${n(e.pct_sitio, 1)} % declara sitio web`}});
     });
+    // la línea de referencia: va encima de las barras y sube hasta tocar la barra de los mexicanos que usan internet
+    rm.put("ref", "rect", {x: X0 + wi - 1.25, y: 44, w: 2.5, h: Y0 + RH * 7 - 6 - 44, rx: 1.2, fill: C.vino, grow: false, op: 0.6});
     // corchetes: a qué plan le toca cada tamaño y cuánto representaría si todos pagaran
     const grupos = []; SEG.estratos.forEach((q, i) => { const p = planDe(q, cfg), u = grupos[grupos.length - 1]; if (u && u.p === p) { u.f = i; u.neg += q.negocios; } else grupos.push({p, i, f: i, neg: q.negocios}); });
     const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio, S.precioSalon];
     for (let g = 0; g < 3; g++) {
       const u = grupos.find(z => z.p === g), y1 = u ? Y0 + u.i * RH - 2 : 0, y2 = u ? Y0 + (u.f + 1) * RH - 10 : 0, col = COLPLAN[g];
-      rm.put("bk" + g, "rect", {x: 656, y: y1, w: u ? 6 : 0, h: u ? y2 - y1 : 0, rx: 3, fill: col, grow: false});
-      rm.put("bkt" + g, "rect", {x: 656, y: y1, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
-      rm.put("bkb" + g, "rect", {x: 656, y: y2 - 6, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
+      rm.put("bk" + g, "rect", {x: 590, y: y1, w: u ? 6 : 0, h: u ? y2 - y1 : 0, rx: 3, fill: col, grow: false});
+      rm.put("bkt" + g, "rect", {x: 590, y: y1, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
+      rm.put("bkb" + g, "rect", {x: 590, y: y2 - 6, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
       const ym = u ? (y1 + y2) / 2 : 0;
-      rm.put("bn" + g, "text", {x: 684, y: ym - 14, text: u ? NOMPLAN[g] : "", size: 17, fill: col, serif: true});
-      rm.put("bs" + g, "text", {x: 684, y: ym + 4, text: u ? `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %` : "", size: 12.5, weight: 700, fill: C.tinta});
-      rm.put("bg" + g, "text", {x: 684, y: ym + 22, text: u ? (g === 0 ? "gratis: lleva anuncios" : `si todos pagaran: $${n(u.neg * precio[g] / 1e6, 1)} M al mes`) : "", size: 12, fill: C.t2});
+      rm.put("bn" + g, "text", {x: 618, y: ym - 14, text: u ? NOMPLAN[g] : "", size: 17, fill: col, serif: true});
+      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: u ? `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %` : "", size: 12.5, weight: 700, fill: C.tinta});
+      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: u ? (g === 0 ? "gratis: lleva anuncios" : `si todos pagaran: $${n(u.neg * precio[g] / 1e6, 1)} M al mes`) : "", size: 12, fill: C.t2});
     }
     // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
-    const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 908;
-    rm.put("pn", "rect", {x: px, y: 96, w: 180, h: 370, rx: 22, fill: C.a2, grow: false});
-    const g = rm.put("ej", "g", {x: px + 10, y: 112});
-    if (this.ult !== sel) { this.ult = sel; g.innerHTML = dibujo(tipo, 0, 0, 1.0); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
-    rm.put("e0", "text", {x: px + 16, y: 252, text: ejem, size: 12.5, weight: 700, fill: C.osc});
-    rm.put("e1", "text", {x: px + 16, y: 312, text: `${n(e.pct_sitio, 1)} %`, size: 44, fill: C.vino, serif: true});
-    rm.put("e2", "text", {x: px + 16, y: 334, text: "declara sitio web", size: 12.5, fill: C.t2});
-    rm.put("e3", "text", {x: px + 16, y: 374, text: `${n(e.con_sitio)} de ${n(e.n)}`, size: 17, fill: C.tinta, serif: true});
-    rm.put("e4", "text", {x: px + 16, y: 394, text: "negocios de este tamaño", size: 12, fill: C.t2});
-    rm.put("e5", "text", {x: px + 16, y: 430, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 13, weight: 700, fill: C.vino});
+    const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 820;
+    rm.put("pn", "rect", {x: px, y: 84, w: 270, h: 410, rx: 24, fill: C.a2, grow: false});
+    const g = rm.put("ej", "g", {x: px + 3, y: 92});
+    if (this.ult !== sel) { this.ult = sel; g.innerHTML = escena(tipo); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
+    rm.put("e0", "text", {x: px + 18, y: 306, text: ejem, size: 13.5, weight: 700, fill: C.osc});
+    rm.put("e1", "text", {x: px + 18, y: 354, text: `${n(e.pct_sitio, 1)} %`, size: 46, fill: C.vino, serif: true});
+    rm.put("e2", "text", {x: px + 18, y: 376, text: "declara sitio web", size: 13, fill: C.t2});
+    rm.put("e3", "text", {x: px + 18, y: 412, text: `${n(e.con_sitio)} de ${n(e.n)}`, size: 18, fill: C.tinta, serif: true});
+    rm.put("e4", "text", {x: px + 18, y: 432, text: "negocios de este tamaño", size: 12.5, fill: C.t2});
+    rm.put("e5", "text", {x: px + 18, y: 466, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 13.5, weight: 700, fill: C.vino});
     const chicos = M.estratos.slice(0, 3), con = chicos.reduce((a, x) => a + x.con_sitio, 0), tot = chicos.reduce((a, x) => a + x.n, 0);
     return {
       leyenda: `<span><i style="background:${C.dorado}"></i>negocios con sitio web</span><span><i style="background:${C.vino}"></i>límite: lo que ya hace el comensal</span>${COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("")}`,
