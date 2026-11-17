@@ -65,8 +65,8 @@ DET.linea = {
       rm.put("bkb" + g, "rect", {x: 590, y: y2 - 6, w: 14, h: 6, rx: 3, fill: col, grow: false});
       const ym = (y1 + y2) / 2;
       rm.put("bn" + g, "text", {x: 618, y: ym - 14, text: NOMPLAN[g], size: 17, fill: col, serif: true});
-      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %`, size: 12.5, weight: 700, fill: C.tinta, attrs: {"data-tip": `${NOMPLAN[g]}|${n(u.neg)} negocios|${g === 0 ? `Cabe en ${S.topeMesas} mesas y ${S.topeCuentas} ${S.topeCuentas === 1 ? "cuenta" : "cuentas"}: ≈ ${n(100 * enChef)} % de los de 0 a 5 personas (modelo).` : `Si todos pagaran ${mxn(precio[g])}: $${n(u.neg * precio[g] / 1e6, 1)} M al mes.`}`, "data-tipp": u.neg / totN}});
-      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: g === 0 ? "0 a 5 personas; con anuncios" : `si todos pagaran: $${n(u.neg * precio[g] / 1e6, 1)} M al mes`, size: 12, fill: C.t2});
+      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %`, size: 12.5, weight: 700, fill: C.tinta, attrs: {"data-tip": `${NOMPLAN[g]}|${n(u.neg)} negocios|${g === 0 ? `Cabe en ${S.topeMesas} mesas y ${S.topeCuentas} ${S.topeCuentas === 1 ? "cuenta" : "cuentas"}: ≈ ${n(100 * enChef)} % de los de 0 a 5 personas (modelo).` : `Si todos pagaran ${mxn(precio[g])}: ${n(u.neg * precio[g] / 1e6, 1)} MXN M al mes.`}`, "data-tipp": u.neg / totN}});
+      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: g === 0 ? "0 a 5 personas; con anuncios" : `si todos pagaran: ${n(u.neg * precio[g] / 1e6, 1)} MXN M al mes`, size: 12, fill: C.t2});
     }
     // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
     const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 820;
@@ -183,10 +183,10 @@ DET.matriz = {
     $("#oc").innerHTML = oc.join("");
     return {
       leyenda: `<span><i style="background:${C.vino}"></i>lo incluye</span><span><i style="background:${C.arena}"></i>la página dice que no</span><span><i style="background:none;border:1.5px dashed ${C.gris}"></i>no publicado</span><span><i style="background:${C.verde}"></i>cobertura alta</span><span><i style="background:${C.dorado}"></i>media</span><span><i style="background:${C.rojo}"></i>baja</span>`,
-      cifras: [["9 de 12", "funciones cubre Meniu Business por $225 al mes"], ["0 de 10", "planes leídos que publican el pedido en grupo"], [mxn(S.precioServicio), "Master Chef de Carta en el escenario activo", "propuesta"]],
+      cifras: [["9 de 12", "funciones cubre Meniu Business por 225 MXN al mes"], ["0 de 10", "planes leídos que publican el pedido en grupo"], [mxn(S.precioServicio), "Master Chef de Carta en el escenario activo", "propuesta"]],
       puntos: [
-        "Meniu Business es el competidor principal: cubre 9 de 12 funciones por $225 al mes.",
-        "Waitry Premium, el más caro ($1,243) y con menos cobertura, no preocupa.",
+        "Meniu Business es el competidor principal: cubre 9 de 12 funciones por 225 MXN al mes.",
+        "Waitry Premium, el más caro (1,243 MXN) y con menos cobertura, no preocupa.",
         "Las capas gratuitas (Neolo, Loyverse) sirven para ubicar la nuestra: ninguna publica pedir en grupo.",
       ],
     };

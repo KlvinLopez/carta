@@ -1,5 +1,5 @@
 /* ===== detalle: ¿Cómo se sostiene? (cuatro vistas, cada una con su gráfica) ===== */
-const fmP = x => (x < 0 ? "−" : "") + "$" + n(Math.abs(Math.round(x)));
+const fmP = x => (x < 0 ? "−" : "") + mxn(Math.abs(Math.round(x)));
 const NS_TG = [10, 25, 50, 100, 200, 300, 500, 750, 1000, 1500, 2000];
 const memo = {};
 const conCache = (k, f) => { const key = k + JSON.stringify(S); if (!(key in memo)) { memo[key] = f(); const ks = Object.keys(memo); if (ks.length > 60) delete memo[ks[0]]; } return memo[key]; };
@@ -93,7 +93,7 @@ DET.sostiene = {
     const yb0 = 420, hb = 70, top = Math.max(...filas.map(q => Math.max(q.ingresos, q.costos, q.margen)), 1), bot = Math.min(0, ...filas.map(q => q.margen)), Yb = v => yb0 + hb * (top - v) / (top - bot), Z = Yb(0);
     b += T(30, 322, "Ingresos, costos y margen al mes (pesos), en una sola escala", 13.5, C.vino, "start", 700);
     filas.forEach(q => { const x = X(q.mes) - 11; b += Rc(x, Yb(q.ingresos), 10, Z - Yb(q.ingresos), C.vino, 2) + Rc(x + 11, Yb(q.costos), 10, Z - Yb(q.costos), C.gris, 2); });
-    b += `<line x1="${X0}" x2="${X0 + W}" y1="${Z}" y2="${Z}" stroke="${C.t2}" stroke-width="1.5"/>` + T(X0 - 8, Z + 4, "0", 11, C.t2, "end") + T(X0 - 8, Yb(top) + 8, "$" + n(top), 11, C.t2, "end");
+    b += `<line x1="${X0}" x2="${X0 + W}" y1="${Z}" y2="${Z}" stroke="${C.t2}" stroke-width="1.5"/>` + T(X0 - 8, Z + 4, "0", 11, C.t2, "end") + T(X0 - 8, Yb(top) + 8, n(top) + " MXN", 11, C.t2, "end");
     b += `<polyline points="${filas.map(q => `${X(q.mes)},${Yb(q.margen)}`).join(" ")}" fill="none" stroke="${C.verde}" stroke-width="3"/>`;
     const r = filas[this.mes - 1];
     b += `<line x1="${X(this.mes)}" x2="${X(this.mes)}" y1="130" y2="284" stroke="${C.tinta}" stroke-width="1.2" stroke-dasharray="3 3"/><line x1="${X(this.mes)}" x2="${X(this.mes)}" y1="332" y2="${yb0 + hb}" stroke="${C.tinta}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
@@ -110,10 +110,10 @@ DET.sostiene = {
   v2() { // a dónde se va cada 100 pesos
     const sv = this.sv, X0 = 150, W = 640, esc = 100;
     const casos = [["peor", "Peor", C.rojo], ["rec", "Recomendado", C.vino], ["mejor", "Mejor", C.verde]];
-    let b = T(30, 28, "De cada 100 pesos que entran, a dónde se van (1,000 restaurantes)", 14.5, C.vino, "start", 700);
+    let b = T(30, 28, "De cada 100 MXN que entran, a dónde se van (1,000 restaurantes)", 14.5, C.vino, "start", 700);
     const filas = casos.map(([k, nm, col]) => { const e = ev3(S, k, 1000), t = e.ingresos.total || 1, p = v => 100 * v / t; return {k, nm, col, e, t, partes: [["Servidor", p(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos), "#b9afa3"], ["Soporte", p(e.costos.soporte), "#d9cfc2"], ["Comisión", p(e.costos.comision), "#c9a9a6"], ["Reponer bajas", p(e.captacion.reposicion_de_bajas), C.arena]], mo: p(e.margen_operacion), mc: p(e.margen_despues_de_captacion), mn: p(e.margen_neto)}; });
     const mx = Math.max(100, ...filas.map(f => f.partes.reduce((a, q) => a + q[1], 0))), K = W / mx;
-    b += `<rect x="${X0 + esc * K - 1}" y="52" width="2.4" height="${60 + filas.length * 118}" fill="${C.tinta}" opacity=".5"/>` + T(X0 + esc * K, 46, "$100", 12, C.tinta, "middle", 700);
+    b += `<rect x="${X0 + esc * K - 1}" y="52" width="2.4" height="${60 + filas.length * 118}" fill="${C.tinta}" opacity=".5"/>` + T(X0 + esc * K, 46, "100 MXN", 12, C.tinta, "middle", 700);
     filas.forEach((f, i) => {
       const y = 70 + i * 118; let x = X0;
       b += T(X0 - 14, y + 30, f.nm, 15, f.col, "end", 700);
@@ -121,7 +121,8 @@ DET.sostiene = {
       const mw = Math.max(0, 100 * K - (x - X0));
       if (f.mo >= 0) { b += `<g class="gh" style="animation-delay:360ms">${Rc(x, y, mw, 44, C.verde, 6)}</g>` + T(x + mw / 2, y + 27, `margen ${n(f.mo, 0)}`, 13, "#fff", "middle", 700); }
       else b += T(x + 12, y + 27, `faltan ${n(-f.mo, 0)}`, 13, C.rojo, "start", 700);
-      b += T(X0, y + 66, `Margen de operación ${n(f.mo, 1)} · después de captación ${n(f.mc, 1)} · neto ${n(f.mn, 1)}`, 12.5, C.t2) + T(X0, y + 84, `${fmP(f.e.margen_operacion)} al mes de margen de operación`, 12.5, C.tinta, "start", 700);
+      const base0 = filas[1].e.margen_operacion, dl = f.k === "rec" ? "caso base" : `${f.e.margen_operacion >= base0 ? "+" : "−"}${n(Math.abs(f.e.margen_operacion - base0))} MXN frente al recomendado`;
+      b += T(X0, y + 66, `Margen de operación (antes de captación, sueldos e impuestos): ${n(f.mo, 1)} de cada 100`, 12.5, C.t2) + T(X0, y + 88, `${fmP(f.e.margen_operacion)} al mes · ${dl}`, 14, f.col, "start", 700) + T(X0, y + 106, `Después de captación ${n(f.mc, 1)} · neto ${n(f.mn, 1)} (sueldos e impuestos valen cero: sin dato)`, 11.5, C.t2);
     });
     sv.innerHTML = b;
     const r = filas[1];
@@ -179,7 +180,7 @@ const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 /* tarjetas: qué hacer (5 a 8 palabras), por qué (una cifra), qué pasa si no (una línea); lo demás, detrás de «ver más» */
 const PARCHES = {
   dos_planes: [{topeMesas: 5, topeCuentas: 1}, {topeMesas: 6, topeCuentas: 1}, {topeMesas: 6, topeCuentas: 2}, {topeMesas: 8, topeCuentas: 2}, {topeMesas: 10, topeCuentas: 3}],
-  tope_platillos: [{platSel: "comida"}, {topePlatillos: 200, platSel: "todo"}, {topePlatillos: 300, platSel: "todo"}, {platSel: "sin"}],
+  tope_platillos: [null, {topePlatillos: 200}, {topePlatillos: 300}, null],
   precios: [{precioServicio: 199}, {precioServicio: 225}, {precioServicio: 249}, {precioServicio: 299}],
   anuncios: [{mesAds: 3}, {mesAds: 9}, {mesAds: 99}],
   bolsa: [{bolsa: 500}, {bolsa: 1000}, {bolsa: 2000}, {bolsa: 5000}],
@@ -190,9 +191,9 @@ const PARCHES = {
 const segC = (mesas, cuentas, plat) => 100 * chef05({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas}}});
 const TARJ = {
   tope_platillos: {
-    que: "Tope de platillos de Chef: abierta, sin recomendación",
+    que: "Tope de platillos de Chef: 150, cuenta todo (decidido)",
     cif: () => { const cb = MOD.coberturaChef(config({...S, platSel: "todo", topePlatillos: 150}), SP).todo; return [n(100 * cb.baja) + "–" + n(100 * cb.alta) + " %", "de los negocios chicos queda en Chef con 150 platillos: dos muestras de cartas con sesgos opuestos"]; },
-    si: () => { const cb = MOD.coberturaChef(config({...S, platSel: "todo", topePlatillos: 150}), SP).comida; return `Si el tope cuenta sólo comida la banda se cierra en ${n(100 * cb.alta)}–${n(100 * cb.baja)} %: no depende de qué muestra tenga razón.`; },
+    si: () => "Calvin decidió que el tope cuenta todo, bebidas incluidas; las dos muestras dan la banda.",
     rec: -1,
   },
   dos_planes: {
@@ -202,9 +203,9 @@ const TARJ = {
     rec: 1,
   },
   precios: {
-    que: "Master Chef $225 al mes (Chef Ejecutivo: futura escalación)",
-    cif: () => [mxn(225), "pegado a Meniu Business ($225)"],
-    si: () => { const c = MOD.conversion(S.curva, 299, sup(S), "servicio"), c0 = MOD.conversion(S.curva, 225, sup(S), "servicio"); return `A $299 pagaría ${n(100 * c)} % de los que se pasan de Chef, no ${n(100 * c0)} %.`; },
+    que: "Master Chef 225 MXN al mes (Chef Ejecutivo: futura escalación)",
+    cif: () => [mxn(225), "pegado a Meniu Business (225 MXN)"],
+    si: () => { const c = MOD.conversion(S.curva, 299, sup(S), "servicio"), c0 = MOD.conversion(S.curva, 225, sup(S), "servicio"); return `A 299 MXN pagaría ${n(100 * c)} % de los que se pasan de Chef, no ${n(100 * c0)} %.`; },
     rec: 1,
   },
   anuncios: {
@@ -214,9 +215,9 @@ const TARJ = {
     rec: 1,
   },
   bolsa: {
-    que: "Bolsa de $1,000 al mes mientras no hay anuncios",
+    que: "Bolsa de 1,000 MXN al mes mientras no hay anuncios",
     cif: () => [n(MOD.capacidadConBolsa(config(S), sup(S), 1000).restaurantes), "restaurantes gratuitos caben con esa bolsa"],
-    si: () => `Con $500 al mes caben ${n(MOD.capacidadConBolsa(config(S), sup(S), 500).restaurantes)} restaurantes.`,
+    si: () => `Con 500 MXN al mes caben ${n(MOD.capacidadConBolsa(config(S), sup(S), 500).restaurantes)} restaurantes.`,
     rec: 1,
   },
   historial: {
@@ -227,8 +228,8 @@ const TARJ = {
   },
   soporte: {
     que: "Soporte por WhatsApp en horario hábil",
-    cif: () => ["$60", "al mes por cliente de paga"],
-    si: () => `Con $150 (alta hecha por nosotros) el margen baja de ${mp(motor({...S, soporte: 60}).margen)} a ${mp(motor({...S, soporte: 150}).margen)}.`,
+    cif: () => ["60 MXN", "al mes por cliente de paga"],
+    si: () => `Con 150 MXN (alta hecha por nosotros) el margen baja de ${mp(motor({...S, soporte: 60}).margen)} a ${mp(motor({...S, soporte: 150}).margen)}.`,
     rec: 1,
   },
   avisos_reloj: {
@@ -283,7 +284,7 @@ DET.k_anuncios = cuentaDet("El plan gratuito lleva anuncios; lo que cambia es de
   const t = SP.anuncio_pesos_por_mil, v = SP.visitas_app_gratuito, p = SP.parte_visitas_con_anuncio;
   return [["Los anuncios empiezan", S.mesAds >= 99 ? "nunca" : "en el mes " + S.mesAds + " (supuesto)"], ["Visitas con la app al mes de un gratuito típico", n(v)], ["Parte de las visitas que ven anuncio (supuesto)", n(100 * p) + " %"], ...["baja", "media", "alta"].map(k => [`Tarifa ${k}: ${mxn(t[k])} por mil visitas`, mxn(Math.round(t[k] * v * p / 100) / 10) + " al mes por gratuito"]), ["Hasta entonces, el costo lo pones tú", "ver «¿Cómo se sostiene?»", true]];
 }, () => "Para tenerlos hace falta un ADR, abrir la política de seguridad del sitio, cambiar el aviso de privacidad y que AdSense los apruebe: hoy no existen.");
-DET.k_ingreso = cuentaDet("Un cliente de paga ingresa el precio de su plan cada mes.", ["carta_precio", "carta_tres_planes"], () => [[`${PLAN.paga} (11 a 100 personas)`, mxn(S.precioServicio) + " al mes"], [`${PLAN.ejec} (más de 100 personas; nombre propuesto)`, mxn(S.precioSalon) + " al mes"], ["Meseta del margen, curva " + S.curva, `${mxn(motor(S).meseta.desde)} a ${mxn(motor(S).meseta.hasta)}`], ["Corredor por sustituto", "$249 a $349"], ["Meniu, el sustituto más barato, cobra", "$225"]], () => "El precio es propuesta: la v1 no cobra, y lo confirma el piloto con 10 restaurantes.");
+DET.k_ingreso = cuentaDet("Un cliente de paga ingresa el precio de su plan cada mes.", ["carta_precio", "carta_tres_planes"], () => [[`${PLAN.paga} (11 a 100 personas)`, mxn(S.precioServicio) + " al mes"], [`${PLAN.ejec} (más de 100 personas; nombre propuesto)`, mxn(S.precioSalon) + " al mes"], ["Meseta del margen, curva " + S.curva, `${mxn(motor(S).meseta.desde)} a ${mxn(motor(S).meseta.hasta)}`], ["Corredor por sustituto", "249 MXN a 349 MXN"], ["Meniu, el sustituto más barato, cobra", "225 MXN"]], () => "El precio es propuesta: la v1 no cobra, y lo confirma el piloto con 10 restaurantes.");
 DET.k_margen = cuentaDet("Tres márgenes con nombre: de operación, después de captación y neto.", ["carta_tres_planes", "carta_precio"], () => {
   const m = motor(S), e = m.ev; return [["Ingresos por suscripción", mxn(Math.round(e.ingresos.suscripcion))], ["Ingresos por anuncios (en régimen)", mxn(Math.round(e.ingresos.anuncios))], ["− Servidor y almacenamiento", "− " + n(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos)], ["− Soporte", "− " + n(e.costos.soporte)], ["− Comisión de tarjeta", "− " + n(e.costos.comision)], ["= Margen de operación (sin captación ni sueldos)", mp(e.margen_operacion), true], ["− Reponer bajas (3 % al mes × costo de conseguir un cliente)", "− " + n(e.captacion.reposicion_de_bajas)], ["= Margen después de captación", mp(e.margen_despues_de_captacion), true], ["Margen neto (sueldos e impuestos valen cero: sin dato)", mp(e.margen_neto), true]];
 }, () => "El margen de operación no incluye sueldos ni impuestos ni conseguir clientes; por eso se muestran los tres.");

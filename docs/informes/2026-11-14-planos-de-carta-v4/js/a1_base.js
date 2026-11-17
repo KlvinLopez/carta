@@ -11,7 +11,7 @@ const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const lg = v => Math.log10(v);
-const mxn = v => "$" + n(v);
+const mxn = v => n(v) + " MXN";
 const T = (x, y, s, size = 12, fill = C.tinta, anchor = "start", w = 400, serif = false, extra = "") =>
   `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" text-anchor="${anchor}" font-weight="${w}"${serif ? ' font-family="DM Serif Display, serif"' : ""} ${extra}>${esc(s)}</text>`;
 const Rc = (x, y, w, h, fill, rx = 6, ex = "") => `<rect x="${x}" y="${y}" width="${Math.max(w, 0)}" height="${h}" rx="${rx}" fill="${fill}" ${ex}/>`;
@@ -106,12 +106,13 @@ let ttEl = null;
 function colocaPanel(t) {
   const r = t.getBoundingClientRect(), w = tt.offsetWidth, h = tt.offsetHeight;
   let x = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8), y = r.top - h - 12;
-  if (y < 8) y = Math.min(r.bottom + 12, innerHeight - h - 8);
+  const debajo = y < 8; // el panel no cabe arriba: sale debajo y la flecha apunta hacia arriba
+  if (debajo) y = Math.min(r.bottom + 12, innerHeight - h - 8);
   const col = t.closest && t.closest(".r7p"), lateral = col && innerWidth > 1000;
   if (lateral) { const cr = col.getBoundingClientRect(); x = Math.min(cr.right + 12, innerWidth - w - 8); y = clamp(r.top + r.height / 2 - h / 2, 8, innerHeight - h - 8); }
   tt.style.left = x + "px"; tt.style.top = Math.max(8, y) + "px";
   if (lateral) { tt.dataset.lado = "izq"; tt.style.setProperty("--ay", clamp(r.top + r.height / 2 - Math.max(8, y), 20, h - 20) + "px"); tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = ""; return; }
-  tt.dataset.lado = y < 8 ? "abajo" : "arriba"; tt.style.setProperty("--ax", clamp(r.left + r.width / 2 - x, 20, w - 20) + "px");
+  tt.dataset.lado = debajo ? "abajo" : "arriba"; tt.style.setProperty("--ax", clamp(r.left + r.width / 2 - x, 20, w - 20) + "px");
   tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = "";
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !tt.hidden) { tt.hidden = true; ttEl = null; } });

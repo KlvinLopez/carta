@@ -13,6 +13,8 @@ const HIS = [["sin", "sin purga (hoy)", 12], ["12", "12 meses", 12], ["6", "6 me
 const PAL_CORTO = {estado_en_memoria_60s: "Estado de mesa en memoria 60 s", analitica_agregada_por_dia: "Analítica por día", retencion_analitica_7_dias: "Analítica en bruto 7 días", indices_de_evento_minimos: "Dos índices en analítica", tipos_mas_chicos: "Tipos más chicos", purga_claves_idempotencia: "Purgar claves de idempotencia", archivar_sesiones_cerradas: "Archivar sesiones en R2", pool_acotado: "Acotar conexiones a la base", cerrar_lineas_ociosas: "Cerrar líneas ociosas"};
 const parr = (t, m) => { const o = []; let cur = ""; t.split(" ").forEach(w => { if ((cur + " " + w).trim().length > m && cur) { o.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }); if (cur) o.push(cur); return o; };
 const TIPICO = "Restaurante típico (supuesto): 1,800 visitas al mes y 114 comensales al día.";
+/* el análisis decide con `en_tablero` cuáles palancas mueven el cuello y merecen un lugar aquí; mientras no lo traiga, se muestran todas */
+const enTablero = p => { const v = p.en_tablero ?? (MOD.PALANCAS[p.id] || {}).en_tablero; return v !== false && !(v && v.en_tablero === false); };
 const PHR_PAL = {
   analitica_agregada_por_dia: "La base guarda un conteo por día, no una fila por cada toque.",
   retencion_analitica_7_dias: "Los eventos sueltos duran una semana; después sólo queda el conteo diario.",
@@ -84,7 +86,7 @@ DET.recursos7 = {
   /* las palancas, como parámetros: sólo «qué hay que hacer»; lo demás, al hover */
   pintaPalancas() {
     const r = this.r, ps = S.palancas || [], ck = this.ck, he = this.his, base30 = he === "30d", filas = [];
-    r.recursos.forEach(x => x.palancas.forEach(p => { if (p.id !== "historial_gratuito_30_dias") filas.push({...p, rec: x.recurso}); }));
+    r.recursos.forEach(x => x.palancas.forEach(p => { if (p.id !== "historial_gratuito_30_dias" && enTablero(p)) filas.push({...p, rec: x.recurso}); }));
     const par = p => { if (base30 && p.sobre_historial_30_dias) return [p.sobre_historial_30_dias.restaurantes_antes, p.sobre_historial_30_dias.restaurantes_despues]; return p.restaurantes_antes ? [p.restaurantes_antes[ck], p.restaurantes_despues[ck]] : [null, null]; };
     const gan = p => { const [a, d] = par(p); return a == null || d == null ? -1e8 : d - a; };
     filas.sort((a, z) => gan(z) - gan(a));
