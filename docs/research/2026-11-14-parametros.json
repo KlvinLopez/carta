@@ -4408,6 +4408,12 @@
      "consulta": "2026-11-17"
     },
     {
+     "plataforma": "BlaBlaCar",
+     "cifra": "tarifa de reserva al pasajero (modelo de comisión en un mercado de dos lados)",
+     "verificada": false,
+     "nota": "mencionada por Calvin como ejemplo; no se buscó su cifra en fuente primaria"
+    },
+    {
      "plataforma": "Booking.com",
      "cifra": "alrededor de 15 % de comisión estándar y 2–8 % más por visibilidad (Preferente, Genius)",
      "verificada": false,
@@ -4431,6 +4437,136 @@
    "origen": "fuente",
    "fuente": "verificación en fuente primaria el 17-nov-2026 de las cifras de la investigación de Calvin (conversación con un asistente, no versionada, sin enlaces)",
    "nota": "las no verificadas se muestran como tales",
+   "mueve_resultado": false
+  },
+  "meniu": {
+   "valor": {
+    "consulta": "2026-11-17",
+    "precio_mes": 225,
+    "moneda": "MXN",
+    "prueba_dias": 7,
+    "plan_gratuito": false,
+    "restaurantes_que_dice_tener": 4000,
+    "descuentos": {
+     "semestral": 0.16,
+     "anual": 0.26
+    },
+    "paginas": [
+     {
+      "pagina": "Precio",
+      "url": "https://meniuapp.com/es/plans"
+     },
+     {
+      "pagina": "Menú QR en mesa",
+      "url": "https://meniuapp.com/es/qr"
+     },
+     {
+      "pagina": "Tarjetas de lealtad",
+      "url": "https://meniuapp.com/es/tarjetas-de-lealtad"
+     },
+     {
+      "pagina": "Reservas en línea",
+      "url": "https://meniuapp.com/es/sistema-de-reservas-en-linea"
+     },
+     {
+      "pagina": "Punto de venta",
+      "url": "https://meniuapp.com/es/terminal-punto-de-venta"
+     },
+     {
+      "pagina": "Meniu vs Fudo (blog)",
+      "url": "https://meniuapp.com/es/blog/alternativa-gratuita-fudo-software-restaurantes"
+     },
+     {
+      "pagina": "Meniu vs OlaClick (blog)",
+      "url": "https://meniuapp.com/es/blog/alternativa-gratuita-olaclick-software-restaurantes"
+     }
+    ],
+    "funciones": [
+     {
+      "funcion": "Menú digital QR y descarga del QR",
+      "meniu": true,
+      "carta": "v1 (hoy)",
+      "rescatar": "ya está"
+     },
+     {
+      "funcion": "Pedir desde la mesa y que el pedido llegue al personal o a cocina",
+      "meniu": true,
+      "carta": "Fase 3 (comanda al mesero)",
+      "rescatar": "ya está en el plan; Meniu además manda a cocina (KDS)"
+     },
+     {
+      "funcion": "Orden en grupo: varios teléfonos arman una orden juntos",
+      "meniu": false,
+      "carta": "Fase 3 (orden grupal, el diferenciador)",
+      "rescatar": "es de Carta"
+     },
+     {
+      "funcion": "Dividir la cuenta y pagar desde el celular",
+      "meniu": true,
+      "carta": "No (la v1 no cobra ni procesa pagos)",
+      "rescatar": "Después y con ADR: exige pagos"
+     },
+     {
+      "funcion": "Punto de venta",
+      "meniu": true,
+      "carta": "No (Qué NO construir)",
+      "rescatar": "No: otro producto"
+     },
+     {
+      "funcion": "Tarjetas de lealtad (Apple Wallet y Google Wallet)",
+      "meniu": true,
+      "carta": "No",
+      "rescatar": "Sí, después de la Fase 3, con spec: ver si se puede sin cuenta del comensal"
+     },
+     {
+      "funcion": "Reservaciones en línea y mapa de mesas",
+      "meniu": true,
+      "carta": "No",
+      "rescatar": "Quizá: el mapa de mesas ya existe como `mesa`; reservar exige perfil del comensal"
+     },
+     {
+      "funcion": "Pedidos por WhatsApp",
+      "meniu": true,
+      "carta": "No",
+      "rescatar": "Quizá, con spec"
+     },
+     {
+      "funcion": "Inventario, reportes de ventas e impresión de tickets y comandas",
+      "meniu": true,
+      "carta": "Panel del dueño sin inventario ni ventas; analítica del restaurante fuera de la v1",
+      "rescatar": "Reportes simples después; inventario no"
+     },
+     {
+      "funcion": "Multilenguaje (español, inglés, portugués) y sucursales ilimitadas",
+      "meniu": true,
+      "carta": "No (Qué NO construir: multi-idioma y multi-sucursal)",
+      "rescatar": "Después, por spec"
+     },
+     {
+      "funcion": "Plan gratuito permanente",
+      "meniu": false,
+      "carta": "Sí: Chef (0 a 5 personas, 6 mesas, 1 cuenta) con anuncios",
+      "rescatar": "es de Carta: el hueco"
+     },
+     {
+      "funcion": "Importar la carta desde un PDF con IA",
+      "meniu": false,
+      "carta": "v1 (hoy): el operador confirma",
+      "rescatar": "es de Carta"
+     },
+     {
+      "funcion": "Programa de afiliados (comisión por referir)",
+      "meniu": true,
+      "carta": "No",
+      "rescatar": "Quizá: canal de ventas barato"
+     }
+    ]
+   },
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "páginas públicas de meniuapp.com leídas con un navegador el 17-nov-2026 (enlaces en `paginas`); «+4,000 restaurantes» y «4.8 en Google» son afirmaciones de la empresa, no verificadas; en los blogs se llama «alternativa gratis» a un producto que sólo ofrece una prueba de 7 días",
+   "nota": "inventario de lo que Meniu publica; la columna de Carta sale de CLAUDE.md y del plan (Fase 3 todavía no construida)",
    "mueve_resultado": false
   },
   "visitas_mes_gratuito": {

@@ -29,7 +29,8 @@ const potencial = (x) => {
   return `por restaurante ${cuanto(p.por_restaurante)} (techo, repartido entre los restaurantes que visita cada comensal)`;
 };
 
-const salida = { version: M.VERSION, fecha: '2026-11-17', sueldo_fundador: { por_omision: s.sueldo_fundador, nota: 'sin valor por omisión inventado: 0 = todavía sin sueldo; Calvin lo elige', salario_minimo: sm, tabla_de_niveles: tabla, sin_sueldo: sueldoCero }, modelos_de_ingreso: modelos, plataformas_de_referencia: plat, secuencia: null };
+const mn = M.modeloDeNegocio(rec, s);
+const salida = { version: M.VERSION, fecha: '2026-11-17', sueldo_fundador: { por_omision: s.sueldo_fundador, nota: 'sin valor por omisión inventado: 0 = todavía sin sueldo; Calvin lo elige', salario_minimo: sm, tabla_de_niveles: tabla, sin_sueldo: sueldoCero }, modelos_de_ingreso: modelos, plataformas_de_referencia: plat, modelo_de_negocio: mn, secuencia: null };
 
 const secuencia = [
   { modelo: 'Suscripción del restaurante (Master Chef)', cuando: 'Piloto', requisito: 'Nada nuevo: la v1', riesgo: 'La curva de pago no tiene dato: la prueba de tres precios del piloto la mide' },
@@ -51,9 +52,10 @@ const md = `# Cómo gana dinero Carta y cuándo le paga a su fundador
 
 1. **Hoy Carta no le paga a su fundador: \`sueldo_fundador\` está en 0 y no hay valor por omisión inventado.** La tabla de §1 da niveles de referencia (múltiplos del salario mínimo general: ${sm.zona_general_dia} pesos por día en 2026 [fuente]) y, para cada uno, cuántos restaurantes y clientes de paga hacen falta.
 2. **Con un sueldo de ${n0(tabla[1].sueldo_mensual)} pesos al mes (3 salarios mínimos), el margen después de captación lo cubre con ${n0(tabla[1].escenarios.recomendado.restaurantes_necesarios)} restaurantes registrados y ${n0(tabla[1].escenarios.recomendado.clientes_de_paga_necesarios)} de paga en el recomendado (${mes(tabla[1].escenarios.recomendado.mes_en_que_el_margen_despues_de_captacion_lo_cubre)} de la proyección); en el peor, ${n0(tabla[1].escenarios.peor.restaurantes_necesarios)}; en el mejor, ${n0(tabla[1].escenarios.mejor.restaurantes_necesarios)}.**
-3. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe después de la Fase 3 con una spec nueva) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
-4. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción ${n0(m.suscripcion_del_restaurante.potencial_pesos_por_restaurante_al_mes.por_restaurante_de_paga)} por restaurante de paga; anuncios ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.baja)} a ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.alta)} por restaurante gratuito; **comisión por transacción (fuera de la v1) ${n0(m.comision_por_transaccion.potencial_pesos_por_restaurante_al_mes.de_0_a_10_personas.centro)} por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
-5. **Secuencia recomendada:** piloto = suscripción; después de la Fase 3 = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
+3. **Carta no es hoy una plataforma tipo Airbnb o Uber: es una herramienta gratuita con anuncios más suscripción, que sirve a un comensal que ya está sentado, sin transacción dentro (§3).** El hueco frente a Meniu (que no tiene plan gratuito) es el negocio de 0 a 5 personas: ${n0(mn.hueco_frente_a_meniu.tamano_del_hueco.de_0_a_5_personas)} de ${n0(mn.hueco_frente_a_meniu.tamano_del_hueco.clientes_potenciales)} clientes potenciales, de los que caben en Chef ${n0(mn.hueco_frente_a_meniu.tamano_del_hueco.caben_en_chef)} (supuesto) (§4).
+4. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe después de la Fase 3 con una spec nueva) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
+5. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción ${n0(m.suscripcion_del_restaurante.potencial_pesos_por_restaurante_al_mes.por_restaurante_de_paga)} por restaurante de paga; anuncios ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.baja)} a ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.alta)} por restaurante gratuito; **comisión por transacción (fuera de la v1) ${n0(m.comision_por_transaccion.potencial_pesos_por_restaurante_al_mes.de_0_a_10_personas.centro)} por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
+6. **Secuencia recomendada:** piloto = suscripción; después de la Fase 3 = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
 
 ## 1. Sueldo del fundador en el modelo
 
@@ -79,7 +81,51 @@ ${modelos.modelos.map((x, i) => `### 2.${i + 1} ${x.nombre}${x.vigente ? ' (vige
 - **Qué exige:** ${x.exige}.
 - **Cuándo cabría:** ${x.cuando}.
 `).join('\n')}
-## 3. Secuencia recomendada
+## 3. Qué tipo de plataforma es Carta, hoy y a dónde puede ir
+
+**${mn.tipo_de_plataforma.pregunta}** ${mn.tipo_de_plataforma.respuesta} (La premisa «somos como BlaBlaCar, Airbnb o Uber» no se da por buena: se compara.)
+
+| Modelo | Quién paga | Quién usa gratis | ¿Conecta oferta y demanda nuevas? | ¿Hay transacción dentro? | Cifras (fuente primaria el 17-nov, o marcada) |
+|---|---|---|---|---|---|
+${mn.tipo_de_plataforma.comparacion.map((x) => `| **${x.modelo}** | ${x.quien_paga} | ${x.quien_usa_gratis} | ${x.conecta_oferta_y_demanda_nuevas ? 'sí' : 'no'} | ${x.hay_transaccion_dentro ? 'sí' : 'no'} | ${x.cifras_verificadas} |`).join('\n')}
+
+**Dónde cae la v1:** ${mn.tipo_de_plataforma.donde_cae_la_v1.join(' ')}
+
+**Qué tendría que cambiar para moverse a otro modelo:**
+
+| Hacia | Qué cambiaría | Qué exige frente a las reglas vigentes |
+|---|---|---|
+${mn.tipo_de_plataforma.pasos_para_moverse.map((x) => `| ${x.hacia} | ${x.que_cambiaria} | ${x.exige} |`).join('\n')}
+
+## 4. Dónde está el hueco frente a Meniu
+
+**Meniu** (páginas leídas el ${mn.hueco_frente_a_meniu.meniu.consulta}: ${mn.hueco_frente_a_meniu.meniu.paginas.map((x) => `[${x.pagina}](${x.url})`).join(', ')}): ${mn.hueco_frente_a_meniu.meniu.precio_mes} pesos al mes, **prueba de ${mn.hueco_frente_a_meniu.meniu.prueba_dias} días y sin plan gratuito**; dice tener «+${n0(mn.hueco_frente_a_meniu.meniu.restaurantes_que_dice_tener)} restaurantes» (afirmación suya, no verificada). ${mn.hueco_frente_a_meniu.meniu.nota}.
+
+| Función | Lo tiene Meniu | Lo tiene Carta (hoy / Fase 3) | Qué valdría rescatar después |
+|---|---|---|---|
+${mn.hueco_frente_a_meniu.tabla.map((x) => `| ${x.funcion} | ${x.meniu ? 'sí' : 'no'} | ${x.carta} | ${x.rescatar} |`).join('\n')}
+
+**Tamaño del hueco:** ${mn.hueco_frente_a_meniu.tamano_del_hueco.lectura} **Supuesto:** ${mn.hueco_frente_a_meniu.tamano_del_hueco.supuesto}. **Lo que valdría rescatar primero (juicio, a decidir por spec):** las **tarjetas de lealtad** en Apple y Google Wallet, si se pueden hacer sin cuenta del comensal (regla 10); el programa de afiliados como canal de ventas barato; y, más adelante, pedidos por WhatsApp y reportes simples.
+
+## 5. Cómo opera Carta con datos, con dinero y con usuarios
+
+| | Renglón 1 | Renglón 2 | Renglón 3 |
+|---|---|---|---|
+| **Datos** | ${mn.como_opera.datos.join(' | ')} |
+| **Dinero** | ${mn.como_opera.dinero.join(' | ')} |
+| **Usuarios** | ${mn.como_opera.usuarios.join(' | ')} |
+
+## 6. El modelo de negocio en una página
+
+- **A quién sirve:** ${mn.una_pagina.a_quien_sirve}
+- **Qué le resuelve:** ${mn.una_pagina.que_le_resuelve}
+- **Quién paga y cuánto:** restaurante: ${mn.una_pagina.quien_paga_y_cuanto.restaurante}; anunciante: ${mn.una_pagina.quien_paga_y_cuanto.anunciante}; comensal: ${mn.una_pagina.quien_paga_y_cuanto.comensal}.
+- **Fuentes de ingreso por etapa:** ${mn.una_pagina.fuentes_de_ingreso_por_etapa.map((x) => `**${x.etapa}:** ${x.fuente}`).join(' · ')}.
+- **Costos:** infraestructura de hoy ≈ ${n1(mn.una_pagina.costos.infraestructura_hoy_usd_mes)} USD al mes; un gratuito cuesta ${n1(mn.una_pagina.costos.costo_por_restaurante_gratuito_pesos)} pesos al mes y un cliente de paga sostiene ${n0(mn.una_pagina.costos.gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios)} gratuitos sin anuncios; ${mn.una_pagina.costos.soporte}.
+- **Meta de 12 meses:** ${mn.una_pagina.meta_12_meses.restaurantes} restaurantes, margen de operación del mes 12 ${sg(mn.una_pagina.meta_12_meses.margen_operacion_mes_12)} pesos (recomendado).
+- **Qué hay que medir:** ${mn.una_pagina.que_hay_que_medir.join(' · ')}
+
+## 7. Secuencia recomendada
 
 | Modelo | Cuándo | Qué exige | Riesgo o dato que falta |
 |---|---|---|---|
@@ -87,13 +133,13 @@ ${secuencia.map((x) => `| ${x.modelo} | ${x.cuando} | ${x.requisito} | ${x.riesg
 
 **Sin vender datos y sin datos personales del comensal en el servidor** en ninguna fila.
 
-## 4. Plataformas de referencia (verificadas en fuente primaria o marcadas)
+## 8. Plataformas de referencia (verificadas en fuente primaria o marcadas)
 
 ${plat.map((x) => `- **${x.plataforma}:** ${x.cifra}. ${x.verificada ? `Fuente: ${x.url} (${x.fecha}; consultada el ${x.consulta}).` : `**No verificada** (${x.nota}).`}`).join('\n')}
 
 **Lectura (de la investigación de Calvin, como hipótesis):** en servicios físicos y caros las plataformas cobran **comisión por transacción** al que gana; en servicios digitales masivos, **gratuito con anuncios más suscripción**; además cobran por **visibilidad** dentro de la plataforma. Carta v1 usa lo segundo (suscripción y anuncios); la comisión exigiría procesar pagos, que la v1 no hace.
 
-## 5. Datos por conseguir
+## 9. Datos por conseguir
 - **Curva de pago y precio de Master Chef:** prueba de tres precios del piloto.
 - **Tarifa de anuncios, parte con anuncio y aprobación de la red:** prueba pequeña con 3 restaurantes.
 - **Cuánto pagaría un patrocinador y qué parte de restaurantes aceptaría:** prueba con 3 patrocinadores después de la Fase 3.

@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-17-r10';
+export const VERSION = '2026-11-17-r11';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -1238,6 +1238,78 @@ export function modelosDeIngreso(config, s, n = 1000) {
   ];
   const rondea = (o) => (o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'number' ? redond(v) : rondea(v)])) : o);
   return { n, modelos: modelos.map((m) => ({ ...m, potencial_pesos_por_restaurante_al_mes: rondea(m.potencial_pesos_por_restaurante_al_mes) })), no_vende_datos: 'decisión de Calvin del 14 de noviembre de 2026: Carta no vende datos; y sin datos personales del comensal en el servidor (regla 10)' };
+}
+
+// ---------------------------------------------------------------- el modelo de negocio, para pintarlo
+/**
+ * (d) qué tipo de plataforma es Carta hoy y a dónde puede ir; (e) el hueco frente a Meniu; (f) cómo opera con datos, dinero y usuarios;
+ * (g) el modelo de negocio en una página. Todo sale de las reglas y decisiones vigentes y del modelo; lo que es juicio va marcado «supuesto».
+ * No da por buena la premisa «somos como BlaBlaCar, Airbnb o Uber»: la compara.
+ */
+export function modeloDeNegocio(config, s, n = 1000) {
+  const rec = evaluarEscenario('recomendado', config, s, n);
+  const chef = potencialChef(config, s);
+  const est = coberturaEstratos(config, s, 'centro');
+  const estMin = coberturaEstratos(config, s, 'minimo');
+  const estMax = coberturaEstratos(config, s, 'maximo');
+  const e05 = chef.tramos.find((x) => x.tramo === '0 a 5');
+  const gratuitosPorPagante = rec.gratuitos_que_sostiene_un_pagante_sin_anuncios;
+  const ps = config.precios.servicio;
+  const adsBaja = (s.visitas_app_gratuito * s.parte_visitas_con_anuncio * s.anuncio_pesos_por_mil.baja) / 1000;
+  const adsAlta = (s.visitas_app_gratuito * s.parte_visitas_con_anuncio * s.anuncio_pesos_por_mil.alta) / 1000;
+  const meta = meta12Meses(config, s);
+  const hoy = recursos(config, s, {});
+  const tipo = {
+    pregunta: '¿Carta es una plataforma como BlaBlaCar, Airbnb, Uber, Spotify o una red social?',
+    respuesta: 'No: hoy Carta es una herramienta gratuita con anuncios más suscripción para el restaurante (como el modelo de Spotify del lado de la oferta), que sirve a un comensal que YA está sentado; no conecta oferta y demanda nuevas ni procesa una transacción.',
+    comparacion: [
+      { modelo: 'Comisión por transacción (Airbnb, Uber, BlaBlaCar)', quien_paga: 'el que gana con la transacción (anfitrión, conductor)', quien_usa_gratis: 'el lado que trae la demanda (huésped, pasajero) no paga o paga una cuota', conecta_oferta_y_demanda_nuevas: true, hay_transaccion_dentro: true, cifras_verificadas: 'Airbnb 15.5 % al anfitrión en el esquema único (3 % en el compartido); Uber: la tarifa al conductor varía por viaje y la meta es acercarse a 25 % [fuente primaria, 17-nov]; BlaBlaCar no verificada' },
+      { modelo: 'Gratuito con anuncios más suscripción (Spotify, YouTube)', quien_paga: 'el anunciante y el usuario que quiere quitar anuncios', quien_usa_gratis: 'el usuario de masas', conecta_oferta_y_demanda_nuevas: false, hay_transaccion_dentro: false, cifras_verificadas: 'YouTube paga 55 % del ingreso neto de anuncios de la página de reproducción [fuente primaria]; Spotify: la fuente primaria dice «cerca de dos tercios» a titulares de derechos, no 70 %' },
+      { modelo: 'Economía de la atención (redes sociales)', quien_paga: 'el anunciante', quien_usa_gratis: 'todos los usuarios; el producto es la audiencia y sus datos', conecta_oferta_y_demanda_nuevas: true, hay_transaccion_dentro: false, cifras_verificadas: 'Meta: 97.6 % de sus ingresos viene de publicidad (cálculo sobre el 10-K 2025)' },
+      { modelo: 'Carta v1', quien_paga: 'el restaurante que pasa de los topes de Chef (suscripción) y, después, el anunciante', quien_usa_gratis: 'el comensal (anónimo) y el restaurante de 0 a 5 personas con 6 mesas y 1 cuenta', conecta_oferta_y_demanda_nuevas: false, hay_transaccion_dentro: false, cifras_verificadas: 'reglas vigentes: sin pagos, sin cuenta del comensal, sin datos personales ni venta de datos' },
+    ],
+    donde_cae_la_v1: ['Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga.', 'Quién usa gratis: el comensal y el negocio chico de Chef.', 'Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante.', 'Transacción dentro: no; la v1 no cobra ni procesa pagos.'],
+    pasos_para_moverse: [
+      { hacia: 'Marketplace con comisión (Airbnb, Uber)', que_cambiaria: 'descubrimiento entre restaurantes y pagos dentro de Carta', exige: 'directorio público, perfil de restaurante y de comensal, procesar pagos: contradice «Qué NO construir», la regla 10 y la v1; ADR y spec de una v2; posible regulación financiera (verificar con un abogado)' },
+      { hacia: 'Economía de la atención (redes)', que_cambiaria: 'perfil y cuenta del comensal con historial para segmentar anuncios', exige: 'cuenta y perfil del comensal: contradice la regla 10 y «Qué NO construir»; los datos del comensal no se venden (decisión del 14-nov)' },
+      { hacia: 'Freemium del comensal (Spotify)', que_cambiaria: 'el comensal paga por quitar anuncios o por funciones propias', exige: 'cuenta del comensal: misma contradicción con la regla 10; spec y ADR' },
+    ],
+  };
+  const meniu = s.meniu;
+  const hueco = {
+    meniu: { consulta: meniu.consulta, precio_mes: meniu.precio_mes, prueba_dias: meniu.prueba_dias, plan_gratuito: meniu.plan_gratuito, restaurantes_que_dice_tener: meniu.restaurantes_que_dice_tener, paginas: meniu.paginas, nota: 'los blogs de Meniu hablan de «alternativa gratis» pero el producto sólo ofrece una prueba de 7 días' },
+    tabla: meniu.funciones,
+    tamano_del_hueco: {
+      clientes_potenciales: chef.universo,
+      de_0_a_5_personas: e05.negocios,
+      parte_de_0_a_5: e05.negocios / chef.universo,
+      caben_en_chef: e05.negocios_en_chef,
+      parte_que_cabe_en_chef: est.dentro_0_5,
+      rango_parte_que_cabe: [estMin.dentro_0_5, estMax.dentro_0_5],
+      parte_de_los_clientes_potenciales_que_cabe_en_chef: e05.negocios_en_chef / chef.universo,
+      lectura: `Con un producto sin plan gratuito (Meniu: prueba de ${meniu.prueba_dias} días y ${meniu.precio_mes} pesos al mes), quedan sin servir los negocios de 0 a 5 personas: ${e05.negocios.toLocaleString('en-US')} de ${chef.universo.toLocaleString('en-US')} clientes potenciales [medido, DENUE]; con 6 mesas y 1 cuenta caben en Chef ${Math.round(e05.negocios_en_chef).toLocaleString('en-US')} (${(est.dentro_0_5 * 100).toFixed(1)} % de ellos; rango ${(estMin.dentro_0_5 * 100).toFixed(1)}–${(estMax.dentro_0_5 * 100).toFixed(1)} %), un juicio del modelo de mesas y cuentas.`,
+      supuesto: 'sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef es el modelo de mesas y cuentas con dispersión',
+    },
+  };
+  const opera = {
+    datos: ['Sin datos personales del comensal en el servidor (regla 10): los filtros de alérgenos viven en el teléfono.', 'La analítica usa ids opacos, huella de red con sal diaria y una lista cerrada de eventos sin texto libre.', 'No se venden datos (decisión de Calvin, 14-nov) y los anuncios no son personalizados.'],
+    dinero: ['La v1 no cobra ni procesa pagos; el precio nunca viene del cliente (regla 4) y la propina sólo se calcula y se registra.', 'Ingresan: suscripción del restaurante y, más adelante, anuncios; lo demás está fuera de la v1.', 'Los costos son servidor, disco, soporte y comisión de tarjeta del cobro de la suscripción; la bolsa de Calvin cubre lo que los anuncios todavía no.'],
+    usuarios: ['Comensal anónimo, sin cuenta ni perfil: una cookie de invitado de 6 horas.', 'Personal (mesero y capitán) entra con PIN, guardado sólo como hash.', 'Operador (dueño o gerente) con cuenta; el dueño es el validador y el primer mesero (ADR-017); en Chef es una sola cuenta.'],
+  };
+  const pagina = {
+    a_quien_sirve: 'Al restaurante y a la cafetería de México, desde la fonda de 0 a 5 personas hasta el negocio de 100, y al comensal que ya está sentado.',
+    que_le_resuelve: 'Sube la carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo.',
+    quien_paga_y_cuanto: { restaurante: `Master Chef ${ps} pesos al mes (deja ${Math.round(rec.por_cliente.margen_servicio)} al restaurante de paga tras costos); Chef es gratis`, anunciante: `${adsBaja.toFixed(1)} a ${adsAlta.toFixed(1)} pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato)`, comensal: 'nada' },
+    fuentes_de_ingreso_por_etapa: [
+      { etapa: 'Piloto', fuente: 'Suscripción de Master Chef (se prueba el precio con tres grupos)' },
+      { etapa: `Después de la Fase 3 (hacia el mes ${s.mes_inicio_anuncios}, supuesto)`, fuente: 'Anuncios en Chef; visibilidad pagada con spec nueva' },
+      { etapa: 'Más adelante (v2)', fuente: 'Tarjetas de lealtad y otras funciones de Meniu, comisión o pago del comensal sólo con ADR y spec' },
+    ],
+    costos: { infraestructura_hoy_usd_mes: hoy.hoy.total_usd_mes, costo_por_restaurante_gratuito_pesos: rec.por_cliente.costo_gratuito, gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios: gratuitosPorPagante, soporte: 'el costo grande: el soporte de cada cliente de paga' },
+    meta_12_meses: { restaurantes: meta.meta_restaurantes, margen_operacion_mes_12: meta.escenarios.recomendado.mes_12.margen_operacion },
+    que_hay_que_medir: ['La curva de pago de Master Chef (prueba de tres precios).', 'Mesas y cuentas por negocio de 0 a 5 personas (cuántos caben en Chef).', 'La carta real del piloto (cuántos platillos).', 'La tarifa de anuncios y la parte de visitas con anuncio (prueba con 3 restaurantes).', 'CPU, memoria y conexiones en Railway.'],
+  };
+  return { n, tipo_de_plataforma: tipo, hueco_frente_a_meniu: hueco, como_opera: opera, una_pagina: pagina };
 }
 
 // ---------------------------------------------------------------- banderas de operación

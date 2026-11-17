@@ -8,9 +8,10 @@
 
 1. **Hoy Carta no le paga a su fundador: `sueldo_fundador` está en 0 y no hay valor por omisión inventado.** La tabla de §1 da niveles de referencia (múltiplos del salario mínimo general: 315.04 pesos por día en 2026 [fuente]) y, para cada uno, cuántos restaurantes y clientes de paga hacen falta.
 2. **Con un sueldo de 28,732 pesos al mes (3 salarios mínimos), el margen después de captación lo cubre con 1,660 restaurantes registrados y 192 de paga en el recomendado (mes 32 de la proyección); en el peor, 14,010; en el mejor, 490.**
-3. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe después de la Fase 3 con una spec nueva) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
-4. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción 225 por restaurante de paga; anuncios 4.3 a 45.5 por restaurante gratuito; **comisión por transacción (fuera de la v1) 322 por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
-5. **Secuencia recomendada:** piloto = suscripción; después de la Fase 3 = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
+3. **Carta no es hoy una plataforma tipo Airbnb o Uber: es una herramienta gratuita con anuncios más suscripción, que sirve a un comensal que ya está sentado, sin transacción dentro (§3).** El hueco frente a Meniu (que no tiene plan gratuito) es el negocio de 0 a 5 personas: 73,193 de 104,882 clientes potenciales, de los que caben en Chef 35,427 (supuesto) (§4).
+4. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe después de la Fase 3 con una spec nueva) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
+5. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción 225 por restaurante de paga; anuncios 4.3 a 45.5 por restaurante gratuito; **comisión por transacción (fuera de la v1) 322 por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
+6. **Secuencia recomendada:** piloto = suscripción; después de la Fase 3 = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
 
 ## 1. Sueldo del fundador en el modelo
 
@@ -79,7 +80,68 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 - **Qué exige:** cuenta o perfil del comensal: contradice «Qué NO construir» y la regla 10 (sin datos personales del comensal en el servidor); ADR y spec.
 - **Cuándo cabría:** no antes de una v2.
 
-## 3. Secuencia recomendada
+## 3. Qué tipo de plataforma es Carta, hoy y a dónde puede ir
+
+**¿Carta es una plataforma como BlaBlaCar, Airbnb, Uber, Spotify o una red social?** No: hoy Carta es una herramienta gratuita con anuncios más suscripción para el restaurante (como el modelo de Spotify del lado de la oferta), que sirve a un comensal que YA está sentado; no conecta oferta y demanda nuevas ni procesa una transacción. (La premisa «somos como BlaBlaCar, Airbnb o Uber» no se da por buena: se compara.)
+
+| Modelo | Quién paga | Quién usa gratis | ¿Conecta oferta y demanda nuevas? | ¿Hay transacción dentro? | Cifras (fuente primaria el 17-nov, o marcada) |
+|---|---|---|---|---|---|
+| **Comisión por transacción (Airbnb, Uber, BlaBlaCar)** | el que gana con la transacción (anfitrión, conductor) | el lado que trae la demanda (huésped, pasajero) no paga o paga una cuota | sí | sí | Airbnb 15.5 % al anfitrión en el esquema único (3 % en el compartido); Uber: la tarifa al conductor varía por viaje y la meta es acercarse a 25 % [fuente primaria, 17-nov]; BlaBlaCar no verificada |
+| **Gratuito con anuncios más suscripción (Spotify, YouTube)** | el anunciante y el usuario que quiere quitar anuncios | el usuario de masas | no | no | YouTube paga 55 % del ingreso neto de anuncios de la página de reproducción [fuente primaria]; Spotify: la fuente primaria dice «cerca de dos tercios» a titulares de derechos, no 70 % |
+| **Economía de la atención (redes sociales)** | el anunciante | todos los usuarios; el producto es la audiencia y sus datos | sí | no | Meta: 97.6 % de sus ingresos viene de publicidad (cálculo sobre el 10-K 2025) |
+| **Carta v1** | el restaurante que pasa de los topes de Chef (suscripción) y, después, el anunciante | el comensal (anónimo) y el restaurante de 0 a 5 personas con 6 mesas y 1 cuenta | no | no | reglas vigentes: sin pagos, sin cuenta del comensal, sin datos personales ni venta de datos |
+
+**Dónde cae la v1:** Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga. Quién usa gratis: el comensal y el negocio chico de Chef. Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante. Transacción dentro: no; la v1 no cobra ni procesa pagos.
+
+**Qué tendría que cambiar para moverse a otro modelo:**
+
+| Hacia | Qué cambiaría | Qué exige frente a las reglas vigentes |
+|---|---|---|
+| Marketplace con comisión (Airbnb, Uber) | descubrimiento entre restaurantes y pagos dentro de Carta | directorio público, perfil de restaurante y de comensal, procesar pagos: contradice «Qué NO construir», la regla 10 y la v1; ADR y spec de una v2; posible regulación financiera (verificar con un abogado) |
+| Economía de la atención (redes) | perfil y cuenta del comensal con historial para segmentar anuncios | cuenta y perfil del comensal: contradice la regla 10 y «Qué NO construir»; los datos del comensal no se venden (decisión del 14-nov) |
+| Freemium del comensal (Spotify) | el comensal paga por quitar anuncios o por funciones propias | cuenta del comensal: misma contradicción con la regla 10; spec y ADR |
+
+## 4. Dónde está el hueco frente a Meniu
+
+**Meniu** (páginas leídas el 2026-11-17: [Precio](https://meniuapp.com/es/plans), [Menú QR en mesa](https://meniuapp.com/es/qr), [Tarjetas de lealtad](https://meniuapp.com/es/tarjetas-de-lealtad), [Reservas en línea](https://meniuapp.com/es/sistema-de-reservas-en-linea), [Punto de venta](https://meniuapp.com/es/terminal-punto-de-venta), [Meniu vs Fudo (blog)](https://meniuapp.com/es/blog/alternativa-gratuita-fudo-software-restaurantes), [Meniu vs OlaClick (blog)](https://meniuapp.com/es/blog/alternativa-gratuita-olaclick-software-restaurantes)): 225 pesos al mes, **prueba de 7 días y sin plan gratuito**; dice tener «+4,000 restaurantes» (afirmación suya, no verificada). los blogs de Meniu hablan de «alternativa gratis» pero el producto sólo ofrece una prueba de 7 días.
+
+| Función | Lo tiene Meniu | Lo tiene Carta (hoy / Fase 3) | Qué valdría rescatar después |
+|---|---|---|---|
+| Menú digital QR y descarga del QR | sí | v1 (hoy) | ya está |
+| Pedir desde la mesa y que el pedido llegue al personal o a cocina | sí | Fase 3 (comanda al mesero) | ya está en el plan; Meniu además manda a cocina (KDS) |
+| Orden en grupo: varios teléfonos arman una orden juntos | no | Fase 3 (orden grupal, el diferenciador) | es de Carta |
+| Dividir la cuenta y pagar desde el celular | sí | No (la v1 no cobra ni procesa pagos) | Después y con ADR: exige pagos |
+| Punto de venta | sí | No (Qué NO construir) | No: otro producto |
+| Tarjetas de lealtad (Apple Wallet y Google Wallet) | sí | No | Sí, después de la Fase 3, con spec: ver si se puede sin cuenta del comensal |
+| Reservaciones en línea y mapa de mesas | sí | No | Quizá: el mapa de mesas ya existe como `mesa`; reservar exige perfil del comensal |
+| Pedidos por WhatsApp | sí | No | Quizá, con spec |
+| Inventario, reportes de ventas e impresión de tickets y comandas | sí | Panel del dueño sin inventario ni ventas; analítica del restaurante fuera de la v1 | Reportes simples después; inventario no |
+| Multilenguaje (español, inglés, portugués) y sucursales ilimitadas | sí | No (Qué NO construir: multi-idioma y multi-sucursal) | Después, por spec |
+| Plan gratuito permanente | no | Sí: Chef (0 a 5 personas, 6 mesas, 1 cuenta) con anuncios | es de Carta: el hueco |
+| Importar la carta desde un PDF con IA | no | v1 (hoy): el operador confirma | es de Carta |
+| Programa de afiliados (comisión por referir) | sí | No | Quizá: canal de ventas barato |
+
+**Tamaño del hueco:** Con un producto sin plan gratuito (Meniu: prueba de 7 días y 225 pesos al mes), quedan sin servir los negocios de 0 a 5 personas: 73,193 de 104,882 clientes potenciales [medido, DENUE]; con 6 mesas y 1 cuenta caben en Chef 35,427 (48.4 % de ellos; rango 42.4–54.5 %), un juicio del modelo de mesas y cuentas. **Supuesto:** sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef es el modelo de mesas y cuentas con dispersión. **Lo que valdría rescatar primero (juicio, a decidir por spec):** las **tarjetas de lealtad** en Apple y Google Wallet, si se pueden hacer sin cuenta del comensal (regla 10); el programa de afiliados como canal de ventas barato; y, más adelante, pedidos por WhatsApp y reportes simples.
+
+## 5. Cómo opera Carta con datos, con dinero y con usuarios
+
+| | Renglón 1 | Renglón 2 | Renglón 3 |
+|---|---|---|---|
+| **Datos** | Sin datos personales del comensal en el servidor (regla 10): los filtros de alérgenos viven en el teléfono. | La analítica usa ids opacos, huella de red con sal diaria y una lista cerrada de eventos sin texto libre. | No se venden datos (decisión de Calvin, 14-nov) y los anuncios no son personalizados. |
+| **Dinero** | La v1 no cobra ni procesa pagos; el precio nunca viene del cliente (regla 4) y la propina sólo se calcula y se registra. | Ingresan: suscripción del restaurante y, más adelante, anuncios; lo demás está fuera de la v1. | Los costos son servidor, disco, soporte y comisión de tarjeta del cobro de la suscripción; la bolsa de Calvin cubre lo que los anuncios todavía no. |
+| **Usuarios** | Comensal anónimo, sin cuenta ni perfil: una cookie de invitado de 6 horas. | Personal (mesero y capitán) entra con PIN, guardado sólo como hash. | Operador (dueño o gerente) con cuenta; el dueño es el validador y el primer mesero (ADR-017); en Chef es una sola cuenta. |
+
+## 6. El modelo de negocio en una página
+
+- **A quién sirve:** Al restaurante y a la cafetería de México, desde la fonda de 0 a 5 personas hasta el negocio de 100, y al comensal que ya está sentado.
+- **Qué le resuelve:** Sube la carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo.
+- **Quién paga y cuánto:** restaurante: Master Chef 225 pesos al mes (deja 149 al restaurante de paga tras costos); Chef es gratis; anunciante: 4.3 a 45.5 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato); comensal: nada.
+- **Fuentes de ingreso por etapa:** **Piloto:** Suscripción de Master Chef (se prueba el precio con tres grupos) · **Después de la Fase 3 (hacia el mes 9, supuesto):** Anuncios en Chef; visibilidad pagada con spec nueva · **Más adelante (v2):** Tarjetas de lealtad y otras funciones de Meniu, comisión o pago del comensal sólo con ADR y spec.
+- **Costos:** infraestructura de hoy ≈ 10.2 USD al mes; un gratuito cuesta 1.2 pesos al mes y un cliente de paga sostiene 125 gratuitos sin anuncios; el costo grande: el soporte de cada cliente de paga.
+- **Meta de 12 meses:** 300 restaurantes, margen de operación del mes 12 +5,749 pesos (recomendado).
+- **Qué hay que medir:** La curva de pago de Master Chef (prueba de tres precios). · Mesas y cuentas por negocio de 0 a 5 personas (cuántos caben en Chef). · La carta real del piloto (cuántos platillos). · La tarifa de anuncios y la parte de visitas con anuncio (prueba con 3 restaurantes). · CPU, memoria y conexiones en Railway.
+
+## 7. Secuencia recomendada
 
 | Modelo | Cuándo | Qué exige | Riesgo o dato que falta |
 |---|---|---|---|
@@ -91,19 +153,20 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 
 **Sin vender datos y sin datos personales del comensal en el servidor** en ninguna fila.
 
-## 4. Plataformas de referencia (verificadas en fuente primaria o marcadas)
+## 8. Plataformas de referencia (verificadas en fuente primaria o marcadas)
 
 - **Airbnb:** esquema compartido: la mayoría de los anfitriones paga 3 %; esquema único: la mayoría paga 15.5 % (el texto dice que el compartido «se está retirando»). Fuente: https://www.airbnb.com/help/article/63 (sin fecha en la página; consultada el 2026-11-17).
 - **YouTube:** 55 % de los ingresos netos por anuncios de los videos en la página de reproducción (en Shorts, 45 % de lo asignado al fondo de creadores). Fuente: https://support.google.com/youtube/answer/72902 (sin fecha en la página (©2026 Google); consultada el 2026-11-17).
 - **Meta:** 97.6 % de los ingresos viene de publicidad en el año fiscal 2025: cálculo propio sobre el 10-K (196,175 de 200,966 millones de USD); el 10-K dice que genera «substantially all» de sus ingresos vendiendo anuncios. Fuente: https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/meta-20251231.htm (10-K del año fiscal terminado el 31-dic-2025; consultada el 2026-11-17).
 - **Uber:** la tarifa de servicio al conductor ya no es fija: varía por viaje y la meta es acercarse a 25 %. Fuente: https://help.uber.com/en/driving-and-delivering/article/understanding-ubers-variable-service-fee?nodeId=7448ffcc-ab98-4a32-b7fc-e9c17a58bb41 (sin fecha en la página; consultada el 2026-11-17).
+- **BlaBlaCar:** tarifa de reserva al pasajero (modelo de comisión en un mercado de dos lados). **No verificada** (mencionada por Calvin como ejemplo; no se buscó su cifra en fuente primaria).
 - **Booking.com:** alrededor de 15 % de comisión estándar y 2–8 % más por visibilidad (Preferente, Genius). **No verificada** (las páginas oficiales de partner.booking.com devolvieron 403 y las cifras que circulan vienen de blogs y foros; el dato primario es el contrato o el extranet de cada alojamiento).
 - **Spotify:** alrededor de 70 % de los ingresos a titulares de derechos. **No verificada** (la fuente primaria más cercana (Spotify Newsroom, 11 de mayo de 2026) dice «cerca de dos tercios»; el 70 % sólo aparece en prensa).
 - **DiDi:** alrededor de 20 % de comisión al conductor. **No verificada** (la página de DiDi México no publica un porcentaje; el 16 % que aparece es IVA sobre la tarifa de servicio, no la comisión).
 
 **Lectura (de la investigación de Calvin, como hipótesis):** en servicios físicos y caros las plataformas cobran **comisión por transacción** al que gana; en servicios digitales masivos, **gratuito con anuncios más suscripción**; además cobran por **visibilidad** dentro de la plataforma. Carta v1 usa lo segundo (suscripción y anuncios); la comisión exigiría procesar pagos, que la v1 no hace.
 
-## 5. Datos por conseguir
+## 9. Datos por conseguir
 - **Curva de pago y precio de Master Chef:** prueba de tres precios del piloto.
 - **Tarifa de anuncios, parte con anuncio y aprobación de la red:** prueba pequeña con 3 restaurantes.
 - **Cuánto pagaría un patrocinador y qué parte de restaurantes aceptaría:** prueba con 3 patrocinadores después de la Fase 3.

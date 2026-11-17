@@ -392,8 +392,36 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('no se venden datos y no hay datos personales del comensal', /no vende|Carta no vende datos/i.test(mi.no_vende_datos) && /regla 10/.test(mi.no_vende_datos), true);
   const pl = s.plataformas_referencia;
   prueba('plataformas verificadas en fuente primaria: Airbnb, YouTube, Meta y Uber', pl.filter((x) => x.verificada).map((x) => x.plataforma).join(','), 'Airbnb,YouTube,Meta,Uber');
-  prueba('plataformas no verificadas se marcan: Booking.com, Spotify y DiDi', pl.filter((x) => !x.verificada).map((x) => x.plataforma).join(','), 'Booking.com,Spotify,DiDi');
+  prueba('plataformas no verificadas se marcan: BlaBlaCar, Booking.com, Spotify y DiDi', pl.filter((x) => !x.verificada).map((x) => x.plataforma).join(','), 'BlaBlaCar,Booking.com,Spotify,DiDi');
   prueba('toda plataforma verificada trae enlace y fecha de consulta', pl.filter((x) => x.verificada).every((x) => /^https:\/\//.test(x.url) && x.consulta === '2026-11-17'), true);
+}
+
+// 18) RONDA 9, ampliación del punto 6: modelo de negocio, tipo de plataforma, hueco frente a Meniu
+{
+  const cfg = M.configInicial();
+  const mn = M.modeloDeNegocio(cfg, s);
+  const tp = mn.tipo_de_plataforma;
+  prueba('se comparan cuatro modelos: comisión, anuncios más suscripción, atención y Carta v1', tp.comparacion.length, 4);
+  const v1 = tp.comparacion.find((x) => /Carta v1/.test(x.modelo));
+  prueba('la v1 no conecta oferta y demanda nuevas ni tiene transacción dentro', `${v1.conecta_oferta_y_demanda_nuevas}-${v1.hay_transaccion_dentro}`, 'false-false');
+  prueba('la respuesta no da por buena la premisa', /^No:/.test(tp.respuesta), true);
+  prueba('tres pasos para moverse a otro modelo, cada uno con lo que exige', tp.pasos_para_moverse.length === 3 && tp.pasos_para_moverse.every((x) => /regla 10|Qué NO construir/.test(x.exige)), true);
+  const hz = mn.hueco_frente_a_meniu;
+  prueba('Meniu: 225 pesos, prueba de 7 días y sin plan gratuito', `${hz.meniu.precio_mes}-${hz.meniu.prueba_dias}-${hz.meniu.plan_gratuito}`, '225-7-false');
+  prueba('todas las páginas de Meniu traen enlace y consulta del 17-nov', hz.meniu.paginas.length === 7 && hz.meniu.paginas.every((x) => /^https:\/\/meniuapp\.com\//.test(x.url)) && hz.meniu.consulta === '2026-11-17', true);
+  prueba('tabla de funciones: 13 filas, con tarjetas de lealtad y plan gratuito', `${hz.tabla.length}-${hz.tabla.some((x) => /lealtad/.test(x.funcion))}-${hz.tabla.some((x) => /gratuito/.test(x.funcion) && !x.meniu)}`, '13-true-true');
+  prueba('hueco: negocios de 0 a 5 personas y clientes potenciales', `${hz.tamano_del_hueco.de_0_a_5_personas}-${hz.tamano_del_hueco.clientes_potenciales}`, '73193-104882');
+  prueba('hueco: cuántos caben en Chef con 6 mesas y 1 cuenta (modelo) y su rango', `${Math.round(hz.tamano_del_hueco.caben_en_chef)}-${Math.round(hz.tamano_del_hueco.parte_que_cabe_en_chef * 1000) / 10}-${hz.tamano_del_hueco.rango_parte_que_cabe.map((x) => Math.round(x * 1000) / 10).join('/')}`, '35427-48.4-42.4/54.5');
+  prueba('hueco: lo que es juicio se marca como supuesto', /sólo los conteos por estrato son medidos/.test(hz.tamano_del_hueco.supuesto), true);
+  prueba('cómo opera: tres renglones por datos, dinero y usuarios', ['datos', 'dinero', 'usuarios'].every((k) => mn.como_opera[k].length === 3), true);
+  prueba('datos: sin datos personales, sin venta de datos', /regla 10/.test(mn.como_opera.datos[0]) && /No se venden datos/.test(mn.como_opera.datos[2]), true);
+  prueba('dinero: la v1 no cobra ni procesa pagos', /no cobra ni procesa pagos/.test(mn.como_opera.dinero[0]), true);
+  const up = mn.una_pagina;
+  prueba('una página: Master Chef 225 y anuncios de 4.3 a 45.5 pesos', /Master Chef 225 pesos/.test(up.quien_paga_y_cuanto.restaurante) && /4\.3 a 45\.5/.test(up.quien_paga_y_cuanto.anunciante), true);
+  prueba('una página: tres etapas de ingreso (piloto, después de la Fase 3, más adelante)', up.fuentes_de_ingreso_por_etapa.length, 3);
+  prueba('una página: costos (infraestructura de hoy en USD y gratuitos que sostiene un cliente de paga)', `${Math.round(up.costos.infraestructura_hoy_usd_mes * 10) / 10}-${Math.round(up.costos.gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios)}`, '10.2-125');
+  prueba('una página: lo que hay que medir incluye la curva de pago y mesas y cuentas', up.que_hay_que_medir.some((x) => /curva de pago/.test(x)) && up.que_hay_que_medir.some((x) => /Mesas y cuentas/.test(x)), true);
+  prueba('BlaBlaCar queda como no verificada', s.plataformas_referencia.filter((x) => !x.verificada).map((x) => x.plataforma).join(','), 'BlaBlaCar,Booking.com,Spotify,DiDi');
 }
 
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)

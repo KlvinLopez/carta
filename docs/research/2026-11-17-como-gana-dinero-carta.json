@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r10",
+ "version": "2026-11-17-r11",
  "fecha": "2026-11-17",
  "sueldo_fundador": {
   "por_omision": 0,
@@ -424,6 +424,12 @@
    "consulta": "2026-11-17"
   },
   {
+   "plataforma": "BlaBlaCar",
+   "cifra": "tarifa de reserva al pasajero (modelo de comisión en un mercado de dos lados)",
+   "verificada": false,
+   "nota": "mencionada por Calvin como ejemplo; no se buscó su cifra en fuente primaria"
+  },
+  {
    "plataforma": "Booking.com",
    "cifra": "alrededor de 15 % de comisión estándar y 2–8 % más por visibilidad (Preferente, Genius)",
    "verificada": false,
@@ -442,6 +448,261 @@
    "nota": "la página de DiDi México no publica un porcentaje; el 16 % que aparece es IVA sobre la tarifa de servicio, no la comisión"
   }
  ],
+ "modelo_de_negocio": {
+  "n": 1000,
+  "tipo_de_plataforma": {
+   "pregunta": "¿Carta es una plataforma como BlaBlaCar, Airbnb, Uber, Spotify o una red social?",
+   "respuesta": "No: hoy Carta es una herramienta gratuita con anuncios más suscripción para el restaurante (como el modelo de Spotify del lado de la oferta), que sirve a un comensal que YA está sentado; no conecta oferta y demanda nuevas ni procesa una transacción.",
+   "comparacion": [
+    {
+     "modelo": "Comisión por transacción (Airbnb, Uber, BlaBlaCar)",
+     "quien_paga": "el que gana con la transacción (anfitrión, conductor)",
+     "quien_usa_gratis": "el lado que trae la demanda (huésped, pasajero) no paga o paga una cuota",
+     "conecta_oferta_y_demanda_nuevas": true,
+     "hay_transaccion_dentro": true,
+     "cifras_verificadas": "Airbnb 15.5 % al anfitrión en el esquema único (3 % en el compartido); Uber: la tarifa al conductor varía por viaje y la meta es acercarse a 25 % [fuente primaria, 17-nov]; BlaBlaCar no verificada"
+    },
+    {
+     "modelo": "Gratuito con anuncios más suscripción (Spotify, YouTube)",
+     "quien_paga": "el anunciante y el usuario que quiere quitar anuncios",
+     "quien_usa_gratis": "el usuario de masas",
+     "conecta_oferta_y_demanda_nuevas": false,
+     "hay_transaccion_dentro": false,
+     "cifras_verificadas": "YouTube paga 55 % del ingreso neto de anuncios de la página de reproducción [fuente primaria]; Spotify: la fuente primaria dice «cerca de dos tercios» a titulares de derechos, no 70 %"
+    },
+    {
+     "modelo": "Economía de la atención (redes sociales)",
+     "quien_paga": "el anunciante",
+     "quien_usa_gratis": "todos los usuarios; el producto es la audiencia y sus datos",
+     "conecta_oferta_y_demanda_nuevas": true,
+     "hay_transaccion_dentro": false,
+     "cifras_verificadas": "Meta: 97.6 % de sus ingresos viene de publicidad (cálculo sobre el 10-K 2025)"
+    },
+    {
+     "modelo": "Carta v1",
+     "quien_paga": "el restaurante que pasa de los topes de Chef (suscripción) y, después, el anunciante",
+     "quien_usa_gratis": "el comensal (anónimo) y el restaurante de 0 a 5 personas con 6 mesas y 1 cuenta",
+     "conecta_oferta_y_demanda_nuevas": false,
+     "hay_transaccion_dentro": false,
+     "cifras_verificadas": "reglas vigentes: sin pagos, sin cuenta del comensal, sin datos personales ni venta de datos"
+    }
+   ],
+   "donde_cae_la_v1": [
+    "Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga.",
+    "Quién usa gratis: el comensal y el negocio chico de Chef.",
+    "Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante.",
+    "Transacción dentro: no; la v1 no cobra ni procesa pagos."
+   ],
+   "pasos_para_moverse": [
+    {
+     "hacia": "Marketplace con comisión (Airbnb, Uber)",
+     "que_cambiaria": "descubrimiento entre restaurantes y pagos dentro de Carta",
+     "exige": "directorio público, perfil de restaurante y de comensal, procesar pagos: contradice «Qué NO construir», la regla 10 y la v1; ADR y spec de una v2; posible regulación financiera (verificar con un abogado)"
+    },
+    {
+     "hacia": "Economía de la atención (redes)",
+     "que_cambiaria": "perfil y cuenta del comensal con historial para segmentar anuncios",
+     "exige": "cuenta y perfil del comensal: contradice la regla 10 y «Qué NO construir»; los datos del comensal no se venden (decisión del 14-nov)"
+    },
+    {
+     "hacia": "Freemium del comensal (Spotify)",
+     "que_cambiaria": "el comensal paga por quitar anuncios o por funciones propias",
+     "exige": "cuenta del comensal: misma contradicción con la regla 10; spec y ADR"
+    }
+   ]
+  },
+  "hueco_frente_a_meniu": {
+   "meniu": {
+    "consulta": "2026-11-17",
+    "precio_mes": 225,
+    "prueba_dias": 7,
+    "plan_gratuito": false,
+    "restaurantes_que_dice_tener": 4000,
+    "paginas": [
+     {
+      "pagina": "Precio",
+      "url": "https://meniuapp.com/es/plans"
+     },
+     {
+      "pagina": "Menú QR en mesa",
+      "url": "https://meniuapp.com/es/qr"
+     },
+     {
+      "pagina": "Tarjetas de lealtad",
+      "url": "https://meniuapp.com/es/tarjetas-de-lealtad"
+     },
+     {
+      "pagina": "Reservas en línea",
+      "url": "https://meniuapp.com/es/sistema-de-reservas-en-linea"
+     },
+     {
+      "pagina": "Punto de venta",
+      "url": "https://meniuapp.com/es/terminal-punto-de-venta"
+     },
+     {
+      "pagina": "Meniu vs Fudo (blog)",
+      "url": "https://meniuapp.com/es/blog/alternativa-gratuita-fudo-software-restaurantes"
+     },
+     {
+      "pagina": "Meniu vs OlaClick (blog)",
+      "url": "https://meniuapp.com/es/blog/alternativa-gratuita-olaclick-software-restaurantes"
+     }
+    ],
+    "nota": "los blogs de Meniu hablan de «alternativa gratis» pero el producto sólo ofrece una prueba de 7 días"
+   },
+   "tabla": [
+    {
+     "funcion": "Menú digital QR y descarga del QR",
+     "meniu": true,
+     "carta": "v1 (hoy)",
+     "rescatar": "ya está"
+    },
+    {
+     "funcion": "Pedir desde la mesa y que el pedido llegue al personal o a cocina",
+     "meniu": true,
+     "carta": "Fase 3 (comanda al mesero)",
+     "rescatar": "ya está en el plan; Meniu además manda a cocina (KDS)"
+    },
+    {
+     "funcion": "Orden en grupo: varios teléfonos arman una orden juntos",
+     "meniu": false,
+     "carta": "Fase 3 (orden grupal, el diferenciador)",
+     "rescatar": "es de Carta"
+    },
+    {
+     "funcion": "Dividir la cuenta y pagar desde el celular",
+     "meniu": true,
+     "carta": "No (la v1 no cobra ni procesa pagos)",
+     "rescatar": "Después y con ADR: exige pagos"
+    },
+    {
+     "funcion": "Punto de venta",
+     "meniu": true,
+     "carta": "No (Qué NO construir)",
+     "rescatar": "No: otro producto"
+    },
+    {
+     "funcion": "Tarjetas de lealtad (Apple Wallet y Google Wallet)",
+     "meniu": true,
+     "carta": "No",
+     "rescatar": "Sí, después de la Fase 3, con spec: ver si se puede sin cuenta del comensal"
+    },
+    {
+     "funcion": "Reservaciones en línea y mapa de mesas",
+     "meniu": true,
+     "carta": "No",
+     "rescatar": "Quizá: el mapa de mesas ya existe como `mesa`; reservar exige perfil del comensal"
+    },
+    {
+     "funcion": "Pedidos por WhatsApp",
+     "meniu": true,
+     "carta": "No",
+     "rescatar": "Quizá, con spec"
+    },
+    {
+     "funcion": "Inventario, reportes de ventas e impresión de tickets y comandas",
+     "meniu": true,
+     "carta": "Panel del dueño sin inventario ni ventas; analítica del restaurante fuera de la v1",
+     "rescatar": "Reportes simples después; inventario no"
+    },
+    {
+     "funcion": "Multilenguaje (español, inglés, portugués) y sucursales ilimitadas",
+     "meniu": true,
+     "carta": "No (Qué NO construir: multi-idioma y multi-sucursal)",
+     "rescatar": "Después, por spec"
+    },
+    {
+     "funcion": "Plan gratuito permanente",
+     "meniu": false,
+     "carta": "Sí: Chef (0 a 5 personas, 6 mesas, 1 cuenta) con anuncios",
+     "rescatar": "es de Carta: el hueco"
+    },
+    {
+     "funcion": "Importar la carta desde un PDF con IA",
+     "meniu": false,
+     "carta": "v1 (hoy): el operador confirma",
+     "rescatar": "es de Carta"
+    },
+    {
+     "funcion": "Programa de afiliados (comisión por referir)",
+     "meniu": true,
+     "carta": "No",
+     "rescatar": "Quizá: canal de ventas barato"
+    }
+   ],
+   "tamano_del_hueco": {
+    "clientes_potenciales": 104882,
+    "de_0_a_5_personas": 73193,
+    "parte_de_0_a_5": 0.6978604526992239,
+    "caben_en_chef": 35427.022246,
+    "parte_que_cabe_en_chef": 0.484022,
+    "rango_parte_que_cabe": [
+     0.423556,
+     0.544586
+    ],
+    "parte_de_los_clientes_potenciales_que_cabe_en_chef": 0.33777981203638374,
+    "lectura": "Con un producto sin plan gratuito (Meniu: prueba de 7 días y 225 pesos al mes), quedan sin servir los negocios de 0 a 5 personas: 73,193 de 104,882 clientes potenciales [medido, DENUE]; con 6 mesas y 1 cuenta caben en Chef 35,427 (48.4 % de ellos; rango 42.4–54.5 %), un juicio del modelo de mesas y cuentas.",
+    "supuesto": "sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef es el modelo de mesas y cuentas con dispersión"
+   }
+  },
+  "como_opera": {
+   "datos": [
+    "Sin datos personales del comensal en el servidor (regla 10): los filtros de alérgenos viven en el teléfono.",
+    "La analítica usa ids opacos, huella de red con sal diaria y una lista cerrada de eventos sin texto libre.",
+    "No se venden datos (decisión de Calvin, 14-nov) y los anuncios no son personalizados."
+   ],
+   "dinero": [
+    "La v1 no cobra ni procesa pagos; el precio nunca viene del cliente (regla 4) y la propina sólo se calcula y se registra.",
+    "Ingresan: suscripción del restaurante y, más adelante, anuncios; lo demás está fuera de la v1.",
+    "Los costos son servidor, disco, soporte y comisión de tarjeta del cobro de la suscripción; la bolsa de Calvin cubre lo que los anuncios todavía no."
+   ],
+   "usuarios": [
+    "Comensal anónimo, sin cuenta ni perfil: una cookie de invitado de 6 horas.",
+    "Personal (mesero y capitán) entra con PIN, guardado sólo como hash.",
+    "Operador (dueño o gerente) con cuenta; el dueño es el validador y el primer mesero (ADR-017); en Chef es una sola cuenta."
+   ]
+  },
+  "una_pagina": {
+   "a_quien_sirve": "Al restaurante y a la cafetería de México, desde la fonda de 0 a 5 personas hasta el negocio de 100, y al comensal que ya está sentado.",
+   "que_le_resuelve": "Sube la carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo.",
+   "quien_paga_y_cuanto": {
+    "restaurante": "Master Chef 225 pesos al mes (deja 149 al restaurante de paga tras costos); Chef es gratis",
+    "anunciante": "4.3 a 45.5 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato)",
+    "comensal": "nada"
+   },
+   "fuentes_de_ingreso_por_etapa": [
+    {
+     "etapa": "Piloto",
+     "fuente": "Suscripción de Master Chef (se prueba el precio con tres grupos)"
+    },
+    {
+     "etapa": "Después de la Fase 3 (hacia el mes 9, supuesto)",
+     "fuente": "Anuncios en Chef; visibilidad pagada con spec nueva"
+    },
+    {
+     "etapa": "Más adelante (v2)",
+     "fuente": "Tarjetas de lealtad y otras funciones de Meniu, comisión o pago del comensal sólo con ADR y spec"
+    }
+   ],
+   "costos": {
+    "infraestructura_hoy_usd_mes": 10.183333333333334,
+    "costo_por_restaurante_gratuito_pesos": 1.190690866140888,
+    "gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios": 125.16435226458,
+    "soporte": "el costo grande: el soporte de cada cliente de paga"
+   },
+   "meta_12_meses": {
+    "restaurantes": 300,
+    "margen_operacion_mes_12": 5748.812651233771
+   },
+   "que_hay_que_medir": [
+    "La curva de pago de Master Chef (prueba de tres precios).",
+    "Mesas y cuentas por negocio de 0 a 5 personas (cuántos caben en Chef).",
+    "La carta real del piloto (cuántos platillos).",
+    "La tarifa de anuncios y la parte de visitas con anuncio (prueba con 3 restaurantes).",
+    "CPU, memoria y conexiones en Railway."
+   ]
+  }
+ },
  "secuencia": [
   {
    "modelo": "Suscripción del restaurante (Master Chef)",
