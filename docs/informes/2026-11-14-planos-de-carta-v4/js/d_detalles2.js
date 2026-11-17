@@ -76,7 +76,7 @@ DET.disco = {
 const TRK = [
   {k: "topeMesas", nom: "Mesas", min: 5, max: 60, step: 1, tag: "supuesto", tip: v => `Tope de mesas|${n(v)} mesas|Modelo por tamaño de negocio: en México no hay estadística de mesas.`},
   {k: "topeCuentas", nom: "Cuentas", min: 1, max: 20, step: 1, tag: "supuesto", tip: v => `Tope de cuentas de personal|${n(v)} ${v === 1 ? "cuenta" : "cuentas"}|Una cuenta es una persona con PIN; se mide con los primeros restaurantes.`},
-  {k: "topePlatillos", nom: "Platillos", min: 40, max: 300, step: 10, tag: "dos muestras,|sesgos opuestos", tip: v => `Tope de platillos|${n(v)} platillos|Dos muestras de cartas, de reparto y de sitios propios, dan coberturas distintas; la real está en medio.`, tipv: v => { const cb = MOD.coberturaChef({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, platillos: v}}}, SP).todo; return `tri:reparto (cortas)|${cb.alta}|${n(100 * cb.alta)} %;sitios propios (largas)|${cb.baja}|${n(100 * cb.baja)} %`; }},
+  {k: "topePlatillos", nom: "Platillos", min: 50, max: 150, step: 10, valores: [50, 80, 100, 150], tag: "dos muestras,|sesgos opuestos", tip: v => `Tope de platillos|${n(v)} platillos|Dos muestras de cartas, de reparto y de sitios propios, dan coberturas distintas; la real está en medio.`, tipv: v => { const cb = MOD.coberturaChef({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, platillos: v}}}, SP).todo; return `tri:reparto (cortas)|${cb.alta}|${n(100 * cb.alta)} %;sitios propios (largas)|${cb.baja}|${n(100 * cb.baja)} %`; }},
 ];
 const COLPLAN = [C.vino, C.dorado], NOMPLAN = [PLAN.gratis, PLAN.paga]; // Chef Ejecutivo: futura escalación, apagado en el modelo
 DET.topes = {
@@ -97,7 +97,8 @@ DET.topes = {
       const h = rm.put("h" + i, "circle", {x: px, y, r: 15, fill: C.vino, stroke: "#fff", sw: 3, cursor: "grab", attrs: {"aria-label": "Tope de " + t.nom.toLowerCase(), "aria-valuemin": t.min, "aria-valuemax": t.max, "aria-valuenow": v, "data-tip": t.tip(v), ...(t.tipv ? {"data-tipv": t.tipv(v)} : {})}});
       rm.put("hv" + i, "text", {x: px, y: y + 4, text: String(v), size: 11, weight: 700, fill: "#fff", anchor: "middle"});
       const tl = t.tag.split("|"); rm.put("tg" + i, "text", {x: X0 + W + 16, y: y + 5 - (tl.length > 1 ? 7 : 0), text: tl[0], size: 11, weight: 700, fill: C.dorado}); if (tl.length > 1) rm.put("tg" + i + "b", "text", {x: X0 + W + 16, y: y + 19 - 7, text: tl[1], size: 11, weight: 700, fill: C.dorado});
-      if (!this.armado) { const set = val => cambiar({[t.k]: clamp(Math.round(val / t.step) * t.step, t.min, t.max)}); arrastrable(h, svg, pt => set(t.min + (pt.x - X0) / W * (t.max - t.min)), (d, mult) => set(S[t.k] + d * mult * t.step)); }
+      if (!this.armado) { const snap = val => t.valores ? t.valores.reduce((a, b) => (Math.abs(b - val) < Math.abs(a - val) ? b : a)) : clamp(Math.round(val / t.step) * t.step, t.min, t.max), set = val => cambiar({[t.k]: snap(val)}), mueve = (d, mult) => t.valores ? t.valores[clamp(t.valores.indexOf(S[t.k]) + Math.sign(d), 0, t.valores.length - 1)] : S[t.k] + d * mult * t.step; arrastrable(h, svg, pt => set(t.min + (pt.x - X0) / W * (t.max - t.min)), (d, mult) => set(mueve(d, mult))); }
+      if (t.valores) t.valores.forEach((v2, j) => { rm.put("tv" + i + "_" + j, "text", {x: X0 + W * (v2 - t.min) / (t.max - t.min), y: y + 30, text: String(v2), size: 11.5, weight: v2 === v ? 700 : 400, fill: v2 === v ? C.vino : C.t2, anchor: "middle"}); });
     });
     this.armado = true;
     // lo que cambia con los topes: ingreso, costo y margen al mes con 1,000 restaurantes

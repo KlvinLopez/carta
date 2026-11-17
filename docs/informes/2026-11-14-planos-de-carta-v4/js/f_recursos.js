@@ -31,7 +31,7 @@ const FRASE_REC = {
   disco: "Cada visita deja filas en la base, y sin purga el historial crece cada mes.",
   conexiones_bd: "Cada petición usa una conexión a la base; el tope es el grupo de cada proceso.",
   memoria: "Casi vacía: ≈ 320 MB de hasta 48 GB posibles.",
-  lineas: "Hoy no se usan; con avisos de la Fase 3, el tope de 2,116 líneas es de diseño (supuesto).",
+  lineas: "Hoy no se usan; con avisos de la Fase 3, su tope es de diseño (supuesto).",
   fotos: "0.05 GB por restaurante gratuito; R2 da 10 GB gratis.",
 };
 DET.recursos7 = {
@@ -40,7 +40,7 @@ DET.recursos7 = {
   nota: "Modelo de escenarios r6 (docs/research/2026-11-14-recursos.mjs). Hoy ningún proceso purga el historial del plan gratuito; «30 días» es una propuesta que contradice 03 §7 y la regla 9: pide cambiar el documento y un ADR antes. Los límites de procesador están medidos en local (±2×) y faltan en Railway; las palancas llevan su marca «medido» o «estimado» en su hover. El restaurante típico (1,800 visitas al mes, 114 comensales al día) es un supuesto del simulador. Un escalón es un tamaño del servidor: cuántos procesos de la API corre, cuánto disco tiene y cuánto cuesta; se sube cuando un recurso se llena. Cada control conserva su valor hasta que lo muevas; los números pasan del valor anterior al nuevo.",
   montar(host) {
     this.est = "hoy"; this.sel = "procesador"; this.his = "sin"; this.n = null; this.vals = null; this.palKey = ""; this.akey = "";
-    host.innerHTML = `<div class="r7 r7L"><div class="r7p"><div class="r7pl"><div class="r7row"><span class="selr">Cómo se entera el teléfono:</span><div class="seg" id="estR"><button class="btn" data-est="hoy">Hoy: pregunta cada 3 s</button><button class="btn" data-est="avisos">Con avisos (Fase 3)</button></div></div><div class="r7row"><span class="selr">Historial guardado del plan gratuito:</span><div class="seg" id="hisR">${HIS.map(h => `<button class="btn" data-his="${h[0]}">${h[1]}</button>`).join("")}</div></div><div class="r7w" id="hisW"></div><div class="r7row rdesl"><label for="rN">Restaurantes en la plataforma</label><input type="range" id="rN" min="0" max="1200" step="1" value="23"><output id="rNv">23</output></div></div><div class="r7pr"><span class="selr">Palancas (lo que hay que hacer):</span><div class="r7ch" id="palR"></div></div></div><div class="r7g"><div class="r7c1"><div class="viz"><svg id="svM" viewBox="0 0 700 410" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svE" viewBox="0 0 700 350" role="img" font-family="DM Sans, sans-serif"></svg></div></div><div class="r7c2"><div class="viz"><svg id="svH" viewBox="0 0 380 450" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svA" viewBox="0 0 380 270" role="img" font-family="DM Sans, sans-serif"></svg></div></div></div></div>`;
+    host.innerHTML = `<div class="r7 r7L"><div class="r7p"><div class="r7pl"><div class="r7row"><div id="topesR" class="r7tp"></div></div><div class="r7row"><span class="selr">Cómo se entera el teléfono:</span><div class="seg" id="estR"><button class="btn" data-est="hoy">Hoy: pregunta cada 3 s</button><button class="btn" data-est="avisos">Con avisos (Fase 3)</button></div></div><div class="r7row"><span class="selr">Historial guardado del plan gratuito:</span><div class="seg" id="hisR">${HIS.map(h => `<button class="btn" data-his="${h[0]}">${h[1]}</button>`).join("")}</div></div><div class="r7w" id="hisW"></div><div class="r7row rdesl"><label for="rN">Restaurantes en la plataforma</label><input type="range" id="rN" min="0" max="1200" step="1" value="23"><output id="rNv">23</output></div></div><div class="r7pr"><span class="selr">Palancas (lo que hay que hacer):</span><div class="r7ch" id="palR"></div></div></div><div class="r7g"><div class="r7c1"><div class="viz"><svg id="svM" viewBox="0 0 700 410" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svE" viewBox="0 0 700 350" role="img" font-family="DM Sans, sans-serif"></svg></div></div><div class="r7c2"><div class="viz"><svg id="svH" viewBox="0 0 380 450" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svA" viewBox="0 0 380 270" role="img" font-family="DM Sans, sans-serif"></svg></div></div></div></div>`;
     $("#rN", host).addEventListener("input", ev => { this.n = +ev.target.value; this.apunta(); });
     host.addEventListener("click", ev => {
       const e = ev.target.closest("[data-est]"); if (e) { this.est = e.dataset.est; refrescar(); return; }
@@ -52,7 +52,20 @@ DET.recursos7 = {
   },
   discoCap(r) { const m = (HIS.find(h => h[0] === this.his) || HIS[0])[2], f = r.disco_por_historial.find(q => q.meses_historial === m); return f ? f.restaurantes_por_disco : null; },
   /* topes de cada recurso con el historial elegido */
-  caps() { const r = this.r, o = []; r.recursos.forEach(x => { const v = x.recurso === "disco" ? this.discoCap(r) : x[this.clave]; if (v != null) o.push({recurso: x.recurso, v}); }); return o; },
+  caps(r = this.r) { const o = []; r.recursos.forEach(x => { const v = x.recurso === "disco" ? this.discoCap(r) : x[this.clave]; if (v != null) o.push({recurso: x.recurso, v}); }); return o; },
+  /* con qué topes está calculado el tablero y qué cambió frente a los topes de antes */
+  pintaTopes(r) {
+    const key = [S.topeMesas, S.topeCuentas, S.topePlatillos].join("|"), txt = t => `${t.topeMesas} mesas · ${t.topeCuentas} ${t.topeCuentas === 1 ? "cuenta" : "cuentas"} · ${t.topePlatillos} platillos`;
+    if (this.tkey !== key) { if (this.tkey != null) this.topesAntes = this.topesAct; this.tkey = key; this.topesAct = {topeMesas: S.topeMesas, topeCuentas: S.topeCuentas, topePlatillos: S.topePlatillos}; }
+    let cambio = "";
+    if (this.topesAntes) {
+      const rp = conCache("rec7p|" + JSON.stringify(this.topesAntes) + this.est, () => MOD.recursos(config({...S, ...this.topesAntes}), sup(S), "hoy")), ant = Object.fromEntries(this.caps(rp).map(x => [x.recurso, x.v])), act = Object.fromEntries(this.caps(r).map(x => [x.recurso, x.v]));
+      const dif = ["procesador", "disco"].filter(k => ant[k] != null && act[k] != null && ant[k] !== act[k]).map(k => `${REC_NOM[k].split(" ")[0].toLowerCase()} ${n(ant[k])} → ${n(act[k])}`);
+      cambio = `<span class="r7an">Antes, con ${txt(this.topesAntes)}: ${dif.length ? dif.join(" · ") : "los medidores no cambian"}.</span>`;
+    }
+    const pc = conCache("carga7", () => MOD.perfilDeCarga(config(S), sup(S))), tip = `Unidad: restaurante registrado|mezcla de gratuitos y de paga|El de paga pesa ${n(pc.mb_paga)} MB en disco; el gratuito, ${n(pc.mb_gratuito, 1)} MB.`;
+    $("#topesR").innerHTML = `<span class="r7tt" data-tip="${esc2(tip)}" tabindex="0">Con tus topes: ${txt(this.topesAct)}</span>${cambio}`;
+  },
   /* la escalera con lo elegido arriba: el disco de cada escalón se escala con el historial; el resto, tal cual */
   valEsc(e) { return e.restaurantes_que_caben; },
   actualizar() {
@@ -68,7 +81,9 @@ DET.recursos7 = {
     if (this.n == null) this.n = this.cuello.v;
     $("#hisW").textContent = this.his === "30d" ? "Contradice 03 §7 y la regla 9: cambia el documento y un ADR antes." : this.his === "sin" ? "Hoy nada limpia el historial: el disco manda desde el segundo mes." : "";
     this.pintaPalancas();
-    const rp = r.rango_procesador, rg = hoy ? rp.procesador_hoy : rp.procesador_con_eventos, p30 = hoy ? 148 : 1064;
+    const pr0 = r.recursos.find(x => x.recurso === "procesador"); this.procHoy = pr0.restaurantes_hoy; this.procEv = pr0.restaurantes_con_eventos;
+    this.pintaTopes(r);
+    const rp = r.rango_procesador, rg = hoy ? rp.procesador_hoy : rp.procesador_con_eventos, p30 = hoy ? this.procHoy : this.procEv;
     this.rg = rg;
     this.apunta(); this.pintaA();
     const e5 = this.esc[this.esc.length - 1];
@@ -80,7 +95,7 @@ DET.recursos7 = {
   },
   frase(r, hoy, rg, p30) {
     const he = this.his, c = this.cuello, ps = (S.palancas || []).length;
-    const base = he === "sin" ? `Hoy nada limpia el historial: el disco manda desde el segundo mes y a 12 meses caben ${n(this.discoCap(r))}. Con historial del gratuito a 30 días (propuesta) manda ${hoy ? "el procesador: " + n(p30) + ", entre " + n(rg[0]) + " y " + n(rg[1]) + " (falta medirlo en Railway)" : "todavía el disco: 279"}.` : `Con ${he === "30d" ? "historial a 30 días (propuesta)" : (HIS.find(h => h[0] === he) || [0, he])[1] + " de historial"} manda ${REC_NOM[c.recurso].toLowerCase()}: caben ${n(c.v)}${c.recurso === "procesador" ? `, entre ${n(rg[0])} y ${n(rg[1])} (falta medirlo en Railway)` : ""}.`;
+    const base = he === "sin" ? `Hoy nada limpia el historial: el disco manda desde el segundo mes y a 12 meses caben ${n(this.discoCap(r))}. Con historial del gratuito a 30 días (propuesta) manda ${hoy ? "el procesador: " + n(p30) + ", entre " + n(rg[0]) + " y " + n(rg[1]) + " (falta medirlo en Railway)" : "todavía el disco: " + n(r.cuello_con_eventos.con_historial_30_dias.restaurantes)}.` : `Con ${he === "30d" ? "historial a 30 días (propuesta)" : (HIS.find(h => h[0] === he) || [0, he])[1] + " de historial"} manda ${REC_NOM[c.recurso].toLowerCase()}: caben ${n(c.v)}${c.recurso === "procesador" ? `, entre ${n(rg[0])} y ${n(rg[1])} (falta medirlo en Railway)` : ""}.`;
     return base + (ps ? ` Palancas encendidas: ${ps}; arriba, las cifras ya cuentan con ellas.` : " Enciende una palanca y mira cómo cambian los medidores y las cifras de arriba.");
   },
   /* las palancas, como parámetros: sólo «qué hay que hacer»; lo demás, al hover */
@@ -162,13 +177,13 @@ DET.recursos7 = {
   pintaH() {
     const r = this.r, hoy = this.hoy, V = this.vals, he = this.his, cuello = this.cuello, rg = this.rg, f = r.disco_por_historial, selM = (HIS.find(h => h[0] === he) || HIS[0])[2];
     const sa = r.sensibilidad_actividad.find(q => q.factor_de_actividad === 2), pk = r.pico_simultaneo;
-    const tipF = `${REC_NOM[cuello.recurso]}|${n(cuello.v)} restaurantes|Es el recurso que se llena primero. Si todos entran a la vez caben ${n(hoy ? pk.procesador_hoy : pk.procesador_con_eventos)} (supuesto).`;
+    const pc = conCache("carga7", () => MOD.perfilDeCarga(config(S), sup(S))), tipF = `${REC_NOM[cuello.recurso]}|${n(cuello.v)} restaurantes registrados|Cuenta con la mezcla de gratuitos y de paga: el de paga pesa ${n(pc.mb_paga)} MB, el gratuito ${n(pc.mb_gratuito, 1)}.`;
     let b = `<g data-tip="${esc2(tipF)}">` + Rc(0, 0, 380, 132, "#fff", 22) + T(20, 32, hoy ? "Hoy frena" : "Con avisos frena", 13, C.t2, "start", 700) + T(20, 76, REC_NOM[cuello.recurso] || cuello.recurso, 28, C.rojo, "start", 400, true) + T(20, 108, `${n(cuello.v)} restaurantes · historial: ${(HIS.find(h => h[0] === he) || HIS[0])[1]}`, 12.5, C.tinta, "start", 700) + `</g>`;
     const W = 330, H = 130, X0 = 25, Y0 = 400, mx = 300, Y = v => Y0 - H * Math.min(v, mx) / mx;
     b += Rc(0, 146, 380, 304, "#fff", 22) + T(20, 172, "Restaurantes que caben por disco,", 12.5, C.vino, "start", 700) + T(20, 188, "según los meses de historial guardado", 12.5, C.vino, "start", 700);
     const pts = f.map((q, i) => ({x: X0 + 22 + i * (W - 44) / (f.length - 1), v: V["cv" + i] ?? q.restaurantes_por_disco, m: q.meses_historial, et: q.meses_historial === "03§7" ? "03 §7" : q.meses_historial === 1 ? "30 días" : q.meses_historial + " m", real: q.restaurantes_por_disco}));
-    if (hoy) b += Rc(X0, Y(rg[1]), W, Math.max(Y(rg[0]) - Y(rg[1]), 2), "rgba(79,23,40,.12)", 0) + `<line x1="${X0}" x2="${X0 + W}" y1="${Y(148)}" y2="${Y(148)}" stroke="${C.osc}" stroke-width="2" stroke-dasharray="6 4"/>` + T(X0 + W, Y(148) - 6, "procesador 148 (74–296)", 11, C.osc, "end", 700);
-    else b += T(X0 + W, 208, "procesador con avisos: 1,064 (fuera de escala)", 11, C.osc, "end", 700);
+    if (hoy) b += Rc(X0, Y(rg[1]), W, Math.max(Y(rg[0]) - Y(rg[1]), 2), "rgba(79,23,40,.12)", 0) + `<line x1="${X0}" x2="${X0 + W}" y1="${Y(this.procHoy)}" y2="${Y(this.procHoy)}" stroke="${C.osc}" stroke-width="2" stroke-dasharray="6 4"/>` + T(X0 + W, Y(this.procHoy) - 6, `procesador ${n(this.procHoy)} (${n(rg[0])}–${n(rg[1])})`, 11, C.osc, "end", 700);
+    else b += T(X0 + W, 208, `procesador con avisos: ${n(this.procEv)} (fuera de escala)`, 11, C.osc, "end", 700);
     b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y0}" y2="${Y0}" stroke="${C.arena}" stroke-width="2"/><polyline points="${pts.map(q => q.x + "," + Y(q.v)).join(" ")}" fill="none" stroke="${C.dorado}" stroke-width="3" stroke-linejoin="round"/>`;
     pts.forEach(q => { const on = q.m === selM; b += `<circle cx="${q.x}" cy="${Y(q.v)}" r="${on ? 8 : 5}" fill="${on ? C.rojo : C.dorado}"/>` + T(q.x, Y(q.v) - 13, n(q.real), 14, on ? C.rojo : C.tinta, "middle", 400, true) + T(q.x, Y0 + 20, q.et, 11, C.t2, "middle", 700); });
     b += T(20, 440, `El disco pasa a mandar desde el mes ${r.mes_desde_el_que_manda_el_disco.con_sondeo} de operación.`, 11.5, C.t2, "start", 700);

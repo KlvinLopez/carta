@@ -135,19 +135,21 @@ await sinDesborde(p, 'matriz'); await cierra(p);
 // capítulo 7: qué nos limita
 await abre(p, 'recursos7');
 ok((await p.$$('#svM [data-rec]')).length === 6, 'capítulo 7: un medidor por recurso');
+const f7 = (v) => Math.round(v).toLocaleString('en-US');
+const mod7 = await p.evaluate(() => { const r = MOD.recursos(config(S), sup(S), 'hoy'), d = r.disco_por_historial, pr = r.recursos.find((x) => x.recurso === 'procesador'), pt = MOD.palancasEnTablero(config(S), sup(S)).palancas; return { sin: r.cuello_hoy.restaurantes, d30: r.cuello_hoy.con_historial_30_dias.restaurantes, proc: pr.restaurantes_hoy, rango: r.rango_procesador.procesador_hoy, d1: d.find((q) => q.meses_historial === 1).restaurantes_por_disco, d3: d.find((q) => q.meses_historial === 3).restaurantes_por_disco, palancas: Object.entries(pt).filter(([k, v]) => v.en_tablero && k !== 'historial_gratuito_30_dias').length }; });
 const tr0 = await texto(p, '#svM') + await texto(p, '#svH');
 const th0 = await texto(p, '#svH');
-ok(th0.includes('Hoy frena') && th0.includes('Disco de la base') && /23 restaurantes/.test(th0), 'capítulo 7: arranca sin purga (hoy): frena el disco con 23 restaurantes');
+ok(th0.includes('Hoy frena') && th0.includes('Disco de la base') && th0.includes(f7(mod7.sin) + ' restaurantes'), 'capítulo 7: arranca sin purga (hoy): frena el disco con ' + f7(mod7.sin) + ' restaurantes (lo que dice el modelo con los topes)');
 ok((await texto(p, '#hisW')).includes('Hoy nada limpia el historial'), 'capítulo 7: dice que hoy nada limpia el historial');
-ok(th0.includes('Restaurantes que caben por disco') && th0.includes('279') && th0.includes('15'), 'capítulo 7: la curva del disco contra los meses guardados');
-ok(/74 y 296/.test(await texto(p, '#svM')) || /74–296/.test(th0), 'capítulo 7: el margen ±2× del procesador a la vista');
+ok(th0.includes('Restaurantes que caben por disco') && th0.includes(f7(mod7.d1)) && th0.includes(f7(mod7.d3)), 'capítulo 7: la curva del disco contra los meses guardados (' + f7(mod7.d1) + ' con un mes, ' + f7(mod7.d3) + ' con tres)');
+ok((await texto(p, '#svM')).includes(f7(mod7.rango[0]) + ' y ' + f7(mod7.rango[1])) || th0.includes(f7(mod7.rango[0]) + '–' + f7(mod7.rango[1])), 'capítulo 7: el margen ±2× del procesador a la vista');
 ok((await p.evaluate(() => document.querySelector('#svM [data-rec="procesador"]').getAttribute('data-tip'))).includes('lleno'), 'capítulo 7: el hover de cada medidor dice cuánto está lleno');
 const kpf = await texto(p, '#kpis');
-ok(kpf.includes('23') && kpf.includes('279') && kpf.includes('sin purga'), 'cifras fijas: «23 sin purga» y «279 con 30 días»');
+ok(kpf.includes(f7(mod7.sin)) && kpf.includes(f7(mod7.d30)) && kpf.includes('sin purga'), 'cifras fijas: «' + f7(mod7.sin) + ' sin purga» y «' + f7(mod7.d30) + ' con 30 días» salen del modelo con los topes');
 ok(/20,024 MXN/.test(await p.evaluate(() => document.querySelector('[data-kpi="margen"]').getAttribute('data-tip') + document.querySelector('[data-kpi="margen"]').textContent)), 'cifras fijas: el margen recomendado es 20,024 MXN (r8)');
 // todo en un tablero: parámetros arriba, medidores, quién frena, animación y escalera visibles a la vez
 ok(await p.evaluate(() => ['#estR', '#hisR', '#rN', '#palR', '#svM', '#svH', '#svA', '#svE'].every((q) => { const e = document.querySelector(q); return e && e.getBoundingClientRect().width > 0; })), 'capítulo 7: parámetros, medidores, quién frena, animación y escalera están a la vez');
-ok((await p.$$('#palR [data-pal]')).length === 4 && !(await p.evaluate(() => document.querySelector('#palR').textContent.match(/medido|estimado|esfuerzo|ADR|→/))), 'capítulo 7: las palancas sólo dicen qué hay que hacer (lo demás, al hover)');
+ok((await p.$$('#palR [data-pal]')).length === mod7.palancas && !(await p.evaluate(() => document.querySelector('#palR').textContent.match(/medido|estimado|esfuerzo|ADR|→/))), 'capítulo 7: las palancas del tablero son las que dice el análisis (' + mod7.palancas + ') y sólo dicen qué hay que hacer');
 // ningún control cambia a otro
 await p.evaluate(() => { const r = document.querySelector('#rN'); r.value = 100; r.dispatchEvent(new Event('input', { bubbles: true })); }); await p.waitForTimeout(700);
 const ant = await p.evaluate(() => ({ p: DET.recursos7.vals.p_disco, n: DET.recursos7.n }));
@@ -160,27 +162,60 @@ ok(fin7.n === 100 && fin7.rv === '100', 'capítulo 7: cambiar el historial no mu
 ok(ant.p > fin7.p && mid < ant.p - 0.01 && mid > fin7.p + 0.01, 'capítulo 7: el medidor del disco pasa del valor anterior al nuevo, no desde cero (' + ant.p.toFixed(2) + ' → ' + mid.toFixed(2) + ' → ' + fin7.p.toFixed(2) + ')');
 await p.click('#estR [data-est="avisos"]'); await p.waitForTimeout(700);
 ok(await p.evaluate(() => DET.recursos7.n === 100 && DET.recursos7.his === '30d'), 'capítulo 7: cambiar el interruptor de avisos no mueve ni el historial ni los restaurantes');
+const disco0 = await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'disco').v);
 await p.click('#palR [data-pal="analitica_agregada_por_dia"]'); await p.waitForTimeout(700);
 ok(await p.evaluate(() => DET.recursos7.n === 100 && DET.recursos7.his === '30d' && DET.recursos7.est === 'avisos' && S.palancas.length === 1), 'capítulo 7: encender una palanca no mueve ningún otro control');
-ok((await p.evaluate(() => resumenS(S).cifras.find((c) => c.clave === 'restaurantes_que_caben').recomendado)) > 279, 'capítulo 7: la palanca sube cuántos restaurantes caben (también arriba)');
+ok((await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'disco').v)) > disco0, 'capítulo 7: la palanca sube cuántos restaurantes caben por disco');
 await p.click('#palR [data-pal="analitica_agregada_por_dia"]'); await p.waitForTimeout(500);
 await p.click('#estR [data-est="hoy"]'); await p.waitForTimeout(500);
 // los resultados con lo elegido
 const t30 = await texto(p, '#svH');
-ok(await p.evaluate(() => DET.recursos7.cuello.recurso === 'procesador' && DET.recursos7.cuello.v === 148), 'capítulo 7: con 30 días el cuello es el procesador, 148');
+ok(await p.evaluate(() => DET.recursos7.cuello.recurso === 'procesador'), 'capítulo 7: con 30 días el cuello es el procesador');
+ok((await p.evaluate(() => DET.recursos7.cuello.v)) === Math.round(mod7.proc) || (await p.evaluate(() => DET.recursos7.cuello.v)) === mod7.proc, 'capítulo 7: el procesador con 30 días es el del modelo (' + f7(mod7.proc) + ')');
 ok((await texto(p, '#svE')).includes('Con el historial, las palancas y los avisos que elegiste arriba'), 'capítulo 7: la escalera dice que se recalcula con lo elegido arriba');
 const esc30 = await p.evaluate(() => [0, 1, 2, 3, 4, 5].map((i) => Math.round(DET.recursos7.vals['es' + i])));
-ok(esc30.slice(0, 5).join() === '148,148,263,294,588', 'capítulo 7: la escalera con 30 días y sondeo: 148 · 148 · 263 · 294 · 588 (' + esc30.join(' ') + ')');
+const escM30 = await p.evaluate(() => MOD.recursos(config(S), sup(S), { canal: 'sondeo', meses_historial: 1 }).escalera.map((e) => Math.round(e.restaurantes_que_caben)));
+ok(esc30.slice(0, 5).join() === escM30.join(), 'capítulo 7: la escalera con 30 días y sondeo es la del modelo (' + escM30.join(' · ') + ')');
 await p.click('#hisR [data-his="sin"]'); await p.waitForTimeout(800);
 const escSin = await p.evaluate(() => [0, 1, 2, 3, 4, 5].map((i) => Math.round(DET.recursos7.vals['es' + i])));
-ok(escSin[0] === 23 && escSin[1] === 148 && escSin[2] === 236, 'capítulo 7: la escalera sin purga baja (23 · 148 · 236) (' + escSin.join(' ') + ')');
+const escMSin = await p.evaluate(() => MOD.recursos(config(S), sup(S), { canal: 'sondeo', meses_historial: 12 }).escalera.map((e) => Math.round(e.restaurantes_que_caben)));
+ok(escSin.slice(0, 5).join() === escMSin.join() && escSin[0] < esc30[0], 'capítulo 7: la escalera sin purga es la del modelo y baja (' + escMSin.join(' · ') + ')');
 await p.click('#hisR [data-his="3"]'); await p.waitForTimeout(400);
-ok(await p.evaluate(() => DET.recursos7.cuello.recurso === 'disco' && DET.recursos7.cuello.v === 93), 'capítulo 7: con 3 meses el disco manda con 93');
+ok(await p.evaluate(() => DET.recursos7.cuello.recurso === 'disco'), 'capítulo 7: con 3 meses el disco manda');
+ok((await p.evaluate(() => DET.recursos7.cuello.v)) === mod7.d3, 'capítulo 7: con 3 meses caben ' + f7(mod7.d3) + ', como dice el modelo');
 await p.click('#hisR [data-his="sin"]'); await p.waitForTimeout(300);
 await p.click('#svM [data-rec="disco"]'); await p.waitForTimeout(300);
 ok((await texto(p, '#svA')).includes('bytes'), 'capítulo 7: la visita dibujada como pila por tabla');
 if (png) await p.screenshot({ path: `${png}/v9_cap7.png` });
 await sinDesborde(p, 'capítulo 7'); await cierra(p);
+
+// los topes del capítulo 6 mueven el capítulo 7, desde el valor anterior y diciendo con qué topes está calculado
+await abre(p, 'recursos7');
+ok((await texto(p, '#topesR')).includes('Con tus topes: 6 mesas · 1 cuenta · 150 platillos'), 'capítulo 7: dice con qué topes está calculado (6 mesas · 1 cuenta · 150 platillos)');
+const antT = await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'procesador').v);
+await p.evaluate(() => cambiar({ topeMesas: 12 })); await p.waitForTimeout(900);
+const desT = await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'procesador').v);
+ok(desT !== antT && (await texto(p, '#topesR')).includes('12 mesas') && (await texto(p, '#topesR')).includes('Antes, con 6 mesas'), 'capítulo 7: al subir las mesas a 12 el procesador pasa de ' + f7(antT) + ' a ' + f7(desT) + ' y el tablero dice qué cambió');
+ok((await p.evaluate(() => document.querySelector('#topesR [data-tip]').dataset.tip)).includes('Unidad: restaurante registrado'), 'capítulo 7: panel que define el restaurante registrado');
+await p.evaluate(() => cambiar({ topeMesas: 6 })); await p.waitForTimeout(500);
+await cierra(p);
+
+// ingreso por tamaño en la tarjeta de la derecha del capítulo 2 (techo teórico, tres escenarios de la curva de pago a la vez)
+await abre(p, 'linea');
+const pt2 = await p.evaluate(() => MOD.potencialPorTramo(config(S), sup(S)).tramos.map((t) => ({ chef: Math.round(t.en_chef), media: Math.round(t.ingreso_de_suscripcion_al_mes.por_curva_de_pago.media), peor: Math.round(t.ingreso_de_suscripcion_al_mes.por_curva_de_pago.pesimista), mejor: Math.round(t.ingreso_de_suscripcion_al_mes.por_curva_de_pago.optimista) })));
+for (const i of [0, 2]) {
+  await p.click(`#svLinea [data-i="${i}"]`); await p.waitForTimeout(500);
+  const tx = await texto(p, '#svLinea');
+  ok(tx.includes('Ingreso de este tamaño') && tx.includes(f7(pt2[i].media)) && tx.includes(f7(pt2[i].peor)) && tx.includes(f7(pt2[i].mejor)) && tx.includes('Techo teórico'), 'capítulo 2: el tramo ' + i + ' muestra su ingreso en los tres escenarios (' + f7(pt2[i].peor) + ' · ' + f7(pt2[i].media) + ' · ' + f7(pt2[i].mejor) + ') con la advertencia de techo teórico');
+  ok(i === 0 ? tx.includes('Anuncios, si todos los de Chef') : tx.includes('ninguno cae en este tamaño'), 'capítulo 2: el tramo ' + i + (i === 0 ? ' muestra los anuncios de Chef' : ' dice que ninguno cae en Chef'));
+}
+await sinDesborde(p, 'capítulo 2 (ingreso por tamaño)'); await cierra(p);
+
+// el control del tope de platillos ofrece las cuatro opciones
+await abre(p, 'topes');
+for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForTimeout(300); ok((await texto(p, '#svT')).includes(String(v)), 'capítulo 6: el control marca ' + v + ' platillos'); }
+await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
+await cierra(p);
 
 // capítulo 9: cómo gana dinero Carta, y el sueldo del fundador con los tres escenarios a la vez
 await abre(p, 'modelo');
@@ -285,7 +320,7 @@ await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
 await p.click('#verDecisiones'); await p.waitForTimeout(450);
 ok((await p.$$('.rcard')).length === 8 && (await p.evaluate(() => REC.decisiones[1].id)) === 'tope_platillos', 'decisiones: ocho, y la 2 es el tope de platillos');
-ok((await texto(p, '#r_tope_platillos')).includes('decidido'), 'decisiones: el tope de platillos se presenta como decidido (cuenta todo)');
+ok((await texto(p, '#r_tope_platillos')).includes('por decidir') && (await p.$$('#r_tope_platillos svg g[data-tip]')).length === 4, 'decisiones: el tope de platillos está por decidir, con las cuatro opciones a la vista');
 await p.click('[data-mas="dos_planes"]'); await p.waitForTimeout(150);
 await p.click('#r_dos_planes .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 5, 'recomendaciones: «Probar esta» aplica 5 mesas');

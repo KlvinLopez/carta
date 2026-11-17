@@ -33,6 +33,7 @@ DET.sostiene = {
   pinta() { const o = [this.v0, this.v1, this.v2, this.v3, this.v4][this.v].call(this); return o; },
   v0() { // ¿hasta dónde aguanto con todos gratuitos?
     const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
+    const RR8 = conCache("rec8", () => MOD.recursos(c, s, "hoy"));
     const tabla = conCache("tg", () => MOD.tablaTodosGratuitos(c, s).medida);
     const rs = conCache("rs", () => ({baja: MOD.rangoSePagaSolo(c, s, "baja"), medio: MOD.rangoSePagaSolo(c, s, "medio"), adverso: MOD.rangoSePagaSolo(c, s, "adverso")})), rg = r => `${n(r.minimo)}–${r.maximo == null ? "nunca" : n(r.maximo)}`;
     const desde = {baja: rs.baja.centro, medio: rs.medio.centro, adverso: rs.adverso.centro};
@@ -57,7 +58,7 @@ DET.sostiene = {
     [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2) + T(px + i * 96, 456, `rango ${rg(rs[k])}`, 11, C.t2); });
     const bolSin = conCache("bolsaSin" + S.bolsa, () => MOD.rangoBolsa(MOD.conHistorialGratuito(c, s, 12), s, S.bolsa));
     b += `<rect x="30" y="462" width="900" height="24" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que no cuenta este cálculo|" + bol.no_modelado.length + " cosas|Moderar anuncios, la comisión de la red de anuncios y los impuestos; se miden en el piloto.")}" tabindex="0"/>` + T(30, 478, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) con historial a 30 días (propuesta);`, 14, C.osc, "start", 700) + T(30, 498, `sin purga caben ${n(bolSin.centro.restaurantes)}: hoy nada limpia el disco. El costo y el margen suponen la purga a 30 días.`, 14, C.rojo, "start", 700);
-    b += T(30, 524, "Vale con la Fase 3 (canal de eventos); hoy, con sondeo, caben 148 con 30 días y 23 sin purga. Los umbrales son rangos.", 12, C.t2);
+    b += T(30, 524, `Vale con la Fase 3 (canal de eventos); hoy, con sondeo, caben ${n(RR8.cuello_hoy.con_historial_30_dias.restaurantes)} con 30 días y ${n(RR8.cuello_hoy.restaurantes)} sin purga. Los umbrales son rangos.`, 12, C.t2);
     sv.innerHTML = b;
     this.invN = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
     if (!sv.__arrN) {
@@ -189,11 +190,27 @@ const PARCHES = {
   avisos_reloj: [null, null],
 };
 const segC = (mesas, cuentas, plat) => 100 * chef05({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas}}});
+const costoPl = () => conCache("costoPl", () => MOD.costoDePlatillo(config(S), sup(S)));
+/* las cuatro opciones del tope de platillos, lado a lado: a cuántas cartas les cabe, cuántos pagan y lo técnico en llano */
+function opcionesPlatillos() {
+  const cp = costoPl(), f = cp.filas, f150 = f[f.length - 1], X0 = 2, CW = 214;
+  const cols = [];
+  f.forEach((q, i) => {
+    let b = ""; const x = X0, on = S.topePlatillos === q.platillos, cb = q.cobertura_de_platillos, lo = 100 * cb.baja, hi = 100 * cb.alta, dp = q.clientes_de_paga_por_1000_por_el_tope - f150.clientes_de_paga_por_1000_por_el_tope;
+    b += `<g data-tip="${esc2(`${q.platillos} platillos|caben ${n(lo)}–${n(hi)} % de las cartas|${n(q.clientes_de_paga_por_1000_por_el_tope)} de paga por 1,000; fotos ${n(q.fotos_en_r2.gb_por_restaurante, 2)} GB y menú de ${n(q.menu.json_bytes / 1000)} KB.`)}" tabindex="0">` + Rc(x, 4, CW, 292, on ? "#f6e9d4" : "#fff", 22, `stroke="${on ? C.vino : C.arena}" stroke-width="${on ? 3 : 1.5}"`);
+    b += Rc(x + 14, 16, CW - 28, 32, on ? C.vino : C.dorado, 16) + T(x + CW / 2, 38, `${q.platillos} platillos`, 15, "#fff", "middle", 700);
+    b += T(x + 16, 76, "cartas a las que les cabe", 11.5, C.t2, "start", 700) + Rc(x + 16, 84, CW - 32, 16, C.a2, 8) + Rc(x + 16 + (CW - 32) * cb.baja, 84, Math.max((CW - 32) * (cb.alta - cb.baja), 4), 16, C.vino, 8) + T(x + 16, 128, `${n(lo)}–${n(hi)} %`, 20, C.vino, "start", 400, true);
+    b += T(x + 16, 148, "de paga por cada 1,000", 11.5, C.t2, "start", 700) + T(x + 16, 176, n(q.clientes_de_paga_por_1000_por_el_tope), 30, C.tinta, "start", 400, true) + (i < f.length - 1 ? T(x + 76, 174, `+${n(dp)} frente a ${f150.platillos}`, 12, C.verde, "start", 700) : T(x + 76, 174, "el tope de hoy", 12, C.t2, "start", 700));
+    b += T(x + 16, 208, "disco: no cambia (" + n(q.base_de_datos.bytes_por_platillo) + " bytes c/u)", 11.5, C.tinta, "start", 700) + T(x + 16, 228, `fotos en R2: ${n(q.fotos_en_r2.gb_por_restaurante, 2)} GB por negocio`, 11.5, C.tinta, "start", 700) + T(x + 16, 248, `menú del teléfono: ${n(q.menu.json_bytes / 1000)} KB`, 11.5, C.tinta, "start", 700) + T(x + 16, 268, `procesador: casi nada (${n(100 * q.menu.parte_de_un_nucleo, 2)} %)`, 11.5, C.tinta, "start", 700) + `</g>`;
+    cols.push(`<div class="viz"><svg viewBox="0 0 218 300" role="img" aria-label="${q.platillos} platillos" font-family="DM Sans, sans-serif">${b}</svg></div>`);
+  });
+  return `<div class="opl">${cols.join("")}</div><div class="seg">${f.map(q => `<button class="btn${S.topePlatillos === q.platillos ? " on" : ""}" data-aplica='${JSON.stringify({topePlatillos: q.platillos})}'>${S.topePlatillos === q.platillos ? "✓ " : "Probar "}${q.platillos}</button>`).join("")}</div>`;
+}
 const TARJ = {
   tope_platillos: {
-    que: "Tope de platillos de Chef: 150, cuenta todo (decidido)",
-    cif: () => { const cb = MOD.coberturaChef(config({...S, platSel: "todo", topePlatillos: 150}), SP).todo; return [n(100 * cb.baja) + "–" + n(100 * cb.alta) + " %", "de los negocios chicos queda en Chef con 150 platillos: dos muestras de cartas con sesgos opuestos"]; },
-    si: () => "Calvin decidió que el tope cuenta todo, bebidas incluidas; las dos muestras dan la banda.",
+    que: "Tope de platillos de Chef: por decidir (50, 80, 100 o 150; cuenta todo, decidido)",
+    cif: () => { const f = costoPl().filas; return [`${n(f[f.length - 1].clientes_de_paga_por_1000_por_el_tope)} a ${n(f[0].clientes_de_paga_por_1000_por_el_tope)}`, "de paga por cada 1,000 restaurantes, de 150 a 50 platillos"]; },
+    si: () => "El tope no es una decisión de servidores: el disco no se mueve y el procesador casi nada. Es de cuántos pagan y a cuántos les cabe la carta.",
     rec: -1,
   },
   dos_planes: {
@@ -255,7 +272,7 @@ DET.recomendaciones = {
         const rec = i === tj.rec, p = parches[i], on2 = aplicadaP(p);
         return `<div class="opcion${rec ? " rec" : ""}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h4>${esc(a.opcion.replace(/ ?\((.*?)recomendad[oa](.*?)\)/, ""))}</h4>${rec ? '<span class="et prop">recomendado</span>' : ""}</div><ul><li class="pro">+ ${esc(sinMd(a.pros))}</li><li class="con">− ${esc(sinMd(a.contras))}</li></ul>${p ? `<button class="btn${on2 ? " on" : ""}" data-aplica='${JSON.stringify(p)}'>${on2 ? "✓ aplicado" : rec ? "Aplicar" : "Probar esta"}</button>` : ""}</div>`;
       };
-      $("#r_" + r.id).innerHTML = `<div class="num">${k + 1}</div><h3>${esc(tj.que)}</h3><div class="por"><b>${esc(cif)}</b><span>${esc(sub)}</span></div><div class="si"><i>Si no</i>${esc(tj.si())}</div><div class="acc2">${pr ? `<button class="btn${on ? " on" : ""}" data-aplica='${JSON.stringify(pr)}'>${on ? "✓ aplicado" : "Aplicar al escenario"}</button>` : ""}<button class="btn" data-mas="${r.id}" aria-expanded="false">ver más ›</button></div><div id="mas_${r.id}" hidden><div class="tarjetas" style="margin-top:10px">${r.alternativas.map(op).join("")}</div><div class="ejemplo"><b>Con un restaurante concreto:</b> ${esc(sinMd(r.ejemplo))}</div><div class="ejemplo" style="background:#f6e4e4"><b>De qué depende:</b> ${esc(sinMd(r.depende))}</div><p style="font-size:13px"><b>Prueba que lo cambiaría:</b> ${esc(sinMd(r.prueba))}</p></div>`;
+      $("#r_" + r.id).innerHTML = `<div class="num">${k + 1}</div><h3>${esc(tj.que)}</h3><div class="por"><b>${esc(cif)}</b><span>${esc(sub)}</span></div><div class="si"><i>Si no</i>${esc(tj.si())}</div>${r.id === "tope_platillos" ? opcionesPlatillos() : ""}<div class="acc2">${pr ? `<button class="btn${on ? " on" : ""}" data-aplica='${JSON.stringify(pr)}'>${on ? "✓ aplicado" : "Aplicar al escenario"}</button>` : ""}<button class="btn" data-mas="${r.id}" aria-expanded="false">ver más ›</button></div><div id="mas_${r.id}" hidden><div class="tarjetas" style="margin-top:10px">${r.alternativas.map(op).join("")}</div><div class="ejemplo"><b>Con un restaurante concreto:</b> ${esc(sinMd(r.ejemplo))}</div><div class="ejemplo" style="background:#f6e4e4"><b>De qué depende:</b> ${esc(sinMd(r.depende))}</div><p style="font-size:13px"><b>Prueba que lo cambiaría:</b> ${esc(sinMd(r.prueba))}</p></div>`;
     });
     const m = motor(S);
     return {cifras: [[n(m.caben), "restaurantes caben con lo aplicado"], [mxn(S.precioServicio), "Master Chef al mes", "propuesta"], [mp(m.margen), "margen de operación con 1,000 restaurantes", "supuesto"], [emTxt(m), "se pasa del plan Chef", "supuesto"]], insight: "Aplica una y las cifras de arriba cambian: lo recomendado es el punto de partida."};
