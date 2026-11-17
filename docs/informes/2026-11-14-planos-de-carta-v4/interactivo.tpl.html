@@ -170,6 +170,12 @@ main{padding-block:12px 28px}
 .r7g{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px;margin-top:12px;align-items:start}.r7c1,.r7c2{display:flex;flex-direction:column;gap:12px}
 .r7 .viz svg{min-height:0;max-height:none}
 @media(max-width:900px){.r7g{grid-template-columns:minmax(0,1fr)}}
+.r7L{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr);gap:14px;align-items:start}
+.r7L .r7p{display:flex;flex-direction:column;position:sticky;top:var(--kh,150px);max-height:calc(100vh - var(--kh,150px) - 12px);overflow:auto}
+.r7L .r7g{margin-top:0}
+@media(max-width:1000px){.r7L{grid-template-columns:minmax(0,1fr)}.r7L .r7p{position:static;max-height:none}}
+@media(max-width:1250px){.r7L .r7g{grid-template-columns:minmax(0,1fr)}}
+
 /* film de producto */
 #film{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;background:#171210;font-family:'DM Sans',sans-serif}
 #film .fbg,#film .ft,#film #fcam{position:absolute;inset:0}

@@ -28,6 +28,8 @@ DET.sostiene = {
     const bk = $("#banK"); bk.hidden = this.v !== 1; bk.innerHTML = BAND.banderas.map(b => `<span class="chip" data-tip="${esc2(b.nombre.replace(/ \(.*\)/, "") + "|avisa a " + b.umbral_aviso + ", actúa a " + b.umbral_accion + "|" + pal20(b.que_hacer, 20))}" tabindex="0">${esc(b.nombre.replace(/ \(.*\)/, ""))} <b>${b.umbral_aviso}/${b.umbral_accion}</b></span>`).join("");
     return this.pinta();
   },
+  /* al arrastrar el punto: se redibuja y el hallazgo de abajo cuenta con el mismo número */
+  sigue() { const o = this.pinta(), h = document.querySelector("#cap-sostiene .caphall"); if (o && o.insight) { if (h) h.innerHTML = `<b>Hallazgo.</b> ${esc(o.insight)}`; const d = document.querySelector("#det #ins"); if (d) d.innerHTML = `<b>Insight clave.</b> ${esc(o.insight)}`; } },
   pinta() { const o = [this.v0, this.v1, this.v2, this.v3, this.v4][this.v].call(this); return o; },
   v0() { // ¿hasta dónde aguanto con todos gratuitos?
     const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
@@ -61,8 +63,8 @@ DET.sostiene = {
     if (!sv.__arrN) {
       sv.__arrN = true;
       const aX = ev => { const q = sv.createSVGPoint(); q.x = ev.clientX; q.y = ev.clientY; return q.matrixTransform(sv.getScreenCTM().inverse()); };
-      sv.addEventListener("pointerdown", ev => { if (this.v !== 0 || !ev.target.closest("#hN")) return; sv.setPointerCapture(ev.pointerId); sv.__dN = true; ev.preventDefault(); this.N = this.invN(aX(ev).x); this.pinta(); });
-      sv.addEventListener("pointermove", ev => { if (sv.__dN) { this.N = this.invN(aX(ev).x); this.pinta(); } });
+      sv.addEventListener("pointerdown", ev => { if (this.v !== 0 || !ev.target.closest("#hN")) return; sv.setPointerCapture(ev.pointerId); sv.__dN = true; ev.preventDefault(); this.N = this.invN(aX(ev).x); this.sigue(); });
+      sv.addEventListener("pointermove", ev => { if (sv.__dN) { this.N = this.invN(aX(ev).x); this.sigue(); } });
       const fin = () => { sv.__dN = false; };
       sv.addEventListener("pointerup", fin); sv.addEventListener("pointercancel", fin);
       sv.addEventListener("keydown", ev => { if (this.v === 0 && ev.target.closest("#hN") && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) { ev.preventDefault(); const d = ev.key === "ArrowRight" || ev.key === "ArrowUp" ? 1 : -1; this.N = clamp(this.N + d * (ev.shiftKey ? 5 : 1) * 10, 10, 2000); this.pinta(); const h = $("#hN", sv); if (h) h.focus(); } });

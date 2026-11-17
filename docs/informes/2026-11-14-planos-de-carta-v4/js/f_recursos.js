@@ -38,12 +38,12 @@ DET.recursos7 = {
   nota: "Modelo de escenarios r6 (docs/research/2026-11-14-recursos.mjs). Hoy ningún proceso purga el historial del plan gratuito; «30 días» es una propuesta que contradice 03 §7 y la regla 9: pide cambiar el documento y un ADR antes. Los límites de procesador están medidos en local (±2×) y faltan en Railway; las palancas llevan su marca «medido» o «estimado» en su hover. El restaurante típico (1,800 visitas al mes, 114 comensales al día) es un supuesto del simulador. Un escalón es un tamaño del servidor: cuántos procesos de la API corre, cuánto disco tiene y cuánto cuesta; se sube cuando un recurso se llena. Cada control conserva su valor hasta que lo muevas; los números pasan del valor anterior al nuevo.",
   montar(host) {
     this.est = "hoy"; this.sel = "procesador"; this.his = "sin"; this.n = null; this.vals = null; this.palKey = ""; this.akey = "";
-    host.innerHTML = `<div class="r7"><div class="r7p"><div class="r7pl"><div class="r7row"><span class="selr">Cómo se entera el teléfono:</span><div class="seg" id="estR"><button class="btn" data-est="hoy">Hoy: pregunta cada 3 s</button><button class="btn" data-est="avisos">Con avisos (Fase 3)</button></div></div><div class="r7row"><span class="selr">Historial guardado del plan gratuito:</span><div class="seg" id="hisR">${HIS.map(h => `<button class="btn" data-his="${h[0]}">${h[1]}</button>`).join("")}</div></div><div class="r7w" id="hisW"></div><div class="r7row rdesl"><label for="rN">Restaurantes en la plataforma</label><input type="range" id="rN" min="0" max="1200" step="1" value="23"><output id="rNv">23</output></div></div><div class="r7pr"><span class="selr">Palancas (lo que hay que hacer):</span><div class="r7ch" id="palR"></div></div></div><div class="r7g"><div class="r7c1"><div class="viz"><svg id="svM" viewBox="0 0 700 410" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svE" viewBox="0 0 700 350" role="img" font-family="DM Sans, sans-serif"></svg></div></div><div class="r7c2"><div class="viz"><svg id="svH" viewBox="0 0 380 450" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svA" viewBox="0 0 380 270" role="img" font-family="DM Sans, sans-serif"></svg></div></div></div></div>`;
+    host.innerHTML = `<div class="r7 r7L"><div class="r7p"><div class="r7pl"><div class="r7row"><span class="selr">Cómo se entera el teléfono:</span><div class="seg" id="estR"><button class="btn" data-est="hoy">Hoy: pregunta cada 3 s</button><button class="btn" data-est="avisos">Con avisos (Fase 3)</button></div></div><div class="r7row"><span class="selr">Historial guardado del plan gratuito:</span><div class="seg" id="hisR">${HIS.map(h => `<button class="btn" data-his="${h[0]}">${h[1]}</button>`).join("")}</div></div><div class="r7w" id="hisW"></div><div class="r7row rdesl"><label for="rN">Restaurantes en la plataforma</label><input type="range" id="rN" min="0" max="1200" step="1" value="23"><output id="rNv">23</output></div></div><div class="r7pr"><span class="selr">Palancas (lo que hay que hacer):</span><div class="r7ch" id="palR"></div></div></div><div class="r7g"><div class="r7c1"><div class="viz"><svg id="svM" viewBox="0 0 700 410" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svE" viewBox="0 0 700 350" role="img" font-family="DM Sans, sans-serif"></svg></div></div><div class="r7c2"><div class="viz"><svg id="svH" viewBox="0 0 380 450" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svA" viewBox="0 0 380 270" role="img" font-family="DM Sans, sans-serif"></svg></div></div></div></div>`;
     $("#rN", host).addEventListener("input", ev => { this.n = +ev.target.value; this.apunta(); });
     host.addEventListener("click", ev => {
       const e = ev.target.closest("[data-est]"); if (e) { this.est = e.dataset.est; refrescar(); return; }
       const h = ev.target.closest("[data-his]"); if (h) { this.his = h.dataset.his; refrescar(); return; }
-      const r = ev.target.closest("[data-rec]"); if (r) { this.sel = r.dataset.rec; refrescar(); return; }
+      const r = ev.target.closest("[data-rec]"); if (r) { this.sel = r.dataset.rec; this.tocado = true; refrescar(); return; }
       const p = ev.target.closest("[data-pal]"); if (p) { const id = p.dataset.pal, ps = S.palancas || []; cambiar({palancas: ps.includes(id) ? ps.filter(x => x !== id) : [...ps, id]}); }
     });
     host.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { const t = ev.target.closest("[data-rec]"); if (t) { ev.preventDefault(); t.dispatchEvent(new MouseEvent("click", {bubbles: true})); } } });
@@ -62,6 +62,7 @@ DET.recursos7 = {
     this.esc = conCache("esc7|" + this.est + "|" + mH, () => MOD.recursos(config(S), sup(S), {canal: hoy ? "sondeo" : "eventos", meses_historial: mH}).escalera);
     this.r = r; this.hoy = hoy; this.clave = clave; this.ck = hoy ? "hoy" : "con_eventos";
     const caps = this.caps(); this.cuello = caps.reduce((m, x) => (x.v < m.v ? x : m), caps[0]);
+    if (!this.tocado) this.sel = this.cuello.recurso;
     if (this.n == null) this.n = this.cuello.v;
     $("#hisW").textContent = this.his === "30d" ? "Contradice 03 §7 y la regla 9: cambia el documento y un ADR antes." : this.his === "sin" ? "Hoy nada limpia el historial: el disco manda desde el segundo mes." : "";
     this.pintaPalancas();
@@ -173,7 +174,7 @@ DET.recursos7 = {
   },
   /* la animación del recurso elegido: sólo se redibuja si cambia lo que anima (si no, se reiniciaría en cada cuadro) */
   pintaA() {
-    const key = [this.sel, this.hoy, (S.palancas || []).join()].join("|"); if (key === this.akey) return; this.akey = key;
+    const key = [this.sel, this.hoy, this.his, (S.palancas || []).join()].join("|"); if (key === this.akey) return; this.akey = key;
     const r = this.r, hoy = this.hoy, br = REC_BREVE[this.sel];
     let b = Rc(0, 0, 380, 270, C.a2, 22) + T(20, 30, REC_NOM[this.sel], 17, C.vino, "start", 400, true) + this.anima(0, 40, hoy, r);
     b += T(20, 236, br[1], 12, C.tinta, "start", 700) + T(20, 254, this.sel === "procesador" ? (hoy ? "Casi siempre la respuesta es «nada nuevo»." : br[2]) : br[2], 12, C.t2);
@@ -202,3 +203,7 @@ DET.recursos7 = {
     return o;
   },
 };
+
+/* la columna de parámetros del capítulo 7 se fija debajo de las seis cifras: mide su altura */
+const medirKh = () => { const k = document.getElementById("kpis"); if (k) document.documentElement.style.setProperty("--kh", (k.offsetHeight + 8) + "px"); };
+addEventListener("resize", medirKh); addEventListener("load", medirKh); setTimeout(medirKh, 400);
