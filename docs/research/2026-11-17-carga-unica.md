@@ -16,7 +16,9 @@ Generado por `2026-11-17-carga-unica.mjs`. **Qué cambió (ronda 11):** un resta
 | Margen de operación con 1,000 restaurantes, peor (pesos al mes) | +2,390 | +2,388 |
 | Margen de operación con 1,000 restaurantes, mejor (pesos al mes) | +65,664 | +61,364 |
 | Margen de operación con 1,000 restaurantes, estrés (piso de verdad) (pesos al mes) | −1,109 | −1,532 |
-| Anuncios por restaurante gratuito (pesos al mes, tarifa media) | 4.31 | 2.58 |
+| Anuncios por restaurante gratuito, tarifa baja (escenario recomendado; pesos al mes) | 4.31 | 2.58 |
+| Anuncios por restaurante gratuito, tarifa media (pesos al mes) | 17.22 | 10.33 |
+| Anuncios por restaurante gratuito, tarifa alta (pesos al mes) | 45.51 | 27.31 |
 | Costo por restaurante gratuito con soporte (pesos al mes) | 1.19 | 1.03 |
 | Gratuitos que sostiene cada cliente de paga, sin anuncios | 125 | 144 |
 | Mes 12 con 300 restaurantes: ingresos (pesos) | 8,964 | 8,507 |
@@ -36,7 +38,7 @@ Generado por `2026-11-17-carga-unica.mjs`. **Qué cambió (ronda 11):** un resta
 | Restaurantes registrados que caben, sin purga | 23 | 41 |
 
 **Por qué:**
-- **Margen:** El gratuito de los topes (6 mesas) carga 1,080 visitas al mes y no 1,800: 60 % del típico. Eso baja el costo de servidor y disco por gratuito (1.19 → 1.03 pesos con soporte) y también sus anuncios (4.31 → 2.58 pesos), porque las visitas con la app son proporcionales; las fotos del tope de platillos suben el costo de R2 (0.05 → 0.37 GB por gratuito, supuesto).
+- **Margen:** El gratuito de los topes (6 mesas) carga 1,080 visitas al mes y no 1,800: 60 % del típico. Eso baja el costo de servidor y disco por gratuito (1.19 → 1.03 pesos con soporte) y también sus anuncios (tarifa baja, la del escenario recomendado: 4.31 → 2.58 pesos; tarifa media: 17.22 → 10.33), porque las visitas con la app son proporcionales; las fotos del tope de platillos suben el costo de R2 (0.05 → 0.37 GB por gratuito, supuesto).
 - **Gratuitos que sostiene cada pagante:** Sin anuncios cada cliente de paga sostiene 125 → 144 gratuitos: el servidor y el disco de un gratuito son proporcionales a su carga (60 % del típico), el soporte (0.5 pesos, supuesto) no, y la suscripción no cambia. Con anuncios el gratuito se paga solo en los dos casos.
 - **Mes 12:** Con 300 restaurantes (misma adopción): ingresos 8,964 → 8,507 (menos anuncios por gratuito), margen de operación 5,749 → 5,292.
 - **Sueldo:** Para 1 salario mínimo hacen falta 550 → 600 restaurantes (mes 21 → 22): el margen por restaurante cambia con el costo y los anuncios de cada gratuito.
@@ -45,7 +47,7 @@ Generado por `2026-11-17-carga-unica.mjs`. **Qué cambió (ronda 11):** un resta
 
 ## 2. Sensibilidad al supuesto que ahora mueve todo: visitas por mesa al mes
 
-| Visitas por mesa al mes | Visitas del gratuito al mes | Margen recomendado, 1,000 restaurantes | Margen peor | Gratuitos que sostiene un pagante (sin anuncios) | Anuncios por gratuito | Caben con avisos / con sondeo / sin purga | Bolsa de 1,000 pesos |
+| Visitas por mesa al mes | Visitas del gratuito al mes | Margen recomendado, 1,000 restaurantes | Margen peor | Gratuitos que sostiene un pagante (sin anuncios) | Anuncios por gratuito (tarifa baja) | Caben con avisos / con sondeo / sin purga | Bolsa de 1,000 pesos |
 |---|---|---|---|---|---|---|---|
 | 90 | 540 | +17,505 | +2,449 | 171 | 1.29 | 215 / 215 / 71 | 985 |
 | 180 | 1,080 | +18,591 | +2,388 | 144 | 2.58 | 182 / 173 / 41 | 809 |

@@ -21,6 +21,11 @@
       "piso_de_verdad": -1109.0054318465645
     },
     "ingreso_de_anuncios_por_gratuito": 4.305,
+    "ingreso_de_anuncios_por_gratuito_por_tarifa": {
+      "baja": 4.305,
+      "media": 17.22,
+      "alta": 45.51
+    },
     "costo_por_gratuito": 1.190690866140888,
     "gratuitos_que_sostiene_un_pagante": {
       "con_anuncios": null,
@@ -110,6 +115,11 @@
       "piso_de_verdad": -1531.5179892723208
     },
     "ingreso_de_anuncios_por_gratuito": 2.583,
+    "ingreso_de_anuncios_por_gratuito_por_tarifa": {
+      "baja": 2.583,
+      "media": 10.332,
+      "alta": 27.306
+    },
     "costo_por_gratuito": 1.03062436666599,
     "gratuitos_que_sostiene_un_pagante": {
       "con_anuncios": null,
@@ -185,7 +195,7 @@
     "bolsa_con_sondeo_de_hoy": 246
   },
   "por_que": {
-    "margen": "El gratuito de los topes (6 mesas) carga 1,080 visitas al mes y no 1,800: 60 % del típico. Eso baja el costo de servidor y disco por gratuito (1.19 → 1.03 pesos con soporte) y también sus anuncios (4.31 → 2.58 pesos), porque las visitas con la app son proporcionales; las fotos del tope de platillos suben el costo de R2 (0.05 → 0.37 GB por gratuito, supuesto).",
+    "margen": "El gratuito de los topes (6 mesas) carga 1,080 visitas al mes y no 1,800: 60 % del típico. Eso baja el costo de servidor y disco por gratuito (1.19 → 1.03 pesos con soporte) y también sus anuncios (tarifa baja, la del escenario recomendado: 4.31 → 2.58 pesos; tarifa media: 17.22 → 10.33), porque las visitas con la app son proporcionales; las fotos del tope de platillos suben el costo de R2 (0.05 → 0.37 GB por gratuito, supuesto).",
     "gratuitos_que_sostiene": "Sin anuncios cada cliente de paga sostiene 125 → 144 gratuitos: el servidor y el disco de un gratuito son proporcionales a su carga (60 % del típico), el soporte (0.5 pesos, supuesto) no, y la suscripción no cambia. Con anuncios el gratuito se paga solo en los dos casos.",
     "mes_12": "Con 300 restaurantes (misma adopción): ingresos 8,964 → 8,507 (menos anuncios por gratuito), margen de operación 5,749 → 5,292.",
     "sueldo": "Para 1 salario mínimo hacen falta 550 → 600 restaurantes (mes 21 → 22): el margen por restaurante cambia con el costo y los anuncios de cada gratuito.",
