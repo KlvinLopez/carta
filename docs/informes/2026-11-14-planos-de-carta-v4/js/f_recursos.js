@@ -185,11 +185,27 @@ DET.recursos7 = {
     const W = 330, H = 130, X0 = 25, Y0 = 400, mx = 300, Y = v => Y0 - H * Math.min(v, mx) / mx;
     b += Rc(0, 146, 380, 304, "#fff", 22) + T(20, 172, "Restaurantes que caben por disco,", 12.5, C.vino, "start", 700) + T(20, 188, "según los meses de historial guardado", 12.5, C.vino, "start", 700);
     const pts = f.map((q, i) => ({x: X0 + 22 + i * (W - 44) / (f.length - 1), v: V["cv" + i] ?? q.restaurantes_por_disco, m: q.meses_historial, et: q.meses_historial === "03§7" ? "03 §7" : q.meses_historial === 1 ? "30 días" : q.meses_historial + " m", real: q.restaurantes_por_disco}));
-    if (hoy) b += Rc(X0, Y(rg[1]), W, Math.max(Y(rg[0]) - Y(rg[1]), 2), "rgba(79,23,40,.12)", 0) + `<line x1="${X0}" x2="${X0 + W}" y1="${Y(this.procHoy)}" y2="${Y(this.procHoy)}" stroke="${C.osc}" stroke-width="2" stroke-dasharray="6 4"/>` + T(X0 + W, Y(this.procHoy) - 6, `procesador ${n(this.procHoy)} (${n(rg[0])}–${n(rg[1])})`, 11, C.osc, "end", 700);
-    else b += T(X0 + W, 208, `procesador con avisos: ${n(this.procEv)} (fuera de escala)`, 11, C.osc, "end", 700);
+    // etiquetas: ninguna encima de una línea, de un punto ni de otra etiqueta (cada una busca un lugar libre)
+    const cajas = [], choca = (q, c) => !(q.x2 < c.x1 || q.x1 > c.x2 || q.y2 < c.y1 || q.y1 > c.y2), caja = (x, y, w, h, anc = "middle") => ({x1: anc === "middle" ? x - w / 2 : anc === "end" ? x - w : x, x2: anc === "middle" ? x + w / 2 : anc === "end" ? x : x + w, y1: y - h + 3, y2: y + 4});
+    const yP = this.procHoy != null ? Y(this.procHoy) : null;
+    pts.forEach(q => { cajas.push({x1: q.x - 9, x2: q.x + 9, y1: Y(q.v) - 9, y2: Y(q.v) + 9}); cajas.push(caja(q.x, Y0 + 20, 44, 14)); });
+    if (hoy) {
+      const et = `procesador ${n(this.procHoy)} (${n(rg[0])}–${n(rg[1])})`, w = et.length * 6.9;
+      b += Rc(X0, Y(rg[1]), W, Math.max(Y(rg[0]) - Y(rg[1]), 2), "rgba(79,23,40,.12)", 0) + `<line x1="${X0}" x2="${X0 + W}" y1="${yP}" y2="${yP}" stroke="${C.osc}" stroke-width="2" stroke-dasharray="6 4"/>`;
+      cajas.push({x1: X0, x2: X0 + W, y1: yP - 3, y2: yP + 3});
+      const pos = [["end", X0 + W, yP - 10], ["start", X0, yP - 10], ["end", X0 + W, yP + 22], ["start", X0, yP + 22], ["end", X0 + W, yP - 30], ["start", X0, yP - 30]].map(([anc, x, y]) => ({anc, x, y, c: caja(x, y, w, 14, anc)}));
+      const ok = pos.find(k => !cajas.some(o => choca(k.c, o)) && k.y > 196 && k.y < Y0 - 2) || pos[0];
+      cajas.push(ok.c); b += T(ok.x, ok.y, et, 12, C.osc, ok.anc, 700);
+    } else b += T(X0 + W, 208, `procesador con avisos: ${n(this.procEv)} (fuera de escala)`, 12, C.osc, "end", 700);
     b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y0}" y2="${Y0}" stroke="${C.arena}" stroke-width="2"/><polyline points="${pts.map(q => q.x + "," + Y(q.v)).join(" ")}" fill="none" stroke="${C.dorado}" stroke-width="3" stroke-linejoin="round"/>`;
-    pts.forEach(q => { const on = q.m === selM; b += `<circle cx="${q.x}" cy="${Y(q.v)}" r="${on ? 8 : 5}" fill="${on ? C.rojo : C.dorado}"/>` + T(q.x, Y(q.v) - 13, n(q.real), 14, on ? C.rojo : C.tinta, "middle", 400, true) + T(q.x, Y0 + 20, q.et, 11, C.t2, "middle", 700); });
-    b += T(20, 440, `El disco pasa a mandar desde el mes ${r.mes_desde_el_que_manda_el_disco.con_sondeo} de operación.`, 11.5, C.t2, "start", 700);
+    pts.forEach(q => {
+      const on = q.m === selM, tx = n(q.real), w = tx.length * 8.4 + 6, yv = Y(q.v), cand = [];
+      [-15, 27, -34, 46, -53, 65, -72].forEach(dy => [0, -22, 22].forEach(dx => { const x = clamp(q.x + dx, 14, 366); cand.push({x, y: yv + dy, c: caja(x, yv + dy, w, 16)}); }));
+      const ok = cand.find(k => !cajas.some(o => choca(k.c, o)) && k.y > 196 && k.y < Y0 - 2) || cand[0];
+      cajas.push(ok.c);
+      b += `<circle cx="${q.x}" cy="${yv}" r="${on ? 8 : 5}" fill="${on ? C.rojo : C.dorado}"/>` + T(ok.x, ok.y, tx, 14, on ? C.rojo : C.tinta, "middle", 400, true) + T(q.x, Y0 + 20, q.et, 12, C.t2, "middle", 700);
+    });
+    b += T(20, 440, `El disco pasa a mandar desde el mes ${r.mes_desde_el_que_manda_el_disco.con_sondeo} de operación.`, 12.5, C.t2, "start", 700);
     $("#svH").innerHTML = b;
   },
   /* la animación del recurso elegido: sólo se redibuja si cambia lo que anima (si no, se reiniciaría en cada cuadro) */
@@ -209,11 +225,9 @@ DET.recursos7 = {
         if (hoy) o += `<circle r="6" fill="${C.dorado}" cx="${px + 66}" cy="${y}" opacity="0"><animate attributeName="opacity" values="1;1" begin="${i * 1}s" dur="0.01s" fill="freeze"/><animate attributeName="cx" values="${px + 66};${px + 262}" dur="3s" begin="${i * 1}s" repeatCount="indefinite"/></circle><circle r="5" fill="${C.t2}" cx="${px + 262}" cy="${y}" opacity="0"><animate attributeName="opacity" values=".6;.6" begin="${i * 1 + 0.5}s" dur="0.01s" fill="freeze"/><animate attributeName="cx" values="${px + 262};${px + 66}" dur="3s" begin="${i * 1 + 0.5}s" repeatCount="indefinite"/></circle>`;
         else o += `<circle r="7" fill="${C.verde}" cx="${px + 262}" cy="${y}" opacity="0"><animate attributeName="cx" values="${px + 262};${px + 66}" dur="9s" begin="${i * 3}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.05;0.3;0.35;1" dur="9s" begin="${i * 3}s" repeatCount="indefinite"/></circle>`; });
     } else if (this.sel === "disco") {
-      const bl = RYP.disco_a_fondo.bytes_por_visita_por_tabla, tot = RYP.disco_a_fondo.bytes_por_visita_total, ps = S.palancas || [];
-      const disco = r.recursos.find(x => x.recurso === "disco"), rat = ps.reduce((a, id) => { const p = disco.palancas.find(q => q.id === id); return p && p.mb_por_restaurante_antes ? a * (p.mb_por_restaurante_despues / p.mb_por_restaurante_antes) : a; }, 1);
-      let yy = py + 150; const k = 120 / tot;
-      bl.forEach((t, i) => { const an = t.tabla === "evento_analitica", h = Math.max(8, t.total_por_visita * k * (an ? Math.max(rat, 0.12) : 1)); yy -= h; o += `<g data-tip="${esc2(t.tabla.replace(/_/g, " ") + "|" + n(t.total_por_visita) + " bytes|Lo que esta tabla guarda por cada visita.")}">` + Rc(px + 24, yy, 150, h - 1.5, an ? C.dorado : ["#6b2d3e", "#7d4452", "#8f5a66", "#a17180", "#b3899a", "#c4a0ad", "#d4b9c2"][i % 7], 5) + `</g>` + (h > 14 ? T(px + 180, yy + h / 2 + 4, t.tabla.replace(/_/g, " "), 10.5, C.t2) : ""); });
-      o += T(px + 24, py + 172, `Una visita pesa ${n(tot)} bytes; ${n(100 * RYP.disco_a_fondo.parte_de_la_visita_que_es_analitica)} % es analítica`, 11.5, C.osc, "start", 700);
+      const h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), k = 120 / h.bytes_total; let yy = py + 150;
+      h.pasos.forEach((t, i) => { const an = t.tabla === "evento_analitica", hh = Math.max(8, t.bytes * k); yy -= hh; o += `<g data-tip="${esc2(t.tabla.replace(/_/g, " ") + "|" + n(t.bytes) + " bytes|De la mesa de " + h.comensales + " comensales.")}">` + Rc(px + 24, yy, 150, hh - 1.5, an ? C.dorado : ["#6b2d3e", "#7d4452", "#8f5a66", "#a17180", "#b3899a", "#c4a0ad", "#d4b9c2"][i % 7], 5) + `</g>` + (hh > 14 ? T(px + 180, yy + hh / 2 + 4, t.tabla.replace(/_/g, " "), 12, C.t2) : ""); });
+      o += T(px + 24, py + 172, `Una mesa de ${h.comensales} deja ${n(h.bytes_total)} bytes; ${n(100 * h.bytes_de_analitica / h.bytes_total)} % es analítica`, 12, C.osc, "start", 700);
     } else if (this.sel === "lineas") {
       [0, 1, 2, 3].forEach(i => { o += Rc(px + 24, py + 6 + i * 38, 26, 32, C.vino, 6) + `<line x1="${px + 54}" y1="${py + 22 + i * 38}" x2="${px + 266}" y2="${py + 78}" stroke="${C.dorado}" stroke-width="2.5" stroke-dasharray="6 5"><animate attributeName="stroke-dashoffset" values="0;-22" dur="1.2s" repeatCount="indefinite"/></line>`; });
       o += Rc(px + 270, py + 40, 56, 76, C.osc, 10) + T(px + 298, py + 84, "API", 13, "#fff", "middle", 700) + T(px + 24, py + 168, "Cada línea punteada queda abierta todo el rato.", 11.5, C.osc, "start", 700);

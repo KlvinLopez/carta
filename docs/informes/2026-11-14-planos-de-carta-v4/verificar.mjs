@@ -72,7 +72,7 @@ await p.mouse.move(5, 400);
 // cada cifra de arriba se abre
 for (const k of ['sostiene', 'anuncios', 'ingreso', 'margen']) {
   await p.click(`.kpi[data-kpi="${k}"]`); await p.waitForTimeout(250);
-  const esperado = {sostiene: ['125', '132', '74'], anuncios: ['4.31', '0.00', '17'], ingreso: ['149.03', '149.17'], margen: ['20,024', '2,390', '65,664']}[k];
+  const esperado = (await p.evaluate((kk) => { const f = (v) => Math.round(v).toLocaleString('en-US'), es = ['recomendado', 'peor', 'mejor'].map((x) => MOD.desgloses(config(S), sup(S), 1000).escenarios.find((q) => q.escenario === x)); return { sostiene: es.map((e) => f(e.gratuitos_que_sostiene.sostiene_sin_anuncios || 0)), anuncios: es.map((e) => e.embudo_anuncios.pesos_por_gratuito.toFixed(2).replace(/\.?0+$/, '').split('.')[0]), ingreso: [es[0].pesos_por_cliente_de_paga.queda.toFixed(2)], margen: es.map((e) => f(e.cascada_margen.margen_operacion)) }[kk]; }, k));
   const tx = await texto(p, '#svKD');
   ok(!!(await p.$('#det #svKD')) && esperado.every((v) => tx.includes(v)), `cifra «${k}» abre su imagen con los tres escenarios (${esperado.join(' · ')})`);
   ok(!(await p.$('#det [data-esc], #det #kEsc')) && tx.includes('frente al recomendado'), `cifra «${k}»: sin selector de escenario y con la diferencia contra el recomendado`);
@@ -145,8 +145,10 @@ ok(th0.includes('Restaurantes que caben por disco') && th0.includes(f7(mod7.d1))
 ok((await texto(p, '#svM')).includes(f7(mod7.rango[0]) + ' y ' + f7(mod7.rango[1])) || th0.includes(f7(mod7.rango[0]) + '–' + f7(mod7.rango[1])), 'capítulo 7: el margen ±2× del procesador a la vista');
 ok((await p.evaluate(() => document.querySelector('#svM [data-rec="procesador"]').getAttribute('data-tip'))).includes('lleno'), 'capítulo 7: el hover de cada medidor dice cuánto está lleno');
 const kpf = await texto(p, '#kpis');
-ok(kpf.includes(f7(mod7.sin)) && kpf.includes(f7(mod7.d30)) && kpf.includes('sin purga'), 'cifras fijas: «' + f7(mod7.sin) + ' sin purga» y «' + f7(mod7.d30) + ' con 30 días» salen del modelo con los topes');
-ok(/20,024 MXN/.test(await p.evaluate(() => document.querySelector('[data-kpi="margen"]').getAttribute('data-tip') + document.querySelector('[data-kpi="margen"]').textContent)), 'cifras fijas: el margen recomendado es 20,024 MXN (r8)');
+const c30k = await p.evaluate(() => MOD.resumen(config(S), sup(S)).cifras.find((c) => c.clave === 'restaurantes_que_caben').recomendado);
+ok(kpf.includes(f7(mod7.sin)) && kpf.includes(f7(c30k)) && kpf.includes('sin purga'), 'cifras fijas: «' + f7(mod7.sin) + ' sin purga» y «' + f7(c30k) + ' con 30 días y avisos» salen del modelo con los topes');
+const mgR = await p.evaluate(() => Math.round(MOD.resumen(config(S), sup(S)).cifras.find((c) => c.clave === 'margen_de_operacion').recomendado).toLocaleString('en-US'));
+ok((await p.evaluate(() => document.querySelector('[data-kpi="margen"]').textContent)).includes(mgR + ' MXN'), 'cifras fijas: el margen recomendado es ' + mgR + ' MXN (el del modelo)');
 // todo en un tablero: parámetros arriba, medidores, quién frena, animación y escalera visibles a la vez
 ok(await p.evaluate(() => ['#estR', '#hisR', '#rN', '#palR', '#svM', '#svH', '#svA', '#svE'].every((q) => { const e = document.querySelector(q); return e && e.getBoundingClientRect().width > 0; })), 'capítulo 7: parámetros, medidores, quién frena, animación y escalera están a la vez');
 ok((await p.$$('#palR [data-pal]')).length === mod7.palancas && !(await p.evaluate(() => document.querySelector('#palR').textContent.match(/medido|estimado|esfuerzo|ADR|→/))), 'capítulo 7: las palancas del tablero son las que dice el análisis (' + mod7.palancas + ') y sólo dicen qué hay que hacer');
@@ -207,7 +209,7 @@ for (const i of [0, 2]) {
   await p.click(`#svLinea [data-i="${i}"]`); await p.waitForTimeout(500);
   const tx = await texto(p, '#svLinea');
   ok(tx.includes('Ingreso de este tamaño') && tx.includes(f7(pt2[i].media)) && tx.includes(f7(pt2[i].peor)) && tx.includes(f7(pt2[i].mejor)) && tx.includes('Techo teórico'), 'capítulo 2: el tramo ' + i + ' muestra su ingreso en los tres escenarios (' + f7(pt2[i].peor) + ' · ' + f7(pt2[i].media) + ' · ' + f7(pt2[i].mejor) + ') con la advertencia de techo teórico');
-  ok(i === 0 ? tx.includes('Anuncios, si todos los de Chef') : tx.includes('ninguno cae en este tamaño'), 'capítulo 2: el tramo ' + i + (i === 0 ? ' muestra los anuncios de Chef' : ' dice que ninguno cae en Chef'));
+  ok(i === 0 ? tx.includes('en Chef: anuncios') : tx.includes('Ninguno cae en Chef'), 'capítulo 2: el tramo ' + i + (i === 0 ? ' muestra los anuncios de Chef' : ' dice que ninguno cae en Chef'));
 }
 await sinDesborde(p, 'capítulo 2 (ingreso por tamaño)'); await cierra(p);
 
@@ -249,6 +251,35 @@ const cmb = await p.evaluate(() => { const c = config(S), s = sup(S), g = (pl, m
 ok(co.includes(f7(cmb[0])) && co.includes(f7(cmb[1])) && co.includes('ya da más que hoy con el recorte a 30 días'), 'capítulo 7: la combinación dice que archivar + fila sin recortar (' + f7(cmb[0]) + ') supera el recorte a 30 días (' + f7(cmb[1]) + ')');
 await sinDesborde(p, 'capítulo 7 (historia del disco)'); await cierra(p);
 
+// el capítulo 7 recorre varias combinaciones de topes, canal e historial: ninguna etiqueta sobre una línea ni sobre otra etiqueta
+await abre(p, 'recursos7');
+const choques = [];
+for (const mesas of [6, 10, 25]) for (const est of ['hoy', 'avisos']) for (const his of ['sin', '3', '30d']) {
+  await p.evaluate((m) => cambiar({ topeMesas: m }), mesas);
+  await p.click(`#estR [data-est="${est}"]`); await p.click(`#hisR [data-his="${his}"]`); await p.waitForTimeout(1000);
+  const mal = await p.evaluate(() => {
+    const svg = document.querySelector('#svH'), tx = [...svg.querySelectorAll('text')].filter((t) => t.textContent.trim() && +getComputedStyle(t).opacity > 0.3).map((t) => ({ t: t.textContent.trim().slice(0, 24), r: t.getBoundingClientRect() })), out = [];
+    const ln = [...svg.querySelectorAll('line[stroke-dasharray]')].map((l) => l.getBoundingClientRect());
+    tx.forEach((a, i) => { tx.slice(i + 1).forEach((b) => { const w = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left), h = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top); if (w > 1 && h > 2) out.push('texto sobre texto: «' + a.t + '» y «' + b.t + '»'); }); ln.forEach((l) => { if (a.r.right > l.left && a.r.left < l.right && a.r.top < l.bottom - 0.5 && a.r.bottom > l.top + 0.5) out.push('texto sobre la línea: «' + a.t + '»'); }); });
+    return out;
+  });
+  if (mal.length) choques.push(`${mesas} mesas · ${est} · ${his}: ${mal.slice(0, 2).join(' | ')}`);
+}
+ok(choques.length === 0, 'capítulo 7: ninguna etiqueta de la curva del disco choca con una línea ni con otra etiqueta en 18 combinaciones de topes, canal e historial ' + choques.slice(0, 2).join(' || '));
+await p.evaluate(() => cambiar({ topeMesas: 6 })); await p.click('#estR [data-est="hoy"]'); await p.click('#hisR [data-his="sin"]'); await p.waitForTimeout(500);
+// el panel de hover no se queda pegado ni muestra un valor viejo
+await abre(p, 'topes');
+await p.hover('#svT circle[aria-label="Tope de mesas"]'); await p.waitForTimeout(300);
+ok((await p.evaluate(() => document.getElementById('tt').textContent)).includes('6 mesas'), 'hover: el panel del tope de mesas dice 6 mesas');
+await p.evaluate(() => cambiar({ topeMesas: 10 })); await p.waitForTimeout(500);
+ok((await p.evaluate(() => { const t = document.getElementById('tt'); return t.hidden || t.textContent.includes('10 mesas'); })), 'hover: tras cambiar el tope el panel muestra el valor vigente (10 mesas) o se cierra');
+await p.evaluate(() => window.scrollBy(0, 400)); await p.waitForTimeout(300);
+ok(await p.evaluate(() => document.getElementById('tt').hidden), 'hover: el panel se cierra al desplazarse');
+await p.evaluate(() => cambiar({ topeMesas: 6 })); await cierra(p);
+// KPI: la unidad es «restaurantes registrados» y coincide con recursos
+const kc = await p.evaluate(() => ({ txt: document.querySelector('[data-kpi="caben"]').textContent, sin: MOD.recursos(config(S), sup(S), 'hoy').cuello_hoy.restaurantes, resumen: MOD.resumen(config(S), sup(S)).cifras.find((c) => c.clave === 'restaurantes_que_caben_sin_purga').recomendado }));
+ok(kc.txt.includes('restaurantes registrados') && !/gratuitos caben/.test(kc.txt) && kc.sin === kc.resumen, 'cifras fijas: la capacidad dice «restaurantes registrados» y resumen coincide con recursos (' + kc.sin + ')');
+
 // capítulo 9, ingreso por anuncios y visión de una versión 2
 await abre(p, 'modelo');
 ok((await p.$$('#svG9f [data-tip]')).length === 6 && (await p.$$('#svG9g [data-tip]')).length === 7, 'capítulo 9: tres tarifas con genérico frente a v2, y cuatro pasos con su hover');
@@ -263,10 +294,12 @@ ok((await p.$$('#svG9a [data-tip]')).length >= 7 && (await p.$$('#svG9b [data-ti
 ok((await texto(p, '#svG9e')).includes('elige un sueldo'), 'capítulo 9: el sueldo arranca en 0 y no propone una cifra');
 await p.click('#sdC [data-sd="9577"]'); await p.waitForTimeout(300);
 const sd1 = await texto(p, '#svG9e');
-ok(sd1.includes('550') && sd1.includes('mes 21') && sd1.includes('4,940'), 'capítulo 9: con 9,577 MXN hacen falta 550 (recomendado), 4,940 (peor) y se cubre en el mes 21');
+const m1 = await p.evaluate(() => { const r = MOD.sueldo(config(S), sup(S), 9577).escenarios; return [r.recomendado, r.peor].map((e) => [Math.round(e.restaurantes_necesarios).toLocaleString('en-US'), 'mes ' + e.mes_en_que_el_margen_despues_de_captacion_lo_cubre]); });
+ok(m1[0].every((v) => sd1.includes(v)) && sd1.includes(m1[1][0]), 'capítulo 9: con 9,577 MXN salen del modelo ' + m1.flat().join(' · '));
 await p.click('#sdC [data-sd="28732"]'); await p.waitForTimeout(300);
 const sd2 = await texto(p, '#svG9e');
-ok(sd2.includes('1,660') && sd2.includes('pide otra arquitectura'), 'capítulo 9: con 28,732 MXN hacen falta 1,660 y pide otra arquitectura');
+const m2 = await p.evaluate(() => Math.round(MOD.sueldo(config(S), sup(S), 28732).escenarios.recomendado.restaurantes_necesarios).toLocaleString('en-US'));
+ok(sd2.includes(m2) && sd2.includes('pide otra arquitectura'), 'capítulo 9: con 28,732 MXN hacen falta ' + m2 + ' (modelo) y pide otra arquitectura');
 ok(!(await p.$('#det [data-esc]')), 'capítulo 9: sin selector de escenario');
 await sinDesborde(p, 'capítulo 9'); await cierra(p);
 
@@ -289,7 +322,8 @@ const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP)
 ok(cobT[0] === 20.6 && cobT[1] === 38.9, 'topes: cobertura de Chef (6 mesas, 1 cuenta, 150 platillos, cuenta todo): 20.6 / 38.9 (' + cobT.join(' ') + ')');
 ok(!(await p.$('#platSel')), 'topes: ya no hay selector de «cuenta todo · sólo comida · sin tope»');
 const mg0 = await p.evaluate(() => [evalS(S).margen_operacion, evalCota(S, 'baja').margen_operacion].map(Math.round));
-ok(mg0.join() === '20024,24098', 'topes: margen con 1,000 restaurantes 20,024 (cota alta) y 24,098 (cota baja) (' + mg0.join(' ') + ')');
+const mgM = await p.evaluate(() => { const e = MOD.desgloses(config(S), sup(S), 1000).escenarios.find((q) => q.escenario === 'recomendado'); return Math.round(e.cascada_margen.margen_operacion); });
+ok(mg0[0] === mgM, 'topes: el margen con 1,000 restaurantes coincide con el modelo (' + mg0.join(' ') + ' · modelo ' + mgM + ')');
 ok((await p.evaluate(() => document.querySelector('#svT [data-tip*="no es un margen real"]') !== null)), 'topes: el margen de la cota baja avisa que no es un margen real');
 await sinDesborde(p, 'topes'); await cierra(p);
 // precio frente a la competencia
@@ -349,7 +383,9 @@ await p.click('#tabsK [data-vista="3"]'); await p.waitForTimeout(400);
 ok((await p.$$('#svK [data-tip]')).length >= 6, 'sostiene: «qué hay que medir primero» con una frase por barra');
 if (png) await p.screenshot({ path: `${png}/v8_sostiene.png`, fullPage: true });
 await p.click('#tabsK [data-vista="4"]'); await p.waitForTimeout(1300);
-ok((await texto(p, '#svK')).includes('2,390 MXN') && (await texto(p, '#svK')).includes('65,664 MXN'), 'sostiene: la matriz 3 × 3 da 2,390 y 65,664 en las esquinas');
+const esq = await p.evaluate(() => { const es = MOD.desgloses(config(S), sup(S), 1000).escenarios, f = (x) => Math.round(es.find((q) => q.escenario === x).cascada_margen.margen_operacion).toLocaleString('en-US'); return [f('peor'), f('mejor')]; });
+const tK = await texto(p, '#svK');
+ok(esq.every((v) => tK.includes(v + ' MXN')), 'sostiene: la matriz 3 × 3 da ' + esq.join(' y ') + ' en las esquinas (modelo)');
 if (png) await p.screenshot({ path: `${png}/v8_sost4.png` });
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar

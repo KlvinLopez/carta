@@ -103,7 +103,7 @@ function armaPanel(txt, prop, vis) {
   return `<span class="tt-i"></span>${tit ? `<b class="tt-t">${esc(tit)}</b>` : ""}${cif ? `<span class="tt-c">${esc(cif)}</span>` : ""}${visTip(vis, prop)}${fra ? `<p>${esc(fra)}</p>` : ""}`;
 }
 let ttEl = null;
-function colocaPanel(t) {
+function colocaPanel(t, quieto) {
   const r = t.getBoundingClientRect(), w = tt.offsetWidth, h = tt.offsetHeight;
   let x = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8), y = r.top - h - 12;
   const debajo = y < 8; // el panel no cabe arriba: sale debajo y la flecha apunta hacia arriba
@@ -111,9 +111,9 @@ function colocaPanel(t) {
   const col = t.closest && t.closest(".r7p"), lateral = col && innerWidth > 1000;
   if (lateral) { const cr = col.getBoundingClientRect(); x = Math.min(cr.right + 12, innerWidth - w - 8); y = clamp(r.top + r.height / 2 - h / 2, 8, innerHeight - h - 8); }
   tt.style.left = x + "px"; tt.style.top = Math.max(8, y) + "px";
-  if (lateral) { tt.dataset.lado = "izq"; tt.style.setProperty("--ay", clamp(r.top + r.height / 2 - Math.max(8, y), 20, h - 20) + "px"); tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = ""; return; }
+  if (lateral) { tt.dataset.lado = "izq"; tt.style.setProperty("--ay", clamp(r.top + r.height / 2 - Math.max(8, y), 20, h - 20) + "px"); if (!quieto) { tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = ""; } return; }
   tt.dataset.lado = debajo ? "abajo" : "arriba"; tt.style.setProperty("--ax", clamp(r.left + r.width / 2 - x, 20, w - 20) + "px");
-  tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = "";
+  if (!quieto) { tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = ""; }
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !tt.hidden) { tt.hidden = true; ttEl = null; } });
 function tip(e) {
@@ -126,7 +126,11 @@ document.addEventListener("mouseover", tip); document.addEventListener("focusin"
 document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } });
 /* en teléfono no hay hover: un toque abre el panel y otro toque fuera lo cierra */
 document.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target.closest ? e.target.closest("[data-tip]") : null; if (t) { if (t === ttEl && !tt.hidden) { tt.hidden = true; ttEl = null; } else { ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp, t.dataset.tipv); tt.hidden = false; colocaPanel(t); } } else { tt.hidden = true; ttEl = null; } });
-addEventListener("scroll", () => { if (!tt.hidden && ttEl && !document.body.contains(ttEl)) { tt.hidden = true; ttEl = null; } }, {passive: true});
+addEventListener("scroll", () => { if (!tt.hidden) { tt.hidden = true; ttEl = null; } }, {passive: true, capture: true});
+document.addEventListener("focusout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } });
+document.addEventListener("pointerup", e => { if (e.pointerType === "mouse" && !tt.hidden) { const u = document.elementFromPoint(e.clientX, e.clientY); if (!u || !u.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } } });
+/* tras cada cambio, el panel abierto muestra el valor vigente (o se cierra si su elemento ya no existe) */
+function refrescaPanel() { if (tt.hidden || !ttEl) return; if (!document.body.contains(ttEl)) { tt.hidden = true; ttEl = null; return; } tt.innerHTML = armaPanel(ttEl.dataset.tip, ttEl.dataset.tipp, ttEl.dataset.tipv); colocaPanel(ttEl, true); }
 
 /* ===== pantalla completa (se oculta si el visor no la permite) ===== */
 const FSOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
@@ -163,6 +167,7 @@ function refrescar() {
   if (out && out.puntos) $("#ins", det).innerHTML = `<b>Insight clave.</b><ol>${out.puntos.map(p => `<li>${p}</li>`).join("")}</ol>`;
   else if (out && out.insight) $("#ins", det).innerHTML = `<b>Insight clave.</b> ${esc(out.insight)}`;
   if (out && out.titulo) $("#dt", det).textContent = out.titulo;
+  if (typeof refrescaPanel === "function") refrescaPanel();
 }
 function cierra() { det.hidden = true; det.innerHTML = ""; abierto = null; actual = null; document.body.style.overflow = ""; tt.hidden = true; history.replaceState(null, "", location.pathname); if (ultimoFoco && document.contains(ultimoFoco)) ultimoFoco.focus(); }
 // delegación: todo clic de «cerrar» y de «ir a otra caja» funciona aunque el contenido se redibuje
