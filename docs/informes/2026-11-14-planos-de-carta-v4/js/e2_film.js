@@ -16,15 +16,15 @@ const CAPAS = {
   "ana-silla": ["apoyo/cine/ana-silla.webp", 302, 562, 220, 520],
   "ana-cuerpo": ["apoyo/cine/ana-cuerpo.webp", 342, 562, 280, 520],
   "ana-cabeza": ["apoyo/cine/ana-cabeza.webp", 372, 428, 160, 190],
-  "ana-brazo": ["apoyo/cine/ana-brazo.webp", 422, 522, 300, 280],
-  "ana-brazo-cel": ["apoyo/cine/ana-brazo-cel.webp", 422, 522, 300, 280],
-  "ana-brazo-copa": ["apoyo/cine/ana-brazo-copa.webp", 422, 522, 300, 280],
+  "ana-brazo": ["apoyo/cine/ana-brazo.webp", 342, 422, 400, 380],
+  "ana-brazo-cel": ["apoyo/cine/ana-brazo-cel.webp", 342, 422, 400, 380],
+  "ana-brazo-copa": ["apoyo/cine/ana-brazo-copa.webp", 342, 422, 400, 380],
   "carlos-silla": ["apoyo/cine/carlos-silla.webp", 1398, 562, 220, 520],
   "carlos-cuerpo": ["apoyo/cine/carlos-cuerpo.webp", 1298, 562, 280, 520],
   "carlos-cabeza": ["apoyo/cine/carlos-cabeza.webp", 1388, 428, 160, 190],
-  "carlos-brazo": ["apoyo/cine/carlos-brazo.webp", 1198, 522, 300, 280],
-  "carlos-brazo-cel": ["apoyo/cine/carlos-brazo-cel.webp", 1198, 522, 300, 280],
-  "carlos-brazo-copa": ["apoyo/cine/carlos-brazo-copa.webp", 1198, 522, 300, 280],
+  "carlos-brazo": ["apoyo/cine/carlos-brazo.webp", 1178, 422, 400, 380],
+  "carlos-brazo-cel": ["apoyo/cine/carlos-brazo-cel.webp", 1178, 422, 400, 380],
+  "carlos-brazo-copa": ["apoyo/cine/carlos-brazo-copa.webp", 1178, 422, 400, 380],
   "mesero-cuerpo": ["apoyo/cine/mesero-cuerpo.webp", 958, 270, 340, 540],
   "mesero-cabeza": ["apoyo/cine/mesero-cabeza.webp", 1048, 162, 160, 190],
   "mesero-brazos": ["apoyo/cine/mesero-brazos.webp", 738, 440, 720, 380],
@@ -75,7 +75,8 @@ const CAPAS = {
 /* CAPAS:fin */
 const CAP = {bien: "apoyo/bienvenida.webp", menu: "apoyo/menu-inicio.webp"};
 const CI = n => CAPAS[n][0];
-/* [id, acto, duración en s, etiquetas, rótulo (la cursiva entre *), posición del rótulo, retraso del rótulo en s, segundos que dura el rótulo] */
+/* [id, acto, duración en s, etiquetas, rótulo (la cursiva entre *), posición del rótulo, retraso del rótulo en s, segundos que dura el rótulo,
+   fracción de la toma que sirve de cuadro fijo en el guion gráfico (0.82 si no se dice)] */
 const F3 = [["f3", "Fase 3"]];
 const TOMAS = [
   ["mesa", 1, 5.5, [["hoy", "hoy · el QR de cada mesa"]], ["Todo empieza en *la mesa*."], "hook", 0.6],
@@ -88,13 +89,13 @@ const TOMAS = [
   ["juntos", 3, 7, F3, ["La mesa *pide junta*."], "hook", 1.4],
   ["recomienda", 3, 7, [["vis", "visión · recomendar a otro de la mesa"]], ["Pásaselo *a Carlos*."], "centro"],
   ["confirma", 3, 4.5, F3, ["La mesa *llama al mesero*."], "centro"],
-  ["avisa", 4, 8, [["f3", "Fase 3"], ["vis", "visión · aviso con el teléfono bloqueado"]], ["Le vibra", "*el bolsillo*."], "izq", 0.2, 5.6],
+  ["avisa", 4, 8, [["f3", "Fase 3"], ["vis", "visión · aviso con el teléfono bloqueado"]], ["Le vibra", "*el bolsillo*."], "izq", 0.2, 5.6, 0.7],
   ["llega", 4, 6.5, F3, ["Confirma *y la manda*."], "arriba"],
   ["abierta", 5, 6.5, F3, ["Abierta"], "fase", 0.8],
   ["cerrada", 5, 6, F3, ["Cuenta *cerrada*"], "fase"],
   ["pagada", 5, 6.5, [["f3", "Fase 3"], ["ej", "el cobro, fuera de Carta"]], ["Pagada"], "fase", 3.6],
   ["sucia", 5, 5, F3, ["Mesa *sucia*"], "fase", 1.2],
-  ["limpia", 5, 5.5, F3, ["Mesa *limpia*"], "fase", 1.6, 4.3],
+  ["limpia", 5, 5.5, F3, ["Mesa *limpia*"], "fase", 1.6, 3.4],
   ["fin", 6, 5, [], [], ""],
 ];
 const ACTOS = [[1, "Llegar"], [2, "Tu carta"], [3, "La mesa"], [4, "El mesero"], [5, "El ciclo"], [6, "Fin"]];
@@ -104,7 +105,7 @@ const tomaIni = id => T0[TOMAS.findIndex(t => t[0] === id)];
 const ACT_INI = ACTOS.map(([n]) => T0[TOMAS.findIndex(t => t[1] === n)]);
 const ACT_FIN = ACTOS.map((_, k) => (k + 1 < ACTOS.length ? ACT_INI[k + 1] : TOT));
 /* instantes de guion gráfico (movimiento reducido): el momento de cada toma en que ya está todo en pantalla */
-const CLAVES = TOMAS.map((t, i) => T0[i] + t[2] * 0.82);
+const CLAVES = TOMAS.map((t, i) => T0[i] + t[2] * (t[8] || 0.82));
 let tI = 0, pausaI = false, rafI = 0, ultI = 0, ocultoT = 0, tlF = null;
 
 const cineCss = `
@@ -128,7 +129,7 @@ const cineCss = `
 #cine .buzz i{position:absolute;inset:0;border-radius:50%;border:4px solid #fdc34d;border-left-color:transparent;border-bottom-color:transparent}
 #cine .buzz i+i{inset:-14px}
 /* cine: grano, viñeta y franjas */
-#cine .grano{position:absolute;inset:0;z-index:5;background:url(${CI("grano")});opacity:.34;mix-blend-mode:overlay;pointer-events:none;animation:cgrano .5s steps(1) infinite}
+#cine .grano{position:absolute;inset:0;z-index:5;background:url(${CI("grano")});opacity:.09;pointer-events:none;animation:cgrano .5s steps(1) infinite}
 @keyframes cgrano{0%{background-position:0 0}25%{background-position:-90px 60px}50%{background-position:70px -110px}75%{background-position:-40px -50px}}
 @media(prefers-reduced-motion:reduce){#cine .grano{animation:none}}
 #cine .vin{position:absolute;left:0;right:0;top:100px;bottom:100px;z-index:5;pointer-events:none;background:radial-gradient(ellipse 76% 82% at 50% 54%,rgba(10,6,5,0) 50%,rgba(10,6,5,.66) 100%)}
@@ -358,8 +359,8 @@ const ico = {
 };
 const sb = (osc = false) => `<div class="sb${osc ? " osc" : ""}"><b>9:41</b><i></i><u></u></div>`;
 const cab = (mia = false) => `<div class="cab"><span class="lg">L</span>La Ceiba${mia ? `<span class="mia">Mi mesa <span class="av ca">A</span><span class="av cc">C</span><span class="bd">1</span></span>` : ""}</div>`;
-const cFila = (img, nom, pr, no = "") => `<div class="cfila${no ? " cfuera" : ""}"><img src="${CI("plato-" + img)}" alt=""><div><b>${nom}</b><small>${pr}</small></div>${no ? `<span class="cno">${no}</span>` : ""}</div>`;
-const tarjeta = (img, nom, pr, porq) => `<div class="tj"><div class="fo"><img src="${CI("plato-" + img)}" alt=""></div><div class="ctx"><b>${nom}</b><small>${porq}</small><span class="cpr">${pr}</span></div></div>`;
+const cRen = (img, nom, pr, no = "") => `<div class="cfila${no ? " cfuera" : ""}"><img src="${CI("plato-" + img)}" alt=""><div><b>${nom}</b><small>${pr}</small></div>${no ? `<span class="cno">${no}</span>` : ""}</div>`;
+const cTarj = (img, nom, pr, porq) => `<div class="tj"><div class="fo"><img src="${CI("plato-" + img)}" alt=""></div><div class="ctx"><b>${nom}</b><small>${porq}</small><span class="cpr">${pr}</span></div></div>`;
 
 const torno = () => `<div class="torno"><i class="som"></i><i class="aro360"></i>
   <div class="capa" style="transform:scaleY(.5)"><img src="${CI("torno-plato")}" alt=""></div>
@@ -377,16 +378,16 @@ const pantallas = () => `
   <div class="carga"><span>Afilando los cuchillos…</span><span>Calentando el comal…</span><span>Probando la salsa…</span></div>
   <div class="cchips"><span class="cchip">${ico.no}sin lácteos</span><span class="cchip">${ico.no}sin cacahuate</span></div>
   <div class="tel">${ico.tel}Se queda en tu teléfono</div>
-  <div class="clista">${cFila("aguachile", "Aguachile verde", "$210")}${cFila("enchiladas", "Enchiladas suizas", "$165", "lácteos")}${cFila("pescado", "Pescado a la talla", "$245")}${cFila("mole", "Mole negro", "$190", "cacahuate")}${cFila("ensalada", "Ensalada de betabel", "$140")}${cFila("tacos", "Tacos de pescado", "$175")}</div>
+  <div class="clista">${cRen("aguachile", "Aguachile verde", "$210")}${cRen("enchiladas", "Enchiladas suizas", "$165", "lácteos")}${cRen("pescado", "Pescado a la talla", "$245")}${cRen("mole", "Mole negro", "$190", "cacahuate")}${cRen("ensalada", "Ensalada de betabel", "$140")}${cRen("tacos", "Tacos de pescado", "$175")}</div>
   <div class="clisto">${ico.ok}Listo: tu carta</div>
 </div>
 <div class="cs cx pTop3">${sb()}${cab(true)}
   <div class="sec"><h4>Top 3 para ti</h4><span class="es">✦</span></div>
   <div class="porq">${ico.tel}Por lo que te gustó en otros lugares</div>
-  <div class="tira"><div class="rail">${tarjeta("pescado", "Pescado a la talla", "$245", "Te gustó el zarandeado en El Faro")}${tarjeta("aguachile", "Aguachile verde", "$210", "Pediste ceviche 3 veces")}${tarjeta("ensalada", "Ensalada de betabel", "$140", "Sin lácteos, como te gusta")}</div></div>
+  <div class="tira"><div class="rail">${cTarj("pescado", "Pescado a la talla", "$245", "Te gustó el zarandeado en El Faro")}${cTarj("aguachile", "Aguachile verde", "$210", "Pediste ceviche 3 veces")}${cTarj("ensalada", "Ensalada de betabel", "$140", "Sin lácteos, como te gusta")}</div></div>
   <div class="sec"><h4>La carta</h4></div>
   <div class="cats"><span>Para empezar</span><span>Del mar</span><span>Postres</span></div>
-  <div class="clista">${cFila("tacos", "Tacos de pescado", "$175")}${cFila("flan", "Flan de la casa", "$85")}</div>
+  <div class="clista">${cRen("tacos", "Tacos de pescado", "$175")}${cRen("flan", "Flan de la casa", "$85")}</div>
 </div>
 <div class="cs cx pPlato">${torno()}
   ${sb(true)}<span class="vuelta">← La carta</span>
@@ -402,7 +403,7 @@ const pantallas = () => `
 <div class="cs cx pAviso">${sb()}${cab(true)}
   <div class="avisoT">${ico.chispa}<span>Llegaste hace poco a Carta: aún sé poco de tus gustos.</span></div>
   <div class="sec"><h4>Platos fuertes</h4></div>
-  <div class="clista">${cFila("res", "Arrachera", "$230")}${cFila("tacos", "Tacos de pescado", "$175")}${cFila("aguachile", "Aguachile verde", "$210")}</div>
+  <div class="clista">${cRen("res", "Arrachera", "$230")}${cRen("tacos", "Tacos de pescado", "$175")}${cRen("aguachile", "Aguachile verde", "$210")}</div>
 </div>
 <div class="cs cx pRes"><div class="hero"><img src="${CI("plato-res")}" alt=""></div>${sb(true)}<span class="vuelta">← La carta</span>
   <div class="ficha"><h4>Arrachera</h4><div class="cpr">$230</div><div class="reco">Para compartir, al término que pidas.</div></div>
@@ -415,7 +416,7 @@ ${listos("pListosA")}
 const pantallasB = () => `
 <div class="cs cx pCarlos">${sb()}${cab(true)}
   <div class="hola"><span class="av cc">C</span><h4>Hola, Carlos</h4></div>
-  <div class="clista">${cFila("tacos", "Tacos de pescado", "$175")}${cFila("aguachile", "Aguachile verde", "$210")}${cFila("flan", "Flan de la casa", "$85")}</div>
+  <div class="clista">${cRen("tacos", "Tacos de pescado", "$175")}${cRen("aguachile", "Aguachile verde", "$210")}${cRen("flan", "Flan de la casa", "$85")}</div>
   <div class="reco2"><div class="de"><span class="av ca">A</span>Ana te recomienda</div><div class="pl"><img src="${CI("plato-res")}" alt=""><div><b>Arrachera</b><br><small>$230</small></div></div><div class="me">Me encanta</div></div>
   <div class="toast">${ico.ok}Arrachera, en tu orden</div>
   <div class="btn2 v conf">Confirmar mi orden · $230</div>
@@ -788,13 +789,13 @@ function filmLinea() {
   tl.to(q(".gm"), {x: 220, autoAlpha: 0, duration: 0.9, ease: "power2.in"}, t + 2.9);
   cam(t + 3.0, C1, 2.2);
   tl.to(q(".pip"), {autoAlpha: 0, x: 60, duration: 0.6, ease: "power2.in"}, t + 3.2);
-  sale(".reloj, .eLibre", t + 4.2, 0.4);
-  tl.fromTo(q(".k-nuevos"), {autoAlpha: 0, x: -360}, {autoAlpha: 1, x: 0, duration: 2.0, ease: "power2.out", immediateRender: false}, t + 3.4);
+  sale(".eLibre", t + 3.3, 0.3); sale(".reloj", t + 4.2, 0.4);
+  tl.fromTo(q(".k-nuevos"), {autoAlpha: 0, x: -360}, {autoAlpha: 1, x: 0, duration: 1.9, ease: "power2.out", immediateRender: false}, t + 3.6);
   /* cierre */
   t = T("fin");
   sale(".sala", t + 0.1, 0.9);
-  tl.set(q(".marca"), {autoAlpha: 1}, t + 0.7);
-  tl.fromTo(q(".marca b, .marca i, .marca span"), {y: 24, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 1.0, ease: "power3.out", stagger: 0.3, immediateRender: false}, t + 0.7);
+  tl.set(q(".marca"), {autoAlpha: 1}, t + 1.1);
+  tl.fromTo(q(".marca b, .marca i, .marca span"), {y: 24, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 1.0, ease: "power3.out", stagger: 0.3, immediateRender: false}, t + 1.1);
   tl.set({}, {}, TOT);
   return tl;
 }
@@ -807,7 +808,7 @@ function pintaIntro() {
   $$("#intro .barras i b").forEach((b, i) => { b.style.width = (i < k ? 100 : i === k ? 100 * (s - ACT_INI[i]) / (ACT_FIN[i] - ACT_INI[i]) : 0) + "%"; });
   $$("#intro .cactos [data-n]").forEach(b => b.classList.toggle("on", +b.dataset.n === k));
   const bp = $("#introPausa"); if (bp) bp.textContent = pausaI ? "▶" : "❚❚";
-  const cta = $("#introCta"); if (cta) cta.hidden = s < tomaIni("fin") + 1.6;
+  const cta = $("#introCta"); if (cta) cta.hidden = s < tomaIni("fin") + 2.6;
 }
 function irActo(k) { tI = (REDUCE ? CLAVES[TOMAS.findIndex(t => t[1] === ACTOS[k][0])] : ACT_INI[k]) * 1000; pintaIntro(); }
 function saltaI(ms) {

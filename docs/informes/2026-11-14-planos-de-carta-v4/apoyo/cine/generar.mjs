@@ -190,12 +190,12 @@ function comensal(k) {
   capa(`${k}-cabeza`, t.dir > 0 ? [t.ox - 60, OY - 424, 160, 190] : [t.ox - 100, OY - 424, 160, 190], cab);
   // antebrazos: en reposo sobre la mesa, con el teléfono y con la copa
   const ante = (wx, wy, mano, extra = '', pre = '') => pre + T(miembro(38, -100, 46 * a, wx, wy, 30 * a, t.ropa)) + T(mano) + extra;
-  const caja = t.dir > 0 ? [t.ox - 10, OY - 330, 300, 280] : [t.ox - 290, OY - 330, 300, 280];
+  const caja = t.dir > 0 ? [t.ox - 90, OY - 430, 400, 380] : [t.ox - 310, OY - 430, 400, 380];
   capa(`${k}-brazo`, caja, ante(146, -92, `<path d="M150 -110 C178 -114 208 -110 220 -101 C224 -92 214 -86 198 -86 L152 -76 C138 -84 138 -104 150 -110Z" fill="${t.piel}"/>`));
   const X = (s) => `<g transform="translate(${t.ox} ${OY}) scale(${t.dir} 1)">${s}</g>`;
   capa(`${k}-brazo-cel`, caja, ante(126, -172, `<path d="M118 -196 C134 -204 150 -196 152 -180 C152 -164 138 -156 124 -160 C112 -166 110 -186 118 -196Z" fill="${t.piel}"/>`,
     X(`<g transform="rotate(16 142 -214)"><rect x="134" y="-250" width="15" height="74" rx="5" fill="#0d0a0a"/><rect x="131" y="-246" width="5" height="66" rx="2" fill="#fff4e2"/></g>`) + T(`<path d="M140 -190 C150 -192 158 -186 156 -178 C152 -172 142 -174 138 -180Z" fill="${t.piel}"/>`),
-    X(`<circle cx="84" cy="-250" r="150" fill="url(#gPant)"/>`)));
+    X(`<circle cx="84" cy="-262" r="140" fill="url(#gPant)" opacity=".8"/>`)));
   capa(`${k}-brazo-copa`, caja, ante(118, -186, `<path d="M112 -208 C128 -216 142 -208 144 -194 C144 -180 132 -172 118 -176 C106 -182 104 -198 112 -208Z" fill="${t.piel}"/>`,
     X(copa(134, -196).replace(/<ellipse[^>]*filter[^>]*>/, '')) + T(`<path d="M126 -206 C136 -210 146 -204 144 -196 C140 -190 130 -192 124 -198Z" fill="${t.piel}"/>`)));
 }
@@ -255,7 +255,9 @@ function sucia() {
   capa('sucia-c', [1080, 720, 300, 110], resto(PLATO_C, false) + bola(1310, 804, -1.3) + cubierto(1120, 798, 40, -6));
   // el vaso caído y el vino derramado sobre el mantel
   let v = `<path d="M800 806 C840 780 930 784 980 798 C1030 812 1070 800 1092 814 C1078 838 1000 844 944 834 C890 826 818 836 800 806Z" fill="#5a0e20" opacity=".82" filter="url(#b3)"/><path d="M850 806 q60 -10 120 6" stroke="#9a2a44" stroke-width="4" fill="none" opacity=".7" stroke-linecap="round"/>`;
-  v += `<g transform="translate(770 800) rotate(-84) scale(1.3)">${copa(0, 0, 0.25).replace(/<ellipse[^>]*filter[^>]*>/, '')}</g>`;
+  v += `<ellipse cx="800" cy="812" rx="74" ry="9" fill="#2a1a12" opacity=".35" filter="url(#b3)"/><ellipse cx="748" cy="790" rx="6" ry="22" fill="#f4ecdc" opacity=".75"/><path d="M750 790 H800" stroke="#f4ecdc" stroke-width="5" opacity=".7"/>` +
+    `<path d="M800 790 C806 766 836 760 872 764 C880 780 880 800 872 816 C836 820 806 814 800 790Z" fill="#f6eedf" opacity=".42"/><path d="M826 800 C840 812 860 816 872 816 C878 806 880 796 879 788 C860 792 840 794 826 800Z" fill="#6a1226" opacity=".9"/>` +
+    `<ellipse cx="873" cy="790" rx="7" ry="26" fill="none" stroke="#fff8ea" stroke-width="2.5" opacity=".8"/><path d="M806 780 C816 768 840 764 866 766" fill="none" stroke="#fff8ea" stroke-width="3" opacity=".75" stroke-linecap="round"/>`;
   capa('sucia-vaso', [740, 730, 370, 120], v);
   capa('sucia-migas', [630, 744, 660, 72], migas);
 }
@@ -279,10 +281,10 @@ function manos(k, { piel, manga, puno = null, espejo = false }) {
   const pt = (s, o) => `${n(W[0] + u[0] * s + nr[0] * o)} ${n(W[1] + u[1] * s + nr[1] * o)}`;
   // piel: palma (sólo lo que se ve fuera del teléfono), muñeca, pulgar y yemas
   let p = `<path d="M-13 610 C-52 640 -96 700 -112 790 C-120 850 -150 890 ${pt(40, -56)} L${pt(170, -56)} L${pt(170, 58)} L${pt(30, 58)} C-80 1016 -40 1004 -13 986Z" fill="${piel}"/>`;
-  p += `<path d="M-56 800 C-50 720 -20 640 22 560" stroke="${piel}" stroke-width="62" stroke-linecap="round" fill="none"/>`;
+  p += `<path d="M-56 800 C-52 720 -30 640 -4 572" stroke="${piel}" stroke-width="60" stroke-linecap="round" fill="none"/>`;
   [[452, 70, 44], [520, 72, 48], [588, 70, 44], [650, 58, 38]].forEach(([y, h, w]) => { p += `<rect x="396" y="${y - h / 2}" width="${w}" height="${h}" rx="15" fill="${piel}"/>`; });
   // detalle sin relieve: uña del pulgar, pliegues de los nudillos
-  let det = `<g transform="rotate(27 22 560)"><rect x="7" y="538" width="30" height="38" rx="13" fill="#fff" opacity=".08"/></g><path d="M-30 684 q18 3 34 16" stroke="#000" stroke-width="3" fill="none" opacity=".14" stroke-linecap="round"/>`;
+  let det = `<g transform="rotate(21 -4 572)"><rect x="-19" y="550" width="30" height="38" rx="13" fill="#fff" opacity=".08"/></g><path d="M-30 684 q18 3 34 16" stroke="#000" stroke-width="3" fill="none" opacity=".14" stroke-linecap="round"/>`;
   [486, 554, 621].forEach((y) => { det += `<path d="M415 ${y} h22" stroke="#000" stroke-width="3" opacity=".3" stroke-linecap="round"/>`; });
   // manga: del puño hacia fuera del cuadro
   let m = `<path d="M${pt(120, -84)} L${pt(1100, -110)} L${pt(1100, 110)} L${pt(120, 84)}Z" fill="${manga}"/>`;
@@ -347,7 +349,7 @@ function platillos() {
   const fondoP = `<rect width="400" height="400" fill="url(#pb)"/>`;
   const sale = (nombre, cuerpo, conFondo = true) => capa(nombre, [0, 0, 400, 400], (conFondo ? fondoP : '') + cuerpo, { defs: d, esc: 0.7, q: 0.84 });
   // pescado a la talla: mitad roja, mitad verde, sin ojo de caricatura
-  const pez = `<g transform="rotate(-24 200 200)"><path d="M70 200 C110 140 250 136 300 196 L346 160 L340 240 L300 206 C250 266 110 262 70 200Z" fill="url(#adobo)"/><path d="M70 200 C110 140 250 136 300 196 L300 200 L70 200Z" fill="url(#verdeS)"/><path d="M150 168 q20 30 0 64 M200 162 q20 36 0 74 M250 168 q16 30 0 62" stroke="#2a0d08" stroke-width="4" fill="none" opacity=".3"/></g>`;
+  const pez = `<g transform="rotate(-24 200 200)"><path d="M70 200 C110 140 250 136 326 200 C250 266 110 262 70 200Z" fill="url(#adobo)"/><path d="M70 200 C110 140 250 136 326 200 L70 200Z" fill="url(#verdeS)"/><path d="M150 168 q20 30 0 64 M200 162 q20 36 0 74 M250 168 q16 30 0 62" stroke="#2a0d08" stroke-width="4" fill="none" opacity=".3"/></g>`;
   const arroz = `<ellipse cx="128" cy="300" rx="56" ry="34" fill="#fff6e2"/><circle cx="110" cy="292" r="4" fill="#e85a3a"/><circle cx="138" cy="304" r="4" fill="#7ab040"/><circle cx="150" cy="288" r="4" fill="#f2c14a"/>`;
   const adorno = limon(250, 300, -20) + cebolla(300, 120, 14) + cebolla(286, 132, 10) + cilantro(180, 120) + cilantro(230, 270);
   sale('plato-pescado', plato() + C(arroz + pez) + C(adorno) + brillo(180, 176, 60, -24));
