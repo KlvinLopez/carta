@@ -5,16 +5,17 @@ const candado = (x, y, col = C.osc) => `<g transform="translate(${x - 8},${y - 9
 const TRAMA = `<defs><pattern id="traza" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#fff"/><rect width="3" height="8" fill="rgba(184,134,11,.22)"/></pattern></defs>`;
 const corto = (t, m) => { const s = String(t).split(/[:(]/)[0].trim(); return s.length > m ? s.slice(0, m - 1).trim() + "…" : s; };
 
+NEG.plataformas_de_referencia.filter(q => q.verificada && q.url).forEach(q => { R["plat_" + q.plataforma] = {corta: `${q.plataforma} (consulta del ${q.consulta})`, año: 2026, titulo: q.cifra.split(":")[0].split(";")[0], url: q.url, publica: q.plataforma}; });
 DET.modelo = {
   titulo: "¿Cómo gana dinero Carta?",
-  fu: ["meniu", "carta_precio", "carta_anuncios", "carta_planes"],
+  fu: ["meniu", "carta_precio", "carta_anuncios", "carta_planes", "plat_Airbnb", "plat_YouTube", "plat_Meta", "plat_Uber"],
   nota: "Tamaño, no proyección: la suscripción es la v1; anuncios y visibilidad dependen de la Fase 3; comisión y pago del comensal están fuera de la v1.",
   monto: 0,
   montar(host) {
     host.innerHTML = `<div class="viz"><svg id="svG9a" viewBox="0 0 1100 440" role="img" aria-label="Dónde cae Carta entre los modelos de plataforma" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz" style="margin-top:12px"><svg id="svG9b" viewBox="0 0 1100 470" role="img" aria-label="Carta frente a Meniu y el tamaño del hueco" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz" style="margin-top:12px"><svg id="svG9c" viewBox="0 0 1100 416" role="img" aria-label="Fuentes de ingreso por etapa" font-family="DM Sans, sans-serif"></svg></div>
-<div class="viz" style="margin-top:12px"><svg id="svG9d" viewBox="0 0 1100 168" role="img" aria-label="Cómo opera Carta con datos, dinero y usuarios" font-family="DM Sans, sans-serif"></svg></div>
+<div class="viz" style="margin-top:12px"><svg id="svG9d" style="min-height:0" viewBox="0 0 1100 124" role="img" aria-label="Cómo opera Carta con datos, dinero y usuarios" font-family="DM Sans, sans-serif"></svg></div>
 <div class="r7p" id="sdP" style="margin-top:12px;display:block"><div class="r7row rdesl"><label for="sdM">Sueldo del fundador al mes</label><input type="range" id="sdM" min="0" max="100000" step="500" value="0"><output id="sdV">0 MXN</output></div><div class="r7ch" id="sdC"></div></div>
 <div class="viz" style="margin-top:12px"><svg id="svG9e" viewBox="0 0 1100 560" role="img" aria-label="Cuántos restaurantes hacen falta para cubrir el sueldo" font-family="DM Sans, sans-serif"></svg></div>`;
     $("#sdM", host).addEventListener("input", ev => { this.monto = +ev.target.value; this.pintaSueldo(); });
@@ -38,22 +39,23 @@ DET.modelo = {
   },
   /* 1 · el mapa: dónde cae Carta entre los modelos de plataforma */
   mapa(neg) {
-    const PX = 200, PY = 44, PW = 800, PH = 330, MX = PX + PW / 2, MY = PY + PH / 2;
+    const PX = 200, PY = 44, PW = 800, PH = 340, MX = PX + PW / 2, MY = PY + PH / 2;
     const cmp = neg.tipo_de_plataforma.comparacion, pasos = neg.tipo_de_plataforma.pasos_para_moverse;
-    let b = Rc(PX, PY, PW / 2, PH / 2, "#fbf3e6", 0) + Rc(MX, PY, PW / 2, PH / 2, "#f6e9d4", 0) + Rc(PX, MY, PW / 2, PH / 2, "#fffaf2", 0) + Rc(MX, MY, PW / 2, PH / 2, "#fbf3e6", 0);
+    let b = TRAMA + Rc(PX, PY, PW / 2, PH / 2, "#fbf3e6", 0) + Rc(MX, PY, PW / 2, PH / 2, "#f6e9d4", 0) + Rc(PX, MY, PW / 2, PH / 2, "#fffaf2", 0) + Rc(MX, MY, PW / 2, PH / 2, "#fbf3e6", 0);
     b += `<line x1="${MX}" x2="${MX}" y1="${PY}" y2="${PY + PH}" stroke="${C.arena}" stroke-width="2"/><line x1="${PX}" x2="${PX + PW}" y1="${MY}" y2="${MY}" stroke="${C.arena}" stroke-width="2"/>`;
-    b += T(PX + PW / 4, PY + PH + 30, "no hay transacción dentro", 13, C.t2, "middle", 700) + T(PX + 3 * PW / 4, PY + PH + 30, "hay transacción dentro", 13, C.t2, "middle", 700);
+    b += T(PX + PW / 4, PY + PH + 44, "no hay transacción dentro", 13, C.t2, "middle", 700) + T(PX + 3 * PW / 4, PY + PH + 44, "hay transacción dentro", 13, C.t2, "middle", 700);
     b += T(PX - 14, PY + PH / 4 + 4, "conecta oferta", 13, C.t2, "end", 700) + T(PX - 14, PY + PH / 4 + 20, "y demanda nuevas", 13, C.t2, "end", 700) + T(PX - 14, PY + 3 * PH / 4 + 4, "no conecta:", 13, C.t2, "end", 700) + T(PX - 14, PY + 3 * PH / 4 + 20, "el comensal ya está sentado", 12, C.t2, "end", 700);
     const burb = (x, y, r, col, nom, sub, tip, lado = "der") => `<g data-tip="${esc2(tip)}" tabindex="0"><circle class="gh" cx="${x}" cy="${y}" r="${r}" fill="${col}"/></g>` + (lado === "der" ? T(x + r + 12, y - 2, nom, 14, C.tinta, "start", 700) + T(x + r + 12, y + 16, sub, 12, C.t2, "start") : T(x, y - r - 26, nom, 14, C.tinta, "middle", 700) + T(x, y - r - 9, sub, 12, C.t2, "middle"));
     b += burb(800, 118, 38, "#c9a9a6", "Comisión por transacción", "Airbnb · Uber · BlaBlaCar", "Comisión por transacción|Airbnb 15.5 % al anfitrión|Uber: la tarifa al conductor varía por viaje y la meta es cerca de 25 %.");
     b += burb(300, 118, 38, "#c9a9a6", "Economía de la atención", "Meta y redes sociales", "Economía de la atención|Meta: 97.6 % de anuncios|Del ingreso de Meta en 2025, según su informe anual (10-K).");
-    b += burb(290, 308, 34, "#d9cfc2", "Gratis + anuncios + suscripción", "Spotify · YouTube", "Gratis con anuncios más suscripción|YouTube: 55 % a creadores|Del ingreso neto de anuncios de la página de reproducción; Spotify, sin cifra verificada.", "arriba");
-    // flechas de Carta hacia los otros modelos, cada una con su candado
-    const cx = 480, cy = 304, flecha = (x1, y1, x2, y2, tip) => { const mx = (x1 + x2) / 2, my = (y1 + y2) / 2; return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C.osc}" stroke-width="2.4" stroke-dasharray="7 6"/><g data-tip="${esc2(tip)}" tabindex="0"><circle cx="${mx}" cy="${my}" r="17" fill="#fff" stroke="${C.osc}" stroke-width="2"/>${candado(mx, my + 1)}</g>`; };
-    b += flecha(cx + 32, cy - 30, 772, 148, `Hacia marketplace con comisión|fuera de la v1|Directorio y pagos dentro de Carta: contradice «Qué NO construir».`);
-    b += flecha(cx - 22, cy - 38, 322, 148, `Hacia economía de la atención|fuera de la v1|Perfil y cuenta del comensal para segmentar anuncios: contradice la regla 10.`);
-    b += flecha(cx - 44, cy + 2, 322, 308, `Hacia gratis más suscripción del comensal|fuera de la v1|El comensal pagaría por quitar anuncios: exige cuenta, contra la regla 10.`);
-    b += `<g data-tip="${esc2(`Carta hoy|${neg.tipo_de_plataforma.donde_cae_la_v1.length} respuestas: no|No conecta oferta y demanda nuevas ni procesa transacciones: es una herramienta, no un mercado.`)}" tabindex="0"><circle cx="${cx}" cy="${cy}" r="42" fill="${C.vino}"/>` + T(cx, cy + 6, "Carta", 20, "#fff", "middle", 400, true) + `</g>` + T(cx, cy + 66, "herramienta con plan gratuito", 12.5, C.vino, "middle", 700);
+    // el modelo «gratis con anuncios más suscripción» es donde Carta ya está: Carta va dentro de su círculo
+    b += `<g data-tip="${esc2("Gratis con anuncios más suscripción|YouTube: 55 % a creadores|Del ingreso neto de anuncios de la página de reproducción; Spotify, sin cifra verificada.")}" tabindex="0"><circle class="gh" cx="300" cy="302" r="58" fill="#d9cfc2"/></g>` + T(372, 272, "Gratis + anuncios + suscripción", 14, C.tinta, "start", 700) + T(372, 290, "Spotify · YouTube · Carta hoy", 12, C.t2, "start");
+    const cx = 300, cy = 302, flecha = (x1, y1, x2, y2, tip) => { const mx = (x1 + x2) / 2, my = (y1 + y2) / 2; return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C.osc}" stroke-width="2.4" stroke-dasharray="7 6"/><g data-tip="${esc2(tip)}" tabindex="0"><circle cx="${mx}" cy="${my}" r="17" fill="#fff" stroke="${C.osc}" stroke-width="2"/>${candado(mx, my + 1)}</g>`; };
+    b += flecha(cx + 24, cy - 48, 772, 148, `Hacia marketplace con comisión|fuera de la v1|Directorio y pagos dentro de Carta: contradice «Qué NO construir».`);
+    b += flecha(cx, cy - 58, 300, 158, `Hacia economía de la atención|fuera de la v1|Perfil y cuenta del comensal para segmentar anuncios: contradice la regla 10.`);
+    b += flecha(cx + 36, cy + 14, 448, 330, `Hacia el comensal que paga|fuera de la v1|El comensal pagaría por quitar anuncios: exige cuenta, contra la regla 10.`);
+    b += `<g data-tip="${esc2("El comensal paga|fuera de la v1|Como Spotify Premium: quitar anuncios exige cuenta del comensal, que la regla 10 no permite.")}" tabindex="0"><circle cx="490" cy="330" r="32" fill="url(#traza)" stroke="${C.osc}" stroke-width="2" stroke-dasharray="6 5"/></g>` + T(490, 382, "El comensal paga", 13, C.tinta, "middle", 700) + T(490, 398, "como Spotify Premium", 11.5, C.t2, "middle");
+    b += `<g data-tip="${esc2(`Carta hoy|herramienta, no mercado|Plan gratuito, anuncios y suscripción del restaurante; sin transacción dentro ni oferta y demanda nuevas.`)}" tabindex="0"><circle cx="${cx}" cy="${cy}" r="34" fill="${C.vino}"/>` + T(cx, cy + 6, "Carta", 18, "#fff", "middle", 400, true) + `</g>`;
     return b;
   },
   /* 2 · Carta frente a Meniu y el tamaño del hueco */
@@ -92,8 +94,8 @@ DET.modelo = {
     b += card(0, 90, 140, M.suscripcion_del_restaurante, mxn(s1.por_restaurante_de_paga), `deja ${n(s1.deja_por_restaurante_de_paga)} MXN por cliente de paga al mes`, `entre todos los registrados: ${n(s1.por_restaurante_registrado.centro, 1)} (${n(s1.por_restaurante_registrado.minimo, 1)}–${n(s1.por_restaurante_registrado.maximo)})`, false, false, C.vino);
     b += card(1, 90, 140, M.anuncios_del_comensal, `${n(s2.baja, 1)} – ${n(s2.alta, 1)} MXN`, "por restaurante gratuito al mes", `tarifa baja ${n(s2.baja, 1)} · media ${n(s2.media, 1)} · alta ${n(s2.alta, 1)}`, false, true, C.dorado);
     b += card(1, 244, 140, M.visibilidad_pagada, `${n(s3.centro, 1)} MXN`, "por restaurante gratuito al mes", `rango ${n(s3.minimo, 1)}–${n(s3.maximo)}`, false, true, C.dorado);
-    b += card(2, 90, 140, M.comision_por_transaccion, `${n(s4.centro)} MXN`, "por restaurante de 0 a 10 personas al mes", `rango ${n(s4.minimo)}–${n(s4.maximo)}`, true, true, C.t2);
-    b += card(2, 244, 140, M.pago_del_comensal, `${n(s5.centro)} MXN`, "por restaurante al mes", `rango ${n(s5.minimo)}–${n(s5.maximo)}`, true, true, C.t2);
+    b += card(2, 90, 140, M.comision_por_transaccion, `${n(s4.centro, 1)} MXN`, "por restaurante de 0 a 10 personas al mes", `rango ${n(s4.minimo, 1)}–${n(s4.maximo, 1)}`, true, true, C.t2);
+    b += card(2, 244, 140, M.pago_del_comensal, `${n(s5.centro, 1)} MXN`, "por restaurante al mes", `rango ${n(s5.minimo, 1)}–${n(s5.maximo, 1)}`, true, true, C.t2);
     b += T(30, 404, "Sin trama: lo que hoy se puede cobrar. Con trama: sin dato, sólo se calcula su tamaño. Candado: fuera de la v1.", 12, C.t2, "start", 700);
     return b;
   },
@@ -107,7 +109,7 @@ DET.modelo = {
     let b = "";
     tarj.forEach(([nom, kw, tip], i) => {
       const x = 30 + i * 355, w = 335;
-      b += `<g data-tip="${esc2(tip)}" tabindex="0">` + Rc(x, 14, w, 140, "#fff", 22) + `<circle cx="${x + 38}" cy="62" r="24" fill="${[C.dorado, C.vino, C.osc][i]}"/>` + T(x + 38, 70, ["D", "M", "U"][i], 22, "#fff", "middle", 700, true) + T(x + 76, 54, nom, 20, C.vino, "start", 400, true) + kw.map((t, j) => T(x + 76, 80 + j * 22, "· " + t, 13, C.tinta, "start", 700)).join("") + `</g>`;
+      b += `<g data-tip="${esc2(tip)}" tabindex="0">` + Rc(x, 8, w, 108, "#fff", 22) + `<circle cx="${x + 38}" cy="62" r="24" fill="${[C.dorado, C.vino, C.osc][i]}"/>` + T(x + 38, 70, ["D", "M", "U"][i], 22, "#fff", "middle", 700, true) + T(x + 76, 38, nom, 20, C.vino, "start", 400, true) + kw.map((t, j) => T(x + 76, 62 + j * 20, "· " + t, 13, C.tinta, "start", 700)).join("") + `</g>`;
     });
     return b;
   },
@@ -119,16 +121,17 @@ DET.modelo = {
     $("#sdC").innerHTML = tab.map(t => `<button class="btn pchip" data-sd="${t.sueldo_mensual}" aria-pressed="${t.sueldo_mensual === monto}" data-tip="${esc2(`${t.veces_el_salario_minimo} ${t.veces_el_salario_minimo === 1 ? "salario mínimo" : "salarios mínimos"}|${n(t.sueldo_mensual)} MXN al mes|Referencia de 2026; no es una recomendación.`)}">${t.veces_el_salario_minimo} × salario mínimo · ${n(t.sueldo_mensual)}</button>`).join("");
     const sd = MOD.sueldo(c, s, monto), ES = [["recomendado", "Recomendado", C.vino], ["peor", "Peor", C.rojo], ["mejor", "Mejor", C.verde]];
     const ser = conCache("serie9", () => Object.fromEntries(ES.map(([k]) => [k, MOD.proyectarEscenario(k, c, s, 60).filas])));
-    const MX = 250000, sl = v => Math.asinh(v / 4000), X0 = 70, W = 960, Y0 = 250, H = 230, X = t => X0 + W * (t - 1) / 59, Y = v => Y0 + H * (sl(MX) - sl(clamp(v, -15000, MX))) / (sl(MX) - sl(-15000));
+    const MX = Math.max(60000, Math.ceil(Math.max(...ES.map(([k]) => Math.max(...ser[k].map(r => r.margen_despues_de_captacion)))) / 10000) * 10000), sl = v => Math.asinh(v / 4000), X0 = 70, W = 960, Y0 = 250, H = 230, X = t => X0 + W * (t - 1) / 59, Y = v => Y0 + H * (sl(MX) - sl(clamp(v, -15000, MX))) / (sl(MX) - sl(-15000));
     let b = "";
     ES.forEach(([k, nom, col], i) => {
       const e = sd.escenarios[k], x = 30 + i * 355, w = 335, ok = e.restaurantes_necesarios != null;
-      b += `<g data-tip="${esc2(`${nom}|${ok ? n(e.restaurantes_necesarios) + " restaurantes" : "no se cubre"}|${ok ? `${n(e.clientes_de_paga_necesarios)} de paga; el margen después de captación lo cubre en el mes ${e.mes_en_que_el_margen_despues_de_captacion_lo_cubre}.` : "Con este escenario el margen nunca llega al sueldo."}`)}" tabindex="0">` + Rc(x, 8, w, 190, "#fff", 22, `stroke="${col}" stroke-width="2.4"`) + T(x + 18, 36, nom, 15, col, "start", 700) + (e.requiere_otra_arquitectura ? candado(x + w - 28, 28, C.osc) : "") + T(x + 18, 96, ok && monto > 0 ? n(e.restaurantes_necesarios) : "—", 52, col, "start", 400, true) + T(x + 18, 120, "restaurantes hacen falta", 13, C.t2, "start", 700) + T(x + 18, 150, monto <= 0 ? "elige un sueldo o toca una referencia" : ok ? `${n(e.clientes_de_paga_necesarios)} ${Math.round(e.clientes_de_paga_necesarios) === 1 ? "cliente" : "clientes"} de paga · mes ${e.mes_en_que_el_margen_despues_de_captacion_lo_cubre}` : "no se cubre en 60 meses", 13.5, C.tinta, "start", 700) + T(x + 18, 176, e.requiere_otra_arquitectura ? "pide otra arquitectura del servidor" : monto > 0 ? "cabe en la arquitectura actual" : "arranca en 0, sin proponer una cifra", 12, e.requiere_otra_arquitectura ? C.osc : C.t2, "start", 700) + `</g>`;
+      b += `<g data-tip="${esc2(`${nom}|${ok ? n(e.restaurantes_necesarios) + " restaurantes" : "no se cubre"}|${ok ? `${n(e.clientes_de_paga_necesarios)} de paga; el margen después de captación lo cubre en el mes ${e.mes_en_que_el_margen_despues_de_captacion_lo_cubre}.` : "Con este escenario el margen nunca llega al sueldo."}`)}" tabindex="0">` + Rc(x, 8, w, 190, "#fff", 22, `stroke="${col}" stroke-width="2.4"`) + T(x + 18, 36, nom, 15, col, "start", 700) + (e.requiere_otra_arquitectura ? candado(x + w - 28, 28, C.osc) : "") + T(x + 18, 96, monto <= 0 ? n(e.margen_despues_de_sueldo.con_1000_restaurantes) : ok ? n(e.restaurantes_necesarios) : "—", monto <= 0 ? 40 : 52, col, "start", 400, true) + T(x + 18, 120, monto <= 0 ? "MXN al mes con 1,000 restaurantes" : "restaurantes hacen falta", 13, C.t2, "start", 700) + T(x + 18, 150, monto <= 0 ? "después de captación; elige un sueldo" : ok ? `${n(e.clientes_de_paga_necesarios)} ${Math.round(e.clientes_de_paga_necesarios) === 1 ? "cliente" : "clientes"} de paga · mes ${e.mes_en_que_el_margen_despues_de_captacion_lo_cubre}` : "no se cubre en 60 meses", 13.5, C.tinta, "start", 700) + T(x + 18, 176, e.requiere_otra_arquitectura ? "pide otra arquitectura del servidor" : monto > 0 ? "cabe en la arquitectura actual" : "el sueldo arranca en 0: no propongo una cifra", 12, e.requiere_otra_arquitectura ? C.osc : C.t2, "start", 700) + `</g>`;
     });
-    [-10000, 0, 10000, 50000, 100000, 250000].forEach(v => { b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? C.t2 : C.arena}"/>` + T(X0 - 8, Y(v) + 4, (v < 0 ? "−" : "") + n(Math.abs(v)), 11, C.t2, "end"); });
+    [-10000, 0, 10000, 50000, 100000, 200000, MX].filter((v, i, a) => v <= MX && a.indexOf(v) === i).forEach(v => { b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? C.t2 : C.arena}"/>` + T(X0 - 8, Y(v) + 4, (v < 0 ? "−" : "") + n(Math.abs(v)), 11, C.t2, "end"); });
     [1, 12, 24, 36, 48, 60].forEach(t => { b += T(X(t), Y0 + H + 22, "mes " + t, 11.5, C.t2, "middle"); });
     b += T(X0, Y0 - 16, "Lo que deja cada mes después de captación (MXN), mes a mes", 13, C.vino, "start", 700);
     ES.forEach(([k, nom, col]) => { const f = ser[k]; b += `<polyline points="${f.map(r => `${X(r.mes).toFixed(1)},${Y(r.margen_despues_de_captacion).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="3.4" stroke-linejoin="round"/>`; });
+    if (monto <= 0) { const m1 = tab[0].sueldo_mensual; b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y(m1)}" y2="${Y(m1)}" stroke="${C.tinta}" stroke-width="1.4" stroke-dasharray="3 6" opacity=".45"/>` + T(X0 + W, Y(m1) - 8, `referencia: 1 salario mínimo, ${n(m1)} MXN`, 12, C.t2, "end", 700); }
     if (monto > 0) {
       b += `<line x1="${X0}" x2="${X0 + W}" y1="${Y(monto)}" y2="${Y(monto)}" stroke="${C.tinta}" stroke-width="1.8" stroke-dasharray="6 5"/>` + T(X0 + W, Y(monto) - 8, `tu sueldo: ${n(monto)} MXN`, 12, C.tinta, "end", 700);
       ES.forEach(([k, nom, col]) => { const m = sd.escenarios[k].mes_en_que_el_margen_despues_de_captacion_lo_cubre; if (m == null || m > 60) return; const f = ser[k][m - 1]; b += `<g data-tip="${esc2(`${nom}: aquí se cubre tu sueldo|mes ${m}|El margen después de captación llega a ${n(monto)} MXN con ${n(f.restaurantes)} restaurantes.`)}" tabindex="0"><circle cx="${X(m)}" cy="${Y(f.margen_despues_de_captacion)}" r="9" fill="#fff" stroke="${col}" stroke-width="3.4"/></g>`; });
