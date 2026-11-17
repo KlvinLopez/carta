@@ -150,6 +150,7 @@ main{padding-block:12px 28px}
 .tt:not([hidden]){animation:ttIn .22s cubic-bezier(.34,1.56,.64,1) both}
 .tt::after{content:"";position:absolute;left:var(--ax,50%);width:14px;height:14px;background:var(--crema,#fef9f1);transform:translateX(-50%) rotate(45deg);border-radius:3px}
 .tt[data-lado="arriba"]::after{bottom:-6px;box-shadow:3px 3px 4px rgba(79,23,40,.10)}
+.tt[data-lado="izq"]::after{left:-6px;top:var(--ay,50%);transform:translateY(-50%) rotate(45deg)}
 .tt[data-lado="abajo"]::after{top:-8px;background:var(--dorado)}
 :where([data-tip]){cursor:help}
 @media(prefers-reduced-motion:reduce){.tt:not([hidden]){animation:none}}
