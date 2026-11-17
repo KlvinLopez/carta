@@ -467,6 +467,20 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('historia: archivar no baja la analítica', o.archivar.bytes_analitica_por_mesa_de_3, o.hoy.bytes_analitica_por_mesa_de_3);
 }
 
+// 12d) correcciones de la maestra: versión con fecha real, nota de la curva por tamaño y composición del disco
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  prueba('la versión lleva la fecha real (17 de noviembre)', /^2026-11-17-/.test(M.VERSION), true);
+  const pt = M.potencialPorTramo(cfg, s);
+  prueba('potencial por tramo: nota de que la curva no distingue por tamaño', /no paga igual de fácil/.test(pt.nota_curva) && /prueba de precio del piloto/.test(pt.nota_curva), true);
+  const c = M.composicionDelDisco(cfg, s);
+  prueba('disco: 182 caben ahora y 279 antes', `${c.restaurantes_que_caben_por_disco}-${c.cifra_de_antes}`, '182-279');
+  prueba('disco: los de paga llenan 68 % y los gratuitos 32 %', `${Math.round(c.parte_del_disco.de_paga * 100)}-${Math.round(c.parte_del_disco.gratuitos * 100)}`, '68-32');
+  prueba('disco: el disco de un restaurante de paga es menos del 1 % de lo que paga', c.costo_del_disco_pesos_al_mes.parte_del_precio_que_se_va_en_disco < 0.01, true);
+  prueba('disco: el resumen de recursos trae la composición', M.recursos(cfg, s, {}).composicion_del_disco.restaurantes_que_caben_por_disco, 182);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));

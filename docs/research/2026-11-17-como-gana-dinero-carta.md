@@ -93,6 +93,20 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 
 **Dónde cae la v1:** Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga. Quién usa gratis: el comensal y el negocio chico de Chef. Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante. Transacción dentro: no; la v1 no cobra ni procesa pagos.
 
+## 3a. Lo que deja cada tamaño de negocio (techo teórico, no proyección)
+
+| Personas | Negocios [medido, DENUE] | En Chef | En Master Chef | Anuncios de Chef al mes (tarifa baja / media / alta) | Suscripción de Master Chef si todos pagaran | Con la curva pesimista / media / optimista |
+|---|---|---|---|---|---|---|
+| 0 a 5 | 73,193 | 35,427 | 37,766 | 152,513 / 610,053 / 1,612,284 | 8,497,345 | 300,617 / 1,487,035 / 4,904,186 |
+| 6 a 10 | 17,855 | 0 | 17,855 | 0 / 0 / 0 | 4,017,375 | 142,126 / 703,041 / 2,318,601 |
+| 11 a 30 | 10,809 | 0 | 10,809 | 0 / 0 / 0 | 2,432,025 | 86,040 / 425,604 / 1,403,627 |
+| 31 a 50 | 2,263 | 0 | 2,263 | 0 / 0 / 0 | 509,175 | 18,013 / 89,106 / 293,867 |
+| 51 a 100 | 542 | 0 | 542 | 0 / 0 / 0 | 121,950 | 4,314 / 21,341 / 70,383 |
+| 101 a 250 | 193 | 0 | 193 | 0 / 0 / 0 | 43,425 | 1,536 / 7,599 / 25,062 |
+| 251 o más | 27 | 0 | 27 | 0 / 0 / 0 | 6,075 | 215 / 1,063 / 3,506 |
+
+**Aviso sobre la curva de pago:** SUPUESTO: la parte que paga es la misma para todos los tamaños (la curva de pago mira el precio, no el tramo); un negocio de 0 a 5 personas no paga igual de fácil que uno de 51 a 100. Los datos por estrato (2026-11-14-lo-que-paga-un-restaurante-por-estrato.csv) dan gasto en comunicación, publicidad y servicios profesionales, no disposición a pagar por un software, y sus estratos (0 a 10, 11 a 50, 51 a 250) no coinciden con los tramos: no alcanzan para diferenciar la curva. Datos por conseguir: la prueba de precio del piloto, repartida por tamaño del negocio (personas y mesas) y registrando quién acepta cada precio.
+
 ## 3b. Visión de Calvin para una versión 2 (NO es la v1 ni la Fase 3)
 
 **Postura de Calvin (17-nov):** Ingreso principal por anuncios (estilo AdSense): personalizados para el comensal registrado, genéricos para el anónimo; quien paga no ve anuncios. Visión de una versión 2 con tres rutas; Calvin reconoce que choca con reglas «escritas para esta versión» (v1).

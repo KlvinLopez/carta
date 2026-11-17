@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-18-r12';
+export const VERSION = '2026-11-17-r13';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -1037,6 +1037,7 @@ export function recursos(config, s, estado = {}) {
   const cond = `procesador (${procHoy}, de ${rango.procesador_hoy[0]} a ${rango.procesador_hoy[1]}) o disco, según cuánto historial se guarde y cuánto rinda el servidor: con historial del gratuito a 30 días el disco aguanta ${caben30} y manda el ${caben30 > procHoy ? 'procesador' : 'disco'}; sin purga manda el disco desde el mes ${primerMesDisco(procHoy)} de operación de un restaurante`;
   return {
     config_palancas: config.palancas ?? [],
+    composicion_del_disco: composicionDelDisco(config, s),
     estado_elegido: { canal: canalE, carga, meses_historial: mesesH, palancas: config.palancas ?? [], nota: 'la escalera responde a este estado; ningún parámetro de entrada se modifica' },
     escalera: escaleraEstado,
     definicion_restaurante_tipico: `un gratuito típico = ${s.visitas_mes_gratuito} visitas al mes y ${s.comensales_dia_gratuito} comensales al día (SUPUESTO del simulador, rango ${s.rangos.comensales_dia_gratuito[0]}–${s.rangos.comensales_dia_gratuito[1]}), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)`,
@@ -1420,6 +1421,42 @@ export function visionV2(config, s) {
   };
 }
 
+// ---------------------------------------------------------------- de qué se compone el disco promedio
+/**
+ * De qué se compone el disco por restaurante registrado que usa «¿Qué nos limita?»: cuánto llenan los gratuitos y cuánto los de paga (con sus
+ * meses de historial), cuánto cuesta el disco de un restaurante de paga frente a lo que paga, y por qué la cifra no es la de antes (279 fue
+ * «restaurantes gratuitos típicos»; ahora es el restaurante registrado con la mezcla de gratuitos y de paga, y el de paga guarda 12 meses).
+ */
+export function composicionDelDisco(config, s) {
+  const cfg = conHistorialGratuito({ ...config, palancas: [...new Set([...(config.palancas ?? []), 'historial_gratuito_30_dias'])] }, s, 1);
+  const pf = perfilDeCarga(cfg, s, 'topes');
+  const q = pf.parte_de_paga;
+  const mbProm = pf.mb_por_restaurante;
+  const e = topesDeTamano(cfg, s, 'hobby_eventos', 'eventos', 'topes');
+  const antes = topesDeTamano(cfg, s, 'hobby_eventos', 'eventos', 'tipica').disco;
+  const mbAntes = perfilDeCarga(cfg, s, 'tipica').mb_por_restaurante;
+  const precio = config.precios.servicio;
+  const costoDiscoPaga = (pf.mb_paga / 1000) * s.volumen_usd_gb_mes * s.fx;
+  const costoDiscoGratuito = (pf.mb_gratuito / 1000) * s.volumen_usd_gb_mes * s.fx;
+  const parteGratuitos = ((1 - q) * pf.mb_gratuito) / mbProm;
+  const parteDePaga = (q * pf.mb_paga) / mbProm;
+  const mesesPaga = config.topes.servicio.meses_en_linea;
+  const capPuros = Math.floor((e.disco * mbProm) / pf.mb_gratuito);
+  return {
+    parte_que_paga: q,
+    meses_de_historial: { gratuito: 1, paga: mesesPaga },
+    cifra_de_antes: antes,
+    mb_por_restaurante: { promedio: mbProm, gratuito: pf.mb_gratuito, paga: pf.mb_paga },
+    parte_del_disco: { gratuitos: parteGratuitos, de_paga: parteDePaga },
+    restaurantes_que_caben_por_disco: e.disco,
+    si_todos_fueran_gratuitos: capPuros,
+    costo_del_disco_pesos_al_mes: { gratuito: costoDiscoGratuito, paga: costoDiscoPaga, lo_que_paga_un_restaurante_de_paga: precio, parte_del_precio_que_se_va_en_disco: costoDiscoPaga / precio },
+    por_que_no_es_la_cifra_de_antes: `Antes la cifra era ${antes} restaurantes y ahora es ${e.disco}, por dos cambios: (1) la unidad: antes se contaban restaurantes GRATUITOS típicos (${n(s.visitas_mes_gratuito, 0)} visitas al mes y ${n(mbAntes, 1)} MB cada uno con historial a 30 días); ahora se cuenta el restaurante REGISTRADO, con la mezcla de ${n(q * 1000, 0)} de paga por cada 1,000, donde cada uno de paga guarda ${mesesPaga} meses y llena ${n(pf.mb_paga, 1)} MB (${n(pf.mb_paga / pf.mb_gratuito, 1)} veces un gratuito); (2) la carga del gratuito sale de los topes (${n(pf.visitas_mes, 0)} visitas al mes con ${config.topes.gratuito.mesas} mesas, supuesto), así que un gratuito llena ${n(pf.mb_gratuito, 1)} MB y no ${n(mbAntes, 1)}. El promedio queda en ${n(mbProm, 1)} MB y caben menos. Si todos fueran gratuitos de los topes cabrían ${capPuros}.`,
+    hallazgo: parteDePaga > 0.5 ? `El disco lo llenan sobre todo los de paga (${n(parteDePaga * 100, 0)} %), que son ${n(q * 100, 1)} % de los restaurantes: su disco cuesta ${n(costoDiscoPaga, 2)} pesos al mes frente a ${n(precio, 0)} que pagan (${n((costoDiscoPaga / precio) * 100, 1)} %). Es una parte chica de lo que pagan: el disco no es el problema económico, sólo el tope técnico del volumen.` : `Los gratuitos llenan ${n(parteGratuitos * 100, 0)} % del disco; los de paga, ${n(parteDePaga * 100, 0)} %.`,
+  };
+}
+
+
 // ---------------------------------------------------------------- historia del disco con una mesa de tres comensales
 /**
  * Paso a paso, qué fila entra en qué tabla cuando una mesa de tres comensales entra, ordena, llama y se va, con bytes de datos más índices
@@ -1547,7 +1584,8 @@ export function potencialPorTramo(config, s) {
     return { tramo: x.tramo, negocios: x.negocios, en_chef: x.negocios_en_chef, en_master_chef: x.negocios_en_master_chef, parte_en_chef: x.parte_en_chef, ingreso_de_anuncios_al_mes: anuncios, ingreso_de_suscripcion_al_mes: suscripcion };
   });
   const suma = (f) => tramos.reduce((a, x) => a + f(x), 0);
-  return { precio_master_chef: ps, tramos, total: { en_chef: suma((x) => x.en_chef), en_master_chef: suma((x) => x.en_master_chef), anuncios_al_mes: Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, suma((x) => x.ingreso_de_anuncios_al_mes[k])])), suscripcion_si_todos_pagaran: suma((x) => x.ingreso_de_suscripcion_al_mes.si_todos_pagaran), suscripcion_por_curva: Object.fromEntries(curvas.map((c) => [c, suma((x) => x.ingreso_de_suscripcion_al_mes.por_curva_de_pago[c])])) }, supuestos: base.supuestos };
+  const nota_curva = 'SUPUESTO: la parte que paga es la misma para todos los tamaños (la curva de pago mira el precio, no el tramo); un negocio de 0 a 5 personas no paga igual de fácil que uno de 51 a 100. Los datos por estrato (2026-11-14-lo-que-paga-un-restaurante-por-estrato.csv) dan gasto en comunicación, publicidad y servicios profesionales, no disposición a pagar por un software, y sus estratos (0 a 10, 11 a 50, 51 a 250) no coinciden con los tramos: no alcanzan para diferenciar la curva. Datos por conseguir: la prueba de precio del piloto, repartida por tamaño del negocio (personas y mesas) y registrando quién acepta cada precio.';
+  return { precio_master_chef: ps, nota_curva, tramos, total: { en_chef: suma((x) => x.en_chef), en_master_chef: suma((x) => x.en_master_chef), anuncios_al_mes: Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, suma((x) => x.ingreso_de_anuncios_al_mes[k])])), suscripcion_si_todos_pagaran: suma((x) => x.ingreso_de_suscripcion_al_mes.si_todos_pagaran), suscripcion_por_curva: Object.fromEntries(curvas.map((c) => [c, suma((x) => x.ingreso_de_suscripcion_al_mes.por_curva_de_pago[c])])) }, supuestos: base.supuestos };
 }
 
 // ---------------------------------------------------------------- banderas de operación

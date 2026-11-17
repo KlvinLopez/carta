@@ -17,6 +17,7 @@ const topes = (ids) => M.recursos({ ...rec, palancas: ids }, s);
 const n0 = (x) => (x == null ? '—' : Math.round(x).toLocaleString('en-US'));
 const n1 = (x) => (x == null ? '—' : (Math.round(x * 10) / 10).toLocaleString('en-US'));
 const sg = (x) => (x >= 0 ? `+${n0(x)}` : `−${n0(-x)}`);
+const n2 = (x) => (Math.round(x * 100) / 100).toLocaleString('en-US');
 const rE = (id) => R.recursos.find((r) => r.recurso === id);
 const disco = rE('disco');
 const cuelloH = R.cuello_hoy;
@@ -60,6 +61,15 @@ const md = `# Recursos y palancas: qué pagamos, cuánto aguanta cada pieza y c�
 **Fecha:** 14 de noviembre de 2026 (ronda 6) · **Generado por \`2026-11-14-recursos.mjs\`** desde \`recursos(config, s)\` del modelo ([JSON](2026-11-14-recursos-y-palancas.json)); disco medido con [\`2026-11-14-recursos-medir.py\`](2026-11-14-recursos-medir.py) en PostgreSQL local, **con datos sintéticos** (el generador deja \`miembro_id\` y \`platillo_id\` nulos; se rellenaron con valores variados en la copia). **Las palancas son propuestas: no se tocó \`app/\` ni \`migrations/\`.**
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** ${tip}. Con el **doble** de actividad lo que cabe se divide entre 2 (${n0(ac[2].procesador_hoy)} por procesador y ${n0(ac[2].disco_con_historial_30_dias)} por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de ${n0(rE('procesador').restaurantes_hoy)} a ${n0(R.pico_simultaneo.procesador_hoy)} (factor ${R.pico_simultaneo.factor}, supuesto).
+
+## De qué se compone el disco promedio (y por qué ya no es 279)
+
+${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos e historial a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (antes: ${n0(c.cifra_de_antes)}).
+- **Mezcla:** ${n1(c.parte_que_paga * 1000)} de paga por cada 1,000 restaurantes registrados. Un gratuito guarda ${n0(c.meses_de_historial.gratuito)} mes (${n1(c.mb_por_restaurante.gratuito)} MB) y uno de paga ${n0(c.meses_de_historial.paga)} meses (${n1(c.mb_por_restaurante.paga)} MB); promedio ${n1(c.mb_por_restaurante.promedio)} MB.
+- **Quién llena el disco:** los gratuitos ${n0(c.parte_del_disco.gratuitos * 100)} %, los de paga ${n0(c.parte_del_disco.de_paga * 100)} %.
+- **Costo de ese disco:** ${n2(c.costo_del_disco_pesos_al_mes.paga)} pesos al mes por restaurante de paga frente a ${n0(c.costo_del_disco_pesos_al_mes.lo_que_paga_un_restaurante_de_paga)} que paga (${n1(c.costo_del_disco_pesos_al_mes.parte_del_precio_que_se_va_en_disco * 100)} %); un gratuito cuesta ${n2(c.costo_del_disco_pesos_al_mes.gratuito)} pesos.
+- **Por qué no es la cifra de antes:** ${c.por_que_no_es_la_cifra_de_antes}
+- **Hallazgo:** ${c.hallazgo}`; })()}
 
 ## Conclusiones
 

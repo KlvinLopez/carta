@@ -4,6 +4,15 @@
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal). Con el **doble** de actividad lo que cabe se divide entre 2 (86 por procesador y 91 por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de 173 a 108 (factor 0.63, supuesto).
 
+## De qué se compone el disco promedio (y por qué ya no es 279)
+
+- **Restaurantes que caben por disco con avisos e historial a 30 días: 182** (antes: 279).
+- **Mezcla:** 115.9 de paga por cada 1,000 restaurantes registrados. Un gratuito guarda 1 mes (7.9 MB) y uno de paga 12 meses (129 MB); promedio 21.9 MB.
+- **Quién llena el disco:** los gratuitos 32 %, los de paga 68 %.
+- **Costo de ese disco:** 0.36 pesos al mes por restaurante de paga frente a 225 que paga (0.2 %); un gratuito cuesta 0.02 pesos.
+- **Por qué no es la cifra de antes:** Antes la cifra era 279 restaurantes y ahora es 182, por dos cambios: (1) la unidad: antes se contaban restaurantes GRATUITOS típicos (1,800 visitas al mes y 14.3 MB cada uno con historial a 30 días); ahora se cuenta el restaurante REGISTRADO, con la mezcla de 116 de paga por cada 1,000, donde cada uno de paga guarda 12 meses y llena 129.0 MB (16.3 veces un gratuito); (2) la carga del gratuito sale de los topes (1,080 visitas al mes con 6 mesas, supuesto), así que un gratuito llena 7.9 MB y no 14.3. El promedio queda en 21.9 MB y caben menos. Si todos fueran gratuitos de los topes cabrían 505.
+- **Hallazgo:** El disco lo llenan sobre todo los de paga (68 %), que son 11.6 % de los restaurantes: su disco cuesta 0.36 pesos al mes frente a 225 que pagan (0.2 %). Es una parte chica de lo que pagan: el disco no es el problema económico, sólo el tope técnico del volumen.
+
 ## Conclusiones
 
 1. **Cuello de botella hoy: procesador (173, de 86 a 346) o disco, según cuánto historial se guarde y cuánto rinda el servidor: con historial del gratuito a 30 días el disco aguanta 182 y manda el procesador; sin purga manda el disco desde el mes 2 de operación de un restaurante.** Hoy **nada purga el historial** (03 §7 pide 13 y 24 meses sin distinguir por plan); la cifra de disco depende de los meses acumulados: 1 mes: 182 · 3 meses: 112 · 6 meses: 71 · 12 meses: 41 · lo que dice 03 §7 (24 meses de sesiones y 13 de analítica): 28 restaurantes.

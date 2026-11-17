@@ -93,6 +93,14 @@ ${mn.tipo_de_plataforma.comparacion.map((x) => `| **${x.modelo}** | ${x.quien_pa
 
 **Dónde cae la v1:** ${mn.tipo_de_plataforma.donde_cae_la_v1.join(' ')}
 
+## 3a. Lo que deja cada tamaño de negocio (techo teórico, no proyección)
+
+${(() => { const pt = M.potencialPorTramo(rec, s); return `| Personas | Negocios [medido, DENUE] | En Chef | En Master Chef | Anuncios de Chef al mes (tarifa baja / media / alta) | Suscripción de Master Chef si todos pagaran | Con la curva pesimista / media / optimista |
+|---|---|---|---|---|---|---|
+${pt.tramos.map((x) => `| ${x.tramo} | ${n0(x.negocios)} | ${n0(x.en_chef)} | ${n0(x.en_master_chef)} | ${n0(x.ingreso_de_anuncios_al_mes.baja)} / ${n0(x.ingreso_de_anuncios_al_mes.media)} / ${n0(x.ingreso_de_anuncios_al_mes.alta)} | ${n0(x.ingreso_de_suscripcion_al_mes.si_todos_pagaran)} | ${n0(x.ingreso_de_suscripcion_al_mes.por_curva_de_pago.pesimista)} / ${n0(x.ingreso_de_suscripcion_al_mes.por_curva_de_pago.media)} / ${n0(x.ingreso_de_suscripcion_al_mes.por_curva_de_pago.optimista)} |`).join('\n')}
+
+**Aviso sobre la curva de pago:** ${pt.nota_curva}`; })()}
+
 ## 3b. Visión de Calvin para una versión 2 (NO es la v1 ni la Fase 3)
 
 **Postura de Calvin (17-nov):** ${v2.postura_de_calvin}

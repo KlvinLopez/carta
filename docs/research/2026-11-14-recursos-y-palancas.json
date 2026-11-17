@@ -1,7 +1,34 @@
 {
- "version": "2026-11-18-r12",
+ "version": "2026-11-17-r13",
  "fecha": "2026-11-14",
  "config_palancas": [],
+ "composicion_del_disco": {
+  "parte_que_paga": 0.11588394988411602,
+  "meses_de_historial": {
+   "gratuito": 1,
+   "paga": 12
+  },
+  "cifra_de_antes": 279,
+  "mb_por_restaurante": {
+   "promedio": 21.93170856683463,
+   "gratuito": 7.89684,
+   "paga": 129.00825
+  },
+  "parte_del_disco": {
+   "gratuitos": 0.31833921957885924,
+   "de_paga": 0.6816607804211408
+  },
+  "restaurantes_que_caben_por_disco": 182,
+  "si_todos_fueran_gratuitos": 505,
+  "costo_del_disco_pesos_al_mes": {
+   "gratuito": 0.0220544526888,
+   "paga": 0.3602968207649999,
+   "lo_que_paga_un_restaurante_de_paga": 225,
+   "parte_del_precio_que_se_va_en_disco": 0.0016013192033999997
+  },
+  "por_que_no_es_la_cifra_de_antes": "Antes la cifra era 279 restaurantes y ahora es 182, por dos cambios: (1) la unidad: antes se contaban restaurantes GRATUITOS típicos (1,800 visitas al mes y 14.3 MB cada uno con historial a 30 días); ahora se cuenta el restaurante REGISTRADO, con la mezcla de 116 de paga por cada 1,000, donde cada uno de paga guarda 12 meses y llena 129.0 MB (16.3 veces un gratuito); (2) la carga del gratuito sale de los topes (1,080 visitas al mes con 6 mesas, supuesto), así que un gratuito llena 7.9 MB y no 14.3. El promedio queda en 21.9 MB y caben menos. Si todos fueran gratuitos de los topes cabrían 505.",
+  "hallazgo": "El disco lo llenan sobre todo los de paga (68 %), que son 11.6 % de los restaurantes: su disco cuesta 0.36 pesos al mes frente a 225 que pagan (0.2 %). Es una parte chica de lo que pagan: el disco no es el problema económico, sólo el tope técnico del volumen."
+ },
  "estado_elegido": {
   "canal": "sondeo",
   "carga": "topes",
