@@ -1,0 +1,104 @@
+// Genera 2026-11-17-como-gana-dinero-carta.{md,json} desde el modelo (ninguna cifra a mano). Uso: node 2026-11-17-como-gana-dinero.mjs
+import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import * as M from './2026-11-14-modelo-de-escenarios.mjs';
+
+const aqui = dirname(fileURLToPath(import.meta.url));
+const salida_dir = process.env.CARTA_SALIDA ?? aqui;
+const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+const rec = M.configInicial();
+const n0 = (x) => (x == null ? '—' : Math.round(x).toLocaleString('en-US'));
+const n1 = (x) => (x == null ? '—' : (Math.round(x * 10) / 10).toLocaleString('en-US'));
+const sg = (x) => (x >= 0 ? `+${n0(x)}` : `−${n0(-x)}`);
+const mes = (x) => (x == null ? 'más de 60 meses' : `mes ${x}`);
+
+const modelos = M.modelosDeIngreso(rec, s);
+const tabla = M.tablaSueldos(rec, s);
+const sueldoCero = M.sueldo(rec, s, 0);
+const plat = s.plataformas_referencia;
+const sm = s.salario_minimo;
+const m = Object.fromEntries(modelos.modelos.map((x) => [x.id, x]));
+const cuanto = (o) => (o && o.centro != null ? `${n1(o.centro)} (rango ${n1(o.minimo)} a ${n1(o.maximo)})` : '—');
+const potencial = (x) => {
+  const p = x.potencial_pesos_por_restaurante_al_mes;
+  if (x.id === 'suscripcion_del_restaurante') return `${n0(p.por_restaurante_de_paga)} por restaurante de paga (deja ${n0(p.deja_por_restaurante_de_paga)}); por restaurante registrado ${cuanto(p.por_restaurante_registrado)}`;
+  if (x.id === 'anuncios_del_comensal') return `por restaurante gratuito ${n1(p.por_restaurante_gratuito.baja)} (tarifa baja) · ${n1(p.por_restaurante_gratuito.media)} (media) · ${n1(p.por_restaurante_gratuito.alta)} (alta)`;
+  if (x.id === 'visibilidad_pagada') return `por restaurante gratuito ${cuanto(p.por_restaurante_gratuito)}`;
+  if (x.id === 'comision_por_transaccion') return `0 a 10 personas ${cuanto(p.de_0_a_10_personas)}; 11 a 50 personas ${cuanto(p.de_11_a_50_personas)}`;
+  return `por restaurante ${cuanto(p.por_restaurante)} (techo, repartido entre los restaurantes que visita cada comensal)`;
+};
+
+const salida = { version: M.VERSION, fecha: '2026-11-17', sueldo_fundador: { por_omision: s.sueldo_fundador, nota: 'sin valor por omisión inventado: 0 = todavía sin sueldo; Calvin lo elige', salario_minimo: sm, tabla_de_niveles: tabla, sin_sueldo: sueldoCero }, modelos_de_ingreso: modelos, plataformas_de_referencia: plat, secuencia: null };
+
+const secuencia = [
+  { modelo: 'Suscripción del restaurante (Master Chef)', cuando: 'Piloto', requisito: 'Nada nuevo: la v1', riesgo: 'La curva de pago no tiene dato: la prueba de tres precios del piloto la mide' },
+  { modelo: 'Anuncios al comensal del plan gratuito', cuando: `Después de la Fase 3 (hacia el mes ${s.mes_inicio_anuncios}, supuesto)`, requisito: 'ADR, abrir la política de seguridad, aviso de privacidad y aprobación de la red de anuncios; sin anuncios personalizados', riesgo: 'Tarifa, parte con anuncio y aprobación de la red sin dato: una prueba con 3 restaurantes' },
+  { modelo: 'Visibilidad pagada dentro de Carta', cuando: 'Spec nueva, después de la Fase 3 y con restaurantes reales', requisito: 'Spec: qué se puede patrocinar y cómo se distingue de la carta; sin datos del comensal', riesgo: 'No hay dato de cuánto pagaría un patrocinador: prueba con 3 patrocinadores' },
+  { modelo: 'Comisión por transacción', cuando: 'Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1)', requisito: 'Cobrar o procesar pagos: contradice «Qué NO construir»; posible regulación financiera (verificar con un abogado)', riesgo: 'Cambia la naturaleza del producto y su regulación' },
+  { modelo: 'Pago del comensal', cuando: 'Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1)', requisito: 'Cuenta o perfil del comensal: contradice la regla 10 y «Qué NO construir»', riesgo: 'Rompe el principio de comensal anónimo' },
+];
+salida.secuencia = secuencia;
+writeFileSync(join(salida_dir, '2026-11-17-como-gana-dinero-carta.json'), JSON.stringify(salida, null, 1));
+
+const md = `# Cómo gana dinero Carta y cuándo le paga a su fundador
+
+**Fecha:** 17 de noviembre de 2026 · **Generado por \`2026-11-17-como-gana-dinero.mjs\`** desde el modelo ([JSON](2026-11-17-como-gana-dinero-carta.json)). **La v1 no cobra ni tiene planes.** Lo que va marcado «fuera de la v1» sólo se calcula para ver el tamaño. **No se venden datos (decisión de Calvin, 14-nov) ni se guardan datos personales del comensal (regla 10).**
+
+**Postura de Calvin (17-nov):** «no estamos considerando un salario para mí todavía, pero eventualmente buscaré ganar de esto… quiero que me ayudes a darle forma para poder ganar dinero de eso también». Su investigación (una conversación con un asistente, 17 de noviembre, sin versión ni enlaces) se trata como **secundaria**: toda cifra de plataformas se verificó o se marca «no verificada» (§4).
+
+## Conclusiones
+
+1. **Hoy Carta no le paga a su fundador: \`sueldo_fundador\` está en 0 y no hay valor por omisión inventado.** La tabla de §1 da niveles de referencia (múltiplos del salario mínimo general: ${sm.zona_general_dia} pesos por día en 2026 [fuente]) y, para cada uno, cuántos restaurantes y clientes de paga hacen falta.
+2. **Con un sueldo de ${n0(tabla[1].sueldo_mensual)} pesos al mes (3 salarios mínimos), el margen después de captación lo cubre con ${n0(tabla[1].escenarios.recomendado.restaurantes_necesarios)} restaurantes registrados y ${n0(tabla[1].escenarios.recomendado.clientes_de_paga_necesarios)} de paga en el recomendado (${mes(tabla[1].escenarios.recomendado.mes_en_que_el_margen_despues_de_captacion_lo_cubre)} de la proyección); en el peor, ${n0(tabla[1].escenarios.peor.restaurantes_necesarios)}; en el mejor, ${n0(tabla[1].escenarios.mejor.restaurantes_necesarios)}.**
+3. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe después de la Fase 3 con una spec nueva) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
+4. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción ${n0(m.suscripcion_del_restaurante.potencial_pesos_por_restaurante_al_mes.por_restaurante_de_paga)} por restaurante de paga; anuncios ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.baja)} a ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.alta)} por restaurante gratuito; **comisión por transacción (fuera de la v1) ${n0(m.comision_por_transaccion.potencial_pesos_por_restaurante_al_mes.de_0_a_10_personas.centro)} por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
+5. **Secuencia recomendada:** piloto = suscripción; después de la Fase 3 = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
+
+## 1. Sueldo del fundador en el modelo
+
+\`sueldo_fundador\` es un parámetro deslizable (pesos al mes): ${s.sueldo_fundador === 0 ? '**vale 0 por omisión y no se inventa un valor**; Calvin lo elige' : n0(s.sueldo_fundador)}. \`sueldo(config, s, monto)\` y \`tablaSueldos(config, s)\` lo calculan por escenario. **Niveles de referencia:** múltiplos del salario mínimo general de ${sm.zona_general_dia} pesos por día (${sm.fuente}; ${sm.cita}) × 30.4 días; no son una recomendación.
+
+| Sueldo al mes | Veces el mínimo | Escenario | Restaurantes registrados necesarios | Clientes de paga | Mes en que el margen después de captación lo cubre | Margen después de sueldo: 1,000 restaurantes · mes 12 · mes 24 |
+|---|---|---|---|---|---|---|
+${tabla.flatMap((fila) => ['recomendado', 'peor', 'mejor'].map((k, i) => { const e = fila.escenarios[k]; return `| ${i === 0 ? n0(fila.sueldo_mensual) : ''} | ${i === 0 ? fila.veces_el_salario_minimo : ''} | ${k} | ${e.restaurantes_necesarios == null ? 'más de 20,000' : n0(e.restaurantes_necesarios)}${e.requiere_otra_arquitectura ? ' (exige otra arquitectura)' : ''} | ${n0(e.clientes_de_paga_necesarios)} | ${mes(e.mes_en_que_el_margen_despues_de_captacion_lo_cubre)} | ${sg(e.margen_despues_de_sueldo.con_1000_restaurantes)} · ${sg(e.margen_despues_de_sueldo.mes_12)} · ${sg(e.margen_despues_de_sueldo.mes_24)} |`; })).join('\n')}
+
+**Sin sueldo** (referencia): margen después de captación con 1,000 restaurantes ${sg(sueldoCero.escenarios.recomendado.margen_despues_de_sueldo.con_1000_restaurantes)} (recomendado), ${sg(sueldoCero.escenarios.peor.margen_despues_de_sueldo.con_1000_restaurantes)} (peor), ${sg(sueldoCero.escenarios.mejor.margen_despues_de_sueldo.con_1000_restaurantes)} (mejor). El piso de verdad no cubre ningún sueldo.
+
+**Sigue sin modelar:** ${sueldoCero.no_modelado.join('; ')}. El margen es antes de captación, sueldos e impuestos; un sueldo real cuesta más que el sueldo bruto.
+
+## 2. Mapa de modelos de ingreso aplicados a Carta
+
+Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuestos y rango), lo que exige y cuándo cabría. **Los potenciales de visibilidad, comisión y pago del comensal son supuestos sin dato** (parámetros con rango en \`2026-11-14-parametros.json\`): sirven para ver el tamaño, no como proyección.
+
+${modelos.modelos.map((x, i) => `### 2.${i + 1} ${x.nombre}${x.vigente ? ' (vigente)' : ''}
+
+- **A quién se le cobra:** ${x.se_cobra_a}.
+- **Potencial (pesos al mes):** ${potencial(x)}.
+- **Supuestos:** ${x.supuestos}.
+- **Qué exige:** ${x.exige}.
+- **Cuándo cabría:** ${x.cuando}.
+`).join('\n')}
+## 3. Secuencia recomendada
+
+| Modelo | Cuándo | Qué exige | Riesgo o dato que falta |
+|---|---|---|---|
+${secuencia.map((x) => `| ${x.modelo} | ${x.cuando} | ${x.requisito} | ${x.riesgo} |`).join('\n')}
+
+**Sin vender datos y sin datos personales del comensal en el servidor** en ninguna fila.
+
+## 4. Plataformas de referencia (verificadas en fuente primaria o marcadas)
+
+${plat.map((x) => `- **${x.plataforma}:** ${x.cifra}. ${x.verificada ? `Fuente: ${x.url} (${x.fecha}; consultada el ${x.consulta}).` : `**No verificada** (${x.nota}).`}`).join('\n')}
+
+**Lectura (de la investigación de Calvin, como hipótesis):** en servicios físicos y caros las plataformas cobran **comisión por transacción** al que gana; en servicios digitales masivos, **gratuito con anuncios más suscripción**; además cobran por **visibilidad** dentro de la plataforma. Carta v1 usa lo segundo (suscripción y anuncios); la comisión exigiría procesar pagos, que la v1 no hace.
+
+## 5. Datos por conseguir
+- **Curva de pago y precio de Master Chef:** prueba de tres precios del piloto.
+- **Tarifa de anuncios, parte con anuncio y aprobación de la red:** prueba pequeña con 3 restaurantes.
+- **Cuánto pagaría un patrocinador y qué parte de restaurantes aceptaría:** prueba con 3 patrocinadores después de la Fase 3.
+- **Ventas, ticket y parte que pasaría por Carta:** carta y ventas reales de los negocios del piloto (el dato del INEGI es un promedio de la clase 722511).
+- **Sueldo que Calvin quiere:** lo elige Calvin; el modelo lo resta del margen.
+`;
+writeFileSync(join(salida_dir, '2026-11-17-como-gana-dinero-carta.md'), md);
+console.log('ok como-gana-dinero');

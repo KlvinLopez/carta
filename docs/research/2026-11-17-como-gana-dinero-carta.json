@@ -1,0 +1,477 @@
+{
+ "version": "2026-11-17-r10",
+ "fecha": "2026-11-17",
+ "sueldo_fundador": {
+  "por_omision": 0,
+  "nota": "sin valor por omisión inventado: 0 = todavía sin sueldo; Calvin lo elige",
+  "salario_minimo": {
+   "zona_general_dia": 315.04,
+   "zona_frontera_norte_dia": 440.87,
+   "fuente": "Diario Oficial de la Federación del 9 de diciembre de 2025 (CONASAMI), vigente desde el 1 de enero de 2026",
+   "cita": "«con lo que será de 315.04 pesos por jornada diaria de trabajo»",
+   "url": "https://dof.gob.mx/nota_detalle.php?codigo=5775534&fecha=09%2F12%2F2025"
+  },
+  "tabla_de_niveles": [
+   {
+    "veces_el_salario_minimo": 1,
+    "sueldo_mensual": 9577,
+    "escenarios": {
+     "recomendado": {
+      "restaurantes_necesarios": 550,
+      "clientes_de_paga_necesarios": 63.73617243626381,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 21,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 8360.92232247697,
+       "mes_12": -7691.294702103121,
+       "mes_24": 5431.799808159934
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": 4940,
+      "clientes_de_paga_necesarios": 115.72919820727792,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 57,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -7608.86822031288,
+       "mes_12": -9926.891583768047,
+       "mes_24": -8564.219840420368
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 165,
+      "clientes_de_paga_necesarios": 63.059843296166996,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 14,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 49207.4114750436,
+       "mes_12": -2491.1992323465074,
+       "mes_24": 39575.59534325346
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -11107.690769443934,
+       "mes_12": -10976.538348507363,
+       "mes_24": -12762.806899377629
+      }
+     }
+    },
+    "no_modelado": [
+     "impuestos (ISR e IVA)",
+     "contabilidad y trámites",
+     "seguridad social y prestaciones",
+     "costos de ventas más allá del costo de conseguir un cliente de paga"
+    ]
+   },
+   {
+    "veces_el_salario_minimo": 3,
+    "sueldo_mensual": 28732,
+    "escenarios": {
+     "recomendado": {
+      "restaurantes_necesarios": 1660,
+      "clientes_de_paga_necesarios": 192.3673568076326,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 32,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -10794.07767752303,
+       "mes_12": -26846.29470210312,
+       "mes_24": -13723.200191840066
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": 14010,
+      "clientes_de_paga_necesarios": 328.2117544299521,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -26763.86822031288,
+       "mes_12": -29081.891583768047,
+       "mes_24": -27719.219840420366
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 490,
+      "clientes_de_paga_necesarios": 187.2686255461929,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 20,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 30052.4114750436,
+       "mes_12": -21646.19923234651,
+       "mes_24": 20420.59534325346
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -30262.690769443932,
+       "mes_12": -30131.53834850736,
+       "mes_24": -31917.80689937763
+      }
+     }
+    },
+    "no_modelado": [
+     "impuestos (ISR e IVA)",
+     "contabilidad y trámites",
+     "seguridad social y prestaciones",
+     "costos de ventas más allá del costo de conseguir un cliente de paga"
+    ]
+   },
+   {
+    "veces_el_salario_minimo": 5,
+    "sueldo_mensual": 47886,
+    "escenarios": {
+     "recomendado": {
+      "restaurantes_necesarios": 2680,
+      "clientes_de_paga_necesarios": 310.5689856894309,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 40,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -29948.07767752303,
+       "mes_12": -46000.29470210312,
+       "mes_24": -32877.200191840064
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -45917.86822031288,
+       "mes_12": -48235.89158376805,
+       "mes_24": -46873.21984042037
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 830,
+      "clientes_de_paga_necesarios": 317.21012082314303,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 24,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 10898.411475043598,
+       "mes_12": -40800.19923234651,
+       "mes_24": 1266.5953432534589
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -49416.690769443936,
+       "mes_12": -49285.53834850736,
+       "mes_24": -51071.80689937763
+      }
+     }
+    },
+    "no_modelado": [
+     "impuestos (ISR e IVA)",
+     "contabilidad y trámites",
+     "seguridad social y prestaciones",
+     "costos de ventas más allá del costo de conseguir un cliente de paga"
+    ]
+   },
+   {
+    "veces_el_salario_minimo": 10,
+    "sueldo_mensual": 95772,
+    "escenarios": {
+     "recomendado": {
+      "restaurantes_necesarios": 5360,
+      "clientes_de_paga_necesarios": 621.1379713788618,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 55,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -77834.07767752303,
+       "mes_12": -93886.29470210313,
+       "mes_24": -80763.20019184006
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -93803.86822031288,
+       "mes_12": -96121.89158376805,
+       "mes_24": -94759.21984042037
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 1630,
+      "clientes_de_paga_necesarios": 622.9548155924376,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 32,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -36987.5885249564,
+       "mes_12": -88686.19923234651,
+       "mes_24": -46619.40465674654
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -97302.69076944393,
+       "mes_12": -97171.53834850737,
+       "mes_24": -98957.80689937763
+      }
+     }
+    },
+    "no_modelado": [
+     "impuestos (ISR e IVA)",
+     "contabilidad y trámites",
+     "seguridad social y prestaciones",
+     "costos de ventas más allá del costo de conseguir un cliente de paga"
+    ]
+   }
+  ],
+  "sin_sueldo": {
+   "sueldo_mensual": 0,
+   "escenarios": {
+    "recomendado": {
+     "restaurantes_necesarios": 11,
+     "clientes_de_paga_necesarios": 1.2747234487252763,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 9,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": 17937.92232247697,
+      "mes_12": 1885.7052978968786,
+      "mes_24": 15008.799808159934
+     }
+    },
+    "peor": {
+     "restaurantes_necesarios": 82,
+     "clientes_de_paga_necesarios": 1.921010982388014,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 17,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": 1968.1317796871197,
+      "mes_12": -349.89158376804767,
+      "mes_24": 1012.7801595796325
+     }
+    },
+    "mejor": {
+     "restaurantes_necesarios": 4,
+     "clientes_de_paga_necesarios": 1.5287234738464726,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 9,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": 58784.4114750436,
+      "mes_12": 7085.800767653493,
+      "mes_24": 49152.59534325346
+     }
+    },
+    "piso_de_verdad": {
+     "restaurantes_necesarios": null,
+     "clientes_de_paga_necesarios": null,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": -1530.6907694439335,
+      "mes_12": -1399.5383485073635,
+      "mes_24": -3185.8068993776296
+     }
+    }
+   },
+   "no_modelado": [
+    "impuestos (ISR e IVA)",
+    "contabilidad y trámites",
+    "seguridad social y prestaciones",
+    "costos de ventas más allá del costo de conseguir un cliente de paga"
+   ]
+  }
+ },
+ "modelos_de_ingreso": {
+  "n": 1000,
+  "modelos": [
+   {
+    "id": "suscripcion_del_restaurante",
+    "nombre": "Suscripción del restaurante (Master Chef)",
+    "vigente": true,
+    "se_cobra_a": "el restaurante que pasa de los topes de Chef",
+    "potencial_pesos_por_restaurante_al_mes": {
+     "por_restaurante_de_paga": 225,
+     "deja_por_restaurante_de_paga": 149,
+     "por_restaurante_registrado": {
+      "centro": 26.1,
+      "minimo": 5.3,
+      "maximo": 86
+     }
+    },
+    "supuestos": "curva de pago (mediana, sigma y techo) sin dato; parte que rebasa los topes de Chef (modelo de mesas y cuentas)",
+    "exige": "nada nuevo: es la v1 (sin pagos del restaurante dentro de Carta si se cobra fuera)",
+    "cuando": "piloto: se prueba el precio con tres grupos"
+   },
+   {
+    "id": "anuncios_del_comensal",
+    "nombre": "Anuncios al comensal del plan gratuito (no personalizados)",
+    "vigente": true,
+    "se_cobra_a": "el anunciante, a través de una red de anuncios (hoy se supone AdSense); anunciantes típicos: marcas de bebidas y consumo, bancos y comercios locales (por definir)",
+    "potencial_pesos_por_restaurante_al_mes": {
+     "por_restaurante_gratuito": {
+      "baja": 4.3,
+      "media": 17.2,
+      "alta": 45.5
+     },
+     "nota": "visitas con la app y parte con anuncio del modelo; tarifa sin dato"
+    },
+    "supuestos": "tarifa por mil visitas, visitas con la app, parte con anuncio y que la red apruebe el sitio",
+    "exige": "ADR, abrir la política de seguridad del sitio, aviso de privacidad y aprobación de la red; sin anuncios personalizados (regla 10)",
+    "cuando": "hacia el mes 9 (supuesto) o después de la Fase 3"
+   },
+   {
+    "id": "visibilidad_pagada",
+    "nombre": "Visibilidad pagada dentro de Carta (patrocinio de marca o proveedor en la carta, platillo destacado)",
+    "vigente": false,
+    "se_cobra_a": "la marca o el proveedor (cerveza, refrescos, insumos) que patrocina un espacio en la carta del restaurante; o el restaurante que destaca un platillo",
+    "potencial_pesos_por_restaurante_al_mes": {
+     "por_restaurante_gratuito": {
+      "centro": 7.5,
+      "minimo": 1,
+      "maximo": 75
+     }
+    },
+    "supuestos": "parte de restaurantes con patrocinio y cuota mensual: SUPUESTOS sin dato (referencia de forma: Booking cobra 2–8 % más por visibilidad, por verificar)",
+    "exige": "spec nueva (alcance), regla de qué puede patrocinarse sin engañar al comensal; no toca la v1 ni guarda datos del comensal",
+    "cuando": "después de la Fase 3, con restaurantes reales y una prueba de 3 patrocinadores"
+   },
+   {
+    "id": "comision_por_transaccion",
+    "nombre": "Comisión por transacción (FUERA de la v1)",
+    "vigente": false,
+    "fuera_de_la_v1": true,
+    "se_cobra_a": "el restaurante, sobre lo que se pida o pague por Carta",
+    "potencial_pesos_por_restaurante_al_mes": {
+     "de_0_a_10_personas": {
+      "centro": 322.4,
+      "minimo": 53.7,
+      "maximo": 967.1
+     },
+     "de_11_a_50_personas": {
+      "centro": 2212.8,
+      "minimo": 368.8,
+      "maximo": 6638.3
+     }
+    },
+    "supuestos": "ventas promedio de la clase 722511 (INEGI 2023, promedios no medianas); parte que pasaría por Carta y tasa: supuestos sin dato",
+    "exige": "cobrar o procesar pagos: contradice «Qué NO construir» y la v1; ADR nuevo y spec; puede exigir regulación financiera (por verificar con un abogado)",
+    "cuando": "no antes de una v2; sólo se calcula para ver el tamaño"
+   },
+   {
+    "id": "pago_del_comensal",
+    "nombre": "Pago del comensal por quitar anuncios o por funciones propias (FUERA de la v1)",
+    "vigente": false,
+    "fuera_de_la_v1": true,
+    "se_cobra_a": "el comensal (suscripción tipo «Carta+»)",
+    "potencial_pesos_por_restaurante_al_mes": {
+     "por_restaurante": {
+      "centro": 495.5,
+      "minimo": 165.2,
+      "maximo": 1981.9
+     },
+     "nota": "repartido entre los restaurantes que visita cada comensal: es un techo por restaurante"
+    },
+    "supuestos": "comensales únicos al mes, conversión y precio (29 pesos del prototipo): supuestos sin dato",
+    "exige": "cuenta o perfil del comensal: contradice «Qué NO construir» y la regla 10 (sin datos personales del comensal en el servidor); ADR y spec",
+    "cuando": "no antes de una v2"
+   }
+  ],
+  "no_vende_datos": "decisión de Calvin del 14 de noviembre de 2026: Carta no vende datos; y sin datos personales del comensal en el servidor (regla 10)"
+ },
+ "plataformas_de_referencia": [
+  {
+   "plataforma": "Airbnb",
+   "cifra": "esquema compartido: la mayoría de los anfitriones paga 3 %; esquema único: la mayoría paga 15.5 % (el texto dice que el compartido «se está retirando»)",
+   "verificada": true,
+   "url": "https://www.airbnb.com/help/article/63",
+   "fecha": "sin fecha en la página",
+   "consulta": "2026-11-17"
+  },
+  {
+   "plataforma": "YouTube",
+   "cifra": "55 % de los ingresos netos por anuncios de los videos en la página de reproducción (en Shorts, 45 % de lo asignado al fondo de creadores)",
+   "verificada": true,
+   "url": "https://support.google.com/youtube/answer/72902",
+   "fecha": "sin fecha en la página (©2026 Google)",
+   "consulta": "2026-11-17"
+  },
+  {
+   "plataforma": "Meta",
+   "cifra": "97.6 % de los ingresos viene de publicidad en el año fiscal 2025: cálculo propio sobre el 10-K (196,175 de 200,966 millones de USD); el 10-K dice que genera «substantially all» de sus ingresos vendiendo anuncios",
+   "verificada": true,
+   "url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/meta-20251231.htm",
+   "fecha": "10-K del año fiscal terminado el 31-dic-2025",
+   "consulta": "2026-11-17"
+  },
+  {
+   "plataforma": "Uber",
+   "cifra": "la tarifa de servicio al conductor ya no es fija: varía por viaje y la meta es acercarse a 25 %",
+   "verificada": true,
+   "url": "https://help.uber.com/en/driving-and-delivering/article/understanding-ubers-variable-service-fee?nodeId=7448ffcc-ab98-4a32-b7fc-e9c17a58bb41",
+   "fecha": "sin fecha en la página",
+   "consulta": "2026-11-17"
+  },
+  {
+   "plataforma": "Booking.com",
+   "cifra": "alrededor de 15 % de comisión estándar y 2–8 % más por visibilidad (Preferente, Genius)",
+   "verificada": false,
+   "nota": "las páginas oficiales de partner.booking.com devolvieron 403 y las cifras que circulan vienen de blogs y foros; el dato primario es el contrato o el extranet de cada alojamiento"
+  },
+  {
+   "plataforma": "Spotify",
+   "cifra": "alrededor de 70 % de los ingresos a titulares de derechos",
+   "verificada": false,
+   "nota": "la fuente primaria más cercana (Spotify Newsroom, 11 de mayo de 2026) dice «cerca de dos tercios»; el 70 % sólo aparece en prensa"
+  },
+  {
+   "plataforma": "DiDi",
+   "cifra": "alrededor de 20 % de comisión al conductor",
+   "verificada": false,
+   "nota": "la página de DiDi México no publica un porcentaje; el 16 % que aparece es IVA sobre la tarifa de servicio, no la comisión"
+  }
+ ],
+ "secuencia": [
+  {
+   "modelo": "Suscripción del restaurante (Master Chef)",
+   "cuando": "Piloto",
+   "requisito": "Nada nuevo: la v1",
+   "riesgo": "La curva de pago no tiene dato: la prueba de tres precios del piloto la mide"
+  },
+  {
+   "modelo": "Anuncios al comensal del plan gratuito",
+   "cuando": "Después de la Fase 3 (hacia el mes 9, supuesto)",
+   "requisito": "ADR, abrir la política de seguridad, aviso de privacidad y aprobación de la red de anuncios; sin anuncios personalizados",
+   "riesgo": "Tarifa, parte con anuncio y aprobación de la red sin dato: una prueba con 3 restaurantes"
+  },
+  {
+   "modelo": "Visibilidad pagada dentro de Carta",
+   "cuando": "Spec nueva, después de la Fase 3 y con restaurantes reales",
+   "requisito": "Spec: qué se puede patrocinar y cómo se distingue de la carta; sin datos del comensal",
+   "riesgo": "No hay dato de cuánto pagaría un patrocinador: prueba con 3 patrocinadores"
+  },
+  {
+   "modelo": "Comisión por transacción",
+   "cuando": "Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1)",
+   "requisito": "Cobrar o procesar pagos: contradice «Qué NO construir»; posible regulación financiera (verificar con un abogado)",
+   "riesgo": "Cambia la naturaleza del producto y su regulación"
+  },
+  {
+   "modelo": "Pago del comensal",
+   "cuando": "Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1)",
+   "requisito": "Cuenta o perfil del comensal: contradice la regla 10 y «Qué NO construir»",
+   "riesgo": "Rompe el principio de comensal anónimo"
+  }
+ ]
+}

@@ -363,6 +363,39 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('la frase del margen dice que no es la ganancia final y por qué el porcentaje casi no sube', /no es la ganancia final/.test(mg.frase) && /soporte y la comisión crecen con cada cliente de paga/.test(mg.frase), true);
 }
 
+// 17) RONDA 9, punto 6: sueldo del fundador, modelos de ingreso, plataformas de referencia
+{
+  const cfg = M.configInicial();
+  prueba('sueldo_fundador no tiene valor por omisión inventado (0)', s.sueldo_fundador, 0);
+  prueba('salario mínimo general 2026 (DOF 9-dic-2025): zona general y frontera norte', `${s.salario_minimo.zona_general_dia}-${s.salario_minimo.zona_frontera_norte_dia}`, '315.04-440.87');
+  const tb = M.tablaSueldos(cfg, s);
+  prueba('niveles de sueldo (1, 3, 5 y 10 salarios mínimos al mes)', tb.map((f) => f.sueldo_mensual).join(','), '9577,28732,47886,95772');
+  const rn = (k) => tb.map((f) => f.escenarios[k].restaurantes_necesarios).join(',');
+  prueba('restaurantes necesarios para cubrir cada sueldo (recomendado)', rn('recomendado'), '550,1660,2680,5360');
+  prueba('restaurantes necesarios para cubrir cada sueldo (mejor)', rn('mejor'), '165,490,830,1630');
+  prueba('restaurantes necesarios para cubrir el sueldo de 1 salario mínimo (peor)', tb[0].escenarios.peor.restaurantes_necesarios, 4940);
+  prueba('clientes de paga necesarios con 3 salarios mínimos (recomendado)', Math.round(tb[1].escenarios.recomendado.clientes_de_paga_necesarios), 192);
+  prueba('mes en que el margen después de captación cubre 1 y 3 salarios mínimos (recomendado)', `${tb[0].escenarios.recomendado.mes_en_que_el_margen_despues_de_captacion_lo_cubre}-${tb[1].escenarios.recomendado.mes_en_que_el_margen_despues_de_captacion_lo_cubre}`, '21-32');
+  prueba('el piso de verdad no cubre ningún sueldo', tb.every((f) => f.escenarios.piso_de_verdad.restaurantes_necesarios == null), true);
+  const z = M.sueldo(cfg, s, 0);
+  prueba('margen después de sueldo con sueldo 0 y 1,000 restaurantes (recomendado, peor, mejor)', ['recomendado', 'peor', 'mejor'].map((k) => Math.round(z.escenarios[k].margen_despues_de_sueldo.con_1000_restaurantes)).join(','), '17938,1968,58784');
+  prueba('lo no modelado del sueldo: impuestos, contabilidad y seguridad social', ['impuestos', 'contabilidad', 'seguridad social'].every((x) => z.no_modelado.join(' ').includes(x)), true);
+  const mi = M.modelosDeIngreso(cfg, s);
+  prueba('cinco modelos de ingreso: dos vigentes y dos fuera de la v1', `${mi.modelos.length}-${mi.modelos.filter((x) => x.vigente).length}-${mi.modelos.filter((x) => x.fuera_de_la_v1).length}`, '5-2-2');
+  const pm = (id) => mi.modelos.find((x) => x.id === id).potencial_pesos_por_restaurante_al_mes;
+  prueba('suscripción: pesos por restaurante de paga y lo que deja', `${pm('suscripcion_del_restaurante').por_restaurante_de_paga}-${Math.round(pm('suscripcion_del_restaurante').deja_por_restaurante_de_paga)}`, '225-149');
+  prueba('anuncios: pesos por restaurante gratuito con la tarifa baja, media y alta', ['baja', 'media', 'alta'].map((k) => pm('anuncios_del_comensal').por_restaurante_gratuito[k]).join(','), '4.3,17.2,45.5');
+  prueba('comisión por transacción (fuera de la v1): 0 a 10 personas, centro y rango', `${pm('comision_por_transaccion').de_0_a_10_personas.centro}-${pm('comision_por_transaccion').de_0_a_10_personas.minimo}-${pm('comision_por_transaccion').de_0_a_10_personas.maximo}`, '322.4-53.7-967.1');
+  prueba('visibilidad pagada: centro y rango por restaurante gratuito', `${pm('visibilidad_pagada').por_restaurante_gratuito.centro}-${pm('visibilidad_pagada').por_restaurante_gratuito.minimo}-${pm('visibilidad_pagada').por_restaurante_gratuito.maximo}`, '7.5-1-75');
+  prueba('toda cifra de modelo no vigente dice que es supuesto', mi.modelos.filter((x) => !x.vigente).every((x) => /sin dato|SUPUESTO|supuestos/i.test(x.supuestos)), true);
+  prueba('comisión y pago del comensal exigen ADR y mencionan «Qué NO construir» o la regla 10', mi.modelos.filter((x) => x.fuera_de_la_v1).every((x) => /Qué NO construir|regla 10/.test(x.exige) && /ADR/.test(x.exige)), true);
+  prueba('no se venden datos y no hay datos personales del comensal', /no vende|Carta no vende datos/i.test(mi.no_vende_datos) && /regla 10/.test(mi.no_vende_datos), true);
+  const pl = s.plataformas_referencia;
+  prueba('plataformas verificadas en fuente primaria: Airbnb, YouTube, Meta y Uber', pl.filter((x) => x.verificada).map((x) => x.plataforma).join(','), 'Airbnb,YouTube,Meta,Uber');
+  prueba('plataformas no verificadas se marcan: Booking.com, Spotify y DiDi', pl.filter((x) => !x.verificada).map((x) => x.plataforma).join(','), 'Booking.com,Spotify,DiDi');
+  prueba('toda plataforma verificada trae enlace y fecha de consulta', pl.filter((x) => x.verificada).every((x) => /^https:\/\//.test(x.url) && x.consulta === '2026-11-17'), true);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
@@ -370,6 +403,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const gens = [['node', '2026-11-14-corre-escenarios.mjs', ['2026-11-14-modelo-de-escenarios-resultados.json', '2026-11-14-modelo-de-escenarios.md', '2026-11-14-chequeo-de-margenes.md', '2026-11-14-precio-de-entrada.md', '2026-11-14-recomendaciones.json', '2026-11-14-recomendaciones.md']],
     ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
     ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
+    ['node', '2026-11-17-como-gana-dinero.mjs', ['2026-11-17-como-gana-dinero-carta.json', '2026-11-17-como-gana-dinero-carta.md']],
     ['python3', '2026-11-16-cobertura-platillos.py', ['2026-11-16-cobertura-platillos-datos.json']],
     ['python3', '2026-11-14-parametros-generador.py', ['2026-11-14-parametros.json']]];
   for (const [cmd, script, salidas] of gens) {

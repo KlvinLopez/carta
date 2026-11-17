@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-17-r9';
+export const VERSION = '2026-11-17-r10';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -1172,6 +1172,72 @@ export function potencialChef(config, s) {
   const tarifas = s.anuncio_pesos_por_mil;
   const potencial = Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, { tarifa_por_mil: tarifas[k], pesos_por_negocio_al_mes: pesosPorChef(tarifas[k]), pesos_al_mes_de_todos_los_chef: enChef * pesosPorChef(tarifas[k]), rango_por_visitas_y_parte: [enChef * pesosPorChef(tarifas[k], vmin, pmin), enChef * pesosPorChef(tarifas[k], vmax, pmax)] }]));
   return { universo: tramos.reduce((a, x) => a + x.negocios, 0), tramos, negocios_en_chef: enChef, negocios_en_master_chef: enMaster, parte_en_chef: enChef / tramos.reduce((a, x) => a + x.negocios, 0), potencial_anuncios_mes: potencial, supuestos: 'sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef sale del modelo de mesas y cuentas con dispersión; todos con las visitas con la app del gratuito típico (supuesto, más altas que las de una fonda de 0 a 5 personas) y la parte de visitas con anuncio del modelo; la tarifa por mil visitas no tiene dato; techo teórico: no cuenta que no todos estarían en Carta', rango_de_los_parametros: { visitas_con_la_app: [vmin, vmax], parte_con_anuncio: [pmin, pmax] } };
+}
+
+// ---------------------------------------------------------------- sueldo del fundador
+/**
+ * ¿Cuándo le paga Carta a su fundador? Para un `monto` mensual de sueldo (pesos; `s.sueldo_fundador` si no se da; sin valor por omisión
+ * inventado: 0 = todavía sin sueldo) y para cada escenario: cuántos restaurantes registrados y cuántos clientes de paga hacen falta para
+ * que el margen después de captación lo cubra (en régimen), el mes de la proyección en que lo cubre y el margen después del sueldo
+ * (a 1,000 restaurantes y en los meses 12 y 24). NO MODELADO: impuestos, contabilidad, seguridad social ni prestaciones.
+ */
+export function sueldo(config, s, monto = s.sueldo_fundador ?? 0) {
+  const escenarios = {};
+  for (const nombre of ['recomendado', 'peor', 'mejor', 'piso_de_verdad']) {
+    const { ss, opc } = paramsEscenario(nombre, s);
+    let nNecesario = null;
+    let pagNecesarios = null;
+    for (let n = 1; n <= 20000; n += n < 200 ? 1 : 10) {
+      const e = evaluar(config, ss, n, opc);
+      if (e.margen_despues_de_captacion >= monto && e.margen_despues_de_captacion > 0) { nNecesario = n; pagNecesarios = e.clientes.de_paga; break; }
+    }
+    const p = proyectar(config, ss, 60, opc);
+    const mes = p.filas.find((f) => f.margen_despues_de_captacion >= monto && f.margen_despues_de_captacion > 0)?.mes ?? null;
+    const e1k = evaluar(config, ss, 1000, opc);
+    escenarios[nombre] = {
+      restaurantes_necesarios: nNecesario,
+      clientes_de_paga_necesarios: pagNecesarios,
+      mes_en_que_el_margen_despues_de_captacion_lo_cubre: mes,
+      requiere_otra_arquitectura: nNecesario != null && evaluar(config, ss, nNecesario, opc).capacidad.requiere_arquitectura,
+      margen_despues_de_sueldo: { con_1000_restaurantes: e1k.margen_despues_de_captacion - monto, mes_12: p.filas[11].margen_despues_de_captacion - monto, mes_24: p.filas[23].margen_despues_de_captacion - monto },
+    };
+  }
+  return { sueldo_mensual: monto, escenarios, no_modelado: ['impuestos (ISR e IVA)', 'contabilidad y trámites', 'seguridad social y prestaciones', 'costos de ventas más allá del costo de conseguir un cliente de paga'] };
+}
+
+/** Niveles de sueldo de referencia: múltiplos del salario mínimo general (fuente en `s.salario_minimo`); no son una recomendación. */
+export function tablaSueldos(config, s, multiplos = [1, 3, 5, 10]) {
+  const mensual = s.salario_minimo.zona_general_dia * 30.4;
+  return multiplos.map((k) => ({ veces_el_salario_minimo: k, sueldo_mensual: Math.round(mensual * k), ...sueldo(config, s, Math.round(mensual * k)) }));
+}
+
+// ---------------------------------------------------------------- mapa de modelos de ingreso aplicados a Carta
+/**
+ * Los modelos de ingreso de las plataformas aplicados a Carta, cada uno con: a quién se le cobra, potencial en pesos por restaurante al
+ * mes (con sus supuestos y rango), qué exige y cuándo cabría. Lo vigente (suscripción y anuncios) sale del modelo; lo demás es SUPUESTO sin
+ * dato y lo fuera de la v1 va marcado. Nada de esto vende datos (decisión de Calvin, 14-nov) ni guarda datos personales del comensal (regla 10).
+ */
+export function modelosDeIngreso(config, s, n = 1000) {
+  const e = evaluarEscenario('recomendado', config, s, n);
+  const pes = evaluar(config, s, n, { curva: 'pesimista' });
+  const opt = evaluar(config, s, n, { curva: 'optimista' });
+  const ps = config.precios.servicio;
+  const tarifas = s.anuncio_pesos_por_mil;
+  const adsPor = (k) => (s.visitas_app_gratuito * s.parte_visitas_con_anuncio * tarifas[k]) / 1000;
+  const vp = s.visibilidad_pagada;
+  const cm = s.comision_por_transaccion;
+  const pc = s.pago_del_comensal;
+  const comensalesMes = s.comensales_dia_gratuito * 30;
+  const redond = (x) => Math.round(x * 10) / 10;
+  const modelos = [
+    { id: 'suscripcion_del_restaurante', nombre: 'Suscripción del restaurante (Master Chef)', vigente: true, se_cobra_a: 'el restaurante que pasa de los topes de Chef', potencial_pesos_por_restaurante_al_mes: { por_restaurante_de_paga: ps, deja_por_restaurante_de_paga: e.por_cliente.margen_servicio, por_restaurante_registrado: { centro: e.ingresos.suscripcion / n, minimo: pes.ingresos.suscripcion / n, maximo: opt.ingresos.suscripcion / n } }, supuestos: 'curva de pago (mediana, sigma y techo) sin dato; parte que rebasa los topes de Chef (modelo de mesas y cuentas)', exige: 'nada nuevo: es la v1 (sin pagos del restaurante dentro de Carta si se cobra fuera)', cuando: 'piloto: se prueba el precio con tres grupos' },
+    { id: 'anuncios_del_comensal', nombre: 'Anuncios al comensal del plan gratuito (no personalizados)', vigente: true, se_cobra_a: 'el anunciante, a través de una red de anuncios (hoy se supone AdSense); anunciantes típicos: marcas de bebidas y consumo, bancos y comercios locales (por definir)', potencial_pesos_por_restaurante_al_mes: { por_restaurante_gratuito: { baja: adsPor('baja'), media: adsPor('media'), alta: adsPor('alta') }, nota: 'visitas con la app y parte con anuncio del modelo; tarifa sin dato' }, supuestos: 'tarifa por mil visitas, visitas con la app, parte con anuncio y que la red apruebe el sitio', exige: 'ADR, abrir la política de seguridad del sitio, aviso de privacidad y aprobación de la red; sin anuncios personalizados (regla 10)', cuando: `hacia el mes ${s.mes_inicio_anuncios} (supuesto) o después de la Fase 3` },
+    { id: 'visibilidad_pagada', nombre: 'Visibilidad pagada dentro de Carta (patrocinio de marca o proveedor en la carta, platillo destacado)', vigente: false, se_cobra_a: 'la marca o el proveedor (cerveza, refrescos, insumos) que patrocina un espacio en la carta del restaurante; o el restaurante que destaca un platillo', potencial_pesos_por_restaurante_al_mes: { por_restaurante_gratuito: { centro: vp.parte_que_compra * vp.cuota_mes, minimo: vp.rango_parte[0] * vp.rango_cuota[0], maximo: vp.rango_parte[1] * vp.rango_cuota[1] } }, supuestos: 'parte de restaurantes con patrocinio y cuota mensual: SUPUESTOS sin dato (referencia de forma: Booking cobra 2–8 % más por visibilidad, por verificar)', exige: 'spec nueva (alcance), regla de qué puede patrocinarse sin engañar al comensal; no toca la v1 ni guarda datos del comensal', cuando: 'después de la Fase 3, con restaurantes reales y una prueba de 3 patrocinadores' },
+    { id: 'comision_por_transaccion', nombre: 'Comisión por transacción (FUERA de la v1)', vigente: false, fuera_de_la_v1: true, se_cobra_a: 'el restaurante, sobre lo que se pida o pague por Carta', potencial_pesos_por_restaurante_al_mes: { de_0_a_10_personas: { centro: cm.ventas_mes_0_a_10 * cm.parte_que_pasa_por_carta * cm.tasa, minimo: cm.ventas_mes_0_a_10 * cm.rango_parte[0] * cm.rango_tasa[0], maximo: cm.ventas_mes_0_a_10 * cm.rango_parte[1] * cm.rango_tasa[1] }, de_11_a_50_personas: { centro: cm.ventas_mes_11_a_50 * cm.parte_que_pasa_por_carta * cm.tasa, minimo: cm.ventas_mes_11_a_50 * cm.rango_parte[0] * cm.rango_tasa[0], maximo: cm.ventas_mes_11_a_50 * cm.rango_parte[1] * cm.rango_tasa[1] } }, supuestos: 'ventas promedio de la clase 722511 (INEGI 2023, promedios no medianas); parte que pasaría por Carta y tasa: supuestos sin dato', exige: 'cobrar o procesar pagos: contradice «Qué NO construir» y la v1; ADR nuevo y spec; puede exigir regulación financiera (por verificar con un abogado)', cuando: 'no antes de una v2; sólo se calcula para ver el tamaño' },
+    { id: 'pago_del_comensal', nombre: 'Pago del comensal por quitar anuncios o por funciones propias (FUERA de la v1)', vigente: false, fuera_de_la_v1: true, se_cobra_a: 'el comensal (suscripción tipo «Carta+»)', potencial_pesos_por_restaurante_al_mes: { por_restaurante: { centro: (comensalesMes / pc.visitas_por_comensal_mes) * pc.conversion * pc.precio_mes, minimo: (comensalesMes / pc.rango_visitas[1]) * pc.rango_conversion[0] * pc.precio_mes, maximo: (comensalesMes / pc.rango_visitas[0]) * pc.rango_conversion[1] * pc.precio_mes }, nota: 'repartido entre los restaurantes que visita cada comensal: es un techo por restaurante' }, supuestos: 'comensales únicos al mes, conversión y precio (29 pesos del prototipo): supuestos sin dato', exige: 'cuenta o perfil del comensal: contradice «Qué NO construir» y la regla 10 (sin datos personales del comensal en el servidor); ADR y spec', cuando: 'no antes de una v2' },
+  ];
+  const rondea = (o) => (o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'number' ? redond(v) : rondea(v)])) : o);
+  return { n, modelos: modelos.map((m) => ({ ...m, potencial_pesos_por_restaurante_al_mes: rondea(m.potencial_pesos_por_restaurante_al_mes) })), no_vende_datos: 'decisión de Calvin del 14 de noviembre de 2026: Carta no vende datos; y sin datos personales del comensal en el servidor (regla 10)' };
 }
 
 // ---------------------------------------------------------------- banderas de operación
