@@ -159,6 +159,7 @@ function acrilico() {
 }
 
 const miembro = (x1, y1, w1, x2, y2, w2, fill) => { const dx = x2 - x1, dy = y2 - y1, l = Math.hypot(dx, dy), nx = -dy / l, ny = dx / l; return `<path d="M${n(x1 + nx * w1 / 2)} ${n(y1 + ny * w1 / 2)} L${n(x2 + nx * w2 / 2)} ${n(y2 + ny * w2 / 2)} L${n(x2 - nx * w2 / 2)} ${n(y2 - ny * w2 / 2)} L${n(x1 - nx * w1 / 2)} ${n(y1 - ny * w1 / 2)}Z" fill="${fill}"/><circle cx="${x1}" cy="${y1}" r="${w1 / 2}" fill="${fill}"/><circle cx="${x2}" cy="${y2}" r="${w2 / 2}" fill="${fill}"/>`; };
+const manoF = (x, y, ang, fill, e = 1.2) => `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${e})"><path d="M-6 -10C6 -13 16 -14 26 -12C38 -12 50 -8 57 -3C60 1 57 6 50 6C42 8 32 10 20 11L-6 10Z" fill="${fill}"/><path d="M8 -11C12 -22 24 -24 31 -18C27 -12 19 -10 12 -7Z" fill="${fill}"/></g>`;
 /* ===================== los comensales: siluetas de perfil que la luz modela ===================== */
 const CABEZA = 'M-34 48C-52 20-58-30-38-58C-20-84 22-86 42-58C50-46 52-36 52-24C52-18 55-14 57-8C61-2 68 6 70 12C71 16 66 19 60 19C61 23 64 26 63 30C62 33 59 34 60 37C62 40 61 44 57 46C55 49 58 54 58 60C58 70 48 76 38 75C24 74 10 68 2 60L10 112L-46 112Z';
 const CABEZA_H = 'M-36 48C-54 20-60-30-40-58C-20-86 24-88 44-58C52-46 54-36 54-24C54-18 58-15 60-9C64-3 72 5 74 12C75 17 69 20 63 20C64 24 66 26 65 30C64 33 61 34 62 37C64 41 63 45 59 47C58 50 62 56 62 62C62 74 50 82 38 80C24 78 10 70 2 60L10 112L-50 112Z';
@@ -191,7 +192,7 @@ function comensal(k) {
   // antebrazos: en reposo sobre la mesa, con el teléfono y con la copa
   const ante = (wx, wy, mano, extra = '', pre = '') => pre + T(miembro(38, -100, 46 * a, wx, wy, 30 * a, t.ropa)) + T(mano) + extra;
   const caja = t.dir > 0 ? [t.ox - 90, OY - 430, 400, 380] : [t.ox - 310, OY - 430, 400, 380];
-  capa(`${k}-brazo`, caja, ante(146, -92, `<path d="M150 -110 C178 -114 208 -110 220 -101 C224 -92 214 -86 198 -86 L152 -76 C138 -84 138 -104 150 -110Z" fill="${t.piel}"/>`));
+  capa(`${k}-brazo`, caja, ante(146, -92, manoF(150, -93, 3, t.piel, 1.25)));
   const X = (s) => `<g transform="translate(${t.ox} ${OY}) scale(${t.dir} 1)">${s}</g>`;
   capa(`${k}-brazo-cel`, caja, ante(126, -172, `<path d="M118 -196 C134 -204 150 -196 152 -180 C152 -164 138 -156 124 -160 C112 -166 110 -186 118 -196Z" fill="${t.piel}"/>`,
     X(`<g transform="rotate(16 142 -214)"><rect x="134" y="-250" width="15" height="74" rx="5" fill="#0d0a0a"/><rect x="131" y="-246" width="5" height="66" rx="2" fill="#fff4e2"/></g>`) + T(`<path d="M140 -190 C150 -192 158 -186 156 -178 C152 -172 142 -174 138 -180Z" fill="${t.piel}"/>`),
@@ -215,7 +216,7 @@ function mesero() {
   capa('mesero-cabeza', [MX - 80, 162, 160, 190], F(H(`<path d="${CABEZA_H}" fill="${piel}"/>`)) + F(H(`<path d="M50-48C36-94-30-100-52-62C-62-42-58-8-46 16C-38 10-34 0-30-12C-22-34 12-44 50-48Z" fill="#231814"/>`), 'Lm'));
   // antebrazos: codos en (MX∓122, 560)
   const ante = (s, wx, wy) => miembro(MX + s * 122, 560, 50, wx, wy, 32, camisa);
-  const mano = (x, y, r = 24) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.8}" fill="${piel}"/>`;
+  const mano = (x, y, r = 24, lado = x < MX ? -1 : 1) => { const ex = MX + lado * 122, ang = (Math.atan2(y - 560, x - ex) * 180) / Math.PI; return manoF(x - Math.cos((ang * Math.PI) / 180) * 12, y - Math.sin((ang * Math.PI) / 180) * 12, ang, piel, r / 20); };
   const caja = [MX - 390, 440, 720, 380];
   capa('mesero-brazos', caja, F(ante(-1, MX - 40, 640) + ante(1, MX + 40, 640)) + F(mano(MX - 16, 646) + mano(MX + 14, 650)));
   // ofrece las cartas: una a cada lado
