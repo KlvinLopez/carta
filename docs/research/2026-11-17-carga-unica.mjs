@@ -34,7 +34,9 @@ Generado por \`2026-11-17-carga-unica.mjs\`. **Qué cambió (ronda 11):** un res
 | Cifra | Antes (típico, ${n0(A.carga_del_gratuito.visitas_al_mes)} visitas) | Después (topes, ${n0(D.carga_del_gratuito.visitas_al_mes)} visitas) |
 |---|---|---|
 ${['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map((e) => fila(`Margen de operación con 1,000 restaurantes, ${NOM[e]} (pesos al mes)`, A.margen_operacion_1000[e], D.margen_operacion_1000[e], sg)).join('\n')}
-${fila('Anuncios por restaurante gratuito (pesos al mes, tarifa media)', A.ingreso_de_anuncios_por_gratuito, D.ingreso_de_anuncios_por_gratuito, n2)}
+${fila('Anuncios por restaurante gratuito, tarifa baja (escenario recomendado; pesos al mes)', A.ingreso_de_anuncios_por_gratuito_por_tarifa.baja, D.ingreso_de_anuncios_por_gratuito_por_tarifa.baja, n2)}
+${fila('Anuncios por restaurante gratuito, tarifa media (pesos al mes)', A.ingreso_de_anuncios_por_gratuito_por_tarifa.media, D.ingreso_de_anuncios_por_gratuito_por_tarifa.media, n2)}
+${fila('Anuncios por restaurante gratuito, tarifa alta (pesos al mes)', A.ingreso_de_anuncios_por_gratuito_por_tarifa.alta, D.ingreso_de_anuncios_por_gratuito_por_tarifa.alta, n2)}
 ${fila('Costo por restaurante gratuito con soporte (pesos al mes)', A.costo_por_gratuito, D.costo_por_gratuito, n2)}
 ${fila('Gratuitos que sostiene cada cliente de paga, sin anuncios', A.gratuitos_que_sostiene_un_pagante.sin_anuncios, D.gratuitos_que_sostiene_un_pagante.sin_anuncios)}
 ${fila('Mes 12 con 300 restaurantes: ingresos (pesos)', A.mes_12_con_300_restaurantes.ingresos, D.mes_12_con_300_restaurantes.ingresos)}
@@ -57,7 +59,7 @@ ${fila('Restaurantes registrados que caben, sin purga', A.capacidad.sin_purga, D
 
 ## 2. Sensibilidad al supuesto que ahora mueve todo: visitas por mesa al mes
 
-| Visitas por mesa al mes | Visitas del gratuito al mes | Margen recomendado, 1,000 restaurantes | Margen peor | Gratuitos que sostiene un pagante (sin anuncios) | Anuncios por gratuito | Caben con avisos / con sondeo / sin purga | Bolsa de 1,000 pesos |
+| Visitas por mesa al mes | Visitas del gratuito al mes | Margen recomendado, 1,000 restaurantes | Margen peor | Gratuitos que sostiene un pagante (sin anuncios) | Anuncios por gratuito (tarifa baja) | Caben con avisos / con sondeo / sin purga | Bolsa de 1,000 pesos |
 |---|---|---|---|---|---|---|---|
 ${c.sensibilidad_visitas_por_mesa.map((x) => `| ${x.visitas_por_mesa_al_mes} | ${n0(x.visitas_del_gratuito_al_mes)} | ${sg(x.margen_operacion_recomendado_1000)} | ${sg(x.margen_operacion_peor_1000)} | ${n0(x.gratuitos_que_sostiene_sin_anuncios)} | ${n2(x.ingreso_de_anuncios_por_gratuito)} | ${n0(x.capacidad.con_avisos)} / ${n0(x.capacidad.con_sondeo)} / ${n0(x.capacidad.sin_purga)} | ${n0(x.bolsa_1000)} |`).join('\n')}
 

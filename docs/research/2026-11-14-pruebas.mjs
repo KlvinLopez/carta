@@ -535,6 +535,9 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('antes → después: sueldo de 1 salario mínimo, 550 → 600 restaurantes', `${A.sueldo[0].restaurantes_necesarios}-${D.sueldo[0].restaurantes_necesarios}`, '550-600');
   prueba('antes → después: bolsa de 500 pesos, 279 → 405', `${A.bolsa[0].centro}-${D.bolsa[0].centro}`, '279-405');
   prueba('una página con la carga por topes: anuncios de 2.6 a 27.3 pesos por gratuito', /2\.6 a 27\.3/.test(M.modeloDeNegocio(cfg, s).una_pagina.quien_paga_y_cuanto.anunciante), true);
+  prueba('anuncios por gratuito, tarifa baja y media: 4.31 → 2.58 y 17.22 → 10.33', [A, D].flatMap((x) => [x.ingreso_de_anuncios_por_gratuito_por_tarifa.baja, x.ingreso_de_anuncios_por_gratuito_por_tarifa.media]).map((x) => Math.round(x * 100) / 100).join('-'), '4.31-17.22-2.58-10.33');
+  const an = M.anunciosGenericoYPersonalizado(cfg, s).por_tarifa.media;
+  prueba('anuncios v1 y v2 con la carga por topes (tarifa media): 10.33 → 11.37, rango 10.35 a 21.49', `${an.pesos_por_gratuito_v1_todo_generico.toFixed(2)}-${an.pesos_por_gratuito_v2_con_registrados.toFixed(2)}-${an.rango_v2[0].toFixed(2)}-${an.rango_v2[1].toFixed(2)}`, '10.33-11.37-10.35-21.49');
   prueba('antes → después: capacidad con avisos 279 → 182', `${A.capacidad.con_avisos}-${D.capacidad.con_avisos}`, '279-182');
   prueba('sensibilidad 90, 180 y 360 visitas por mesa: capacidad con avisos 215, 182 y 138', cc.sensibilidad_visitas_por_mesa.map((x) => x.capacidad.con_avisos).join(','), '215,182,138');
   prueba('sensibilidad: el margen recomendado sube con las visitas (anuncios)', cc.sensibilidad_visitas_por_mesa.map((x) => Math.round(x.margen_operacion_recomendado_1000)).join(','), '17505,18591,20666');
