@@ -14,7 +14,7 @@ DET.sostiene = {
   nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
   montar(host) {
     this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
-    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div><div class="seg" id="bolsaK" style="margin-top:8px">${[500, 1000, 2000, 5000].map(b => `<button class="btn" data-bolsa="${b}">Mi bolsa: ${mxn(b)} al mes</button>`).join("")}</div>`;
+    host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div>`;
     const sv = $("#svK", host); this.sv = sv;
     host.addEventListener("click", ev => {
       const t = ev.target.closest("[data-vista]"); if (t) { this.v = +t.dataset.vista; refrescar(); return; }
@@ -25,9 +25,7 @@ DET.sostiene = {
   },
   actualizar() {
     $$("#tabsK [data-vista]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vista === this.v));
-    $("#bolsaK").hidden = this.v !== 0;
     const bk = $("#banK"); bk.hidden = this.v !== 1; bk.innerHTML = BAND.banderas.map(b => `<span class="chip" data-tip="${esc2(b.que_hacer + ". " + b.estado_de_la_medicion + ". Proyección: no medido en Railway.")}" tabindex="0">${esc(b.nombre.replace(/ \(.*\)/, ""))} <b>${b.umbral_aviso}/${b.umbral_accion}</b></span>`).join("");
-    $$("#bolsaK [data-bolsa]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.bolsa === S.bolsa));
     return this.pinta();
   },
   pinta() { const o = [this.v0, this.v1, this.v2, this.v3, this.v4][this.v].call(this); return o; },
@@ -45,7 +43,7 @@ DET.sostiene = {
     b += T(X0 + W / 2, Y0 + H + 44, "restaurantes gratuitos (escala logarítmica)", 12, C.t2, "middle");
     const linea = (f, col, w, dash = "") => `<polyline points="${tabla.map(r => `${X(r.n).toFixed(1)},${Y(f(r)).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""}/>`;
     b += linea(r => r.resultado_sin_anuncios, C.rojo, 3.5) + linea(r => r.con_anuncios.adverso.margen, C.dorado, 2.5, "6 4") + linea(r => r.con_anuncios.baja.margen, C.vino, 3) + linea(r => r.con_anuncios.medio.margen, C.verde, 3);
-    b += `<line x1="${X(N)}" x2="${X(N)}" y1="${Y0}" y2="${Y0 + H}" stroke="${C.tinta}" stroke-width="1.5" stroke-dasharray="4 3"/><g data-drag="1" id="hN"><circle cx="${X(N)}" cy="${Y0 + H}" r="13" fill="${C.tinta}" stroke="#fff" stroke-width="3"/></g>`;
+    b += `<line x1="${X(N)}" x2="${X(N)}" y1="${Y0}" y2="${Y0 + H}" stroke="${C.tinta}" stroke-width="1.5" stroke-dasharray="4 3"/><g data-drag="1" id="hN" style="touch-action:none"><circle cx="${X(N)}" cy="${Y0 + H}" r="30" fill="rgba(0,0,0,0)"/><circle cx="${X(N)}" cy="${Y0 + H}" r="13" fill="${C.tinta}" stroke="#fff" stroke-width="3"/></g>`;
     // lo que pasa con N restaurantes gratuitos
     const px = 650;
     b += T(px, 76, `${n(N)} restaurantes gratuitos`, 22, C.vino, "start", 400, true);
@@ -59,11 +57,19 @@ DET.sostiene = {
     b += `<rect x="30" y="462" width="900" height="24" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que este cálculo no incluye: " + bol.no_modelado.join("; "))}" tabindex="0"/>` + T(30, 478, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) con historial a 30 días (propuesta);`, 14, C.osc, "start", 700) + T(30, 498, `sin purga caben ${n(bolSin.centro.restaurantes)}: hoy nada limpia el disco. El costo y el margen suponen la purga a 30 días.`, 14, C.rojo, "start", 700);
     b += T(30, 524, "Vale con la Fase 3 (canal de eventos); hoy, con sondeo, caben 148 con 30 días y 23 sin purga. Los umbrales son rangos.", 12, C.t2);
     sv.innerHTML = b;
-    const hd = $("#hN", sv), inv = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
-    arrastrable(hd, sv, pt => { this.N = inv(pt.x); this.pinta(); }, (d, mult) => { this.N = clamp(this.N + d * mult * 10, 10, 2000); this.pinta(); });
-    hd.setAttribute("aria-label", "Restaurantes gratuitos"); hd.setAttribute("aria-valuenow", N);
+    this.invN = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
+    if (!sv.__arrN) {
+      sv.__arrN = true;
+      const aX = ev => { const q = sv.createSVGPoint(); q.x = ev.clientX; q.y = ev.clientY; return q.matrixTransform(sv.getScreenCTM().inverse()); };
+      sv.addEventListener("pointerdown", ev => { if (this.v !== 0 || !ev.target.closest("#hN")) return; sv.setPointerCapture(ev.pointerId); sv.__dN = true; ev.preventDefault(); this.N = this.invN(aX(ev).x); this.pinta(); });
+      sv.addEventListener("pointermove", ev => { if (sv.__dN) { this.N = this.invN(aX(ev).x); this.pinta(); } });
+      const fin = () => { sv.__dN = false; };
+      sv.addEventListener("pointerup", fin); sv.addEventListener("pointercancel", fin);
+      sv.addEventListener("keydown", ev => { if (this.v === 0 && ev.target.closest("#hN") && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) { ev.preventDefault(); const d = ev.key === "ArrowRight" || ev.key === "ArrowUp" ? 1 : -1; this.N = clamp(this.N + d * (ev.shiftKey ? 5 : 1) * 10, 10, 2000); this.pinta(); const h = $("#hN", sv); if (h) h.focus(); } });
+    }
+    const hd = $("#hN", sv); hd.setAttribute("tabindex", "0"); hd.setAttribute("role", "slider"); hd.setAttribute("aria-label", "Restaurantes gratuitos"); hd.setAttribute("aria-valuenow", N); hd.style.touchAction = "none";
     return {
-      leyenda: `<span><i style="background:${C.rojo}"></i>sin anuncios: lo pones tú</span><span><i style="background:${C.vino}"></i>anuncios, tarifa baja</span><span><i style="background:${C.verde}"></i>tarifa media</span><span><i style="background:${C.dorado}"></i>adverso</span>`,
+      leyenda: `<span><i style="background:${C.rojo}"></i>sin anuncios: lo pones tú</span><span><i style="background:${C.vino}"></i>anuncios, tarifa baja</span><span><i style="background:${C.verde}"></i>tarifa media</span><span data-tip="${esc2("Adverso|la mitad de la tarifa baja|y anuncio sólo en el 30 % de las visitas: el caso en que los anuncios dejan menos")}" tabindex="0"><i style="background:${C.dorado}"></i>adverso</span><span class="radg" role="radiogroup" aria-label="Mi bolsa al mes">${[500, 1000, 2000, 5000].map(b => `<span class="rad${b === S.bolsa ? " on" : ""}" role="radio" aria-checked="${b === S.bolsa}" tabindex="0" data-bolsa="${b}"><i></i>Mi bolsa ${mxn(b)}</span>`).join("")}</span>`,
       cifras: [[n(g.comensales_mes / 1e6, 2) + " M", `comensales al mes con ${n(N)} restaurantes gratuitos`, "simulado"], [fmP(g.costo_sin_anuncios), "al mes que pones tú mientras no hay anuncios"], [desde.baja == null ? "—" : n(desde.baja), `restaurantes gratuitos desde los que se paga solo (tarifa baja; rango ${rg(rs.baja)})`, "supuesto"], [desde.adverso == null ? "—" : n(desde.adverso), `lo mismo, en el caso adverso (rango ${rg(rs.adverso)})`, "supuesto"]],
       insight: `Con ${n(N)} restaurantes gratuitos y sin anuncios pones ${fmP(g.costo_sin_anuncios)} al mes; con anuncios se paga solo desde ${desde.baja == null ? "—" : n(desde.baja)} (tarifa baja) o ${desde.adverso == null ? "—" : n(desde.adverso)} (caso adverso).`,
     };
@@ -279,6 +285,9 @@ DET.k_ingreso = cuentaDet("Un cliente de paga ingresa el precio de su plan cada 
 DET.k_margen = cuentaDet("Tres márgenes con nombre: de operación, después de captación y neto.", ["carta_tres_planes", "carta_precio"], () => {
   const m = motor(S), e = m.ev; return [["Ingresos por suscripción", mxn(Math.round(e.ingresos.suscripcion))], ["Ingresos por anuncios (en régimen)", mxn(Math.round(e.ingresos.anuncios))], ["− Servidor y almacenamiento", "− " + n(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos)], ["− Soporte", "− " + n(e.costos.soporte)], ["− Comisión de tarjeta", "− " + n(e.costos.comision)], ["= Margen de operación (sin captación ni sueldos)", mp(e.margen_operacion), true], ["− Reponer bajas (3 % al mes × costo de conseguir un cliente)", "− " + n(e.captacion.reposicion_de_bajas)], ["= Margen después de captación", mp(e.margen_despues_de_captacion), true], ["Margen neto (sueldos e impuestos valen cero: sin dato)", mp(e.margen_neto), true]];
 }, () => "El margen de operación no incluye sueldos ni impuestos ni conseguir clientes; por eso se muestran los tres.");
+
+document.addEventListener("click", ev => { const b = ev.target.closest(".rad[data-bolsa]"); if (b) cambiar({bolsa: +b.dataset.bolsa}); });
+document.addEventListener("keydown", ev => { if (ev.key !== "Enter" && ev.key !== " ") return; const b = ev.target.closest && ev.target.closest(".rad[data-bolsa]"); if (b) { ev.preventDefault(); cambiar({bolsa: +b.dataset.bolsa}); } });
 
 /* ===== arranque ===== */
 function todo() { pintaEscenario(); pintaKpis(); refrescar(); }
