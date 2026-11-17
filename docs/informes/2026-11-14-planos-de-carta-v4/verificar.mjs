@@ -294,26 +294,40 @@ await p.click('.ictl [data-intro="pausa"]'); const tp = await p.evaluate(() => t
 ok((await p.evaluate(() => tI)) === tp, 'presentación: la pausa detiene el tiempo');
 ok((await p.isVisible('#intro [data-pantalla]')) || !(await p.evaluate(() => FSOK)), 'presentación: pantalla completa dentro de la presentación');
 ok(await p.evaluate(() => !!window.gsap && !!tlF), 'presentación: la línea de tiempo (GSAP) cargó');
+await p.click('.cactos [data-n="1"]'); await p.waitForTimeout(80);
+ok(Math.abs((await p.evaluate(() => tI / 1000)) - (await p.evaluate(() => ACT_INI[1]))) < 0.2, 'presentación: saltar al acto 2');
+await p.click('.cactos [data-n="0"]'); await p.waitForTimeout(80);
+ok((await p.evaluate(() => tI)) < 300, 'presentación: saltar al acto 1');
 await p.evaluate(() => { pausaI = true; });
-const filmFalla = await p.evaluate(async () => {
-  const mal = []; const f = document.querySelector('#film'), fr = f.getBoundingClientRect(), k = fr.width / 1920;
-  for (const ms of [1500, 3800, 6600, 9800, 14500, 18500, 22800, 24200, 27400]) {
-    tI = ms; pintaIntro(); await new Promise((r) => setTimeout(r, 60));
-    for (const el of f.querySelectorAll('.fh .ln, .fsub, .fkick, .fmarca b, .fmarca span, .fpaso, .ftoast, .fhook')) {
-      let o = 1, n = el; while (n && n !== f) { o *= parseFloat(getComputedStyle(n).opacity); if (getComputedStyle(n).visibility === 'hidden') o = 0; n = n.parentElement; }
-      if (o < 0.9) continue;
-      const r = el.getBoundingClientRect(); if (!r.width) continue;
-      if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.top < fr.top - 1 || r.bottom > fr.bottom + 1) mal.push(ms + ' ' + el.className + ' fuera del cuadro');
-      const ph = document.querySelector('.fphone').getBoundingClientRect();
-      if (getComputedStyle(document.querySelector('.fphone')).opacity > 0.9 && el.matches('.fh .ln, .fsub, .fpaso') && r.right > ph.left - 20 && r.left < ph.right) mal.push(ms + ' ' + el.className + ' choca con el teléfono');
+// la película en cinco tamaños: en ≥ 24 instantes, rótulos, globos y etiquetas dentro del cuadro, sin encimarse ni tapar el teléfono
+const revisaPelicula = () => p.evaluate(async () => {
+  const mal = []; const f = document.querySelector('#cine'), fr = f.getBoundingClientRect();
+  const vis = (el) => { let o = 1, n = el; while (n && n !== f) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; n = n.parentElement; } return o; };
+  const inst = Array.from({ length: 30 }, (_, k) => (TOT * (k + 0.5)) / 30);
+  for (const s of inst) {
+    tI = s * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 30));
+    const textos = [...f.querySelectorAll('.r .cln, .globo, .etq span, .marca b, .marca span')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
+    const cel = f.querySelector('.cel'), rc = cel.getBoundingClientRect(), celVis = vis(cel) > 0.9;
+    for (const [e, r] of textos) {
+      if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.top < fr.top - 1 || r.bottom > fr.bottom + 1) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» fuera del cuadro');
+      if (celVis && e.matches('.r .cln, .globo') && r.right > rc.left - 8 && r.left < rc.right && r.bottom > rc.top && r.top < rc.bottom) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» tapa el teléfono');
     }
-    const ph = document.querySelector('.fphone').getBoundingClientRect();
-    if (getComputedStyle(document.querySelector('.fphone')).opacity > 0.9 && (ph.height / fr.height < 0.7 || ph.height / fr.height > 0.85)) mal.push(ms + ' el teléfono ocupa ' + (ph.height / fr.height).toFixed(2) + ' del alto');
+    for (let a = 0; a < textos.length; a++) for (let b = a + 1; b < textos.length; b++) {
+      const [ea, ra] = textos[a], [eb, rb] = textos[b];
+      if (ea.contains(eb) || eb.contains(ea) || ea.parentElement === eb.parentElement && ea.matches('.etq span')) continue;
+      if (ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1) mal.push(s.toFixed(1) + ' s: «' + ea.textContent.slice(0, 18) + '» encima de «' + eb.textContent.slice(0, 18) + '»');
+    }
   }
-  return mal;
+  return { mal, n: inst.length };
 });
-ok(filmFalla.length === 0, 'presentación: rótulos dentro del cuadro, sin chocar con el teléfono, teléfono 70–85 % del alto ' + filmFalla.slice(0, 3).join('; '));
-if (png) { await p.evaluate(() => { pausaI = true; }); for (const [i, ms] of [[1, 3800], [2, 7800], [3, 11400], [4, 15600], [5, 20800], [6, 24800], [7, 27700]]) { await p.evaluate((t) => { tI = t; pintaIntro(); }, ms); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v8_intro${i}.png` }); } }
+for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390, 844]]) {
+  await p.setViewportSize({ width: w, height: h }); await p.waitForTimeout(120);
+  const { mal, n } = await revisaPelicula();
+  ok(n >= 24 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos fuera del cuadro ni encimados ` + mal.slice(0, 3).join('; '));
+}
+await p.setViewportSize({ width: 1920, height: 1080 });
+ok(errores.length === 0, 'presentación: sin errores de consola ' + errores.slice(0, 2).join(' | '));
+if (png) { for (const [i, s] of [[1, 4], [2, 10], [3, 17.5], [4, 25.5], [5, 31.5], [6, 38], [7, 44], [8, 50]]) { await p.evaluate((t) => { tI = t * 1000; pintaIntro(); }, s); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v10_pelicula${i}.png` }); } }
 await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
 await p.reload(); await p.waitForTimeout(400);
