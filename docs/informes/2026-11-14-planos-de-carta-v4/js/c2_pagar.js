@@ -3,7 +3,24 @@ DET.pagar = {
   titulo: "De cada 10,000 pesos que entran, Carta es una fracción de lo que el negocio ya paga por su punto de venta.",
   fu: ["inegi_denue", "carta_precio", "paginas_proveedores_14nov"],
   nota: "INEGI, Censos Económicos 2024 (datos de 2023), clase 722511: ingreso por negocio y por mes. Un punto de venta cuesta de 652 a 1,000 pesos al mes (páginas de proveedores leídas el 14 de noviembre). Los negocios de 0 a 10 personas están en Chef (gratis); de 11 a 250, Master Chef; de 251 en adelante, Chef Ejecutivo (nombre propuesto).",
-  montar(host) { host.innerHTML = `<div class="viz"><svg id="svG" viewBox="0 0 1100 520" role="img" font-family="DM Sans, sans-serif"></svg></div>`; this.sv = $("#svG", host); },
+  montar(host) { host.innerHTML = `<div class="viz"><svg id="svV" viewBox="0 0 1100 560" role="img" aria-label="Lo que ya paga por su punto de venta frente a lo que pagaría por Carta" font-family="DM Sans, sans-serif"></svg></div><details class="mas" style="margin-top:12px"><summary>Segundo nivel: lo mismo, por cada 10,000 pesos que entran al negocio</summary><div class="viz" style="margin-top:8px"><svg id="svG" viewBox="0 0 1100 520" role="img" font-family="DM Sans, sans-serif"></svg></div></details>`; this.sv = $("#svG", host); this.svV = $("#svV", host); },
+  /* el valor, a la vista: por tamaño, lo que ya paga por su punto de venta junto a lo que pagaría por Carta, en pesos al mes y a la misma escala */
+  pintaValor(tam, tipos, rot, precios, planes, pLo, pHi) {
+    const X0 = 270, W = 640, mx = 1200, X = v => X0 + W * Math.min(v, mx) / mx, medio = (pLo + pHi) / 2, razon = S.precioServicio / medio;
+    const frac = Math.abs(razon - 0.25) < 0.04 ? "la cuarta parte" : Math.abs(razon - 1 / 3) < 0.04 ? "la tercera parte" : Math.abs(razon - 0.2) < 0.03 ? "la quinta parte" : `${n(100 * razon)} %`;
+    this.frac = frac;
+    let b = T(30, 44, `Para un negocio mediano, ${PLAN.paga} cuesta ${frac}`, 28, C.vino, "start", 400, true) + T(30, 80, "de lo que ya paga por su punto de venta; para el chico, nada.", 28, C.vino, "start", 400, true);
+    [0, 300, 600, 900, 1200].forEach(v => { b += `<line x1="${X(v)}" x2="${X(v)}" y1="112" y2="${112 + tam.length * 104}" stroke="${C.arena}"/>` + T(X(v), 106, v === 0 ? "$0" : "$" + n(v), 11.5, C.t2, "middle"); });
+    b += T(X0 - 24, 106, "pesos al mes", 11.5, C.t2, "end");
+    tam.forEach((t, i) => {
+      const y = 120 + i * 104, c = precios[i];
+      b += dibujo(tipos[i], 30, y + 2, 0.5) + T(122, y + 30, rot[i], 15, C.tinta, "start", 700) + T(122, y + 50, planes[i], 12.5, C.t2);
+      b += `<g class="gh" style="animation-delay:${i * 120}ms" data-tip="${esc2("Punto de venta|$" + n(pLo) + " a $" + n(pHi) + "|pesos al mes: lo que ya paga hoy por su punto de venta (páginas de proveedores, 14 de noviembre)")}">${Rc(X0, y + 8, X(pLo) - X0, 28, C.azul, 8)}${Rc(X(pLo), y + 8, X(pHi) - X(pLo), 28, "#8fb0d8", 0)}</g>` + T(X(pHi) + 10, y + 29, `punto de venta $${n(pLo)} a $${n(pHi)}`, 13.5, C.azul, "start", 700);
+      b += c > 0 ? `<g class="gh" style="animation-delay:${i * 120 + 90}ms" data-tip="${esc2(planes[i] + "|$" + n(c) + " al mes|" + (c <= 300 ? "casi la cuarta parte de lo que ya paga por su punto de venta" : "lo que pagaría por Carta en este plan"))}">${Rc(X0, y + 46, Math.max(X(c) - X0, 4), 28, C.dorado, 8)}</g>` + T(X(c) + 10, y + 67, `Carta $${n(c)}`, 14, C.dorado, "start", 700) : T(X0 + 8, y + 67, "Carta: gratis, $0", 15, C.dorado, "start", 700);
+    });
+    this.svV.innerHTML = b;
+  },
+
   actualizar() {
     /* cada tira son 100 casillas; cada casilla es 1 peso de cada 10,000 que entran (la tira entera es el 1 % de las ventas) */
     const tam = D.inegi_tamano, X0 = 290, CW = 8, [pLo, pHi] = [652, 1000], por10k = (pesos, ingreso) => 10000 * pesos / ingreso;
@@ -23,11 +40,12 @@ DET.pagar = {
       b += c > 0 ? T(X0 + 330, y + 56, `Carta: ${n(c, 1)} pesos`, 13.5, C.dorado, "start", 700) : T(X0 + 330, y + 56, "Carta: gratis, 0 pesos", 13.5, C.dorado, "start", 700);
     });
     this.sv.innerHTML = b;
+    this.pintaValor(tam, tipos, rot, precios, planes, pLo, pHi);
     const f1 = fil[1], f0 = fil[0];
     return {
       leyenda: `<span><i style="background:${C.azul}"></i>lo que ya paga por su punto de venta (rango de 652 a 1,000 pesos al mes)</span><span><i style="background:${C.dorado}"></i>Carta</span>`,
       cifras: [[n(f0.a) + " a " + n(f0.z), "pesos de cada 10,000 gasta un negocio de 0 a 10 personas en su punto de venta; en Carta, 0 (Chef es gratis)"], [n(f1.c, 1), `pesos de cada 10,000 serían ${PLAN.paga} para uno de 11 a 50 personas`, "propuesta"], [n(f1.a) + " a " + n(f1.z), "pesos de cada 10,000 gasta ese mismo negocio en su punto de venta"]],
-      insight: `Carta cuesta una fracción de lo que ya pagan: ${n(f1.c, 1)} pesos de cada 10,000 frente a ${n(f1.a)} a ${n(f1.z)} del punto de venta (negocio de 11 a 50 personas).`,
+      insight: `Para un negocio mediano, ${PLAN.paga} ($${n(S.precioServicio)}) cuesta ${this.frac} de lo que ya paga por su punto de venta ($${n(pLo)} a $${n(pHi)} al mes); para el chico, nada.`,
     };
   },
 };

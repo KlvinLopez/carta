@@ -155,7 +155,7 @@ DET.precio = {
     const prov = []; D.mercado_planes.forEach(p => { if (!prov.includes(p.proveedor)) prov.push(p.proveedor); });
     this.prov = prov.sort((a, b) => Math.min(...D.mercado_planes.filter(p => p.proveedor === a).map(p => p.precio)) - Math.min(...D.mercado_planes.filter(p => p.proveedor === b).map(p => p.precio)));
     this.oculto = new Set(); this.armado = false;
-    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 600" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><h3>El mejor precio depende de cuánto paguen</h3><svg id="svS" viewBox="0 0 960 250" role="img" font-family="DM Sans, sans-serif"></svg></div><details id="masP" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2);padding:8px 2px">ver más: contra quién compites, la curva de pago y el precio como parte del ingreso</summary><div class="panel" style="margin-top:6px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div></details>`;
+    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 600" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><h3 id="pgT">No sabemos cuánto pagarían: lo mide la prueba de tres precios del piloto</h3><div class="rdesl"><label for="pgM">¿Cuánto pagaría el dueño típico?</label><input type="range" id="pgM" min="150" max="450" step="5" value="225"><output id="pgMv">$225</output></div><svg id="svS" viewBox="0 0 960 280" role="img" font-family="DM Sans, sans-serif"></svg></div><details id="masP" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2);padding:8px 2px">ver más: contra quién compites, la curva de pago y el precio como parte del ingreso</summary><div class="panel" style="margin-top:6px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div></details>`;
     this.rm = RM($("#svP", host)); this.svg = $("#svP", host);
     this.svg.addEventListener("click", ev => { const t = ev.target.closest("[data-prov]"); if (t) { this.oculto.add(t.dataset.prov); refrescar(); } });
     host.addEventListener("click", ev => {
@@ -167,7 +167,7 @@ DET.precio = {
     });
     $("#cvs", host).innerHTML = ["pesimista", "media", "optimista"].map(c => `<button class="btn" data-cv="${c}">${c}</button>`).join("") + `<button class="btn" data-cvr="1">Restablecer</button>`;
     $("#cvc", host).innerHTML = [["cMed", "Mediana: lo que paga la mitad", 50, 1000, 5], ["cSig", "Dispersión", 0.2, 1.2, 0.05], ["cTec", "Techo: los que llegan a pagar", 0.05, 1, 0.05]].map(([k, t, mi, ma, st]) => `<label class="ctlr"><span>${t}</span><input type="range" data-cc="${k}" min="${mi}" max="${ma}" step="${st}"><output data-cco="${k}"></output></label>`).join("");
-    host.addEventListener("input", ev => { const r = ev.target.closest("[data-cc]"); if (r) cambiar({[r.dataset.cc]: +r.value}); });
+    host.addEventListener("input", ev => { const r = ev.target.closest("[data-cc]"); if (r) cambiar({[r.dataset.cc]: +r.value}); const m = ev.target.closest("#pgM"); if (m) cambiar({cMed: +m.value}); });
     $("#sus", host).innerHTML = SUSTS.map(k => `<button class="btn" data-sus="${esc(k)}">${esc(CORTO_SUST[k])} · ${mxn(SUSTP[k])}</button>`).join("") + `<button class="btn dor" data-regla="1"></button>`;
   },
   actualizar() {
@@ -189,7 +189,7 @@ DET.precio = {
       });
     });
     const h = y0 + vis.length * LH;
-    const mm = motor(S), mes = mm.meseta;
+    const mm = motor(S), mes = mm.meseta, m0 = mm;
     const pmax = Math.max(...D.mercado_planes.filter(q => q.precio <= 1300).map(q => q.precio)), meniu = SUSTP["Meniu Business"];
     [["rm", meniu, "Meniu: referencia de Master Chef", C.vino, 0], ["rx", pmax, "extremo alto: referencia de Chef Ejecutivo", C.osc, 1]].forEach(([id, v, tx, col, q]) => {
       rm.put(id + "l", "line", {x1: A(v), y1: 74, x2: A(v), y2: h + 6, stroke: col, sw: 2, dash: "2 4"});
@@ -204,14 +204,16 @@ DET.precio = {
     });
     this.armado = true;
     {
-      const sp = MOD.sensibilidadPrecio(config({...S, precioServicio: 225}), sup(S), 1000), sv2 = $("#svS"), mx = Math.max(...sp.por_mediana.flatMap(q => q.margenes.map(z => z.margen_operacion)), 1);
-      let b = "";
-      sp.por_mediana.forEach((q, g) => {
-        const x0 = 30 + g * 232;
-        b += T(x0, 24, `Pagan alrededor de ${mxn(q.mediana)}`, 13.5, C.vino, "start", 700) + T(x0, 44, `mejor precio: ${mxn(q.precio_ganador)}`, 13, C.dorado, "start", 700);
-        q.margenes.forEach((z, i) => { const h = 130 * z.margen_operacion / mx, w = 44, x = x0 + i * 52, win = z.precio === q.precio_ganador; b += `<g class="gk" style="animation-delay:${(g * 4 + i) * 40}ms" data-tip="${mxn(z.precio)}: margen ${fmP(z.margen_operacion)} al mes, ${n(z.pagantes, 1)} clientes de paga">${Rc(x, 200 - h, w, h, win ? C.dorado : C.arena, 8, z.precio === 225 ? `stroke="${C.vino}" stroke-width="3"` : "")}</g>` + T(x + w / 2, 218, mxn(z.precio), 11.5, z.precio === 225 ? C.vino : C.t2, "middle", z.precio === 225 || win ? 700 : 400); });
+      const sp = MOD.sensibilidadPrecio(config({...S, precioServicio: 225}), sup(S), 1000), precios = sp.por_mediana[0].margenes.map(z => z.precio), sv2 = $("#svS");
+      const med = S.cMed != null ? S.cMed : m0.s.curvas_pago[S.curva].mediana;
+      const mg = precios.map(pr => evalS({...S, precioServicio: pr, cMed: med}).margen_operacion), ganador = mg.indexOf(Math.max(...mg)), mx = Math.max(...mg, 1);
+      const rg = $("#pgM"); if (rg && document.activeElement !== rg) rg.value = clamp(med, 150, 450); $("#pgMv").textContent = mxn(Math.round(med));
+      let b = T(30, 30, `Si el dueño típico pagara ${mxn(Math.round(med))}, el mejor precio sería ${mxn(precios[ganador])}`, 22, C.vino, "start", 400, true);
+      mg.forEach((v, i) => {
+        const base = Math.min(...mg) - 0.25 * Math.max(Math.abs(mx - Math.min(...mg)), 1), h = Math.max(10, 170 * (v - base) / Math.max(mx - base, 1)), w = 150, x = 60 + i * 220, win = i === ganador;
+        b += `<g class="gk" data-tip="${esc2(mxn(precios[i]) + " al mes|" + fmP(v) + "|margen al mes con 1,000 restaurantes si el dueño típico pagara " + mxn(Math.round(med)) + (win ? ". Es el que más deja." : "."))}" data-tipp="${clamp(v / mx, 0, 1)}">${Rc(x, 232 - h, w, h, win ? C.dorado : "#d9b9c1", 14)}${T(x + w / 2, 232 - h - (win ? 30 : 12), fmP(v), 15, win ? C.dorado : C.t2, "middle", 700)}${win ? T(x + w / 2, 232 - h - 12, "el que gana", 12.5, C.dorado, "middle", 700) : ""}${T(x + w / 2, 254, mxn(precios[i]), 18, win ? C.vino : C.t2, "middle", 400, true)}</g>`;
       });
-      b += T(30, 242, "Dorado: el mejor de los cuatro · contorno vino: $225 = igualar a Meniu Business (decisión de posicionamiento, no un óptimo del modelo)", 12, C.t2);
+      b += T(30, 268, "Margen al mes con 1,000 restaurantes. Las barras no parten de cero: sólo comparan los cuatro precios.", 11.5, C.t2);
       sv2.innerHTML = b;
     }
     const caros = D.mercado_planes.filter(p => p.precio > S.precioServicio).length, tot = D.mercado_planes.length;
