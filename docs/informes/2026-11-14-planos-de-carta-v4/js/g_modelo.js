@@ -15,6 +15,8 @@ DET.modelo = {
     host.innerHTML = `<div class="viz"><svg id="svG9a" viewBox="0 0 1100 440" role="img" aria-label="Dónde cae Carta entre los modelos de plataforma" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz" style="margin-top:12px"><svg id="svG9b" viewBox="0 0 1100 470" role="img" aria-label="Carta frente a Meniu y el tamaño del hueco" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz" style="margin-top:12px"><svg id="svG9c" viewBox="0 0 1100 416" role="img" aria-label="Fuentes de ingreso por etapa" font-family="DM Sans, sans-serif"></svg></div>
+<div class="viz" style="margin-top:12px"><svg id="svG9f" viewBox="0 0 1100 392" role="img" aria-label="Ingreso por anuncios: genéricos frente a personalizados" font-family="DM Sans, sans-serif"></svg></div>
+<div class="viz" style="margin-top:12px"><svg id="svG9g" viewBox="0 0 1100 330" role="img" aria-label="Visión de Calvin para una versión 2: cuatro pasos" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz" style="margin-top:12px"><svg id="svG9d" style="min-height:0" viewBox="0 0 1100 124" role="img" aria-label="Cómo opera Carta con datos, dinero y usuarios" font-family="DM Sans, sans-serif"></svg></div>
 <div class="r7p" id="sdP" style="margin-top:12px;display:block"><div class="r7row rdesl"><label for="sdM">Sueldo del fundador al mes</label><input type="range" id="sdM" min="0" max="100000" step="500" value="0"><output id="sdV">0 MXN</output></div><div class="r7ch" id="sdC"></div></div>
 <div class="viz" style="margin-top:12px"><svg id="svG9e" viewBox="0 0 1100 560" role="img" aria-label="Cuántos restaurantes hacen falta para cubrir el sueldo" font-family="DM Sans, sans-serif"></svg></div>`;
@@ -28,6 +30,9 @@ DET.modelo = {
     $("#svG9a").innerHTML = conCache("g9a", () => this.mapa(neg));
     $("#svG9b").innerHTML = conCache("g9b", () => this.meniu(neg, pot));
     $("#svG9c").innerHTML = conCache("g9c", () => this.etapas(mod));
+    const v2 = conCache("v29", () => MOD.visionV2(c, s));
+    $("#svG9f").innerHTML = conCache("g9f", () => this.anuncios(v2.anuncios));
+    $("#svG9g").innerHTML = conCache("g9g", () => this.vision(v2));
     $("#svG9d").innerHTML = conCache("g9d", () => this.opera());
     this.pintaSueldo();
     const hu = neg.hueco_frente_a_meniu.tamano_del_hueco;
@@ -97,6 +102,44 @@ DET.modelo = {
     b += card(2, 90, 140, M.comision_por_transaccion, `${n(s4.centro, 1)} MXN`, "por restaurante de 0 a 10 personas al mes", `rango ${n(s4.minimo, 1)}–${n(s4.maximo, 1)}`, true, true, C.t2);
     b += card(2, 244, 140, M.pago_del_comensal, `${n(s5.centro, 1)} MXN`, "por restaurante al mes", `rango ${n(s5.minimo, 1)}–${n(s5.maximo, 1)}`, true, true, C.t2);
     b += T(30, 404, "Sin trama: lo que hoy se puede cobrar. Con trama: sin dato, sólo se calcula su tamaño. Candado: fuera de la v1.", 12, C.t2, "start", 700);
+    return b;
+  },
+  /* 3b · el ingreso principal: anuncios tipo AdSense, genéricos para el anónimo y personalizados para el registrado (v2) */
+  anuncios(ad) {
+    const W = 335;
+    let b = T(30, 26, "Ingreso principal: anuncios tipo AdSense. Quien paga no ve anuncios (MXN por restaurante gratuito al mes)", 14, C.vino, "start", 700);
+    [["baja", "Tarifa baja"], ["media", "Tarifa media"], ["alta", "Tarifa alta"]].forEach(([k, nom], i) => {
+      const t = ad.por_tarifa[k], x = 30 + i * 365, mx = t.rango_v2[1], BW = W - 20, bw = v => Math.max(BW * v / mx, 4), d = t.pesos_por_gratuito_v2_con_registrados - t.pesos_por_gratuito_v1_todo_generico;
+      b += `<g data-tip="${esc2(`${nom}|${n(t.tarifa_generica_por_mil, 1)} MXN por mil visitas|Genérico ${n(t.pesos_por_gratuito_v1_todo_generico, 1)} frente a ${n(t.pesos_por_gratuito_v2_con_registrados, 1)} en la v2. Tarifa sin dato.`)}" tabindex="0">` + Rc(x, 44, W, 34, i === 1 ? C.vino : "#8f5a66", 17) + T(x + W / 2, 66, `${nom} · ${n(t.tarifa_generica_por_mil, 1)} MXN por mil`, 14, "#fff", "middle", 700) + `</g>`;
+      b += T(x + 8, 112, "Genérico: comensal anónimo (v1)", 12.5, C.t2, "start", 700) + Rc(x + 8, 120, BW, 26, C.a2, 13) + `<g class="gh">${Rc(x + 8, 120, bw(t.pesos_por_gratuito_v1_todo_generico), 26, C.dorado, 13)}</g>` + T(x + 8, 176, n(t.pesos_por_gratuito_v1_todo_generico, 1) + " MXN", 30, C.tinta, "start", 400, true);
+      b += T(x + 8, 214, "Con registrados (v2)", 12.5, C.t2, "start", 700) + Rc(x + 8, 222, BW, 26, C.a2, 13) + `<g class="gh" style="animation-delay:120ms">${Rc(x + 8, 222, bw(t.pesos_por_gratuito_v2_con_registrados), 26, C.vino, 13)}</g>`;
+      b += `<g data-tip="${esc2(`Rango de la v2, ${nom.toLowerCase()}|${n(t.rango_v2[0], 1)} a ${n(t.rango_v2[1], 1)} MXN|Depende del factor ×${n(ad.factor, 1)} y de la parte de registrados: dos supuestos sin dato.`)}" tabindex="0"><line x1="${x + 8 + bw(t.rango_v2[0])}" x2="${x + 8 + bw(t.rango_v2[1])}" y1="${235}" y2="${235}" stroke="${C.tinta}" stroke-width="3"/><line x1="${x + 8 + bw(t.rango_v2[0])}" x2="${x + 8 + bw(t.rango_v2[0])}" y1="227" y2="243" stroke="${C.tinta}" stroke-width="3"/><line x1="${x + 8 + bw(t.rango_v2[1])}" x2="${x + 8 + bw(t.rango_v2[1])}" y1="227" y2="243" stroke="${C.tinta}" stroke-width="3"/></g>`;
+      b += T(x + 8, 292, n(t.pesos_por_gratuito_v2_con_registrados, 1) + " MXN", 30, C.vino, "start", 400, true) + T(x + 160, 290, `+${n(d, 1)} frente al genérico`, 13, C.verde, "start", 700) + T(x + 8, 316, `rango ${n(t.rango_v2[0], 1)} a ${n(t.rango_v2[1], 1)}`, 12, C.t2, "start", 700);
+    });
+    b += T(30, 358, `Factor ×${n(ad.factor, 1)} del anuncio personalizado (rango ${n(ad.rango_factor[0], 2)}–${n(ad.rango_factor[1], 1)}) y ${n(100 * ad.parte_registrados_v2)} % de comensales registrados (rango ${n(100 * ad.rango_parte[0])}–${n(100 * ad.rango_parte[1])} %): supuestos, sin dato.`, 12, C.t2, "start", 700);
+    b += T(30, 378, "Genéricos al comensal anónimo: lo único posible con las reglas de hoy; entran con la Spec 002 «Planes», después del piloto (no es Fase 3).", 12, C.osc, "start", 700);
+    return b;
+  },
+  /* 3c · la visión de Calvin para una versión 2: un camino de cuatro pasos, en el orden sugerido por el análisis */
+  vision(v2) {
+    const pasos = [
+      ["Anuncios genéricos", "al comensal anónimo", "después del piloto (Spec 002)", false, "Paso 1: anuncios genéricos|con la Spec 002, después del piloto|Antes: ADR, política de seguridad y aviso de privacidad. Tarifa sin dato."],
+      ["Cuenta voluntaria", "y anuncios personalizados", "fuera de la v1", true, "Paso 2: cuenta voluntaria|antes: regla 10 y consentimiento|Aviso de privacidad con finalidades separadas. Lo legal, por verificar con un abogado."],
+      ["Plan pagado del comensal", "sin anuncios, como Spotify", "fuera de la v1", true, "Paso 3: plan pagado del comensal|antes: cuenta y cobro|Reutiliza la cuenta del paso 2; un pago pequeño recurrente: por verificar con un abogado."],
+      ["Directorio, pagos", "y comisión", "fuera de la v1", true, "Paso 4: directorio, pagos y comisión|antes: ADR de pagos y spec|Lo que más cambia y lo más regulado. Por verificar con un abogado."],
+    ];
+    let b = T(30, 28, "Visión de Calvin para una versión 2: cuatro pasos, en este orden", 14, C.vino, "start", 700);
+    const xs = [150, 410, 670, 930];
+    b += `<line x1="${xs[0]}" x2="${xs[3]}" y1="110" y2="110" stroke="${C.arena}" stroke-width="4"/>`;
+    pasos.forEach(([t1, t2, tag, fuera, tip], i) => {
+      const x = xs[i];
+      b += `<g data-tip="${esc2(tip)}" tabindex="0"><circle class="gh" style="animation-delay:${i * 130}ms" cx="${x}" cy="110" r="40" fill="${i === 0 ? C.vino : "#fff"}" stroke="${i === 0 ? C.vino : C.osc}" stroke-width="3" ${fuera ? 'stroke-dasharray="7 5"' : ""}/>` + T(x, 122, String(i + 1), 34, i === 0 ? "#fff" : C.osc, "middle", 400, true) + (fuera ? candado(x + 30, 82, C.osc) : "") + `</g>`;
+      b += T(x, 180, t1, 15, C.tinta, "middle", 700) + T(x, 199, t2, 13.5, C.tinta, "middle", 700) + T(x, 226, tag, 12, fuera ? C.t2 : C.osc, "middle", 700);
+      if (fuera) b += `<g data-tip="${esc2(`Marco legal|por verificar con un abogado|Se leyeron resúmenes de despachos, no el texto del DOF ni el reglamento.`)}" tabindex="0">` + Rc(x - 82, 238, 164, 24, "#fff", 12, `stroke="${C.rojo}" stroke-width="1.6"`) + T(x, 254, "por verificar con un abogado", 11, C.rojo, "middle", 700) + `</g>`;
+      if (i < 3) b += `<path d="M${x + 52} 110 L${xs[i + 1] - 52} 110" stroke="${C.osc}" stroke-width="3" fill="none" marker-end="url(#fl)"/>`;
+    });
+    b += `<defs><marker id="fl" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9z" fill="${C.osc}"/></marker></defs>`;
+    b += T(30, 304, "La versión 1 sigue sin cuentas ni pagos: sólo el paso 1 cabe con las reglas de hoy, y lo demás exige ADR y spec nuevos que apruebe Calvin.", 12.5, C.tinta, "start", 700);
     return b;
   },
   /* 4 · cómo operamos con datos, dinero y usuarios */

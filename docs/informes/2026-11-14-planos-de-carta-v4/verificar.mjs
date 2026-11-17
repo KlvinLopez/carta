@@ -217,6 +217,46 @@ for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 await cierra(p);
 
+// capítulo 7, segunda parte: quién llena el disco, la historia de la mesa, las formas de guardar y la combinación
+await abre(p, 'recursos7');
+const comp7 = await p.evaluate(() => { const r = MOD.recursos(config(S), sup(S), 'hoy'), c = r.composicion_del_disco, h = MOD.historiaDelDisco(config(S), sup(S)); return { paga: c.parte_del_disco.de_paga, total: h.bytes_total, an: h.bytes_de_analitica, ops: h.opciones.map((o) => [o.restaurantes_que_caben_sin_purga, o.restaurantes_que_caben_con_historial_30_dias]) }; });
+ok((await texto(p, '#svDc')).includes(String(Math.round(100 * comp7.paga * 10) / 10)) || (await texto(p, '#svDc')).includes((100 * comp7.paga).toFixed(1)), 'capítulo 7: quién llena el disco muestra el ' + (100 * comp7.paga).toFixed(1) + ' % de los de paga (del modelo)');
+ok((await texto(p, '#hiN')).includes('Paso 0 de 8'), 'capítulo 7: la historia de la mesa arranca en el paso 0');
+await p.click('#hiSig'); await p.click('#hiSig'); await p.waitForTimeout(500);
+const bytes2 = await p.evaluate(() => MOD.historiaDelDisco(config(S), sup(S)).pasos[1].acumulado);
+ok((await texto(p, '#svHi')).includes(f7(bytes2) + ' bytes'), 'capítulo 7: tras 2 pasos el medidor marca ' + f7(bytes2) + ' bytes (264 + 750)');
+await p.click('#hiAt'); await p.waitForTimeout(400);
+ok((await texto(p, '#hiN')).includes('Paso 1 de 8'), 'capítulo 7: la historia retrocede un paso');
+for (let i = 0; i < 7; i++) await p.click('#hiSig');
+await p.waitForTimeout(700);
+const tf = await texto(p, '#svHi');
+ok(tf.includes(f7(comp7.total) + ' bytes') && tf.includes('% es analítica'), 'capítulo 7: al final la mesa de 3 suma ' + f7(comp7.total) + ' bytes y dice qué parte es analítica');
+await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
+ok((await texto(p, '#hiN')).includes('Paso 8 de 8'), 'capítulo 7: tocar otro control no reinicia la historia');
+const FILA = 'fila_por_visita_de_comensal', DIA = 'analitica_agregada_por_dia';
+await p.click('#svOp [data-op="contar_por_dia"]'); await p.waitForTimeout(400);
+await p.click('#svOp [data-op="fila_por_visita"]'); await p.waitForTimeout(400);
+const pl1 = await p.evaluate(() => S.palancas.slice());
+ok(pl1.includes(FILA) && !pl1.includes(DIA), 'capítulo 7: la forma de guardar la analítica es una sola elección (elegir la fila por visita quita contar por día)');
+await p.click('#palR [data-pal="' + DIA + '"]'); await p.waitForTimeout(400);
+const pl2 = await p.evaluate(() => S.palancas.slice());
+ok(pl2.includes(DIA) && !pl2.includes(FILA), 'capítulo 7: lo mismo desde las palancas del tablero (contar por día reemplaza la fila por visita)');
+await p.click('#svOp [data-op="archivar"]'); await p.waitForTimeout(400);
+ok(await p.evaluate(() => S.palancas.includes('archivar_sesiones_cerradas') && S.palancas.includes('analitica_agregada_por_dia')), 'capítulo 7: archivar se suma a la forma elegida');
+await p.evaluate(() => cambiar({ palancas: [] })); await p.waitForTimeout(400);
+const co = await texto(p, '#svCo');
+const cmb = await p.evaluate(() => { const c = config(S), s = sup(S), g = (pl, m) => MOD.recursos({ ...c, palancas: pl }, s, { canal: 'eventos', meses_historial: m }).escalera[0].restaurantes_que_caben; const F = 'fila_por_visita_de_comensal', A = 'archivar_sesiones_cerradas'; return [g([A, F], 12), g([], 1)]; });
+ok(co.includes(f7(cmb[0])) && co.includes(f7(cmb[1])) && co.includes('ya da más que hoy con el recorte a 30 días'), 'capítulo 7: la combinación dice que archivar + fila sin recortar (' + f7(cmb[0]) + ') supera el recorte a 30 días (' + f7(cmb[1]) + ')');
+await sinDesborde(p, 'capítulo 7 (historia del disco)'); await cierra(p);
+
+// capítulo 9, ingreso por anuncios y visión de una versión 2
+await abre(p, 'modelo');
+ok((await p.$$('#svG9f [data-tip]')).length === 6 && (await p.$$('#svG9g [data-tip]')).length === 7, 'capítulo 9: tres tarifas con genérico frente a v2, y cuatro pasos con su hover');
+const v2m = await p.evaluate(() => MOD.visionV2(config(S), sup(S)).anuncios.por_tarifa.media);
+ok((await texto(p, '#svG9f')).includes(v2m.pesos_por_gratuito_v1_todo_generico.toFixed(1)) && (await texto(p, '#svG9f')).includes(v2m.pesos_por_gratuito_v2_con_registrados.toFixed(1)), 'capítulo 9: media ' + v2m.pesos_por_gratuito_v1_todo_generico.toFixed(1) + ' → ' + v2m.pesos_por_gratuito_v2_con_registrados.toFixed(1) + ' MXN, del modelo');
+ok((await texto(p, '#svG9g')).includes('por verificar con un abogado') && (await texto(p, '#svG9g')).includes('La versión 1 sigue sin cuentas ni pagos'), 'capítulo 9: lo legal lleva «por verificar con un abogado» y se dice que la v1 sigue sin cuentas ni pagos');
+await sinDesborde(p, 'capítulo 9 (anuncios y visión)'); await cierra(p);
+
 // capítulo 9: cómo gana dinero Carta, y el sueldo del fundador con los tres escenarios a la vez
 await abre(p, 'modelo');
 ok((await p.$$('#svG9a [data-tip]')).length >= 7 && (await p.$$('#svG9b [data-tip]')).length >= 13 && (await p.$$('#svG9c [data-tip]')).length === 5, 'capítulo 9: mapa, tabla frente a Meniu y cinco fuentes de ingreso con su hover');
@@ -407,7 +447,7 @@ async function revisaHovers(q, alcance, et) {
     const nums = new Set();
     const junta = (t) => (String(t).match(/-?\d[\d,]*\.?\d*/g) || []).forEach((x) => { const v = parseFloat(x.replace(/,/g, '')); if (!isNaN(v)) { nums.add(Math.round(v)); nums.add(Math.round(v * 10) / 10); nums.add(Math.round(v * 100) / 100); } });
     junta(document.body.textContent);
-    try { junta(JSON.stringify(SP)); junta(JSON.stringify(D)); junta(JSON.stringify(MOD.resumen(config(S), sup(S)))); junta(JSON.stringify(MOD.desgloses(config(S), sup(S), 1000))); junta(JSON.stringify(MOD.recursos(config(S), sup(S), 'hoy'))); junta(JSON.stringify(MOD.tablaSueldos(config(S), sup(S)))); junta(JSON.stringify(MOD.modelosDeIngreso(config(S), sup(S)))); junta(JSON.stringify(MOD.modeloDeNegocio(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialChef(config(S), sup(S)))); junta(JSON.stringify(MOD.meta12Meses(config(S), sup(S)))); } catch (e) { /* sin modelo: sólo el texto */ }
+    try { junta(JSON.stringify(SP)); junta(JSON.stringify(D)); junta(JSON.stringify(MOD.resumen(config(S), sup(S)))); junta(JSON.stringify(MOD.desgloses(config(S), sup(S), 1000))); junta(JSON.stringify(MOD.recursos(config(S), sup(S), 'hoy'))); junta(JSON.stringify(MOD.tablaSueldos(config(S), sup(S)))); junta(JSON.stringify(MOD.modelosDeIngreso(config(S), sup(S)))); junta(JSON.stringify(MOD.modeloDeNegocio(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialChef(config(S), sup(S)))); junta(JSON.stringify(MOD.meta12Meses(config(S), sup(S)))); junta(JSON.stringify(MOD.historiaDelDisco(config(S), sup(S)))); junta(JSON.stringify(MOD.visionV2(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialPorTramo(config(S), sup(S)))); } catch (e) { /* sin modelo: sólo el texto */ }
     const vistos = new Set();
     tips.forEach((e) => {
       const t = e.dataset.tip; if (vistos.has(t)) return; vistos.add(t);

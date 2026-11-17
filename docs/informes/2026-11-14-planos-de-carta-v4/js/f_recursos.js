@@ -46,7 +46,7 @@ DET.recursos7 = {
       const e = ev.target.closest("[data-est]"); if (e) { this.est = e.dataset.est; refrescar(); return; }
       const h = ev.target.closest("[data-his]"); if (h) { this.his = h.dataset.his; refrescar(); return; }
       const r = ev.target.closest("[data-rec]"); if (r) { this.sel = r.dataset.rec; this.tocado = true; refrescar(); return; }
-      const p = ev.target.closest("[data-pal]"); if (p) { const id = p.dataset.pal, ps = S.palancas || []; cambiar({palancas: ps.includes(id) ? ps.filter(x => x !== id) : [...ps, id]}); }
+      const p = ev.target.closest("[data-pal]"); if (p) { const id = p.dataset.pal, ps = S.palancas || [], grupo = conCache("palTab", () => MOD.palancasEnTablero(config(S), sup(S))).grupos_excluyentes.forma_de_guardar_la_analitica.miembros; if (ps.includes(id)) cambiar({palancas: ps.filter(x => x !== id)}); else cambiar({palancas: [...(grupo.includes(id) ? ps.filter(x => !grupo.includes(x)) : ps), id]}); }
     });
     host.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { const t = ev.target.closest("[data-rec]"); if (t) { ev.preventDefault(); t.dispatchEvent(new MouseEvent("click", {bubbles: true})); } } });
   },
@@ -101,18 +101,21 @@ DET.recursos7 = {
   /* las palancas, como parámetros: sólo «qué hay que hacer»; lo demás, al hover */
   pintaPalancas() {
     const r = this.r, ps = S.palancas || [], ck = this.ck, he = this.his, base30 = he === "30d", filas = [];
-    r.recursos.forEach(x => x.palancas.forEach(p => { if (p.id !== "historial_gratuito_30_dias" && enTablero(p)) filas.push({...p, rec: x.recurso}); }));
-    const par = p => { if (base30 && p.sobre_historial_30_dias) return [p.sobre_historial_30_dias.restaurantes_antes, p.sobre_historial_30_dias.restaurantes_despues]; return p.restaurantes_antes ? [p.restaurantes_antes[ck], p.restaurantes_despues[ck]] : [null, null]; };
+    const ptab = conCache("palTab0", () => MOD.palancasEnTablero({...config(S), palancas: []}, sup(S))).palancas, enR = {};
+    r.recursos.forEach(x => x.palancas.forEach(p => { enR[p.id] = {...p, rec: x.recurso}; }));
+    Object.keys(ptab).filter(id => ptab[id].en_tablero && id !== "historial_gratuito_30_dias").forEach(id => filas.push(enR[id] || {id, nombre: (MOD.PALANCAS[id] || {}).accion || id, rec: ptab[id].recurso, _pt: ptab[id]}));
+    const par = p => { if (p._pt) return [p._pt.capacidad_antes, p._pt.capacidad_despues]; if (base30 && p.sobre_historial_30_dias) return [p.sobre_historial_30_dias.restaurantes_antes, p.sobre_historial_30_dias.restaurantes_despues]; return p.restaurantes_antes ? [p.restaurantes_antes[ck], p.restaurantes_despues[ck]] : [null, null]; };
     const gan = p => { const [a, d] = par(p); return a == null || d == null ? -1e8 : d - a; };
     filas.sort((a, z) => gan(z) - gan(a));
     const key = [ps.join(), ck, he].join("|"); if (key === this.palKey) return; this.palKey = key;
-    $("#palR").innerHTML = filas.map(p => {
+    const grupo = conCache("palTab", () => MOD.palancasEnTablero(config(S), sup(S))).grupos_excluyentes.forma_de_guardar_la_analitica.miembros, chip = p => {
       const [a, d] = par(p), al = MOD.PALANCAS[p.id] || {}, dif = a != null && d != null ? d - a : null;
       const cif = dif == null ? "sin efecto medido" : dif === 0 ? `sin cambio: ${n(a)}` : `${n(a)} → ${n(d)}`;
       const fr = PHR_PAL[p.id] || "";
       const tip = `${al.accion || p.nombre}|${cif}|${fr}`;
       return `<button class="btn pchip" data-pal="${p.id}" aria-pressed="${ps.includes(p.id)}" data-tip="${esc2(tip)}"${dif != null && a ? ` data-tipv="tri:antes|${a}|${n(a)};después|${d}|${n(d)}"` : ""}>${esc(al.accion || PAL_CORTO[p.id] || p.nombre)}</button>`;
-    }).join("");
+    };
+    $("#palR").innerHTML = `<div class="r7sub">Forma de guardar la analítica (elige una)</div>` + filas.filter(p => grupo.includes(p.id)).map(chip).join("") + `<div class="r7sub">Además</div>` + filas.filter(p => !grupo.includes(p.id)).map(chip).join("");
   },
   /* los valores que se dibujan pasan del que tenían al nuevo (nunca desde cero) */
   apunta() {

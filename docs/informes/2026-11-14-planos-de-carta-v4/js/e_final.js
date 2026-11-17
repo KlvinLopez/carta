@@ -259,7 +259,7 @@ const TARJ = {
 DET.recomendaciones = {
   titulo: "Ocho decisiones: qué hacer, por qué y qué pasa si no.",
   fu: ["carta_precio", "carta_tres_planes", "carta_disco", "calvin_posturas"],
-  nota: "Recomendaciones del análisis, no decisiones: las decide Calvin. Planes y precios son propuesta; la v1 no cobra. «Chef Ejecutivo» es nombre propuesto.",
+  nota: "Recomendaciones del análisis, no decisiones: las decide Calvin. Planes y precios son propuesta; la v1 no cobra. Cualquier palanca que cambia qué se guarda y por cuánto tiempo pasa antes por especificación y por actualizar 03 §7 (y un ADR si toca la regla de no borrar historial).",
   montar(host) {
     host.innerHTML = `<div class="rgrid">${REC.decisiones.map((r, i) => `<div class="rcard" id="r_${r.id}" style="--i:${i}"></div>`).join("")}</div>`;
     host.addEventListener("click", ev => { const t = ev.target.closest("[data-mas]"); if (!t) return; const d = $("#mas_" + t.dataset.mas, host); d.hidden = !d.hidden; t.setAttribute("aria-expanded", !d.hidden); t.textContent = d.hidden ? "ver más ›" : "ver menos ‹"; });

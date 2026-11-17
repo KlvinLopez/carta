@@ -96,7 +96,7 @@ DET.linea = {
         const v = sus.por_curva_de_pago[k], d = j ? ` (${v >= base ? "+" : "−"}${n(Math.abs(v - base))})` : "";
         rm.put("ic" + j, "text", {x: px + 18, y, text: `${nom}: ${n(v)}${d}`, size: 12.5, weight: 700, fill: col, attrs: {"data-tip": `${nom}: suscripción|${n(v)} MXN al mes|Paga ${n(100 * sus.parte_que_paga[k], 1)} % de los negocios de este tamaño; curva de pago ${k}. Techo teórico.`}}); y += 22;
       });
-      rm.put("in0", "text", {x: px + 18, y: y + 6, text: "Techo teórico, no proyección: la curva de pago", size: 11, fill: C.t2});
+      rm.put("in0", "text", {x: px + 18, y: y + 6, text: "Techo teórico, no proyección: la curva de pago", size: 11, fill: C.t2, attrs: {"data-tip": `Supuesto|misma parte que paga en todo tamaño|${pal20(String(pt.nota_curva || "").replace(/^SUPUESTO:\s*/i, ""), 11)}`}});
       rm.put("in1", "text", {x: px + 18, y: y + 22, text: "hoy no distingue por tamaño (supuesto).", size: 11, fill: C.t2}); }
     const chicos = M.estratos.slice(0, 3), con = chicos.reduce((a, x) => a + x.con_sitio, 0), tot = chicos.reduce((a, x) => a + x.n, 0);
     return {
