@@ -1,5 +1,5 @@
 {
- "version": "2026-11-16-r7",
+ "version": "2026-11-17-r8",
  "banderas": [
   {
    "id": "procesador",
@@ -84,7 +84,7 @@
    "volumen_gb": 50,
    "costo_usd_base": 20,
    "costo_usd_tope": 30,
-   "mes_en_que_entra_recomendado": 11,
+   "mes_en_que_entra_recomendado": 9,
    "sube_costo_usd_vs_anterior": 11.9
   },
   {
@@ -94,7 +94,7 @@
    "volumen_gb": 50,
    "costo_usd_base": 23,
    "costo_usd_tope": 44,
-   "mes_en_que_entra_recomendado": 23,
+   "mes_en_que_entra_recomendado": 22,
    "sube_costo_usd_vs_anterior": 3
   },
   {
@@ -104,7 +104,7 @@
    "volumen_gb": 50,
    "costo_usd_base": 30,
    "costo_usd_tope": 54,
-   "mes_en_que_entra_recomendado": 30,
+   "mes_en_que_entra_recomendado": 27,
    "sube_costo_usd_vs_anterior": 7
   }
  ],

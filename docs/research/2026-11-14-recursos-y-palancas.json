@@ -1,7 +1,101 @@
 {
- "version": "2026-11-16-r7",
+ "version": "2026-11-17-r8",
  "fecha": "2026-11-14",
  "config_palancas": [],
+ "estado_elegido": {
+  "canal": "sondeo",
+  "meses_historial": 12,
+  "palancas": [],
+  "nota": "la escalera responde a este estado; ningún parámetro de entrada se modifica"
+ },
+ "escalera": [
+  {
+   "id": "hobby_eventos",
+   "tamano": "Hobby (el que pagamos hoy): 2 procesos, 5 GB",
+   "procesos": 2,
+   "disco_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_con_carga": 12,
+   "restaurantes_que_caben": 23,
+   "recurso_que_obliga_a_subir": "disco",
+   "por_recurso": {
+    "procesador": 148,
+    "memoria": 476800,
+    "disco": 23,
+    "conexiones_bd": 3288,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_2",
+   "tamano": "Pro, 2 procesos, 50 GB",
+   "procesos": 2,
+   "disco_gb": 50,
+   "costo_usd_base": 20,
+   "costo_usd_con_carga": 30,
+   "restaurantes_que_caben": 148,
+   "recurso_que_obliga_a_subir": "procesador",
+   "por_recurso": {
+    "procesador": 148,
+    "memoria": 476800,
+    "disco": 236,
+    "conexiones_bd": 3288,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_4",
+   "tamano": "Pro, 4 procesos, 50 GB",
+   "procesos": 4,
+   "disco_gb": 50,
+   "costo_usd_base": 23,
+   "costo_usd_con_carga": 44,
+   "restaurantes_que_caben": 236,
+   "recurso_que_obliga_a_subir": "disco",
+   "por_recurso": {
+    "procesador": 263,
+    "memoria": 473600,
+    "disco": 236,
+    "conexiones_bd": 6577,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_8",
+   "tamano": "Pro, 8 procesos, 50 GB",
+   "procesos": 8,
+   "disco_gb": 50,
+   "costo_usd_base": 30,
+   "costo_usd_con_carga": 54,
+   "restaurantes_que_caben": 236,
+   "recurso_que_obliga_a_subir": "disco",
+   "por_recurso": {
+    "procesador": 294,
+    "memoria": 467200,
+    "disco": 236,
+    "conexiones_bd": 7400,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": true
+  },
+  {
+   "id": "otra_pila",
+   "tamano": "Una segunda copia de toda la pila (extrapolación sin medir)",
+   "procesos": 16,
+   "costo_usd_base": null,
+   "costo_usd_con_carga": 108,
+   "restaurantes_que_caben": 472,
+   "recurso_que_obliga_a_subir": "disco",
+   "extrapolacion_sin_medir": true
+  }
+ ],
  "definicion_restaurante_tipico": "un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)",
  "estado": {
   "meses_historial": 12,
@@ -232,6 +326,8 @@
     {
      "id": "estado_en_memoria_60s",
      "nombre": "Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)",
+     "accion": "Guardar estado en memoria 60 s",
+     "que_es": "El servidor recuerda el estado de cada mesa un minuto y sólo lo recalcula cuando la base avisa.",
      "esfuerzo": "medio",
      "riesgo": "bajo-medio: cambia ADR-004 (vida máxima 2 s). EXTRAPOLA una medición por comensal (0.88 → 0.47 ms) a todo el procesador, y DEJA DE IMPORTAR cuando lleguen los avisos de la Fase 3",
      "regla_que_toca": "ninguna; cambia un ADR",
@@ -320,6 +416,8 @@
     {
      "id": "historial_gratuito_30_dias",
      "nombre": "Historial del plan gratuito a 30 días (visitas y analítica), con archivo descargable",
+     "accion": "Guardar 30 días en el gratuito",
+     "que_es": "El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra.",
      "esfuerzo": "medio",
      "riesgo": "medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes",
      "regla_que_toca": "CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga",
@@ -350,6 +448,8 @@
     {
      "id": "analitica_agregada_por_dia",
      "nombre": "Analítica agregada por día en vez de una fila por evento",
+     "accion": "Contar por día, no por evento",
+     "que_es": "En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo.",
      "esfuerzo": "medio",
      "riesgo": "medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo",
      "regla_que_toca": "ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica",
@@ -380,6 +480,8 @@
     {
      "id": "retencion_analitica_7_dias",
      "nombre": "Guardar la analítica en bruto sólo 7 días (después, agregada)",
+     "accion": "Borrar analítica cruda a 7 días",
+     "que_es": "Los eventos sueltos se conservan una semana y después sólo queda el conteo por día.",
      "esfuerzo": "chico",
      "riesgo": "bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial",
      "regla_que_toca": "CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial)",
@@ -410,6 +512,8 @@
     {
      "id": "indices_de_evento_minimos",
      "nombre": "Dejar sólo dos índices en la analítica (llave y restaurante-fecha)",
+     "accion": "Quitar índices que sobran",
+     "que_es": "La tabla de analítica deja sólo los dos índices que de verdad se usan.",
      "esfuerzo": "chico",
      "riesgo": "medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos",
      "regla_que_toca": "convención de /migracion (índice en toda FK con cascada); pide ADR",
@@ -440,6 +544,8 @@
     {
      "id": "tipos_mas_chicos",
      "nombre": "Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)",
+     "accion": "Usar tipos de dato más chicos",
+     "que_es": "Los campos de la analítica pasan de texto largo a números y huellas cortas.",
      "esfuerzo": "medio",
      "riesgo": "bajo: migración con reescritura de la tabla",
      "regla_que_toca": "ninguna",
@@ -470,6 +576,8 @@
     {
      "id": "purga_claves_idempotencia",
      "nombre": "Purgar las claves de idempotencia a las 24 horas",
+     "accion": "Purgar claves de reintento diario",
+     "que_es": "Las claves que evitan duplicar una orden al reintentar se borran al día siguiente.",
      "esfuerzo": "chico",
      "riesgo": "bajo si la ventana de reintento del teléfono es menor de 24 h",
      "regla_que_toca": "ninguna",
@@ -484,6 +592,8 @@
     {
      "id": "archivar_sesiones_cerradas",
      "nombre": "Archivar en R2 las sesiones cerradas con más de 3 meses y quitarlas de la base",
+     "accion": "Archivar sesiones viejas en R2",
+     "que_es": "Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base.",
      "esfuerzo": "grande",
      "riesgo": "alto: se vuelve a leer el historial del archivo; un error pierde datos",
      "regla_que_toca": "regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes",
@@ -545,6 +655,8 @@
     {
      "id": "pool_acotado",
      "nombre": "Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)",
+     "accion": "Acotar conexiones a la base",
+     "que_es": "Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos.",
      "esfuerzo": "chico",
      "riesgo": "bajo; hay que verificar `SHOW max_connections` en Railway",
      "regla_que_toca": "ninguna",
@@ -601,6 +713,8 @@
     {
      "id": "cerrar_lineas_ociosas",
      "nombre": "Cerrar la línea abierta a los 2 minutos sin cambios y reabrirla al volver",
+     "accion": "Cerrar líneas sin movimiento",
+     "que_es": "La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola.",
      "esfuerzo": "medio",
      "riesgo": "bajo: el teléfono ya vuelve al sondeo si la línea falla",
      "regla_que_toca": "ninguna",
@@ -656,7 +770,7 @@
    "palancas": []
   }
  ],
- "escalera": [
+ "escalera_comparada": [
   {
    "restaurantes_con_historial_30_dias": 148,
    "recurso_que_obliga_a_subir_con_historial_30_dias": "procesador",
@@ -792,7 +906,9 @@
    "esfuerzo": "medio",
    "riesgo": "medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes",
    "regla_que_toca": "CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga",
-   "medido": true
+   "medido": true,
+   "accion": "Guardar 30 días en el gratuito",
+   "que_es": "El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra."
   },
   {
    "id": "analitica_agregada_por_dia",
@@ -801,7 +917,9 @@
    "esfuerzo": "medio",
    "riesgo": "medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo",
    "regla_que_toca": "ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica",
-   "medido": true
+   "medido": true,
+   "accion": "Contar por día, no por evento",
+   "que_es": "En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo."
   },
   {
    "id": "retencion_analitica_7_dias",
@@ -810,7 +928,9 @@
    "esfuerzo": "chico",
    "riesgo": "bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial",
    "regla_que_toca": "CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial)",
-   "medido": false
+   "medido": false,
+   "accion": "Borrar analítica cruda a 7 días",
+   "que_es": "Los eventos sueltos se conservan una semana y después sólo queda el conteo por día."
   },
   {
    "id": "indices_de_evento_minimos",
@@ -819,7 +939,9 @@
    "esfuerzo": "chico",
    "riesgo": "medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos",
    "regla_que_toca": "convención de /migracion (índice en toda FK con cascada); pide ADR",
-   "medido": true
+   "medido": true,
+   "accion": "Quitar índices que sobran",
+   "que_es": "La tabla de analítica deja sólo los dos índices que de verdad se usan."
   },
   {
    "id": "tipos_mas_chicos",
@@ -828,7 +950,9 @@
    "esfuerzo": "medio",
    "riesgo": "bajo: migración con reescritura de la tabla",
    "regla_que_toca": "ninguna",
-   "medido": true
+   "medido": true,
+   "accion": "Usar tipos de dato más chicos",
+   "que_es": "Los campos de la analítica pasan de texto largo a números y huellas cortas."
   },
   {
    "id": "purga_claves_idempotencia",
@@ -837,7 +961,9 @@
    "esfuerzo": "chico",
    "riesgo": "bajo si la ventana de reintento del teléfono es menor de 24 h",
    "regla_que_toca": "ninguna",
-   "medido": true
+   "medido": true,
+   "accion": "Purgar claves de reintento diario",
+   "que_es": "Las claves que evitan duplicar una orden al reintentar se borran al día siguiente."
   },
   {
    "id": "archivar_sesiones_cerradas",
@@ -846,7 +972,9 @@
    "esfuerzo": "grande",
    "riesgo": "alto: se vuelve a leer el historial del archivo; un error pierde datos",
    "regla_que_toca": "regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes",
-   "medido": false
+   "medido": false,
+   "accion": "Archivar sesiones viejas en R2",
+   "que_es": "Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base."
   },
   {
    "id": "estado_en_memoria_60s",
@@ -855,7 +983,9 @@
    "esfuerzo": "medio",
    "riesgo": "bajo-medio: cambia ADR-004 (vida máxima 2 s). EXTRAPOLA una medición por comensal (0.88 → 0.47 ms) a todo el procesador, y DEJA DE IMPORTAR cuando lleguen los avisos de la Fase 3",
    "regla_que_toca": "ninguna; cambia un ADR",
-   "medido": true
+   "medido": true,
+   "accion": "Guardar estado en memoria 60 s",
+   "que_es": "El servidor recuerda el estado de cada mesa un minuto y sólo lo recalcula cuando la base avisa."
   },
   {
    "id": "cerrar_lineas_ociosas",
@@ -864,7 +994,9 @@
    "esfuerzo": "medio",
    "riesgo": "bajo: el teléfono ya vuelve al sondeo si la línea falla",
    "regla_que_toca": "ninguna",
-   "medido": false
+   "medido": false,
+   "accion": "Cerrar líneas sin movimiento",
+   "que_es": "La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola."
   },
   {
    "id": "pool_acotado",
@@ -873,7 +1005,9 @@
    "esfuerzo": "chico",
    "riesgo": "bajo; hay que verificar `SHOW max_connections` en Railway",
    "regla_que_toca": "ninguna",
-   "medido": false
+   "medido": false,
+   "accion": "Acotar conexiones a la base",
+   "que_es": "Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos."
   }
  ],
  "top3_palancas": [

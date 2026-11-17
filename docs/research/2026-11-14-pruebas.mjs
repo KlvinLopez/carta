@@ -88,13 +88,13 @@ prueba('los topes del gratuito cambian con la seguridad exigida', new Set(t.map(
 const seg = s.segmentacion_negocios;
 prueba('la segmentación suma los 104,882 clientes potenciales', seg['Chef'] + seg['Master Chef'] + seg['Chef Ejecutivo'], 104882);
 prueba('Chef = 86.8 % de los clientes potenciales', Math.round((1000 * seg['Chef']) / 104882) / 10, 86.8);
-prueba('configInicial es la segmentación de Calvin', c.nombre, 'segmentación de Calvin');
+prueba('configInicial son los dos planes de Calvin', c.nombre, 'dos planes: Chef y Master Chef');
 prueba('configBase es alias de configInicial', M.configBase().nombre, c.nombre);
 prueba('configTopes10Mesas3Cuentas conserva la anterior (299 y 10 mesas)', [M.configTopes10Mesas3Cuentas().precios.servicio, M.configTopes10Mesas3Cuentas().topes.gratuito.mesas].join('/'), '299/10');
-prueba('con los topes de la configuración inicial, un negocio de hasta 10 personas queda dentro con ≥ 95 %', M.seguridadChico(c, s) >= 0.95, true);
+prueba('con los topes de TRES planes (25 · 4 · 150), un negocio de hasta 10 personas queda dentro con ≥ 95 %', M.seguridadChico(M.configTresPlanes25Mesas(), s) >= 0.95, true);
 prueba('el modelo de mesas y cuentas tiene intervalo: mínimo ≤ centro ≤ máximo', M.parteRebasa(c, s, 'minimo') <= M.parteRebasa(c, s, 'centro') && M.parteRebasa(c, s, 'centro') <= M.parteRebasa(c, s, 'maximo'), true);
 const ep = M.evaluarPrecios(c, s, 1000);
-prueba('se evalúan 4 precios de Master Chef y 3 de Chef Ejecutivo', `${ep.servicio.length}/${ep.salon.length}`, '4/3');
+prueba('se evalúan 4 precios de Master Chef y ninguno de Chef Ejecutivo (apagado)', `${ep.servicio.length}/${ep.salon.length}`, '4/0');
 prueba('cada precio trae el margen sin anuncios y con anuncios', 'margen_operacion_sin_anuncios' in ep.servicio[0].por_curva.media && 'sin_perdidas_con_anuncios' in ep.servicio[0].por_curva.media, true);
 
 // 7) la pregunta del peor caso: todos gratuitos
@@ -134,7 +134,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 10) CIFRAS DE TITULAR (las que van a pantalla), con tolerancia estrecha (±1 peso, ±0.002 en proporciones)
 {
-  const cfg = M.configInicial();
+  const cfg = M.configTresPlanes25Mesas();
   prueba('Chef: topes de configInicial (mesas · cuentas · platillos)', `${cfg.topes.gratuito.mesas}·${cfg.topes.gratuito.cuentas}·${cfg.topes.gratuito.platillos}`, '25·4·150');
   prueba('cobertura de Chef (centro, con dispersión σ = 0.5)', M.seguridadChico(cfg, s, 'centro'), 0.951, 0.002);
   prueba('cobertura de Chef (mínimo de las 27 combinaciones)', M.seguridadChico(cfg, s, 'minimo'), 0.867, 0.002);
@@ -205,9 +205,9 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('límite con avisos (procesador, conexiones BD, líneas; tope de diseño supuesto)', [rec('procesador'), rec('conexiones_bd'), rec('lineas')].map((x) => x.restaurantes_con_eventos).join(','), '1064,23644,2116');
   prueba('las líneas abiertas no existen hoy', rec('lineas').restaurantes_hoy, null);
   prueba('sólo un recurso es cuello hoy y sólo uno con eventos', `${R.recursos.filter((x) => x.es_cuello_hoy).length}-${R.recursos.filter((x) => x.es_cuello_con_eventos).length}`, '1-1');
-  prueba('escalera sin purga: restaurantes que caben por tamaño', R.escalera.slice(0, 5).map((e) => e.restaurantes_que_caben).join(','), '23,23,236,236,236');
-  prueba('escalera con historial a 30 días: restaurantes que caben por tamaño', R.escalera.slice(0, 5).map((e) => e.restaurantes_con_historial_30_dias).join(','), '148,279,1064,1896,2116');
-  prueba('escalera con historial a 30 días: recurso que obliga a subir', R.escalera.slice(0, 5).map((e) => e.recurso_que_obliga_a_subir_con_historial_30_dias).join(','), 'procesador,disco,procesador,procesador,lineas');
+  prueba('escalera sin purga: restaurantes que caben por tamaño', R.escalera_comparada.slice(0, 5).map((e) => e.restaurantes_que_caben).join(','), '23,23,236,236,236');
+  prueba('escalera con historial a 30 días: restaurantes que caben por tamaño', R.escalera_comparada.slice(0, 5).map((e) => e.restaurantes_con_historial_30_dias).join(','), '148,279,1064,1896,2116');
+  prueba('escalera con historial a 30 días: recurso que obliga a subir', R.escalera_comparada.slice(0, 5).map((e) => e.recurso_que_obliga_a_subir_con_historial_30_dias).join(','), 'procesador,disco,procesador,procesador,lineas');
   prueba('lo que pagamos hoy: total en USD al mes', Math.round(R.hoy.total_usd_mes * 100) / 100, 10.18, 0.01);
   const pal = (id) => rec(M.PALANCAS[id].recurso).palancas.find((p) => p.id === id);
   prueba('palanca 1, historial del gratuito a 30 días: +restaurantes por disco (sin purga → 30 días)', pal('historial_gratuito_30_dias').ganancia_restaurantes.con_eventos, 256);
@@ -234,7 +234,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 12) cifras de titular de r4 que faltaba fijar (ronda 6): negocios por plan, 15 mesas, cobertura
 {
-  const cfg = M.configInicial();
+  const cfg = M.configTresPlanes25Mesas();
   prueba('negocios por plan (Chef, Master Chef, Chef Ejecutivo)', `${s.segmentacion_negocios.Chef}/${s.segmentacion_negocios['Master Chef']}/${s.segmentacion_negocios['Chef Ejecutivo']}`, '91048/13614/220');
   const c15 = { ...cfg, topes: { ...cfg.topes, gratuito: { ...cfg.topes.gratuito, mesas: 15 } } };
   prueba('cobertura de Chef con 15 mesas (centro, con dispersión)', M.seguridadChico(c15, s, 'centro'), 0.894, 0.002);
@@ -243,7 +243,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 12b) COBERTURA DEL TOPE DE PLATILLOS (ronda 7): dos cotas de sesgo opuesto, no se sabe la real
 {
-  const cfg = M.configInicial();
+  const cfg = M.configTresPlanes25Mesas();
   const cp = (cuenta, cota, tope) => M.coberturaPlatillos(cfg, { ...s, cota_platillos: cota }, { tope, cuenta });
   prueba('muestra de sitios propios: cobertura de 80, 150, 200 y 300 platillos contando todo', [80, 150, 200, 300].map((x) => Math.round(cp('todo', 'baja', x) * 100)).join(','), '25,52,73,84');
   prueba('muestra de sitios propios, sólo comida: 80 → 75 % y 150 → 100 %', `${Math.round(cp('comida', 'baja', 80) * 100)}-${Math.round(cp('comida', 'baja', 150) * 100)}`, '75-100');
@@ -258,6 +258,77 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('opciones del tope: margen con la cota alta (actual, sólo comida, 200, 300, sin tope)', ['actual', 'solo_comida', 'subir_200', 'subir_300', 'sin_tope'].map((k) => Math.round(op[k].por_cota.alta.margen_operacion)).join(','), '8719,8719,8630,8504,8288');
   prueba('opciones del tope: margen con la cota baja del tope actual', Math.round(op.actual.por_cota.baja.margen_operacion), 18592, 1);
   prueba('la cota por omisión sigue siendo la alta (los números anteriores no cambian)', s.cota_platillos, 'alta');
+}
+
+// 14) DOS PLANES (decisión de Calvin, 17-nov): Chef 6 mesas y 1 cuenta, Master Chef 225, Chef Ejecutivo apagado
+{
+  const cfg = M.configInicial();
+  const tres = M.configTresPlanes25Mesas();
+  prueba('Chef: topes de configInicial (mesas · cuentas · platillos)', `${cfg.topes.gratuito.mesas}·${cfg.topes.gratuito.cuentas}·${cfg.topes.gratuito.platillos}`, '6·1·150');
+  prueba('Master Chef hasta los topes técnicos (mesas y personas activas)', `${cfg.topes.servicio.mesas}·${cfg.topes.servicio.cuentas}`, '500·50');
+  prueba('Chef Ejecutivo apagado (no borrado): precio 0 y planes.chef_ejecutivo.activo falso', `${cfg.precios.salon}-${cfg.planes.chef_ejecutivo.activo}`, '0-false');
+  prueba('la configuración de tres planes se conserva con su nombre', `${tres.precios.salon}-${tres.topes.gratuito.mesas}`, '1099-25');
+  const ev = M.evaluar(cfg, s, 1000, { curva: 'media' });
+  prueba('sin Chef Ejecutivo no hay clientes de ese plan', ev.clientes.salon, 0);
+  const c = (k) => M.coberturaEstratos(cfg, s, k);
+  prueba('0 a 5 personas dentro de Chef: centro, mínimo y máximo del modelo', ['centro', 'minimo', 'maximo'].map((k) => Math.round(c(k).dentro_0_5 * 1000) / 10).join('-'), '48.4-42.4-54.5');
+  prueba('6 a 10 personas dentro de Chef (el modelo da 0): caen todas en Master Chef', c('centro').cae_en_master_6_10, 1);
+  prueba('0 a 5 personas dentro con la cota baja de platillos', Math.round(M.coberturaEstratos(cfg, s, 'centro', 'baja').dentro_0_5 * 1000) / 10, 25.6);
+  prueba('parte de los registrados que rebasa Chef (dos planes frente a tres)', `${Math.round(M.parteRebasa(cfg, s) * 1000) / 10}-${Math.round(M.parteRebasa(tres, s) * 1000) / 10}`, '66.2-17.4');
+  prueba('clientes de paga por 1,000 (dos planes frente a tres)', `${Math.round(ev.clientes.de_paga)}-${Math.round(M.evaluar(tres, s, 1000, { curva: 'media' }).clientes.de_paga)}`, '116-30');
+  prueba('ingreso por cliente de paga sin el plan de 1,099', Math.round(ev.por_cliente.ingreso_por_pagante), 225);
+  const m = (n) => Math.round(M.evaluarEscenario(n, cfg, s, 1000).margen_operacion);
+  prueba('margen de operación por escenario con dos planes (recomendado, peor, mejor, piso)', ['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map(m).join(','), '20024,2390,65664,-1109');
+  const mx = M.matrizEscenarios(cfg, s, 1000).filas.map((f) => f.celdas.map((x) => Math.round(x.margen_operacion))).flat().join(',');
+  prueba('matriz curva × anuncios con dos planes', mx, '2390,6594,19206,16218,20024,31442,55025,57685,65664');
+  prueba('gratuitos que sostiene un cliente de paga (sin anuncios) con dos planes', Math.round(ev.gratuitos_que_sostiene_un_pagante_sin_anuncios), 125);
+  const pr = M.proyectarEscenario('recomendado', cfg, s, 36);
+  prueba('mes 12 con dos planes: ingresos y margen de operación', `${Math.round(pr.filas[11].ingresos)}-${Math.round(pr.filas[11].margen_operacion)}`, '8964-5749');
+  prueba('umbral de anuncios (tarifa baja): no depende del plan', M.rangoSePagaSolo(cfg, s, 'baja').centro, 54);
+  prueba('la bolsa de 1,000 pesos: no depende del plan', M.rangoBolsa(cfg, s, 1000).centro.restaurantes, 811);
+  // desgloses: cuatro cifras para pintar
+  const d = M.desgloses(cfg, s, 1000).escenarios;
+  const dr = d.find((x) => x.escenario === 'recomendado');
+  prueba('desgloses: un bloque por escenario', d.map((x) => x.escenario).join(','), 'recomendado,peor,mejor,piso_de_verdad');
+  prueba('desglose (a): lo que deja un cliente de paga', Math.round(dr.gratuitos_que_sostiene.pagante.deja), 149);
+  prueba('desglose (b): embudo de anuncios (visitas → abren → ven → pesos)', `${Math.round(dr.embudo_anuncios.comensales_al_mes)}-${Math.round(dr.embudo_anuncios.abren_la_app)}-${Math.round(dr.embudo_anuncios.ven_un_anuncio)}-${Math.round(dr.embudo_anuncios.pesos_por_gratuito * 10) / 10}`, '3417-2050-1230-4.3');
+  prueba('desglose (c): pesos por cliente de paga cuadran (precio − comisión − soporte − servidor)', Math.abs(dr.pesos_por_cliente_de_paga.precio - dr.pesos_por_cliente_de_paga.comision_tarjeta - dr.pesos_por_cliente_de_paga.soporte - dr.pesos_por_cliente_de_paga.servidor_y_disco - dr.pesos_por_cliente_de_paga.queda) < 1e-9, true);
+  const cm = dr.cascada_margen;
+  prueba('desglose (d): la cascada cuadra con el margen de operación', Math.abs(cm.ingreso_suscripcion + cm.ingreso_anuncios - cm.costo_servidor - cm.costo_almacenamiento - cm.costo_soporte - cm.costo_comision - cm.margen_operacion) < 1e-6, true);
+  prueba('desglose (d): el peor no lleva ingresos por anuncios', d.find((x) => x.escenario === 'peor').cascada_margen.ingreso_anuncios, 0);
+  // la escalera dinámica responde al estado y no modifica sus entradas
+  const antes = JSON.stringify([cfg, s]);
+  const E = (estado, palancas = []) => M.recursos({ ...cfg, palancas }, s, estado).escalera.slice(0, 4).map((e) => `${e.restaurantes_que_caben}:${e.recurso_que_obliga_a_subir}`).join(' ');
+  prueba('escalera con el sondeo y 12 meses de historial', E({ canal: 'sondeo', meses_historial: 12 }), '23:disco 148:procesador 236:disco 236:disco');
+  prueba('escalera con avisos y 1 mes de historial', E({ canal: 'eventos', meses_historial: 1 }), '279:disco 1064:procesador 1896:procesador 2116:lineas');
+  prueba('escalera con sondeo y 1 mes de historial', E({ canal: 'sondeo', meses_historial: 1 }), '148:procesador 148:procesador 263:procesador 294:procesador');
+  prueba('la palanca del historial a 30 días mueve la escalera', E({ canal: 'eventos', meses_historial: 12 }, ['historial_gratuito_30_dias']), '279:disco 1064:procesador 1896:procesador 2116:lineas');
+  prueba('recursos y desgloses no modifican sus parámetros de entrada', JSON.stringify([cfg, s]) === antes, true);
+}
+
+// 15) RONDA 8, segunda parte: palancas en llano, definiciones, mensajes y ENDUTIH
+{
+  const cfg = M.configInicial();
+  const todas = Object.entries(M.PALANCAS);
+  prueba('toda palanca trae acción (hasta 6 palabras, en infinitivo) y qué es (una frase)', todas.every(([, p]) => typeof p.accion === 'string' && p.accion.split(/\s+/).length <= 6 && /^[A-ZÁÉÍÓÚ][a-záéíóúñ]+(ar|er|ir)\s/.test(p.accion) && typeof p.que_es === 'string' && p.que_es.length > 20 && p.que_es.split('. ').length <= 2), true);
+  prueba('las palancas siguen trayendo medido, esfuerzo, riesgo y regla (para el JSON y el .md)', todas.every(([, p]) => typeof p.medido === 'boolean' && p.esfuerzo && p.riesgo && p.regla_que_toca), true);
+  const R = M.recursos(cfg, s, {});
+  prueba('recursos() entrega la acción y qué es de cada palanca', R.recursos.flatMap((r) => r.palancas).every((p) => p.accion && p.que_es), true);
+  const df = M.definiciones(s);
+  prueba('definiciones de una frase: adverso, estrés, cota baja, cota alta, bolsa', ['adverso', 'estres', 'cota_baja', 'cota_alta', 'bolsa'].every((k) => typeof df[k] === 'string' && df[k].length > 20), true);
+  prueba('la definición de adverso sale del parámetro (mitad de la tarifa baja y 30 % de las visitas)', /mitad de la tarifa baja/.test(df.adverso) && /30 %/.test(df.adverso), true);
+  prueba('la definición de cota baja trae 52 % y la de cota alta 98 %', /52 %/.test(df.cota_baja) && /98 %/.test(df.cota_alta), true);
+  const ms = M.mensajes(cfg, s);
+  prueba('mensaje de valor: cuarta parte del punto de venta y 0.03 % del ingreso', /cuarta parte/.test(ms.valor.frase) && /0\.03 %/.test(ms.valor.frase) && /Fudo Pro \(838\)/.test(ms.valor.frase), true);
+  prueba('mensaje de valor: parte frente a Fudo Avanzado, Fudo Pro y Last.app Starter', ms.valor.calculo.comparaciones.map((x) => Math.round(x.parte * 100)).join(','), '35,27,23');
+  prueba('el mensaje de valor lleva la advertencia de promedios y de la clase 722511', /Promedio/.test(ms.valor.advertencia) && /722511/.test(ms.valor.advertencia), true);
+  prueba('mensaje de precio: 150 → 199; 225 → 225 o 249; 300 → 299; 450 → 299', ms.precio.por_mediana.map((x) => `${x.si_el_dueno_pagaria_alrededor_de}:${x.conviene_cobrar.join('/')}`).join(' '), '150:199 225:225/249 300:299 450:299');
+  prueba('el mensaje de precio dice que no se sabe y que lo mide la prueba', /No sabemos/.test(ms.precio.frase) && /prueba de tres precios/.test(ms.precio.frase), true);
+  const en = s.endutih_2024;
+  prueba('ENDUTIH 2024: usuarios de internet (millones y parte)', `${en.usuarios_internet_millones}-${en.usuarios_internet_parte}`, '100.2-0.831');
+  prueba('ENDUTIH 2024: parte de los usuarios que usa celular inteligente', en.por_equipo_de_conexion.celular_inteligente, 0.972);
+  prueba('ENDUTIH 2024: tipo de conexión de usuarios de celular inteligente (ambos, sólo wifi, sólo datos)', Object.values(en.tipo_de_conexion_de_usuarios_de_celular_inteligente).map((x) => Math.round(x * 1000) / 10).join(','), '72.8,16.3,10.9');
+  prueba('ENDUTIH 2024: el tipo de conexión suma 100 %', Math.round(Object.values(en.tipo_de_conexion_de_usuarios_de_celular_inteligente).reduce((a, b) => a + b, 0) * 1000), 1000);
 }
 
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
