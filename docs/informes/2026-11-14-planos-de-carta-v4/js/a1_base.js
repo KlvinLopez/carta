@@ -84,19 +84,23 @@ function arrastrable(el, svg, onMove, onKey) {
   if (onKey) el.addEventListener("keydown", ev => { if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) { ev.preventDefault(); onKey(ev.key === "ArrowRight" || ev.key === "ArrowUp" ? 1 : -1, ev.shiftKey ? 5 : 1); } });
 }
 const tt = $("#tt");
-/* un hover es un panel: título, una cifra (o mini barra) y una frase. `data-tip="título|cifra|frase"` lo da armado; un texto suelto se parte solo
-   (título = primera frase, cifra = primer número destacado). `data-tipp="0.39"` añade una barra de proporción. */
-const CIFRA_RE = /([−+$]?\d[\d,.]*(?: ?(?:%|M\b|mil\b|USD|MB|GB|KB|pesos|restaurantes|visitas|meses|días|×))?)/;
-function armaPanel(txt, prop) {
-  let tit = "", cif = "", fra = "";
-  if (txt.includes("|")) { const q = txt.split("|"); tit = q[0]; cif = q[1] || ""; fra = q.slice(2).join(" "); }
-  else if (txt.length <= 46) tit = txt;
-  else {
-    const m = txt.match(/^(.{12,70}?)(?:[:.] |\. |: )/);
-    if (m) { tit = m[1]; fra = txt.slice(m[0].length); } else { fra = txt; }
-    const c = (tit + " " + fra).match(CIFRA_RE); if (c && c[1].replace(/\D/g, "").length) cif = c[1];
+/* un hover es un panel escrito como contenido: título · LA cifra · una mini visual · una frase (≤ 20 palabras).
+   `data-tip="título|cifra|frase"`; sin «|» sale sólo el título (para las acciones). Mini visual opcional:
+   `data-tipp="0.39"` barra de proporción · `data-tipv="tri:etiqueta|número|texto;…"` barras comparadas (negativo en rojo) ·
+   `data-tipv="ico:4/10"` diez íconos con 4 llenos · `data-tipv="sp:1,2,3"` chispa de tendencia. Nada se parte solo. */
+const pal20 = (t, m = 20) => { const w = String(t).split(/\s+/); return w.length <= m ? String(t) : w.slice(0, m).join(" ").replace(/[,;:]$/, "") + "…"; };
+function visTip(v, prop) {
+  if (v) {
+    const [k, d] = [v.slice(0, v.indexOf(":")), v.slice(v.indexOf(":") + 1)];
+    if (k === "tri") { const f = d.split(";").map(x => x.split("|")), mx = Math.max(...f.map(q => Math.abs(+q[1])), 1e-9); return `<span class="tt-r">${f.map(q => `<span class="tt-l">${esc(q[0])}</span><span class="tt-b${+q[1] < 0 ? " neg" : ""}"><i style="width:${clamp(100 * Math.abs(+q[1]) / mx, 2, 100)}%"></i></span><span class="tt-n">${esc(q[2])}</span>`).join("")}</span>`; }
+    if (k === "ico") { const [a, z] = d.split("/").map(Number); return `<span class="tt-ic">${Array.from({length: z}, (_, i) => `<i class="${i < a ? "on" : ""}"></i>`).join("")}</span>`; }
+    if (k === "sp") { const q = d.split(",").map(Number), mn = Math.min(...q), mx = Math.max(...q, mn + 1e-9); return `<svg class="tt-sp" viewBox="0 0 120 32" preserveAspectRatio="none"><polyline points="${q.map((y, i) => `${(120 * i / Math.max(q.length - 1, 1)).toFixed(1)},${(28 - 24 * (y - mn) / (mx - mn)).toFixed(1)}`).join(" ")}" fill="none" stroke="#b8860b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`; }
   }
-  return `<span class="tt-i"></span>${tit ? `<b class="tt-t">${esc(tit)}</b>` : ""}${cif ? `<span class="tt-c">${esc(cif)}</span>` : ""}${prop != null && prop !== "" ? `<span class="tt-b"><i style="width:${clamp(100 * +prop, 0, 100)}%"></i></span>` : ""}${fra ? `<p>${esc(fra)}</p>` : ""}`;
+  return prop != null && prop !== "" ? `<span class="tt-b"><i style="width:${clamp(100 * +prop, 0, 100)}%"></i></span>` : "";
+}
+function armaPanel(txt, prop, vis) {
+  const q = txt.split("|"), tit = q[0], cif = q[1] || "", fra = q.slice(2).join(" ");
+  return `<span class="tt-i"></span>${tit ? `<b class="tt-t">${esc(tit)}</b>` : ""}${cif ? `<span class="tt-c">${esc(cif)}</span>` : ""}${visTip(vis, prop)}${fra ? `<p>${esc(fra)}</p>` : ""}`;
 }
 let ttEl = null;
 function colocaPanel(t) {
@@ -109,12 +113,12 @@ function tip(e) {
   const t = e.target.closest ? e.target.closest("[data-tip]") : null;
   if (!t) { tt.hidden = true; ttEl = null; return; }
   if (t === ttEl && !tt.hidden) return;
-  ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp); tt.hidden = false; colocaPanel(t);
+  ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp, t.dataset.tipv); tt.hidden = false; colocaPanel(t);
 }
 document.addEventListener("mouseover", tip); document.addEventListener("focusin", tip);
 document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } });
 /* en teléfono no hay hover: un toque abre el panel y otro toque fuera lo cierra */
-document.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target.closest ? e.target.closest("[data-tip]") : null; if (t) { if (t === ttEl && !tt.hidden) { tt.hidden = true; ttEl = null; } else { ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp); tt.hidden = false; colocaPanel(t); } } else { tt.hidden = true; ttEl = null; } });
+document.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target.closest ? e.target.closest("[data-tip]") : null; if (t) { if (t === ttEl && !tt.hidden) { tt.hidden = true; ttEl = null; } else { ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp, t.dataset.tipv); tt.hidden = false; colocaPanel(t); } } else { tt.hidden = true; ttEl = null; } });
 addEventListener("scroll", () => { if (!tt.hidden && ttEl && !document.body.contains(ttEl)) { tt.hidden = true; ttEl = null; } }, {passive: true});
 
 /* ===== pantalla completa (se oculta si el visor no la permite) ===== */
