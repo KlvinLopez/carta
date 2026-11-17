@@ -1,0 +1,104 @@
+{
+ "base_de_trabajo": "carta_med_fila_4",
+ "nota": "MEDIDO CON DATOS SINTÉTICOS en PostgreSQL local sobre una copia de carta_med_mediano (10 restaurantes, un mes); los contadores son valores de hash; con tráfico real el tamaño de la fila no cambia (enteros de ancho fijo) pero cambia cuántas visitas hay",
+ "visitas_de_comensal": 46696,
+ "sesiones": 18000,
+ "restaurantes": 10,
+ "f1_llave_restaurante_dia_miembro": {
+  "filas": 46696,
+  "heap": 3948544,
+  "indices": 3514368,
+  "total": 7495680
+ },
+ "f2_con_indice_por_miembro": {
+  "filas": 46696,
+  "heap": 3948544,
+  "indices": 4997120,
+  "total": 8978432
+ },
+ "f3_sin_restaurante": {
+  "filas": 46696,
+  "heap": 3194880,
+  "indices": 2441216,
+  "total": 5668864
+ },
+ "actualizaciones": {
+  "filas": 46696,
+  "sin_actualizar": {
+   "filas": 46696,
+   "heap": 3948544,
+   "indices": 3514368,
+   "total": 7495680
+  },
+  "tras_2_actualizaciones_antes_de_vacuum": {
+   "filas": 46696,
+   "heap": 11829248,
+   "indices": 5193728,
+   "total": 17055744
+  },
+  "tras_vacuum": {
+   "filas": 46696,
+   "heap": 11829248,
+   "indices": 5193728,
+   "total": 17055744
+  },
+  "actualizaciones_totales": 93392,
+  "actualizaciones_hot": 37
+ },
+ "tablas_de_la_visita": {
+  "sesion_grupal": {
+   "filas": 18000,
+   "total_bytes": 4751360
+  },
+  "miembro_sesion": {
+   "filas": 46696,
+   "total_bytes": 11673600
+  },
+  "orden_personal": {
+   "filas": 46696,
+   "total_bytes": 10674176
+  },
+  "item_orden": {
+   "filas": 140088,
+   "total_bytes": 24363008
+  },
+  "comanda": {
+   "filas": 23409,
+   "total_bytes": 7815168
+  },
+  "comanda_orden": {
+   "filas": 46696,
+   "total_bytes": 7880704
+  },
+  "llamada_mesero": {
+   "filas": 5422,
+   "total_bytes": 1646592
+  },
+  "evento_analitica": {
+   "filas": 180000,
+   "total_bytes": 66297856
+  }
+ },
+ "actualizaciones_fillfactor_70": {
+  "sin_actualizar": {
+   "filas": 46696,
+   "heap": 5709824,
+   "indices": 3514368,
+   "total": 9256960
+  },
+  "tras_2_actualizaciones_y_vacuum": {
+   "filas": 46696,
+   "heap": 10608640,
+   "indices": 4399104,
+   "total": 15040512
+  },
+  "actualizaciones_totales": 93392,
+  "actualizaciones_hot": 53373
+ },
+ "platillo_por_dia": {
+  "filas": 29342,
+  "heap": 2252800,
+  "indices": 1753088,
+  "total": 4038656
+ }
+}

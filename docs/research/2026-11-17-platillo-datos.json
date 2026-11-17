@@ -1,0 +1,169 @@
+{
+ "base_de_trabajo": "carta_med_platillo_3",
+ "nota": "medido en PostgreSQL local con textos y fotos del repositorio (sintéticos); el procesador incluye la consulta a la base local y el armado del JSON, en un contenedor de nube, no en Railway",
+ "fotos": [
+  {
+   "archivo": "chile-en-nogada.jpg",
+   "original": 20271,
+   "miniatura": 3854,
+   "detalle": 9366,
+   "total": 13220
+  },
+  {
+   "archivo": "churros.jpg",
+   "original": 21532,
+   "miniatura": 4198,
+   "detalle": 10180,
+   "total": 14378
+  },
+  {
+   "archivo": "costilla-braseada.jpg",
+   "original": 21664,
+   "miniatura": 4134,
+   "detalle": 10104,
+   "total": 14238
+  },
+  {
+   "archivo": "enchiladas-suizas.jpg",
+   "original": 20339,
+   "miniatura": 3782,
+   "detalle": 9392,
+   "total": 13174
+  },
+  {
+   "archivo": "ensalada-de-nopales.jpg",
+   "original": 20576,
+   "miniatura": 4106,
+   "detalle": 9882,
+   "total": 13988
+  },
+  {
+   "archivo": "esquites-con-tuetano.jpg",
+   "original": 21350,
+   "miniatura": 4224,
+   "detalle": 10182,
+   "total": 14406
+  },
+  {
+   "archivo": "flan-de-cajeta.jpg",
+   "original": 19968,
+   "miniatura": 3944,
+   "detalle": 9636,
+   "total": 13580
+  },
+  {
+   "archivo": "guacamole-de-la-casa.jpg",
+   "original": 19074,
+   "miniatura": 3534,
+   "detalle": 8888,
+   "total": 12422
+  },
+  {
+   "archivo": "mezcal-de-la-casa.jpg",
+   "original": 20753,
+   "miniatura": 3900,
+   "detalle": 9312,
+   "total": 13212
+  },
+  {
+   "archivo": "milanesa-de-res.jpg",
+   "original": 21694,
+   "miniatura": 4210,
+   "detalle": 10404,
+   "total": 14614
+  },
+  {
+   "archivo": "mole-negro-de-oaxaca.jpg",
+   "original": 19433,
+   "miniatura": 3718,
+   "detalle": 8976,
+   "total": 12694
+  },
+  {
+   "archivo": "nieve-de-limon.jpg",
+   "original": 21766,
+   "miniatura": 4198,
+   "detalle": 10168,
+   "total": 14366
+  },
+  {
+   "archivo": "pastel-de-elote.jpg",
+   "original": 21380,
+   "miniatura": 4128,
+   "detalle": 10160,
+   "total": 14288
+  },
+  {
+   "archivo": "pescado-zarandeado.jpg",
+   "original": 20214,
+   "miniatura": 4044,
+   "detalle": 9716,
+   "total": 13760
+  },
+  {
+   "archivo": "pulpo-a-las-brasas.jpg",
+   "original": 21761,
+   "miniatura": 4212,
+   "detalle": 10234,
+   "total": 14446
+  },
+  {
+   "archivo": "sopa-de-tortilla.jpg",
+   "original": 20393,
+   "miniatura": 3932,
+   "detalle": 9436,
+   "total": 13368
+  },
+  {
+   "archivo": "tostadas-de-atun.jpg",
+   "original": 19990,
+   "miniatura": 3816,
+   "detalle": 9552,
+   "total": 13368
+  },
+  {
+   "archivo": "tuetanos-a-la-lena.jpg",
+   "original": 22331,
+   "miniatura": 4194,
+   "detalle": 10162,
+   "total": 14356
+  }
+ ],
+ "foto_bytes_por_platillo_media": 13771,
+ "platillo_en_la_base": {
+  "bytes_marginales_por_platillo": 557.056,
+  "heap": 3514368,
+  "indices": 2916352,
+  "filas": 10600
+ },
+ "menu": {
+  "50": {
+   "platillos": 50,
+   "json_bytes": 37853,
+   "gzip_bytes": 3197,
+   "ms_armar_mediana": 7.0073760000042284,
+   "ms_armar_p90": 9.956746000000294
+  },
+  "80": {
+   "platillos": 80,
+   "json_bytes": 60341,
+   "gzip_bytes": 4698,
+   "ms_armar_mediana": 12.104077000003599,
+   "ms_armar_p90": 13.075232000005599
+  },
+  "100": {
+   "platillos": 100,
+   "json_bytes": 75331,
+   "gzip_bytes": 5672,
+   "ms_armar_mediana": 11.813027000016518,
+   "ms_armar_p90": 16.399137999997038
+  },
+  "150": {
+   "platillos": 150,
+   "json_bytes": 112989,
+   "gzip_bytes": 8329,
+   "ms_armar_mediana": 16.191189999986477,
+   "ms_armar_p90": 19.669154999974126
+  }
+ }
+}

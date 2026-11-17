@@ -93,13 +93,41 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 
 **Dónde cae la v1:** Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga. Quién usa gratis: el comensal y el negocio chico de Chef. Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante. Transacción dentro: no; la v1 no cobra ni procesa pagos.
 
-**Qué tendría que cambiar para moverse a otro modelo:**
+## 3b. Visión de Calvin para una versión 2 (NO es la v1 ni la Fase 3)
 
-| Hacia | Qué cambiaría | Qué exige frente a las reglas vigentes |
+**Postura de Calvin (17-nov):** Ingreso principal por anuncios (estilo AdSense): personalizados para el comensal registrado, genéricos para el anónimo; quien paga no ve anuncios. Visión de una versión 2 con tres rutas; Calvin reconoce que choca con reglas «escritas para esta versión» (v1).
+
+**En la v1 y la Fase 3:** Anuncios genéricos al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.
+
+**Conflicto con las reglas:** sí: reglas 10 y «Qué NO construir» de la v1; se levantan sólo con un ADR y una spec nuevos aprobados por Calvin.
+
+### Anuncios genéricos frente a personalizados (por restaurante gratuito al mes, en pesos)
+
+El restaurante de paga **no muestra anuncios**: su ingreso de anuncios es 0 y cambia por la suscripción. Tarifa personalizada = genérica × 1.5 (**supuesto**, rango 1 a 2.8: entre +4 % de un estudio independiente de 2019 y ×2.1 a ×2.8 del estudio de Google de 2019, que midió cookies y no consentimiento). Parte de comensales registrados en la v2: 20 % (**supuesto**, rango 5 a 60 %; en la v1 es 0).
+
+| Tarifa base | Genérica (por mil) | Personalizada (por mil) | Por gratuito en la v1 | Por gratuito en la v2 | Cambio | Rango v2 | Por 1,000 restaurantes v1 → v2 |
+|---|---|---|---|---|---|---|---|
+| baja | 3.5 | 5.3 | 4.3 | 4.7 | +0 | 4.3 a 9 | 3,806 → 4,187 |
+| media | 14 | 21 | 17.2 | 18.9 | +2 | 17.3 a 35.8 | 15,224 → 16,747 |
+| alta | 37 | 55.5 | 45.5 | 50.1 | +5 | 45.6 a 94.7 | 40,236 → 44,260 |
+
+*La tarifa base y las visitas son supuestos (ver modelo); con 116 de paga por cada 1,000 el ingreso de anuncios sale sólo de los gratuitos. Se mide con una prueba pequeña de AdSense con 3 restaurantes y, para la v2, con el registro voluntario.*
+
+### Las tres rutas de la v2, lo que hay que cambiar antes y el orden sugerido
+
+| Ruta | Qué habría que cambiar antes | Riesgo |
 |---|---|---|
-| Marketplace con comisión (Airbnb, Uber) | descubrimiento entre restaurantes y pagos dentro de Carta | directorio público, perfil de restaurante y de comensal, procesar pagos: contradice «Qué NO construir», la regla 10 y la v1; ADR y spec de una v2; posible regulación financiera (verificar con un abogado) |
-| Economía de la atención (redes) | perfil y cuenta del comensal con historial para segmentar anuncios | cuenta y perfil del comensal: contradice la regla 10 y «Qué NO construir»; los datos del comensal no se venden (decisión del 14-nov) |
-| Freemium del comensal (Spotify) | el comensal paga por quitar anuncios o por funciones propias | cuenta del comensal: misma contradicción con la regla 10; spec y ADR |
+| Mercado con comisión, directorio, procesador de pagos y perfil del comensal | regla 10 (sin datos personales del comensal en el servidor); «Qué NO construir»: pagos o comisión, cuenta y perfil del comensal, directorio; ADR nuevo de pagos y spec de v2; aviso de privacidad y consentimiento para perfil e historial; regulación de pagos (si Carta custodia o procesa dinero): por verificar con un abogado | el mayor: cambia qué es el producto y las obligaciones legales |
+| Economía de la atención (anuncios personalizados al comensal registrado) | regla 10 y «Qué NO construir» (cuenta y perfil del comensal); aviso de privacidad con finalidades separadas y consentimiento para anuncios personalizados; los datos no se venden (decisión del 14-nov): hay que decidir si se comparten con la red de anuncios; cabecera de consentimiento en el teléfono antes de cargar el anuncio | medio: el cambio técnico es chico, el legal y de confianza no |
+| Plan pagado del comensal sin anuncios (como Spotify) | regla 10 y «Qué NO construir» (cuenta del comensal y cobro); procesar un pago pequeño recurrente: por verificar con un abogado; spec y ADR | medio: depende de que el comensal pague, sin dato de disposición a pagar |
+
+**Orden sugerido:**
+- 1. Anuncios genéricos al comensal anónimo (Fase 3): no cambia ninguna regla.
+- 2. Cuenta voluntaria del comensal con consentimiento y anuncios personalizados (ruta 2): primero spec, ADR y revisión legal.
+- 3. Plan pagado del comensal sin anuncios (ruta 3): reutiliza la cuenta del paso 2.
+- 4. Directorio, pagos y comisión (ruta 1): al final; es lo que más cambia y lo más regulado.
+
+**Marco legal (por verificar con un abogado: no se leyó la fuente primaria ni el reglamento):** Ley Federal de Protección de Datos Personales en Posesión de los Particulares (nueva, DOF 20-mar-2025; reforma del 14-nov-2025 según el texto de la Cámara). el aviso de privacidad debe distinguir las finalidades que requieren consentimiento y las que no (art. 15), y una finalidad nueva exige un consentimiento nuevo (art. 11); la autoridad pasó a la Secretaría Anticorrupción y Buen Gobierno. Fuente: resúmenes de despachos (Garrigues, KPMG México, IAPP; consultados el 17-nov-2026), NO el texto del DOF.
 
 ## 4. Dónde está el hueco frente a Meniu
 

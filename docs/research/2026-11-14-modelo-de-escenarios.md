@@ -14,7 +14,7 @@
 
 **Recomendado** = curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha · **Peor** = curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa) · **Mejor** = curva de pago optimista y anuncios en la tarifa media · **Piso de verdad** = curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango. *Cada escenario mueve dos ejes a la vez (curva de pago y anuncios): la matriz de §5 los separa.*
 
-**Qué cambió en la ronda 8 (API del `.mjs`, versión `2026-11-17-r11`).** `configInicial()` pasa a **dos planes** (Chef 6 mesas · 1 cuenta · 150 platillos; Master Chef 225; `precios.salon = 0`: Chef Ejecutivo apagado); la anterior es `configTresPlanes25Mesas()`. Nuevo: `coberturaEstratos`, `desgloses`, `escalera` dinámica en `recursos(config, s, estado)` (`estado = {canal, meses_historial}` y `config.palancas`; no modifica sus entradas). La rejilla de mesas y cuentas llega a 4 mesas y 1 cuenta.
+**Qué cambió en la ronda 8 (API del `.mjs`, versión `2026-11-18-r12`).** `configInicial()` pasa a **dos planes** (Chef 6 mesas · 1 cuenta · 150 platillos; Master Chef 225; `precios.salon = 0`: Chef Ejecutivo apagado); la anterior es `configTresPlanes25Mesas()`. Nuevo: `coberturaEstratos`, `desgloses`, `escalera` dinámica en `recursos(config, s, estado)` (`estado = {canal, meses_historial}` y `config.palancas`; no modifica sus entradas). La rejilla de mesas y cuentas llega a 4 mesas y 1 cuenta.
 
 ---
 
@@ -41,9 +41,18 @@
 
 **Cobertura por platillos: DOS COTAS de sesgo opuesto (SUPUESTO; no se sabe la real).** Con 150 platillos contando todo: **52 % (sitios propios, cota baja; 56 cartas) a 98 % (reparto, cota alta; en esa muestra sólo 40 a 120 están medidos y el 150 es extrapolación)**; dentro de 150, por tipo: fondas y taquerías 7 de 8, cafeterías 9 de 11, casuales 9 de 21, formales 3 de 14. Las dos muestras no cuentan «platillo» con la misma regla (148 cartas de reparto: cortas; sitios propios: largas y formales).
 
-### Tope de platillos del plan Chef: DECIDIDO (17 de noviembre de 2026)
+### Tope de platillos del plan Chef: «cuenta todo» DECIDIDO; el VALOR del tope REABIERTO (17 de noviembre de 2026)
 
-**Decisión de Calvin:** «el tope de platillos incluye bebidas… quítalo y considera que cuenta todo, bebidas incluidas». **El tope de 150 platillos cuenta TODO.** La banda de dos cotas de cobertura se conserva porque sigue sin saberse cuál muestra tiene razón: con 150 platillos caben 52 % de las cartas de sitios propios (cota baja) y 98 % de las de reparto (cota alta); de 0 a 5 personas caben en Chef 25.6 % (cota baja) a 48.4 % (cota alta).
+**Decisión de Calvin:** «el tope de platillos incluye bebidas… considera que cuenta todo, bebidas incluidas». **Después la reabrió:** «según yo no quedamos en 150, se me hace demasiado. Quisiera saber si el tema de platillos mueve mucho nuestras gráficas». Lo que cuesta cada platillo, medido y supuesto, está en `2026-11-17-costo-de-platillo.md`. **De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope: el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).**
+
+| Tope (cuenta todo) | Caben, cota baja (sitios propios) | Caben, cota alta (reparto) | De 0 a 5 personas dentro de Chef (baja a alta) | De paga por cada 1,000 | Restaurantes con foto que caben en R2 gratis |
+|---|---|---|---|---|---|
+| 50 | 15 % | 63 % | 7.2 % a 31.1 % | 137 | 80 (rango 30 a 242) |
+| 80 | 25 % | 89 % | 12.3 % a 44.1 % | 121 | 50 (rango 18 a 151) |
+| 100 | 29 % | 96 % | 14.1 % a 47.4 % | 117 | 40 (rango 15 a 121) |
+| 150 | 52 % | 98 % | 25.6 % a 48.4 % | 116 | 26 (rango 10 a 80) |
+
+*Bajar el tope no ahorra disco ni procesador de forma apreciable: lo que mueve es cuántos negocios pagan (cobertura) y el peso de las fotos en R2. El valor del tope queda a decisión de Calvin.*
 
 **Alternativas descartadas el 17 de noviembre de 2026** (sólo comida, 200, 300, sin tope; quedan como referencia, no como opciones abiertas). Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).
 

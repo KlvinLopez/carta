@@ -10,6 +10,8 @@ const aqui = dirname(fileURLToPath(import.meta.url));
 const par = JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8'));
 const s = M.valores(par);
 let fallas = 0;
+const RT = (c, ss, st = {}) => M.recursos(c, ss, { carga: 'tipica', ...st }); // las rondas 5 a 9 miden el gratuito típico de 1,800 visitas
+const TB = (c, ss, u, carga = 'tipica') => M.palancasEnTablero(c, ss, u ?? ss.umbral_tablero, carga);
 const prueba = (nombre, obtenido, esperado, tol = 0) => {
   const ok = typeof esperado === 'number' ? Math.abs(obtenido - esperado) <= tol : obtenido === esperado;
   if (!ok) fallas++;
@@ -187,7 +189,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 11) RECURSOS Y PALANCAS (rondas 5 y 6): el disco depende de los meses de historial; hoy NADA purga
 {
   const cfg = M.configInicial();
-  const R = M.recursos(cfg, s); // por defecto: 12 meses de historial acumulado, sin purga
+  const R = RT(cfg, s); // por defecto: 12 meses de historial acumulado, sin purga
   const rec = (id) => R.recursos.find((x) => x.recurso === id);
   const curva = R.disco_por_historial;
   prueba('curva del disco por meses de historial (1, 3, 6, 12, 03 §7)', curva.map((x) => x.restaurantes_por_disco).join(','), '279,93,47,23,15');
@@ -228,7 +230,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('resumen: el nombre de la cifra dice la retención', /historial del gratuito de 1 mes: PROPUESTA/.test(M.resumen(cfg, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').nombre), true);
   prueba('resumen: con la analítica agregada caben más', caben({ ...cfg, palancas: ['analitica_agregada_por_dia'] }) > 279, true);
   prueba('las palancas bajan los MB por restaurante gratuito', M.mbPorRestaurante('gratuito', { ...cfg, palancas: ['analitica_agregada_por_dia'] }, s) < M.mbPorRestaurante('gratuito', cfg, s), true);
-  prueba('con Pro (50 GB) y historial a 30 días manda el procesador', M.recursos({ ...cfg, palancas: ['historial_gratuito_30_dias'] }, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
+  prueba('con Pro (50 GB) y historial a 30 días manda el procesador', RT({ ...cfg, palancas: ['historial_gratuito_30_dias'] }, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
   prueba('el procesador y los avisos del escenario están marcados como supuestos o medidos en local', /local/.test(rec('procesador').medido) && /SUPUESTO/.test(rec('lineas').medido), true);
 }
 
@@ -298,7 +300,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('desglose (d): el peor no lleva ingresos por anuncios', d.find((x) => x.escenario === 'peor').cascada_margen.ingreso_anuncios, 0);
   // la escalera dinámica responde al estado y no modifica sus entradas
   const antes = JSON.stringify([cfg, s]);
-  const E = (estado, palancas = []) => M.recursos({ ...cfg, palancas }, s, estado).escalera.slice(0, 4).map((e) => `${e.restaurantes_que_caben}:${e.recurso_que_obliga_a_subir}`).join(' ');
+  const E = (estado, palancas = []) => RT({ ...cfg, palancas }, s, estado).escalera.slice(0, 4).map((e) => `${e.restaurantes_que_caben}:${e.recurso_que_obliga_a_subir}`).join(' ');
   prueba('escalera con el sondeo y 12 meses de historial', E({ canal: 'sondeo', meses_historial: 12 }), '23:disco 148:procesador 236:disco 236:disco');
   prueba('escalera con avisos y 1 mes de historial', E({ canal: 'eventos', meses_historial: 1 }), '279:disco 1064:procesador 1896:procesador 2116:lineas');
   prueba('escalera con sondeo y 1 mes de historial', E({ canal: 'sondeo', meses_historial: 1 }), '148:procesador 148:procesador 263:procesador 294:procesador');
@@ -312,7 +314,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const todas = Object.entries(M.PALANCAS);
   prueba('toda palanca trae acción (hasta 6 palabras, en infinitivo) y qué es (una frase)', todas.every(([, p]) => typeof p.accion === 'string' && p.accion.split(/\s+/).length <= 6 && /^[A-ZÁÉÍÓÚ][a-záéíóúñ]+(ar|er|ir)\s/.test(p.accion) && typeof p.que_es === 'string' && p.que_es.length > 20 && p.que_es.split('. ').length <= 2), true);
   prueba('las palancas siguen trayendo medido, esfuerzo, riesgo y regla (para el JSON y el .md)', todas.every(([, p]) => typeof p.medido === 'boolean' && p.esfuerzo && p.riesgo && p.regla_que_toca), true);
-  const R = M.recursos(cfg, s, {});
+  const R = RT(cfg, s, {});
   prueba('recursos() entrega la acción y qué es de cada palanca', R.recursos.flatMap((r) => r.palancas).every((p) => p.accion && p.que_es), true);
   const df = M.definiciones(s);
   prueba('definiciones de una frase: adverso, estrés, cota baja, cota alta, bolsa', ['adverso', 'estres', 'cota_baja', 'cota_alta', 'bolsa'].every((k) => typeof df[k] === 'string' && df[k].length > 20), true);
@@ -350,11 +352,11 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('potencial de Chef en anuncios al mes: tarifa baja, media y alta', ['baja', 'media', 'alta'].map((k) => Math.round(ch.potencial_anuncios_mes[k].pesos_al_mes_de_todos_los_chef)).join(','), '152513,610053,1612284');
   prueba('potencial de Chef por negocio al mes (baja)', Math.round(ch.potencial_anuncios_mes.baja.pesos_por_negocio_al_mes * 100) / 100, 4.3, 0.01);
   prueba('potencial de Chef: el rango abarca los tres escenarios de tarifa', ch.potencial_anuncios_mes.baja.rango_por_visitas_y_parte[0] < ch.potencial_anuncios_mes.baja.pesos_al_mes_de_todos_los_chef && ch.potencial_anuncios_mes.alta.rango_por_visitas_y_parte[1] > ch.potencial_anuncios_mes.alta.pesos_al_mes_de_todos_los_chef, true);
-  const tb = M.palancasEnTablero(cfg, s);
-  prueba('palancas en el tablero (regla ≥ 15 % del recurso que tocan)', tb.en_tablero.join(','), 'historial_gratuito_30_dias,analitica_agregada_por_dia,retencion_analitica_7_dias,estado_en_memoria_60s,cerrar_lineas_ociosas');
+  const tb = TB(cfg, s);
+  prueba('palancas en el tablero (regla ≥ 15 % del recurso que tocan)', tb.en_tablero.join(','), 'historial_gratuito_30_dias,analitica_agregada_por_dia,retencion_analitica_7_dias,fila_por_visita_de_comensal,fila_por_visita_mas_platillo_por_dia,estado_en_memoria_60s,cerrar_lineas_ociosas');
   prueba('ajustes menores (fuera del tablero)', tb.ajustes_menores.join(','), 'indices_de_evento_minimos,tipos_mas_chicos,purga_claves_idempotencia,archivar_sesiones_cerradas,pool_acotado');
-  prueba('ganancia de índices y tipos: 11 % (debajo del umbral); con 10 % entrarían', `${Math.round(tb.palancas.indices_de_evento_minimos.ganancia_maxima * 100)}-${M.palancasEnTablero(cfg, s, 0.10).en_tablero.includes('indices_de_evento_minimos')}`, '11-true');
-  prueba('cada palanca de recursos() trae en_tablero', M.recursos(cfg, s, {}).recursos.flatMap((x) => x.palancas).every((p) => typeof p.en_tablero === 'boolean'), true);
+  prueba('ganancia de índices y tipos: 11 % (debajo del umbral); con 10 % entrarían', `${Math.round(tb.palancas.indices_de_evento_minimos.ganancia_maxima * 100)}-${TB(cfg, s, 0.10).en_tablero.includes('indices_de_evento_minimos')}`, '11-true');
+  prueba('cada palanca de recursos() trae en_tablero', RT(cfg, s, {}).recursos.flatMap((x) => x.palancas).every((p) => typeof p.en_tablero === 'boolean'), true);
   const mg = M.mensajes(cfg, s).margen;
   prueba('nombre exacto del margen', mg.nombre, 'margen de operación: antes de captación, sueldos e impuestos');
   prueba('de cada 100 pesos: se quedan (recomendado, mejor, peor)', ['recomendado', 'mejor', 'peor'].map((k) => mg.por_escenario[k].porcentaje).join(','), '67,67.9,45.4');
@@ -405,7 +407,12 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const v1 = tp.comparacion.find((x) => /Carta v1/.test(x.modelo));
   prueba('la v1 no conecta oferta y demanda nuevas ni tiene transacción dentro', `${v1.conecta_oferta_y_demanda_nuevas}-${v1.hay_transaccion_dentro}`, 'false-false');
   prueba('la respuesta no da por buena la premisa', /^No:/.test(tp.respuesta), true);
-  prueba('tres pasos para moverse a otro modelo, cada uno con lo que exige', tp.pasos_para_moverse.length === 3 && tp.pasos_para_moverse.every((x) => /regla 10|Qué NO construir/.test(x.exige)), true);
+  const v2 = tp.vision_v2_de_calvin;
+  prueba('visión v2: tres rutas y cada una exige tocar la regla 10 o «Qué NO construir»', v2.rutas.length === 3 && v2.rutas.every((x) => x.que_cambiar_antes.some((y) => /regla 10/.test(y))), true);
+  prueba('visión v2: lo legal sin fuente primaria queda por verificar con un abogado', /por verificar con un abogado/.test(v2.marco_legal.estado), true);
+  prueba('anuncios: el pagante no ve anuncios', v2.anuncios.por_tarifa.media.pesos_por_pagante, 0);
+  prueba('anuncios v2: por gratuito 17.2 → 18.9 pesos con la tarifa media', `${v2.anuncios.por_tarifa.media.pesos_por_gratuito_v1_todo_generico.toFixed(1)}-${v2.anuncios.por_tarifa.media.pesos_por_gratuito_v2_con_registrados.toFixed(1)}`, '17.2-18.9');
+  prueba('anuncios v2: la tarifa personalizada es la genérica por 1.5', v2.anuncios.por_tarifa.media.tarifa_personalizada_por_mil, 21);
   const hz = mn.hueco_frente_a_meniu;
   prueba('Meniu: 225 pesos, prueba de 7 días y sin plan gratuito', `${hz.meniu.precio_mes}-${hz.meniu.prueba_dias}-${hz.meniu.plan_gratuito}`, '225-7-false');
   prueba('todas las páginas de Meniu traen enlace y consulta del 17-nov', hz.meniu.paginas.length === 7 && hz.meniu.paginas.every((x) => /^https:\/\/meniuapp\.com\//.test(x.url)) && hz.meniu.consulta === '2026-11-17', true);
@@ -424,6 +431,42 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('BlaBlaCar queda como no verificada', s.plataformas_referencia.filter((x) => !x.verificada).map((x) => x.plataforma).join(','), 'BlaBlaCar,Booking.com,Spotify,DiDi');
 }
 
+// 12b) ronda 10: costo de un platillo, carga por topes y potencial por tramo
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  const cp = M.costoDePlatillo(cfg, s);
+  const f = (N) => cp.filas.find((x) => x.platillos === N);
+  prueba('platillo: 557 bytes en la base (medido)', f(50).base_de_datos.bytes_por_platillo, 557);
+  prueba('platillo: con 50 platillos caben 80 restaurantes con foto en R2 gratis', f(50).fotos_en_r2.restaurantes_que_caben_en_lo_gratis, 80);
+  prueba('platillo: el disco con avisos es 182 con 50 y con 150 (casi no se mueve)', `${f(50).capacidad.con_avisos.disco}-${f(150).capacidad.con_avisos.disco}`, '182-182');
+  prueba('platillo: el procesador con sondeo pierde menos de 5 % de 50 a 150', Math.abs(cp.efecto_de_subir_el_tope.procesador_con_sondeo) < 0.05, true);
+  prueba('platillo: de paga por 1,000 baja de 137 a 116 al subir el tope', `${Math.round(f(50).clientes_de_paga_por_1000_por_el_tope)}-${Math.round(f(150).clientes_de_paga_por_1000_por_el_tope)}`, '137-116');
+  prueba('platillo: el cuello con avisos sigue siendo el disco', f(150).capacidad.con_avisos.cuello, 'disco');
+  const pt = M.potencialPorTramo(cfg, s);
+  prueba('potencial por tramo: 73,193 negocios de 0 a 5 personas', Math.round(pt.tramos[0].negocios), 73193);
+  prueba('potencial por tramo: sólo el primer tramo deja ingreso de anuncios', pt.tramos.filter((x) => x.ingreso_de_anuncios_al_mes.media > 0).length, 1);
+  const r1 = M.recursos(cfg, s, { canal: 'eventos' });
+  const r2 = M.recursos({ ...cfg, topes: { ...cfg.topes, gratuito: { ...cfg.topes.gratuito, mesas: 3 } } }, s, { canal: 'eventos' });
+  prueba('los topes mueven «¿Qué nos limita?»: con 3 mesas cambia la capacidad', JSON.stringify(r1.recursos.map((x) => x.restaurantes_con_eventos)) !== JSON.stringify(r2.recursos.map((x) => x.restaurantes_con_eventos)), true);
+}
+
+// 12c) ronda 10: historia del disco y fila por visita de comensal
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const h = M.historiaDelDisco(M.configInicial(), s);
+  const o = Object.fromEntries(h.opciones.map((x) => [x.id, x]));
+  prueba('fila por visita: 161 bytes por visita de comensal (medido)', s.fila_por_visita.bytes_por_visita_de_comensal, 161);
+  prueba('fila por visita: pesa el 12 % de la analítica de hoy; con el platillo por día, 18 %', `${Math.round(s.fila_por_visita.sola * 100)}-${Math.round(s.fila_por_visita.con_platillo_por_dia * 100)}`, '12-18');
+  prueba('fila por visita: actualizarla casi nunca es HOT con el fillfactor por omisión', s.fila_por_visita.actualizando_2_veces.hot < 0.01 * s.fila_por_visita.actualizando_2_veces.de, true);
+  prueba('fila por visita: actualizarla 2 veces más que duplica la tabla', s.fila_por_visita.actualizando_2_veces.despues > 2 * s.fila_por_visita.actualizando_2_veces.antes, true);
+  prueba('historia: ocho tablas en una mesa de tres', h.pasos.length, 8);
+  prueba('historia: una mesa de tres deja 8.4 KB y la analítica es la mitad', `${(h.bytes_total / 1000).toFixed(1)}-${Math.round((h.bytes_de_analitica / h.bytes_total) * 100)}`, '8.4-49');
+  prueba('historia: hoy caben 41 sin purga y 182 con historial a 30 días', `${o.hoy.restaurantes_que_caben_sin_purga}-${o.hoy.restaurantes_que_caben_con_historial_30_dias}`, '41-182');
+  prueba('historia: la fila por visita sola deja caber 222 con historial a 30 días', o.fila_por_visita.restaurantes_que_caben_con_historial_30_dias, 222);
+  prueba('historia: archivar no baja la analítica', o.archivar.bytes_analitica_por_mesa_de_3, o.hoy.bytes_analitica_por_mesa_de_3);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
@@ -432,6 +475,8 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
     ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
     ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
     ['node', '2026-11-17-como-gana-dinero.mjs', ['2026-11-17-como-gana-dinero-carta.json', '2026-11-17-como-gana-dinero-carta.md']],
+    ['node', '2026-11-17-historia-del-disco.mjs', ['2026-11-17-historia-del-disco.json', '2026-11-17-historia-del-disco.md']],
+    ['node', '2026-11-17-costo-de-platillo.mjs', ['2026-11-17-costo-de-platillo.json', '2026-11-17-costo-de-platillo.md']],
     ['python3', '2026-11-16-cobertura-platillos.py', ['2026-11-16-cobertura-platillos-datos.json']],
     ['python3', '2026-11-14-parametros-generador.py', ['2026-11-14-parametros.json']]];
   for (const [cmd, script, salidas] of gens) {

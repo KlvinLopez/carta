@@ -65,6 +65,8 @@ const msj = M.mensajes(rec, s);
 const meta = M.meta12Meses(rec, s);
 const chef = M.potencialChef(rec, s);
 const tablero = M.palancasEnTablero(rec, s);
+const costoPl = M.costoDePlatillo(rec, s);
+const fpl = (N) => costoPl.filas.find((f) => f.platillos === N);
 const pisoE = M.evaluarEscenario('piso_de_verdad', rec, s, 1000);
 const sens = M.sensibilidad(rec, s, 1000);
 const sensSin = M.sensibilidad(rec, s, 1000, { sinAnuncios: true });
@@ -99,6 +101,7 @@ const resultados = { version: M.VERSION, config_inicial: rec, config_topes_10_me
   cobertura_platillos: { tabla: s.cobertura_platillos, nota: 'DOS COTAS de sesgo opuesto; NO se sabe cuál es la cobertura real', por_tipo_baja: s.cobertura_platillos.por_tipo_baja },
   cobertura_chef_por_cota: { centro: cobChef, minimo_del_modelo_de_mesas: cobChefMin, topes: { mesas: rec.topes.gratuito.mesas, cuentas: rec.topes.gratuito.cuentas, platillos: rec.topes.gratuito.platillos } },
   opciones_tope_platillos: opcionesPlat,
+  costo_de_platillo: costoPl,
   seguridad_chef: { con_dispersion: segC, topes: { mesas: rec.topes.gratuito.mesas, cuentas: rec.topes.gratuito.cuentas, platillos: rec.topes.gratuito.platillos }, sigma_mesas_por_cuenta: s.sigma_mesas_por_cuenta, rango_sigma: s.rangos.sigma_mesas_por_cuenta, nota: 'centro con sigma 0.5; mínimo y máximo sobre las 27 combinaciones (f, mesas por cuenta, sigma) del modelo' },
   definiciones: M.definiciones(s),
   meta_12_meses: meta,
@@ -199,9 +202,15 @@ ${alternativas.map((x) => `| ${x.mesas} · ${x.cuentas}${x.mesas === cs.mesas &&
 
 **Cobertura por platillos: DOS COTAS de sesgo opuesto (SUPUESTO; no se sabe la real).** Con 150 platillos contando todo: **${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} (sitios propios, cota baja; 56 cartas) a ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} (reparto, cota alta; en esa muestra sólo 40 a 120 están medidos y el 150 es extrapolación)**; dentro de 150, por tipo: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, casuales ${coberturaTipo('casual')}, formales ${coberturaTipo('formal')}. Las dos muestras no cuentan «platillo» con la misma regla (148 cartas de reparto: cortas; sitios propios: largas y formales).
 
-### Tope de platillos del plan Chef: DECIDIDO (17 de noviembre de 2026)
+### Tope de platillos del plan Chef: «cuenta todo» DECIDIDO; el VALOR del tope REABIERTO (17 de noviembre de 2026)
 
-**Decisión de Calvin:** «el tope de platillos incluye bebidas… quítalo y considera que cuenta todo, bebidas incluidas». **El tope de ${cs.platillos} platillos cuenta TODO.** La banda de dos cotas de cobertura se conserva porque sigue sin saberse cuál muestra tiene razón: con ${cs.platillos} platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (cota baja) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (cota alta); de 0 a 5 personas caben en Chef ${pc1(estratosBaja.dentro_0_5)} (cota baja) a ${pc1(estratos[0][1].dentro_0_5)} (cota alta).
+**Decisión de Calvin:** «el tope de platillos incluye bebidas… considera que cuenta todo, bebidas incluidas». **Después la reabrió:** «según yo no quedamos en 150, se me hace demasiado. Quisiera saber si el tema de platillos mueve mucho nuestras gráficas». Lo que cuesta cada platillo, medido y supuesto, está en \`2026-11-17-costo-de-platillo.md\`. **${costoPl.conclusion}**
+
+| Tope (cuenta todo) | Caben, cota baja (sitios propios) | Caben, cota alta (reparto) | De 0 a 5 personas dentro de Chef (baja a alta) | De paga por cada 1,000 | Restaurantes con foto que caben en R2 gratis |
+|---|---|---|---|---|---|
+${costoPl.filas.map((f) => `| ${f.platillos} | ${pc(f.cobertura_de_platillos.baja)} | ${pc(f.cobertura_de_platillos.alta)} | ${pc1(f.cobertura_de_0_a_5_dentro_de_chef.baja)} a ${pc1(f.cobertura_de_0_a_5_dentro_de_chef.alta)} | ${n0(f.clientes_de_paga_por_1000_por_el_tope)} | ${n0(f.fotos_en_r2.restaurantes_que_caben_en_lo_gratis)} (rango ${n0(f.fotos_en_r2.rango_restaurantes[0])} a ${n0(f.fotos_en_r2.rango_restaurantes[1])}) |`).join('\n')}
+
+*Bajar el tope no ahorra disco ni procesador de forma apreciable: lo que mueve es cuántos negocios pagan (cobertura) y el peso de las fotos en R2. El valor del tope queda a decisión de Calvin.*
 
 **Alternativas descartadas el 17 de noviembre de 2026** (sólo comida, 200, 300, sin tope; quedan como referencia, no como opciones abiertas). Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).
 
@@ -442,8 +451,8 @@ const R = [
     alternativas: alternativas.map((x) => ({ opcion: `${x.mesas} mesas · ${x.cuentas} ${x.cuentas === 1 ? 'cuenta' : 'cuentas'}`, pros: `${pc1(x.dentro_0_5)} de 0 a 5 personas dentro; margen ${sg(x.margen_operacion)}`, contras: `${pc1(x.cae_6_10)} de 6 a 10 personas cae en Master Chef` })),
     ejemplo: 'Una fonda de 2 personas y 4 mesas cabe en Chef (una cuenta); una taquería de 5 personas que quiere cuenta para el mesero y para el cocinero ya necesita Master Chef.',
     prueba: 'Mesas y cuentas por negocio en los primeros 10 a 20 restaurantes (`mesa` y `personal_restaurante` activos al alta, sin datos personales) y cuántos de 0 a 5 personas se arreglan con una cuenta.' },
-  { id: 'tope_platillos', decision: 'Tope de platillos del plan Chef (DECIDIDA por Calvin el 17-nov: cuenta todo, bebidas incluidas)',
-    recomendacion: `**El tope de ${cs.platillos} platillos cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026).** La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (56; largas y formales) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, formales ${coberturaTipo('formal')}.`,
+  { id: 'tope_platillos', decision: 'Tope de platillos del plan Chef (cuenta todo, bebidas incluidas, decidido el 17-nov; el VALOR del tope, REABIERTO por Calvin el mismo día)',
+    recomendacion: `**El tope cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026); su valor (hoy ${cs.platillos}) quedó REABIERTO** («se me hace demasiado»): de 50 a 150 el disco casi no se mueve (${(Math.abs(costoPl.efecto_de_subir_el_tope.disco_con_avisos)*100).toFixed(1)} %) y el procesador tampoco se acaba; cambia la cobertura y los de paga (ver \`2026-11-17-costo-de-platillo.md\`). La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (56; largas y formales) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, formales ${coberturaTipo('formal')}.`,
     depende: '**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio**. **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.',
     cifras: `Alternativas descartadas el 17 de noviembre: ${opcionesPlat.filter((o) => o.id !== 'actual').map((o) => `${o.nombre}: dentro de Chef de 0 a 5 personas ${pc1(M.coberturaEstratos({ ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, platillos: o.tope ?? Infinity, platillos_cuenta: o.cuenta } } }, s, 'centro', 'baja').dentro_0_5)} (cota baja)`).join(' · ')}.`,
     alternativas: opcionesPlat.filter((o) => o.id !== 'actual').map((o) => ({ opcion: `${o.nombre} (descartada el 17-nov)`, pros: o.id === 'sin_tope' ? 'Cobertura sólo por mesas y cuentas' : o.id === 'solo_comida' ? 'Casi no deja a nadie afuera' : 'Más cobertura con la cota baja', contras: o.id === 'sin_tope' ? 'Sin freno para cartas enormes' : o.id === 'solo_comida' ? 'Hay que clasificar comida y bebida' : 'Sigue dependiendo de una muestra sesgada' })),

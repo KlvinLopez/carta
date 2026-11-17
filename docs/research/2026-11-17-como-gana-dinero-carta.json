@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r11",
+ "version": "2026-11-18-r12",
  "fecha": "2026-11-17",
  "sueldo_fundador": {
   "por_omision": 0,
@@ -493,23 +493,113 @@
     "Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante.",
     "Transacción dentro: no; la v1 no cobra ni procesa pagos."
    ],
-   "pasos_para_moverse": [
-    {
-     "hacia": "Marketplace con comisión (Airbnb, Uber)",
-     "que_cambiaria": "descubrimiento entre restaurantes y pagos dentro de Carta",
-     "exige": "directorio público, perfil de restaurante y de comensal, procesar pagos: contradice «Qué NO construir», la regla 10 y la v1; ADR y spec de una v2; posible regulación financiera (verificar con un abogado)"
+   "vision_v2_de_calvin": {
+    "postura_de_calvin": "Ingreso principal por anuncios (estilo AdSense): personalizados para el comensal registrado, genéricos para el anónimo; quien paga no ve anuncios. Visión de una versión 2 con tres rutas; Calvin reconoce que choca con reglas «escritas para esta versión» (v1).",
+    "en_la_v1_y_la_fase_3": "Anuncios genéricos al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.",
+    "anuncios": {
+     "factor": 1.5,
+     "rango_factor": [
+      1.04,
+      2.8
+     ],
+     "parte_registrados_v2": 0.2,
+     "rango_parte": [
+      0.05,
+      0.6
+     ],
+     "parte_que_paga_por_1000": 0.11588394988411602,
+     "por_tarifa": {
+      "baja": {
+       "tarifa_generica_por_mil": 3.5,
+       "tarifa_personalizada_por_mil": 5.25,
+       "pesos_por_gratuito_v1_todo_generico": 4.305,
+       "pesos_por_gratuito_v2_con_registrados": 4.7355,
+       "cambio_por_gratuito_v2": 0.4305000000000003,
+       "rango_v2": [
+        4.31361,
+        8.9544
+       ],
+       "pesos_por_pagante": 0,
+       "pesos_por_1000_restaurantes_v1": 3806.119595748881,
+       "pesos_por_1000_restaurantes_v2": 4186.731555323769
+      },
+      "media": {
+       "tarifa_generica_por_mil": 14,
+       "tarifa_personalizada_por_mil": 21,
+       "pesos_por_gratuito_v1_todo_generico": 17.22,
+       "pesos_por_gratuito_v2_con_registrados": 18.942,
+       "cambio_por_gratuito_v2": 1.7220000000000013,
+       "rango_v2": [
+        17.25444,
+        35.8176
+       ],
+       "pesos_por_pagante": 0,
+       "pesos_por_1000_restaurantes_v1": 15224.478382995523,
+       "pesos_por_1000_restaurantes_v2": 16746.926221295074
+      },
+      "alta": {
+       "tarifa_generica_por_mil": 37,
+       "tarifa_personalizada_por_mil": 55.5,
+       "pesos_por_gratuito_v1_todo_generico": 45.51,
+       "pesos_por_gratuito_v2_con_registrados": 50.061,
+       "cambio_por_gratuito_v2": 4.551000000000002,
+       "rango_v2": [
+        45.60102,
+        94.6608
+       ],
+       "pesos_por_pagante": 0,
+       "pesos_por_1000_restaurantes_v1": 40236.12144077388,
+       "pesos_por_1000_restaurantes_v2": 44259.73358485127
+      }
+     },
+     "nota": "v1: comensal anónimo, todo genérico. El pagante no ve anuncios. Factor y parte de registrados son supuestos; la tarifa base también (anuncio_pesos_por_mil)"
     },
-    {
-     "hacia": "Economía de la atención (redes)",
-     "que_cambiaria": "perfil y cuenta del comensal con historial para segmentar anuncios",
-     "exige": "cuenta y perfil del comensal: contradice la regla 10 y «Qué NO construir»; los datos del comensal no se venden (decisión del 14-nov)"
+    "rutas": [
+     {
+      "ruta": "Mercado con comisión, directorio, procesador de pagos y perfil del comensal",
+      "que_cambiar_antes": [
+       "regla 10 (sin datos personales del comensal en el servidor)",
+       "«Qué NO construir»: pagos o comisión, cuenta y perfil del comensal, directorio",
+       "ADR nuevo de pagos y spec de v2",
+       "aviso de privacidad y consentimiento para perfil e historial",
+       "regulación de pagos (si Carta custodia o procesa dinero): por verificar con un abogado"
+      ],
+      "riesgo": "el mayor: cambia qué es el producto y las obligaciones legales"
+     },
+     {
+      "ruta": "Economía de la atención (anuncios personalizados al comensal registrado)",
+      "que_cambiar_antes": [
+       "regla 10 y «Qué NO construir» (cuenta y perfil del comensal)",
+       "aviso de privacidad con finalidades separadas y consentimiento para anuncios personalizados",
+       "los datos no se venden (decisión del 14-nov): hay que decidir si se comparten con la red de anuncios",
+       "cabecera de consentimiento en el teléfono antes de cargar el anuncio"
+      ],
+      "riesgo": "medio: el cambio técnico es chico, el legal y de confianza no"
+     },
+     {
+      "ruta": "Plan pagado del comensal sin anuncios (como Spotify)",
+      "que_cambiar_antes": [
+       "regla 10 y «Qué NO construir» (cuenta del comensal y cobro)",
+       "procesar un pago pequeño recurrente: por verificar con un abogado",
+       "spec y ADR"
+      ],
+      "riesgo": "medio: depende de que el comensal pague, sin dato de disposición a pagar"
+     }
+    ],
+    "orden_sugerido": [
+     "1. Anuncios genéricos al comensal anónimo (Fase 3): no cambia ninguna regla.",
+     "2. Cuenta voluntaria del comensal con consentimiento y anuncios personalizados (ruta 2): primero spec, ADR y revisión legal.",
+     "3. Plan pagado del comensal sin anuncios (ruta 3): reutiliza la cuenta del paso 2.",
+     "4. Directorio, pagos y comisión (ruta 1): al final; es lo que más cambia y lo más regulado."
+    ],
+    "marco_legal": {
+     "norma": "Ley Federal de Protección de Datos Personales en Posesión de los Particulares (nueva, DOF 20-mar-2025; reforma del 14-nov-2025 según el texto de la Cámara)",
+     "lo_que_dice": "el aviso de privacidad debe distinguir las finalidades que requieren consentimiento y las que no (art. 15), y una finalidad nueva exige un consentimiento nuevo (art. 11); la autoridad pasó a la Secretaría Anticorrupción y Buen Gobierno",
+     "fuente": "resúmenes de despachos (Garrigues, KPMG México, IAPP; consultados el 17-nov-2026), NO el texto del DOF",
+     "estado": "por verificar con un abogado: no se leyó la fuente primaria ni el reglamento"
     },
-    {
-     "hacia": "Freemium del comensal (Spotify)",
-     "que_cambiaria": "el comensal paga por quitar anuncios o por funciones propias",
-     "exige": "cuenta del comensal: misma contradicción con la regla 10; spec y ADR"
-    }
-   ]
+    "conflicto_con_las_reglas": "sí: reglas 10 y «Qué NO construir» de la v1; se levantan sólo con un ADR y una spec nuevos aprobados por Calvin"
+   }
   },
   "hueco_frente_a_meniu": {
    "meniu": {

@@ -14,6 +14,7 @@ const sg = (x) => (x >= 0 ? `+${n0(x)}` : `−${n0(-x)}`);
 const mes = (x) => (x == null ? 'más de 60 meses' : `mes ${x}`);
 
 const modelos = M.modelosDeIngreso(rec, s);
+
 const tabla = M.tablaSueldos(rec, s);
 const sueldoCero = M.sueldo(rec, s, 0);
 const plat = s.plataformas_referencia;
@@ -30,6 +31,7 @@ const potencial = (x) => {
 };
 
 const mn = M.modeloDeNegocio(rec, s);
+const v2 = mn.tipo_de_plataforma.vision_v2_de_calvin;
 const salida = { version: M.VERSION, fecha: '2026-11-17', sueldo_fundador: { por_omision: s.sueldo_fundador, nota: 'sin valor por omisión inventado: 0 = todavía sin sueldo; Calvin lo elige', salario_minimo: sm, tabla_de_niveles: tabla, sin_sueldo: sueldoCero }, modelos_de_ingreso: modelos, plataformas_de_referencia: plat, modelo_de_negocio: mn, secuencia: null };
 
 const secuencia = [
@@ -91,11 +93,34 @@ ${mn.tipo_de_plataforma.comparacion.map((x) => `| **${x.modelo}** | ${x.quien_pa
 
 **Dónde cae la v1:** ${mn.tipo_de_plataforma.donde_cae_la_v1.join(' ')}
 
-**Qué tendría que cambiar para moverse a otro modelo:**
+## 3b. Visión de Calvin para una versión 2 (NO es la v1 ni la Fase 3)
 
-| Hacia | Qué cambiaría | Qué exige frente a las reglas vigentes |
+**Postura de Calvin (17-nov):** ${v2.postura_de_calvin}
+
+**En la v1 y la Fase 3:** ${v2.en_la_v1_y_la_fase_3}
+
+**Conflicto con las reglas:** ${v2.conflicto_con_las_reglas}.
+
+### Anuncios genéricos frente a personalizados (por restaurante gratuito al mes, en pesos)
+
+El restaurante de paga **no muestra anuncios**: su ingreso de anuncios es ${n0(v2.anuncios.por_tarifa.media.pesos_por_pagante)} y cambia por la suscripción. Tarifa personalizada = genérica × ${n1(v2.anuncios.factor)} (**supuesto**, rango ${n1(v2.anuncios.rango_factor[0])} a ${n1(v2.anuncios.rango_factor[1])}: entre +4 % de un estudio independiente de 2019 y ×2.1 a ×2.8 del estudio de Google de 2019, que midió cookies y no consentimiento). Parte de comensales registrados en la v2: ${n1(v2.anuncios.parte_registrados_v2 * 100)} % (**supuesto**, rango ${n1(v2.anuncios.rango_parte[0] * 100)} a ${n1(v2.anuncios.rango_parte[1] * 100)} %; en la v1 es 0).
+
+| Tarifa base | Genérica (por mil) | Personalizada (por mil) | Por gratuito en la v1 | Por gratuito en la v2 | Cambio | Rango v2 | Por 1,000 restaurantes v1 → v2 |
+|---|---|---|---|---|---|---|---|
+${['baja', 'media', 'alta'].map((k) => { const x = v2.anuncios.por_tarifa[k]; return `| ${k} | ${n1(x.tarifa_generica_por_mil)} | ${n1(x.tarifa_personalizada_por_mil)} | ${n1(x.pesos_por_gratuito_v1_todo_generico)} | ${n1(x.pesos_por_gratuito_v2_con_registrados)} | ${sg(x.cambio_por_gratuito_v2)} | ${n1(x.rango_v2[0])} a ${n1(x.rango_v2[1])} | ${n0(x.pesos_por_1000_restaurantes_v1)} → ${n0(x.pesos_por_1000_restaurantes_v2)} |`; }).join('\n')}
+
+*La tarifa base y las visitas son supuestos (ver modelo); con ${n0(v2.anuncios.parte_que_paga_por_1000 * 1000)} de paga por cada 1,000 el ingreso de anuncios sale sólo de los gratuitos. Se mide con una prueba pequeña de AdSense con 3 restaurantes y, para la v2, con el registro voluntario.*
+
+### Las tres rutas de la v2, lo que hay que cambiar antes y el orden sugerido
+
+| Ruta | Qué habría que cambiar antes | Riesgo |
 |---|---|---|
-${mn.tipo_de_plataforma.pasos_para_moverse.map((x) => `| ${x.hacia} | ${x.que_cambiaria} | ${x.exige} |`).join('\n')}
+${v2.rutas.map((x) => `| ${x.ruta} | ${x.que_cambiar_antes.join('; ')} | ${x.riesgo} |`).join('\n')}
+
+**Orden sugerido:**
+${v2.orden_sugerido.map((x) => `- ${x}`).join('\n')}
+
+**Marco legal (${v2.marco_legal.estado}):** ${v2.marco_legal.norma}. ${v2.marco_legal.lo_que_dice}. Fuente: ${v2.marco_legal.fuente}.
 
 ## 4. Dónde está el hueco frente a Meniu
 
