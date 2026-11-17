@@ -30,7 +30,7 @@ Por mesa de 3, lo que ocupa la analítica; y cuántos restaurantes caben por dis
 | Adelgazar la tabla (índices mínimos y tipos chicos) | una fila por evento, más angosta y con dos índices | índices de consulta; huella de red de 8 bytes | 2,487 | 3.87 | 49 | 197 |
 | Archivar sesiones cerradas en R2 | la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo sale a un archivo comprimido | consulta inmediata de lo viejo; hay que releer del archivo | 4,082 | 6.35 | 70 | 347 |
 
-Comprar disco: No cambia los datos guardados: sube el costo del escalón (ver la escalera en recursos y palancas). «Archivar» no baja la analítica (mueve las sesiones viejas); las bajas de «contar por día» y «fila por visita» son a **el volumen de la copia** (18,000 sesiones por restaurante-mes aprox.): contar por día crece con los días y los platillos, no con las visitas, así que con más visitas gana más.
+Comprar disco: No cambia los datos guardados: sube el costo del escalón (ver la escalera en recursos y palancas). «Archivar» no baja la analítica (mueve las sesiones viejas); las bajas de «contar por día» y «fila por visita» son a **el volumen de la copia** (1,800 sesiones por restaurante-mes, 18,000 eventos): contar por día crece con los días y los platillos, no con las visitas, así que con más visitas gana más.
 
 ## 3. La propuesta de Calvin, medida
 

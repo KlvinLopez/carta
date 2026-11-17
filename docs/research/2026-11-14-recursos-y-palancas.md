@@ -13,6 +13,16 @@
 - **Por qué no es la cifra de antes:** Antes la cifra era 279 restaurantes y ahora es 182, por dos cambios: (1) la unidad: antes se contaban restaurantes GRATUITOS típicos (1,800 visitas al mes y 14.3 MB cada uno con historial a 30 días); ahora se cuenta el restaurante REGISTRADO, con la mezcla de 116 de paga por cada 1,000, donde cada uno de paga guarda 12 meses y llena 129.0 MB (16.3 veces un gratuito); (2) la carga del gratuito sale de los topes (1,080 visitas al mes con 6 mesas, supuesto), así que un gratuito llena 7.9 MB y no 14.3. El promedio queda en 21.9 MB y caben menos. Si todos fueran gratuitos de los topes cabrían 505.
 - **Hallazgo:** El disco lo llenan sobre todo los de paga (68 %), que son 11.6 % de los restaurantes: su disco cuesta 0.36 pesos al mes frente a 225 que pagan (0.2 %). Es una parte chica de lo que pagan: el disco no es el problema económico, sólo el tope técnico del volumen.
 
+**Cuánto de cada parte es analítica y cuánto sesiones y órdenes (parte del disco promedio):**
+
+| | Fijo (menú, catálogo) | Sesiones y órdenes | Analítica | Total |
+|---|---|---|---|---|
+| Gratuitos | 0.8 % | 15.1 % | 15.9 % | 31.8 % |
+| De paga (12 meses) | 0.1 % | 63.4 % | 4.6 % | 68.2 % |
+| **Todos** | 0.9 % | 78.5 % | 20.6 % | 100 % |
+
+**Por qué «contar por día» pasó de +77 % (279 → 495, ronda 8) a +22 % (182 → 222) y por qué ahora la palanca que más da es archivar (347):** Contar por día sólo recorta la analítica, que hoy es 21 % del disco promedio; antes se medía sobre un gratuito típico de 1,800 visitas, donde la analítica pesaba más y la ganancia era +77 % (279 → 495); con la mezcla actual los restaurantes de paga (63 % del disco sólo en sesiones y órdenes de 12 meses) dominan, y contar por día da +22 % (182 → 222). Archivar las sesiones cerradas a los 3 meses recorta justo esa parte y da +91 % (182 → 347); por eso ahora es la palanca que más da.
+
 ## Conclusiones
 
 1. **Cuello de botella hoy: procesador (173, de 86 a 346) o disco, según cuánto historial se guarde y cuánto rinda el servidor: con historial del gratuito a 30 días el disco aguanta 182 y manda el procesador; sin purga manda el disco desde el mes 2 de operación de un restaurante.** Hoy **nada purga el historial** (03 §7 pide 13 y 24 meses sin distinguir por plan); la cifra de disco depende de los meses acumulados: 1 mes: 182 · 3 meses: 112 · 6 meses: 71 · 12 meses: 41 · lo que dice 03 §7 (24 meses de sesiones y 13 de analítica): 28 restaurantes.
@@ -171,6 +181,8 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 | Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |
 |---|---|---|---|---|---|---|---|
 | **Cerrar líneas sin movimiento** · La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola. | caben 3268 | caben 4669 | caben +1401 restaurantes antes de topar las 10,000 líneas | medio | bajo: el teléfono ya vuelve al sondeo si la línea falla | ninguna | estimada |
+
+**Alternativas que no se suman.** Forma de guardar la analítica (se elige una; no se suman): Contar por día, la fila por visita y la fila por visita más platillo reemplazan la fila por evento; los índices mínimos, los tipos chicos y la retención a 7 días sólo mejoran la fila por evento, así que no suman con ninguna de las tres. El modelo aplica una sola (en orden de prioridad: analitica_agregada_por_dia, fila_por_visita_mas_platillo_por_dia, fila_por_visita_de_comensal, indices_de_evento_minimos + tipos_mas_chicos, retencion_analitica_7_dias); el tablero muestra la ganancia de cada una por separado, no la suma.
 
 **Memoria y fotos:** ninguna palanca por ahora.
 

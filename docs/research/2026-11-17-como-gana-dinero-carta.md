@@ -9,9 +9,9 @@
 1. **Hoy Carta no le paga a su fundador: `sueldo_fundador` está en 0 y no hay valor por omisión inventado.** La tabla de §1 da niveles de referencia (múltiplos del salario mínimo general: 315.04 pesos por día en 2026 [fuente]) y, para cada uno, cuántos restaurantes y clientes de paga hacen falta.
 2. **Con un sueldo de 28,732 pesos al mes (3 salarios mínimos), el margen después de captación lo cubre con 1,660 restaurantes registrados y 192 de paga en el recomendado (mes 32 de la proyección); en el peor, 14,010; en el mejor, 490.**
 3. **Carta no es hoy una plataforma tipo Airbnb o Uber: es una herramienta gratuita con anuncios más suscripción, que sirve a un comensal que ya está sentado, sin transacción dentro (§3).** El hueco frente a Meniu (que no tiene plan gratuito) es el negocio de 0 a 5 personas: 73,193 de 104,882 clientes potenciales, de los que caben en Chef 35,427 (supuesto) (§4).
-4. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe después de la Fase 3 con una spec nueva) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
+4. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe con una spec nueva, después del piloto) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
 5. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción 225 por restaurante de paga; anuncios 4.3 a 45.5 por restaurante gratuito; **comisión por transacción (fuera de la v1) 322 por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
-6. **Secuencia recomendada:** piloto = suscripción; después de la Fase 3 = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
+6. **Secuencia recomendada:** piloto = suscripción; con la Spec 002 «Planes», después del piloto = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
 
 ## 1. Sueldo del fundador en el modelo
 
@@ -111,7 +111,7 @@ Cada modelo con a quién se le cobra, el potencial en pesos al mes (con supuesto
 
 **Postura de Calvin (17-nov):** Ingreso principal por anuncios (estilo AdSense): personalizados para el comensal registrado, genéricos para el anónimo; quien paga no ve anuncios. Visión de una versión 2 con tres rutas; Calvin reconoce que choca con reglas «escritas para esta versión» (v1).
 
-**En la v1 y la Fase 3:** Anuncios genéricos al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.
+**En la v1:** Anuncios genéricos (con la Spec 002 «Planes», después del piloto) al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.
 
 **Conflicto con las reglas:** sí: reglas 10 y «Qué NO construir» de la v1; se levantan sólo con un ADR y una spec nuevos aprobados por Calvin.
 
@@ -136,7 +136,7 @@ El restaurante de paga **no muestra anuncios**: su ingreso de anuncios es 0 y ca
 | Plan pagado del comensal sin anuncios (como Spotify) | regla 10 y «Qué NO construir» (cuenta del comensal y cobro); procesar un pago pequeño recurrente: por verificar con un abogado; spec y ADR | medio: depende de que el comensal pague, sin dato de disposición a pagar |
 
 **Orden sugerido:**
-- 1. Anuncios genéricos al comensal anónimo (Fase 3): no cambia ninguna regla.
+- 1. Anuncios genéricos al comensal anónimo (con la Spec 002 «Planes», después del piloto; no están en las tareas de la Fase 3): no cambia ninguna regla dura.
 - 2. Cuenta voluntaria del comensal con consentimiento y anuncios personalizados (ruta 2): primero spec, ADR y revisión legal.
 - 3. Plan pagado del comensal sin anuncios (ruta 3): reutiliza la cuenta del paso 2.
 - 4. Directorio, pagos y comisión (ruta 1): al final; es lo que más cambia y lo más regulado.
@@ -178,7 +178,7 @@ El restaurante de paga **no muestra anuncios**: su ingreso de anuncios es 0 y ca
 - **A quién sirve:** Al restaurante y a la cafetería de México, desde la fonda de 0 a 5 personas hasta el negocio de 100, y al comensal que ya está sentado.
 - **Qué le resuelve:** Sube la carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo.
 - **Quién paga y cuánto:** restaurante: Master Chef 225 pesos al mes (deja 149 al restaurante de paga tras costos); Chef es gratis; anunciante: 4.3 a 45.5 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato); comensal: nada.
-- **Fuentes de ingreso por etapa:** **Piloto:** Suscripción de Master Chef (se prueba el precio con tres grupos) · **Después de la Fase 3 (hacia el mes 9, supuesto):** Anuncios en Chef; visibilidad pagada con spec nueva · **Más adelante (v2):** Tarjetas de lealtad y otras funciones de Meniu, comisión o pago del comensal sólo con ADR y spec.
+- **Fuentes de ingreso por etapa:** **Piloto:** Suscripción de Master Chef (se prueba el precio con tres grupos) · **Con la Spec 002 «Planes», después del piloto (hacia el mes 9, supuesto):** Anuncios en Chef; visibilidad pagada con spec nueva · **Más adelante (v2):** Tarjetas de lealtad y otras funciones de Meniu, comisión o pago del comensal sólo con ADR y spec.
 - **Costos:** infraestructura de hoy ≈ 10.2 USD al mes; un gratuito cuesta 1.2 pesos al mes y un cliente de paga sostiene 125 gratuitos sin anuncios; el costo grande: el soporte de cada cliente de paga.
 - **Meta de 12 meses:** 300 restaurantes, margen de operación del mes 12 +5,749 pesos (recomendado).
 - **Qué hay que medir:** La curva de pago de Master Chef (prueba de tres precios). · Mesas y cuentas por negocio de 0 a 5 personas (cuántos caben en Chef). · La carta real del piloto (cuántos platillos). · La tarifa de anuncios y la parte de visitas con anuncio (prueba con 3 restaurantes). · CPU, memoria y conexiones en Railway.
@@ -188,7 +188,7 @@ El restaurante de paga **no muestra anuncios**: su ingreso de anuncios es 0 y ca
 | Modelo | Cuándo | Qué exige | Riesgo o dato que falta |
 |---|---|---|---|
 | Suscripción del restaurante (Master Chef) | Piloto | Nada nuevo: la v1 | La curva de pago no tiene dato: la prueba de tres precios del piloto la mide |
-| Anuncios al comensal del plan gratuito | Después de la Fase 3 (hacia el mes 9, supuesto) | ADR, abrir la política de seguridad, aviso de privacidad y aprobación de la red de anuncios; sin anuncios personalizados | Tarifa, parte con anuncio y aprobación de la red sin dato: una prueba con 3 restaurantes |
+| Anuncios al comensal del plan gratuito | Con la Spec 002 «Planes», después del piloto (hacia el mes 9, supuesto) | ADR, abrir la política de seguridad, aviso de privacidad y aprobación de la red de anuncios; sin anuncios personalizados | Tarifa, parte con anuncio y aprobación de la red sin dato: una prueba con 3 restaurantes |
 | Visibilidad pagada dentro de Carta | Spec nueva, después de la Fase 3 y con restaurantes reales | Spec: qué se puede patrocinar y cómo se distingue de la carta; sin datos del comensal | No hay dato de cuánto pagaría un patrocinador: prueba con 3 patrocinadores |
 | Comisión por transacción | Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1) | Cobrar o procesar pagos: contradice «Qué NO construir»; posible regulación financiera (verificar con un abogado) | Cambia la naturaleza del producto y su regulación |
 | Pago del comensal | Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1) | Cuenta o perfil del comensal: contradice la regla 10 y «Qué NO construir» | Rompe el principio de comensal anónimo |

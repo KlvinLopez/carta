@@ -495,7 +495,7 @@
    ],
    "vision_v2_de_calvin": {
     "postura_de_calvin": "Ingreso principal por anuncios (estilo AdSense): personalizados para el comensal registrado, genéricos para el anónimo; quien paga no ve anuncios. Visión de una versión 2 con tres rutas; Calvin reconoce que choca con reglas «escritas para esta versión» (v1).",
-    "en_la_v1_y_la_fase_3": "Anuncios genéricos al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.",
+    "en_la_v1": "Anuncios genéricos (con la Spec 002 «Planes», después del piloto) al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.",
     "anuncios": {
      "factor": 1.5,
      "rango_factor": [
@@ -587,7 +587,7 @@
      }
     ],
     "orden_sugerido": [
-     "1. Anuncios genéricos al comensal anónimo (Fase 3): no cambia ninguna regla.",
+     "1. Anuncios genéricos al comensal anónimo (con la Spec 002 «Planes», después del piloto; no están en las tareas de la Fase 3): no cambia ninguna regla dura.",
      "2. Cuenta voluntaria del comensal con consentimiento y anuncios personalizados (ruta 2): primero spec, ADR y revisión legal.",
      "3. Plan pagado del comensal sin anuncios (ruta 3): reutiliza la cuenta del paso 2.",
      "4. Directorio, pagos y comisión (ruta 1): al final; es lo que más cambia y lo más regulado."
@@ -766,7 +766,7 @@
      "fuente": "Suscripción de Master Chef (se prueba el precio con tres grupos)"
     },
     {
-     "etapa": "Después de la Fase 3 (hacia el mes 9, supuesto)",
+     "etapa": "Con la Spec 002 «Planes», después del piloto (hacia el mes 9, supuesto)",
      "fuente": "Anuncios en Chef; visibilidad pagada con spec nueva"
     },
     {
@@ -802,7 +802,7 @@
   },
   {
    "modelo": "Anuncios al comensal del plan gratuito",
-   "cuando": "Después de la Fase 3 (hacia el mes 9, supuesto)",
+   "cuando": "Con la Spec 002 «Planes», después del piloto (hacia el mes 9, supuesto)",
    "requisito": "ADR, abrir la política de seguridad, aviso de privacidad y aprobación de la red de anuncios; sin anuncios personalizados",
    "riesgo": "Tarifa, parte con anuncio y aprobación de la red sin dato: una prueba con 3 restaurantes"
   },

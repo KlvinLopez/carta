@@ -481,6 +481,24 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('disco: el resumen de recursos trae la composición', M.recursos(cfg, s, {}).composicion_del_disco.restaurantes_que_caben_por_disco, 182);
 }
 
+// 12e) segunda tanda de correcciones de la maestra: desglose del disco, +77 % frente a +22 %, grupo excluyente y rótulos
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  const c = M.composicionDelDisco(cfg, s);
+  const d = c.desglose.parte_del_disco;
+  prueba('desglose: los de paga son 63 % sesiones y órdenes; la analítica total, 21 %', `${Math.round(d.de_paga.sesiones_y_ordenes * 100)}-${Math.round(c.desglose.parte_analitica_del_disco * 100)}`, '63-21');
+  const p = c.por_que_contar_por_dia_ya_no_da_tanto;
+  prueba('contar por día: +77 % antes (279 → 495) y +22 % ahora (182 → 222)', `${p.contar_por_dia.cifra_de_antes.join('>')}-${Math.round(p.contar_por_dia.ganancia_de_antes * 100)}-${p.contar_por_dia.cifra_ahora.join('>')}-${Math.round(p.contar_por_dia.ganancia_ahora * 100)}`, '279>495-77-182>222-22');
+  prueba('archivar: 182 → 347 (+91 %)', `${p.archivar.cifra_ahora.join('>')}-${Math.round(p.archivar.ganancia_ahora * 100)}`, '182>347-91');
+  const g = M.palancasEnTablero(cfg, s).grupos_excluyentes.forma_de_guardar_la_analitica;
+  prueba('grupo excluyente: contar por día, fila por visita y fila más platillo están en el mismo grupo', ['analitica_agregada_por_dia', 'fila_por_visita_de_comensal', 'fila_por_visita_mas_platillo_por_dia'].every((x) => g.miembros.includes(x)), true);
+  prueba('el modelo no apila: contar por día con fila por visita da lo mismo que contar por día solo', M.efectosPalancas({ ...cfg, palancas: ['analitica_agregada_por_dia', 'fila_por_visita_de_comensal'] }, s).eventos_disco, M.efectosPalancas({ ...cfg, palancas: ['analitica_agregada_por_dia'] }, s).eventos_disco);
+  prueba('recursos devuelve los grupos excluyentes', Object.keys(M.recursos(cfg, s, {}).grupos_excluyentes)[0], 'forma_de_guardar_la_analitica');
+  const v2 = M.modeloDeNegocio(cfg, s).tipo_de_plataforma.vision_v2_de_calvin;
+  prueba('visión v2: los anuncios van con la Spec 002 y no en la Fase 3', /Spec 002/.test(v2.orden_sugerido[0]) && /no están en las tareas de la Fase 3/.test(v2.orden_sugerido[0]), true);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));

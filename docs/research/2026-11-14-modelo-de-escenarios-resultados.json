@@ -12486,6 +12486,34 @@
   }
  },
  "palancas_en_tablero": {
+  "grupos_excluyentes": {
+   "forma_de_guardar_la_analitica": {
+    "nombre": "Forma de guardar la analítica (se elige una; no se suman)",
+    "prioridad": [
+     "analitica_agregada_por_dia",
+     "fila_por_visita_mas_platillo_por_dia",
+     "fila_por_visita_de_comensal",
+     "indices_de_evento_minimos + tipos_mas_chicos",
+     "retencion_analitica_7_dias"
+    ],
+    "nota": "Contar por día, la fila por visita y la fila por visita más platillo reemplazan la fila por evento; los índices mínimos, los tipos chicos y la retención a 7 días sólo mejoran la fila por evento, así que no suman con ninguna de las tres.",
+    "miembros": [
+     "analitica_agregada_por_dia",
+     "retencion_analitica_7_dias",
+     "fila_por_visita_de_comensal",
+     "fila_por_visita_mas_platillo_por_dia",
+     "indices_de_evento_minimos",
+     "tipos_mas_chicos"
+    ],
+    "en_tablero": [
+     "analitica_agregada_por_dia",
+     "retencion_analitica_7_dias",
+     "fila_por_visita_de_comensal",
+     "fila_por_visita_mas_platillo_por_dia"
+    ],
+    "mejor": "analitica_agregada_por_dia"
+   }
+  },
   "umbral": 0.15,
   "regla": "entra al tablero si sube al menos 15 % la capacidad del recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días; la palanca del historial se mide sin purga (12 meses) porque es la decisión",
   "palancas": {
@@ -12495,7 +12523,8 @@
     "canal": "sondeo",
     "capacidad_antes": 41,
     "capacidad_despues": 182,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": null
    },
    "analitica_agregada_por_dia": {
     "en_tablero": true,
@@ -12503,7 +12532,8 @@
     "canal": "sondeo",
     "capacidad_antes": 182,
     "capacidad_despues": 222,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": "forma_de_guardar_la_analitica"
    },
    "retencion_analitica_7_dias": {
     "en_tablero": true,
@@ -12511,7 +12541,8 @@
     "canal": "sondeo",
     "capacidad_antes": 182,
     "capacidad_despues": 216,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": "forma_de_guardar_la_analitica"
    },
    "fila_por_visita_de_comensal": {
     "en_tablero": true,
@@ -12519,7 +12550,8 @@
     "canal": "sondeo",
     "capacidad_antes": 182,
     "capacidad_despues": 222,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": "forma_de_guardar_la_analitica"
    },
    "fila_por_visita_mas_platillo_por_dia": {
     "en_tablero": true,
@@ -12527,7 +12559,8 @@
     "canal": "sondeo",
     "capacidad_antes": 182,
     "capacidad_despues": 218,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": "forma_de_guardar_la_analitica"
    },
    "indices_de_evento_minimos": {
     "en_tablero": false,
@@ -12535,7 +12568,8 @@
     "canal": "sondeo",
     "capacidad_antes": 182,
     "capacidad_despues": 189,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": "forma_de_guardar_la_analitica"
    },
    "tipos_mas_chicos": {
     "en_tablero": false,
@@ -12543,7 +12577,8 @@
     "canal": "sondeo",
     "capacidad_antes": 182,
     "capacidad_despues": 189,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": "forma_de_guardar_la_analitica"
    },
    "purga_claves_idempotencia": {
     "en_tablero": false,
@@ -12551,7 +12586,8 @@
     "canal": null,
     "capacidad_antes": null,
     "capacidad_despues": null,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": null
    },
    "archivar_sesiones_cerradas": {
     "en_tablero": true,
@@ -12559,7 +12595,8 @@
     "canal": "sondeo",
     "capacidad_antes": 182,
     "capacidad_despues": 347,
-    "recurso": "disco"
+    "recurso": "disco",
+    "grupo": null
    },
    "estado_en_memoria_60s": {
     "en_tablero": true,
@@ -12567,7 +12604,8 @@
     "canal": "sondeo",
     "capacidad_antes": 173,
     "capacidad_despues": 306,
-    "recurso": "procesador"
+    "recurso": "procesador",
+    "grupo": null
    },
    "cerrar_lineas_ociosas": {
     "en_tablero": true,
@@ -12575,7 +12613,8 @@
     "canal": "eventos",
     "capacidad_antes": 3268,
     "capacidad_despues": 4669,
-    "recurso": "lineas"
+    "recurso": "lineas",
+    "grupo": null
    },
    "pool_acotado": {
     "en_tablero": false,
@@ -12583,7 +12622,8 @@
     "canal": null,
     "capacidad_antes": null,
     "capacidad_despues": null,
-    "recurso": "conexiones_bd"
+    "recurso": "conexiones_bd",
+    "grupo": null
    }
   },
   "en_tablero": [
