@@ -142,7 +142,7 @@ Meta supuesta: **300 restaurantes a 12 meses** (adopción supuesta). Pesos al me
 | Tarifa media | **12** | 6 – 25 | tarifa de anuncios: la mitad → 25, el doble → 6; visitas con anuncio: la mitad → 25, el doble → 7; soporte por cliente gratuito: 0 pesos → 12, 3 pesos (el máximo de su rango) → 14; visitas con la app por gratuito: la mitad → 25, el doble → 6 |
 | Adverso | **1,469** | 139 – imposible | tarifa de anuncios: la mitad → no se paga solo, el doble → 139; visitas con anuncio: la mitad → 1,469, el doble → 1,469; soporte por cliente gratuito: 0 pesos → 240, 3 pesos (el máximo de su rango) → no se paga solo; visitas con la app por gratuito: la mitad → no se paga solo, el doble → 139 |
 
-**La bolsa de Calvin, como rango** (restaurantes gratuitos que caben, según el soporte por gratuito):
+**La bolsa de Calvin, como rango** (restaurantes **gratuitos típicos** de 1,800 visitas al mes que caben, según el soporte por gratuito; es otra pregunta que la capacidad por recursos de «¿Qué nos limita?», que cuenta el restaurante registrado con la mezcla de paga: 182 con avisos y 41 sin purga):
 
 | Bolsa al mes | Centro (soporte 0.5) | Mínimo – máximo | Por soporte (pesos por gratuito → restaurantes) |
 |---|---|---|---|
@@ -164,8 +164,8 @@ Meta supuesta: **300 restaurantes a 12 meses** (adopción supuesta). Pesos al me
 | Cifra | Recomendado | Peor | Mejor | Piso de verdad | Qué es |
 |---|---|---|---|---|---|
 | Clientes potenciales (negocios) | **104,882** | 104,882 | 104,882 | 104,882 | dato medido (DENUE 05/2026): no varía con los escenarios |
-| Restaurantes gratuitos que caben (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga) (restaurantes) | **279** | 148 | 2,116 | 148 | con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (por líneas abiertas, tope de diseño supuesto) |
-| Restaurantes gratuitos que caben SIN purga (12 meses de historial acumulado) (restaurantes) | **23** | 23 | 236 | 23 | lo que hay hoy: nada limpia; el disco manda desde el segundo mes de operación |
+| Restaurantes registrados que caben, con la mezcla de gratuitos y de paga (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga) (restaurantes) | **182** | 173 | 1,823 | 173 | con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con avisos; peor = Hobby con sondeo; mejor = Pro de 8 procesos; cada uno es el menor de los recursos con la carga por topes (la misma cuenta de `recursos`) |
+| Restaurantes registrados que caben SIN purga (12 meses de historial acumulado), con la mezcla de gratuitos y de paga (restaurantes) | **41** | 41 | 413 | 41 | lo que hay hoy: nada limpia; el disco manda desde el segundo mes de operación |
 | Gratuitos que sostiene cada cliente de paga (sin anuncios) (restaurantes) | **125.2** | 131.9 | 74 | 16.3 | con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`) |
 | Ingreso por cliente gratuito (pesos al mes) | **4.3** | 0 | 17.2 | 1.1 | sólo anuncios |
 | Ingreso por cliente de paga (pesos al mes) | **225** | 225 | 225 | 225 | promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno |

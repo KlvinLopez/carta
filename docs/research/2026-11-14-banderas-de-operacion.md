@@ -26,6 +26,8 @@
 
 ## Escalones de servidor y costo del paso
 
+**Unidad de esta tabla:** «restaurantes típicos» del simulador (un gratuito de 1,800 visitas al mes), no el restaurante registrado con la mezcla de paga y los topes. Esa otra cuenta, la de «¿Qué nos limita?» (`recursos`), da 173 con el sondeo de hoy y 182 con avisos (historial del gratuito a 30 días), y 41 sin purga: no son la misma pregunta y no se comparan.
+
 | Escalón | Capacidad (restaurantes típicos, simulador) | Disco | USD base al mes | Sube vs el anterior | Entra en el mes (recomendado) |
 |---|---|---|---|---|---|
 | Hoy: sondeo, 2 procesos, Hobby | 148 | 5 GB | 8.1 | +0 | no entra en 36 meses |

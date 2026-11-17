@@ -274,7 +274,7 @@ ${tg.extrapolada_sin_medir.map(filaTG).join('\n')}
 |---|---|---|---|
 ${['baja', 'medio', 'adverso'].map((c) => `| ${c === 'baja' ? 'Tarifa baja' : c === 'medio' ? 'Tarifa media' : 'Adverso'} | **${nn(rangos[c].centro)}** | ${nn(rangos[c].minimo)} – ${rangos[c].maximo == null ? 'imposible' : n0(rangos[c].maximo)} | ${rangos[c].por_supuesto.map((v) => `${v.supuesto}: ${v.bajo.variante} → ${nn(v.bajo.n)}, ${v.alto.variante} → ${nn(v.alto.n)}`).join('; ')} |`).join('\n')}
 
-**La bolsa de Calvin, como rango** (restaurantes gratuitos que caben, según el soporte por gratuito):
+**La bolsa de Calvin, como rango** (restaurantes **gratuitos típicos** de ${n0(s.visitas_mes_gratuito)} visitas al mes que caben, según el soporte por gratuito; es otra pregunta que la capacidad por recursos de «¿Qué nos limita?», que cuenta el restaurante registrado con la mezcla de paga: ${n0(res.cifras.find((f) => f.clave === 'restaurantes_que_caben').recomendado)} con avisos y ${n0(res.cifras.find((f) => f.clave === 'restaurantes_que_caben_sin_purga').recomendado)} sin purga):
 
 | Bolsa al mes | Centro (soporte ${s.soporte_gratuito}) | Mínimo – máximo | Por soporte (pesos por gratuito → restaurantes) |
 |---|---|---|---|
@@ -475,7 +475,7 @@ const R = [
   { id: 'bolsa', decision: 'Cuánta bolsa poner mientras no hay anuncios',
     recomendacion: `**${n0(b1000.bolsa)} pesos al mes** alcanzan para ${n0(b1000.centro.restaurantes)} restaurantes gratuitos (rango ${n0(b1000.minimo)} a ${n0(b1000.maximo)}); acumulado, Calvin pone hasta **${n0(proy.media.financiamiento_maximo)} pesos** en el caso recomendado, ${n0(proyPeor.financiamiento_maximo)} en el peor y ${n0(proyPiso.financiamiento_maximo)} en el piso de verdad.`,
     depende: '**Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.',
-    cifras: `Bolsa ${bolsasR.map((b) => n0(b.bolsa)).join(' / ')} → ${bolsasR.map((b) => `${n0(b.centro.restaurantes)} (${n0(b.minimo)}–${n0(b.maximo)})`).join(' / ')} restaurantes.`,
+    cifras: `Bolsa ${bolsasR.map((b) => n0(b.bolsa)).join(' / ')} → ${bolsasR.map((b) => `${n0(b.centro.restaurantes)} (${n0(b.minimo)}–${n0(b.maximo)})`).join(' / ')} restaurantes gratuitos típicos (de ${n0(s.visitas_mes_gratuito)} visitas al mes; no es la capacidad por recursos de «¿Qué nos limita?»: ${n0(res.cifras.find((f) => f.clave === 'restaurantes_que_caben').recomendado)} con avisos).`,
     alternativas: bolsasR.map((b) => ({ opcion: `${n0(b.bolsa)} pesos al mes`, pros: `${n0(b.centro.restaurantes)} restaurantes y ${comensalesMillones(b.centro.comensales_mes)} M de comensales`, contras: `rango ${n0(b.minimo)}–${n0(b.maximo)} según el soporte` })),
     ejemplo: `Con ${n0(b1000.bolsa)} pesos al mes pagas servidor y soporte básico de ≈ ${n0(b1000.centro.restaurantes)} fondas y taquerías gratuitas.`,
     prueba: 'El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte.' },

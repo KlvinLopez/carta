@@ -225,10 +225,10 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('toda palanca dice si es medida o estimada', Object.values(M.PALANCAS).every((p) => typeof p.medido === 'boolean'), true);
   // resumen: dice con qué retención
   const caben = (c, k = 'restaurantes_que_caben') => M.resumen(c, s, 1000).cifras.find((f) => f.clave === k).recomendado;
-  prueba('resumen: restaurantes que caben (historial del gratuito a 1 mes: propuesta)', caben(cfg), 279);
-  prueba('resumen: restaurantes que caben SIN purga (12 meses)', caben(cfg, 'restaurantes_que_caben_sin_purga'), 23);
+  prueba('resumen: restaurantes que caben (historial del gratuito a 1 mes: propuesta)', caben(cfg), 182);
+  prueba('resumen: restaurantes que caben SIN purga (12 meses)', caben(cfg, 'restaurantes_que_caben_sin_purga'), 41);
   prueba('resumen: el nombre de la cifra dice la retención', /historial del gratuito de 1 mes: PROPUESTA/.test(M.resumen(cfg, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').nombre), true);
-  prueba('resumen: con la analítica agregada caben más', caben({ ...cfg, palancas: ['analitica_agregada_por_dia'] }) > 279, true);
+  prueba('resumen: con la analítica agregada caben más', caben({ ...cfg, palancas: ['analitica_agregada_por_dia'] }) > 182, true);
   prueba('las palancas bajan los MB por restaurante gratuito', M.mbPorRestaurante('gratuito', { ...cfg, palancas: ['analitica_agregada_por_dia'] }, s) < M.mbPorRestaurante('gratuito', cfg, s), true);
   prueba('con Pro (50 GB) y historial a 30 días manda el procesador', RT({ ...cfg, palancas: ['historial_gratuito_30_dias'] }, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
   prueba('el procesador y los avisos del escenario están marcados como supuestos o medidos en local', /local/.test(rec('procesador').medido) && /SUPUESTO/.test(rec('lineas').medido), true);
@@ -497,6 +497,19 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('recursos devuelve los grupos excluyentes', Object.keys(M.recursos(cfg, s, {}).grupos_excluyentes)[0], 'forma_de_guardar_la_analitica');
   const v2 = M.modeloDeNegocio(cfg, s).tipo_de_plataforma.vision_v2_de_calvin;
   prueba('visión v2: los anuncios van con la Spec 002 y no en la Fase 3', /Spec 002/.test(v2.orden_sugerido[0]) && /no están en las tareas de la Fase 3/.test(v2.orden_sugerido[0]), true);
+}
+
+// 12f) `resumen` y `recursos` dan la misma capacidad (una sola cuenta con la carga por topes)
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  const rs = M.resumen(cfg, s);
+  const R = M.recursos(cfg, s, {});
+  const f = (k) => rs.cifras.find((x) => x.clave === k);
+  prueba('resumen = recursos: con avisos y 30 días', f('restaurantes_que_caben').recomendado, R.cuello_con_eventos.con_historial_30_dias.restaurantes);
+  prueba('resumen = recursos: con sondeo y 30 días', f('restaurantes_que_caben').peor, R.cuello_hoy.con_historial_30_dias.restaurantes);
+  prueba('resumen = recursos: sin purga', f('restaurantes_que_caben_sin_purga').recomendado, R.cuello_con_eventos.restaurantes);
+  prueba('resumen: 182 / 173 / 41 (ya no 279 / 148 / 23)', `${f('restaurantes_que_caben').recomendado}-${f('restaurantes_que_caben').peor}-${f('restaurantes_que_caben_sin_purga').recomendado}`, '182-173-41');
 }
 
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)

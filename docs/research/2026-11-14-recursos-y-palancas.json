@@ -1443,23 +1443,23 @@
  "kpi_restaurantes_que_caben": {
   "sin_palancas": {
    "clave": "restaurantes_que_caben",
-   "nombre": "Restaurantes gratuitos que caben (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga)",
+   "nombre": "Restaurantes registrados que caben, con la mezcla de gratuitos y de paga (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga)",
    "unidad": "restaurantes",
-   "recomendado": 279,
-   "peor": 148,
-   "mejor": 2116,
-   "piso_de_verdad": 148,
-   "nota": "con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (por líneas abiertas, tope de diseño supuesto)"
+   "recomendado": 182,
+   "peor": 173,
+   "mejor": 1823,
+   "piso_de_verdad": 173,
+   "nota": "con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con avisos; peor = Hobby con sondeo; mejor = Pro de 8 procesos; cada uno es el menor de los recursos con la carga por topes (la misma cuenta de `recursos`)"
   },
   "con_agregada_por_dia": {
    "clave": "restaurantes_que_caben",
-   "nombre": "Restaurantes gratuitos que caben (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga)",
+   "nombre": "Restaurantes registrados que caben, con la mezcla de gratuitos y de paga (con historial del gratuito de 1 mes: PROPUESTA, hoy nada purga)",
    "unidad": "restaurantes",
-   "recomendado": 495,
-   "peor": 148,
-   "mejor": 2116,
-   "piso_de_verdad": 148,
-   "nota": "con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (por líneas abiertas, tope de diseño supuesto)"
+   "recomendado": 222,
+   "peor": 173,
+   "mejor": 2113,
+   "piso_de_verdad": 173,
+   "nota": "con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con avisos; peor = Hobby con sondeo; mejor = Pro de 8 procesos; cada uno es el menor de los recursos con la carga por topes (la misma cuenta de `recursos`)"
   }
  }
 }

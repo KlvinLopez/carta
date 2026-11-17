@@ -103,7 +103,7 @@
 
 **De qué supuesto depende y qué pasa si falla.** **Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.
 
-**Cifras del modelo.** Bolsa 500 / 1,000 / 2,000 / 5,000 → 279 (94–400) / 811 (246–1,896) / 1,896 (492–2,116) / 2,116 (1,391–2,116) restaurantes.
+**Cifras del modelo.** Bolsa 500 / 1,000 / 2,000 / 5,000 → 279 (94–400) / 811 (246–1,896) / 1,896 (492–2,116) / 2,116 (1,391–2,116) restaurantes gratuitos típicos (de 1,800 visitas al mes; no es la capacidad por recursos de «¿Qué nos limita?»: 182 con avisos).
 
 | Opción | A favor | En contra |
 |---|---|---|

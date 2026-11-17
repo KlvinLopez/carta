@@ -59,6 +59,8 @@ ${filas.map((f) => `| ${f.nombre} | ${f.que_se_mide} | ${f.umbral_aviso} % | ${f
 
 ## Escalones de servidor y costo del paso
 
+**Unidad de esta tabla:** «restaurantes típicos» del simulador (un gratuito de ${s.visitas_mes_gratuito.toLocaleString('en-US')} visitas al mes), no el restaurante registrado con la mezcla de paga y los topes. Esa otra cuenta, la de «¿Qué nos limita?» (\`recursos\`), da ${M.resumen(rec, s).cifras.find((f) => f.clave === 'restaurantes_que_caben').peor} con el sondeo de hoy y ${M.resumen(rec, s).cifras.find((f) => f.clave === 'restaurantes_que_caben').recomendado} con avisos (historial del gratuito a 30 días), y ${M.resumen(rec, s).cifras.find((f) => f.clave === 'restaurantes_que_caben_sin_purga').recomendado} sin purga: no son la misma pregunta y no se comparan.
+
 | Escalón | Capacidad (restaurantes típicos, simulador) | Disco | USD base al mes | Sube vs el anterior | Entra en el mes (recomendado) |
 |---|---|---|---|---|---|
 ${pasos.map((p) => `| ${p.nombre} | ${n0(p.capacidad_restaurantes_tipicos)} | ${p.volumen_gb} GB | ${p.costo_usd_base} | +${p.sube_costo_usd_vs_anterior} | ${p.mes_en_que_entra_recomendado ?? 'no entra en 36 meses'} |`).join('\n')}

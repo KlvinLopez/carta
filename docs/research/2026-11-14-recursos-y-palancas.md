@@ -198,7 +198,7 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 | **Acotar conexiones a la base** | Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos. | 0 % |
 
 
-**Efecto en los números del modelo.** Las palancas entran en `config.palancas` y mueven `resumen`: «restaurantes gratuitos que caben **con el historial que dice `config` (30 días, propuesta)**» = 279; **sin purga (12 meses acumulados)** = 23; con la analítica agregada por día (sobre 30 días): 495.
+**Efecto en los números del modelo.** Las palancas entran en `config.palancas` y mueven `resumen`: «restaurantes gratuitos que caben **con el historial que dice `config` (30 días, propuesta)**» = 182; **sin purga (12 meses acumulados)** = 41; con la analítica agregada por día (sobre 30 días): 222.
 
 ## 5. La escalera: el tamaño del servidor que rentamos
 

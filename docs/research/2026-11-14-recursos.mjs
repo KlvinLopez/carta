@@ -62,7 +62,7 @@ const md = `# Recursos y palancas: qué pagamos, cuánto aguanta cada pieza y c�
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** ${tip}. Con el **doble** de actividad lo que cabe se divide entre 2 (${n0(ac[2].procesador_hoy)} por procesador y ${n0(ac[2].disco_con_historial_30_dias)} por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de ${n0(rE('procesador').restaurantes_hoy)} a ${n0(R.pico_simultaneo.procesador_hoy)} (factor ${R.pico_simultaneo.factor}, supuesto).
 
-## De qué se compone el disco promedio (y por qué ya no es 279)
+## De qué se compone el disco promedio (y por qué ya no es ${n0(R.composicion_del_disco.cifra_de_antes)})
 
 ${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos e historial a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (antes: ${n0(c.cifra_de_antes)}).
 - **Mezcla:** ${n1(c.parte_que_paga * 1000)} de paga por cada 1,000 restaurantes registrados. Un gratuito guarda ${n0(c.meses_de_historial.gratuito)} mes (${n1(c.mb_por_restaurante.gratuito)} MB) y uno de paga ${n0(c.meses_de_historial.paga)} meses (${n1(c.mb_por_restaurante.paga)} MB); promedio ${n1(c.mb_por_restaurante.promedio)} MB.
