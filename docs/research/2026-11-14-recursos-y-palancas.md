@@ -2,14 +2,14 @@
 
 **Fecha:** 14 de noviembre de 2026 (ronda 6) · **Generado por `2026-11-14-recursos.mjs`** desde `recursos(config, s)` del modelo ([JSON](2026-11-14-recursos-y-palancas.json)); disco medido con [`2026-11-14-recursos-medir.py`](2026-11-14-recursos-medir.py) en PostgreSQL local, **con datos sintéticos** (el generador deja `miembro_id` y `platillo_id` nulos; se rellenaron con valores variados en la copia). **Las palancas son propuestas: no se tocó `app/` ni `migrations/`.**
 
-**Qué es un «restaurante típico» (en toda cifra de capacidad):** un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal). Con el **doble** de actividad lo que cabe se divide entre 2 (74 por procesador y 139 por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de 148 a 93 (factor 0.63, supuesto).
+**Qué es un «restaurante típico» (en toda cifra de capacidad):** un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal). Con el **doble** de actividad lo que cabe se divide entre 2 (86 por procesador y 91 por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de 173 a 108 (factor 0.63, supuesto).
 
 ## Conclusiones
 
-1. **Cuello de botella hoy: procesador (148, de 74 a 296) o disco, según cuánto historial se guarde y cuánto rinda el servidor: con historial del gratuito a 30 días el disco aguanta 279 y manda el procesador; sin purga manda el disco desde el mes 2 de operación de un restaurante.** Hoy **nada purga el historial** (03 §7 pide 13 y 24 meses sin distinguir por plan); la cifra de disco depende de los meses acumulados: 1 mes: 279 · 3 meses: 93 · 6 meses: 47 · 12 meses: 23 · lo que dice 03 §7 (24 meses de sesiones y 13 de analítica): 15 restaurantes.
-2. **El procesador es ±2× y no se ha medido en Railway:** 148 restaurantes hoy (de 74 a 296) y 1,064 con avisos (de 532 a 2,128); **148 frente a 279 (disco con 30 días) está dentro de ese margen**: no se puede decir cuál manda sin medirlo.
-3. **Con los avisos de la Fase 3 el procesador sube a 1,064 y manda el disco:** 23 restaurantes sin purga (12 meses acumulados) o 279 con el historial a 30 días. Las líneas abiertas aguantan 2,116: **es un tope de diseño supuesto (10,000 de Railway ÷ 4.7 líneas por restaurante), sin medir.**
-4. **La palanca número uno es el historial del gratuito a 30 días:** 155.2 MB menos por restaurante (acumulados con el historial supuesto); caben +256 restaurantes en el mismo disco (de 23 a 279 por disco). **Contradice 03 §7 (13 y 24 meses) y la regla 9 si se borran sesiones y comandas: hay que cambiar el documento y escribir el ADR antes.** Las siguientes, evaluadas sobre esa base: Analítica agregada por día en vez de una fila por evento (74.5 MB menos por restaurante (acumulados con el historial supuesto); caben +19 restaurantes en el mismo disco; sobre la base con historial a 30 días: +216) · Guardar la analítica en bruto sólo 7 días (después, agregada) (64.2 MB menos por restaurante (acumulados con el historial supuesto); caben +14 restaurantes en el mismo disco; sobre la base con historial a 30 días: +168).
+1. **Cuello de botella hoy: procesador (173, de 86 a 346) o disco, según cuánto historial se guarde y cuánto rinda el servidor: con historial del gratuito a 30 días el disco aguanta 182 y manda el procesador; sin purga manda el disco desde el mes 2 de operación de un restaurante.** Hoy **nada purga el historial** (03 §7 pide 13 y 24 meses sin distinguir por plan); la cifra de disco depende de los meses acumulados: 1 mes: 182 · 3 meses: 112 · 6 meses: 71 · 12 meses: 41 · lo que dice 03 §7 (24 meses de sesiones y 13 de analítica): 28 restaurantes.
+2. **El procesador es ±2× y no se ha medido en Railway:** 173 restaurantes hoy (de 86 a 346) y 880 con avisos (de 440 a 1,760); **880 frente a 182 (disco con 30 días) queda fuera de ese margen**: no se puede decir cuál manda sin medirlo.
+3. **Con los avisos de la Fase 3 el procesador sube a 880 y manda el disco:** 41 restaurantes sin purga (12 meses acumulados) o 182 con el historial a 30 días. Las líneas abiertas aguantan 3,268: **es un tope de diseño supuesto (10,000 de Railway ÷ 4.7 líneas por restaurante), sin medir.**
+4. **La palanca número uno es el historial del gratuito a 30 días:** 74.8 MB menos por restaurante (acumulados con el historial supuesto); caben +141 restaurantes en el mismo disco (de 41 a 182 por disco). **Contradice 03 §7 (13 y 24 meses) y la regla 9 si se borran sesiones y comandas: hay que cambiar el documento y escribir el ADR antes.** Las siguientes, evaluadas sobre esa base: Analítica agregada por día en vez de una fila por evento (38.2 MB menos por restaurante (acumulados con el historial supuesto); caben +27 restaurantes en el mismo disco; sobre la base con historial a 30 días: +40) · Guardar la analítica en bruto sólo 7 días (después, agregada) (32.9 MB menos por restaurante (acumulados con el historial supuesto); caben +21 restaurantes en el mismo disco; sobre la base con historial a 30 días: +34).
 5. **Lo que pagamos hoy: ≈ 10.2 USD al mes.** El disco pesa porque cada visita deja diez filas de analítica de 353 bytes y la analítica es 47 % de lo que ocupa una visita (7,506 bytes, medido con datos sintéticos).
 
 ## 1. Qué pagamos hoy
@@ -31,22 +31,22 @@
 
 | Recurso | Hoy, sin purga | Con avisos, sin purga | Hoy, historial 30 días | Con avisos, historial 30 días | ¿Cuello hoy? (sin purga / 30 días) | ¿Cuello con avisos? (sin purga / 30 días) | Medido o estimado |
 |---|---|---|---|---|---|---|---|
-| **Procesador (el trabajo de la API)** | 148 | 1,064 | 148 | 1,064 | no / **🔴 SÍ** | no / no | medido en local (±2×); falta medir en Railway: no se sabe cuántos núcleos entrega Hobby |
+| **Procesador (el trabajo de la API)** | 173 | 880 | 173 | 880 | no / **🔴 SÍ** | no / no | medido en local (±2×); falta medir en Railway: no se sabe cuántos núcleos entrega Hobby |
 | **Memoria de la API** | sin tope práctico | sin tope práctico | sin tope práctico | sin tope práctico | no / no | no / no | proceso y línea medidos; el resto supuesto |
-| **Disco de la base de datos** | 23 | 23 | 279 | 279 | **🔴 SÍ** / no | **🔴 SÍ** / **🔴 SÍ** | medido con datos sintéticos en PostgreSQL local (10 restaurantes medianos, un mes); depende de los meses de historial que se guarden (hoy nada purga) |
-| **Conexiones a la base de datos** | 3,288 | 23,644 | 3,288 | 23,644 | no / no | no / no | estimada: falta `SHOW max_connections` en Railway |
-| **Líneas abiertas con los teléfonos** | no existe hoy | 2,116 | no existe hoy | 2,116 | no / no | no / no | TOPE DE DISEÑO SUPUESTO, sin medir: 10,000 conexiones de Railway (documentación, «subject to change») ÷ 4.7 líneas por restaurante (relación del simulador de capacidad); el consumo por línea sí se midió en local |
+| **Disco de la base de datos** | 41 | 41 | 182 | 182 | **🔴 SÍ** / no | **🔴 SÍ** / **🔴 SÍ** | medido con datos sintéticos en PostgreSQL local (10 restaurantes medianos, un mes); depende de los meses de historial que se guarden (hoy nada purga) |
+| **Conexiones a la base de datos** | 3,850 | 19,574 | 3,850 | 19,574 | no / no | no / no | estimada: falta `SHOW max_connections` en Railway |
+| **Líneas abiertas con los teléfonos** | no existe hoy | 3,268 | no existe hoy | 3,268 | no / no | no / no | TOPE DE DISEÑO SUPUESTO, sin medir: 10,000 conexiones de Railway (documentación, «subject to change») ÷ 4.7 líneas por restaurante (relación del simulador de capacidad); el consumo por línea sí se midió en local |
 | **Almacenamiento de fotos y respaldos (R2)** | sin tope práctico | sin tope práctico | sin tope práctico | sin tope práctico | no / no | no / no | documento (mapa de procesos) y precio de Cloudflare |
 
 ### El disco según los meses de historial acumulado (hoy nada purga)
 
 | Historial del gratuito | MB por restaurante | Restaurantes que caben por disco (Hobby, 5 GB, 20 % de reserva) | Cuello hoy | Cuello con avisos |
 |---|---|---|---|---|
-| 1 mes | 14.3 | **279** | procesador (148) | disco (279) |
-| 3 meses | 42.5 | **93** | disco (93) | disco (93) |
-| 6 meses | 84.8 | **47** | disco (47) | disco (47) |
-| 12 meses | 169.5 | **23** | disco (23) | disco (23) |
-| lo que dice 03 §7 (24 meses de sesiones y 13 de analítica) | 262 | **15** | disco (15) | disco (15) |
+| 1 mes | 21.9 | **182** | procesador (173) | disco (182) |
+| 3 meses | 35.5 | **112** | disco (112) | disco (112) |
+| 6 meses | 55.9 | **71** | disco (71) | disco (71) |
+| 12 meses | 96.7 | **41** | disco (41) | disco (41) |
+| lo que dice 03 §7 (24 meses de sesiones y 13 de analítica) | 139.9 | **28** | disco (28) | disco (28) |
 
 **El disco manda desde el mes 2 de operación de un restaurante con el sondeo** (y desde el mes 1 con avisos) si nada purga. MB por restaurante = «al mes» sólo para el historial de 1 mes; con más meses es lo acumulado.
 
@@ -54,11 +54,11 @@
 
 | Actividad del restaurante típico | Procesador hoy | Procesador con avisos | Disco (sin purga) | Disco (historial 30 días) |
 |---|---|---|---|---|
-| ×0.5 | 296 | 2,128 | 46 | 558 |
-| ×1 | 148 | 1,064 | 23 | 279 |
-| ×2 | 74 | 532 | 11 | 139 |
+| ×0.5 | 346 | 1,760 | 82 | 364 |
+| ×1 | 173 | 880 | 41 | 182 |
+| ×2 | 86 | 440 | 20 | 91 |
 
-**Todos en su hora pico a la vez:** procesador 93 hoy y 670 con avisos. **Margen de error del procesador (±2×):** 74–296 hoy y 532–2,128 con avisos. 600 peticiones por segundo medidas en local con 2 núcleos (rango 420–600); no se sabe cuántos núcleos entrega Hobby: ±2× hasta medir en Railway.
+**Todos en su hora pico a la vez:** procesador 108 hoy y 554 con avisos. **Margen de error del procesador (±2×):** 86–346 hoy y 440–1,760 con avisos. 600 peticiones por segundo medidas en local con 2 núcleos (rango 420–600); no se sabe cuántos núcleos entrega Hobby: ±2× hasta medir en Railway.
 
 ### 2.1 Procesador (el trabajo de la API)
 
@@ -66,7 +66,7 @@
 
 **Consumo.** 1 gratuito típico = 1 unidad de carga; un cliente de paga pesa 2.3; con el sondeo un teléfono pregunta cada 3 s (≈ 4.1 peticiones/s por restaurante registrado, medido en el tope)
 
-**Límite hoy:** 148 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 1,064 restaurantes. **No es el cuello sin purga.**
+**Límite hoy:** 173 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 880 restaurantes. **No es el cuello sin purga.**
 
 
 ### 2.2 Memoria de la API
@@ -82,9 +82,9 @@
 
 **Cómo funciona hoy.** Cada visita deja filas en `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden` y `llamada_mesero`, y **diez filas de analítica en `evento_analitica`**; las tablas y sus índices viven en el volumen de PostgreSQL. Ruta: `app/db/models.py`; analítica en `app/services/analitica.py`.
 
-**Consumo.** 169.5 MB por restaurante gratuito típico con — meses de historial (1,800 visitas al mes), 7.5 KB por visita [medido con datos sintéticos].
+**Consumo.** 96.7 MB por restaurante gratuito típico con — meses de historial (1,800 visitas al mes), 7.5 KB por visita [medido con datos sintéticos].
 
-**Límite hoy:** 23 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 23 restaurantes. **🔴 Es el cuello de botella de hoy (sin purga).**
+**Límite hoy:** 41 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 41 restaurantes. **🔴 Es el cuello de botella de hoy (sin purga).**
 
 
 ### 2.4 Conexiones a la base de datos
@@ -93,7 +93,7 @@
 
 **Consumo.** cada petición retiene una conexión ≈ 3 ms
 
-**Límite hoy:** 3,288 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 23,644 restaurantes. **No es el cuello sin purga.**
+**Límite hoy:** 3,850 restaurantes (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 19,574 restaurantes. **No es el cuello sin purga.**
 
 
 ### 2.5 Líneas abiertas con los teléfonos
@@ -102,7 +102,7 @@
 
 **Consumo.** 10000 ÷ 2116 restaurantes típicos (la relación del simulador de capacidad)
 
-**Límite hoy:** no aplica (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 2,116 restaurantes. **No es el cuello sin purga.** **Es un tope de diseño supuesto, sin medir.**
+**Límite hoy:** no aplica (Hoy: sondeo, 2 procesos, Hobby). **Con avisos:** 3,268 restaurantes. **No es el cuello sin purga.** **Es un tope de diseño supuesto, sin medir.**
 
 
 ### 2.6 Almacenamiento de fotos y respaldos (R2)
@@ -144,21 +144,22 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 
 | Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |
 |---|---|---|---|---|---|---|---|
-| **Guardar estado en memoria 60 s** · El servidor recuerda el estado de cada mesa un minuto y sólo lo recalcula cuando la base avisa. | caben 148 | caben 276 | caben +128 restaurantes con el sondeo de hoy | medio | bajo-medio: cambia ADR-004 (vida máxima 2 s). EXTRAPOLA una medición por comensal (0.88 → 0.47 ms) a todo el procesador, y DEJA DE IMPORTAR cuando lleguen los avisos de la Fase 3 | ninguna; cambia un ADR | medida con datos sintéticos |
+| **Guardar estado en memoria 60 s** · El servidor recuerda el estado de cada mesa un minuto y sólo lo recalcula cuando la base avisa. | caben 173 | caben 306 | caben +133 restaurantes con el sondeo de hoy | medio | bajo-medio: cambia ADR-004 (vida máxima 2 s). EXTRAPOLA una medición por comensal (0.88 → 0.47 ms) a todo el procesador, y DEJA DE IMPORTAR cuando lleguen los avisos de la Fase 3 | ninguna; cambia un ADR | medida con datos sintéticos |
 
 ### Disco de la base de datos
 
 | Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |
 |---|---|---|---|---|---|---|---|
-| **Guardar 30 días en el gratuito** · El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra. | 169.5 MB por restaurante · caben 23 | 14.3 MB por restaurante · caben 279 | 155.2 MB menos por restaurante (acumulados con el historial supuesto); caben +256 restaurantes en el mismo disco · sobre la base con historial a 30 días: +0 restaurantes | medio | medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes | CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga | medida con datos sintéticos |
-| **Contar por día, no por evento** · En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo. | 169.5 MB por restaurante · caben 23 | 94.9 MB por restaurante · caben 42 | 74.5 MB menos por restaurante (acumulados con el historial supuesto); caben +19 restaurantes en el mismo disco · sobre la base con historial a 30 días: +216 restaurantes | medio | medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo | ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica | medida con datos sintéticos |
-| **Borrar analítica cruda a 7 días** · Los eventos sueltos se conservan una semana y después sólo queda el conteo por día. | 169.5 MB por restaurante · caben 23 | 105.3 MB por restaurante · caben 37 | 64.2 MB menos por restaurante (acumulados con el historial supuesto); caben +14 restaurantes en el mismo disco · sobre la base con historial a 30 días: +168 restaurantes | chico | bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial | CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial) | estimada |
+| **Guardar 30 días en el gratuito** · El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra. | 96.7 MB por restaurante · caben 41 | 21.9 MB por restaurante · caben 182 | 74.8 MB menos por restaurante (acumulados con el historial supuesto); caben +141 restaurantes en el mismo disco · sobre la base con historial a 30 días: +0 restaurantes | medio | medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes | CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga | medida con datos sintéticos |
+| **Contar por día, no por evento** · En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo. | 96.7 MB por restaurante · caben 41 | 58.5 MB por restaurante · caben 68 | 38.2 MB menos por restaurante (acumulados con el historial supuesto); caben +27 restaurantes en el mismo disco · sobre la base con historial a 30 días: +40 restaurantes | medio | medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo | ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica | medida con datos sintéticos |
+| **Borrar analítica cruda a 7 días** · Los eventos sueltos se conservan una semana y después sólo queda el conteo por día. | 96.7 MB por restaurante · caben 41 | 63.8 MB por restaurante · caben 62 | 32.9 MB menos por restaurante (acumulados con el historial supuesto); caben +21 restaurantes en el mismo disco · sobre la base con historial a 30 días: +34 restaurantes | chico | bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial | CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial) | estimada |
+| **Archivar sesiones viejas en R2** · Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base. | 96.7 MB por restaurante · caben 41 | 56.6 MB por restaurante · caben 70 | 40.2 MB menos por restaurante (acumulados con el historial supuesto); caben +29 restaurantes en el mismo disco · sobre la base con historial a 30 días: +165 restaurantes | grande | alto: se vuelve a leer el historial del archivo; un error pierde datos | regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes | estimada |
 
 ### Líneas abiertas con los teléfonos
 
 | Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |
 |---|---|---|---|---|---|---|---|
-| **Cerrar líneas sin movimiento** · La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola. | caben 2116 | caben 3022 | caben +906 restaurantes antes de topar las 10,000 líneas | medio | bajo: el teléfono ya vuelve al sondeo si la línea falla | ninguna | estimada |
+| **Cerrar líneas sin movimiento** · La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola. | caben 3268 | caben 4669 | caben +1401 restaurantes antes de topar las 10,000 líneas | medio | bajo: el teléfono ya vuelve al sondeo si la línea falla | ninguna | estimada |
 
 **Memoria y fotos:** ninguna palanca por ahora.
 
@@ -168,10 +169,9 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 
 | Ajuste menor | Qué es | Sube la capacidad del recurso que toca (máximo) |
 |---|---|---|
-| **Quitar índices que sobran** | La tabla de analítica deja sólo los dos índices que de verdad se usan. | 11.1 % |
-| **Usar tipos de dato más chicos** | Los campos de la analítica pasan de texto largo a números y huellas cortas. | 11.1 % |
+| **Quitar índices que sobran** | La tabla de analítica deja sólo los dos índices que de verdad se usan. | 3.8 % |
+| **Usar tipos de dato más chicos** | Los campos de la analítica pasan de texto largo a números y huellas cortas. | 3.8 % |
 | **Purgar claves de reintento diario** | Las claves que evitan duplicar una orden al reintentar se borran al día siguiente. | 0 % |
-| **Archivar sesiones viejas en R2** | Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base. | 0 % |
 | **Acotar conexiones a la base** | Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos. | 0 % |
 
 
@@ -181,11 +181,11 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 
 | Tamaño del servidor | USD al mes (base a con carga) | Restaurantes que caben · recurso que obliga a subir (sin purga) | Con el historial a 30 días |
 |---|---|---|---|
-| Hobby (el que pagamos hoy): 2 procesos, 5 GB | 8.1 a 12 | 23 · **disco** | — |
-| Pro, 2 procesos, 50 GB | 20 a 30 | 148 · **procesador** | — |
-| Pro, 4 procesos, 50 GB | 23 a 44 | 236 · **disco** | — |
-| Pro, 8 procesos, 50 GB | 30 a 54 | 236 · **disco** | — |
-| Una segunda copia de toda la pila (extrapolación sin medir) | — | 472 · **disco** | — |
+| Hobby (el que pagamos hoy): 2 procesos, 5 GB | 8.1 a 12 | 41 · **disco** | — |
+| Pro, 2 procesos, 50 GB | 20 a 30 | 173 · **procesador** | — |
+| Pro, 4 procesos, 50 GB | 23 a 44 | 311 · **procesador** | — |
+| Pro, 8 procesos, 50 GB | 30 a 54 | 356 · **procesador** | — |
+| Una segunda copia de toda la pila (extrapolación sin medir) | — | 712 · **procesador** | — |
 
 **Lectura.** Cada tamaño se llena por **el recurso en negritas**. Sin purga el disco manda en todos los tamaños de Hobby y Pro (50 GB tampoco alcanza con 12 meses); con 30 días de historial el procesador manda a partir del servidor Pro. **El de 8 procesos topa en las 10,000 líneas abiertas de Railway (tope de diseño supuesto, sin medir); más allá hay que repetir toda la pila (extrapolación sin medir).**
 

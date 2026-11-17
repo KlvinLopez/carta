@@ -205,6 +205,24 @@ p("meniu", {
     {"funcion": "Importar la carta desde un PDF con IA", "meniu": False, "carta": "v1 (hoy): el operador confirma", "rescatar": "es de Carta"},
     {"funcion": "Programa de afiliados (comisión por referir)", "meniu": True, "carta": "No", "rescatar": "Quizá: canal de ventas barato"}],
 }, origen="fuente", fuente="páginas públicas de meniuapp.com leídas con un navegador el 17-nov-2026 (enlaces en `paginas`); «+4,000 restaurantes» y «4.8 en Google» son afirmaciones de la empresa, no verificadas; en los blogs se llama «alternativa gratis» a un producto que sólo ofrece una prueba de 7 días", nota="inventario de lo que Meniu publica; la columna de Carta sale de CLAUDE.md y del plan (Fase 3 todavía no construida)", mueve=False)
+# --- ronda 10: lo que cuesta un platillo y cómo la carga depende de los topes ---
+_pl = _j.load(open(__import__("os").path.join(AQUI, "2026-11-17-platillo-datos.json")))
+_m50, _m150 = _pl["menu"]["50"], _pl["menu"]["150"]
+_ms_pp = (_m150["ms_armar_mediana"] - _m50["ms_armar_mediana"]) / 100
+p("platillo", {
+    "bytes_en_la_base": round(_pl["platillo_en_la_base"]["bytes_marginales_por_platillo"]),
+    "rango_bytes_en_la_base": [round(_pl["platillo_en_la_base"]["bytes_marginales_por_platillo"]), 1775],
+    "menu_json_bytes_por_platillo": round((_m150["json_bytes"] - _m50["json_bytes"]) / 100),
+    "menu_gzip_bytes_por_platillo_con_textos_repetidos": round((_m150["gzip_bytes"] - _m50["gzip_bytes"]) / 100),
+    "ms_armar_menu_base": round(_m50["ms_armar_mediana"] - 50 * _ms_pp, 2), "ms_armar_menu_por_platillo": round(_ms_pp, 3),
+    "armado_cada_segundos": 30,
+    "foto_variantes_bytes_fixtures": round(_pl["foto_bytes_por_platillo_media"]),
+    "foto_variantes_bytes_real": 100000, "rango_foto_variantes_bytes_real": [30000, 250000],
+    "foto_original_bytes_tipico": 3000000, "rango_foto_original_bytes": [1000000, 8000000], "foto_original_bytes_tope": 15000000,
+    "parte_con_foto": 0.8, "platillos_del_perfil_chico": 30},
+  origen="medido", fuente="2026-11-17-platillo-medir.py (PostgreSQL local, textos y fotos del repositorio, sintéticos): bytes marginales por platillo con 10,000 filas (los 1,775 son el valor con pocas filas: páginas mínimas por índice); tamaño del menú y procesador de armarlo con 50 a 150 platillos; fotos de tests/fixtures/fotos (18 JPEG; sintéticas y chicas: el procesado deja ≈ 14 KB por foto, no representan fotos reales). SUPUESTOS (sin dato): foto real 100 KB procesada (30–250), original típico 3 MB (1–8; el tope es 15 MB, documento), 80 % de los platillos con foto (seed: 18 de 22)",
+  nota="costo técnico de un platillo; los originales se guardan en el bucket privado de R2 (AC-17.2)", mueve=False)
+p("perfil_por_topes", {"visitas_por_mesa_mes": 180, "lineas_staff_por_cuenta": 1, "cuentas_perfil_tipico": 3, "mesas_perfil_tipico": 10}, origen="supuesto", fuente="el simulador: un negocio chico con 10 mesas y 1,800 visitas al mes [documento: planes-y-costo §0] → 180 visitas por mesa; las líneas del comensal por mesa se calibran para que el perfil típico (10 mesas, 3 cuentas) dé las 4.7 líneas por restaurante de la capacidad", nota="la carga por restaurante crece con las mesas (visitas y eventos), las cuentas (líneas del personal) y los platillos (disco, fotos y armado del menú); proporcionalidad supuesta", mueve=False)
 p("visitas_mes_gratuito", 1800, 1500, 4500, "documento", "planes-y-costo §0 y disco-e-historial: 1,800 visitas al mes (chico y mediano; grande 4,500, formal 1,500)", "visitas (sesiones de mesa) al mes de un gratuito típico", mueve=False)
 out = dict(version="2026-11-14", moneda="MXN",
            leyenda="origen: medido (lo medí con datos), documento (lo dice otro documento del repositorio), fuente (página o norma citada), supuesto (juicio mío, con rango y forma de medirlo), sin dato",

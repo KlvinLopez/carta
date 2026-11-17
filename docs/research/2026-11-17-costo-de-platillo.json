@@ -1,0 +1,255 @@
+{
+  "filas": [
+    {
+      "platillos": 50,
+      "base_de_datos": {
+        "bytes_por_platillo": 557,
+        "bytes_por_restaurante": 27850,
+        "rango_bytes_por_restaurante": [
+          27850,
+          88750
+        ]
+      },
+      "fotos_en_r2": {
+        "gb_por_restaurante": 0.124,
+        "rango_gb": [
+          0.0412,
+          0.33
+        ],
+        "restaurantes_que_caben_en_lo_gratis": 80,
+        "rango_restaurantes": [
+          30,
+          242
+        ],
+        "pesos_al_mes_por_restaurante_si_se_pasa": 0.034630968,
+        "con_foto": 40
+      },
+      "menu": {
+        "json_bytes": 37550,
+        "ms_armar_por_cada_30_segundos": 7.02,
+        "parte_de_un_nucleo": 0.00023399999999999997
+      },
+      "cobertura_de_platillos": {
+        "baja": 0.14662445935135102,
+        "alta": 0.6292964785525512
+      },
+      "clientes_de_paga_por_1000_por_el_tope": 137.03926303547445,
+      "cobertura_de_0_a_5_dentro_de_chef": {
+        "baja": 0.07241782047363227,
+        "alta": 0.31080953075710505
+      },
+      "continuo": {
+        "mb_por_restaurante": 21.882463302843174,
+        "carga_cpu_total_con_avisos": 0.9748427148029972,
+        "carga_cpu_total_con_sondeo": 0.8217398576601401,
+        "menu_en_unidades_de_carga_con_avisos": 0.17784
+      },
+      "capacidad": {
+        "con_avisos": {
+          "disco": 182,
+          "procesador": 1091,
+          "cuello": "disco",
+          "restaurantes": 182
+        },
+        "con_sondeo": {
+          "disco": 182,
+          "procesador": 180,
+          "cuello": "procesador",
+          "restaurantes": 180
+        }
+      }
+    },
+    {
+      "platillos": 80,
+      "base_de_datos": {
+        "bytes_por_platillo": 557,
+        "bytes_por_restaurante": 44560,
+        "rango_bytes_por_restaurante": [
+          44560,
+          142000
+        ]
+      },
+      "fotos_en_r2": {
+        "gb_por_restaurante": 0.1984,
+        "rango_gb": [
+          0.06592,
+          0.528
+        ],
+        "restaurantes_que_caben_en_lo_gratis": 50,
+        "rango_restaurantes": [
+          18,
+          151
+        ],
+        "pesos_al_mes_por_restaurante_si_se_pasa": 0.0554095488,
+        "con_foto": 64
+      },
+      "menu": {
+        "json_bytes": 60080,
+        "ms_armar_por_cada_30_segundos": 9.78,
+        "parte_de_un_nucleo": 0.00032599999999999996
+      },
+      "cobertura_de_platillos": {
+        "baja": 0.25,
+        "alta": 0.892
+      },
+      "clientes_de_paga_por_1000_por_el_tope": 121.19232987880766,
+      "cobertura_de_0_a_5_dentro_de_chef": {
+        "baja": 0.123475,
+        "alta": 0.44055880000000003
+      },
+      "continuo": {
+        "mb_por_restaurante": 21.89723688204061,
+        "carga_cpu_total_con_avisos": 1.0447627148029972,
+        "carga_cpu_total_con_sondeo": 0.8314655719458544,
+        "menu_en_unidades_de_carga_con_avisos": 0.24775999999999998
+      },
+      "capacidad": {
+        "con_avisos": {
+          "disco": 182,
+          "procesador": 1018,
+          "cuello": "disco",
+          "restaurantes": 182
+        },
+        "con_sondeo": {
+          "disco": 182,
+          "procesador": 177,
+          "cuello": "procesador",
+          "restaurantes": 177
+        }
+      }
+    },
+    {
+      "platillos": 100,
+      "base_de_datos": {
+        "bytes_por_platillo": 557,
+        "bytes_por_restaurante": 55700,
+        "rango_bytes_por_restaurante": [
+          55700,
+          177500
+        ]
+      },
+      "fotos_en_r2": {
+        "gb_por_restaurante": 0.248,
+        "rango_gb": [
+          0.0824,
+          0.66
+        ],
+        "restaurantes_que_caben_en_lo_gratis": 40,
+        "rango_restaurantes": [
+          15,
+          121
+        ],
+        "pesos_al_mes_por_restaurante_si_se_pasa": 0.069261936,
+        "con_foto": 80
+      },
+      "menu": {
+        "json_bytes": 75100,
+        "ms_armar_por_cada_30_segundos": 11.62,
+        "parte_de_un_nucleo": 0.0003873333333333333
+      },
+      "cobertura_de_platillos": {
+        "baja": 0.286,
+        "alta": 0.959
+      },
+      "clientes_de_paga_por_1000_por_el_tope": 117.15072238284925,
+      "cobertura_de_0_a_5_dentro_de_chef": {
+        "baja": 0.1412554,
+        "alta": 0.47365009999999996
+      },
+      "continuo": {
+        "mb_por_restaurante": 21.9070859348389,
+        "carga_cpu_total_con_avisos": 1.0913760481363306,
+        "carga_cpu_total_con_sondeo": 0.8379493814696639,
+        "menu_en_unidades_de_carga_con_avisos": 0.2943733333333333
+      },
+      "capacidad": {
+        "con_avisos": {
+          "disco": 182,
+          "procesador": 974,
+          "cuello": "disco",
+          "restaurantes": 182
+        },
+        "con_sondeo": {
+          "disco": 182,
+          "procesador": 176,
+          "cuello": "procesador",
+          "restaurantes": 176
+        }
+      }
+    },
+    {
+      "platillos": 150,
+      "base_de_datos": {
+        "bytes_por_platillo": 557,
+        "bytes_por_restaurante": 83550,
+        "rango_bytes_por_restaurante": [
+          83550,
+          266250
+        ]
+      },
+      "fotos_en_r2": {
+        "gb_por_restaurante": 0.372,
+        "rango_gb": [
+          0.1236,
+          0.99
+        ],
+        "restaurantes_que_caben_en_lo_gratis": 26,
+        "rango_restaurantes": [
+          10,
+          80
+        ],
+        "pesos_al_mes_por_restaurante_si_se_pasa": 0.103892904,
+        "con_foto": 120
+      },
+      "menu": {
+        "json_bytes": 112650,
+        "ms_armar_por_cada_30_segundos": 16.22,
+        "parte_de_un_nucleo": 0.0005406666666666666
+      },
+      "cobertura_de_platillos": {
+        "baja": 0.518,
+        "alta": 0.98
+      },
+      "clientes_de_paga_por_1000_por_el_tope": 115.88394988411602,
+      "cobertura_de_0_a_5_dentro_de_chef": {
+        "baja": 0.2558402,
+        "alta": 0.484022
+      },
+      "continuo": {
+        "mb_por_restaurante": 21.93170856683463,
+        "carga_cpu_total_con_avisos": 1.2079093814696638,
+        "carga_cpu_total_con_sondeo": 0.8541589052791877,
+        "menu_en_unidades_de_carga_con_avisos": 0.41090666666666664
+      },
+      "capacidad": {
+        "con_avisos": {
+          "disco": 182,
+          "procesador": 880,
+          "cuello": "disco",
+          "restaurantes": 182
+        },
+        "con_sondeo": {
+          "disco": 182,
+          "procesador": 173,
+          "cuello": "procesador",
+          "restaurantes": 173
+        }
+      }
+    }
+  ],
+  "efecto_de_subir_el_tope": {
+    "de": 50,
+    "a": 150,
+    "disco_con_avisos": -0.0022453911350037077,
+    "procesador_con_avisos": -0.19295045658399826,
+    "disco_con_sondeo": -0.0022453911350037077,
+    "procesador_con_sondeo": -0.0379543518409507
+  },
+  "conclusion": "De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope: el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).",
+  "medido_con": "textos y fotos del repositorio (sintéticos); fotos reales y originales: supuestos con rango",
+  "supuestos": {
+    "foto_variantes_bytes_real": 100000,
+    "foto_original_bytes_tipico": 3000000,
+    "parte_con_foto": 0.8
+  }
+}

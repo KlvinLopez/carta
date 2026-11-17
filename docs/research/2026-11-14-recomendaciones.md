@@ -35,9 +35,9 @@
 
 ---
 
-## 2. Tope de platillos del plan Chef (DECIDIDA por Calvin el 17-nov: cuenta todo, bebidas incluidas)
+## 2. Tope de platillos del plan Chef (cuenta todo, bebidas incluidas, decidido el 17-nov; el VALOR del tope, REABIERTO por Calvin el mismo día)
 
-**Recomendación.** **El tope de 150 platillos cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026).** La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.
+**Recomendación.** **El tope cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026); su valor (hoy 150) quedó REABIERTO** («se me hace demasiado»): de 50 a 150 el disco casi no se mueve (0.2 %) y el procesador tampoco se acaba; cambia la cobertura y los de paga (ver `2026-11-17-costo-de-platillo.md`). La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.
 
 **De qué supuesto depende y qué pasa si falla.** **De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio**. **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.
 
