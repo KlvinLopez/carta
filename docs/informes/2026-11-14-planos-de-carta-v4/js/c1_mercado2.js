@@ -59,12 +59,19 @@ DET.mercado2 = {
     // el panel de la derecha: lo que se ve de lo elegido, o el resumen
     const px = 900, so = 900, el = sel ? items.find(c => c.clave === sel) : null;
     b += Rc(px, 330, 440, 250, "#fff", 24) ;
-    if (el) { b += T(px + 22, 372, el.nom, 20, C.vino, "start", 400, true) + T(px + 22, 428, n(el.n), 48, el.tipo === "núcleo" ? C.vino : C.t2, "start", 400, true) + T(px + 22, 452, `${n(100 * el.n / M.total, 1)} % del total`, 14, C.t2) + T(px + 22, 492, el.tipo === "núcleo" ? "Cliente potencial (SAM)" : "Fuera de lo que Carta atiende hoy", 13.5, el.tipo === "núcleo" ? C.vino : C.t2, "start", 700); }
-    else { b += T(px + 22, 372, "Toca un círculo", 20, C.vino, "start", 400, true) + T(px + 22, 428, n(M.nucleo), 48, C.vino, "start", 400, true) + T(px + 22, 452, "clientes potenciales (SAM)", 14, C.t2) + T(px + 22, 492, `= ${n(100 * M.nucleo / M.total, 1)} % del total`, 13.5, C.vino, "start", 700); }
+    if (el) { b += T(px + 22, 412, el.nom, 20, C.vino, "start", 400, true) + T(px + 22, 468, n(el.n), 48, el.tipo === "núcleo" ? C.vino : C.t2, "start", 400, true) + T(px + 22, 492, `${n(100 * el.n / M.total, 1)} % del total`, 14, C.t2) + T(px + 22, 532, el.tipo === "núcleo" ? "Cliente potencial (SAM)" : "Fuera de lo que Carta atiende hoy", 13.5, el.tipo === "núcleo" ? C.vino : C.t2, "start", 700); }
+    else { b += T(px + 22, 412, "Toca un círculo", 20, C.vino, "start", 400, true) + T(px + 22, 468, n(M.nucleo), 48, C.vino, "start", 400, true) + T(px + 22, 492, "clientes potenciales (SAM)", 14, C.t2) + T(px + 22, 532, `= ${n(100 * M.nucleo / M.total, 1)} % del total`, 13.5, C.vino, "start", 700); }
     // la meta a 12 meses: 300 puntos dorados en un grid chico
     b += T(so, 60, "Meta a 12 meses (SOM)", 16, C.dorado, "start", 700) + T(so, 112, "300", 44, C.dorado, "start", 400, true) + T(so + 100, 106, "restaurantes: un escenario", 13.5, C.t2);
     for (let i = 0; i < 100; i++) b += `<circle ${gpc} style="animation-delay:${800 + i * 10}ms" cx="${so + 8 + (i % 20) * 12.4}" cy="${150 + Math.floor(i / 20) * 14}" r="4.4" fill="${C.dorado}"/>`;
     b += T(so, 232, "cada punto = 3 restaurantes", 12, C.t2);
+    { const mm = conCache("meta12", () => MOD.meta12Meses(config(S), sup(S))), es = [["recomendado", "Recomendado", C.vino], ["peor", "Peor", C.rojo], ["mejor", "Mejor", C.verde]].map(([k, nom, col]) => ({k, nom, col, m: mm.escenarios[k].mes_12})), base = es[0].m.ingresos, mx = Math.max(...es.map(q => q.m.ingresos), 1), BW = 200;
+      b += T(so, 262, "Mes 12, ingresos al mes (MXN)", 13, C.dorado, "start", 700);
+      es.forEach((q, i) => {
+        const y = 272 + i * 30, ws = BW * q.m.ingreso_suscripcion / mx, wa = BW * q.m.ingreso_anuncios / mx, dl = i ? ` (${q.m.ingresos >= base ? "+" : "−"}${n(Math.abs(q.m.ingresos - base))})` : "";
+        b += `<g data-tip="${esc2(`${q.nom}, mes 12|${n(q.m.ingresos)} MXN|${n(q.m.de_paga)} clientes de paga: suscripción ${n(q.m.ingreso_suscripcion)} y anuncios ${n(q.m.ingreso_anuncios)}. Margen ${n(q.m.margen_operacion)}; después de captación ${q.m.margen_despues_de_captacion >= 0 ? "" : "−"}${n(Math.abs(q.m.margen_despues_de_captacion))} MXN.`)}">` + T(so, y + 14, q.nom, 12.5, q.col, "start", 700) + `<g ${gpc} style="animation-delay:${900 + i * 120}ms">` + Rc(so + 96, y, Math.max(ws, 3), 20, q.col, 6) + Rc(so + 96 + ws, y, wa, 20, C.dorado, 6) + `</g>` + T(so + 96 + ws + wa + 8, y + 15, n(q.m.ingresos) + dl, 12.5, C.tinta, "start", 700) + `</g>`;
+      });
+      b += T(so + 96, 374, "suscripción (color del escenario) + anuncios (dorado)", 11.5, C.t2, "start", 700); }
     sv.innerHTML = b;
   },
 };

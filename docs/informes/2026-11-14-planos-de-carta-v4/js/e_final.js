@@ -122,14 +122,14 @@ DET.sostiene = {
       if (f.mo >= 0) { b += `<g class="gh" style="animation-delay:360ms">${Rc(x, y, mw, 44, C.verde, 6)}</g>` + T(x + mw / 2, y + 27, `margen ${n(f.mo, 0)}`, 13, "#fff", "middle", 700); }
       else b += T(x + 12, y + 27, `faltan ${n(-f.mo, 0)}`, 13, C.rojo, "start", 700);
       const base0 = filas[1].e.margen_operacion, dl = f.k === "rec" ? "caso base" : `${f.e.margen_operacion >= base0 ? "+" : "−"}${n(Math.abs(f.e.margen_operacion - base0))} MXN frente al recomendado`;
-      b += T(X0, y + 66, `Margen de operación (antes de captación, sueldos e impuestos): ${n(f.mo, 1)} de cada 100`, 12.5, C.t2) + T(X0, y + 88, `${fmP(f.e.margen_operacion)} al mes · ${dl}`, 14, f.col, "start", 700) + T(X0, y + 106, `Después de captación ${n(f.mc, 1)} · neto ${n(f.mn, 1)} (sueldos e impuestos valen cero: sin dato)`, 11.5, C.t2);
+      b += T(X0, y + 66, `Margen de operación (antes de captación, sueldos e impuestos): ${n(MOD.mensajes(config(S), sup(S)).margen.por_escenario[{peor: "peor", rec: "recomendado", mejor: "mejor"}[f.k]].por_cada_100.margen, 1)} de cada 100`, 12.5, C.t2) + T(X0, y + 88, `${fmP(f.e.margen_operacion)} al mes · ${dl}`, 14, f.col, "start", 700) + T(X0, y + 106, `Después de captación ${n(f.mc, 1)} · neto ${n(f.mn, 1)} (sueldos e impuestos valen cero: sin dato)`, 11.5, C.t2);
     });
     sv.innerHTML = b;
     const r = filas[1];
     return {
       leyenda: [["Servidor", "#b9afa3"], ["Soporte", "#d9cfc2"], ["Comisión de tarjeta", "#c9a9a6"], ["Reponer bajas", C.arena], ["Margen", C.verde]].map(([t, c]) => `<span><i style="background:${c}"></i>${t}</span>`).join(""),
       cifras: [[n(r.mo, 1), "pesos de cada 100 son margen de operación (recomendado)", "supuesto"], [n(r.mc, 1), "pesos de cada 100 después de captación", "supuesto"], [n(r.mn, 1), "pesos de cada 100 de margen neto (sueldos e impuestos valen cero: sin dato)", "supuesto"]],
-      insight: `En el caso recomendado, de cada 100 pesos que entran quedan ${n(r.mo, 0)} de margen de operación, ${n(r.mc, 0)} después de captación y ${n(r.mn, 0)} netos; en el peor caso el margen es ${n(filas[0].mo, 0)}.`,
+      insight: MOD.mensajes(config(S), sup(S)).margen.frase,
     };
   },
   v4() { // matriz 3 × 3: qué tanto pagan × cuánto dejan los anuncios (margen de operación con 1,000 restaurantes)

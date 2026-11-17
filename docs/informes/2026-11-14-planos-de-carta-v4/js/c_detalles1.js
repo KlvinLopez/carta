@@ -56,8 +56,8 @@ DET.linea = {
     // la línea de referencia: va encima de las barras y sube hasta tocar la barra de los mexicanos que usan internet
     rm.put("ref", "rect", {x: X0 + wi - 1.25, y: 44, w: 2.5, h: Y0 + RH * 7 - 6 - 44, rx: 1.2, fill: C.vino, grow: false, op: 0.6});
     // corchetes: a qué plan le toca cada tamaño y cuánto representaría si todos pagaran
-    const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio];
-    const enChef = chef05(cfg), n0 = SEG.estratos[0].negocios * enChef, gr = [{p: 0, i: 0, f: 0, neg: n0}, {p: 1, i: 1, f: SEG.estratos.length - 1, neg: totN - n0}];
+    const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio], potChef = conCache("potChef", () => MOD.potencialChef(cfg, SP));
+    const enChef = chef05(cfg), n0 = potChef.negocios_en_chef, gr = [{p: 0, i: 0, f: 0, neg: n0}, {p: 1, i: 1, f: SEG.estratos.length - 1, neg: totN - n0}];
     for (let g = 0; g < 2; g++) {
       const u = gr[g], y1 = Y0 + u.i * RH - 2, y2 = Y0 + (u.f + 1) * RH - 10, col = COLPLAN[g];
       rm.put("bk" + g, "rect", {x: 590, y: y1, w: 6, h: y2 - y1, rx: 3, fill: col, grow: false});
@@ -65,8 +65,9 @@ DET.linea = {
       rm.put("bkb" + g, "rect", {x: 590, y: y2 - 6, w: 14, h: 6, rx: 3, fill: col, grow: false});
       const ym = (y1 + y2) / 2;
       rm.put("bn" + g, "text", {x: 618, y: ym - 14, text: NOMPLAN[g], size: 17, fill: col, serif: true});
-      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %`, size: 12.5, weight: 700, fill: C.tinta, attrs: {"data-tip": `${NOMPLAN[g]}|${n(u.neg)} negocios|${g === 0 ? `Cabe en ${S.topeMesas} mesas y ${S.topeCuentas} ${S.topeCuentas === 1 ? "cuenta" : "cuentas"}: ≈ ${n(100 * enChef)} % de los de 0 a 5 personas (modelo).` : `Si todos pagaran ${mxn(precio[g])}: ${n(u.neg * precio[g] / 1e6, 1)} MXN M al mes.`}`, "data-tipp": u.neg / totN}});
-      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: g === 0 ? "0 a 5 personas; con anuncios" : `si todos pagaran: ${n(u.neg * precio[g] / 1e6, 1)} MXN M al mes`, size: 12, fill: C.t2});
+      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %`, size: 12.5, weight: 700, fill: C.tinta, attrs: {"data-tip": `${NOMPLAN[g]}|${n(u.neg)} negocios|${g === 0 ? `Cabe en ${S.topeMesas} mesas y ${S.topeCuentas} ${S.topeCuentas === 1 ? "cuenta" : "cuentas"}: ≈ ${n(100 * enChef)} % de los de 0 a 5 personas (modelo).` : `Si todos pagaran ${mxn(precio[g])}: ${n(u.neg * precio[g] / 1e6, 1)} M MXN al mes.`}`, "data-tipp": u.neg / totN}});
+      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: g === 0 ? "techo en anuncios al mes:" : `si todos pagaran: ${n(u.neg * precio[g] / 1e6, 1)} M MXN`, size: 12, fill: C.t2});
+      if (g === 0) { const pa = potChef.potencial_anuncios_mes; rm.put("bg2", "text", {x: 618, y: ym + 38, text: `${n(pa.baja.pesos_al_mes_de_todos_los_chef)} MXN, tarifa baja`, size: 12, weight: 700, fill: C.vino, attrs: {"data-tip": `Techo en anuncios, Chef|${n(pa.baja.pesos_al_mes_de_todos_los_chef)} MXN al mes|Si los ${n(potChef.negocios_en_chef)} negocios estuvieran en Carta con tarifa baja; techo teórico, no proyección.`, "data-tipv": `tri:tarifa baja|${pa.baja.pesos_al_mes_de_todos_los_chef}|${n(pa.baja.pesos_al_mes_de_todos_los_chef)};media|${pa.media.pesos_al_mes_de_todos_los_chef}|${n(pa.media.pesos_al_mes_de_todos_los_chef)};alta|${pa.alta.pesos_al_mes_de_todos_los_chef}|${n(pa.alta.pesos_al_mes_de_todos_los_chef)}`}}); }
     }
     // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
     const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 820;

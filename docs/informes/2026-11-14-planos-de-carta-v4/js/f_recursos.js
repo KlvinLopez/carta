@@ -14,7 +14,7 @@ const PAL_CORTO = {estado_en_memoria_60s: "Estado de mesa en memoria 60 s", anal
 const parr = (t, m) => { const o = []; let cur = ""; t.split(" ").forEach(w => { if ((cur + " " + w).trim().length > m && cur) { o.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }); if (cur) o.push(cur); return o; };
 const TIPICO = "Restaurante típico (supuesto): 1,800 visitas al mes y 114 comensales al día.";
 /* el análisis decide con `en_tablero` cuáles palancas mueven el cuello y merecen un lugar aquí; mientras no lo traiga, se muestran todas */
-const enTablero = p => { const v = p.en_tablero ?? (MOD.PALANCAS[p.id] || {}).en_tablero; return v !== false && !(v && v.en_tablero === false); };
+const enTablero = p => { const t = conCache("palTab", () => MOD.palancasEnTablero(config(S), sup(S))).palancas[p.id]; return !t || t.en_tablero !== false; };
 const PHR_PAL = {
   analitica_agregada_por_dia: "La base guarda un conteo por día, no una fila por cada toque.",
   retencion_analitica_7_dias: "Los eventos sueltos duran una semana; después sólo queda el conteo diario.",
