@@ -108,7 +108,10 @@ function colocaPanel(t) {
   let x = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8), y = r.top - h - 12;
   if (y < 8) y = Math.min(r.bottom + 12, innerHeight - h - 8);
   tt.style.left = x + "px"; tt.style.top = Math.max(8, y) + "px";
+  tt.dataset.lado = y < 8 ? "abajo" : "arriba"; tt.style.setProperty("--ax", clamp(r.left + r.width / 2 - x, 20, w - 20) + "px");
+  tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = "";
 }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !tt.hidden) { tt.hidden = true; ttEl = null; } });
 function tip(e) {
   const t = e.target.closest ? e.target.closest("[data-tip]") : null;
   if (!t) { tt.hidden = true; ttEl = null; return; }

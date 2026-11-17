@@ -120,9 +120,10 @@ DET.topes = {
       const x = 30 + i * 132, p = planDe(q, c), sh0 = i === 0 ? clamp(chef05(c), 0, 1) : 0, g = rm.put("dz" + i, "g", {x: x + 8, y: 262});
       if (!g.__i) { g.__i = 1; g.innerHTML = dibujo(EJTAM[i][0], 0, 0, 0.7); }
       if (i === 0) { // 0 a 5 personas: una parte cabe en Chef y el resto va a Master Chef
-        rm.put("cp0", "rect", {x, y: 352, w: 124, h: 34, rx: 17, fill: COLPLAN[1]});
-        rm.put("cp0b", "rect", {x, y: 352, w: Math.max(sh0 * 124, 20), h: 34, rx: 17, fill: COLPLAN[0]});
-        rm.put("cpt0", "text", {x: x + 62, y: 374, text: "Chef · Master Chef", size: 12, weight: 700, fill: "#fff", anchor: "middle"});
+        rm.put("cp0", "rect", {x, y: 342, w: 124, h: 44, rx: 20, fill: COLPLAN[1]});
+        rm.put("cp0b", "rect", {x, y: 342, w: Math.max(sh0 * 124, 24), h: 44, rx: 20, fill: COLPLAN[0]});
+        rm.put("cpt0", "text", {x: x + 62, y: 360, text: `Chef · ${n(100 * sh0)} %`, size: 12, weight: 700, fill: "#fff", anchor: "middle"});
+        rm.put("cpt0b", "text", {x: x + 62, y: 377, text: `Master Chef · ${n(100 * (1 - sh0))} %`, size: 11.5, weight: 700, fill: "#fff", anchor: "middle"});
       } else {
         rm.put("cp" + i, "rect", {x, y: 352, w: 124, h: 34, rx: 17, fill: COLPLAN[p]});
         rm.put("cpt" + i, "text", {x: x + 62, y: 374, text: NOMPLAN[p], size: 13, weight: 700, fill: "#fff", anchor: "middle"});
