@@ -21,7 +21,7 @@ USADAS = [
     "inegi_endutih", "inegi_denue", "carta_mercado", "carta_muestra", "paginas_proveedores_14nov",
     "carta_precio", "carta_anuncios", "carta_capacidad", "railway_limites", "carta_disco",
     "cloudflare_r2_precios", "carta_tres_planes", "carta_estadistica", "calvin_posturas", "carta_planes",
-    "carta_plan", "carta_ac011",
+    "carta_plan", "carta_ac011", "meniu", "uber_terminos",
 ]  # fmt: skip
 
 
@@ -84,6 +84,7 @@ def main() -> None:
         .replace("__SEG__", podado(INV / "2026-11-14-segmentacion-datos.json", ("estratos", "parametros")))
         .replace("__DATOS__", podado(None, ("mercado", "matriz", "mercado_planes", "inegi_tamano"), d))
         .replace("__REFS__", json.dumps(refs, ensure_ascii=False))
+        .replace("__NEG__", podado(INV / "2026-11-17-como-gana-dinero-carta.json", ("plataformas_de_referencia", "secuencia")))
         .replace("__SANS__", b64(FUENTES / "DMSans-variable-latin.woff2"))
         .replace("__SERIF__", b64(FUENTES / "DMSerifDisplay-Regular-latin.woff2"))
     )

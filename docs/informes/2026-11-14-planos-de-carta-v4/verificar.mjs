@@ -147,7 +147,7 @@ ok(kpf.includes('23') && kpf.includes('279') && kpf.includes('sin purga'), 'cifr
 ok(/20,024 MXN/.test(await p.evaluate(() => document.querySelector('[data-kpi="margen"]').getAttribute('data-tip') + document.querySelector('[data-kpi="margen"]').textContent)), 'cifras fijas: el margen recomendado es 20,024 MXN (r8)');
 // todo en un tablero: parámetros arriba, medidores, quién frena, animación y escalera visibles a la vez
 ok(await p.evaluate(() => ['#estR', '#hisR', '#rN', '#palR', '#svM', '#svH', '#svA', '#svE'].every((q) => { const e = document.querySelector(q); return e && e.getBoundingClientRect().width > 0; })), 'capítulo 7: parámetros, medidores, quién frena, animación y escalera están a la vez');
-ok((await p.$$('#palR [data-pal]')).length === 9 && !(await p.evaluate(() => document.querySelector('#palR').textContent.match(/medido|estimado|esfuerzo|ADR|→/))), 'capítulo 7: las palancas sólo dicen qué hay que hacer (lo demás, al hover)');
+ok((await p.$$('#palR [data-pal]')).length === 4 && !(await p.evaluate(() => document.querySelector('#palR').textContent.match(/medido|estimado|esfuerzo|ADR|→/))), 'capítulo 7: las palancas sólo dicen qué hay que hacer (lo demás, al hover)');
 // ningún control cambia a otro
 await p.evaluate(() => { const r = document.querySelector('#rN'); r.value = 100; r.dispatchEvent(new Event('input', { bubbles: true })); }); await p.waitForTimeout(700);
 const ant = await p.evaluate(() => ({ p: DET.recursos7.vals.p_disco, n: DET.recursos7.n }));
@@ -181,6 +181,19 @@ await p.click('#svM [data-rec="disco"]'); await p.waitForTimeout(300);
 ok((await texto(p, '#svA')).includes('bytes'), 'capítulo 7: la visita dibujada como pila por tabla');
 if (png) await p.screenshot({ path: `${png}/v9_cap7.png` });
 await sinDesborde(p, 'capítulo 7'); await cierra(p);
+
+// capítulo 9: cómo gana dinero Carta, y el sueldo del fundador con los tres escenarios a la vez
+await abre(p, 'modelo');
+ok((await p.$$('#svG9a [data-tip]')).length >= 7 && (await p.$$('#svG9b [data-tip]')).length >= 13 && (await p.$$('#svG9c [data-tip]')).length === 5, 'capítulo 9: mapa, tabla frente a Meniu y cinco fuentes de ingreso con su hover');
+ok((await texto(p, '#svG9e')).includes('elige un sueldo'), 'capítulo 9: el sueldo arranca en 0 y no propone una cifra');
+await p.click('#sdC [data-sd="9577"]'); await p.waitForTimeout(300);
+const sd1 = await texto(p, '#svG9e');
+ok(sd1.includes('550') && sd1.includes('mes 21') && sd1.includes('4,940'), 'capítulo 9: con 9,577 MXN hacen falta 550 (recomendado), 4,940 (peor) y se cubre en el mes 21');
+await p.click('#sdC [data-sd="28732"]'); await p.waitForTimeout(300);
+const sd2 = await texto(p, '#svG9e');
+ok(sd2.includes('1,660') && sd2.includes('pide otra arquitectura'), 'capítulo 9: con 28,732 MXN hacen falta 1,660 y pide otra arquitectura');
+ok(!(await p.$('#det [data-esc]')), 'capítulo 9: sin selector de escenario');
+await sinDesborde(p, 'capítulo 9'); await cierra(p);
 
 // topes: arrastre con teclado y con puntero
 await abre(p, 'topes');
@@ -345,7 +358,7 @@ async function revisaHovers(q, alcance, et) {
     const nums = new Set();
     const junta = (t) => (String(t).match(/-?\d[\d,]*\.?\d*/g) || []).forEach((x) => { const v = parseFloat(x.replace(/,/g, '')); if (!isNaN(v)) { nums.add(Math.round(v)); nums.add(Math.round(v * 10) / 10); nums.add(Math.round(v * 100) / 100); } });
     junta(document.body.textContent);
-    try { junta(JSON.stringify(SP)); junta(JSON.stringify(D)); junta(JSON.stringify(MOD.resumen(config(S), sup(S)))); junta(JSON.stringify(MOD.desgloses(config(S), sup(S), 1000))); junta(JSON.stringify(MOD.recursos(config(S), sup(S), 'hoy'))); } catch (e) { /* sin modelo: sólo el texto */ }
+    try { junta(JSON.stringify(SP)); junta(JSON.stringify(D)); junta(JSON.stringify(MOD.resumen(config(S), sup(S)))); junta(JSON.stringify(MOD.desgloses(config(S), sup(S), 1000))); junta(JSON.stringify(MOD.recursos(config(S), sup(S), 'hoy'))); junta(JSON.stringify(MOD.tablaSueldos(config(S), sup(S)))); junta(JSON.stringify(MOD.modelosDeIngreso(config(S), sup(S)))); junta(JSON.stringify(MOD.modeloDeNegocio(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialChef(config(S), sup(S)))); junta(JSON.stringify(MOD.meta12Meses(config(S), sup(S)))); } catch (e) { /* sin modelo: sólo el texto */ }
     const vistos = new Set();
     tips.forEach((e) => {
       const t = e.dataset.tip; if (vistos.has(t)) return; vistos.add(t);
