@@ -519,6 +519,74 @@
      "ganancia": "32.9 MB menos por restaurante (acumulados con el historial supuesto); caben +21 restaurantes en el mismo disco"
     },
     {
+     "id": "fila_por_visita_de_comensal",
+     "nombre": "Una fila de analítica por visita de comensal, armada en el teléfono (veces y segundos por lugar)",
+     "en_tablero": true,
+     "ganancia_de_capacidad": 0.2197802197802199,
+     "accion": "Guardar una fila por visita",
+     "que_es": "El teléfono arma una sola fila con cuántas veces entró y cuánto tiempo estuvo en el menú, el platillo, la búsqueda y los filtros, y la manda al terminar.",
+     "esfuerzo": "medio",
+     "riesgo": "medio: se pierde el platillo visto y el orden de los toques; depende de que el teléfono mande la fila (si se cierra antes, se pierde); actualizar la fila duplica el tamaño de la tabla; sin ip_hash (no hace falta)",
+     "regla_que_toca": "ninguna dura (sin datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica",
+     "medido": true,
+     "mb_por_restaurante_antes": 96.73853579923981,
+     "mb_por_restaurante_despues": 58.84798296666341,
+     "restaurantes_antes": {
+      "hoy": 41,
+      "con_eventos": 41
+     },
+     "restaurantes_despues": {
+      "hoy": 67,
+      "con_eventos": 67
+     },
+     "ganancia_restaurantes": {
+      "hoy": 26,
+      "con_eventos": 26
+     },
+     "sobre_historial_30_dias": {
+      "restaurantes_antes": 182,
+      "restaurantes_despues": 222,
+      "ganancia": 40
+     },
+     "antes": "96.7 MB por restaurante · caben 41",
+     "despues": "58.8 MB por restaurante · caben 67",
+     "ganancia": "37.9 MB menos por restaurante (acumulados con el historial supuesto); caben +26 restaurantes en el mismo disco"
+    },
+    {
+     "id": "fila_por_visita_mas_platillo_por_dia",
+     "nombre": "Una fila por visita de comensal más un conteo diario por platillo",
+     "en_tablero": true,
+     "ganancia_de_capacidad": 0.19780219780219777,
+     "accion": "Guardar fila por visita y platillo",
+     "que_es": "Lo mismo, más un conteo diario de cuántas veces se vio cada platillo, para no perder qué platillos gustan.",
+     "esfuerzo": "medio",
+     "riesgo": "medio: dos tablas y dos envíos; conserva el platillo visto (conteo por día) pero no cuál comensal lo vio",
+     "regla_que_toca": "ninguna dura; pide ADR (contrato de analítica)",
+     "medido": true,
+     "mb_por_restaurante_antes": 96.73853579923981,
+     "mb_por_restaurante_despues": 61.580536725765185,
+     "restaurantes_antes": {
+      "hoy": 41,
+      "con_eventos": 41
+     },
+     "restaurantes_despues": {
+      "hoy": 64,
+      "con_eventos": 64
+     },
+     "ganancia_restaurantes": {
+      "hoy": 23,
+      "con_eventos": 23
+     },
+     "sobre_historial_30_dias": {
+      "restaurantes_antes": 182,
+      "restaurantes_despues": 218,
+      "ganancia": 36
+     },
+     "antes": "96.7 MB por restaurante · caben 41",
+     "despues": "61.6 MB por restaurante · caben 64",
+     "ganancia": "35.2 MB menos por restaurante (acumulados con el historial supuesto); caben +23 restaurantes en el mismo disco"
+    },
+    {
      "id": "indices_de_evento_minimos",
      "nombre": "Dejar sólo dos índices en la analítica (llave y restaurante-fecha)",
      "en_tablero": false,
@@ -952,6 +1020,28 @@
    "medido": false,
    "accion": "Borrar analítica cruda a 7 días",
    "que_es": "Los eventos sueltos se conservan una semana y después sólo queda el conteo por día."
+  },
+  {
+   "id": "fila_por_visita_de_comensal",
+   "recurso": "disco",
+   "nombre": "Una fila de analítica por visita de comensal, armada en el teléfono (veces y segundos por lugar)",
+   "esfuerzo": "medio",
+   "riesgo": "medio: se pierde el platillo visto y el orden de los toques; depende de que el teléfono mande la fila (si se cierra antes, se pierde); actualizar la fila duplica el tamaño de la tabla; sin ip_hash (no hace falta)",
+   "regla_que_toca": "ninguna dura (sin datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica",
+   "medido": true,
+   "accion": "Guardar una fila por visita",
+   "que_es": "El teléfono arma una sola fila con cuántas veces entró y cuánto tiempo estuvo en el menú, el platillo, la búsqueda y los filtros, y la manda al terminar."
+  },
+  {
+   "id": "fila_por_visita_mas_platillo_por_dia",
+   "recurso": "disco",
+   "nombre": "Una fila por visita de comensal más un conteo diario por platillo",
+   "esfuerzo": "medio",
+   "riesgo": "medio: dos tablas y dos envíos; conserva el platillo visto (conteo por día) pero no cuál comensal lo vio",
+   "regla_que_toca": "ninguna dura; pide ADR (contrato de analítica)",
+   "medido": true,
+   "accion": "Guardar fila por visita y platillo",
+   "que_es": "Lo mismo, más un conteo diario de cuántas veces se vio cada platillo, para no perder qué platillos gustan."
   },
   {
    "id": "indices_de_evento_minimos",

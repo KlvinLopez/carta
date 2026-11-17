@@ -353,7 +353,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('potencial de Chef por negocio al mes (baja)', Math.round(ch.potencial_anuncios_mes.baja.pesos_por_negocio_al_mes * 100) / 100, 4.3, 0.01);
   prueba('potencial de Chef: el rango abarca los tres escenarios de tarifa', ch.potencial_anuncios_mes.baja.rango_por_visitas_y_parte[0] < ch.potencial_anuncios_mes.baja.pesos_al_mes_de_todos_los_chef && ch.potencial_anuncios_mes.alta.rango_por_visitas_y_parte[1] > ch.potencial_anuncios_mes.alta.pesos_al_mes_de_todos_los_chef, true);
   const tb = TB(cfg, s);
-  prueba('palancas en el tablero (regla ≥ 15 % del recurso que tocan)', tb.en_tablero.join(','), 'historial_gratuito_30_dias,analitica_agregada_por_dia,retencion_analitica_7_dias,estado_en_memoria_60s,cerrar_lineas_ociosas');
+  prueba('palancas en el tablero (regla ≥ 15 % del recurso que tocan)', tb.en_tablero.join(','), 'historial_gratuito_30_dias,analitica_agregada_por_dia,retencion_analitica_7_dias,fila_por_visita_de_comensal,fila_por_visita_mas_platillo_por_dia,estado_en_memoria_60s,cerrar_lineas_ociosas');
   prueba('ajustes menores (fuera del tablero)', tb.ajustes_menores.join(','), 'indices_de_evento_minimos,tipos_mas_chicos,purga_claves_idempotencia,archivar_sesiones_cerradas,pool_acotado');
   prueba('ganancia de índices y tipos: 11 % (debajo del umbral); con 10 % entrarían', `${Math.round(tb.palancas.indices_de_evento_minimos.ganancia_maxima * 100)}-${TB(cfg, s, 0.10).en_tablero.includes('indices_de_evento_minimos')}`, '11-true');
   prueba('cada palanca de recursos() trae en_tablero', RT(cfg, s, {}).recursos.flatMap((x) => x.palancas).every((p) => typeof p.en_tablero === 'boolean'), true);
@@ -407,7 +407,12 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const v1 = tp.comparacion.find((x) => /Carta v1/.test(x.modelo));
   prueba('la v1 no conecta oferta y demanda nuevas ni tiene transacción dentro', `${v1.conecta_oferta_y_demanda_nuevas}-${v1.hay_transaccion_dentro}`, 'false-false');
   prueba('la respuesta no da por buena la premisa', /^No:/.test(tp.respuesta), true);
-  prueba('tres pasos para moverse a otro modelo, cada uno con lo que exige', tp.pasos_para_moverse.length === 3 && tp.pasos_para_moverse.every((x) => /regla 10|Qué NO construir/.test(x.exige)), true);
+  const v2 = tp.vision_v2_de_calvin;
+  prueba('visión v2: tres rutas y cada una exige tocar la regla 10 o «Qué NO construir»', v2.rutas.length === 3 && v2.rutas.every((x) => x.que_cambiar_antes.some((y) => /regla 10/.test(y))), true);
+  prueba('visión v2: lo legal sin fuente primaria queda por verificar con un abogado', /por verificar con un abogado/.test(v2.marco_legal.estado), true);
+  prueba('anuncios: el pagante no ve anuncios', v2.anuncios.por_tarifa.media.pesos_por_pagante, 0);
+  prueba('anuncios v2: por gratuito 17.2 → 18.9 pesos con la tarifa media', `${v2.anuncios.por_tarifa.media.pesos_por_gratuito_v1_todo_generico.toFixed(1)}-${v2.anuncios.por_tarifa.media.pesos_por_gratuito_v2_con_registrados.toFixed(1)}`, '17.2-18.9');
+  prueba('anuncios v2: la tarifa personalizada es la genérica por 1.5', v2.anuncios.por_tarifa.media.tarifa_personalizada_por_mil, 21);
   const hz = mn.hueco_frente_a_meniu;
   prueba('Meniu: 225 pesos, prueba de 7 días y sin plan gratuito', `${hz.meniu.precio_mes}-${hz.meniu.prueba_dias}-${hz.meniu.plan_gratuito}`, '225-7-false');
   prueba('todas las páginas de Meniu traen enlace y consulta del 17-nov', hz.meniu.paginas.length === 7 && hz.meniu.paginas.every((x) => /^https:\/\/meniuapp\.com\//.test(x.url)) && hz.meniu.consulta === '2026-11-17', true);
@@ -446,6 +451,22 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('los topes mueven «¿Qué nos limita?»: con 3 mesas cambia la capacidad', JSON.stringify(r1.recursos.map((x) => x.restaurantes_con_eventos)) !== JSON.stringify(r2.recursos.map((x) => x.restaurantes_con_eventos)), true);
 }
 
+// 12c) ronda 10: historia del disco y fila por visita de comensal
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const h = M.historiaDelDisco(M.configInicial(), s);
+  const o = Object.fromEntries(h.opciones.map((x) => [x.id, x]));
+  prueba('fila por visita: 161 bytes por visita de comensal (medido)', s.fila_por_visita.bytes_por_visita_de_comensal, 161);
+  prueba('fila por visita: pesa el 12 % de la analítica de hoy; con el platillo por día, 18 %', `${Math.round(s.fila_por_visita.sola * 100)}-${Math.round(s.fila_por_visita.con_platillo_por_dia * 100)}`, '12-18');
+  prueba('fila por visita: actualizarla casi nunca es HOT con el fillfactor por omisión', s.fila_por_visita.actualizando_2_veces.hot < 0.01 * s.fila_por_visita.actualizando_2_veces.de, true);
+  prueba('fila por visita: actualizarla 2 veces más que duplica la tabla', s.fila_por_visita.actualizando_2_veces.despues > 2 * s.fila_por_visita.actualizando_2_veces.antes, true);
+  prueba('historia: ocho tablas en una mesa de tres', h.pasos.length, 8);
+  prueba('historia: una mesa de tres deja 8.4 KB y la analítica es la mitad', `${(h.bytes_total / 1000).toFixed(1)}-${Math.round((h.bytes_de_analitica / h.bytes_total) * 100)}`, '8.4-49');
+  prueba('historia: hoy caben 41 sin purga y 182 con historial a 30 días', `${o.hoy.restaurantes_que_caben_sin_purga}-${o.hoy.restaurantes_que_caben_con_historial_30_dias}`, '41-182');
+  prueba('historia: la fila por visita sola deja caber 222 con historial a 30 días', o.fila_por_visita.restaurantes_que_caben_con_historial_30_dias, 222);
+  prueba('historia: archivar no baja la analítica', o.archivar.bytes_analitica_por_mesa_de_3, o.hoy.bytes_analitica_por_mesa_de_3);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
@@ -454,6 +475,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
     ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
     ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
     ['node', '2026-11-17-como-gana-dinero.mjs', ['2026-11-17-como-gana-dinero-carta.json', '2026-11-17-como-gana-dinero-carta.md']],
+    ['node', '2026-11-17-historia-del-disco.mjs', ['2026-11-17-historia-del-disco.json', '2026-11-17-historia-del-disco.md']],
     ['node', '2026-11-17-costo-de-platillo.mjs', ['2026-11-17-costo-de-platillo.json', '2026-11-17-costo-de-platillo.md']],
     ['python3', '2026-11-16-cobertura-platillos.py', ['2026-11-16-cobertura-platillos-datos.json']],
     ['python3', '2026-11-14-parametros-generador.py', ['2026-11-14-parametros.json']]];

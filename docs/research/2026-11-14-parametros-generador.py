@@ -67,6 +67,8 @@ p("curvas_pago", {
   nota="Rangos: mediana ±50 %, sigma 0.3 a 0.9, techo 0.05 a 0.8. P(paga) = techo × P(W ≥ precio), W lognormal con esa mediana y σ. NO hay dato de disposición a pagar: la sustituye la prueba del piloto (Van Westendorp y escalera)")
 # --- anuncios ---
 p("anuncio_pesos_por_mil", {"baja": 3.5, "media": 14.0, "alta": 37.0}, origen="supuesto", fuente="anuncios-y-capa-del-comensal §2: 0.19 / 0.75 / 1.97 USD por mil visitas, cadena de tres eslabones de fiabilidad baja", nota="pesos por mil visitas con la app, anuncios no personalizados")
+p("anuncio_personalizado_factor", 1.5, 1.04, 2.8, "supuesto", "rango entre dos medidas externas: estudio independiente de 2019 (+4 % de ingreso con cookies; Marotta, Abhishek y Acquisti, citado por MediaPost https://www.mediapost.com/publications/article/339634, consultado el 17-nov-2026) y estudio de Google de 2019 (sin cookies, 52 % menos ingreso para el editor, es decir ×2.1 con cookies; mediana por editor 64 % menos, ×2.8; https://services.google.com/fh/files/misc/disabling_third-party_cookies_publisher_revenue.pdf). Mide cookies, no consentimiento, y es de anuncios programáticos de editores grandes: Carta es un caso distinto", "cuánto más paga una visita con anuncio personalizado que una genérica; el centro 1.5 es juicio. Se mide con una prueba A/B de AdSense en el piloto")
+p("parte_comensales_registrados_v2", 0.2, 0.05, 0.6, "supuesto", "juicio: una quinta parte de los comensales se registra si la v2 ofrece algo a cambio (perfil, historial); sin fuente", "ilustra la v2; no entra en ninguna proyección de la v1")
 p("visitas_app_gratuito", 2050, 800, 3500, "supuesto", "salida del simulador de uso (113.9 comensales al día × 30 × 0.6 que abre la app); el 0.6 y el 113.9 son supuestos del simulador", "se mide con eventos scan del piloto")
 p("visitas_app_servicio", 3429, 1500, 6000, "supuesto", "salida del simulador de uso (típico de paga)", "no mueve el resultado: la paga no lleva anuncios", mueve=False)
 # --- adopción y comensales ---
@@ -127,6 +129,31 @@ p("factores_disco_eventos", {
     "retencion_7_dias": round(7 / 30, 4)},
   origen="medido", fuente="2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con %d bytes por fila y 31 días × (5 tipos + platillos): la cota usa los 150 platillos que permite el plan gratuito y 'con_platillos_de_la_copia' los %d de la copia" % (round(_dia_bytes), _plat_copia),
   nota="fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy")
+# --- fila por visita de comensal (ronda 10): medido en local con 2026-11-17-fila-por-visita-medir.py ---
+_fv = _j.load(open(__import__("os").path.join(AQUI, "2026-11-17-fila-por-visita-datos.json")))
+_miembros = _fv["visitas_de_comensal"]
+_sesiones = _fv["sesiones"]
+_tab = _fv["tablas_de_la_visita"]
+_ev_fila = _base / _m["base"]["filas"]
+p("fila_por_visita", {
+    "sola": round(_fv["f1_llave_restaurante_dia_miembro"]["total"] / _base, 4),
+    "con_platillo_por_dia": round((_fv["f1_llave_restaurante_dia_miembro"]["total"] + _fv["platillo_por_dia"]["total"]) / _base, 4),
+    "bytes_por_visita_de_comensal": round(_fv["f1_llave_restaurante_dia_miembro"]["total"] / _miembros),
+    "bytes_con_indice_por_miembro": round(_fv["f2_con_indice_por_miembro"]["total"] / _miembros),
+    "bytes_sin_restaurante": round(_fv["f3_sin_restaurante"]["total"] / _miembros),
+    "bytes_platillo_por_dia_total": _fv["platillo_por_dia"]["total"],
+    "actualizando_2_veces": {"antes": _fv["actualizaciones"]["sin_actualizar"]["total"], "despues": _fv["actualizaciones"]["tras_vacuum"]["total"], "hot": _fv["actualizaciones"]["actualizaciones_hot"], "de": _fv["actualizaciones"]["actualizaciones_totales"]},
+    "actualizando_2_veces_fillfactor_70": {"antes": _fv["actualizaciones_fillfactor_70"]["sin_actualizar"]["total"], "despues": _fv["actualizaciones_fillfactor_70"]["tras_2_actualizaciones_y_vacuum"]["total"], "hot": _fv["actualizaciones_fillfactor_70"]["actualizaciones_hot"], "de": _fv["actualizaciones_fillfactor_70"]["actualizaciones_totales"]},
+    "miembros_por_sesion": round(_miembros / _sesiones, 4),
+    "visitas_de_comensal_en_la_copia": _miembros,
+    "sesiones_en_la_copia": _sesiones,
+    "restaurantes_en_la_copia": _fv["restaurantes"],
+}, origen="medido", fuente="2026-11-17-fila-por-visita-medir.py: PostgreSQL local sobre la copia carta_med_mediano (10 restaurantes, un mes, 18,000 sesiones y 46,696 visitas de comensal) con contadores SINTÉTICOS; la fila es de enteros chicos de ancho fijo, así que su tamaño no depende del valor", nota="Calvin (17-nov): una fila por visita de comensal armada en el teléfono, con pares veces/segundos por lugar. `sola` = tamaño de esa tabla entre el de la analítica de hoy; `con_platillo_por_dia` suma un conteo diario por platillo (la fila por visita no dice qué platillo se vio)", mueve=False)
+p("tablas_de_una_visita", {
+    "filas_por_tabla": {k: {"filas": v["filas"], "bytes_por_fila": round(v["total_bytes"] / v["filas"])} for k, v in _tab.items() if k != "evento_analitica"},
+    "evento_bytes_por_fila": round(_ev_fila),
+    "eventos_por_sesion": 10,
+}, origen="medido", fuente="2026-11-17-fila-por-visita-medir.py (bytes por fila con sus índices, de la copia de medición); eventos por sesión = 10 es SUPUESTO del generador de datos (ver 2026-11-14-recursos-medicion.json)", nota="para la tabla paso a paso de tres comensales; evento_bytes_por_fila sale de la base con valores variados", mueve=False)
 p("bytes_por_evento", {"hoy": round(_base / _m["base"]["filas"]), "heap": round(_m["base"]["heap"] / _m["base"]["filas"]), "indices": round(_m["base"]["indices"] / _m["base"]["filas"]), "columnas": _m["columnas_bytes_medios"], "indices_bytes_total": _m["indices_bytes"]}, origen="medido", fuente="2026-11-14-recursos-medicion.json (pg_column_size medio por columna; tamaño de cada índice)", mueve=False)
 p("idempotencia_bytes_por_fila", round(_m["idempotencia"]["total"] / _m["idempotencia"]["filas"]), origen="medido", fuente="100,000 filas de clave_idempotencia con respuesta jsonb de ≈ %d bytes (con su índice de purga)" % round(_m["idempotencia"]["bytes_respuesta"]), nota="la tabla está vacía hasta la Fase 3 (hoy ningún servicio la usa)", mueve=False)
 p("claves_idempotencia_por_visita", 3, 1, 8, "supuesto", "una por orden confirmada, una por comanda y una por llamada [supuesto]", "se mide al construir la Fase 3 (contar filas de clave_idempotencia por sesión)", mueve=False)

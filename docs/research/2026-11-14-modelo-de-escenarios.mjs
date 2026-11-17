@@ -341,6 +341,8 @@ export const PALANCAS = {
   historial_gratuito_30_dias: { recurso: 'disco', nombre: 'Historial del plan gratuito a 30 días (visitas y analítica), con archivo descargable', esfuerzo: 'medio', riesgo: 'medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes', regla_que_toca: 'CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga', medido: true },
   analitica_agregada_por_dia: { recurso: 'disco', nombre: 'Analítica agregada por día en vez de una fila por evento', esfuerzo: 'medio', riesgo: 'medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo', regla_que_toca: 'ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica', medido: true },
   retencion_analitica_7_dias: { recurso: 'disco', nombre: 'Guardar la analítica en bruto sólo 7 días (después, agregada)', esfuerzo: 'chico', riesgo: 'bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial', regla_que_toca: 'CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial)', medido: false },
+  fila_por_visita_de_comensal: { recurso: 'disco', nombre: 'Una fila de analítica por visita de comensal, armada en el teléfono (veces y segundos por lugar)', esfuerzo: 'medio', riesgo: 'medio: se pierde el platillo visto y el orden de los toques; depende de que el teléfono mande la fila (si se cierra antes, se pierde); actualizar la fila duplica el tamaño de la tabla; sin ip_hash (no hace falta)', regla_que_toca: 'ninguna dura (sin datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica', medido: true },
+  fila_por_visita_mas_platillo_por_dia: { recurso: 'disco', nombre: 'Una fila por visita de comensal más un conteo diario por platillo', esfuerzo: 'medio', riesgo: 'medio: dos tablas y dos envíos; conserva el platillo visto (conteo por día) pero no cuál comensal lo vio', regla_que_toca: 'ninguna dura; pide ADR (contrato de analítica)', medido: true },
   indices_de_evento_minimos: { recurso: 'disco', nombre: 'Dejar sólo dos índices en la analítica (llave y restaurante-fecha)', esfuerzo: 'chico', riesgo: 'medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos', regla_que_toca: 'convención de /migracion (índice en toda FK con cascada); pide ADR', medido: true },
   tipos_mas_chicos: { recurso: 'disco', nombre: 'Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)', esfuerzo: 'medio', riesgo: 'bajo: migración con reescritura de la tabla', regla_que_toca: 'ninguna', medido: true },
   purga_claves_idempotencia: { recurso: 'disco', nombre: 'Purgar las claves de idempotencia a las 24 horas', esfuerzo: 'chico', riesgo: 'bajo si la ventana de reintento del teléfono es menor de 24 h', regla_que_toca: 'ninguna', medido: true },
@@ -355,6 +357,8 @@ export const PALANCAS_EN_LLANO = {
   historial_gratuito_30_dias: { accion: 'Guardar 30 días en el gratuito', que_es: 'El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra.' },
   analitica_agregada_por_dia: { accion: 'Contar por día, no por evento', que_es: 'En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo.' },
   retencion_analitica_7_dias: { accion: 'Borrar analítica cruda a 7 días', que_es: 'Los eventos sueltos se conservan una semana y después sólo queda el conteo por día.' },
+  fila_por_visita_de_comensal: { accion: 'Guardar una fila por visita', que_es: 'El teléfono arma una sola fila con cuántas veces entró y cuánto tiempo estuvo en el menú, el platillo, la búsqueda y los filtros, y la manda al terminar.' },
+  fila_por_visita_mas_platillo_por_dia: { accion: 'Guardar fila por visita y platillo', que_es: 'Lo mismo, más un conteo diario de cuántas veces se vio cada platillo, para no perder qué platillos gustan.' },
   indices_de_evento_minimos: { accion: 'Quitar índices que sobran', que_es: 'La tabla de analítica deja sólo los dos índices que de verdad se usan.' },
   tipos_mas_chicos: { accion: 'Usar tipos de dato más chicos', que_es: 'Los campos de la analítica pasan de texto largo a números y huellas cortas.' },
   purga_claves_idempotencia: { accion: 'Purgar claves de reintento diario', que_es: 'Las claves que evitan duplicar una orden al reintentar se borran al día siguiente.' },
@@ -386,6 +390,8 @@ export function efectosPalancas(config, s) {
   const f = s.factores_disco_eventos;
   let eventos = 1;
   if (p.has('analitica_agregada_por_dia')) eventos = f.agregada_por_dia_cota_alta;
+  else if (p.has('fila_por_visita_mas_platillo_por_dia')) eventos = s.fila_por_visita.con_platillo_por_dia;
+  else if (p.has('fila_por_visita_de_comensal')) eventos = s.fila_por_visita.sola;
   else {
     if (p.has('indices_de_evento_minimos') && p.has('tipos_mas_chicos')) eventos = f.ambos;
     else if (p.has('indices_de_evento_minimos')) eventos = f.un_indice;
@@ -1320,11 +1326,7 @@ export function modeloDeNegocio(config, s, n = 1000) {
       { modelo: 'Carta v1', quien_paga: 'el restaurante que pasa de los topes de Chef (suscripción) y, después, el anunciante', quien_usa_gratis: 'el comensal (anónimo) y el restaurante de 0 a 5 personas con 6 mesas y 1 cuenta', conecta_oferta_y_demanda_nuevas: false, hay_transaccion_dentro: false, cifras_verificadas: 'reglas vigentes: sin pagos, sin cuenta del comensal, sin datos personales ni venta de datos' },
     ],
     donde_cae_la_v1: ['Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga.', 'Quién usa gratis: el comensal y el negocio chico de Chef.', 'Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante.', 'Transacción dentro: no; la v1 no cobra ni procesa pagos.'],
-    pasos_para_moverse: [
-      { hacia: 'Marketplace con comisión (Airbnb, Uber)', que_cambiaria: 'descubrimiento entre restaurantes y pagos dentro de Carta', exige: 'directorio público, perfil de restaurante y de comensal, procesar pagos: contradice «Qué NO construir», la regla 10 y la v1; ADR y spec de una v2; posible regulación financiera (verificar con un abogado)' },
-      { hacia: 'Economía de la atención (redes)', que_cambiaria: 'perfil y cuenta del comensal con historial para segmentar anuncios', exige: 'cuenta y perfil del comensal: contradice la regla 10 y «Qué NO construir»; los datos del comensal no se venden (decisión del 14-nov)' },
-      { hacia: 'Freemium del comensal (Spotify)', que_cambiaria: 'el comensal paga por quitar anuncios o por funciones propias', exige: 'cuenta del comensal: misma contradicción con la regla 10; spec y ADR' },
-    ],
+    vision_v2_de_calvin: visionV2(config, s),
   };
   const meniu = s.meniu;
   const hueco = {
@@ -1362,6 +1364,119 @@ export function modeloDeNegocio(config, s, n = 1000) {
   };
   return { n, tipo_de_plataforma: tipo, hueco_frente_a_meniu: hueco, como_opera: opera, una_pagina: pagina };
 }
+
+// ---------------------------------------------------------------- anuncios: genéricos frente a personalizados; la visión v2 de Calvin
+/**
+ * Ingreso de anuncios por restaurante gratuito con dos tarifas: genérica (la de la v1: el comensal es anónimo) y personalizada (sólo para
+ * comensales registrados, que en la v1 no existen: parte 0). El restaurante de paga NO muestra anuncios, así que su ingreso de anuncios es 0:
+ * cada gratuito que paga pierde ese ingreso y lo cambia por la suscripción. El factor de la tarifa personalizada y la parte de registrados
+ * son SUPUESTOS con rango (parámetros `anuncio_personalizado_factor` y `parte_comensales_registrados_v2`).
+ */
+export function anunciosGenericoYPersonalizado(config, s) {
+  const base = (s.visitas_app_gratuito * s.parte_visitas_con_anuncio) / 1000;
+  const f = s.anuncio_personalizado_factor;
+  const r = s.parte_comensales_registrados_v2;
+  const [fmin, fmax] = s.rangos.anuncio_personalizado_factor;
+  const [rmin, rmax] = s.rangos.parte_comensales_registrados_v2;
+  const q = evaluar(config, s, 1000, { curva: config.curva ?? 'media' }).clientes.de_paga / 1000;
+  const porTarifa = Object.fromEntries(['baja', 'media', 'alta'].map((k) => {
+    const gen = base * s.anuncio_pesos_por_mil[k];
+    const mezcla = (ff, rr) => gen * ((1 - rr) + rr * ff);
+    return [k, {
+      tarifa_generica_por_mil: s.anuncio_pesos_por_mil[k],
+      tarifa_personalizada_por_mil: s.anuncio_pesos_por_mil[k] * f,
+      pesos_por_gratuito_v1_todo_generico: gen,
+      pesos_por_gratuito_v2_con_registrados: mezcla(f, r),
+      cambio_por_gratuito_v2: mezcla(f, r) - gen,
+      rango_v2: [mezcla(fmin, rmin), mezcla(fmax, rmax)],
+      pesos_por_pagante: 0,
+      pesos_por_1000_restaurantes_v1: gen * 1000 * (1 - q),
+      pesos_por_1000_restaurantes_v2: mezcla(f, r) * 1000 * (1 - q),
+    }];
+  }));
+  return { factor: f, rango_factor: [fmin, fmax], parte_registrados_v2: r, rango_parte: [rmin, rmax], parte_que_paga_por_1000: q, por_tarifa: porTarifa, nota: 'v1: comensal anónimo, todo genérico. El pagante no ve anuncios. Factor y parte de registrados son supuestos; la tarifa base también (anuncio_pesos_por_mil)' };
+}
+
+/**
+ * Las tres rutas de Calvin para una versión 2, con lo que habría que cambiar antes (regla 10, «Qué NO construir», ADR-011 no aplica, aviso
+ * de privacidad y consentimiento, regulación de pagos) y el orden sugerido. Lo legal que no se pudo leer en la fuente primaria queda «por
+ * verificar con un abogado». Nada de esto entra en la v1 ni en la Fase 3: ahí los anuncios son genéricos.
+ */
+export function visionV2(config, s) {
+  const a = anunciosGenericoYPersonalizado(config, s);
+  const ley = { norma: 'Ley Federal de Protección de Datos Personales en Posesión de los Particulares (nueva, DOF 20-mar-2025; reforma del 14-nov-2025 según el texto de la Cámara)', lo_que_dice: 'el aviso de privacidad debe distinguir las finalidades que requieren consentimiento y las que no (art. 15), y una finalidad nueva exige un consentimiento nuevo (art. 11); la autoridad pasó a la Secretaría Anticorrupción y Buen Gobierno', fuente: 'resúmenes de despachos (Garrigues, KPMG México, IAPP; consultados el 17-nov-2026), NO el texto del DOF', estado: 'por verificar con un abogado: no se leyó la fuente primaria ni el reglamento' };
+  return {
+    postura_de_calvin: 'Ingreso principal por anuncios (estilo AdSense): personalizados para el comensal registrado, genéricos para el anónimo; quien paga no ve anuncios. Visión de una versión 2 con tres rutas; Calvin reconoce que choca con reglas «escritas para esta versión» (v1).',
+    en_la_v1_y_la_fase_3: 'Anuncios genéricos al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.',
+    anuncios: a,
+    rutas: [
+      { ruta: 'Mercado con comisión, directorio, procesador de pagos y perfil del comensal', que_cambiar_antes: ['regla 10 (sin datos personales del comensal en el servidor)', '«Qué NO construir»: pagos o comisión, cuenta y perfil del comensal, directorio', 'ADR nuevo de pagos y spec de v2', 'aviso de privacidad y consentimiento para perfil e historial', 'regulación de pagos (si Carta custodia o procesa dinero): por verificar con un abogado'], riesgo: 'el mayor: cambia qué es el producto y las obligaciones legales' },
+      { ruta: 'Economía de la atención (anuncios personalizados al comensal registrado)', que_cambiar_antes: ['regla 10 y «Qué NO construir» (cuenta y perfil del comensal)', 'aviso de privacidad con finalidades separadas y consentimiento para anuncios personalizados', 'los datos no se venden (decisión del 14-nov): hay que decidir si se comparten con la red de anuncios', 'cabecera de consentimiento en el teléfono antes de cargar el anuncio'], riesgo: 'medio: el cambio técnico es chico, el legal y de confianza no' },
+      { ruta: 'Plan pagado del comensal sin anuncios (como Spotify)', que_cambiar_antes: ['regla 10 y «Qué NO construir» (cuenta del comensal y cobro)', 'procesar un pago pequeño recurrente: por verificar con un abogado', 'spec y ADR'], riesgo: 'medio: depende de que el comensal pague, sin dato de disposición a pagar' },
+    ],
+    orden_sugerido: ['1. Anuncios genéricos al comensal anónimo (Fase 3): no cambia ninguna regla.', '2. Cuenta voluntaria del comensal con consentimiento y anuncios personalizados (ruta 2): primero spec, ADR y revisión legal.', '3. Plan pagado del comensal sin anuncios (ruta 3): reutiliza la cuenta del paso 2.', '4. Directorio, pagos y comisión (ruta 1): al final; es lo que más cambia y lo más regulado.'],
+    marco_legal: ley,
+    conflicto_con_las_reglas: 'sí: reglas 10 y «Qué NO construir» de la v1; se levantan sólo con un ADR y una spec nuevos aprobados por Calvin',
+  };
+}
+
+// ---------------------------------------------------------------- historia del disco con una mesa de tres comensales
+/**
+ * Paso a paso, qué fila entra en qué tabla cuando una mesa de tres comensales entra, ordena, llama y se va, con bytes de datos más índices
+ * medidos en la copia (bytes por fila = tamaño total de la tabla entre sus filas). Los conteos por sesión salen de los cocientes de la
+ * copia (medidos) y los eventos por sesión son un supuesto del generador de datos. Luego, cómo queda lo guardado con cada opción para
+ * bajar el uso del disco y cuántos restaurantes caben con cada una (con la carga por topes y el historial del plan gratuito a 30 días).
+ */
+export function historiaDelDisco(config, s, comensales = 3) {
+  const tv = s.tablas_de_una_visita;
+  const fv = s.fila_por_visita;
+  const f = tv.filas_por_tabla;
+  const mps = fv.miembros_por_sesion;
+  const porMiembro = (tabla) => f[tabla].filas / fv.visitas_de_comensal_en_la_copia;
+  const porSesion = (tabla) => f[tabla].filas / fv.sesiones_en_la_copia;
+  const evPorMiembro = tv.eventos_por_sesion / mps;
+  const pasos = [
+    { paso: 'Escanean el QR: entra el primero y se crea la sesión de la mesa', tabla: 'sesion_grupal', filas: 1, bytes_por_fila: f.sesion_grupal.bytes_por_fila },
+    { paso: `Cada comensal entra y se vuelve miembro (${comensales})`, tabla: 'miembro_sesion', filas: comensales, bytes_por_fila: f.miembro_sesion.bytes_por_fila },
+    { paso: 'Cada uno abre su orden personal', tabla: 'orden_personal', filas: comensales * porMiembro('orden_personal'), bytes_por_fila: f.orden_personal.bytes_por_fila },
+    { paso: `Agregan platillos a su orden (${n1x(porMiembro('item_orden'))} por comensal en la copia)`, tabla: 'item_orden', filas: comensales * porMiembro('item_orden'), bytes_por_fila: f.item_orden.bytes_por_fila },
+    { paso: 'La mesa envía la comanda al personal', tabla: 'comanda', filas: porSesion('comanda'), bytes_por_fila: f.comanda.bytes_por_fila },
+    { paso: 'La comanda enlaza la orden de cada comensal', tabla: 'comanda_orden', filas: comensales * porMiembro('comanda_orden'), bytes_por_fila: f.comanda_orden.bytes_por_fila },
+    { paso: 'Alguien llama al mesero (en la copia: una de cada 3.3 sesiones)', tabla: 'llamada_mesero', filas: porSesion('llamada_mesero'), bytes_por_fila: f.llamada_mesero.bytes_por_fila },
+    { paso: `Mientras tanto, el teléfono de cada comensal manda sus eventos (${n1x(evPorMiembro)} por comensal: supuesto del generador)`, tabla: 'evento_analitica', filas: comensales * evPorMiembro, bytes_por_fila: tv.evento_bytes_por_fila },
+  ];
+  let acum = 0;
+  for (const x of pasos) { x.bytes = x.filas * x.bytes_por_fila; acum += x.bytes; x.acumulado = acum; }
+  const analitica = pasos[pasos.length - 1].bytes;
+  const sinAnalitica = acum - analitica;
+  // lo que guardan las opciones de la analítica por mesa de tres (la tabla de la visita no cambia)
+  const base = { ...config, topes: { ...config.topes } };
+  const caben = (palancas, historial) => {
+    const c = { ...base, palancas };
+    const cc = historial ? conHistorialGratuito(c, s, 1) : c;
+    const r = recursos(cc, s, { canal: 'eventos', carga: 'topes' });
+    const d = r.recursos.find((x) => x.recurso === 'disco');
+    return historial ? d.con_historial_30_dias.restaurantes_con_eventos : d.restaurantes_con_eventos;
+  };
+  const mbPorRestMes = (factor) => (factor * tv.evento_bytes_por_fila * tv.eventos_por_sesion * fv.sesiones_en_la_copia) / fv.restaurantes_en_la_copia / 1e6;
+  const opciones = [
+    { id: 'hoy', nombre: 'Hoy: una fila por evento', palancas: [], factor: 1, que_queda: 'una fila por toque del comensal, con sesión, miembro, platillo, huella de red y navegador', se_pierde: 'nada' },
+    { id: 'contar_por_dia', nombre: 'Contar por día', palancas: ['analitica_agregada_por_dia'], factor: s.factores_disco_eventos.agregada_por_dia_cota_alta, que_queda: 'un conteo por restaurante, día, tipo y platillo; crece con los días y los platillos, no con las visitas', se_pierde: 'el detalle por sesión y por teléfono' },
+    { id: 'fila_por_visita', nombre: 'Fila por visita de comensal (propuesta de Calvin)', palancas: ['fila_por_visita_de_comensal'], factor: fv.sola, que_queda: 'una fila por comensal y día con veces y segundos en menú, platillo, búsqueda y filtros; crece con las visitas', se_pierde: 'qué platillo se vio y el orden de los toques' },
+    { id: 'fila_mas_platillo', nombre: 'Fila por visita más conteo de platillo por día', palancas: ['fila_por_visita_mas_platillo_por_dia'], factor: fv.con_platillo_por_dia, que_queda: 'la fila por visita más un conteo diario por platillo', se_pierde: 'cuál comensal vio cuál platillo' },
+    { id: 'adelgazar', nombre: 'Adelgazar la tabla (índices mínimos y tipos chicos)', palancas: ['indices_de_evento_minimos', 'tipos_mas_chicos'], factor: s.factores_disco_eventos.ambos, que_queda: 'una fila por evento, más angosta y con dos índices', se_pierde: 'índices de consulta; huella de red de 8 bytes' },
+    { id: 'archivar', nombre: 'Archivar sesiones cerradas en R2', palancas: ['archivar_sesiones_cerradas'], factor: 1, que_queda: 'la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo sale a un archivo comprimido', se_pierde: 'consulta inmediata de lo viejo; hay que releer del archivo' },
+  ];
+  for (const o of opciones) {
+    o.bytes_analitica_por_mesa_de_3 = analitica * o.factor;
+    o.mb_analitica_por_restaurante_mes_en_la_copia = mbPorRestMes(o.factor);
+    o.restaurantes_que_caben_sin_purga = caben(o.palancas, false);
+    o.restaurantes_que_caben_con_historial_30_dias = caben(o.palancas, true);
+  }
+  return { comensales, pasos, bytes_de_la_mesa_sin_analitica: sinAnalitica, bytes_de_analitica: analitica, bytes_total: acum, opciones, comprar_disco: 'No cambia los datos guardados: sube el costo del escalón (ver la escalera en recursos y palancas).', supuestos: ['eventos por sesión: 10 (supuesto del generador de datos)', 'contadores de la fila por visita: sintéticos (el tamaño no depende del valor)', 'bytes por fila: con índices, de una copia con datos sintéticos; con tráfico real cambia'] };
+}
+function n1x(x) { return (Math.round(x * 10) / 10).toLocaleString('en-US'); }
+
 
 // ---------------------------------------------------------------- lo que cuesta un platillo (el tope de platillos del plan Chef, reabierto)
 /**

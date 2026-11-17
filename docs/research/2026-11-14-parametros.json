@@ -451,6 +451,24 @@
    "nota": "pesos por mil visitas con la app, anuncios no personalizados",
    "mueve_resultado": true
   },
+  "anuncio_personalizado_factor": {
+   "valor": 1.5,
+   "min": 1.04,
+   "max": 2.8,
+   "origen": "supuesto",
+   "fuente": "rango entre dos medidas externas: estudio independiente de 2019 (+4 % de ingreso con cookies; Marotta, Abhishek y Acquisti, citado por MediaPost https://www.mediapost.com/publications/article/339634, consultado el 17-nov-2026) y estudio de Google de 2019 (sin cookies, 52 % menos ingreso para el editor, es decir ×2.1 con cookies; mediana por editor 64 % menos, ×2.8; https://services.google.com/fh/files/misc/disabling_third-party_cookies_publisher_revenue.pdf). Mide cookies, no consentimiento, y es de anuncios programáticos de editores grandes: Carta es un caso distinto",
+   "nota": "cuánto más paga una visita con anuncio personalizado que una genérica; el centro 1.5 es juicio. Se mide con una prueba A/B de AdSense en el piloto",
+   "mueve_resultado": true
+  },
+  "parte_comensales_registrados_v2": {
+   "valor": 0.2,
+   "min": 0.05,
+   "max": 0.6,
+   "origen": "supuesto",
+   "fuente": "juicio: una quinta parte de los comensales se registra si la v2 ofrece algo a cambio (perfil, historial); sin fuente",
+   "nota": "ilustra la v2; no entra en ninguna proyección de la v1",
+   "mueve_resultado": true
+  },
   "visitas_app_gratuito": {
    "valor": 2050,
    "min": 800,
@@ -3794,6 +3812,80 @@
    "fuente": "2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con 145 bytes por fila y 31 días × (5 tipos + platillos): la cota usa los 150 platillos que permite el plan gratuito y 'con_platillos_de_la_copia' los 60 de la copia",
    "nota": "fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy",
    "mueve_resultado": true
+  },
+  "fila_por_visita": {
+   "valor": {
+    "sola": 0.1181,
+    "con_platillo_por_dia": 0.1817,
+    "bytes_por_visita_de_comensal": 161,
+    "bytes_con_indice_por_miembro": 192,
+    "bytes_sin_restaurante": 121,
+    "bytes_platillo_por_dia_total": 4038656,
+    "actualizando_2_veces": {
+     "antes": 7495680,
+     "despues": 17055744,
+     "hot": 37,
+     "de": 93392
+    },
+    "actualizando_2_veces_fillfactor_70": {
+     "antes": 9256960,
+     "despues": 15040512,
+     "hot": 53373,
+     "de": 93392
+    },
+    "miembros_por_sesion": 2.5942,
+    "visitas_de_comensal_en_la_copia": 46696,
+    "sesiones_en_la_copia": 18000,
+    "restaurantes_en_la_copia": 10
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-17-fila-por-visita-medir.py: PostgreSQL local sobre la copia carta_med_mediano (10 restaurantes, un mes, 18,000 sesiones y 46,696 visitas de comensal) con contadores SINTÉTICOS; la fila es de enteros chicos de ancho fijo, así que su tamaño no depende del valor",
+   "nota": "Calvin (17-nov): una fila por visita de comensal armada en el teléfono, con pares veces/segundos por lugar. `sola` = tamaño de esa tabla entre el de la analítica de hoy; `con_platillo_por_dia` suma un conteo diario por platillo (la fila por visita no dice qué platillo se vio)",
+   "mueve_resultado": false
+  },
+  "tablas_de_una_visita": {
+   "valor": {
+    "filas_por_tabla": {
+     "sesion_grupal": {
+      "filas": 18000,
+      "bytes_por_fila": 264
+     },
+     "miembro_sesion": {
+      "filas": 46696,
+      "bytes_por_fila": 250
+     },
+     "orden_personal": {
+      "filas": 46696,
+      "bytes_por_fila": 229
+     },
+     "item_orden": {
+      "filas": 140088,
+      "bytes_por_fila": 174
+     },
+     "comanda": {
+      "filas": 23409,
+      "bytes_por_fila": 334
+     },
+     "comanda_orden": {
+      "filas": 46696,
+      "bytes_por_fila": 169
+     },
+     "llamada_mesero": {
+      "filas": 5422,
+      "bytes_por_fila": 304
+     }
+    },
+    "evento_bytes_por_fila": 353,
+    "eventos_por_sesion": 10
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-17-fila-por-visita-medir.py (bytes por fila con sus índices, de la copia de medición); eventos por sesión = 10 es SUPUESTO del generador de datos (ver 2026-11-14-recursos-medicion.json)",
+   "nota": "para la tabla paso a paso de tres comensales; evento_bytes_por_fila sale de la base con valores variados",
+   "mueve_resultado": false
   },
   "bytes_por_evento": {
    "valor": {

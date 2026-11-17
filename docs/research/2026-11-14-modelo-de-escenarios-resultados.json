@@ -12513,6 +12513,22 @@
     "capacidad_despues": 216,
     "recurso": "disco"
    },
+   "fila_por_visita_de_comensal": {
+    "en_tablero": true,
+    "ganancia_maxima": 0.2197802197802199,
+    "canal": "sondeo",
+    "capacidad_antes": 182,
+    "capacidad_despues": 222,
+    "recurso": "disco"
+   },
+   "fila_por_visita_mas_platillo_por_dia": {
+    "en_tablero": true,
+    "ganancia_maxima": 0.19780219780219777,
+    "canal": "sondeo",
+    "capacidad_antes": 182,
+    "capacidad_despues": 218,
+    "recurso": "disco"
+   },
    "indices_de_evento_minimos": {
     "en_tablero": false,
     "ganancia_maxima": 0.03846153846153855,
@@ -12574,6 +12590,8 @@
    "historial_gratuito_30_dias",
    "analitica_agregada_por_dia",
    "retencion_analitica_7_dias",
+   "fila_por_visita_de_comensal",
+   "fila_por_visita_mas_platillo_por_dia",
    "archivar_sesiones_cerradas",
    "estado_en_memoria_60s",
    "cerrar_lineas_ociosas"
