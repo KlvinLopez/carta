@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r8",
+ "version": "2026-11-17-r9",
  "config_inicial": {
   "nombre": "dos planes: Chef y Master Chef",
   "precios": {
@@ -15,6 +15,7 @@
   "topes": {
    "gratuito": {
     "platillos": 150,
+    "platillos_cuenta": "todo",
     "mesas": 6,
     "cuentas": 1,
     "lecturas_pdf": 3,
@@ -11990,6 +11991,345 @@
   "bolsa": "Lo que Calvin pone cada mes de su bolsillo para pagar el servidor mientras los anuncios no alcanzan a pagarlo.",
   "cuello_de_botella": "El recurso que se llena primero: el sistema no atiende más restaurantes que los que aguanta ése."
  },
+ "meta_12_meses": {
+  "meta_restaurantes": 300,
+  "escenarios": {
+   "recomendado": {
+    "mes_12": {
+     "restaurantes": 300,
+     "de_paga": 34.76518496523481,
+     "ingreso_suscripcion": 7822.166617177832,
+     "ingreso_anuncios": 1141.8358787246643,
+     "ingresos": 8964.002495902496,
+     "costos": {
+      "servidor": 471.5703530724931,
+      "almacenamiento": 25.189876083061836,
+      "soporte": 2218.5285054314713,
+      "comision": 499.90111008169873,
+      "total": 3215.189844668725
+     },
+     "margen_operacion": 5748.812651233771,
+     "margen_despues_de_captacion": 1885.7052978968786
+    },
+    "acumulado_12_meses": {
+     "ingreso_suscripcion": 35277.97144347202,
+     "ingreso_anuncios": 3535.88510445071,
+     "ingresos": 38813.85654792273,
+     "costos": {
+      "servidor": 3467.00937669053,
+      "almacenamiento": 108.3580381914848,
+      "soporte": 10005.563559495935,
+      "comision": 2254.5540064684615,
+      "total": 15835.484980846411
+     },
+     "captacion": 23055.57536524442,
+     "margen_operacion": 22978.37156707632,
+     "margen_despues_de_captacion": -77.20379816810055
+    },
+    "financiamiento_maximo": 4309.358763459942
+   },
+   "peor": {
+    "mes_12": {
+     "restaurantes": 300,
+     "de_paga": 7.028088959956149,
+     "ingreso_suscripcion": 1581.3200159901335,
+     "ingreso_anuncios": 0,
+     "ingresos": 1581.3200159901335,
+     "costos": {
+      "servidor": 465.26057040300054,
+      "almacenamiento": 15.759069740227936,
+      "soporte": 568.1712931173909,
+      "comision": 101.05942126723504,
+      "total": 1150.2503545278541
+     },
+     "margen_operacion": 431.0696614622793,
+     "margen_despues_de_captacion": -349.89158376804767
+    },
+    "acumulado_12_meses": {
+     "ingreso_suscripcion": 7131.753272115502,
+     "ingreso_anuncios": 0,
+     "ingresos": 7131.753272115502,
+     "costos": {
+      "servidor": 3018.3306262224314,
+      "almacenamiento": 66.89695504546437,
+      "soporte": 2562.4525319594327,
+      "comision": 455.77798991523,
+      "total": 6103.458103142558
+     },
+     "captacion": 4660.888036463719,
+     "margen_operacion": 1028.2951689729434,
+     "margen_despues_de_captacion": -3632.5928674907746
+    },
+    "financiamiento_maximo": 3632.5928674907746
+   },
+   "mejor": {
+    "mes_12": {
+     "restaurantes": 300,
+     "de_paga": 114.65426053848546,
+     "ingreso_suscripcion": 25797.20862115923,
+     "ingreso_anuncios": 3191.6536335272804,
+     "ingresos": 28988.862254686508,
+     "costos": {
+      "servidor": 489.74394645941237,
+      "almacenamiento": 52.35271968053021,
+      "soporte": 6971.928502039885,
+      "comision": 1648.6548878166761,
+      "total": 9162.680055996503
+     },
+     "margen_operacion": 19826.182198690003,
+     "margen_despues_de_captacion": 7085.800767653493
+    },
+    "acumulado_12_meses": {
+     "ingreso_suscripcion": 116345.4108814281,
+     "ingreso_anuncios": 9883.48741848948,
+     "ingresos": 126228.8982999176,
+     "costos": {
+      "servidor": 4192.134159125522,
+      "almacenamiento": 228.6632060087617,
+      "soporte": 31443.397544199877,
+      "comision": 7435.433544053209,
+      "total": 43299.62845338737
+     },
+     "captacion": 76036.41250391278,
+     "margen_operacion": 82929.26984653021,
+     "margen_despues_de_captacion": 6892.857342617424
+    },
+    "financiamiento_maximo": 10596.788895371526
+   }
+  }
+ },
+ "potencial_chef": {
+  "universo": 104882,
+  "tramos": [
+   {
+    "tramo": "0 a 5",
+    "negocios": 73193,
+    "parte_en_chef": 0.484022,
+    "parte_en_chef_rango": [
+     0.423556,
+     0.544586
+    ],
+    "parte_en_master_chef": 0.515978,
+    "negocios_en_chef": 35427.022246,
+    "negocios_en_master_chef": 37765.97775400001
+   },
+   {
+    "tramo": "6 a 10",
+    "negocios": 17855,
+    "parte_en_chef": 0,
+    "parte_en_chef_rango": [
+     0,
+     0
+    ],
+    "parte_en_master_chef": 1,
+    "negocios_en_chef": 0,
+    "negocios_en_master_chef": 17855
+   },
+   {
+    "tramo": "11 a 30",
+    "negocios": 10809,
+    "parte_en_chef": 0,
+    "parte_en_chef_rango": [
+     0,
+     0
+    ],
+    "parte_en_master_chef": 1,
+    "negocios_en_chef": 0,
+    "negocios_en_master_chef": 10809
+   },
+   {
+    "tramo": "31 a 50",
+    "negocios": 2263,
+    "parte_en_chef": 0,
+    "parte_en_chef_rango": [
+     0,
+     0
+    ],
+    "parte_en_master_chef": 1,
+    "negocios_en_chef": 0,
+    "negocios_en_master_chef": 2263
+   },
+   {
+    "tramo": "51 a 100",
+    "negocios": 542,
+    "parte_en_chef": 0,
+    "parte_en_chef_rango": [
+     0,
+     0
+    ],
+    "parte_en_master_chef": 1,
+    "negocios_en_chef": 0,
+    "negocios_en_master_chef": 542
+   },
+   {
+    "tramo": "101 a 250",
+    "negocios": 193,
+    "parte_en_chef": 0,
+    "parte_en_chef_rango": [
+     0,
+     0
+    ],
+    "parte_en_master_chef": 1,
+    "negocios_en_chef": 0,
+    "negocios_en_master_chef": 193
+   },
+   {
+    "tramo": "251 o más",
+    "negocios": 27,
+    "parte_en_chef": 0,
+    "parte_en_chef_rango": [
+     0,
+     0
+    ],
+    "parte_en_master_chef": 1,
+    "negocios_en_chef": 0,
+    "negocios_en_master_chef": 27
+   }
+  ],
+  "negocios_en_chef": 35427.022246,
+  "negocios_en_master_chef": 69454.977754,
+  "parte_en_chef": 0.33777981203638374,
+  "potencial_anuncios_mes": {
+   "baja": {
+    "tarifa_por_mil": 3.5,
+    "pesos_por_negocio_al_mes": 4.305,
+    "pesos_al_mes_de_todos_los_chef": 152513.33076903,
+    "rango_por_visitas_y_parte": [
+     9919.566228880001,
+     433981.0225135
+    ]
+   },
+   "media": {
+    "tarifa_por_mil": 14,
+    "pesos_por_negocio_al_mes": 17.22,
+    "pesos_al_mes_de_todos_los_chef": 610053.32307612,
+    "rango_por_visitas_y_parte": [
+     39678.264915520005,
+     1735924.090054
+    ]
+   },
+   "alta": {
+    "tarifa_por_mil": 37,
+    "pesos_por_negocio_al_mes": 45.51,
+    "pesos_al_mes_de_todos_los_chef": 1612283.7824154599,
+    "rango_por_visitas_y_parte": [
+     104863.98584816,
+     4587799.380857
+    ]
+   }
+  },
+  "supuestos": "sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef sale del modelo de mesas y cuentas con dispersión; todos con las visitas con la app del gratuito típico (supuesto, más altas que las de una fonda de 0 a 5 personas) y la parte de visitas con anuncio del modelo; la tarifa por mil visitas no tiene dato; techo teórico: no cuenta que no todos estarían en Carta",
+  "rango_de_los_parametros": {
+   "visitas_con_la_app": [
+    800,
+    3500
+   ],
+   "parte_con_anuncio": [
+    0.1,
+    1
+   ]
+  }
+ },
+ "palancas_en_tablero": {
+  "umbral": 0.15,
+  "regla": "entra al tablero si sube al menos 15 % la capacidad del recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días; la palanca del historial se mide sin purga (12 meses) porque es la decisión",
+  "palancas": {
+   "historial_gratuito_30_dias": {
+    "en_tablero": true,
+    "ganancia_maxima": 11.130434782608695,
+    "canal": "sondeo",
+    "capacidad_antes": 23,
+    "capacidad_despues": 279,
+    "recurso": "disco"
+   },
+   "analitica_agregada_por_dia": {
+    "en_tablero": true,
+    "ganancia_maxima": 0.7741935483870968,
+    "canal": "sondeo",
+    "capacidad_antes": 279,
+    "capacidad_despues": 495,
+    "recurso": "disco"
+   },
+   "retencion_analitica_7_dias": {
+    "en_tablero": true,
+    "ganancia_maxima": 0.6021505376344085,
+    "canal": "sondeo",
+    "capacidad_antes": 279,
+    "capacidad_despues": 447,
+    "recurso": "disco"
+   },
+   "indices_de_evento_minimos": {
+    "en_tablero": false,
+    "ganancia_maxima": 0.11111111111111116,
+    "canal": "sondeo",
+    "capacidad_antes": 279,
+    "capacidad_despues": 310,
+    "recurso": "disco"
+   },
+   "tipos_mas_chicos": {
+    "en_tablero": false,
+    "ganancia_maxima": 0.11111111111111116,
+    "canal": "sondeo",
+    "capacidad_antes": 279,
+    "capacidad_despues": 310,
+    "recurso": "disco"
+   },
+   "purga_claves_idempotencia": {
+    "en_tablero": false,
+    "ganancia_maxima": 0,
+    "canal": null,
+    "capacidad_antes": null,
+    "capacidad_despues": null,
+    "recurso": "disco"
+   },
+   "archivar_sesiones_cerradas": {
+    "en_tablero": false,
+    "ganancia_maxima": 0,
+    "canal": null,
+    "capacidad_antes": null,
+    "capacidad_despues": null,
+    "recurso": "disco"
+   },
+   "estado_en_memoria_60s": {
+    "en_tablero": true,
+    "ganancia_maxima": 0.8648648648648649,
+    "canal": "sondeo",
+    "capacidad_antes": 148,
+    "capacidad_despues": 276,
+    "recurso": "procesador"
+   },
+   "cerrar_lineas_ociosas": {
+    "en_tablero": true,
+    "ganancia_maxima": 0.4281663516068053,
+    "canal": "eventos",
+    "capacidad_antes": 2116,
+    "capacidad_despues": 3022,
+    "recurso": "lineas"
+   },
+   "pool_acotado": {
+    "en_tablero": false,
+    "ganancia_maxima": 0,
+    "canal": null,
+    "capacidad_antes": null,
+    "capacidad_despues": null,
+    "recurso": "conexiones_bd"
+   }
+  },
+  "en_tablero": [
+   "historial_gratuito_30_dias",
+   "analitica_agregada_por_dia",
+   "retencion_analitica_7_dias",
+   "estado_en_memoria_60s",
+   "cerrar_lineas_ociosas"
+  ],
+  "ajustes_menores": [
+   "indices_de_evento_minimos",
+   "tipos_mas_chicos",
+   "purga_claves_idempotencia",
+   "archivar_sesiones_cerradas",
+   "pool_acotado"
+  ]
+ },
  "mensajes": {
   "valor": {
    "frase": "Para un negocio de 11 a 50 personas, Carta (225 pesos al mes) cuesta alrededor de la cuarta parte de lo que ya paga por un punto de venta como Fudo Pro (838), y 0.03 % de lo que vende en promedio al mes.",
@@ -12068,6 +12408,64 @@
      "precio_ganador": 299
     }
    ]
+  },
+  "margen": {
+   "nombre": "margen de operación: antes de captación, sueldos e impuestos",
+   "por_escenario": {
+    "recomendado": {
+     "ingresos": 29880.008319674987,
+     "margen_operacion": 20023.83342039106,
+     "porcentaje": 67,
+     "por_cada_100": {
+      "servidor": 2.4,
+      "almacenamiento": 0.3,
+      "soporte": 24.7,
+      "comision": 5.6,
+      "margen": 67
+     },
+     "soporte_mas_comision_por_cada_100": 30.3
+    },
+    "peor": {
+     "ingresos": 5271.066719967112,
+     "margen_operacion": 2389.8171172844886,
+     "porcentaje": 45.4,
+     "por_cada_100": {
+      "servidor": 11.2,
+      "almacenamiento": 1.1,
+      "soporte": 35.9,
+      "comision": 6.4,
+      "margen": 45.4
+     },
+     "soporte_mas_comision_por_cada_100": 42.3
+    },
+    "mejor": {
+     "ingresos": 96629.54084895502,
+     "margen_operacion": 65663.66710735272,
+     "porcentaje": 67.9,
+     "por_cada_100": {
+      "servidor": 2.1,
+      "almacenamiento": 0.2,
+      "soporte": 24.1,
+      "comision": 5.7,
+      "margen": 67.9
+     },
+     "soporte_mas_comision_por_cada_100": 29.8
+    },
+    "piso_de_verdad": {
+     "ingresos": 6322.103450823269,
+     "margen_operacion": -1109.0054318465645,
+     "porcentaje": -17.5,
+     "por_cada_100": {
+      "servidor": 9.4,
+      "almacenamiento": 0.9,
+      "soporte": 101.9,
+      "comision": 5.3,
+      "margen": -17.5
+     },
+     "soporte_mas_comision_por_cada_100": 107.2
+    }
+   },
+   "frase": "El margen de operación no es la ganancia final (faltan la captación, los sueldos y los impuestos): de cada 100 pesos que entran, se quedan 67 en el recomendado, 67.9 en el mejor y 45.4 en el peor. Del recomendado al mejor el porcentaje casi no cambia porque el soporte y la comisión crecen con cada cliente de paga (30.3 → 29.8 de cada 100); lo que sube es el monto (20,024 → 65,664 pesos al mes)."
   }
  },
  "desgloses": {

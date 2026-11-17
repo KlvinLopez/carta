@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-17-r8';
+export const VERSION = '2026-11-17-r9';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -55,7 +55,7 @@ export function phi(z) {
  * Configuración inicial = DOS PLANES (decisión de Calvin, 17 de noviembre de 2026): **Chef** (gratis) = negocios de 0 a 5 personas, con
  * 6 mesas y UNA cuenta de personal (el dueño con su PIN); **Master Chef** (225) = todo lo que pase de ahí, hasta los topes técnicos del
  * producto (500 mesas activas, 50 personas activas). **Chef Ejecutivo queda APAGADO** (`precios.salon = 0` y `planes.chef_ejecutivo.activo
- * = false`): es una futura escalación, no se borró. El tope de platillos del gratuito sigue ABIERTO (150 contando todo, con sus dos cotas).
+ * = false`): es una futura escalación, no se borró. El tope de 150 platillos cuenta TODO, bebidas incluidas (decidido por Calvin el 17-nov); la banda de dos cotas de cobertura se conserva porque no se sabe cuál muestra tiene razón.
  * Los anuncios van en Chef; empiezan en `supuestos.mes_inicio_anuncios`. `configBase` es alias de esta función. La configuración anterior
  * de tres planes se conserva como `configTresPlanes25Mesas()` y la de la primera ronda como `configTopes10Mesas3Cuentas()`.
  */
@@ -65,7 +65,7 @@ export function configInicial() {
     precios: { servicio: 225, salon: 0 },
     planes: { chef_ejecutivo: { activo: false, nota: 'futura escalación: precio y topes de configTresPlanes25Mesas()' } },
     topes: {
-      gratuito: { platillos: 150, mesas: 6, cuentas: 1, lecturas_pdf: 3, meses_en_linea: 1 },
+      gratuito: { platillos: 150, platillos_cuenta: 'todo', mesas: 6, cuentas: 1, lecturas_pdf: 3, meses_en_linea: 1 }, // el tope de 150 cuenta TODO, bebidas incluidas (decisión de Calvin, 17-nov)
       servicio: { platillos: 300, mesas: 500, cuentas: 50, lecturas_pdf_mes: 10, meses_en_linea: 12 },
       salon: { platillos: 300, mesas: 500, cuentas: 150, lecturas_pdf_mes: 20, meses_en_linea: 12 },
     },
@@ -806,7 +806,7 @@ const PROCESOS = { hobby_sondeo: 2, hobby_eventos: 2, pro_2: 2, pro_4: 4, pro_8:
 const NOMBRE_TAMANO = { hobby_sondeo: 'Hoy: Hobby, 2 procesos, el teléfono pregunta cada 3 s', hobby_eventos: 'Hobby, 2 procesos, con avisos en vez de preguntas (Fase 3)', pro_2: 'Pro, 2 procesos, con avisos', pro_4: 'Pro, 4 procesos, con avisos', pro_8: 'Pro, 8 procesos, con avisos' };
 
 /** Cuántos restaurantes (gratuitos típicos) aguanta cada recurso en un tamaño de servidor; null = no aplica. */
-function topesDeTamano(config, s, id, canal = null) {
+export function topesDeTamano(config, s, id, canal = null) {
   canal = canal ?? (id === 'hobby_sondeo' ? 'sondeo' : 'eventos');
   if (canal === 'eventos' && id === 'hobby_sondeo') id = 'hobby_eventos';
   const e = s.escalones.find((x) => x.id === id);
@@ -848,7 +848,7 @@ const RECURSOS = ['procesador', 'memoria', 'disco', 'conexiones_bd', 'lineas', '
 const NOMBRE_RECURSO = { procesador: 'Procesador (el trabajo de la API)', memoria: 'Memoria de la API', disco: 'Disco de la base de datos', conexiones_bd: 'Conexiones a la base de datos', lineas: 'Líneas abiertas con los teléfonos', fotos: 'Almacenamiento de fotos y respaldos (R2)' };
 
 const PRIORIDAD_EMPATE = ['lineas', 'disco', 'conexiones_bd', 'memoria', 'procesador'];
-const minimoDe = (t) => { const c = RECURSOS.filter((r) => t[r] != null).map((r) => [r, t[r]]); return c.sort((a, b) => a[1] - b[1] || PRIORIDAD_EMPATE.indexOf(a[0]) - PRIORIDAD_EMPATE.indexOf(b[0]))[0]; };
+export const minimoDe = (t) => { const c = RECURSOS.filter((r) => t[r] != null).map((r) => [r, t[r]]); return c.sort((a, b) => a[1] - b[1] || PRIORIDAD_EMPATE.indexOf(a[0]) - PRIORIDAD_EMPATE.indexOf(b[0]))[0]; };
 
 /**
  * Los seis recursos, qué pagamos hoy, el cuello de botella (hoy con el sondeo de 3 s y con eventos), las palancas y la escalera de
@@ -891,7 +891,7 @@ export function recursos(config, s, estado = {}) {
     lineas: 'Con los avisos (ADR-018, Fase 3) cada teléfono mantiene una conexión abierta con el servidor; Railway permite unas 10,000 abiertas a la vez. Hoy no existen. Ruta futura: `/p/sesion/eventos` y `/op/eventos` (T-3.20 y T-3.21).',
     fotos: 'Las fotos de los platillos y los respaldos diarios de la base viven en R2 (almacenamiento tipo S3 de Cloudflare); la API sólo guarda la dirección. Ruta: `app/services/assets.py`.',
   };
-  const valorDe = (t, r) => t[r];
+  const tablero = palancasEnTablero(cfg0, s);
   const evaluarPalanca = (id) => {
     const pl = PALANCAS[id];
     const r = pl.recurso;
@@ -906,7 +906,7 @@ export function recursos(config, s, estado = {}) {
     const c30 = conHistorialGratuito({ ...pon(cfg0), palancas: [...(pon(cfg0).palancas ?? []), 'historial_gratuito_30_dias'] }, s, mesesH);
     const a30 = topesDeTamano(b30, s, idEv);
     const d30 = topesDeTamano(c30, s, idEv);
-    const fila = { id, nombre: pl.nombre, accion: pl.accion, que_es: pl.que_es, esfuerzo: pl.esfuerzo, riesgo: pl.riesgo, regla_que_toca: pl.regla_que_toca, medido: pl.medido };
+    const fila = { id, nombre: pl.nombre, en_tablero: tablero.palancas[id].en_tablero, ganancia_de_capacidad: tablero.palancas[id].ganancia_maxima, accion: pl.accion, que_es: pl.que_es, esfuerzo: pl.esfuerzo, riesgo: pl.riesgo, regla_que_toca: pl.regla_que_toca, medido: pl.medido };
     if (id === 'purga_claves_idempotencia') {
       const mbMes = (s.visitas_mes_gratuito * s.claves_idempotencia_por_visita * s.idempotencia_bytes_por_fila) / 1e6;
       return { ...fila, antes: `${n(mbMes, 1)} MB al mes por restaurante, sin tope (la tabla crece mientras nadie la purgue; hoy está vacía: ningún servicio la usa)`, despues: `${n(mbMes / 30, 2)} MB constantes (un día)`, ganancia: `evita ${n(mbMes * 12, 0)} MB por restaurante al año; no cambia los restaurantes que caben hoy porque la tabla está vacía hasta la Fase 3`, ganancia_restaurantes: 0, mb_antes: mbMes, mb_despues: mbMes / 30 };
@@ -1088,7 +1088,90 @@ export function mensajes(config, s, n = 1000) {
     por_mediana: filas,
     por_sigma: sp.por_sigma.map((f) => ({ sigma: f.sigma, precio_ganador: f.precio_ganador })),
   };
-  return { valor, precio };
+  // «margen» = margen de operación: antes de captación, sueldos e impuestos; a dónde se va cada 100 pesos que entran
+  const d = desgloses(config, s, n).escenarios;
+  const por100 = (e) => { const c = e.cascada_margen; const q = (x) => Math.round((100 * x) / c.ingresos * 10) / 10; const r = { servidor: q(c.costo_servidor), almacenamiento: q(c.costo_almacenamiento), soporte: q(c.costo_soporte), comision: q(c.costo_comision) }; r.margen = Math.round((100 - r.servidor - r.almacenamiento - r.soporte - r.comision) * 10) / 10; return { ingresos: c.ingresos, margen_operacion: c.margen_operacion, porcentaje: r.margen, por_cada_100: r, soporte_mas_comision_por_cada_100: Math.round((r.soporte + r.comision) * 10) / 10 }; };
+  const E = Object.fromEntries(['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map((k) => [k, por100(d.find((x) => x.escenario === k))]));
+  const f0 = (x) => Math.round(x).toLocaleString('en-US');
+  const margen = {
+    nombre: 'margen de operación: antes de captación, sueldos e impuestos',
+    por_escenario: E,
+    frase: `El margen de operación no es la ganancia final (faltan la captación, los sueldos y los impuestos): de cada 100 pesos que entran, se quedan ${E.recomendado.porcentaje} en el recomendado, ${E.mejor.porcentaje} en el mejor y ${E.peor.porcentaje} en el peor. Del recomendado al mejor el porcentaje casi no cambia porque el soporte y la comisión crecen con cada cliente de paga (${E.recomendado.soporte_mas_comision_por_cada_100} → ${E.mejor.soporte_mas_comision_por_cada_100} de cada 100); lo que sube es el monto (${f0(E.recomendado.margen_operacion)} → ${f0(E.mejor.margen_operacion)} pesos al mes).`,
+  };
+  return { valor, precio, margen };
+}
+
+// ---------------------------------------------------------------- palancas que sí mueven algo (regla escrita)
+/**
+ * Qué palancas entran al tablero. REGLA: una palanca entra si sube al menos `umbral` (por omisión `s.umbral_tablero`, 15 %) la capacidad del
+ * recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días (el estado que se propone); la palanca
+ * del historial a 30 días se mide sin purga (12 meses), porque es la decisión. Las demás son «ajustes menores». El umbral es un juicio.
+ */
+export function palancasEnTablero(config, s, umbral = s.umbral_tablero) {
+  const clave = { disco: 'disco', procesador: 'procesador', lineas: 'lineas', conexiones_bd: 'conexiones_bd' };
+  const out = {};
+  for (const [id, pl] of Object.entries(PALANCAS)) {
+    const base30 = id === 'historial_gratuito_30_dias' ? 12 : 1;
+    let mejor = { ganancia: 0, canal: null, antes: null, despues: null };
+    for (const canal of ['sondeo', 'eventos']) {
+      const mk = (on) => {
+        const ps = (config.palancas ?? []).filter((x) => x !== id);
+        const cfg = { ...config, palancas: on ? [...ps, id] : ps };
+        const cc = id === 'historial_gratuito_30_dias' ? conHistorialGratuito(cfg, s, base30) : conHistorialGratuito({ ...cfg, palancas: [...new Set([...(cfg.palancas ?? []), 'historial_gratuito_30_dias'])] }, s, 1);
+        return topesDeTamano(cc, s, 'hobby_eventos', canal)[clave[pl.recurso]];
+      };
+      const a = mk(false);
+      const d = mk(true);
+      if (a != null && d != null && a > 0 && d / a - 1 > mejor.ganancia) mejor = { ganancia: d / a - 1, canal, antes: a, despues: d };
+    }
+    out[id] = { en_tablero: mejor.ganancia >= umbral, ganancia_maxima: mejor.ganancia, canal: mejor.canal, capacidad_antes: mejor.antes, capacidad_despues: mejor.despues, recurso: pl.recurso };
+  }
+  const ids = Object.keys(out);
+  return { umbral, regla: `entra al tablero si sube al menos ${Math.round(umbral * 100)} % la capacidad del recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días; la palanca del historial se mide sin purga (12 meses) porque es la decisión`, palancas: out, en_tablero: ids.filter((i) => out[i].en_tablero), ajustes_menores: ids.filter((i) => !out[i].en_tablero) };
+}
+
+// ---------------------------------------------------------------- la meta de 12 meses, en dinero
+/**
+ * La meta de `s.meta_12_meses` restaurantes a 12 meses, en pesos, por escenario (recomendado, peor, mejor): el mes 12 (ingresos por
+ * suscripción y por anuncios, costos y margen) y el acumulado de los 12 meses. Sale de `proyectarEscenario`.
+ */
+export function meta12Meses(config, s) {
+  const out = { meta_restaurantes: s.meta_12_meses, escenarios: {} };
+  for (const nombre of ['recomendado', 'peor', 'mejor']) {
+    const p = proyectarEscenario(nombre, config, s, 12);
+    const f = p.filas[11];
+    const suma = (k) => p.filas.reduce((a, x) => a + x[k], 0);
+    const sumaD = (k) => p.filas.reduce((a, x) => a + x.costos_detalle[k], 0);
+    out.escenarios[nombre] = {
+      mes_12: { restaurantes: f.restaurantes, de_paga: f.pagantes, ingreso_suscripcion: f.ingresos_suscripcion, ingreso_anuncios: f.ingresos_anuncios, ingresos: f.ingresos, costos: { servidor: f.costos_detalle.servidor, almacenamiento: f.costos_detalle.almacenamiento + f.costos_detalle.objetos, soporte: f.costos_detalle.soporte, comision: f.costos_detalle.comision, total: f.costos }, margen_operacion: f.margen_operacion, margen_despues_de_captacion: f.margen_despues_de_captacion },
+      acumulado_12_meses: { ingreso_suscripcion: suma('ingresos_suscripcion'), ingreso_anuncios: suma('ingresos_anuncios'), ingresos: suma('ingresos'), costos: { servidor: sumaD('servidor'), almacenamiento: sumaD('almacenamiento') + sumaD('objetos'), soporte: sumaD('soporte'), comision: sumaD('comision'), total: suma('costos') }, captacion: suma('captacion'), margen_operacion: suma('margen_operacion'), margen_despues_de_captacion: suma('margen_despues_de_captacion') },
+      financiamiento_maximo: p.financiamiento_maximo,
+    };
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- el potencial del plan Chef, en dinero
+/**
+ * Si TODOS los negocios que caerían en Chef estuvieran en Carta, cuánto dejarían al mes en anuncios, con las tres tarifas (baja, media,
+ * alta) y su rango, por tramo de tamaño y con la parte de cada tramo que cae en cada plan. SUPUESTOS: el modelo de mesas y cuentas (sólo los
+ * conteos por estrato son medidos), que todos tienen las visitas con la app del gratuito típico (más de las que tendría una fonda de 0 a 5
+ * personas), y que cada visita con anuncio paga la tarifa por mil. Es un techo teórico, no una proyección.
+ */
+export function potencialChef(config, s) {
+  const e = coberturaEstratos(config, s, 'centro');
+  const e1 = coberturaEstratos(config, s, 'minimo');
+  const e2 = coberturaEstratos(config, s, 'maximo');
+  const dentro = { '0 a 5': [e.dentro_0_5, e1.dentro_0_5, e2.dentro_0_5], '6 a 10': [e.dentro_6_10, e1.dentro_6_10, e2.dentro_6_10] };
+  const tramos = s.estratos_negocios.map((x) => { const d = dentro[x.estrato] ?? [0, 0, 0]; return { tramo: x.estrato, negocios: x.negocios, parte_en_chef: d[0], parte_en_chef_rango: [Math.min(d[1], d[2]), Math.max(d[1], d[2])], parte_en_master_chef: 1 - d[0], negocios_en_chef: x.negocios * d[0], negocios_en_master_chef: x.negocios * (1 - d[0]) }; });
+  const enChef = tramos.reduce((a, x) => a + x.negocios_en_chef, 0);
+  const enMaster = tramos.reduce((a, x) => a + x.negocios_en_master_chef, 0);
+  const pesosPorChef = (tarifa, visitas = s.visitas_app_gratuito, parte = s.parte_visitas_con_anuncio) => (visitas * parte * tarifa) / 1000;
+  const [vmin, vmax] = s.rangos.visitas_app_gratuito;
+  const [pmin, pmax] = s.rangos.parte_visitas_con_anuncio;
+  const tarifas = s.anuncio_pesos_por_mil;
+  const potencial = Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, { tarifa_por_mil: tarifas[k], pesos_por_negocio_al_mes: pesosPorChef(tarifas[k]), pesos_al_mes_de_todos_los_chef: enChef * pesosPorChef(tarifas[k]), rango_por_visitas_y_parte: [enChef * pesosPorChef(tarifas[k], vmin, pmin), enChef * pesosPorChef(tarifas[k], vmax, pmax)] }]));
+  return { universo: tramos.reduce((a, x) => a + x.negocios, 0), tramos, negocios_en_chef: enChef, negocios_en_master_chef: enMaster, parte_en_chef: enChef / tramos.reduce((a, x) => a + x.negocios, 0), potencial_anuncios_mes: potencial, supuestos: 'sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef sale del modelo de mesas y cuentas con dispersión; todos con las visitas con la app del gratuito típico (supuesto, más altas que las de una fonda de 0 a 5 personas) y la parte de visitas con anuncio del modelo; la tarifa por mil visitas no tiene dato; techo teórico: no cuenta que no todos estarían en Carta', rango_de_los_parametros: { visitas_con_la_app: [vmin, vmax], parte_con_anuncio: [pmin, pmax] } };
 }
 
 // ---------------------------------------------------------------- banderas de operación

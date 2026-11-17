@@ -331,6 +331,38 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('ENDUTIH 2024: el tipo de conexión suma 100 %', Math.round(Object.values(en.tipo_de_conexion_de_usuarios_de_celular_inteligente).reduce((a, b) => a + b, 0) * 1000), 1000);
 }
 
+// 16) RONDA 9 (puntos 1 a 5): tope de platillos decidido, meta de 12 meses, potencial de Chef, tablero de palancas, a dónde se va cada 100
+{
+  const cfg = M.configInicial();
+  prueba('el tope de 150 platillos cuenta TODO, bebidas incluidas (decidido)', `${cfg.topes.gratuito.platillos}-${cfg.topes.gratuito.platillos_cuenta}`, '150-todo');
+  const mt = M.meta12Meses(cfg, s);
+  const r = mt.escenarios.recomendado.mes_12;
+  prueba('meta de 12 meses (recomendado): restaurantes, de paga, ingresos por suscripción y por anuncios', `${r.restaurantes}-${Math.round(r.de_paga)}-${Math.round(r.ingreso_suscripcion)}-${Math.round(r.ingreso_anuncios)}`, '300-35-7822-1142');
+  prueba('meta de 12 meses (recomendado): ingresos y margen de operación del mes 12', `${Math.round(r.ingresos)}-${Math.round(r.margen_operacion)}`, '8964-5749');
+  prueba('meta de 12 meses: margen del mes 12 del peor y del mejor', `${Math.round(mt.escenarios.peor.mes_12.margen_operacion)}-${Math.round(mt.escenarios.mejor.mes_12.margen_operacion)}`, '431-19826');
+  prueba('meta de 12 meses: el peor no lleva ingresos por anuncios en ningún mes', mt.escenarios.peor.acumulado_12_meses.ingreso_anuncios, 0);
+  prueba('meta de 12 meses (recomendado): acumulado de ingresos y de margen de operación', `${Math.round(mt.escenarios.recomendado.acumulado_12_meses.ingresos)}-${Math.round(mt.escenarios.recomendado.acumulado_12_meses.margen_operacion)}`, '38814-22978');
+  const a = mt.escenarios.recomendado.acumulado_12_meses;
+  prueba('meta de 12 meses: ingresos − costos = margen de operación (acumulado)', Math.abs(a.ingresos - a.costos.total - a.margen_operacion) < 1e-6, true);
+  const ch = M.potencialChef(cfg, s);
+  prueba('potencial de Chef: universo y negocios en Chef', `${ch.universo}-${Math.round(ch.negocios_en_chef)}`, '104882-35427');
+  prueba('potencial de Chef: parte de cada tramo en Chef (0 a 5, 6 a 10, el resto)', ch.tramos.map((x) => Math.round(x.parte_en_chef * 1000) / 10).join(','), '48.4,0,0,0,0,0,0');
+  prueba('potencial de Chef en anuncios al mes: tarifa baja, media y alta', ['baja', 'media', 'alta'].map((k) => Math.round(ch.potencial_anuncios_mes[k].pesos_al_mes_de_todos_los_chef)).join(','), '152513,610053,1612284');
+  prueba('potencial de Chef por negocio al mes (baja)', Math.round(ch.potencial_anuncios_mes.baja.pesos_por_negocio_al_mes * 100) / 100, 4.3, 0.01);
+  prueba('potencial de Chef: el rango abarca los tres escenarios de tarifa', ch.potencial_anuncios_mes.baja.rango_por_visitas_y_parte[0] < ch.potencial_anuncios_mes.baja.pesos_al_mes_de_todos_los_chef && ch.potencial_anuncios_mes.alta.rango_por_visitas_y_parte[1] > ch.potencial_anuncios_mes.alta.pesos_al_mes_de_todos_los_chef, true);
+  const tb = M.palancasEnTablero(cfg, s);
+  prueba('palancas en el tablero (regla ≥ 15 % del recurso que tocan)', tb.en_tablero.join(','), 'historial_gratuito_30_dias,analitica_agregada_por_dia,retencion_analitica_7_dias,estado_en_memoria_60s,cerrar_lineas_ociosas');
+  prueba('ajustes menores (fuera del tablero)', tb.ajustes_menores.join(','), 'indices_de_evento_minimos,tipos_mas_chicos,purga_claves_idempotencia,archivar_sesiones_cerradas,pool_acotado');
+  prueba('ganancia de índices y tipos: 11 % (debajo del umbral); con 10 % entrarían', `${Math.round(tb.palancas.indices_de_evento_minimos.ganancia_maxima * 100)}-${M.palancasEnTablero(cfg, s, 0.10).en_tablero.includes('indices_de_evento_minimos')}`, '11-true');
+  prueba('cada palanca de recursos() trae en_tablero', M.recursos(cfg, s, {}).recursos.flatMap((x) => x.palancas).every((p) => typeof p.en_tablero === 'boolean'), true);
+  const mg = M.mensajes(cfg, s).margen;
+  prueba('nombre exacto del margen', mg.nombre, 'margen de operación: antes de captación, sueldos e impuestos');
+  prueba('de cada 100 pesos: se quedan (recomendado, mejor, peor)', ['recomendado', 'mejor', 'peor'].map((k) => mg.por_escenario[k].porcentaje).join(','), '67,67.9,45.4');
+  prueba('el reparto por cada 100 suma 100 (los cuatro escenarios)', Object.values(mg.por_escenario).every((e) => Math.abs(Object.values(e.por_cada_100).reduce((x, y) => x + y, 0) - 100) < 0.05), true);
+  prueba('soporte más comisión por cada 100 (recomendado y mejor): casi igual', `${mg.por_escenario.recomendado.soporte_mas_comision_por_cada_100}-${mg.por_escenario.mejor.soporte_mas_comision_por_cada_100}`, '30.3-29.8');
+  prueba('la frase del margen dice que no es la ganancia final y por qué el porcentaje casi no sube', /no es la ganancia final/.test(mg.frase) && /soporte y la comisión crecen con cada cliente de paga/.test(mg.frase), true);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));

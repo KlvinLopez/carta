@@ -153,16 +153,6 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 | **Guardar 30 días en el gratuito** · El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra. | 169.5 MB por restaurante · caben 23 | 14.3 MB por restaurante · caben 279 | 155.2 MB menos por restaurante (acumulados con el historial supuesto); caben +256 restaurantes en el mismo disco · sobre la base con historial a 30 días: +0 restaurantes | medio | medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes | CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga | medida con datos sintéticos |
 | **Contar por día, no por evento** · En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo. | 169.5 MB por restaurante · caben 23 | 94.9 MB por restaurante · caben 42 | 74.5 MB menos por restaurante (acumulados con el historial supuesto); caben +19 restaurantes en el mismo disco · sobre la base con historial a 30 días: +216 restaurantes | medio | medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo | ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica | medida con datos sintéticos |
 | **Borrar analítica cruda a 7 días** · Los eventos sueltos se conservan una semana y después sólo queda el conteo por día. | 169.5 MB por restaurante · caben 23 | 105.3 MB por restaurante · caben 37 | 64.2 MB menos por restaurante (acumulados con el historial supuesto); caben +14 restaurantes en el mismo disco · sobre la base con historial a 30 días: +168 restaurantes | chico | bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial | CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial) | estimada |
-| **Quitar índices que sobran** · La tabla de analítica deja sólo los dos índices que de verdad se usan. | 169.5 MB por restaurante · caben 23 | 152.6 MB por restaurante · caben 26 | 16.8 MB menos por restaurante (acumulados con el historial supuesto); caben +3 restaurantes en el mismo disco · sobre la base con historial a 30 días: +31 restaurantes | chico | medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos | convención de /migracion (índice en toda FK con cascada); pide ADR | medida con datos sintéticos |
-| **Usar tipos de dato más chicos** · Los campos de la analítica pasan de texto largo a números y huellas cortas. | 169.5 MB por restaurante · caben 23 | 152.6 MB por restaurante · caben 26 | 16.8 MB menos por restaurante (acumulados con el historial supuesto); caben +3 restaurantes en el mismo disco · sobre la base con historial a 30 días: +31 restaurantes | medio | bajo: migración con reescritura de la tabla | ninguna | medida con datos sintéticos |
-| **Purgar claves de reintento diario** · Las claves que evitan duplicar una orden al reintentar se borran al día siguiente. | 2.9 MB al mes por restaurante, sin tope (la tabla crece mientras nadie la purgue; hoy está vacía: ningún servicio la usa) | 0.10 MB constantes (un día) | evita 34 MB por restaurante al año; no cambia los restaurantes que caben hoy porque la tabla está vacía hasta la Fase 3 | chico | bajo si la ventana de reintento del teléfono es menor de 24 h | ninguna | medida con datos sintéticos |
-| **Archivar sesiones viejas en R2** · Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base. | 169.5 MB por restaurante · caben 23 | 105.3 MB por restaurante · caben 37 | 64.2 MB menos por restaurante (acumulados con el historial supuesto); caben +14 restaurantes en el mismo disco · sobre la base con historial a 30 días: +0 restaurantes | grande | alto: se vuelve a leer el historial del archivo; un error pierde datos | regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes | estimada |
-
-### Conexiones a la base de datos
-
-| Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |
-|---|---|---|---|---|---|---|---|
-| **Acotar conexiones a la base** · Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos. | caben 3288 | caben 1644 | evita pasarse de las 100 conexiones de la base con más procesos (ya no) | chico | bajo; hay que verificar `SHOW max_connections` en Railway | ninguna | estimada |
 
 ### Líneas abiertas con los teléfonos
 
@@ -171,6 +161,19 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 | **Cerrar líneas sin movimiento** · La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola. | caben 2116 | caben 3022 | caben +906 restaurantes antes de topar las 10,000 líneas | medio | bajo: el teléfono ya vuelve al sondeo si la línea falla | ninguna | estimada |
 
 **Memoria y fotos:** ninguna palanca por ahora.
+
+### Ajustes menores (fuera del tablero)
+
+**Regla del tablero:** entra al tablero si sube al menos 15 % la capacidad del recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días; la palanca del historial se mide sin purga (12 meses) porque es la decisión; umbral 15 % (un juicio: con 10 % entrarían también índices y tipos, +11 %; entre 12 % y 43 % la lista no cambia). Las demás palancas quedan aquí; siguen en el JSON.
+
+| Ajuste menor | Qué es | Sube la capacidad del recurso que toca (máximo) |
+|---|---|---|
+| **Quitar índices que sobran** | La tabla de analítica deja sólo los dos índices que de verdad se usan. | 11.1 % |
+| **Usar tipos de dato más chicos** | Los campos de la analítica pasan de texto largo a números y huellas cortas. | 11.1 % |
+| **Purgar claves de reintento diario** | Las claves que evitan duplicar una orden al reintentar se borran al día siguiente. | 0 % |
+| **Archivar sesiones viejas en R2** | Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base. | 0 % |
+| **Acotar conexiones a la base** | Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos. | 0 % |
+
 
 **Efecto en los números del modelo.** Las palancas entran en `config.palancas` y mueven `resumen`: «restaurantes gratuitos que caben **con el historial que dice `config` (30 días, propuesta)**» = 279; **sin purga (12 meses acumulados)** = 23; con la analítica agregada por día (sobre 30 días): 495.
 

@@ -61,6 +61,10 @@ const estratos = ['centro', 'minimo', 'maximo'].map((k) => [k, M.coberturaEstrat
 const estratosBaja = M.coberturaEstratos(rec, s, 'centro', 'baja');
 const alternativas = [[5, 1], [6, 1], [6, 2], [8, 2], [10, 3]].map(([mesas, cuentas]) => { const c = { ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, mesas, cuentas } } }; const e = M.coberturaEstratos(c, s, 'centro'); const m = M.evaluar(c, s, 1000, { curva: 'media' }); return { mesas, cuentas, dentro_0_5: e.dentro_0_5, cae_6_10: e.cae_en_master_6_10, pagantes: m.clientes.de_paga, margen_operacion: m.margen_operacion }; });
 const res = M.resumen(rec, s, 1000);
+const msj = M.mensajes(rec, s);
+const meta = M.meta12Meses(rec, s);
+const chef = M.potencialChef(rec, s);
+const tablero = M.palancasEnTablero(rec, s);
 const pisoE = M.evaluarEscenario('piso_de_verdad', rec, s, 1000);
 const sens = M.sensibilidad(rec, s, 1000);
 const sensSin = M.sensibilidad(rec, s, 1000, { sinAnuncios: true });
@@ -97,6 +101,9 @@ const resultados = { version: M.VERSION, config_inicial: rec, config_topes_10_me
   opciones_tope_platillos: opcionesPlat,
   seguridad_chef: { con_dispersion: segC, topes: { mesas: rec.topes.gratuito.mesas, cuentas: rec.topes.gratuito.cuentas, platillos: rec.topes.gratuito.platillos }, sigma_mesas_por_cuenta: s.sigma_mesas_por_cuenta, rango_sigma: s.rangos.sigma_mesas_por_cuenta, nota: 'centro con sigma 0.5; mínimo y máximo sobre las 27 combinaciones (f, mesas por cuenta, sigma) del modelo' },
   definiciones: M.definiciones(s),
+  meta_12_meses: meta,
+  potencial_chef: chef,
+  palancas_en_tablero: tablero,
   mensajes: M.mensajes(rec, s),
   desgloses: M.desgloses(rec, s, 1000),
   endutih_2024: s.endutih_2024,
@@ -149,7 +156,6 @@ const mop = cifra('margen_de_operacion');
 const mcap = cifra('margen_despues_de_captacion');
 const mat = `| Curva de pago | Sin anuncios | Tarifa baja | Tarifa media |\n|---|---|---|---|\n${matriz.filas.map((f) => `| ${f.curva} | ${f.celdas.map((c) => sg(c.margen_operacion)).join(' | ')} |`).join('\n')}`;
 
-const msj = M.mensajes(rec, s);
 const e1k = M.evaluar(rec, s, 1000, { curva: 'media' });
 const e1kT = M.evaluar(tres, s, 1000, { curva: 'media' });
 const pc1x = (x) => (Math.round(x * 10) / 10).toLocaleString('en-US');
@@ -193,15 +199,17 @@ ${alternativas.map((x) => `| ${x.mesas} · ${x.cuentas}${x.mesas === cs.mesas &&
 
 **Cobertura por platillos: DOS COTAS de sesgo opuesto (SUPUESTO; no se sabe la real).** Con 150 platillos contando todo: **${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} (sitios propios, cota baja; 56 cartas) a ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} (reparto, cota alta; en esa muestra sólo 40 a 120 están medidos y el 150 es extrapolación)**; dentro de 150, por tipo: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, casuales ${coberturaTipo('casual')}, formales ${coberturaTipo('formal')}. Las dos muestras no cuentan «platillo» con la misma regla (148 cartas de reparto: cortas; sitios propios: largas y formales).
 
-### Tope de platillos del plan Chef: la decisión sigue ABIERTA (cobertura de 0 a 5 personas y margen por opción, con las dos cotas)
+### Tope de platillos del plan Chef: DECIDIDO (17 de noviembre de 2026)
 
-**Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).**
+**Decisión de Calvin:** «el tope de platillos incluye bebidas… quítalo y considera que cuenta todo, bebidas incluidas». **El tope de ${cs.platillos} platillos cuenta TODO.** La banda de dos cotas de cobertura se conserva porque sigue sin saberse cuál muestra tiene razón: con ${cs.platillos} platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (cota baja) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (cota alta); de 0 a 5 personas caben en Chef ${pc1(estratosBaja.dentro_0_5)} (cota baja) a ${pc1(estratos[0][1].dentro_0_5)} (cota alta).
 
-| Opción | Dentro de Chef (0 a 5 personas), cota baja | Dentro de Chef (0 a 5 personas), cota alta | Margen con la cota baja | Margen con la cota alta |
+**Alternativas descartadas el 17 de noviembre de 2026** (sólo comida, 200, 300, sin tope; quedan como referencia, no como opciones abiertas). Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).
+
+| Alternativa descartada | Dentro de Chef (0 a 5 personas), cota baja | Dentro de Chef (0 a 5 personas), cota alta | Margen con la cota baja | Margen con la cota alta |
 |---|---|---|---|---|
-${opcionesPlat.map((o) => { const c = { ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, platillos: o.tope ?? Infinity, platillos_cuenta: o.cuenta } } }; return `| ${o.nombre} | ${pc1(M.coberturaEstratos(c, s, 'centro', 'baja').dentro_0_5)} | ${pc1(M.coberturaEstratos(c, s, 'centro', 'alta').dentro_0_5)} | ${sg(o.por_cota.baja.margen_operacion)} | ${sg(o.por_cota.alta.margen_operacion)} |`; }).join('\n')}
+${opcionesPlat.filter((o) => o.id !== 'actual').map((o) => { const c = { ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, platillos: o.tope ?? Infinity, platillos_cuenta: o.cuenta } } }; return `| ${o.nombre} | ${pc1(M.coberturaEstratos(c, s, 'centro', 'baja').dentro_0_5)} | ${pc1(M.coberturaEstratos(c, s, 'centro', 'alta').dentro_0_5)} | ${sg(o.por_cota.baja.margen_operacion)} | ${sg(o.por_cota.alta.margen_operacion)} |`; }).join('\n')}
 
-*«No se sabe la cobertura real»: el dato que cierra la decisión es la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra.*
+*«No se sabe la cobertura real»: el dato que sigue pendiente es la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra.*
 
 ## 2. Precio: Master Chef pegado a Meniu
 
@@ -214,6 +222,32 @@ Cada precio con tres curvas (pesimista · media · optimista), **1,000 restauran
 ${ep.servicio.map(filaPrecio).join('\n')}
 
 **Lectura.** (1) **Master Chef: 199 a 299 cambia los pagantes** (de ${n0(prS(199).por_curva.media.pagantes)} a ${n0(prS(299).por_curva.media.pagantes)} con la curva media) **y el margen** (de ${sg(prS(199).por_curva.media.margen_operacion)} a ${sg(prS(299).por_curva.media.margen_operacion)}): con la base de dos planes el precio pesa más que antes, porque ya no hay plan de 1,099 que lo diluya. (2) **Sin anuncios, con la curva pesimista y 1,000 restaurantes**, a 225 el margen es ${sg(prS(225).por_curva.pesimista.margen_operacion_sin_anuncios)} al mes: ese periodo lo paga Calvin.
+
+## 2b. La meta de 300 restaurantes a 12 meses, en dinero
+
+Meta supuesta: **${meta.meta_restaurantes} restaurantes a 12 meses** (adopción supuesta). Pesos al mes del mes 12 y acumulado de los 12 meses; peor = sin anuncios en ningún mes.
+
+| | Recomendado | Peor | Mejor |
+|---|---|---|---|
+| De paga en el mes 12 | ${['recomendado', 'peor', 'mejor'].map((k) => n0(meta.escenarios[k].mes_12.de_paga)).join(' | ')} |
+| Ingreso por suscripción, mes 12 | ${['recomendado', 'peor', 'mejor'].map((k) => n0(meta.escenarios[k].mes_12.ingreso_suscripcion)).join(' | ')} |
+| Ingreso por anuncios, mes 12 | ${['recomendado', 'peor', 'mejor'].map((k) => n0(meta.escenarios[k].mes_12.ingreso_anuncios)).join(' | ')} |
+| **Ingresos, mes 12** | ${['recomendado', 'peor', 'mejor'].map((k) => `**${n0(meta.escenarios[k].mes_12.ingresos)}**`).join(' | ')} |
+| Costos, mes 12 (servidor · almacenamiento · soporte · comisión) | ${['recomendado', 'peor', 'mejor'].map((k) => { const c = meta.escenarios[k].mes_12.costos; return `${n0(c.total)} (${n0(c.servidor)} · ${n0(c.almacenamiento)} · ${n0(c.soporte)} · ${n0(c.comision)})`; }).join(' | ')} |
+| **Margen de operación, mes 12** | ${['recomendado', 'peor', 'mejor'].map((k) => `**${sg(meta.escenarios[k].mes_12.margen_operacion)}**`).join(' | ')} |
+| Margen después de captación, mes 12 | ${['recomendado', 'peor', 'mejor'].map((k) => sg(meta.escenarios[k].mes_12.margen_despues_de_captacion)).join(' | ')} |
+| **Acumulado de 12 meses: ingresos** | ${['recomendado', 'peor', 'mejor'].map((k) => n0(meta.escenarios[k].acumulado_12_meses.ingresos)).join(' | ')} |
+| Acumulado de 12 meses: costos | ${['recomendado', 'peor', 'mejor'].map((k) => n0(meta.escenarios[k].acumulado_12_meses.costos.total)).join(' | ')} |
+| **Acumulado de 12 meses: margen de operación** | ${['recomendado', 'peor', 'mejor'].map((k) => sg(meta.escenarios[k].acumulado_12_meses.margen_operacion)).join(' | ')} |
+| Acumulado de 12 meses: margen después de captación | ${['recomendado', 'peor', 'mejor'].map((k) => sg(meta.escenarios[k].acumulado_12_meses.margen_despues_de_captacion)).join(' | ')} |
+
+## 2c. El potencial del plan Chef, en dinero (techo teórico)
+
+**Si todos los negocios que caerían en Chef estuvieran en Carta**, dejarían en anuncios al mes (no todos estarían; es un techo): **${n0(chef.negocios_en_chef)} negocios en Chef** (de ${n0(chef.universo)} clientes potenciales) → **${n0(chef.potencial_anuncios_mes.baja.pesos_al_mes_de_todos_los_chef)} pesos con la tarifa baja, ${n0(chef.potencial_anuncios_mes.media.pesos_al_mes_de_todos_los_chef)} con la media y ${n0(chef.potencial_anuncios_mes.alta.pesos_al_mes_de_todos_los_chef)} con la alta** (${n1(chef.potencial_anuncios_mes.baja.pesos_por_negocio_al_mes)} · ${n1(chef.potencial_anuncios_mes.media.pesos_por_negocio_al_mes)} · ${n1(chef.potencial_anuncios_mes.alta.pesos_por_negocio_al_mes)} pesos por negocio al mes). Rango por visitas con la app y parte con anuncio dentro de sus rangos: ${n0(chef.potencial_anuncios_mes.baja.rango_por_visitas_y_parte[0])} a ${n0(chef.potencial_anuncios_mes.alta.rango_por_visitas_y_parte[1])}. **Supuestos:** ${chef.supuestos}.
+
+| Tramo de tamaño (personas) | Negocios [medido] | En Chef (modelo) | En Master Chef | Negocios en Chef | Anuncios al mes con la tarifa baja |
+|---|---|---|---|---|---|
+${chef.tramos.map((x) => `| ${x.tramo} | ${n0(x.negocios)} | ${pc1(x.parte_en_chef)} | ${pc1(x.parte_en_master_chef)} | ${n0(x.negocios_en_chef)} | ${n0(x.negocios_en_chef * chef.potencial_anuncios_mes.baja.pesos_por_negocio_al_mes)} |`).join('\n')}
 
 ## 3. La pregunta del peor caso: todos gratuitos
 
@@ -287,6 +321,12 @@ ${[3, 6, 9, 12, 18, 24, 36].map(proyFila).join('\n')}
 
 - **Dónde está el valor** (calculado): ${msj.valor.frase} *Advertencia: ${msj.valor.advertencia}*
 - **Qué significa el precio** (calculado): ${msj.precio.frase}
+- **A dónde se va cada 100 pesos** (${msj.margen.nombre}): ${msj.margen.frase}
+
+| De cada 100 pesos que entran | Recomendado | Peor | Mejor | Piso de verdad |
+|---|---|---|---|---|
+${['servidor', 'almacenamiento', 'soporte', 'comision', 'margen'].map((k) => `| ${k === 'comision' ? 'comisión de cobro' : k} | ${['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map((e) => n1(msj.margen.por_escenario[e].por_cada_100[k])).join(' | ')} |`).join('\n')}
+
 - **Internet y celular en México** (ENDUTIH 2024, INEGI, 6 de mayo de 2025, págs. 3, 6 y 17 del [reporte](https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/endutih/ENDUTIH_24_RR.pdf), consultado el 17 de noviembre de 2026): **${s.endutih_2024.usuarios_internet_millones} millones de usuarios de internet (${pc1(s.endutih_2024.usuarios_internet_parte)} de la población de 6 años o más); ${pc1(s.endutih_2024.por_equipo_de_conexion.celular_inteligente)} de ellos se conectó con un celular inteligente** (otros equipos, respuestas múltiples: televisor ${pc1(s.endutih_2024.por_equipo_de_conexion.televisor_inteligente)}, computadora ${pc1(s.endutih_2024.por_equipo_de_conexion.computadora)}, consola ${pc1(s.endutih_2024.por_equipo_de_conexion.consola)}). **Tipo de conexión sólo existe para usuarios de celular inteligente:** ambas ${pc1(s.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente.ambos)}, sólo wifi ${pc1(s.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente.solo_wifi)}, sólo datos móviles ${pc1(s.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente.solo_datos_moviles)}. Es la edición más reciente que pude leer (no verifiqué una edición 2025).
 
 ## 9. Límites (dichos)
@@ -402,13 +442,13 @@ const R = [
     alternativas: alternativas.map((x) => ({ opcion: `${x.mesas} mesas · ${x.cuentas} ${x.cuentas === 1 ? 'cuenta' : 'cuentas'}`, pros: `${pc1(x.dentro_0_5)} de 0 a 5 personas dentro; margen ${sg(x.margen_operacion)}`, contras: `${pc1(x.cae_6_10)} de 6 a 10 personas cae en Master Chef` })),
     ejemplo: 'Una fonda de 2 personas y 4 mesas cabe en Chef (una cuenta); una taquería de 5 personas que quiere cuenta para el mesero y para el cocinero ya necesita Master Chef.',
     prueba: 'Mesas y cuentas por negocio en los primeros 10 a 20 restaurantes (`mesa` y `personal_restaurante` activos al alta, sin datos personales) y cuántos de 0 a 5 personas se arreglan con una cuenta.' },
-  { id: 'tope_platillos', decision: 'Tope de platillos del plan Chef (ABIERTA para Calvin)',
-    recomendacion: `**No recomiendo un tope todavía: la cobertura real no se sabe.** Con 150 platillos contando todo, cubre ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (56; largas y formales) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, formales ${coberturaTipo('formal')}.`,
-    depende: '**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio** (la muestra de sitios propios sobrerrepresenta a formales y cadenas; la de reparto, a cartas cortas). **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.',
-    cifras: `${opcionesPlat.map((o) => `${o.nombre}: cobertura de Chef (≤ 10 personas, referencia) ${pc1(o.por_cota.baja.cobertura_chef)} (cota baja) a ${pc1(o.por_cota.alta.cobertura_chef)} (cota alta); margen ${sg(o.por_cota.baja.margen_operacion)} a ${sg(o.por_cota.alta.margen_operacion)}`).join(' · ')}.`,
-    alternativas: opcionesPlat.filter((o) => o.id !== 'actual').map((o) => ({ opcion: o.nombre, pros: o.id === 'sin_tope' ? 'Cobertura sólo por mesas y cuentas; simple de explicar' : o.id === 'solo_comida' ? 'Casi no deja a nadie afuera (cobertura ≈ ' + pc(o.por_cota.baja.cobertura_chef) + ')' : 'Cobertura de ' + pc(o.por_cota.baja.cobertura_chef) + ' con la cota baja', contras: o.id === 'sin_tope' ? 'Sin freno para quien suba cartas enormes (costo de disco y de lectura de PDF)' : o.id === 'solo_comida' ? 'Hay que clasificar comida y bebida al importar' : 'Sigue dependiendo de una muestra sesgada' })),
-    ejemplo: 'Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe ni en 200.',
-    prueba: 'La carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron.' },
+  { id: 'tope_platillos', decision: 'Tope de platillos del plan Chef (DECIDIDA por Calvin el 17-nov: cuenta todo, bebidas incluidas)',
+    recomendacion: `**El tope de ${cs.platillos} platillos cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026).** La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (56; largas y formales) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, formales ${coberturaTipo('formal')}.`,
+    depende: '**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio**. **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.',
+    cifras: `Alternativas descartadas el 17 de noviembre: ${opcionesPlat.filter((o) => o.id !== 'actual').map((o) => `${o.nombre}: dentro de Chef de 0 a 5 personas ${pc1(M.coberturaEstratos({ ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, platillos: o.tope ?? Infinity, platillos_cuenta: o.cuenta } } }, s, 'centro', 'baja').dentro_0_5)} (cota baja)`).join(' · ')}.`,
+    alternativas: opcionesPlat.filter((o) => o.id !== 'actual').map((o) => ({ opcion: `${o.nombre} (descartada el 17-nov)`, pros: o.id === 'sin_tope' ? 'Cobertura sólo por mesas y cuentas' : o.id === 'solo_comida' ? 'Casi no deja a nadie afuera' : 'Más cobertura con la cota baja', contras: o.id === 'sin_tope' ? 'Sin freno para cartas enormes' : o.id === 'solo_comida' ? 'Hay que clasificar comida y bebida' : 'Sigue dependiendo de una muestra sesgada' })),
+    ejemplo: 'Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe.',
+    prueba: 'Pendiente: la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron.' },
   { id: 'precios', decision: 'Precio de Master Chef',
     recomendacion: `**Master Chef 225 es una decisión de posicionamiento de Calvin (pegado a Meniu Business), no un resultado del modelo.** El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto. Chef Ejecutivo queda apagado (futura escalación).`,
     depende: `**De la curva de pago (supuesto).** Con la mediana en ${sensP.por_mediana[0].mediana} gana ${sensP.por_mediana[0].precio_ganador}; en 225, ${sensP.por_mediana[1].precio_ganador}; en ${sensP.por_mediana[2].mediana}, ${sensP.por_mediana[2].precio_ganador}; en ${sensP.por_mediana[3].mediana}, ${sensP.por_mediana[3].precio_ganador}. Ver [precio de entrada](2026-11-14-precio-de-entrada.md). **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un POS (652), 225 deja dinero sobre la mesa.`,
@@ -459,7 +499,7 @@ let r = `# Recomendaciones: ocho decisiones con su supuesto, sus alternativas y 
 
 ## Conclusiones
 
-1. **Dos planes (decisión de Calvin, 17-nov): Chef gratis con ${cs.mesas} mesas y ${cs.cuentas} cuenta; Master Chef ${rec.precios.servicio} para todo lo demás; Chef Ejecutivo apagado.** Con el modelo cabe el ${pc1(estratos[0][1].dentro_0_5)} de los negocios de 0 a 5 personas (${pc1(estratos[1][1].dentro_0_5)}–${pc1(estratos[2][1].dentro_0_5)}) y ninguno de 6 a 10; el tope de platillos queda **abierto** (decisión 2).
+1. **Dos planes (decisión de Calvin, 17-nov): Chef gratis con ${cs.mesas} mesas y ${cs.cuentas} cuenta; Master Chef ${rec.precios.servicio} para todo lo demás; Chef Ejecutivo apagado.** Con el modelo cabe el ${pc1(estratos[0][1].dentro_0_5)} de los negocios de 0 a 5 personas (${pc1(estratos[1][1].dentro_0_5)}–${pc1(estratos[2][1].dentro_0_5)}) y ninguno de 6 a 10; el tope de platillos **cuenta todo, bebidas incluidas** (decidido el 17-nov; decisión 2).
 2. **Master Chef 225 es una decisión de posicionamiento de Calvin, no un resultado del modelo;** el modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba del piloto. Margen de operación con 1,000 restaurantes: ${sg(mop.recomendado)} recomendado, ${sg(mop.peor)} peor, ${sg(mop.mejor)} mejor, ${sg(mop.piso_de_verdad)} piso de verdad.
 3. **Los anuncios llegan hacia el mes ${s.mes_inicio_anuncios} (supuesto); mientras tanto, ${n0(b1000.bolsa)} pesos al mes cargan ${n0(b1000.centro.restaurantes)} restaurantes gratuitos (rango ${n0(b1000.minimo)}–${n0(b1000.maximo)}), con el canal de eventos construido.**
 4. **Lo que más cambia el resultado: ${sens.medir_primero.slice(0, 3).map((x) => x.supuesto).join(', ')}.** Se miden en el piloto.

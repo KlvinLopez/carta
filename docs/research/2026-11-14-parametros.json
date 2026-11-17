@@ -4239,6 +4239,53 @@
    "nota": "el corte por TIPO DE CONEXIÓN existe sólo para usuarios de celular inteligente (no para todos los usuarios de internet)",
    "mueve_resultado": false
   },
+  "estratos_negocios": {
+   "valor": [
+    {
+     "estrato": "0 a 5",
+     "negocios": 73193
+    },
+    {
+     "estrato": "6 a 10",
+     "negocios": 17855
+    },
+    {
+     "estrato": "11 a 30",
+     "negocios": 10809
+    },
+    {
+     "estrato": "31 a 50",
+     "negocios": 2263
+    },
+    {
+     "estrato": "51 a 100",
+     "negocios": 542
+    },
+    {
+     "estrato": "101 a 250",
+     "negocios": 193
+    },
+    {
+     "estrato": "251 o más",
+     "negocios": 27
+    }
+   ],
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "DENUE 05/2026 por estrato de personal (mercado-de-carta §2.1)",
+   "nota": "clientes potenciales por tramo de tamaño: 104,882",
+   "mueve_resultado": false
+  },
+  "umbral_tablero": {
+   "valor": 0.15,
+   "min": 0.1,
+   "max": 0.2,
+   "origen": "supuesto",
+   "fuente": "regla de la ronda 9: una palanca entra al tablero si sube al menos este porcentaje la capacidad del recurso que toca; con 0.10 pasan dos palancas más (índices y tipos, +11 %); entre 0.12 y 0.43 la lista no cambia",
+   "nota": "umbral de impacto de una palanca",
+   "mueve_resultado": false
+  },
   "visitas_mes_gratuito": {
    "valor": 1800,
    "min": 1500,

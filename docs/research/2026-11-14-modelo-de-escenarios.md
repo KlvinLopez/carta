@@ -14,7 +14,7 @@
 
 **Recomendado** = curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha · **Peor** = curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa) · **Mejor** = curva de pago optimista y anuncios en la tarifa media · **Piso de verdad** = curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango. *Cada escenario mueve dos ejes a la vez (curva de pago y anuncios): la matriz de §5 los separa.*
 
-**Qué cambió en la ronda 8 (API del `.mjs`, versión `2026-11-17-r8`).** `configInicial()` pasa a **dos planes** (Chef 6 mesas · 1 cuenta · 150 platillos; Master Chef 225; `precios.salon = 0`: Chef Ejecutivo apagado); la anterior es `configTresPlanes25Mesas()`. Nuevo: `coberturaEstratos`, `desgloses`, `escalera` dinámica en `recursos(config, s, estado)` (`estado = {canal, meses_historial}` y `config.palancas`; no modifica sus entradas). La rejilla de mesas y cuentas llega a 4 mesas y 1 cuenta.
+**Qué cambió en la ronda 8 (API del `.mjs`, versión `2026-11-17-r9`).** `configInicial()` pasa a **dos planes** (Chef 6 mesas · 1 cuenta · 150 platillos; Master Chef 225; `precios.salon = 0`: Chef Ejecutivo apagado); la anterior es `configTresPlanes25Mesas()`. Nuevo: `coberturaEstratos`, `desgloses`, `escalera` dinámica en `recursos(config, s, estado)` (`estado = {canal, meses_historial}` y `config.palancas`; no modifica sus entradas). La rejilla de mesas y cuentas llega a 4 mesas y 1 cuenta.
 
 ---
 
@@ -41,19 +41,20 @@
 
 **Cobertura por platillos: DOS COTAS de sesgo opuesto (SUPUESTO; no se sabe la real).** Con 150 platillos contando todo: **52 % (sitios propios, cota baja; 56 cartas) a 98 % (reparto, cota alta; en esa muestra sólo 40 a 120 están medidos y el 150 es extrapolación)**; dentro de 150, por tipo: fondas y taquerías 7 de 8, cafeterías 9 de 11, casuales 9 de 21, formales 3 de 14. Las dos muestras no cuentan «platillo» con la misma regla (148 cartas de reparto: cortas; sitios propios: largas y formales).
 
-### Tope de platillos del plan Chef: la decisión sigue ABIERTA (cobertura de 0 a 5 personas y margen por opción, con las dos cotas)
+### Tope de platillos del plan Chef: DECIDIDO (17 de noviembre de 2026)
 
-**Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).**
+**Decisión de Calvin:** «el tope de platillos incluye bebidas… quítalo y considera que cuenta todo, bebidas incluidas». **El tope de 150 platillos cuenta TODO.** La banda de dos cotas de cobertura se conserva porque sigue sin saberse cuál muestra tiene razón: con 150 platillos caben 52 % de las cartas de sitios propios (cota baja) y 98 % de las de reparto (cota alta); de 0 a 5 personas caben en Chef 25.6 % (cota baja) a 48.4 % (cota alta).
 
-| Opción | Dentro de Chef (0 a 5 personas), cota baja | Dentro de Chef (0 a 5 personas), cota alta | Margen con la cota baja | Margen con la cota alta |
+**Alternativas descartadas el 17 de noviembre de 2026** (sólo comida, 200, 300, sin tope; quedan como referencia, no como opciones abiertas). Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).
+
+| Alternativa descartada | Dentro de Chef (0 a 5 personas), cota baja | Dentro de Chef (0 a 5 personas), cota alta | Margen con la cota baja | Margen con la cota alta |
 |---|---|---|---|---|
-| Tope de 150 platillos, bebidas incluidas (la propuesta actual) | 25.6 % | 48.4 % | +24,098 | +20,024 |
 | Tope de 150 que cuenta sólo comida (las bebidas no tienen tope) | 49.4 % | 48.4 % | +19,847 | +20,024 |
 | Subir el tope a 200 platillos (bebidas incluidas) | 36.2 % | 48.6 % | +22,211 | +19,987 |
 | Subir el tope a 300 platillos (bebidas incluidas) | 41.4 % | 48.9 % | +21,267 | +19,936 |
 | Quitar el tope de platillos y limitar sólo por mesas y cuentas | 49.4 % | 49.4 % | +19,847 | +19,847 |
 
-*«No se sabe la cobertura real»: el dato que cierra la decisión es la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra.*
+*«No se sabe la cobertura real»: el dato que sigue pendiente es la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra.*
 
 ## 2. Precio: Master Chef pegado a Meniu
 
@@ -69,6 +70,38 @@ Cada precio con tres curvas (pesimista · media · optimista), **1,000 restauran
 | **299** | 9.8 · 73.7 · 358.8 | +5,294 · +19,035 · +79,527 | +5,118 · +17,710 · +73,069 | +1,031 · +15,048 · +76,767 | 5.1 | sí · sí |
 
 **Lectura.** (1) **Master Chef: 199 a 299 cambia los pagantes** (de 135 a 74 con la curva media) **y el margen** (de +19,439 a +19,035): con la base de dos planes el precio pesa más que antes, porque ya no hay plan de 1,099 que lo diluya. (2) **Sin anuncios, con la curva pesimista y 1,000 restaurantes**, a 225 el margen es +2,390 al mes: ese periodo lo paga Calvin.
+
+## 2b. La meta de 300 restaurantes a 12 meses, en dinero
+
+Meta supuesta: **300 restaurantes a 12 meses** (adopción supuesta). Pesos al mes del mes 12 y acumulado de los 12 meses; peor = sin anuncios en ningún mes.
+
+| | Recomendado | Peor | Mejor |
+|---|---|---|---|
+| De paga en el mes 12 | 35 | 7 | 115 |
+| Ingreso por suscripción, mes 12 | 7,822 | 1,581 | 25,797 |
+| Ingreso por anuncios, mes 12 | 1,142 | 0 | 3,192 |
+| **Ingresos, mes 12** | **8,964** | **1,581** | **28,989** |
+| Costos, mes 12 (servidor · almacenamiento · soporte · comisión) | 3,215 (472 · 25 · 2,219 · 500) | 1,150 (465 · 16 · 568 · 101) | 9,163 (490 · 52 · 6,972 · 1,649) |
+| **Margen de operación, mes 12** | **+5,749** | **+431** | **+19,826** |
+| Margen después de captación, mes 12 | +1,886 | −350 | +7,086 |
+| **Acumulado de 12 meses: ingresos** | 38,814 | 7,132 | 126,229 |
+| Acumulado de 12 meses: costos | 15,835 | 6,103 | 43,300 |
+| **Acumulado de 12 meses: margen de operación** | +22,978 | +1,028 | +82,929 |
+| Acumulado de 12 meses: margen después de captación | −77 | −3,633 | +6,893 |
+
+## 2c. El potencial del plan Chef, en dinero (techo teórico)
+
+**Si todos los negocios que caerían en Chef estuvieran en Carta**, dejarían en anuncios al mes (no todos estarían; es un techo): **35,427 negocios en Chef** (de 104,882 clientes potenciales) → **152,513 pesos con la tarifa baja, 610,053 con la media y 1,612,284 con la alta** (4.3 · 17.2 · 45.5 pesos por negocio al mes). Rango por visitas con la app y parte con anuncio dentro de sus rangos: 9,920 a 4,587,799. **Supuestos:** sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef sale del modelo de mesas y cuentas con dispersión; todos con las visitas con la app del gratuito típico (supuesto, más altas que las de una fonda de 0 a 5 personas) y la parte de visitas con anuncio del modelo; la tarifa por mil visitas no tiene dato; techo teórico: no cuenta que no todos estarían en Carta.
+
+| Tramo de tamaño (personas) | Negocios [medido] | En Chef (modelo) | En Master Chef | Negocios en Chef | Anuncios al mes con la tarifa baja |
+|---|---|---|---|---|---|
+| 0 a 5 | 73,193 | 48.4 % | 51.6 % | 35,427 | 152,513 |
+| 6 a 10 | 17,855 | 0 % | 100 % | 0 | 0 |
+| 11 a 30 | 10,809 | 0 % | 100 % | 0 | 0 |
+| 31 a 50 | 2,263 | 0 % | 100 % | 0 | 0 |
+| 51 a 100 | 542 | 0 % | 100 % | 0 | 0 |
+| 101 a 250 | 193 | 0 % | 100 % | 0 | 0 |
+| 251 o más | 27 | 0 % | 100 % | 0 | 0 |
 
 ## 3. La pregunta del peor caso: todos gratuitos
 
@@ -188,6 +221,16 @@ Margen de operación al mes. Peor = sin anuncios en ningún mes; recomendado: an
 
 - **Dónde está el valor** (calculado): Para un negocio de 11 a 50 personas, Carta (225 pesos al mes) cuesta alrededor de la cuarta parte de lo que ya paga por un punto de venta como Fudo Pro (838), y 0.03 % de lo que vende en promedio al mes. *Advertencia: Promedio (total ÷ negocios), no mediana, de la clase 722511 (restaurantes con servicio completo) en los Censos Económicos 2024, año de referencia 2023: quedan fuera antojitos, tacos y cafeterías; un promedio lo jalan los grandes. Dato por conseguir: mediana y otras clases.*
 - **Qué significa el precio** (calculado): Si el dueño típico pagaría alrededor de 150, conviene cobrar 199; si pagaría 225, 225 o 249; si 300, 299; si 450 o más, 299. No sabemos cuánto pagaría: lo mide la prueba de tres precios del piloto.
+- **A dónde se va cada 100 pesos** (margen de operación: antes de captación, sueldos e impuestos): El margen de operación no es la ganancia final (faltan la captación, los sueldos y los impuestos): de cada 100 pesos que entran, se quedan 67 en el recomendado, 67.9 en el mejor y 45.4 en el peor. Del recomendado al mejor el porcentaje casi no cambia porque el soporte y la comisión crecen con cada cliente de paga (30.3 → 29.8 de cada 100); lo que sube es el monto (20,024 → 65,664 pesos al mes).
+
+| De cada 100 pesos que entran | Recomendado | Peor | Mejor | Piso de verdad |
+|---|---|---|---|---|
+| servidor | 2.4 | 11.2 | 2.1 | 9.4 |
+| almacenamiento | 0.3 | 1.1 | 0.2 | 0.9 |
+| soporte | 24.7 | 35.9 | 24.1 | 101.9 |
+| comisión de cobro | 5.6 | 6.4 | 5.7 | 5.3 |
+| margen | 67 | 45.4 | 67.9 | -17.5 |
+
 - **Internet y celular en México** (ENDUTIH 2024, INEGI, 6 de mayo de 2025, págs. 3, 6 y 17 del [reporte](https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/endutih/ENDUTIH_24_RR.pdf), consultado el 17 de noviembre de 2026): **100.2 millones de usuarios de internet (83.1 % de la población de 6 años o más); 97.2 % de ellos se conectó con un celular inteligente** (otros equipos, respuestas múltiples: televisor 43.6 %, computadora 35.9 %, consola 8.1 %). **Tipo de conexión sólo existe para usuarios de celular inteligente:** ambas 72.8 %, sólo wifi 16.3 %, sólo datos móviles 10.9 %. Es la edición más reciente que pude leer (no verifiqué una edición 2025).
 
 ## 9. Límites (dichos)
