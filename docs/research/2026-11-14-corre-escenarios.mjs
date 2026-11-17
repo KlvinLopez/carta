@@ -96,6 +96,10 @@ const resultados = { version: M.VERSION, config_inicial: rec, config_topes_10_me
   cobertura_chef_por_cota: { centro: cobChef, minimo_del_modelo_de_mesas: cobChefMin, topes: { mesas: rec.topes.gratuito.mesas, cuentas: rec.topes.gratuito.cuentas, platillos: rec.topes.gratuito.platillos } },
   opciones_tope_platillos: opcionesPlat,
   seguridad_chef: { con_dispersion: segC, topes: { mesas: rec.topes.gratuito.mesas, cuentas: rec.topes.gratuito.cuentas, platillos: rec.topes.gratuito.platillos }, sigma_mesas_por_cuenta: s.sigma_mesas_por_cuenta, rango_sigma: s.rangos.sigma_mesas_por_cuenta, nota: 'centro con sigma 0.5; mínimo y máximo sobre las 27 combinaciones (f, mesas por cuenta, sigma) del modelo' },
+  definiciones: M.definiciones(s),
+  mensajes: M.mensajes(rec, s),
+  desgloses: M.desgloses(rec, s, 1000),
+  endutih_2024: s.endutih_2024,
   comparacion_con_tres_planes: comp,
   cobertura_por_estrato: { centro: estratos[0][1], minimo: estratos[1][1], maximo: estratos[2][1], con_cota_baja_de_platillos: estratosBaja, alternativas_de_topes: alternativas },
   precio_sensibilidad: sensP,
@@ -145,6 +149,7 @@ const mop = cifra('margen_de_operacion');
 const mcap = cifra('margen_despues_de_captacion');
 const mat = `| Curva de pago | Sin anuncios | Tarifa baja | Tarifa media |\n|---|---|---|---|\n${matriz.filas.map((f) => `| ${f.curva} | ${f.celdas.map((c) => sg(c.margen_operacion)).join(' | ')} |`).join('\n')}`;
 
+const msj = M.mensajes(rec, s);
 const e1k = M.evaluar(rec, s, 1000, { curva: 'media' });
 const e1kT = M.evaluar(tres, s, 1000, { curva: 'media' });
 const pc1x = (x) => (Math.round(x * 10) / 10).toLocaleString('en-US');
@@ -278,7 +283,13 @@ ${[3, 6, 9, 12, 18, 24, 36].map(proyFila).join('\n')}
 
 **Primer mes con margen de operación positivo (recomendado): ${proy.media.mes_primer_margen_positivo}; después de captación: ${proy.media.mes_primer_margen_positivo_despues_de_captacion}.** **Lo más que tendría que poner Calvin, acumulado: ${n0(proy.media.financiamiento_maximo)} pesos** (peor: ${n0(proyPeor.financiamiento_maximo)}; piso de verdad: ${n0(proyPiso.financiamiento_maximo)}). *Artefacto de la curva de adopción supuesta y del costo de captación sin dato.* **Más de ≈ ${n0(nArq)} restaurantes registrados exige otra arquitectura: todo costo de ahí en adelante es extrapolación sin medir.**
 
-## 8. Límites (dichos)
+## 8. Dos mensajes y un dato de contexto
+
+- **Dónde está el valor** (calculado): ${msj.valor.frase} *Advertencia: ${msj.valor.advertencia}*
+- **Qué significa el precio** (calculado): ${msj.precio.frase}
+- **Internet y celular en México** (ENDUTIH 2024, INEGI, 6 de mayo de 2025, págs. 3, 6 y 17 del [reporte](https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/endutih/ENDUTIH_24_RR.pdf), consultado el 17 de noviembre de 2026): **${s.endutih_2024.usuarios_internet_millones} millones de usuarios de internet (${pc1(s.endutih_2024.usuarios_internet_parte)} de la población de 6 años o más); ${pc1(s.endutih_2024.por_equipo_de_conexion.celular_inteligente)} de ellos se conectó con un celular inteligente** (otros equipos, respuestas múltiples: televisor ${pc1(s.endutih_2024.por_equipo_de_conexion.televisor_inteligente)}, computadora ${pc1(s.endutih_2024.por_equipo_de_conexion.computadora)}, consola ${pc1(s.endutih_2024.por_equipo_de_conexion.consola)}). **Tipo de conexión sólo existe para usuarios de celular inteligente:** ambas ${pc1(s.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente.ambos)}, sólo wifi ${pc1(s.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente.solo_wifi)}, sólo datos móviles ${pc1(s.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente.solo_datos_moviles)}. Es la edición más reciente que pude leer (no verifiqué una edición 2025).
+
+## 9. Límites (dichos)
 
 - **No hay dato de disposición a pagar, de bajas ni de costo de conseguir un cliente.** Los umbrales de anuncios dependen de la tarifa, la parte de visitas con anuncio y el soporte por gratuito, sin dato.
 - **Los topes de mesas y cuentas son un modelo:** medido sólo el conteo por estrato; el piloto debe medir mesas y cuentas por negocio.

@@ -4175,6 +4175,70 @@
    "nota": "",
    "mueve_resultado": false
   },
+  "punto_de_venta": {
+   "valor": [
+    {
+     "nombre": "Fudo Avanzado",
+     "precio": 652
+    },
+    {
+     "nombre": "Fudo Pro",
+     "precio": 838
+    },
+    {
+     "nombre": "Last.app Starter",
+     "precio": 1000
+    }
+   ],
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "2026-11-14-funciones-y-precios.csv (páginas de los proveedores leídas el 13 y 14 de noviembre de 2026; precios en pesos al mes, algunos más IVA)",
+   "nota": "para negocios de 0 a 10 personas, que en su mayoría no tienen punto de venta, es «lo que costaría si lo contratara» (supuesto)",
+   "mueve_resultado": false
+  },
+  "inegi_11_50": {
+   "valor": {
+    "ingreso_mes": 737584,
+    "advertencia": "Promedio (total ÷ negocios), no mediana, de la clase 722511 (restaurantes con servicio completo) en los Censos Económicos 2024, año de referencia 2023: quedan fuera antojitos, tacos y cafeterías; un promedio lo jalan los grandes. Dato por conseguir: mediana y otras clases."
+   },
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "INEGI, Censos Económicos 2024 (SAIC), consultado el 14-nov-2026: docs/research/2026-11-14-lo-que-paga-un-restaurante.md",
+   "nota": "",
+   "mueve_resultado": false
+  },
+  "endutih_2024": {
+   "valor": {
+    "fecha_de_publicacion": "2025-05-06",
+    "usuarios_internet_millones": 100.2,
+    "usuarios_internet_parte": 0.831,
+    "por_equipo_de_conexion": {
+     "celular_inteligente": 0.972,
+     "televisor_inteligente": 0.436,
+     "computadora": 0.359,
+     "consola": 0.081,
+     "nota": "porcentaje de las personas usuarias de internet que se conectó con cada equipo; son respuestas múltiples y no suman 100 %"
+    },
+    "tipo_de_conexion_de_usuarios_de_celular_inteligente": {
+     "ambos": 0.728,
+     "solo_wifi": 0.163,
+     "solo_datos_moviles": 0.109
+    },
+    "paginas": {
+     "usuarios": 3,
+     "equipo": 6,
+     "tipo_de_conexion": 17
+    }
+   },
+   "min": null,
+   "max": null,
+   "origen": "fuente",
+   "fuente": "INEGI, ENDUTIH 2024, reporte de resultados 9/25, 6 de mayo de 2025, https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/endutih/ENDUTIH_24_RR.pdf (consultado el 17-nov-2026; págs. 3, 6 y 17). Es la edición más reciente que se pudo leer; no se verificó una edición 2025",
+   "nota": "el corte por TIPO DE CONEXIÓN existe sólo para usuarios de celular inteligente (no para todos los usuarios de internet)",
+   "mueve_resultado": false
+  },
   "visitas_mes_gratuito": {
    "valor": 1800,
    "min": 1500,

@@ -350,6 +350,36 @@ export const PALANCAS = {
   pool_acotado: { recurso: 'conexiones_bd', nombre: 'Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)', esfuerzo: 'chico', riesgo: 'bajo; hay que verificar `SHOW max_connections` en Railway', regla_que_toca: 'ninguna', medido: false },
 };
 
+/** Las palancas en llano para pintarlas: `accion` (qué hay que hacer, hasta 6 palabras, en infinitivo) y `que_es` (una frase). */
+export const PALANCAS_EN_LLANO = {
+  historial_gratuito_30_dias: { accion: 'Guardar 30 días en el gratuito', que_es: 'El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra.' },
+  analitica_agregada_por_dia: { accion: 'Contar por día, no por evento', que_es: 'En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo.' },
+  retencion_analitica_7_dias: { accion: 'Borrar analítica cruda a 7 días', que_es: 'Los eventos sueltos se conservan una semana y después sólo queda el conteo por día.' },
+  indices_de_evento_minimos: { accion: 'Quitar índices que sobran', que_es: 'La tabla de analítica deja sólo los dos índices que de verdad se usan.' },
+  tipos_mas_chicos: { accion: 'Usar tipos de dato más chicos', que_es: 'Los campos de la analítica pasan de texto largo a números y huellas cortas.' },
+  purga_claves_idempotencia: { accion: 'Purgar claves de reintento diario', que_es: 'Las claves que evitan duplicar una orden al reintentar se borran al día siguiente.' },
+  archivar_sesiones_cerradas: { accion: 'Archivar sesiones viejas en R2', que_es: 'Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base.' },
+  estado_en_memoria_60s: { accion: 'Guardar estado en memoria 60 s', que_es: 'El servidor recuerda el estado de cada mesa un minuto y sólo lo recalcula cuando la base avisa.' },
+  cerrar_lineas_ociosas: { accion: 'Cerrar líneas sin movimiento', que_es: 'La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola.' },
+  pool_acotado: { accion: 'Acotar conexiones a la base', que_es: 'Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos.' },
+};
+for (const [id, v] of Object.entries(PALANCAS_EN_LLANO)) Object.assign(PALANCAS[id], v);
+
+/** Definiciones de una frase para los textos emergentes (calculadas con los parámetros, no escritas con cifras a mano). */
+export function definiciones(s) {
+  const casos = CASOS_ANUNCIOS(s);
+  const baja = s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1];
+  const alta = s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1];
+  return {
+    adverso: `El caso de anuncios más pobre: ${casos.adverso.definicion}.`,
+    estres: `La prueba de estrés (el «piso de verdad»): ${ESCENARIOS.piso_de_verdad.definicion}; lo peor que el modelo se atreve a decir.`,
+    cota_baja: `Cota baja del tope de platillos: se mide con ${s.cobertura_platillos.n_baja} cartas completas de sitios propios (largas y de negocios formales); con 150 platillos caben ${Math.round(baja * 100)} % de esas cartas.`,
+    cota_alta: `Cota alta del tope de platillos: se mide con 148 cartas de plataformas de reparto (cortas y sin bebidas); con 150 platillos cabrían ${Math.round(alta * 100)} % de ellas. La cobertura real está entre las dos cotas y no se sabe cuál es.`,
+    bolsa: 'Lo que Calvin pone cada mes de su bolsillo para pagar el servidor mientras los anuncios no alcanzan a pagarlo.',
+    cuello_de_botella: 'El recurso que se llena primero: el sistema no atiende más restaurantes que los que aguanta ése.',
+  };
+}
+
 /** Efectos de `config.palancas` sobre lo que calcula el modelo. */
 export function efectosPalancas(config, s) {
   const p = new Set(config.palancas ?? []);
@@ -876,7 +906,7 @@ export function recursos(config, s, estado = {}) {
     const c30 = conHistorialGratuito({ ...pon(cfg0), palancas: [...(pon(cfg0).palancas ?? []), 'historial_gratuito_30_dias'] }, s, mesesH);
     const a30 = topesDeTamano(b30, s, idEv);
     const d30 = topesDeTamano(c30, s, idEv);
-    const fila = { id, nombre: pl.nombre, esfuerzo: pl.esfuerzo, riesgo: pl.riesgo, regla_que_toca: pl.regla_que_toca, medido: pl.medido };
+    const fila = { id, nombre: pl.nombre, accion: pl.accion, que_es: pl.que_es, esfuerzo: pl.esfuerzo, riesgo: pl.riesgo, regla_que_toca: pl.regla_que_toca, medido: pl.medido };
     if (id === 'purga_claves_idempotencia') {
       const mbMes = (s.visitas_mes_gratuito * s.claves_idempotencia_por_visita * s.idempotencia_bytes_por_fila) / 1e6;
       return { ...fila, antes: `${n(mbMes, 1)} MB al mes por restaurante, sin tope (la tabla crece mientras nadie la purgue; hoy está vacía: ningún servicio la usa)`, despues: `${n(mbMes / 30, 2)} MB constantes (un día)`, ganancia: `evita ${n(mbMes * 12, 0)} MB por restaurante al año; no cambia los restaurantes que caben hoy porque la tabla está vacía hasta la Fase 3`, ganancia_restaurantes: 0, mb_antes: mbMes, mb_despues: mbMes / 30 };
@@ -1031,6 +1061,34 @@ export function desgloses(config, s, n = 1000) {
     };
   });
   return { n, escenarios: porEscenario };
+}
+
+// ---------------------------------------------------------------- dos mensajes en una frase, calculados por el modelo
+/**
+ * (a) Dónde está el valor: lo que cuesta Master Chef frente a lo que ya paga por su punto de venta un negocio de 11 a 50 personas y
+ *     frente a su ingreso promedio (INEGI, Censos Económicos 2024, año de referencia 2023, SÓLO la clase 722511 y PROMEDIOS, no medianas).
+ * (b) El precio: qué significa la sensibilidad para la decisión (el modelo no sabe cuánto pagaría el dueño típico; lo mide el piloto).
+ */
+export function mensajes(config, s, n = 1000) {
+  const ps = config.precios.servicio;
+  const pos = s.punto_de_venta.map((x) => ({ nombre: x.nombre, precio_mes: x.precio, parte: ps / x.precio }));
+  const medio = pos.find((x) => x.nombre === 'Fudo Pro');
+  const ingreso = s.inegi_11_50.ingreso_mes;
+  const parteIngreso = ps / ingreso;
+  const cuarta = Math.round(1 / medio.parte);
+  const valor = {
+    frase: `Para un negocio de 11 a 50 personas, Carta (${ps} pesos al mes) cuesta alrededor de la ${cuarta === 4 ? 'cuarta' : `1/${cuarta}`} parte de lo que ya paga por un punto de venta como ${medio.nombre} (${medio.precio_mes}), y ${(parteIngreso * 100).toFixed(2)} % de lo que vende en promedio al mes.`,
+    calculo: { precio_master_chef: ps, comparaciones: pos, ingreso_promedio_mes: ingreso, parte_del_ingreso: parteIngreso },
+    advertencia: s.inegi_11_50.advertencia,
+  };
+  const sp = sensibilidadPrecio(config, s, n);
+  const filas = sp.por_mediana.map((f) => { const mx = Math.max(...f.margenes.map((x) => x.margen_operacion)); const emp = f.margenes.filter((x) => x.margen_operacion >= 0.99 * mx).map((x) => x.precio); return { si_el_dueno_pagaria_alrededor_de: f.mediana, conviene_cobrar: emp, optimo_continuo: f.optimo_continuo }; });
+  const precio = {
+    frase: `Si el dueño típico pagaría alrededor de ${filas[0].si_el_dueno_pagaria_alrededor_de}, conviene cobrar ${filas[0].conviene_cobrar.join(' o ')}; si pagaría ${filas[1].si_el_dueno_pagaria_alrededor_de}, ${filas[1].conviene_cobrar.join(' o ')}; si ${filas[2].si_el_dueno_pagaria_alrededor_de}, ${filas[2].conviene_cobrar.join(' o ')}; si ${filas[3].si_el_dueno_pagaria_alrededor_de} o más, ${filas[3].conviene_cobrar.join(' o ')}. No sabemos cuánto pagaría: lo mide la prueba de tres precios del piloto.`,
+    por_mediana: filas,
+    por_sigma: sp.por_sigma.map((f) => ({ sigma: f.sigma, precio_ganador: f.precio_ganador })),
+  };
+  return { valor, precio };
 }
 
 // ---------------------------------------------------------------- banderas de operación

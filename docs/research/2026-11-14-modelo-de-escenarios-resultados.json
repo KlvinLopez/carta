@@ -11982,6 +11982,337 @@
   ],
   "nota": "centro con sigma 0.5; mínimo y máximo sobre las 27 combinaciones (f, mesas por cuenta, sigma) del modelo"
  },
+ "definiciones": {
+  "adverso": "El caso de anuncios más pobre: la mitad de la tarifa baja y anuncio sólo en el 30 % de las visitas.",
+  "estres": "La prueba de estrés (el «piso de verdad»): curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango; lo peor que el modelo se atreve a decir.",
+  "cota_baja": "Cota baja del tope de platillos: se mide con 56 cartas completas de sitios propios (largas y de negocios formales); con 150 platillos caben 52 % de esas cartas.",
+  "cota_alta": "Cota alta del tope de platillos: se mide con 148 cartas de plataformas de reparto (cortas y sin bebidas); con 150 platillos cabrían 98 % de ellas. La cobertura real está entre las dos cotas y no se sabe cuál es.",
+  "bolsa": "Lo que Calvin pone cada mes de su bolsillo para pagar el servidor mientras los anuncios no alcanzan a pagarlo.",
+  "cuello_de_botella": "El recurso que se llena primero: el sistema no atiende más restaurantes que los que aguanta ése."
+ },
+ "mensajes": {
+  "valor": {
+   "frase": "Para un negocio de 11 a 50 personas, Carta (225 pesos al mes) cuesta alrededor de la cuarta parte de lo que ya paga por un punto de venta como Fudo Pro (838), y 0.03 % de lo que vende en promedio al mes.",
+   "calculo": {
+    "precio_master_chef": 225,
+    "comparaciones": [
+     {
+      "nombre": "Fudo Avanzado",
+      "precio_mes": 652,
+      "parte": 0.3450920245398773
+     },
+     {
+      "nombre": "Fudo Pro",
+      "precio_mes": 838,
+      "parte": 0.2684964200477327
+     },
+     {
+      "nombre": "Last.app Starter",
+      "precio_mes": 1000,
+      "parte": 0.225
+     }
+    ],
+    "ingreso_promedio_mes": 737584,
+    "parte_del_ingreso": 0.0003050500010846222
+   },
+   "advertencia": "Promedio (total ÷ negocios), no mediana, de la clase 722511 (restaurantes con servicio completo) en los Censos Económicos 2024, año de referencia 2023: quedan fuera antojitos, tacos y cafeterías; un promedio lo jalan los grandes. Dato por conseguir: mediana y otras clases."
+  },
+  "precio": {
+   "frase": "Si el dueño típico pagaría alrededor de 150, conviene cobrar 199; si pagaría 225, 225 o 249; si 300, 299; si 450 o más, 299. No sabemos cuánto pagaría: lo mide la prueba de tres precios del piloto.",
+   "por_mediana": [
+    {
+     "si_el_dueno_pagaria_alrededor_de": 150,
+     "conviene_cobrar": [
+      199
+     ],
+     "optimo_continuo": 175
+    },
+    {
+     "si_el_dueno_pagaria_alrededor_de": 225,
+     "conviene_cobrar": [
+      225,
+      249
+     ],
+     "optimo_continuo": 234
+    },
+    {
+     "si_el_dueno_pagaria_alrededor_de": 300,
+     "conviene_cobrar": [
+      299
+     ],
+     "optimo_continuo": 294
+    },
+    {
+     "si_el_dueno_pagaria_alrededor_de": 450,
+     "conviene_cobrar": [
+      299
+     ],
+     "optimo_continuo": 415
+    }
+   ],
+   "por_sigma": [
+    {
+     "sigma": 0.3,
+     "precio_ganador": 199
+    },
+    {
+     "sigma": 0.45,
+     "precio_ganador": 199
+    },
+    {
+     "sigma": 0.6,
+     "precio_ganador": 249
+    },
+    {
+     "sigma": 0.9,
+     "precio_ganador": 299
+    }
+   ]
+  }
+ },
+ "desgloses": {
+  "n": 1000,
+  "escenarios": [
+   {
+    "escenario": "recomendado",
+    "definicion": "curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha",
+    "gratuitos_que_sostiene": {
+     "pagante": {
+      "precio": 225,
+      "comision_tarjeta": 14.379359999999998,
+      "soporte": 60,
+      "servidor_y_disco": 1.588588992124042,
+      "deja": 149.03205100787596
+     },
+     "gratuito": {
+      "servidor_y_disco": 0.6906908661408879,
+      "soporte": 0.5,
+      "costo": 1.190690866140888,
+      "anuncios": 4.305,
+      "neto": -3.114309133859112
+     },
+     "sostiene_con_anuncios": null,
+     "se_paga_solo": true,
+     "sostiene_sin_anuncios": 125.16435226458
+    },
+    "embudo_anuncios": {
+     "comensales_al_mes": 3417,
+     "abren_la_app": 2050,
+     "ven_un_anuncio": 1230,
+     "parte_que_abre": 0.5999414691249634,
+     "parte_que_ve_anuncio": 0.6,
+     "tarifa_por_mil_visitas": 3.5,
+     "pesos_por_gratuito": 4.305,
+     "con_anuncios": true
+    },
+    "pesos_por_cliente_de_paga": {
+     "precio": 225,
+     "comision_tarjeta": 14.379359999999998,
+     "soporte": 60,
+     "servidor_y_disco": 1.588588992124042,
+     "queda": 149.03205100787596,
+     "ingreso_promedio_por_pagante": 225
+    },
+    "cascada_margen": {
+     "n": 1000,
+     "de_paga": 115.88394988411602,
+     "ingreso_suscripcion": 26073.888723926106,
+     "ingreso_anuncios": 3806.1195957488803,
+     "ingresos": 29880.008319674987,
+     "costo_servidor": 704.3094508178243,
+     "costo_almacenamiento": 90.4333967555371,
+     "costo_soporte": 7395.095018104904,
+     "costo_comision": 1666.3370336056623,
+     "costos": 9856.174899283928,
+     "margen_operacion": 20023.83342039106
+    }
+   },
+   {
+    "escenario": "peor",
+    "definicion": "curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa)",
+    "gratuitos_que_sostiene": {
+     "pagante": {
+      "precio": 225,
+      "comision_tarjeta": 14.379359999999998,
+      "soporte": 60,
+      "servidor_y_disco": 1.4518879525624135,
+      "deja": 149.16875204743758
+     },
+     "gratuito": {
+      "servidor_y_disco": 0.6312556315488755,
+      "soporte": 0.5,
+      "costo": 1.1312556315488755,
+      "anuncios": 0,
+      "neto": 1.1312556315488755
+     },
+     "sostiene_con_anuncios": 131.8612238360316,
+     "se_paga_solo": false,
+     "sostiene_sin_anuncios": 131.8612238360316
+    },
+    "embudo_anuncios": {
+     "comensales_al_mes": 3417,
+     "abren_la_app": 2050,
+     "ven_un_anuncio": 1230,
+     "parte_que_abre": 0.5999414691249634,
+     "parte_que_ve_anuncio": 0.6,
+     "tarifa_por_mil_visitas": 0,
+     "pesos_por_gratuito": 0,
+     "con_anuncios": false
+    },
+    "pesos_por_cliente_de_paga": {
+     "precio": 225,
+     "comision_tarjeta": 14.379359999999998,
+     "soporte": 60,
+     "servidor_y_disco": 1.4518879525624135,
+     "queda": 149.1687520474376,
+     "ingreso_promedio_por_pagante": 225
+    },
+    "cascada_margen": {
+     "n": 1000,
+     "de_paga": 23.42696319985383,
+     "ingreso_suscripcion": 5271.066719967112,
+     "ingreso_anuncios": 0,
+     "ingresos": 5271.066719967112,
+     "costo_servidor": 591.4831791211129,
+     "costo_almacenamiento": 58.99737561275745,
+     "costo_soporte": 1893.9043103913027,
+     "costo_comision": 336.86473755745016,
+     "costos": 2881.249602682623,
+     "margen_operacion": 2389.8171172844886
+    }
+   },
+   {
+    "escenario": "mejor",
+    "definicion": "curva de pago optimista y anuncios en la tarifa media",
+    "gratuitos_que_sostiene": {
+     "pagante": {
+      "precio": 225,
+      "comision_tarjeta": 14.379359999999998,
+      "soporte": 60,
+      "servidor_y_disco": 3.4274785405916965,
+      "deja": 147.19316145940832
+     },
+     "gratuito": {
+      "servidor_y_disco": 1.4902080611268247,
+      "soporte": 0.5,
+      "costo": 1.9902080611268247,
+      "anuncios": 17.22,
+      "neto": -15.229791938873174
+     },
+     "sostiene_con_anuncios": null,
+     "se_paga_solo": true,
+     "sostiene_sin_anuncios": 73.95868016737398
+    },
+    "embudo_anuncios": {
+     "comensales_al_mes": 3417,
+     "abren_la_app": 2050,
+     "ven_un_anuncio": 1230,
+     "parte_que_abre": 0.5999414691249634,
+     "parte_que_ve_anuncio": 0.6,
+     "tarifa_por_mil_visitas": 14,
+     "pesos_por_gratuito": 17.22,
+     "con_anuncios": true
+    },
+    "pesos_por_cliente_de_paga": {
+     "precio": 225,
+     "comision_tarjeta": 14.379359999999998,
+     "soporte": 60,
+     "servidor_y_disco": 3.4274785405916965,
+     "queda": 147.19316145940832,
+     "ingreso_promedio_por_pagante": 225
+    },
+    "cascada_margen": {
+     "n": 1000,
+     "de_paga": 382.18086846161816,
+     "ingreso_suscripcion": 85990.69540386408,
+     "ingreso_anuncios": 10638.845445090934,
+     "ingresos": 96629.54084895502,
+     "costo_servidor": 2049.6195666666667,
+     "costo_almacenamiento": 180.97620874709835,
+     "costo_soporte": 23239.76167346628,
+     "costo_comision": 5495.516292722253,
+     "costos": 30965.873741602296,
+     "margen_operacion": 65663.66710735272
+    }
+   },
+   {
+    "escenario": "piso_de_verdad",
+    "definicion": "curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango",
+    "gratuitos_que_sostiene": {
+     "pagante": {
+      "precio": 225,
+      "comision_tarjeta": 14.379359999999998,
+      "soporte": 150,
+      "servidor_y_disco": 1.4518879525624135,
+      "deja": 59.16875204743761
+     },
+     "gratuito": {
+      "servidor_y_disco": 0.6312556315488758,
+      "soporte": 3,
+      "costo": 3.6312556315488758,
+      "anuncios": 1.07625,
+      "neto": 2.555005631548876
+     },
+     "sostiene_con_anuncios": 23.157973241557507,
+     "se_paga_solo": false,
+     "sostiene_sin_anuncios": 16.294295431412458
+    },
+    "embudo_anuncios": {
+     "comensales_al_mes": 3417,
+     "abren_la_app": 2050,
+     "ven_un_anuncio": 615,
+     "parte_que_abre": 0.5999414691249634,
+     "parte_que_ve_anuncio": 0.3,
+     "tarifa_por_mil_visitas": 1.75,
+     "pesos_por_gratuito": 1.07625,
+     "con_anuncios": true
+    },
+    "pesos_por_cliente_de_paga": {
+     "precio": 225,
+     "comision_tarjeta": 14.379359999999998,
+     "soporte": 150,
+     "servidor_y_disco": 1.4518879525624135,
+     "queda": 59.16875204743759,
+     "ingreso_promedio_por_pagante": 225
+    },
+    "cascada_margen": {
+     "n": 1000,
+     "de_paga": 23.42696319985383,
+     "ingreso_suscripcion": 5271.066719967112,
+     "ingreso_anuncios": 1051.0367308561572,
+     "ingresos": 6322.103450823269,
+     "costo_servidor": 591.4831791211129,
+     "costo_almacenamiento": 58.99737561275745,
+     "costo_soporte": 6443.763590378513,
+     "costo_comision": 336.86473755745016,
+     "costos": 7431.108882669833,
+     "margen_operacion": -1109.0054318465645
+    }
+   }
+  ]
+ },
+ "endutih_2024": {
+  "fecha_de_publicacion": "2025-05-06",
+  "usuarios_internet_millones": 100.2,
+  "usuarios_internet_parte": 0.831,
+  "por_equipo_de_conexion": {
+   "celular_inteligente": 0.972,
+   "televisor_inteligente": 0.436,
+   "computadora": 0.359,
+   "consola": 0.081,
+   "nota": "porcentaje de las personas usuarias de internet que se conectó con cada equipo; son respuestas múltiples y no suman 100 %"
+  },
+  "tipo_de_conexion_de_usuarios_de_celular_inteligente": {
+   "ambos": 0.728,
+   "solo_wifi": 0.163,
+   "solo_datos_moviles": 0.109
+  },
+  "paginas": {
+   "usuarios": 3,
+   "equipo": 6,
+   "tipo_de_conexion": 17
+  }
+ },
  "comparacion_con_tres_planes": {
   "nota": "la misma base con tres planes (Chef 25 mesas · 4 cuentas · 150 platillos; Master Chef 225; Chef Ejecutivo 1,099)",
   "escenarios": {

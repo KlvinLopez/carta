@@ -306,6 +306,31 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('recursos y desgloses no modifican sus parámetros de entrada', JSON.stringify([cfg, s]) === antes, true);
 }
 
+// 15) RONDA 8, segunda parte: palancas en llano, definiciones, mensajes y ENDUTIH
+{
+  const cfg = M.configInicial();
+  const todas = Object.entries(M.PALANCAS);
+  prueba('toda palanca trae acción (hasta 6 palabras, en infinitivo) y qué es (una frase)', todas.every(([, p]) => typeof p.accion === 'string' && p.accion.split(/\s+/).length <= 6 && /^[A-ZÁÉÍÓÚ][a-záéíóúñ]+(ar|er|ir)\s/.test(p.accion) && typeof p.que_es === 'string' && p.que_es.length > 20 && p.que_es.split('. ').length <= 2), true);
+  prueba('las palancas siguen trayendo medido, esfuerzo, riesgo y regla (para el JSON y el .md)', todas.every(([, p]) => typeof p.medido === 'boolean' && p.esfuerzo && p.riesgo && p.regla_que_toca), true);
+  const R = M.recursos(cfg, s, {});
+  prueba('recursos() entrega la acción y qué es de cada palanca', R.recursos.flatMap((r) => r.palancas).every((p) => p.accion && p.que_es), true);
+  const df = M.definiciones(s);
+  prueba('definiciones de una frase: adverso, estrés, cota baja, cota alta, bolsa', ['adverso', 'estres', 'cota_baja', 'cota_alta', 'bolsa'].every((k) => typeof df[k] === 'string' && df[k].length > 20), true);
+  prueba('la definición de adverso sale del parámetro (mitad de la tarifa baja y 30 % de las visitas)', /mitad de la tarifa baja/.test(df.adverso) && /30 %/.test(df.adverso), true);
+  prueba('la definición de cota baja trae 52 % y la de cota alta 98 %', /52 %/.test(df.cota_baja) && /98 %/.test(df.cota_alta), true);
+  const ms = M.mensajes(cfg, s);
+  prueba('mensaje de valor: cuarta parte del punto de venta y 0.03 % del ingreso', /cuarta parte/.test(ms.valor.frase) && /0\.03 %/.test(ms.valor.frase) && /Fudo Pro \(838\)/.test(ms.valor.frase), true);
+  prueba('mensaje de valor: parte frente a Fudo Avanzado, Fudo Pro y Last.app Starter', ms.valor.calculo.comparaciones.map((x) => Math.round(x.parte * 100)).join(','), '35,27,23');
+  prueba('el mensaje de valor lleva la advertencia de promedios y de la clase 722511', /Promedio/.test(ms.valor.advertencia) && /722511/.test(ms.valor.advertencia), true);
+  prueba('mensaje de precio: 150 → 199; 225 → 225 o 249; 300 → 299; 450 → 299', ms.precio.por_mediana.map((x) => `${x.si_el_dueno_pagaria_alrededor_de}:${x.conviene_cobrar.join('/')}`).join(' '), '150:199 225:225/249 300:299 450:299');
+  prueba('el mensaje de precio dice que no se sabe y que lo mide la prueba', /No sabemos/.test(ms.precio.frase) && /prueba de tres precios/.test(ms.precio.frase), true);
+  const en = s.endutih_2024;
+  prueba('ENDUTIH 2024: usuarios de internet (millones y parte)', `${en.usuarios_internet_millones}-${en.usuarios_internet_parte}`, '100.2-0.831');
+  prueba('ENDUTIH 2024: parte de los usuarios que usa celular inteligente', en.por_equipo_de_conexion.celular_inteligente, 0.972);
+  prueba('ENDUTIH 2024: tipo de conexión de usuarios de celular inteligente (ambos, sólo wifi, sólo datos)', Object.values(en.tipo_de_conexion_de_usuarios_de_celular_inteligente).map((x) => Math.round(x * 1000) / 10).join(','), '72.8,16.3,10.9');
+  prueba('ENDUTIH 2024: el tipo de conexión suma 100 %', Math.round(Object.values(en.tipo_de_conexion_de_usuarios_de_celular_inteligente).reduce((a, b) => a + b, 0) * 1000), 1000);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
