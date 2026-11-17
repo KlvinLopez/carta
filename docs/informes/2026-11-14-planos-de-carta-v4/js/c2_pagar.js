@@ -2,18 +2,20 @@
 DET.pagar = {
   titulo: "De cada 10,000 pesos que entran, Carta es una fracción de lo que el negocio ya paga por su punto de venta.",
   fu: ["inegi_denue", "carta_precio", "paginas_proveedores_14nov"],
-  nota: "INEGI, Censos Económicos 2024 (datos de 2023), clase 722511: ingreso por negocio y por mes. Un punto de venta cuesta de 652 a 1,000 pesos al mes (páginas de proveedores leídas el 14 de noviembre). Los negocios de 0 a 10 personas están en Chef (gratis); de 11 a 250, Master Chef; de 251 en adelante, Chef Ejecutivo (nombre propuesto).",
-  montar(host) { host.innerHTML = `<div class="viz"><svg id="svV" viewBox="0 0 1100 560" role="img" aria-label="Lo que ya paga por su punto de venta frente a lo que pagaría por Carta" font-family="DM Sans, sans-serif"></svg></div><details class="mas" style="margin-top:12px"><summary>Segundo nivel: lo mismo, por cada 10,000 pesos que entran al negocio</summary><div class="viz" style="margin-top:8px"><svg id="svG" viewBox="0 0 1100 520" role="img" font-family="DM Sans, sans-serif"></svg></div></details>`; this.sv = $("#svG", host); this.svV = $("#svV", host); },
+  nota: "INEGI, Censos Económicos 2024 (datos de 2023), clase 722511: ingreso por negocio y por mes. Un punto de venta cuesta de 652 a 1,000 pesos al mes (páginas de proveedores leídas el 14 de noviembre). Los negocios de 0 a 5 personas caben en Chef (gratis); de 6 en adelante, Master Chef.",
+  montar(host) { host.innerHTML = `<div class="viz"><svg id="svV" viewBox="0 0 1100 600" role="img" aria-label="Lo que ya paga por su punto de venta frente a lo que pagaría por Carta" font-family="DM Sans, sans-serif"></svg></div><details class="mas" style="margin-top:12px"><summary>Segundo nivel: lo mismo, por cada 10,000 pesos que entran al negocio</summary><div class="viz" style="margin-top:8px"><svg id="svG" viewBox="0 0 1100 520" role="img" font-family="DM Sans, sans-serif"></svg></div></details>`; this.sv = $("#svG", host); this.svV = $("#svV", host); },
   /* el valor, a la vista: por tamaño, lo que ya paga por su punto de venta junto a lo que pagaría por Carta, en pesos al mes y a la misma escala */
   pintaValor(tam, tipos, rot, precios, planes, pLo, pHi) {
-    const X0 = 270, W = 640, mx = 1200, X = v => X0 + W * Math.min(v, mx) / mx, medio = (pLo + pHi) / 2, razon = S.precioServicio / medio;
-    const frac = Math.abs(razon - 0.25) < 0.04 ? "la cuarta parte" : Math.abs(razon - 1 / 3) < 0.04 ? "la tercera parte" : Math.abs(razon - 0.2) < 0.03 ? "la quinta parte" : `${n(100 * razon)} %`;
-    this.frac = frac;
-    let b = T(30, 44, `Para un negocio mediano, ${PLAN.paga} cuesta ${frac}`, 28, C.vino, "start", 400, true) + T(30, 80, "de lo que ya paga por su punto de venta; para el chico, nada.", 28, C.vino, "start", 400, true);
-    [0, 300, 600, 900, 1200].forEach(v => { b += `<line x1="${X(v)}" x2="${X(v)}" y1="112" y2="${112 + tam.length * 104}" stroke="${C.arena}"/>` + T(X(v), 106, v === 0 ? "$0" : "$" + n(v), 11.5, C.t2, "middle"); });
-    b += T(X0 - 24, 106, "pesos al mes", 11.5, C.t2, "end");
+    const X0 = 270, W = 640, mx = 1200, X = v => X0 + W * Math.min(v, mx) / mx, vm = MOD.mensajes(config(S), sup(S)).valor;
+    this.frac = (vm.frase.match(/cuesta alrededor de (.*?) de lo que/) || [0, "una fracción"])[1];
+    const lin = parr(vm.frase.replace(/, y [\d.]+ % de lo que vende.*$/, "."), 62);
+    let b = `<g data-tip="${esc2("Promedios del INEGI|clase 722511|" + pal20("Son promedios (total entre negocios) de restaurantes con servicio completo; para 0 a 5 personas es «si lo contratara».", 22))}">` + lin.slice(0, 3).map((l, i2) => T(30, 40 + i2 * 32, l, 25, C.vino, "start", 400, true)).join("") + "</g>";
+    b += T(30, 40 + Math.min(lin.length, 3) * 32 + 2, "Frente a: " + vm.calculo.comparaciones.map(q => `${q.nombre} ($${n(q.precio_mes)}) ${n(100 * q.parte)} %`).join(" · "), 12.5, C.t2, "start", 700);
+    this.oy = 40 + Math.min(lin.length, 3) * 32 + 22;
+    [0, 300, 600, 900, 1200].forEach(v => { b += `<line x1="${X(v)}" x2="${X(v)}" y1="${this.oy + 12}" y2="${this.oy + 12 + tam.length * 104}" stroke="${C.arena}"/>` + T(X(v), this.oy + 6, v === 0 ? "$0" : "$" + n(v), 11.5, C.t2, "middle"); });
+    b += T(X0 - 24, this.oy + 6, "pesos al mes", 11.5, C.t2, "end");
     tam.forEach((t, i) => {
-      const y = 120 + i * 104, c = precios[i];
+      const y = this.oy + 20 + i * 104, c = precios[i];
       b += dibujo(tipos[i], 30, y + 2, 0.5) + T(122, y + 30, rot[i], 15, C.tinta, "start", 700) + T(122, y + 50, planes[i], 12.5, C.t2);
       b += `<g class="gh" style="animation-delay:${i * 120}ms" data-tip="${esc2("Punto de venta|$" + n(pLo) + " a $" + n(pHi) + "|pesos al mes: lo que ya paga hoy por su punto de venta (páginas de proveedores, 14 de noviembre)")}">${Rc(X0, y + 8, X(pLo) - X0, 28, C.azul, 8)}${Rc(X(pLo), y + 8, X(pHi) - X(pLo), 28, "#8fb0d8", 0)}</g>` + T(X(pHi) + 10, y + 29, `punto de venta $${n(pLo)} a $${n(pHi)}`, 13.5, C.azul, "start", 700);
       b += c > 0 ? `<g class="gh" style="animation-delay:${i * 120 + 90}ms" data-tip="${esc2(planes[i] + "|$" + n(c) + " al mes|" + (c <= 300 ? "casi la cuarta parte de lo que ya paga por su punto de venta" : "lo que pagaría por Carta en este plan"))}">${Rc(X0, y + 46, Math.max(X(c) - X0, 4), 28, C.dorado, 8)}</g>` + T(X(c) + 10, y + 67, `Carta $${n(c)}`, 14, C.dorado, "start", 700) : T(X0 + 8, y + 67, "Carta: gratis, $0", 15, C.dorado, "start", 700);
@@ -25,7 +27,7 @@ DET.pagar = {
     /* cada tira son 100 casillas; cada casilla es 1 peso de cada 10,000 que entran (la tira entera es el 1 % de las ventas) */
     const tam = D.inegi_tamano, X0 = 290, CW = 8, [pLo, pHi] = [652, 1000], por10k = (pesos, ingreso) => 10000 * pesos / ingreso;
     const tipos = ["fonda", "restaurante", "salon", "grupo"], rot = ["0 a 10 personas", "11 a 50", "51 a 250", "251 o más"];
-    const precios = [0, S.precioServicio, S.precioServicio, S.precioSalon], planes = [PLAN.gratis, PLAN.paga, PLAN.paga, PLAN.ejec];
+    const precios = [0, S.precioServicio, S.precioServicio, S.precioServicio], planes = [`${PLAN.gratis} (0 a 5) · ${PLAN.paga} desde 6`, PLAN.paga, PLAN.paga, PLAN.paga];
     let b = T(30, 28, "De cada 10,000 pesos que entran al negocio, ¿cuántos van a software?", 15, C.vino, "start", 700) + T(30, 48, "Cada tira son 100 casillas: una casilla = 1 peso de cada 10,000 (la tira entera es el 1 % de las ventas).", 12, C.t2);
     const fil = [];
     tam.forEach((t, i) => {

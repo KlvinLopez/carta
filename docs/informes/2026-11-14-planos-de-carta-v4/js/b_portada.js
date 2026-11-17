@@ -15,7 +15,7 @@ const KPIS = [
   {id: "caben", clave: "restaurantes_que_caben_sin_purga", f: v => n(v), txt: "restaurantes gratuitos caben hoy, sin purga del historial", ps: ["", ""], neutro: true, especial: "caben"},
   {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
   {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
-  {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga", solo: true, nota: "Promedio entre Master Chef y Chef Ejecutivo: cambia con la mezcla de planes, no con el escenario."},
+  {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga", solo: true, nota: "Master Chef: lo que paga cada cliente de paga al mes; cambia con el precio, no con el escenario."},
   {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes (historial a 30 días)", especial: "margen"},
 ];
 function pintaKpis() {

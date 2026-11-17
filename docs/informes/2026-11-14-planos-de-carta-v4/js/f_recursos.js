@@ -33,17 +33,14 @@ DET.recursos7 = {
   /* topes de cada recurso con el historial elegido */
   caps() { const r = this.r, o = []; r.recursos.forEach(x => { const v = x.recurso === "disco" ? this.discoCap(r) : x[this.clave]; if (v != null) o.push({recurso: x.recurso, v}); }); return o; },
   /* la escalera con lo elegido arriba: el disco de cada escalón se escala con el historial; el resto, tal cual */
-  valEsc(e) {
-    const r = this.r, f12 = r.disco_por_historial.find(q => q.meses_historial === 12).restaurantes_por_disco, razon = this.discoCap(r) / f12;
-    if (!e.por_recurso) return e.restaurantes_con_historial_30_dias ?? e.restaurantes_que_caben;
-    const vs = Object.entries(e.por_recurso).filter(([k, v]) => v != null).map(([k, v]) => (k === "disco" ? v * razon : v));
-    return Math.min(...vs);
-  },
+  valEsc(e) { return e.restaurantes_que_caben; },
   actualizar() {
     const sinH = (S.palancas || []).filter(x => x !== "historial_gratuito_30_dias"); if (sinH.length !== (S.palancas || []).length) { cambiar({palancas: sinH}); return null; }
     const r = conCache("rec7", () => MOD.recursos(config(S), sup(S), "hoy")), hoy = this.est === "hoy", clave = hoy ? "restaurantes_hoy" : "restaurantes_con_eventos";
     $$("#estR [data-est]").forEach(b => b.setAttribute("aria-pressed", b.dataset.est === this.est));
     $$("#hisR [data-his]").forEach(b => b.setAttribute("aria-pressed", b.dataset.his === this.his));
+    const mH = (HIS.find(h => h[0] === this.his) || HIS[0])[2];
+    this.esc = conCache("esc7|" + this.est + "|" + mH, () => MOD.recursos(config(S), sup(S), {canal: hoy ? "sondeo" : "eventos", meses_historial: mH}).escalera);
     this.r = r; this.hoy = hoy; this.clave = clave; this.ck = hoy ? "hoy" : "con_eventos";
     const caps = this.caps(); this.cuello = caps.reduce((m, x) => (x.v < m.v ? x : m), caps[0]);
     if (this.n == null) this.n = this.cuello.v;
@@ -52,7 +49,7 @@ DET.recursos7 = {
     const rp = r.rango_procesador, rg = hoy ? rp.procesador_hoy : rp.procesador_con_eventos, p30 = hoy ? 148 : 1064;
     this.rg = rg;
     this.apunta(); this.pintaA();
-    const e5 = r.escalera[r.escalera.length - 1];
+    const e5 = this.esc[this.esc.length - 1];
     return {
       leyenda: `<span><i style="background:${C.rojo}"></i>el recurso que se llena primero</span><span><i style="background:${C.dorado}"></i>los demás recursos</span>`,
       cifras: [[n(r.cuello_hoy.restaurantes), "restaurantes caben hoy, sin purga del historial (a 12 meses de operación): frena el disco", "medido en local; historial supuesto"], [n(r.cuello_hoy.con_historial_30_dias.restaurantes), `con historial a 30 días (propuesta): frena el procesador; entre ${n(r.cuello_hoy.rango_si_es_procesador[0])} y ${n(r.cuello_hoy.rango_si_es_procesador[1])} (± 2×, falta medirlo en Railway)`, "medido en local (±2×)"], [n(r.cuello_con_eventos.con_historial_30_dias.restaurantes), "con avisos (Fase 3) y 30 días: frena el disco", "estimado"], [n(r.hoy.total_usd_mes, 1) + " USD", "lo que pagamos al mes hoy (supone historial a 30 días)"], [n(e5.restaurantes_con_historial_30_dias ?? e5.restaurantes_que_caben), "restaurantes caben en el escalón más grande (Pro, 8 procesos), con historial a 30 días", "estimado"]],
@@ -73,9 +70,11 @@ DET.recursos7 = {
     filas.sort((a, z) => gan(z) - gan(a));
     const key = [ps.join(), ck, he].join("|"); if (key === this.palKey) return; this.palKey = key;
     $("#palR").innerHTML = filas.map(p => {
-      const [a, d] = par(p), adr = /ADR|regla \d/.test(p.regla_que_toca || ""), efecto = p.id === "pool_acotado" ? "protege la base: no suma restaurantes" : p.id === "purga_claves_idempotencia" ? "evita 34 MB por restaurante al año; sin efecto hasta la Fase 3" : p.id === "archivar_sesiones_cerradas" && base30 ? "sin efecto medido con 30 días" : "restaurantes que caben";
-      const tip = `${p.nombre}|${a != null && d != null ? n(a) + " → " + n(d) : "—"}|${efecto}. ${p.medido ? "Medido" : "Estimado"}, esfuerzo ${p.esfuerzo}. Riesgo: ${p.riesgo}.${adr ? " Pide un ADR o toca una regla: " + p.regla_que_toca + "." : ""}`;
-      return `<button class="btn pchip" data-pal="${p.id}" aria-pressed="${ps.includes(p.id)}" data-tip="${esc2(tip)}">${esc(PAL_CORTO[p.id] || p.nombre)}</button>`;
+      const [a, d] = par(p), al = MOD.PALANCAS[p.id] || {}, dif = a != null && d != null ? d - a : null;
+      const cif = dif == null ? "sin efecto medido" : dif === 0 ? `sin cambio: ${n(a)}` : `${n(a)} → ${n(d)} restaurantes`;
+      const fr = p.id === "pool_acotado" ? "Protege la base; no suma restaurantes." : p.id === "purga_claves_idempotencia" ? "Evita 34 MB por restaurante al año; sin efecto hasta la Fase 3." : (al.que_es || "");
+      const tip = `${al.accion || p.nombre}|${cif}|${fr}`;
+      return `<button class="btn pchip" data-pal="${p.id}" aria-pressed="${ps.includes(p.id)}" data-tip="${esc2(tip)}"${dif != null && a ? ` data-tipv="tri:antes|${a}|${n(a)};después|${d}|${n(d)}"` : ""}>${esc(al.accion || PAL_CORTO[p.id] || p.nombre)}</button>`;
     }).join("");
   },
   /* los valores que se dibujan pasan del que tenían al nuevo (nunca desde cero) */
@@ -83,7 +82,7 @@ DET.recursos7 = {
     const r = this.r, N = this.n, to = {};
     r.recursos.forEach(x => { const c = this.caps().find(q => q.recurso === x.recurso); to["p_" + x.recurso] = c ? N / c.v : 0; });
     r.disco_por_historial.forEach((q, i) => { to["cv" + i] = q.restaurantes_por_disco; });
-    r.escalera.forEach((e, i) => { to["es" + i] = this.valEsc(e); });
+    this.esc.forEach((e, i) => { to["es" + i] = this.valEsc(e); });
     this.to = to;
     if (!this.vals || REDUCE) { this.vals = {...to}; this.dibuja(); return; }
     this.from = {...this.vals}; this.t0 = performance.now();
@@ -126,7 +125,7 @@ DET.recursos7 = {
   },
   /* la escalera: lo elegido arriba la recalcula */
   pintaE() {
-    const r = this.r, es = r.escalera, V = this.vals, hoy = this.hoy, act = hoy ? 0 : 1, w = 680 / es.length, mc = Math.floor((w - 8) / 5.6);
+    const r = this.r, es = this.esc, V = this.vals, hoy = this.hoy, act = 0, w = 680 / es.length, mc = Math.floor((w - 8) / 5.6);
     const mx = Math.max(...es.map((e, i) => V["es" + i] ?? 0), 1), lin = (t, m) => parr(t, m);
     let b = T(20, 24, "La escalera de tamaños: cada escalón es un tamaño de servidor que se renta en Railway", 13, C.vino, "start", 700) + T(20, 42, "Con el historial, las palancas y los avisos que elegiste arriba. Sin purga caben menos.", 11.5, C.rojo, "start", 700);
     es.forEach((e, i) => {

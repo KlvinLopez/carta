@@ -67,7 +67,8 @@ const kp = await p.$eval('#kpis', (e) => getComputedStyle(e).position); ok(kp ==
 // cada cifra de arriba se abre
 for (const k of ['sostiene', 'anuncios', 'ingreso', 'margen']) {
   await p.click(`.kpi[data-kpi="${k}"]`); await p.waitForTimeout(250);
-  ok((await p.$$('#det .cuenta .v')).length > 3, `cifra «${k}» abre su cuenta`);
+  const esperado = {sostiene: '125', anuncios: '4.31', ingreso: '149.03', margen: '20,024'}[k];
+  ok(!!(await p.$('#det #svKD')) && (await texto(p, '#svKD')).includes(esperado), `cifra «${k}» abre su imagen con ${esperado}`);
   await cierra(p);
 }
 // ¿en línea?
@@ -136,7 +137,7 @@ ok(/74 y 296/.test(await texto(p, '#svM')) || /74–296/.test(th0), 'capítulo 7
 ok((await p.evaluate(() => document.querySelector('#svM [data-rec="procesador"]').getAttribute('data-tip'))).includes('1,800 visitas'), 'capítulo 7: el restaurante típico en el hover de cada cifra');
 const kpf = await texto(p, '#kpis');
 ok(kpf.includes('23') && kpf.includes('279') && kpf.includes('sin purga'), 'cifras fijas: «23 sin purga» y «279 con 30 días»');
-ok((await p.evaluate(() => document.querySelector('[data-kpi="margen"]').getAttribute('data-tip'))).includes('+$3,827'), 'cifras fijas: el margen dice cuánto es sin purga (+$3,827)');
+ok(/20,024|\+\$20,0/.test(await p.evaluate(() => document.querySelector('[data-kpi="margen"]').getAttribute('data-tip') + document.querySelector('[data-kpi="margen"]').textContent)), 'cifras fijas: el margen recomendado es +$20,024 (r8)');
 // todo en un tablero: parámetros arriba, medidores, quién frena, animación y escalera visibles a la vez
 ok(await p.evaluate(() => ['#estR', '#hisR', '#rN', '#palR', '#svM', '#svH', '#svA', '#svE'].every((q) => { const e = document.querySelector(q); return e && e.getBoundingClientRect().width > 0; })), 'capítulo 7: parámetros, medidores, quién frena, animación y escalera están a la vez');
 ok((await p.$$('#palR [data-pal]')).length === 9 && !(await p.evaluate(() => document.querySelector('#palR').textContent.match(/medido|estimado|esfuerzo|ADR|→/))), 'capítulo 7: las palancas sólo dicen qué hay que hacer (lo demás, al hover)');
@@ -162,10 +163,10 @@ const t30 = await texto(p, '#svH');
 ok(await p.evaluate(() => DET.recursos7.cuello.recurso === 'procesador' && DET.recursos7.cuello.v === 148), 'capítulo 7: con 30 días el cuello es el procesador, 148');
 ok((await texto(p, '#svE')).includes('Con el historial, las palancas y los avisos que elegiste arriba'), 'capítulo 7: la escalera dice que se recalcula con lo elegido arriba');
 const esc30 = await p.evaluate(() => [0, 1, 2, 3, 4, 5].map((i) => Math.round(DET.recursos7.vals['es' + i])));
-ok(esc30.slice(0, 5).join() === '148,279,1064,1896,2116', 'capítulo 7: la escalera con 30 días: 148 · 279 · 1,064 · 1,896 · 2,116 (' + esc30.join(' ') + ')');
+ok(esc30.slice(0, 5).join() === '148,148,263,294,588', 'capítulo 7: la escalera con 30 días y sondeo: 148 · 148 · 263 · 294 · 588 (' + esc30.join(' ') + ')');
 await p.click('#hisR [data-his="sin"]'); await p.waitForTimeout(800);
 const escSin = await p.evaluate(() => [0, 1, 2, 3, 4, 5].map((i) => Math.round(DET.recursos7.vals['es' + i])));
-ok(escSin[0] === 23 && escSin[1] === 23 && escSin[2] === 236, 'capítulo 7: la escalera sin purga baja (23 · 23 · 236) (' + escSin.join(' ') + ')');
+ok(escSin[0] === 23 && escSin[1] === 148 && escSin[2] === 236, 'capítulo 7: la escalera sin purga baja (23 · 148 · 236) (' + escSin.join(' ') + ')');
 await p.click('#hisR [data-his="3"]'); await p.waitForTimeout(400);
 ok(await p.evaluate(() => DET.recursos7.cuello.recurso === 'disco' && DET.recursos7.cuello.v === 93), 'capítulo 7: con 3 meses el disco manda con 93');
 await p.click('#hisR [data-his="sin"]'); await p.waitForTimeout(300);
@@ -176,28 +177,28 @@ await sinDesborde(p, 'capítulo 7'); await cierra(p);
 
 // topes: arrastre con teclado y con puntero
 await abre(p, 'topes');
-const e0 = await texto(p, '.cap.act .capcif .cifra:nth-child(5) b');
+const e0 = await texto(p, '.cap.act .capcif .cifra:nth-child(4) b');
 await p.focus('#svT circle[aria-label="Tope de platillos"]'); await p.keyboard.press('ArrowLeft'); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(500);
-const e1 = await texto(p, '.cap.act .capcif .cifra:nth-child(5) b');
+const e1 = await texto(p, '.cap.act .capcif .cifra:nth-child(4) b');
 ok(e1 !== e0, `topes: bajar el tope de platillos cambia a quién empuja (${e0} → ${e1})`);
 const box = await p.$eval('#svT circle[aria-label="Tope de mesas"]', (e) => { const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
 await p.mouse.move(box[0], box[1]); await p.mouse.down(); await p.mouse.move(box[0] + 150, box[1], {steps: 6}); await p.mouse.up(); await p.waitForTimeout(500);
 ok((await p.evaluate(() => S.topeMesas)) > 25, 'topes: arrastrar el asa de mesas la mueve');
-ok((await p.$$('#svT [id], #svT .rm')).length > 20 && (await texto(p, '#svT')).includes('Chef Ejecutivo'), 'topes: muestra a qué plan cae cada tamaño');
+ok((await p.$$('#svT [id], #svT .rm')).length > 20 && (await texto(p, '#svT')).includes('Master Chef') && (await texto(p, '#svT')).includes('en Chef'), 'topes: muestra a qué plan cae cada tamaño (dos planes)');
 if (png) await p.screenshot({ path: `${png}/v5_topes.png` });
 const t6 = await texto(p, '#svT');
 ok(t6.includes('dos muestras') && t6.includes('sesgos opuestos'), 'topes: la marca del platillo dice «dos muestras, sesgos opuestos»');
 ok(/\d+\.\d–\d+\.\d % se queda en Chef/.test(t6), 'topes: «se queda en Chef» es una banda entre las dos cotas');
-await p.evaluate(() => cambiar({ topeMesas: 25, topeCuentas: 4, topePlatillos: 150, platSel: 'todo' })); await p.waitForTimeout(400);
+await p.evaluate(() => cambiar({ topeMesas: 6, topeCuentas: 1, topePlatillos: 150, platSel: 'todo' })); await p.waitForTimeout(400);
 const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP); return [c.todo.baja, c.todo.alta, c.comida.baja, c.comida.alta].map((v) => +(100 * v).toFixed(1)); });
-ok(cobT.join() === '50.3,95.1,97.1,95.1', 'topes: cobertura de Chef con 150 platillos: todo 50.3 / 95.1, sólo comida 97.1 / 95.1 (' + cobT.join(' ') + ')');
+ok(cobT.join() === '20.6,38.9,39.7,38.9', 'topes: cobertura de Chef (6 mesas, 1 cuenta, 150 platillos): todo 20.6 / 38.9, sólo comida 39.7 / 38.9 (' + cobT.join(' ') + ')');
 await p.click('#platSel [data-ps="comida"]'); await p.waitForTimeout(500);
-ok((await p.evaluate(() => S.platSel)) === 'comida' && (await texto(p, '#svT')).includes('95.1–97.1'), 'topes: «sólo comida» cierra la banda a 95.1–97.1');
+ok((await p.evaluate(() => S.platSel)) === 'comida' && (await texto(p, '#svT')).includes('38.9–39.7'), 'topes: «sólo comida» cierra la banda a 38.9–39.7');
 await p.click('#platSel [data-ps="sin"]'); await p.waitForTimeout(500);
 ok((await p.evaluate(() => config(S).topes.gratuito.platillos)) === Infinity && (await texto(p, '#svT')).includes('sin tope'), 'topes: «sin tope» deja los platillos sin límite');
 await p.click('#platSel [data-ps="todo"]'); await p.waitForTimeout(300);
 const mg0 = await p.evaluate(() => [evalS(S).margen_operacion, evalCota(S, 'baja').margen_operacion].map(Math.round));
-ok(mg0.join() === '8719,18592', 'topes: margen con 1,000 restaurantes 8,719 (cota alta) y 18,592 (cota baja) (' + mg0.join(' ') + ')');
+ok(mg0.join() === '20024,24098', 'topes: margen con 1,000 restaurantes 20,024 (cota alta) y 24,098 (cota baja) (' + mg0.join(' ') + ')');
 ok((await p.evaluate(() => document.querySelector('#svT [data-tip*="no es un margen real"]') !== null)), 'topes: el margen de la cota baja avisa que no es un margen real');
 await sinDesborde(p, 'topes'); await cierra(p);
 // precio frente a la competencia
@@ -257,7 +258,7 @@ await p.click('#tabsK [data-vista="3"]'); await p.waitForTimeout(400);
 ok((await p.$$('#svK [data-tip]')).length >= 6, 'sostiene: «qué hay que medir primero» con una frase por barra');
 if (png) await p.screenshot({ path: `${png}/v8_sostiene.png`, fullPage: true });
 await p.click('#tabsK [data-vista="4"]'); await p.waitForTimeout(1300);
-ok((await texto(p, '#svK')).includes('−$47') && (await texto(p, '#svK')).includes('$32,655'), 'sostiene: la matriz 3 × 3 da −47 y +32,655 en las esquinas');
+ok((await texto(p, '#svK')).includes('$2,390') && (await texto(p, '#svK')).includes('$65,664'), 'sostiene: la matriz 3 × 3 da 2,390 y 65,664 en las esquinas');
 if (png) await p.screenshot({ path: `${png}/v8_sost4.png` });
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
@@ -269,16 +270,16 @@ await sinDesborde(p, 'pagar'); await cierra(p);
 await p.click('#verDecisiones'); await p.waitForTimeout(450);
 ok((await p.$$('.rcard')).length === 8 && (await p.evaluate(() => REC.decisiones[1].id)) === 'tope_platillos', 'decisiones: ocho, y la 2 es el tope de platillos');
 ok((await texto(p, '#r_tope_platillos')).includes('abierta'), 'decisiones: el tope de platillos se presenta como abierta');
-await p.click('[data-mas="segmentacion"]'); await p.waitForTimeout(150);
-await p.click('#r_segmentacion .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
-ok((await p.evaluate(() => S.topeMesas)) === 12, 'recomendaciones: «Probar esta» aplica 12 mesas');
-await p.click('#r_segmentacion .acc2 [data-aplica]'); await p.waitForTimeout(300);
-ok((await p.evaluate(() => S.topeMesas)) === 25, 'recomendaciones: aplicar lo recomendado (25 mesas)');
+await p.click('[data-mas="dos_planes"]'); await p.waitForTimeout(150);
+await p.click('#r_dos_planes .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
+ok((await p.evaluate(() => S.topeMesas)) === 5, 'recomendaciones: «Probar esta» aplica 5 mesas');
+await p.click('#r_dos_planes .acc2 [data-aplica]'); await p.waitForTimeout(300);
+ok((await p.evaluate(() => S.topeMesas)) === 6, 'recomendaciones: aplicar lo recomendado (6 mesas)');
 if (png) await p.screenshot({ path: `${png}/v5_recs.png` });
 await sinDesborde(p, 'recomendaciones');
 // persistencia del escenario que se edita dentro de cada detalle
 await p.reload(); await p.waitForTimeout(400);
-ok((await p.evaluate(() => S.topeMesas)) === 25, 'lo editado dentro del detalle persiste al recargar');
+ok((await p.evaluate(() => S.topeMesas)) === 6, 'lo editado dentro del detalle persiste al recargar');
 await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);

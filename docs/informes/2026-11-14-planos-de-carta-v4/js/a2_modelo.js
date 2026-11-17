@@ -70,4 +70,4 @@ const ev3 = (s0, caso, k) => MOD.evaluar(config(s0), sup(s0), k, CASO3[caso]);
 /* segmentación de Calvin: a qué plan cae cada tamaño con los topes del escenario */
 const FCUENTA = SEG.parametros.f[1], MCUENTA = SEG.parametros.mesas_por_cuenta[1];
 const mesasDe = e => e.media_supuesta * FCUENTA * MCUENTA, cuentasDe = e => e.media_supuesta * FCUENTA;
-function planDe(e, c) { const me = mesasDe(e), cu = cuentasDe(e), g = c.topes.gratuito, t = c.topes.servicio; return me <= g.mesas && cu <= g.cuentas ? 0 : me <= t.mesas && cu <= t.cuentas ? 1 : 2; }
+function planDe(e, c) { const me = mesasDe(e), cu = cuentasDe(e), g = c.topes.gratuito, t = c.topes.servicio; const p0 = me <= g.mesas && cu <= g.cuentas ? 0 : me <= t.mesas && cu <= t.cuentas ? 1 : 2; return p0 > 1 && c.planes && c.planes.chef_ejecutivo && c.planes.chef_ejecutivo.activo === false ? 1 : p0; }

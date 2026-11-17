@@ -176,16 +176,16 @@ const sinMd = t => String(t).replace(/\*\*/g, "").replace(/\*/g, "");
 const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 /* tarjetas: qué hacer (5 a 8 palabras), por qué (una cifra), qué pasa si no (una línea); lo demás, detrás de «ver más» */
 const PARCHES = {
-  segmentacion: [{topeMesas: 12, topeCuentas: 3, topePlatillos: 150}, {topeMesas: 20, topeCuentas: 4, topePlatillos: 100}, {topeMesas: 25, topeCuentas: 4, topePlatillos: 150}],
+  dos_planes: [{topeMesas: 5, topeCuentas: 1}, {topeMesas: 6, topeCuentas: 1}, {topeMesas: 6, topeCuentas: 2}, {topeMesas: 8, topeCuentas: 2}, {topeMesas: 10, topeCuentas: 3}],
   tope_platillos: [{platSel: "comida"}, {topePlatillos: 200, platSel: "todo"}, {topePlatillos: 300, platSel: "todo"}, {platSel: "sin"}],
-  precios: [{precioServicio: 199, precioSalon: 1099}, {precioServicio: 225, precioSalon: 1099}, {precioServicio: 249, precioSalon: 1099}, {precioServicio: 299, precioSalon: 1099}],
+  precios: [{precioServicio: 199}, {precioServicio: 225}, {precioServicio: 249}, {precioServicio: 299}],
   anuncios: [{mesAds: 3}, {mesAds: 9}, {mesAds: 99}],
   bolsa: [{bolsa: 500}, {bolsa: 1000}, {bolsa: 2000}, {bolsa: 5000}],
   historial: [{hist: 3, arch: true}, {hist: 12, arch: true}],
   soporte: [{soporte: 30}, {soporte: 60}, {soporte: 150}],
   avisos_reloj: [null, null],
 };
-const segC = (mesas, cuentas, plat) => 100 * MOD.seguridadChico({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas, platillos: plat}}}, SP);
+const segC = (mesas, cuentas, plat) => 100 * MOD.seguridadChico({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas, platillos: plat}}}, SP, "centro");
 const TARJ = {
   tope_platillos: {
     que: "Tope de platillos de Chef: abierta, sin recomendación",
@@ -193,14 +193,14 @@ const TARJ = {
     si: () => { const cb = MOD.coberturaChef(config({...S, platSel: "todo", topePlatillos: 150}), SP).comida; return `Si el tope cuenta sólo comida la banda se cierra en ${n(100 * cb.alta)}–${n(100 * cb.baja)} %: no depende de qué muestra tenga razón.`; },
     rec: -1,
   },
-  segmentacion: {
-    que: "Chef gratis: 25 mesas, 4 cuentas, 150 platillos",
-    cif: () => [n(segC(25, 4, 150), 1) + " %", "de los negocios de hasta 10 personas queda en Chef (modelo)"],
-    si: () => `Con 15 mesas, ${n(segC(15, 4, 150), 1)} % de los chicos queda dentro (mínimo más bajo).`,
-    rec: 2,
+  dos_planes: {
+    que: "Chef gratis (0 a 5 personas): 6 mesas, 1 cuenta, 150 platillos; el resto, Master Chef",
+    cif: () => [n(segC(6, 1, 150), 1) + " %", "de los negocios de 0 a 5 personas queda en Chef (modelo; rango 42–55 %)"],
+    si: () => `Con 2 cuentas queda ${n(segC(6, 2, 150), 1)} %: más gratuitos y un margen menor.`,
+    rec: 1,
   },
   precios: {
-    que: "Master Chef $225 y Chef Ejecutivo $1,099",
+    que: "Master Chef $225 al mes (Chef Ejecutivo: futura escalación)",
     cif: () => [mxn(225), "pegado a Meniu Business ($225)"],
     si: () => { const c = MOD.conversion(S.curva, 299, sup(S), "servicio"), c0 = MOD.conversion(S.curva, 225, sup(S), "servicio"); return `A $299 pagaría ${n(100 * c)} % de los que se pasan de Chef, no ${n(100 * c0)} %.`; },
     rec: 1,

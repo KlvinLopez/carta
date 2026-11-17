@@ -52,8 +52,8 @@ DET.linea = {
     rm.put("ref", "rect", {x: X0 + wi - 1.25, y: 44, w: 2.5, h: Y0 + RH * 7 - 6 - 44, rx: 1.2, fill: C.vino, grow: false, op: 0.6});
     // corchetes: a qué plan le toca cada tamaño y cuánto representaría si todos pagaran
     const grupos = []; SEG.estratos.forEach((q, i) => { const p = planDe(q, cfg), u = grupos[grupos.length - 1]; if (u && u.p === p) { u.f = i; u.neg += q.negocios; } else grupos.push({p, i, f: i, neg: q.negocios}); });
-    const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio, S.precioSalon];
-    for (let g = 0; g < 3; g++) {
+    const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio];
+    for (let g = 0; g < 2; g++) {
       const u = grupos.find(z => z.p === g), y1 = u ? Y0 + u.i * RH - 2 : 0, y2 = u ? Y0 + (u.f + 1) * RH - 10 : 0, col = COLPLAN[g];
       rm.put("bk" + g, "rect", {x: 590, y: y1, w: u ? 6 : 0, h: u ? y2 - y1 : 0, rx: 3, fill: col, grow: false});
       rm.put("bkt" + g, "rect", {x: 590, y: y1, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
