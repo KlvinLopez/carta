@@ -36,7 +36,7 @@ const salida = { version: M.VERSION, fecha: '2026-11-17', sueldo_fundador: { por
 
 const secuencia = [
   { modelo: 'Suscripción del restaurante (Master Chef)', cuando: 'Piloto', requisito: 'Nada nuevo: la v1', riesgo: 'La curva de pago no tiene dato: la prueba de tres precios del piloto la mide' },
-  { modelo: 'Anuncios al comensal del plan gratuito', cuando: `Después de la Fase 3 (hacia el mes ${s.mes_inicio_anuncios}, supuesto)`, requisito: 'ADR, abrir la política de seguridad, aviso de privacidad y aprobación de la red de anuncios; sin anuncios personalizados', riesgo: 'Tarifa, parte con anuncio y aprobación de la red sin dato: una prueba con 3 restaurantes' },
+  { modelo: 'Anuncios al comensal del plan gratuito', cuando: `Con la Spec 002 «Planes», después del piloto (hacia el mes ${s.mes_inicio_anuncios}, supuesto)`, requisito: 'ADR, abrir la política de seguridad, aviso de privacidad y aprobación de la red de anuncios; sin anuncios personalizados', riesgo: 'Tarifa, parte con anuncio y aprobación de la red sin dato: una prueba con 3 restaurantes' },
   { modelo: 'Visibilidad pagada dentro de Carta', cuando: 'Spec nueva, después de la Fase 3 y con restaurantes reales', requisito: 'Spec: qué se puede patrocinar y cómo se distingue de la carta; sin datos del comensal', riesgo: 'No hay dato de cuánto pagaría un patrocinador: prueba con 3 patrocinadores' },
   { modelo: 'Comisión por transacción', cuando: 'Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1)', requisito: 'Cobrar o procesar pagos: contradice «Qué NO construir»; posible regulación financiera (verificar con un abogado)', riesgo: 'Cambia la naturaleza del producto y su regulación' },
   { modelo: 'Pago del comensal', cuando: 'Spec nueva y ADR: no antes de una v2 (hoy fuera de la v1)', requisito: 'Cuenta o perfil del comensal: contradice la regla 10 y «Qué NO construir»', riesgo: 'Rompe el principio de comensal anónimo' },
@@ -55,9 +55,9 @@ const md = `# Cómo gana dinero Carta y cuándo le paga a su fundador
 1. **Hoy Carta no le paga a su fundador: \`sueldo_fundador\` está en 0 y no hay valor por omisión inventado.** La tabla de §1 da niveles de referencia (múltiplos del salario mínimo general: ${sm.zona_general_dia} pesos por día en 2026 [fuente]) y, para cada uno, cuántos restaurantes y clientes de paga hacen falta.
 2. **Con un sueldo de ${n0(tabla[1].sueldo_mensual)} pesos al mes (3 salarios mínimos), el margen después de captación lo cubre con ${n0(tabla[1].escenarios.recomendado.restaurantes_necesarios)} restaurantes registrados y ${n0(tabla[1].escenarios.recomendado.clientes_de_paga_necesarios)} de paga en el recomendado (${mes(tabla[1].escenarios.recomendado.mes_en_que_el_margen_despues_de_captacion_lo_cubre)} de la proyección); en el peor, ${n0(tabla[1].escenarios.peor.restaurantes_necesarios)}; en el mejor, ${n0(tabla[1].escenarios.mejor.restaurantes_necesarios)}.**
 3. **Carta no es hoy una plataforma tipo Airbnb o Uber: es una herramienta gratuita con anuncios más suscripción, que sirve a un comensal que ya está sentado, sin transacción dentro (§3).** El hueco frente a Meniu (que no tiene plan gratuito) es el negocio de 0 a 5 personas: ${n0(mn.hueco_frente_a_meniu.tamano_del_hueco.de_0_a_5_personas)} de ${n0(mn.hueco_frente_a_meniu.tamano_del_hueco.clientes_potenciales)} clientes potenciales, de los que caben en Chef ${n0(mn.hueco_frente_a_meniu.tamano_del_hueco.caben_en_chef)} (supuesto) (§4).
-4. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe después de la Fase 3 con una spec nueva) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
+4. **De los cinco modelos de ingreso, dos están en la v1 (suscripción y anuncios) y tres no:** visibilidad pagada (cabe con una spec nueva, después del piloto) y comisión y pago del comensal (fuera de la v1: exigen pagos o cuenta del comensal).
 5. **El tamaño por restaurante al mes (supuestos y rango en §2):** suscripción ${n0(m.suscripcion_del_restaurante.potencial_pesos_por_restaurante_al_mes.por_restaurante_de_paga)} por restaurante de paga; anuncios ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.baja)} a ${n1(m.anuncios_del_comensal.potencial_pesos_por_restaurante_al_mes.por_restaurante_gratuito.alta)} por restaurante gratuito; **comisión por transacción (fuera de la v1) ${n0(m.comision_por_transaccion.potencial_pesos_por_restaurante_al_mes.de_0_a_10_personas.centro)} por restaurante de 0 a 10 personas con supuestos**, que es el modelo de mayor tamaño y el que la v1 excluye.
-6. **Secuencia recomendada:** piloto = suscripción; después de la Fase 3 = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
+6. **Secuencia recomendada:** piloto = suscripción; con la Spec 002 «Planes», después del piloto = anuncios y, con spec nueva, visibilidad pagada; comisión y pago del comensal sólo con ADR y spec de una v2 (§3).
 
 ## 1. Sueldo del fundador en el modelo
 
@@ -93,11 +93,19 @@ ${mn.tipo_de_plataforma.comparacion.map((x) => `| **${x.modelo}** | ${x.quien_pa
 
 **Dónde cae la v1:** ${mn.tipo_de_plataforma.donde_cae_la_v1.join(' ')}
 
+## 3a. Lo que deja cada tamaño de negocio (techo teórico, no proyección)
+
+${(() => { const pt = M.potencialPorTramo(rec, s); return `| Personas | Negocios [medido, DENUE] | En Chef | En Master Chef | Anuncios de Chef al mes (tarifa baja / media / alta) | Suscripción de Master Chef si todos pagaran | Con la curva pesimista / media / optimista |
+|---|---|---|---|---|---|---|
+${pt.tramos.map((x) => `| ${x.tramo} | ${n0(x.negocios)} | ${n0(x.en_chef)} | ${n0(x.en_master_chef)} | ${n0(x.ingreso_de_anuncios_al_mes.baja)} / ${n0(x.ingreso_de_anuncios_al_mes.media)} / ${n0(x.ingreso_de_anuncios_al_mes.alta)} | ${n0(x.ingreso_de_suscripcion_al_mes.si_todos_pagaran)} | ${n0(x.ingreso_de_suscripcion_al_mes.por_curva_de_pago.pesimista)} / ${n0(x.ingreso_de_suscripcion_al_mes.por_curva_de_pago.media)} / ${n0(x.ingreso_de_suscripcion_al_mes.por_curva_de_pago.optimista)} |`).join('\n')}
+
+**Aviso sobre la curva de pago:** ${pt.nota_curva}`; })()}
+
 ## 3b. Visión de Calvin para una versión 2 (NO es la v1 ni la Fase 3)
 
 **Postura de Calvin (17-nov):** ${v2.postura_de_calvin}
 
-**En la v1 y la Fase 3:** ${v2.en_la_v1_y_la_fase_3}
+**En la v1:** ${v2.en_la_v1}
 
 **Conflicto con las reglas:** ${v2.conflicto_con_las_reglas}.
 

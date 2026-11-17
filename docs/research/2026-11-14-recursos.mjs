@@ -17,6 +17,7 @@ const topes = (ids) => M.recursos({ ...rec, palancas: ids }, s);
 const n0 = (x) => (x == null ? '—' : Math.round(x).toLocaleString('en-US'));
 const n1 = (x) => (x == null ? '—' : (Math.round(x * 10) / 10).toLocaleString('en-US'));
 const sg = (x) => (x >= 0 ? `+${n0(x)}` : `−${n0(-x)}`);
+const n2 = (x) => (Math.round(x * 100) / 100).toLocaleString('en-US');
 const rE = (id) => R.recursos.find((r) => r.recurso === id);
 const disco = rE('disco');
 const cuelloH = R.cuello_hoy;
@@ -60,6 +61,25 @@ const md = `# Recursos y palancas: qué pagamos, cuánto aguanta cada pieza y c�
 **Fecha:** 14 de noviembre de 2026 (ronda 6) · **Generado por \`2026-11-14-recursos.mjs\`** desde \`recursos(config, s)\` del modelo ([JSON](2026-11-14-recursos-y-palancas.json)); disco medido con [\`2026-11-14-recursos-medir.py\`](2026-11-14-recursos-medir.py) en PostgreSQL local, **con datos sintéticos** (el generador deja \`miembro_id\` y \`platillo_id\` nulos; se rellenaron con valores variados en la copia). **Las palancas son propuestas: no se tocó \`app/\` ni \`migrations/\`.**
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** ${tip}. Con el **doble** de actividad lo que cabe se divide entre 2 (${n0(ac[2].procesador_hoy)} por procesador y ${n0(ac[2].disco_con_historial_30_dias)} por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de ${n0(rE('procesador').restaurantes_hoy)} a ${n0(R.pico_simultaneo.procesador_hoy)} (factor ${R.pico_simultaneo.factor}, supuesto).
+
+## De qué se compone el disco promedio (y por qué ya no es 279)
+
+${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos e historial a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (antes: ${n0(c.cifra_de_antes)}).
+- **Mezcla:** ${n1(c.parte_que_paga * 1000)} de paga por cada 1,000 restaurantes registrados. Un gratuito guarda ${n0(c.meses_de_historial.gratuito)} mes (${n1(c.mb_por_restaurante.gratuito)} MB) y uno de paga ${n0(c.meses_de_historial.paga)} meses (${n1(c.mb_por_restaurante.paga)} MB); promedio ${n1(c.mb_por_restaurante.promedio)} MB.
+- **Quién llena el disco:** los gratuitos ${n0(c.parte_del_disco.gratuitos * 100)} %, los de paga ${n0(c.parte_del_disco.de_paga * 100)} %.
+- **Costo de ese disco:** ${n2(c.costo_del_disco_pesos_al_mes.paga)} pesos al mes por restaurante de paga frente a ${n0(c.costo_del_disco_pesos_al_mes.lo_que_paga_un_restaurante_de_paga)} que paga (${n1(c.costo_del_disco_pesos_al_mes.parte_del_precio_que_se_va_en_disco * 100)} %); un gratuito cuesta ${n2(c.costo_del_disco_pesos_al_mes.gratuito)} pesos.
+- **Por qué no es la cifra de antes:** ${c.por_que_no_es_la_cifra_de_antes}
+- **Hallazgo:** ${c.hallazgo}
+
+**Cuánto de cada parte es analítica y cuánto sesiones y órdenes (parte del disco promedio):**
+
+| | Fijo (menú, catálogo) | Sesiones y órdenes | Analítica | Total |
+|---|---|---|---|---|
+| Gratuitos | ${n1(c.desglose.parte_del_disco.gratuitos.fijo * 100)} % | ${n1(c.desglose.parte_del_disco.gratuitos.sesiones_y_ordenes * 100)} % | ${n1(c.desglose.parte_del_disco.gratuitos.analitica * 100)} % | ${n1((c.desglose.parte_del_disco.gratuitos.fijo + c.desglose.parte_del_disco.gratuitos.sesiones_y_ordenes + c.desglose.parte_del_disco.gratuitos.analitica) * 100)} % |
+| De paga (12 meses) | ${n1(c.desglose.parte_del_disco.de_paga.fijo * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.analitica * 100)} % | ${n1((c.desglose.parte_del_disco.de_paga.fijo + c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes + c.desglose.parte_del_disco.de_paga.analitica) * 100)} % |
+| **Todos** | ${n1(c.desglose.parte_fija_del_disco * 100)} % | ${n1(c.desglose.parte_sesiones_y_ordenes_del_disco * 100)} % | ${n1(c.desglose.parte_analitica_del_disco * 100)} % | 100 % |
+
+**Por qué «contar por día» pasó de +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_de_antes * 100)} % (${c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.cifra_de_antes.join(' → ')}, ronda 8) a +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_ahora * 100)} % (${c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.cifra_ahora.join(' → ')}) y por qué ahora la palanca que más da es archivar (${c.por_que_contar_por_dia_ya_no_da_tanto.archivar.cifra_ahora[1]}):** ${c.por_que_contar_por_dia_ya_no_da_tanto.frase}`; })()}
 
 ## Conclusiones
 
@@ -130,6 +150,8 @@ ${porTabla.sort((a, b) => b.total_por_visita - a.total_por_visita).map((x) => `|
 Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de ${s.factores_disco_eventos.platillos_cota} platillos** (el gratuito permite 150; la copia tiene ${s.factores_disco_eventos.platillos_en_la_copia}: con ellos el factor es ${s.factores_disco_eventos.agregada_por_dia_con_platillos_de_la_copia} en vez de ${s.factores_disco_eventos.agregada_por_dia_cota_alta}). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
 
 ${R.recursos.filter((r) => r.palancas.some((p) => p.en_tablero)).map((r) => `### ${r.nombre}\n\n| Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |\n|---|---|---|---|---|---|---|---|\n${palRows(r)}\n`).join('\n')}
+**Alternativas que no se suman.** ${Object.values(R.grupos_excluyentes).map((g) => `${g.nombre}: ${g.nota} El modelo aplica una sola (en orden de prioridad: ${g.prioridad.join(', ')}); el tablero muestra la ganancia de cada una por separado, no la suma.`).join(' ')}
+
 **Memoria y fotos:** ninguna palanca por ahora.
 
 ### Ajustes menores (fuera del tablero)

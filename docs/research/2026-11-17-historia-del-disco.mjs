@@ -39,7 +39,7 @@ Por mesa de ${h.comensales}, lo que ocupa la analítica; y cuántos restaurantes
 |---|---|---|---|---|---|---|
 ${h.opciones.map((x) => `| ${x.nombre} | ${x.que_queda} | ${x.se_pierde} | ${n0(x.bytes_analitica_por_mesa_de_3)} | ${n2(x.mb_analitica_por_restaurante_mes_en_la_copia)} | ${n0(x.restaurantes_que_caben_sin_purga)} | ${n0(x.restaurantes_que_caben_con_historial_30_dias)} |`).join('\n')}
 
-Comprar disco: ${h.comprar_disco} «Archivar» no baja la analítica (mueve las sesiones viejas); las bajas de «contar por día» y «fila por visita» son a **el volumen de la copia** (${n0(fv.sesiones_en_la_copia)} sesiones por restaurante-mes aprox.): contar por día crece con los días y los platillos, no con las visitas, así que con más visitas gana más.
+Comprar disco: ${h.comprar_disco} «Archivar» no baja la analítica (mueve las sesiones viejas); las bajas de «contar por día» y «fila por visita» son a **el volumen de la copia** (${n0(fv.sesiones_en_la_copia / fv.restaurantes_en_la_copia)} sesiones por restaurante-mes, ${n0((fv.sesiones_en_la_copia / fv.restaurantes_en_la_copia) * s.tablas_de_una_visita.eventos_por_sesion)} eventos): contar por día crece con los días y los platillos, no con las visitas, así que con más visitas gana más.
 
 ## 3. La propuesta de Calvin, medida
 

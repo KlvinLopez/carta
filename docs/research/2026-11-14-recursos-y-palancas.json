@@ -1,7 +1,118 @@
 {
- "version": "2026-11-18-r12",
+ "version": "2026-11-17-r13",
  "fecha": "2026-11-14",
  "config_palancas": [],
+ "composicion_del_disco": {
+  "parte_que_paga": 0.11588394988411602,
+  "meses_de_historial": {
+   "gratuito": 1,
+   "paga": 12
+  },
+  "cifra_de_antes": 279,
+  "mb_por_restaurante": {
+   "promedio": 21.93170856683463,
+   "gratuito": 7.89684,
+   "paga": 129.00825
+  },
+  "parte_del_disco": {
+   "gratuitos": 0.31833921957885924,
+   "de_paga": 0.6816607804211408
+  },
+  "restaurantes_que_caben_por_disco": 182,
+  "si_todos_fueran_gratuitos": 505,
+  "costo_del_disco_pesos_al_mes": {
+   "gratuito": 0.0220544526888,
+   "paga": 0.3602968207649999,
+   "lo_que_paga_un_restaurante_de_paga": 225,
+   "parte_del_precio_que_se_va_en_disco": 0.0016013192033999997
+  },
+  "por_que_no_es_la_cifra_de_antes": "Antes la cifra era 279 restaurantes y ahora es 182, por dos cambios: (1) la unidad: antes se contaban restaurantes GRATUITOS típicos (1,800 visitas al mes y 14.3 MB cada uno con historial a 30 días); ahora se cuenta el restaurante REGISTRADO, con la mezcla de 116 de paga por cada 1,000, donde cada uno de paga guarda 12 meses y llena 129.0 MB (16.3 veces un gratuito); (2) la carga del gratuito sale de los topes (1,080 visitas al mes con 6 mesas, supuesto), así que un gratuito llena 7.9 MB y no 14.3. El promedio queda en 21.9 MB y caben menos. Si todos fueran gratuitos de los topes cabrían 505.",
+  "desglose": {
+   "mb_por_restaurante_registrado": {
+    "gratuitos": {
+     "fijo": 0.1811023317057377,
+     "sesiones_y_ordenes": 3.3048257953331746,
+     "analitica": 3.4957948621582053
+    },
+    "de_paga": {
+     "fijo": 0.021815153565684836,
+     "sesiones_y_ordenes": 13.913027023086968,
+     "analitica": 1.0151434009848563
+    }
+   },
+   "parte_del_disco": {
+    "gratuitos": {
+     "fijo": 0.0082575569137191,
+     "sesiones_y_ordenes": 0.1506871106399238,
+     "analitica": 0.15939455202521635
+    },
+    "de_paga": {
+     "fijo": 0.0009946855485155385,
+     "sesiones_y_ordenes": 0.6343795322962845,
+     "analitica": 0.046286562576340604
+    }
+   },
+   "parte_analitica_del_disco": 0.20568111460155694,
+   "parte_sesiones_y_ordenes_del_disco": 0.7850666429362082,
+   "parte_fija_del_disco": 0.009252242462234639
+  },
+  "por_que_contar_por_dia_ya_no_da_tanto": {
+   "contar_por_dia": {
+    "cifra_de_antes": [
+     279,
+     495
+    ],
+    "ganancia_de_antes": 0.7741935483870968,
+    "cifra_ahora": [
+     182,
+     222
+    ],
+    "ganancia_ahora": 0.2197802197802199
+   },
+   "archivar": {
+    "cifra_ahora": [
+     182,
+     347
+    ],
+    "ganancia_ahora": 0.9065934065934067,
+    "cifra_de_antes": [
+     279,
+     279
+    ],
+    "ganancia_de_antes": 0
+   },
+   "frase": "Contar por día sólo recorta la analítica, que hoy es 21 % del disco promedio; antes se medía sobre un gratuito típico de 1,800 visitas, donde la analítica pesaba más y la ganancia era +77 % (279 → 495); con la mezcla actual los restaurantes de paga (63 % del disco sólo en sesiones y órdenes de 12 meses) dominan, y contar por día da +22 % (182 → 222). Archivar las sesiones cerradas a los 3 meses recorta justo esa parte y da +91 % (182 → 347); por eso ahora es la palanca que más da."
+  },
+  "hallazgo": "El disco lo llenan sobre todo los de paga (68 %), que son 11.6 % de los restaurantes: su disco cuesta 0.36 pesos al mes frente a 225 que pagan (0.2 %). Es una parte chica de lo que pagan: el disco no es el problema económico, sólo el tope técnico del volumen."
+ },
+ "grupos_excluyentes": {
+  "forma_de_guardar_la_analitica": {
+   "nombre": "Forma de guardar la analítica (se elige una; no se suman)",
+   "prioridad": [
+    "analitica_agregada_por_dia",
+    "fila_por_visita_mas_platillo_por_dia",
+    "fila_por_visita_de_comensal",
+    "indices_de_evento_minimos + tipos_mas_chicos",
+    "retencion_analitica_7_dias"
+   ],
+   "nota": "Contar por día, la fila por visita y la fila por visita más platillo reemplazan la fila por evento; los índices mínimos, los tipos chicos y la retención a 7 días sólo mejoran la fila por evento, así que no suman con ninguna de las tres.",
+   "miembros": [
+    "analitica_agregada_por_dia",
+    "retencion_analitica_7_dias",
+    "fila_por_visita_de_comensal",
+    "fila_por_visita_mas_platillo_por_dia",
+    "indices_de_evento_minimos",
+    "tipos_mas_chicos"
+   ],
+   "en_tablero": [
+    "analitica_agregada_por_dia",
+    "retencion_analitica_7_dias",
+    "fila_por_visita_de_comensal",
+    "fila_por_visita_mas_platillo_por_dia"
+   ],
+   "mejor": "analitica_agregada_por_dia"
+  }
+ },
  "estado_elegido": {
   "canal": "sondeo",
   "carga": "topes",
@@ -1001,6 +1112,7 @@
   },
   {
    "id": "analitica_agregada_por_dia",
+   "grupo": "forma_de_guardar_la_analitica",
    "recurso": "disco",
    "nombre": "Analítica agregada por día en vez de una fila por evento",
    "esfuerzo": "medio",
@@ -1012,6 +1124,7 @@
   },
   {
    "id": "retencion_analitica_7_dias",
+   "grupo": "forma_de_guardar_la_analitica",
    "recurso": "disco",
    "nombre": "Guardar la analítica en bruto sólo 7 días (después, agregada)",
    "esfuerzo": "chico",
@@ -1023,6 +1136,7 @@
   },
   {
    "id": "fila_por_visita_de_comensal",
+   "grupo": "forma_de_guardar_la_analitica",
    "recurso": "disco",
    "nombre": "Una fila de analítica por visita de comensal, armada en el teléfono (veces y segundos por lugar)",
    "esfuerzo": "medio",
@@ -1034,6 +1148,7 @@
   },
   {
    "id": "fila_por_visita_mas_platillo_por_dia",
+   "grupo": "forma_de_guardar_la_analitica",
    "recurso": "disco",
    "nombre": "Una fila por visita de comensal más un conteo diario por platillo",
    "esfuerzo": "medio",
@@ -1045,6 +1160,7 @@
   },
   {
    "id": "indices_de_evento_minimos",
+   "grupo": "forma_de_guardar_la_analitica",
    "recurso": "disco",
    "nombre": "Dejar sólo dos índices en la analítica (llave y restaurante-fecha)",
    "esfuerzo": "chico",
@@ -1056,6 +1172,7 @@
   },
   {
    "id": "tipos_mas_chicos",
+   "grupo": "forma_de_guardar_la_analitica",
    "recurso": "disco",
    "nombre": "Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)",
    "esfuerzo": "medio",
