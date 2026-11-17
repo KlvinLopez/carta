@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r13",
+ "version": "2026-11-17-r14",
  "fecha": "2026-11-14",
  "config_palancas": [],
  "composicion_del_disco": {
@@ -208,7 +208,7 @@
    "extrapolacion_sin_medir": true
   }
  ],
- "definicion_restaurante_tipico": "un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)",
+ "definicion_restaurante_tipico": "un gratuito carga lo de sus topes: 6 mesas × 180 visitas por mesa al mes = 1080 visitas (el 180 sale de las 1800 visitas con 10 mesas del simulador: SUPUESTO sin medir; todos al tope = cota alta), 150 platillos y 1 cuenta(s) de personal",
  "estado": {
   "meses_historial": 12,
   "nota": "hoy NADA purga; por defecto se supone un restaurante con 12 meses de historial acumulado (sin purga)"
@@ -318,7 +318,7 @@
   "recurso": "disco",
   "nombre": "Disco de la base de datos",
   "restaurantes": 41,
-  "comensales_mes": 140097,
+  "comensales_mes": 84058.20000000001,
   "con_historial_30_dias": {
    "recurso": "procesador",
    "restaurantes": 173
@@ -332,7 +332,7 @@
   "recurso": "disco",
   "nombre": "Disco de la base de datos",
   "restaurantes": 41,
-  "comensales_mes": 140097,
+  "comensales_mes": 84058.20000000001,
   "con_historial_30_dias": {
    "recurso": "disco",
    "restaurantes": 182
@@ -414,7 +414,7 @@
    "consumo_por_restaurante": {
     "unidad": "ms de CPU por visita",
     "valor": null,
-    "nota": "1 gratuito típico = 1 unidad de carga; un cliente de paga pesa 2.3; con el sondeo un teléfono pregunta cada 3 s (≈ 4.1 peticiones/s por restaurante registrado, medido en el tope)"
+    "nota": "unidad de carga = un gratuito típico del simulador (1800 visitas al mes); un gratuito por topes pesa 0.60; un cliente de paga pesa 2.3; con el sondeo un teléfono pregunta cada 3 s (≈ 4.1 peticiones/s por restaurante registrado, medido en el tope)"
    },
    "limite_hoy": {
     "restaurantes": 173,
@@ -429,8 +429,8 @@
     "es_cuello_con_eventos": false,
     "nota": "si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)"
    },
-   "comensales_mes_hoy": 591141,
-   "comensales_mes_con_eventos": 3006960,
+   "comensales_mes_hoy": 354684.60000000003,
+   "comensales_mes_con_eventos": 1804176.0000000002,
    "es_cuello_hoy": false,
    "es_cuello_con_eventos": false,
    "medido": "medido en local (±2×); falta medir en Railway: no se sabe cuántos núcleos entrega Hobby",
@@ -491,8 +491,8 @@
     "es_cuello_con_eventos": false,
     "nota": "si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)"
    },
-   "comensales_mes_hoy": 1629225600,
-   "comensales_mes_con_eventos": 956322624,
+   "comensales_mes_hoy": 977535360.0000001,
+   "comensales_mes_con_eventos": 573793574.4000001,
    "es_cuello_hoy": false,
    "es_cuello_con_eventos": false,
    "medido": "proceso y línea medidos; el resto supuesto",
@@ -503,8 +503,9 @@
    "nombre": "Disco de la base de datos",
    "como_funciona": "Cada visita deja filas en `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden` y `llamada_mesero`, y **diez filas de analítica en `evento_analitica`**; las tablas y sus índices viven en el volumen de PostgreSQL. Ruta: `app/db/models.py`; analítica en `app/services/analitica.py`.",
    "consumo_por_restaurante": {
-    "unidad": "MB al mes por restaurante gratuito típico",
+    "unidad": "MB por restaurante registrado (mezcla de gratuitos y de paga)",
     "valor": 96.73853579923981,
+    "meses_historial": 12,
     "bytes_por_evento": 353,
     "medido": true
    },
@@ -521,8 +522,8 @@
     "es_cuello_con_eventos": true,
     "nota": "si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)"
    },
-   "comensales_mes_hoy": 140097,
-   "comensales_mes_con_eventos": 140097,
+   "comensales_mes_hoy": 84058.20000000001,
+   "comensales_mes_con_eventos": 84058.20000000001,
    "es_cuello_hoy": true,
    "es_cuello_con_eventos": true,
    "medido": "medido con datos sintéticos en PostgreSQL local (10 restaurantes medianos, un mes); depende de los meses de historial que se guarden (hoy nada purga)",
@@ -842,8 +843,8 @@
     "es_cuello_con_eventos": false,
     "nota": "si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)"
    },
-   "comensales_mes_hoy": 13155450,
-   "comensales_mes_con_eventos": 66884358,
+   "comensales_mes_hoy": 7893270.000000001,
+   "comensales_mes_con_eventos": 40130614.800000004,
    "es_cuello_hoy": false,
    "es_cuello_con_eventos": false,
    "medido": "estimada: falta `SHOW max_connections` en Railway",
@@ -903,7 +904,7 @@
     "nota": "si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)"
    },
    "comensales_mes_hoy": null,
-   "comensales_mes_con_eventos": 11166756,
+   "comensales_mes_con_eventos": 6700053.600000001,
    "es_cuello_hoy": false,
    "es_cuello_con_eventos": false,
    "medido": "TOPE DE DISEÑO SUPUESTO, sin medir: 10,000 conexiones de Railway (documentación, «subject to change») ÷ 4.7 líneas por restaurante (relación del simulador de capacidad); el consumo por línea sí se midió en local",
@@ -945,8 +946,8 @@
    "nombre": "Almacenamiento de fotos y respaldos (R2)",
    "como_funciona": "Las fotos de los platillos y los respaldos diarios de la base viven en R2 (almacenamiento tipo S3 de Cloudflare); la API sólo guarda la dirección. Ruta: `app/services/assets.py`.",
    "consumo_por_restaurante": {
-    "unidad": "GB por restaurante",
-    "valor": 0.05,
+    "unidad": "GB por restaurante gratuito",
+    "valor": 0.372,
     "nota": "10 GB gratis y luego 0.015 USD por GB-mes"
    },
    "limite_hoy": {

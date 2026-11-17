@@ -5,8 +5,8 @@
 ## Conclusiones
 
 1. **Dos planes (decisión de Calvin, 17-nov): Chef gratis con 6 mesas y 1 cuenta; Master Chef 225 para todo lo demás; Chef Ejecutivo apagado.** Con el modelo cabe el 48.4 % de los negocios de 0 a 5 personas (42.4 %–54.5 %) y ninguno de 6 a 10; el tope de platillos **cuenta todo, bebidas incluidas** (decidido el 17-nov; decisión 2).
-2. **Master Chef 225 es una decisión de posicionamiento de Calvin, no un resultado del modelo;** el modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba del piloto. Margen de operación con 1,000 restaurantes: +20,024 recomendado, +2,390 peor, +65,664 mejor, −1,109 piso de verdad.
-3. **Los anuncios llegan hacia el mes 9 (supuesto); mientras tanto, 1,000 pesos al mes cargan 811 restaurantes gratuitos (rango 246–1,896), con el canal de eventos construido.**
+2. **Master Chef 225 es una decisión de posicionamiento de Calvin, no un resultado del modelo;** el modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba del piloto. Margen de operación con 1,000 restaurantes: +18,591 recomendado, +2,388 peor, +61,364 mejor, −1,532 piso de verdad.
+3. **Los anuncios llegan hacia el mes 9 (supuesto); mientras tanto, 1,000 pesos al mes cargan 809 restaurantes gratuitos (rango 248–2,116), con el canal de eventos construido.**
 4. **Lo que más cambia el resultado: curva · mediana, curva · techo, cuántos rebasan los topes.** Se miden en el piloto.
 5. **Historial de 12 meses para la paga (decidido): casi no mueve el margen.**
 
@@ -19,15 +19,15 @@
 
 **De qué supuesto depende y qué pasa si falla.** **Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato): «cuentas» = las que el negocio querría crear.** Si una fonda de 4 personas se arregla con una sola cuenta, cabría más que el 48.4 %; con la alternativa de 2 cuentas cabría el 66.5 %. **Sobre el ADR-017:** el dueño es el validador y el primer mesero; con una cuenta, el plan gratuito es operación de una sola persona con PIN.
 
-**Cifras del modelo.** Frente a tres planes (1,000 restaurantes, curva media): pagantes 116 (antes 30); margen recomendado +20,024 (antes +8,719); peor +2,390 (antes −47).
+**Cifras del modelo.** Frente a tres planes (1,000 restaurantes, curva media): pagantes 116 (antes 30); margen recomendado +18,591 (antes +8,719); peor +2,388 (antes −47).
 
 | Opción | A favor | En contra |
 |---|---|---|
-| 5 mesas · 1 cuenta | 48.4 % de 0 a 5 personas dentro; margen +20,024 | 100 % de 6 a 10 personas cae en Master Chef |
-| 6 mesas · 1 cuenta | 48.4 % de 0 a 5 personas dentro; margen +20,024 | 100 % de 6 a 10 personas cae en Master Chef |
-| 6 mesas · 2 cuentas | 66.5 % de 0 a 5 personas dentro; margen +16,794 | 100 % de 6 a 10 personas cae en Master Chef |
-| 8 mesas · 2 cuentas | 76.2 % de 0 a 5 personas dentro; margen +15,067 | 100 % de 6 a 10 personas cae en Master Chef |
-| 10 mesas · 3 cuentas | 85.9 % de 0 a 5 personas dentro; margen +12,015 | 69.7 % de 6 a 10 personas cae en Master Chef |
+| 5 mesas · 1 cuenta | 48.4 % de 0 a 5 personas dentro; margen +18,229 | 100 % de 6 a 10 personas cae en Master Chef |
+| 6 mesas · 1 cuenta | 48.4 % de 0 a 5 personas dentro; margen +18,591 | 100 % de 6 a 10 personas cae en Master Chef |
+| 6 mesas · 2 cuentas | 66.5 % de 0 a 5 personas dentro; margen +15,323 | 100 % de 6 a 10 personas cae en Master Chef |
+| 8 mesas · 2 cuentas | 76.2 % de 0 a 5 personas dentro; margen +14,326 | 100 % de 6 a 10 personas cae en Master Chef |
+| 10 mesas · 3 cuentas | 85.9 % de 0 a 5 personas dentro; margen +11,934 | 69.7 % de 6 a 10 personas cae en Master Chef |
 
 **Ejemplo.** Una fonda de 2 personas y 4 mesas cabe en Chef (una cuenta); una taquería de 5 personas que quiere cuenta para el mesero y para el cocinero ya necesita Master Chef.
 
@@ -60,9 +60,9 @@
 
 **Recomendación.** **Master Chef 225 es una decisión de posicionamiento de Calvin (pegado a Meniu Business), no un resultado del modelo.** El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto. Chef Ejecutivo queda apagado (futura escalación).
 
-**De qué supuesto depende y qué pasa si falla.** **De la curva de pago (supuesto).** Con la mediana en 150 gana 199; en 225, 249; en 300, 299; en 450, 299. Ver [precio de entrada](2026-11-14-precio-de-entrada.md). **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un POS (652), 225 deja dinero sobre la mesa.
+**De qué supuesto depende y qué pasa si falla.** **De la curva de pago (supuesto).** Con la mediana en 150 gana 199; en 225, 225; en 300, 299; en 450, 299. Ver [precio de entrada](2026-11-14-precio-de-entrada.md). **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un POS (652), 225 deja dinero sobre la mesa.
 
-**Cifras del modelo.** Master Chef 199 / 225 / 249 / 299: pagantes (media) 135 / 116 / 100 / 74; margen de operación (media) 19,439 / 20,024 / 20,043 / 19,035.
+**Cifras del modelo.** Master Chef 199 / 225 / 249 / 299: pagantes (media) 135 / 116 / 100 / 74; margen de operación (media) 18,040 / 18,591 / 18,583 / 17,528.
 
 | Opción | A favor | En contra |
 |---|---|---|
@@ -79,19 +79,19 @@
 
 ## 4. Anuncios en Chef: cuándo llegan y cuánto dejan
 
-**Recomendación.** **El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 811 restaurantes (rango 246 a 1,896).
+**Recomendación.** **El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 809 restaurantes (rango 248 a 2,116).
 
-**De qué supuesto depende y qué pasa si falla.** **De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 54 (rango 25 a 186) (tarifa baja), 12 (rango 6 a 25) (media) y 1,469 (rango 139 a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 148). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.
+**De qué supuesto depende y qué pasa si falla.** **De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 104 (rango 43 a imposible) (tarifa baja), 20 (rango 10 a 43) (media) y no se paga solo (rango 360 a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 246). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.
 
 **Cifras del modelo.** Requisitos: ADR, abrir la política de seguridad (`script-src 'self'`), aviso de privacidad, aprobación de la red.
 
 | Opción | A favor | En contra |
 |---|---|---|
 | Anuncios desde el mes 3 | El peor caso se cubre antes | No hay tiempo de construir y que la red apruebe |
-| Anuncios desde el mes 9 (supuesto) | Tiempo realista | Calvin pone hasta 4,309 pesos acumulados |
+| Anuncios desde el mes 9 (supuesto) | Tiempo realista | Calvin pone hasta 4,290 pesos acumulados |
 | Sin anuncios | Cumple la política de seguridad de hoy | Descartada por Calvin |
 
-**Ejemplo.** Un gratuito deja 4.3 pesos al mes con la tarifa baja una vez que hay anuncios; hoy deja 0.
+**Ejemplo.** Un gratuito deja 2.6 pesos al mes con la tarifa baja una vez que hay anuncios; hoy deja 0.
 
 **La prueba o el dato que la cierra.** Una prueba pequeña de AdSense con 3 restaurantes (impresiones, ingresos, RPM, tasa de llenado).
 
@@ -99,20 +99,20 @@
 
 ## 5. Cuánta bolsa poner mientras no hay anuncios
 
-**Recomendación.** **1,000 pesos al mes** alcanzan para 811 restaurantes gratuitos (rango 246 a 1,896); acumulado, Calvin pone hasta **4,309 pesos** en el caso recomendado, 4,256 en el peor y 94,950 en el piso de verdad.
+**Recomendación.** **1,000 pesos al mes** alcanzan para 809 restaurantes gratuitos (rango 248 a 2,116); acumulado, Calvin pone hasta **4,290 pesos** en el caso recomendado, 3,604 en el peor y 101,933 en el piso de verdad.
 
 **De qué supuesto depende y qué pasa si falla.** **Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.
 
-**Cifras del modelo.** Bolsa 500 / 1,000 / 2,000 / 5,000 → 279 (94–400) / 811 (246–1,896) / 1,896 (492–2,116) / 2,116 (1,391–2,116) restaurantes gratuitos típicos (de 1,800 visitas al mes; no es la capacidad por recursos de «¿Qué nos limita?»: 182 con avisos).
+**Cifras del modelo.** Bolsa 500 / 1,000 / 2,000 / 5,000 → 405 (95–505) / 809 (248–2,116) / 2,048 (505–2,116) / 2,116 (1,421–2,116) restaurantes gratuitos (con la carga de sus topes; sólo gratuitos, sin la mezcla de paga que usa «¿Qué nos limita?»: 182 registrados con avisos).
 
 | Opción | A favor | En contra |
 |---|---|---|
-| 500 pesos al mes | 279 restaurantes y 1 M de comensales | rango 94–400 según el soporte |
-| 1,000 pesos al mes | 811 restaurantes y 2.8 M de comensales | rango 246–1,896 según el soporte |
-| 2,000 pesos al mes | 1,896 restaurantes y 6.5 M de comensales | rango 492–2,116 según el soporte |
-| 5,000 pesos al mes | 2,116 restaurantes y 7.2 M de comensales | rango 1,391–2,116 según el soporte |
+| 500 pesos al mes | 405 restaurantes y 0.8 M de comensales | rango 95–505 según el soporte |
+| 1,000 pesos al mes | 809 restaurantes y 1.7 M de comensales | rango 248–2,116 según el soporte |
+| 2,000 pesos al mes | 2,048 restaurantes y 4.2 M de comensales | rango 505–2,116 según el soporte |
+| 5,000 pesos al mes | 2,116 restaurantes y 4.3 M de comensales | rango 1,421–2,116 según el soporte |
 
-**Ejemplo.** Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 811 fondas y taquerías gratuitas.
+**Ejemplo.** Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 809 fondas y taquerías gratuitas.
 
 **La prueba o el dato que la cierra.** El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte.
 

@@ -10,6 +10,7 @@ const aqui = dirname(fileURLToPath(import.meta.url));
 const par = JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8'));
 const s = M.valores(par);
 let fallas = 0;
+const CT = (c = M.configInicial()) => ({ ...c, carga: 'tipica' }); // las rondas 4 a 9 miden el gratuito típico (comparación rotulada, no vigente)
 const RT = (c, ss, st = {}) => M.recursos(c, ss, { carga: 'tipica', ...st }); // las rondas 5 a 9 miden el gratuito típico de 1,800 visitas
 const TB = (c, ss, u, carga = 'tipica') => M.palancasEnTablero(c, ss, u ?? ss.umbral_tablero, carga);
 const prueba = (nombre, obtenido, esperado, tol = 0) => {
@@ -25,7 +26,7 @@ prueba('piso con la comisión sobre el precio sin IVA (primera versión, 83)', M
 prueba('equilibrio a 349 con costo fijo 2,569 (138 USD × 18.6188)', Math.round(M.puntoEquilibrio(138 * s.fx, 349, pisoMediano) * 10) / 10, 9.7, 0.05);
 
 // 2) restaurantes de paga que caben en 5 GB (todos de paga, mezcla de paga): 14, 22, 38 y 128
-const c = M.configInicial();
+const c = CT();
 const paga = (mv, me) => {
   const cc = JSON.parse(JSON.stringify(c));
   cc.topes.servicio.meses_en_linea = mv;
@@ -80,7 +81,7 @@ prueba('con 100 restaurantes no hay extrapolación', M.evaluar(c, s, 100).extrap
 const sens = M.sensibilidad(c, s, 1000);
 prueba('sensibilidad ordenada de mayor a menor', sens.filas.every((f, i) => i === 0 || sens.filas[i - 1].efecto >= f.efecto), true);
 prueba('la sensibilidad trae frases en llano', sens.filas[0].frase.startsWith('Si '), true);
-const opt0 = M.optimizar(s);
+const opt0 = M.optimizar(s, {}, CT(M.configTresPlanes25Mesas()));
 prueba('la meseta del precio contiene al mejor precio', opt0.mejor.meseta[0] <= opt0.mejor.mejor_precio && opt0.mejor.mejor_precio <= opt0.mejor.meseta[1], true);
 const t = opt0.tabla_cupo_gratis.filter((x) => !x.sin_solucion);
 prueba('a más seguridad exigida al gratuito, menos margen', t.every((x, i) => i === 0 || t[i - 1].margen >= x.margen - 1e-6), true);
@@ -92,8 +93,8 @@ prueba('la segmentación suma los 104,882 clientes potenciales', seg['Chef'] + s
 prueba('Chef = 86.8 % de los clientes potenciales', Math.round((1000 * seg['Chef']) / 104882) / 10, 86.8);
 prueba('configInicial son los dos planes de Calvin', c.nombre, 'dos planes: Chef y Master Chef');
 prueba('configBase es alias de configInicial', M.configBase().nombre, c.nombre);
-prueba('configTopes10Mesas3Cuentas conserva la anterior (299 y 10 mesas)', [M.configTopes10Mesas3Cuentas().precios.servicio, M.configTopes10Mesas3Cuentas().topes.gratuito.mesas].join('/'), '299/10');
-prueba('con los topes de TRES planes (25 · 4 · 150), un negocio de hasta 10 personas queda dentro con ≥ 95 %', M.seguridadChico(M.configTresPlanes25Mesas(), s) >= 0.95, true);
+prueba('configTopes10Mesas3Cuentas conserva la anterior (299 y 10 mesas)', [CT(M.configTopes10Mesas3Cuentas()).precios.servicio, CT(M.configTopes10Mesas3Cuentas()).topes.gratuito.mesas].join('/'), '299/10');
+prueba('con los topes de TRES planes (25 · 4 · 150), un negocio de hasta 10 personas queda dentro con ≥ 95 %', M.seguridadChico(CT(M.configTresPlanes25Mesas()), s) >= 0.95, true);
 prueba('el modelo de mesas y cuentas tiene intervalo: mínimo ≤ centro ≤ máximo', M.parteRebasa(c, s, 'minimo') <= M.parteRebasa(c, s, 'centro') && M.parteRebasa(c, s, 'centro') <= M.parteRebasa(c, s, 'maximo'), true);
 const ep = M.evaluarPrecios(c, s, 1000);
 prueba('se evalúan 4 precios de Master Chef y ninguno de Chef Ejecutivo (apagado)', `${ep.servicio.length}/${ep.salon.length}`, '4/0');
@@ -136,7 +137,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 10) CIFRAS DE TITULAR (las que van a pantalla), con tolerancia estrecha (±1 peso, ±0.002 en proporciones)
 {
-  const cfg = M.configTresPlanes25Mesas();
+  const cfg = CT(M.configTresPlanes25Mesas());
   prueba('Chef: topes de configInicial (mesas · cuentas · platillos)', `${cfg.topes.gratuito.mesas}·${cfg.topes.gratuito.cuentas}·${cfg.topes.gratuito.platillos}`, '25·4·150');
   prueba('cobertura de Chef (centro, con dispersión σ = 0.5)', M.seguridadChico(cfg, s, 'centro'), 0.951, 0.002);
   prueba('cobertura de Chef (mínimo de las 27 combinaciones)', M.seguridadChico(cfg, s, 'minimo'), 0.867, 0.002);
@@ -188,7 +189,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 11) RECURSOS Y PALANCAS (rondas 5 y 6): el disco depende de los meses de historial; hoy NADA purga
 {
-  const cfg = M.configInicial();
+  const cfg = CT();
   const R = RT(cfg, s); // por defecto: 12 meses de historial acumulado, sin purga
   const rec = (id) => R.recursos.find((x) => x.recurso === id);
   const curva = R.disco_por_historial;
@@ -225,10 +226,10 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('toda palanca dice si es medida o estimada', Object.values(M.PALANCAS).every((p) => typeof p.medido === 'boolean'), true);
   // resumen: dice con qué retención
   const caben = (c, k = 'restaurantes_que_caben') => M.resumen(c, s, 1000).cifras.find((f) => f.clave === k).recomendado;
-  prueba('resumen: restaurantes que caben (historial del gratuito a 1 mes: propuesta)', caben(cfg), 182);
-  prueba('resumen: restaurantes que caben SIN purga (12 meses)', caben(cfg, 'restaurantes_que_caben_sin_purga'), 41);
+  prueba('resumen con la carga típica (comparación de las rondas 4 a 9): restaurantes que caben (historial del gratuito a 1 mes: propuesta)', caben(cfg), 279);
+  prueba('resumen: restaurantes que caben SIN purga (12 meses)', caben(cfg, 'restaurantes_que_caben_sin_purga'), 23);
   prueba('resumen: el nombre de la cifra dice la retención', /historial del gratuito de 1 mes: PROPUESTA/.test(M.resumen(cfg, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').nombre), true);
-  prueba('resumen: con la analítica agregada caben más', caben({ ...cfg, palancas: ['analitica_agregada_por_dia'] }) > 182, true);
+  prueba('resumen: con la analítica agregada caben más', caben({ ...cfg, palancas: ['analitica_agregada_por_dia'] }) > 279, true);
   prueba('las palancas bajan los MB por restaurante gratuito', M.mbPorRestaurante('gratuito', { ...cfg, palancas: ['analitica_agregada_por_dia'] }, s) < M.mbPorRestaurante('gratuito', cfg, s), true);
   prueba('con Pro (50 GB) y historial a 30 días manda el procesador', RT({ ...cfg, palancas: ['historial_gratuito_30_dias'] }, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
   prueba('el procesador y los avisos del escenario están marcados como supuestos o medidos en local', /local/.test(rec('procesador').medido) && /SUPUESTO/.test(rec('lineas').medido), true);
@@ -236,7 +237,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 12) cifras de titular de r4 que faltaba fijar (ronda 6): negocios por plan, 15 mesas, cobertura
 {
-  const cfg = M.configTresPlanes25Mesas();
+  const cfg = CT(M.configTresPlanes25Mesas());
   prueba('negocios por plan (Chef, Master Chef, Chef Ejecutivo)', `${s.segmentacion_negocios.Chef}/${s.segmentacion_negocios['Master Chef']}/${s.segmentacion_negocios['Chef Ejecutivo']}`, '91048/13614/220');
   const c15 = { ...cfg, topes: { ...cfg.topes, gratuito: { ...cfg.topes.gratuito, mesas: 15 } } };
   prueba('cobertura de Chef con 15 mesas (centro, con dispersión)', M.seguridadChico(c15, s, 'centro'), 0.894, 0.002);
@@ -245,7 +246,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 12b) COBERTURA DEL TOPE DE PLATILLOS (ronda 7): dos cotas de sesgo opuesto, no se sabe la real
 {
-  const cfg = M.configTresPlanes25Mesas();
+  const cfg = CT(M.configTresPlanes25Mesas());
   const cp = (cuenta, cota, tope) => M.coberturaPlatillos(cfg, { ...s, cota_platillos: cota }, { tope, cuenta });
   prueba('muestra de sitios propios: cobertura de 80, 150, 200 y 300 platillos contando todo', [80, 150, 200, 300].map((x) => Math.round(cp('todo', 'baja', x) * 100)).join(','), '25,52,73,84');
   prueba('muestra de sitios propios, sólo comida: 80 → 75 % y 150 → 100 %', `${Math.round(cp('comida', 'baja', 80) * 100)}-${Math.round(cp('comida', 'baja', 150) * 100)}`, '75-100');
@@ -264,8 +265,8 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 14) DOS PLANES (decisión de Calvin, 17-nov): Chef 6 mesas y 1 cuenta, Master Chef 225, Chef Ejecutivo apagado
 {
-  const cfg = M.configInicial();
-  const tres = M.configTresPlanes25Mesas();
+  const cfg = CT();
+  const tres = CT(M.configTresPlanes25Mesas());
   prueba('Chef: topes de configInicial (mesas · cuentas · platillos)', `${cfg.topes.gratuito.mesas}·${cfg.topes.gratuito.cuentas}·${cfg.topes.gratuito.platillos}`, '6·1·150');
   prueba('Master Chef hasta los topes técnicos (mesas y personas activas)', `${cfg.topes.servicio.mesas}·${cfg.topes.servicio.cuentas}`, '500·50');
   prueba('Chef Ejecutivo apagado (no borrado): precio 0 y planes.chef_ejecutivo.activo falso', `${cfg.precios.salon}-${cfg.planes.chef_ejecutivo.activo}`, '0-false');
@@ -310,7 +311,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 15) RONDA 8, segunda parte: palancas en llano, definiciones, mensajes y ENDUTIH
 {
-  const cfg = M.configInicial();
+  const cfg = CT();
   const todas = Object.entries(M.PALANCAS);
   prueba('toda palanca trae acción (hasta 6 palabras, en infinitivo) y qué es (una frase)', todas.every(([, p]) => typeof p.accion === 'string' && p.accion.split(/\s+/).length <= 6 && /^[A-ZÁÉÍÓÚ][a-záéíóúñ]+(ar|er|ir)\s/.test(p.accion) && typeof p.que_es === 'string' && p.que_es.length > 20 && p.que_es.split('. ').length <= 2), true);
   prueba('las palancas siguen trayendo medido, esfuerzo, riesgo y regla (para el JSON y el .md)', todas.every(([, p]) => typeof p.medido === 'boolean' && p.esfuerzo && p.riesgo && p.regla_que_toca), true);
@@ -335,7 +336,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 16) RONDA 9 (puntos 1 a 5): tope de platillos decidido, meta de 12 meses, potencial de Chef, tablero de palancas, a dónde se va cada 100
 {
-  const cfg = M.configInicial();
+  const cfg = CT();
   prueba('el tope de 150 platillos cuenta TODO, bebidas incluidas (decidido)', `${cfg.topes.gratuito.platillos}-${cfg.topes.gratuito.platillos_cuenta}`, '150-todo');
   const mt = M.meta12Meses(cfg, s);
   const r = mt.escenarios.recomendado.mes_12;
@@ -367,7 +368,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 17) RONDA 9, punto 6: sueldo del fundador, modelos de ingreso, plataformas de referencia
 {
-  const cfg = M.configInicial();
+  const cfg = CT();
   prueba('sueldo_fundador no tiene valor por omisión inventado (0)', s.sueldo_fundador, 0);
   prueba('salario mínimo general 2026 (DOF 9-dic-2025): zona general y frontera norte', `${s.salario_minimo.zona_general_dia}-${s.salario_minimo.zona_frontera_norte_dia}`, '315.04-440.87');
   const tb = M.tablaSueldos(cfg, s);
@@ -400,7 +401,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 
 // 18) RONDA 9, ampliación del punto 6: modelo de negocio, tipo de plataforma, hueco frente a Meniu
 {
-  const cfg = M.configInicial();
+  const cfg = CT();
   const mn = M.modeloDeNegocio(cfg, s);
   const tp = mn.tipo_de_plataforma;
   prueba('se comparan cuatro modelos: comisión, anuncios más suscripción, atención y Carta v1', tp.comparacion.length, 4);
@@ -512,6 +513,41 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('resumen: 182 / 173 / 41 (ya no 279 / 148 / 23)', `${f('restaurantes_que_caben').recomendado}-${f('restaurantes_que_caben').peor}-${f('restaurantes_que_caben_sin_purga').recomendado}`, '182-173-41');
 }
 
+// 12g) ronda 11: una sola definición de carga para el gratuito en todo el modelo
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  const c30 = M.conHistorialGratuito({ ...cfg, palancas: [...(cfg.palancas ?? []), 'historial_gratuito_30_dias'] }, s, 1);
+  const R = M.recursos(cfg, s, {});
+  const capDisco = R.recursos.find((x) => x.recurso === 'disco').con_historial_30_dias.restaurantes_con_eventos;
+  prueba('evaluar y recursos: con el disco lleno de recursos el escalón sigue en Hobby (182)', M.evaluar(c30, s, capDisco, { curva: 'media' }).capacidad.escalon, 'hobby_eventos');
+  prueba('evaluar y recursos: con uno más ya pide Pro (183)', M.evaluar(c30, s, capDisco + 1, { curva: 'media' }).capacidad.escalon, 'pro_2');
+  const pf = M.perfilDeCarga(cfg, s);
+  prueba('el MB del gratuito es el mismo en evaluar y en perfilDeCarga', M.evaluar(cfg, s, 1000, { curva: 'media' }).capacidad.mb_por_restaurante.gratuito, pf.mb_gratuito, 1e-9);
+  prueba('la bolsa usa la misma carga: con el sondeo de hoy caben los de cabenGratuitosEnEscalon', M.rangoBolsa(cfg, s, 1000).caben_con_el_sondeo_de_hoy, M.cabenGratuitosEnEscalon(cfg, s, 'hobby_sondeo'));
+  prueba('el gratuito por topes carga 1,080 visitas (6 mesas × 180) y 60 % del típico', `${M.cargaGratuita(cfg, s).visitas_mes}-${M.cargaGratuita(cfg, s).razon}`, '1080-0.6');
+  prueba('la carga típica sólo existe como comparación: configInicial no la usa', cfg.carga ?? 'topes', 'topes');
+  const cc = M.comparacionDeCarga(cfg, s);
+  const A = cc.antes_tipica_no_vigente, D = cc.despues_por_topes_vigente;
+  prueba('antes → después: margen recomendado con 1,000 restaurantes 20,024 → 18,591', `${Math.round(A.margen_operacion_1000.recomendado)}-${Math.round(D.margen_operacion_1000.recomendado)}`, '20024-18591');
+  prueba('antes → después: margen peor 2,390 → 2,388 y estrés −1,109 → −1,532', `${Math.round(A.margen_operacion_1000.peor)}-${Math.round(D.margen_operacion_1000.peor)}-${Math.round(A.margen_operacion_1000.piso_de_verdad)}-${Math.round(D.margen_operacion_1000.piso_de_verdad)}`, '2390-2388--1109--1532');
+  prueba('antes → después: gratuitos que sostiene un pagante sin anuncios 125 → 144', `${Math.round(A.gratuitos_que_sostiene_un_pagante.sin_anuncios)}-${Math.round(D.gratuitos_que_sostiene_un_pagante.sin_anuncios)}`, '125-144');
+  prueba('antes → después: sueldo de 1 salario mínimo, 550 → 600 restaurantes', `${A.sueldo[0].restaurantes_necesarios}-${D.sueldo[0].restaurantes_necesarios}`, '550-600');
+  prueba('antes → después: bolsa de 500 pesos, 279 → 405', `${A.bolsa[0].centro}-${D.bolsa[0].centro}`, '279-405');
+  prueba('una página con la carga por topes: anuncios de 2.6 a 27.3 pesos por gratuito', /2\.6 a 27\.3/.test(M.modeloDeNegocio(cfg, s).una_pagina.quien_paga_y_cuanto.anunciante), true);
+  prueba('antes → después: capacidad con avisos 279 → 182', `${A.capacidad.con_avisos}-${D.capacidad.con_avisos}`, '279-182');
+  prueba('sensibilidad 90, 180 y 360 visitas por mesa: capacidad con avisos 215, 182 y 138', cc.sensibilidad_visitas_por_mesa.map((x) => x.capacidad.con_avisos).join(','), '215,182,138');
+  prueba('sensibilidad: el margen recomendado sube con las visitas (anuncios)', cc.sensibilidad_visitas_por_mesa.map((x) => Math.round(x.margen_operacion_recomendado_1000)).join(','), '17505,18591,20666');
+  prueba('la respuesta dice que no hay datos para la distribución de mesas', /No hay datos para usar la distribución de mesas/.test(cc.tope_entero_o_distribucion), true);
+  // ningún informe generado cita las cifras de la carga típica como vigentes
+  const informes = ['2026-11-14-modelo-de-escenarios.md', '2026-11-14-recomendaciones.md', '2026-11-14-chequeo-de-margenes.md', '2026-11-14-precio-de-entrada.md', '2026-11-14-banderas-de-operacion.md', '2026-11-17-como-gana-dinero-carta.md', '2026-11-17-costo-de-platillo.md', '2026-11-17-historia-del-disco.md'];
+  const viejas = /(?<![\d,])279(?![\d,])|(?<![\d,])148(?![\d,])(?! cartas)(?!;)|\b23 restaurantes/;
+  for (const f of informes) {
+    const texto = readFileSync(join(aqui, f), 'utf8').split('\n').filter((l) => !(f === '2026-11-14-banderas-de-operacion.md' && /^\| .*(Hobby|Pro) \|/.test(l)));
+    prueba(`el informe ${f} no cita 279, 148 ni 23 como vigentes`, texto.filter((l) => viejas.test(l)).length, 0);
+  }
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
@@ -520,6 +556,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
     ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
     ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
     ['node', '2026-11-17-como-gana-dinero.mjs', ['2026-11-17-como-gana-dinero-carta.json', '2026-11-17-como-gana-dinero-carta.md']],
+    ['node', '2026-11-17-carga-unica.mjs', ['2026-11-17-carga-unica.json', '2026-11-17-carga-unica.md']],
     ['node', '2026-11-17-historia-del-disco.mjs', ['2026-11-17-historia-del-disco.json', '2026-11-17-historia-del-disco.md']],
     ['node', '2026-11-17-costo-de-platillo.mjs', ['2026-11-17-costo-de-platillo.json', '2026-11-17-costo-de-platillo.md']],
     ['python3', '2026-11-16-cobertura-platillos.py', ['2026-11-16-cobertura-platillos-datos.json']],

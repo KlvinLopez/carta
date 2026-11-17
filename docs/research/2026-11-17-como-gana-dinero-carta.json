@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r13",
+ "version": "2026-11-17-r14",
  "fecha": "2026-11-17",
  "sueldo_fundador": {
   "por_omision": 0,
@@ -17,36 +17,36 @@
     "sueldo_mensual": 9577,
     "escenarios": {
      "recomendado": {
-      "restaurantes_necesarios": 550,
-      "clientes_de_paga_necesarios": 63.73617243626381,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 21,
+      "restaurantes_necesarios": 600,
+      "clientes_de_paga_necesarios": 69.53036993046962,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 22,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": 8360.92232247697,
-       "mes_12": -7691.294702103121,
-       "mes_24": 5431.799808159934
+       "con_1000_restaurantes": 6928.368897128417,
+       "mes_12": -8148.598828547208,
+       "mes_24": 3701.564417741678
       }
      },
      "peor": {
-      "restaurantes_necesarios": 4940,
-      "clientes_de_paga_necesarios": 115.72919820727792,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 57,
+      "restaurantes_necesarios": 4680,
+      "clientes_de_paga_necesarios": 109.63818777531593,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 54,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -7608.86822031288,
-       "mes_12": -9926.891583768047,
-       "mes_24": -8564.219840420368
+       "con_1000_restaurantes": -7610.966085396174,
+       "mes_12": -9718.98379413828,
+       "mes_24": -8472.260868764253
       }
      },
      "mejor": {
-      "restaurantes_necesarios": 165,
-      "clientes_de_paga_necesarios": 63.059843296166996,
+      "restaurantes_necesarios": 178,
+      "clientes_de_paga_necesarios": 68.02819458616804,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 14,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": 49207.4114750436,
-       "mes_12": -2491.1992323465074,
-       "mes_24": 39575.59534325346
+       "con_1000_restaurantes": 44907.30155166125,
+       "mes_12": -3768.258843745096,
+       "mes_24": 34415.463435194644
       }
      },
      "piso_de_verdad": {
@@ -55,9 +55,9 @@
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -11107.690769443934,
-       "mes_12": -10976.538348507363,
-       "mes_24": -12762.806899377629
+       "con_1000_restaurantes": -11530.20332686969,
+       "mes_12": -10894.754966580334,
+       "mes_24": -13175.345558532472
       }
      }
     },
@@ -73,36 +73,36 @@
     "sueldo_mensual": 28732,
     "escenarios": {
      "recomendado": {
-      "restaurantes_necesarios": 1660,
-      "clientes_de_paga_necesarios": 192.3673568076326,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 32,
-      "requiere_otra_arquitectura": true,
+      "restaurantes_necesarios": 1730,
+      "clientes_de_paga_necesarios": 200.4792332995207,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 34,
+      "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -10794.07767752303,
-       "mes_12": -26846.29470210312,
-       "mes_24": -13723.200191840066
+       "con_1000_restaurantes": -12226.631102871583,
+       "mes_12": -27303.59882854721,
+       "mes_24": -15453.435582258322
       }
      },
      "peor": {
-      "restaurantes_necesarios": 14010,
-      "clientes_de_paga_necesarios": 328.2117544299521,
+      "restaurantes_necesarios": 13190,
+      "clientes_de_paga_necesarios": 309.00164460607203,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -26763.86822031288,
-       "mes_12": -29081.891583768047,
-       "mes_24": -27719.219840420366
+       "con_1000_restaurantes": -26765.966085396176,
+       "mes_12": -28873.98379413828,
+       "mes_24": -27627.260868764253
       }
      },
      "mejor": {
-      "restaurantes_necesarios": 490,
-      "clientes_de_paga_necesarios": 187.2686255461929,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 20,
+      "restaurantes_necesarios": 520,
+      "clientes_de_paga_necesarios": 198.73405160004145,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 21,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": 30052.4114750436,
-       "mes_12": -21646.19923234651,
-       "mes_24": 20420.59534325346
+       "con_1000_restaurantes": 25752.30155166125,
+       "mes_12": -22923.258843745098,
+       "mes_24": 15260.463435194644
       }
      },
      "piso_de_verdad": {
@@ -111,9 +111,9 @@
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -30262.690769443932,
-       "mes_12": -30131.53834850736,
-       "mes_24": -31917.80689937763
+       "con_1000_restaurantes": -30685.20332686969,
+       "mes_12": -30049.754966580334,
+       "mes_24": -32330.34555853247
       }
      }
     },
@@ -129,14 +129,14 @@
     "sueldo_mensual": 47886,
     "escenarios": {
      "recomendado": {
-      "restaurantes_necesarios": 2680,
-      "clientes_de_paga_necesarios": 310.5689856894309,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 40,
+      "restaurantes_necesarios": 2930,
+      "clientes_de_paga_necesarios": 339.53997316045997,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 42,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -29948.07767752303,
-       "mes_12": -46000.29470210312,
-       "mes_24": -32877.200191840064
+       "con_1000_restaurantes": -31380.631102871583,
+       "mes_12": -46457.598828547205,
+       "mes_24": -34607.435582258324
       }
      },
      "peor": {
@@ -145,20 +145,20 @@
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -45917.86822031288,
-       "mes_12": -48235.89158376805,
-       "mes_24": -46873.21984042037
+       "con_1000_restaurantes": -45919.966085396176,
+       "mes_12": -48027.98379413828,
+       "mes_24": -46781.26086876426
       }
      },
      "mejor": {
-      "restaurantes_necesarios": 830,
-      "clientes_de_paga_necesarios": 317.21012082314303,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 24,
+      "restaurantes_necesarios": 890,
+      "clientes_de_paga_necesarios": 340.1409729308401,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 25,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": 10898.411475043598,
-       "mes_12": -40800.19923234651,
-       "mes_24": 1266.5953432534589
+       "con_1000_restaurantes": 6598.30155166125,
+       "mes_12": -42077.2588437451,
+       "mes_24": -3893.5365648053557
       }
      },
      "piso_de_verdad": {
@@ -167,9 +167,9 @@
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -49416.690769443936,
-       "mes_12": -49285.53834850736,
-       "mes_24": -51071.80689937763
+       "con_1000_restaurantes": -49839.20332686969,
+       "mes_12": -49203.75496658034,
+       "mes_24": -51484.34555853247
       }
      }
     },
@@ -185,14 +185,14 @@
     "sueldo_mensual": 95772,
     "escenarios": {
      "recomendado": {
-      "restaurantes_necesarios": 5360,
-      "clientes_de_paga_necesarios": 621.1379713788618,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 55,
+      "restaurantes_necesarios": 5860,
+      "clientes_de_paga_necesarios": 679.0799463209199,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 58,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -77834.07767752303,
-       "mes_12": -93886.29470210313,
-       "mes_24": -80763.20019184006
+       "con_1000_restaurantes": -79266.63110287159,
+       "mes_12": -94343.59882854721,
+       "mes_24": -82493.43558225832
       }
      },
      "peor": {
@@ -201,20 +201,20 @@
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -93803.86822031288,
-       "mes_12": -96121.89158376805,
-       "mes_24": -94759.21984042037
+       "con_1000_restaurantes": -93805.96608539617,
+       "mes_12": -95913.98379413829,
+       "mes_24": -94667.26086876425
       }
      },
      "mejor": {
-      "restaurantes_necesarios": 1630,
-      "clientes_de_paga_necesarios": 622.9548155924376,
-      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 32,
+      "restaurantes_necesarios": 1750,
+      "clientes_de_paga_necesarios": 668.8165198078317,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 34,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -36987.5885249564,
-       "mes_12": -88686.19923234651,
-       "mes_24": -46619.40465674654
+       "con_1000_restaurantes": -41287.69844833875,
+       "mes_12": -89963.25884374509,
+       "mes_24": -51779.536564805356
       }
      },
      "piso_de_verdad": {
@@ -223,9 +223,9 @@
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
-       "con_1000_restaurantes": -97302.69076944393,
-       "mes_12": -97171.53834850737,
-       "mes_24": -98957.80689937763
+       "con_1000_restaurantes": -97725.20332686968,
+       "mes_12": -97089.75496658034,
+       "mes_24": -99370.34555853247
       }
      }
     },
@@ -241,25 +241,25 @@
    "sueldo_mensual": 0,
    "escenarios": {
     "recomendado": {
-     "restaurantes_necesarios": 11,
-     "clientes_de_paga_necesarios": 1.2747234487252763,
+     "restaurantes_necesarios": 12,
+     "clientes_de_paga_necesarios": 1.3906073986093923,
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 9,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
-      "con_1000_restaurantes": 17937.92232247697,
-      "mes_12": 1885.7052978968786,
-      "mes_24": 15008.799808159934
+      "con_1000_restaurantes": 16505.368897128417,
+      "mes_12": 1428.4011714527924,
+      "mes_24": 13278.564417741678
      }
     },
     "peor": {
-     "restaurantes_necesarios": 82,
-     "clientes_de_paga_necesarios": 1.921010982388014,
+     "restaurantes_necesarios": 81,
+     "clientes_de_paga_necesarios": 1.89758401918816,
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 17,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
-      "con_1000_restaurantes": 1968.1317796871197,
-      "mes_12": -349.89158376804767,
-      "mes_24": 1012.7801595796325
+      "con_1000_restaurantes": 1966.0339146038257,
+      "mes_12": -141.98379413828025,
+      "mes_24": 1104.7391312357465
      }
     },
     "mejor": {
@@ -268,9 +268,9 @@
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 9,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
-      "con_1000_restaurantes": 58784.4114750436,
-      "mes_12": 7085.800767653493,
-      "mes_24": 49152.59534325346
+      "con_1000_restaurantes": 54484.30155166125,
+      "mes_12": 5808.741156254904,
+      "mes_24": 43992.463435194644
      }
     },
     "piso_de_verdad": {
@@ -279,9 +279,9 @@
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
-      "con_1000_restaurantes": -1530.6907694439335,
-      "mes_12": -1399.5383485073635,
-      "mes_24": -3185.8068993776296
+      "con_1000_restaurantes": -1953.2033268696898,
+      "mes_12": -1317.7549665803347,
+      "mes_24": -3598.345558532472
      }
     }
    },
@@ -303,7 +303,7 @@
     "se_cobra_a": "el restaurante que pasa de los topes de Chef",
     "potencial_pesos_por_restaurante_al_mes": {
      "por_restaurante_de_paga": 225,
-     "deja_por_restaurante_de_paga": 149,
+     "deja_por_restaurante_de_paga": 148.6,
      "por_restaurante_registrado": {
       "centro": 26.1,
       "minimo": 5.3,
@@ -321,9 +321,9 @@
     "se_cobra_a": "el anunciante, a través de una red de anuncios (hoy se supone AdSense); anunciantes típicos: marcas de bebidas y consumo, bancos y comercios locales (por definir)",
     "potencial_pesos_por_restaurante_al_mes": {
      "por_restaurante_gratuito": {
-      "baja": 4.3,
-      "media": 17.2,
-      "alta": 45.5
+      "baja": 2.6,
+      "media": 10.3,
+      "alta": 27.3
      },
      "nota": "visitas con la app y parte con anuncio del modelo; tarifa sin dato"
     },
@@ -377,9 +377,9 @@
     "se_cobra_a": "el comensal (suscripción tipo «Carta+»)",
     "potencial_pesos_por_restaurante_al_mes": {
      "por_restaurante": {
-      "centro": 495.5,
-      "minimo": 165.2,
-      "maximo": 1981.9
+      "centro": 297.3,
+      "minimo": 99.1,
+      "maximo": 1189.1
      },
      "nota": "repartido entre los restaurantes que visita cada comensal: es un techo por restaurante"
     },
@@ -512,44 +512,44 @@
       "baja": {
        "tarifa_generica_por_mil": 3.5,
        "tarifa_personalizada_por_mil": 5.25,
-       "pesos_por_gratuito_v1_todo_generico": 4.305,
-       "pesos_por_gratuito_v2_con_registrados": 4.7355,
-       "cambio_por_gratuito_v2": 0.4305000000000003,
+       "pesos_por_gratuito_v1_todo_generico": 2.583,
+       "pesos_por_gratuito_v2_con_registrados": 2.8413000000000004,
+       "cambio_por_gratuito_v2": 0.2583000000000002,
        "rango_v2": [
-        4.31361,
-        8.9544
+        2.588166,
+        5.3726400000000005
        ],
        "pesos_por_pagante": 0,
-       "pesos_por_1000_restaurantes_v1": 3806.119595748881,
-       "pesos_por_1000_restaurantes_v2": 4186.731555323769
+       "pesos_por_1000_restaurantes_v1": 2283.671757449328,
+       "pesos_por_1000_restaurantes_v2": 2512.0389331942615
       },
       "media": {
        "tarifa_generica_por_mil": 14,
        "tarifa_personalizada_por_mil": 21,
-       "pesos_por_gratuito_v1_todo_generico": 17.22,
-       "pesos_por_gratuito_v2_con_registrados": 18.942,
-       "cambio_por_gratuito_v2": 1.7220000000000013,
+       "pesos_por_gratuito_v1_todo_generico": 10.332,
+       "pesos_por_gratuito_v2_con_registrados": 11.365200000000002,
+       "cambio_por_gratuito_v2": 1.0332000000000008,
        "rango_v2": [
-        17.25444,
-        35.8176
+        10.352664,
+        21.490560000000002
        ],
        "pesos_por_pagante": 0,
-       "pesos_por_1000_restaurantes_v1": 15224.478382995523,
-       "pesos_por_1000_restaurantes_v2": 16746.926221295074
+       "pesos_por_1000_restaurantes_v1": 9134.687029797313,
+       "pesos_por_1000_restaurantes_v2": 10048.155732777046
       },
       "alta": {
        "tarifa_generica_por_mil": 37,
        "tarifa_personalizada_por_mil": 55.5,
-       "pesos_por_gratuito_v1_todo_generico": 45.51,
-       "pesos_por_gratuito_v2_con_registrados": 50.061,
-       "cambio_por_gratuito_v2": 4.551000000000002,
+       "pesos_por_gratuito_v1_todo_generico": 27.306,
+       "pesos_por_gratuito_v2_con_registrados": 30.036600000000004,
+       "cambio_por_gratuito_v2": 2.7306000000000026,
        "rango_v2": [
-        45.60102,
-        94.6608
+        27.360612,
+        56.79648
        ],
        "pesos_por_pagante": 0,
-       "pesos_por_1000_restaurantes_v1": 40236.12144077388,
-       "pesos_por_1000_restaurantes_v2": 44259.73358485127
+       "pesos_por_1000_restaurantes_v1": 24141.67286446433,
+       "pesos_por_1000_restaurantes_v2": 26555.840150910764
       }
      },
      "nota": "v1: comensal anónimo, todo genérico. El pagante no ve anuncios. Factor y parte de registrados son supuestos; la tarifa base también (anuncio_pesos_por_mil)"
@@ -757,7 +757,7 @@
    "que_le_resuelve": "Sube la carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo.",
    "quien_paga_y_cuanto": {
     "restaurante": "Master Chef 225 pesos al mes (deja 149 al restaurante de paga tras costos); Chef es gratis",
-    "anunciante": "4.3 a 45.5 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato)",
+    "anunciante": "2.6 a 27.3 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato)",
     "comensal": "nada"
    },
    "fuentes_de_ingreso_por_etapa": [
@@ -776,13 +776,13 @@
    ],
    "costos": {
     "infraestructura_hoy_usd_mes": 10.183333333333334,
-    "costo_por_restaurante_gratuito_pesos": 1.190690866140888,
-    "gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios": 125.16435226458,
+    "costo_por_restaurante_gratuito_pesos": 1.03062436666599,
+    "gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios": 144.17142145440374,
     "soporte": "el costo grande: el soporte de cada cliente de paga"
    },
    "meta_12_meses": {
     "restaurantes": 300,
-    "margen_operacion_mes_12": 5748.812651233771
+    "margen_operacion_mes_12": 5291.508524789685
    },
    "que_hay_que_medir": [
     "La curva de pago de Master Chef (prueba de tres precios).",
