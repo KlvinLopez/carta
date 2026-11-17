@@ -303,14 +303,14 @@ await p.evaluate(() => { pausaI = true; });
 const revisaPelicula = () => p.evaluate(async () => {
   const mal = []; const f = document.querySelector('#cine'), fr = f.getBoundingClientRect();
   const vis = (el) => { let o = 1, n = el; while (n && n !== f) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; n = n.parentElement; } return o; };
-  const inst = Array.from({ length: 30 }, (_, k) => (TOT * (k + 0.5)) / 30);
+  const inst = Array.from({ length: 48 }, (_, k) => (TOT * (k + 0.5)) / 48);
   for (const s of inst) {
     tI = s * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 30));
-    const textos = [...f.querySelectorAll('.r .cln, .globo, .etq span, .marca b, .marca span')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
-    const cel = f.querySelector('.cel'), rc = cel.getBoundingClientRect(), celVis = vis(cel) > 0.9;
+    const textos = [...f.querySelectorAll('.r .cln, .globo, .etq span, .estado, .resu, .marca b, .marca span')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
+    const cels = [...f.querySelectorAll('.cel')].filter((c) => vis(c) > 0.9).map((c) => c.getBoundingClientRect());
     for (const [e, r] of textos) {
       if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.top < fr.top - 1 || r.bottom > fr.bottom + 1) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» fuera del cuadro');
-      if (celVis && e.matches('.r .cln, .globo') && r.right > rc.left - 8 && r.left < rc.right && r.bottom > rc.top && r.top < rc.bottom) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» tapa el teléfono');
+      for (const rc of cels) if (e.matches('.r .cln, .globo, .estado, .resu') && r.right > rc.left - 8 && r.left < rc.right && r.bottom > rc.top && r.top < rc.bottom) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» tapa un teléfono');
     }
     for (let a = 0; a < textos.length; a++) for (let b = a + 1; b < textos.length; b++) {
       const [ea, ra] = textos[a], [eb, rb] = textos[b];
@@ -327,7 +327,7 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390,
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
 ok(errores.length === 0, 'presentación: sin errores de consola ' + errores.slice(0, 2).join(' | '));
-if (png) { for (const [i, s] of [[1, 4], [2, 10], [3, 17.5], [4, 25.5], [5, 31.5], [6, 38], [7, 44], [8, 50]]) { await p.evaluate((t) => { tI = t * 1000; pintaIntro(); }, s); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v10_pelicula${i}.png` }); } }
+if (png) { for (const [i, s] of [[1, 4], [2, 10], [3, 17.5], [4, 25], [5, 30], [6, 37], [7, 41.5], [8, 47.5], [9, 53], [10, 59], [11, 65.5], [12, 72], [13, 76.5], [14, 80.5], [15, 84], [16, 88], [17, 92]]) { await p.evaluate((t) => { tI = t * 1000; pintaIntro(); }, s); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v10_pelicula${i}.png` }); } }
 await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
 await p.reload(); await p.waitForTimeout(400);

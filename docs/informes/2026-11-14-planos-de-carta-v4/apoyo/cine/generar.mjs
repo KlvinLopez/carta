@@ -327,6 +327,45 @@ function platillos() {
   guarda('plato-flan.svg', svg('0 0 400 400', pdefs, fl));
 }
 
-salon(); mesa(); ana(); carlos(); mesero(); mano(); visor(); platillos();
+
+/* ===================== variantes para los actos 2 a 5 ===================== */
+function extras() {
+  // Carlos con el teléfono en alto (espejo del brazo de Ana)
+  const M = 'translate(1920,0) scale(-1,1)';
+  const ac = `<path d="M604 600 C624 590 654 568 680 540 L700 556 C676 588 646 616 616 632Z" fill="url(#saco)"/>`;
+  const mc = `<rect x="672" y="470" width="38" height="76" rx="8" transform="rotate(14 690 508)" fill="#151012"/><rect x="676" y="476" width="30" height="64" rx="5" transform="rotate(14 690 508)" fill="#e9d9c0" opacity=".9"/>` +
+    `<path d="M676 534 C690 528 706 532 712 544 C716 556 706 566 692 566 C680 566 670 556 672 546Z" fill="${P.piel2}"/><path d="M704 532 C712 520 722 516 726 524 C720 532 714 540 708 544Z" fill="${P.piel2}"/>`;
+  const brazoC = `<g transform="${M}"><path d="M584 446 C610 440 630 460 634 490 L642 600 C644 620 632 630 616 628 C600 626 594 612 594 598 L580 490 C578 468 576 452 584 446Z" fill="url(#saco)"/>${ac}${mc}</g>`;
+  guarda('carlos-brazo-cel.svg', svg('0 0 1920 1080', lin('saco', '#3a3340', '#211c25', 1, 1), brazoC));
+  // el mesero: el mismo brazo con su teléfono o con el cambio de otra mesa
+  const hombroD = `<path d="M1034 296 C1052 302 1060 334 1058 372 L1054 420 C1052 436 1034 438 1030 424 L1022 370 C1018 332 1018 300 1034 296Z" fill="url(#camisa)"/>` +
+    `<path d="M1048 410 C1030 414 1006 418 990 424 L994 448 C1014 444 1040 438 1056 430Z" fill="url(#camisa)"/>`;
+  const manoD = `<path d="M978 420 C968 424 964 440 972 448 C980 456 994 452 996 440 L996 424Z" fill="${P.piel3}"/><path d="M972 426 q-8 -4 -6 -14 q6 0 10 8z" fill="${P.piel3}"/>`;
+  const cel = `<g transform="rotate(-10 984 400)"><rect x="958" y="350" width="50" height="96" rx="10" fill="#151012"/><rect x="962" y="356" width="42" height="84" rx="7" fill="#fef9f1"/><rect x="968" y="370" width="30" height="6" rx="3" fill="${P.vino}" opacity=".6"/><rect x="968" y="384" width="30" height="16" rx="5" fill="${P.oliva}" opacity=".7"/></g>`;
+  guarda('mesero-brazo-cel.svg', svg('0 0 1920 1080', lin('camisa', '#fffaf2', '#e8ddca', 1, 1), hombroD + cel + manoD));
+  const cambio = `<g transform="rotate(-12 990 420)"><rect x="940" y="380" width="86" height="64" rx="8" fill="#1d1518"/><rect x="940" y="380" width="86" height="8" rx="4" fill="${P.oro}" opacity=".8"/><rect x="954" y="368" width="58" height="22" rx="3" fill="#8fb27a"/><rect x="960" y="372" width="46" height="4" fill="#6f9460"/></g>`;
+  guarda('mesero-brazo-cambio.svg', svg('0 0 1920 1080', lin('camisa', '#fffaf2', '#e8ddca', 1, 1), hombroD + cambio + manoD));
+  // Ana de espaldas, en primer plano (plano sobre el hombro)
+  const dH = lin('blusa', '#78844a', '#3f4826', 1, 1) + lin('peloH', '#5a3324', P.pelo1, 1, 1);
+  let h = `<path d="M-60 1080 C-40 950 110 880 320 872 C520 866 690 940 760 1080Z" fill="url(#blusa)"/>`;
+  h += `<path d="M470 700 C500 740 498 820 470 870 C450 892 420 900 400 896 C430 840 440 760 470 700Z" fill="${P.piel1}"/>`;
+  h += `<ellipse cx="458" cy="790" rx="16" ry="26" fill="${P.piel1s}"/><circle cx="460" cy="826" r="8" fill="${P.oro}"/>`;
+  h += `<ellipse cx="320" cy="770" rx="150" ry="168" fill="url(#peloH)"/>`;
+  h += `<path d="M220 680 C260 640 340 630 400 660" stroke="#7a4a34" stroke-width="10" fill="none" opacity=".45" stroke-linecap="round"/>`;
+  h += `<circle cx="300" cy="600" r="78" fill="url(#peloH)"/><path d="M250 570 C280 540 330 545 350 575" stroke="#7a4a34" stroke-width="8" fill="none" opacity=".5" stroke-linecap="round"/>`;
+  h += `<path d="M230 640 q70 -20 140 0" stroke="${P.oro}" stroke-width="5" fill="none" opacity=".7"/>`;
+  guarda('hombro.svg', svg('0 0 1920 1080', dH, h));
+  // el índice de la otra mano de Ana, para tocar la pantalla; la yema está en (0,0)
+  const dD = lin('pielD', '#d09370', '#a96c4c', 1, 1) + lin('blusa', '#78844a', '#4c5630', 1, 1);
+  let d = `<g transform="translate(14,-64)"><path d="M-250 700 L-330 470 C-260 430 -170 420 -100 450 L-60 700Z" fill="url(#blusa)"/>`;
+  d += `<path d="M-300 480 C-280 400 -240 340 -200 300 C-170 260 -130 236 -96 240 C-60 246 -40 280 -50 320 C-60 370 -100 430 -110 470 C-170 480 -250 486 -300 480Z" fill="url(#pielD)"/>`;
+  d += `</g><path d="M-23 12 A23 23 0 0 1 23 16 L-46 182 L-104 160Z" fill="url(#pielD)"/>`;
+  d += `<ellipse cx="-2" cy="16" rx="11" ry="15" transform="rotate(20 -2 16)" fill="#f1c6b0" opacity=".9"/>`;
+  d += `<path d="M-34 84 q12 6 24 2 M-52 130 q12 6 24 2" stroke="#a96c4c" stroke-width="3" fill="none" opacity=".45" stroke-linecap="round"/>`;
+  d += `<path d="M-196 240 C-176 200 -146 190 -126 202 C-136 230 -156 256 -186 270Z" fill="#c78a66"/>`;
+  guarda('dedo.svg', svg('-500 -20 540 720', dD, d));
+}
+
+salon(); mesa(); ana(); carlos(); mesero(); mano(); visor(); platillos(); extras();
 let total = 0; for (const [k, v] of Object.entries(archivos)) { total += v.length; }
 console.log(`${Object.keys(archivos).length} ilustraciones, ${(total / 1024).toFixed(1)} KB`);
