@@ -25,8 +25,8 @@ MPC = [2.5, 3.25, 4.0]
 SIGMAS = [0.25, 0.5, 0.75]
 SIGMA_CENTRO = 0.5
 NQ = 9  # puntos de igual probabilidad que representan la lognormal
-MESAS = [6, 8, 10, 12, 15, 16, 20, 25, 30, 40, 60, 100, 150, 250]
-CUENTAS = [2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 50]
+MESAS = [4, 5, 6, 8, 10, 12, 15, 16, 20, 25, 30, 40, 60, 100, 150, 250, 500]
+CUENTAS = [1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 50]
 
 
 def geometrica(media, lo, hi):
@@ -73,8 +73,11 @@ def tabla(f, m, sigma):
     chico = sum(p[0] for p in pob if p[1] <= 10)
     # se agrupa por (mesas, cuentas) para no recorrer toda la población en cada celda de la rejilla
     ag = {}
+    est = {}
     for p in pob:
         key = (p[3], p[2])
+        est.setdefault(p[5], {}).setdefault(key, 0.0)
+        est[p[5]][key] += p[0]
         a = ag.setdefault(key, [0.0, 0.0, 0.0])
         a[0] += p[0]
         if p[1] <= 10:
@@ -87,7 +90,10 @@ def tabla(f, m, sigma):
             dentro_todos = sum(a[0] for (mm, cc), a in ag.items() if mm <= M and cc <= C)
             dentro_chico = sum(a[1] for (mm, cc), a in ag.items() if mm <= M and cc <= C)
             fuga = sum(a[2] for (mm, cc), a in ag.items() if mm <= M and cc <= C)  # de más de 10 personas que caben gratis
-            T[(M, C)] = dict(dentro_todos=dentro_todos / TOTAL, seguridad_chico=dentro_chico / chico, fuga=fuga / (TOTAL - chico))
+            e05 = est['0 a 5']; e610 = est['6 a 10']
+            d05 = sum(w for (mm, cc), w in e05.items() if mm <= M and cc <= C) / sum(e05.values())
+            d610 = sum(w for (mm, cc), w in e610.items() if mm <= M and cc <= C) / sum(e610.values())
+            T[(M, C)] = dict(dentro_todos=dentro_todos / TOTAL, seguridad_chico=dentro_chico / chico, fuga=fuga / (TOTAL - chico), dentro_0_5=d05, dentro_6_10=d610)
     return T
 
 
@@ -157,6 +163,13 @@ out["seguridad_chico_grid"] = dict(mesas=MESAS, cuentas=CUENTAS,
     centro=[[round(centro[(M, C)]["seguridad_chico"], 4) for C in CUENTAS] for M in MESAS],
     minimo=[[round(min(corners[k][(M, C)]["seguridad_chico"] for k in corners), 4) for C in CUENTAS] for M in MESAS],
     maximo=[[round(max(corners[k][(M, C)]["seguridad_chico"] for k in corners), 4) for C in CUENTAS] for M in MESAS])
+# dos planes (17-nov): qué parte de 0 a 5 personas cabe en Chef y qué parte de 6 a 10 también (centro y extremos de las 27 combinaciones)
+for nom, k in (("estrato_0_5", "dentro_0_5"), ("estrato_6_10", "dentro_6_10")):
+    out[nom + "_grid"] = dict(mesas=MESAS, cuentas=CUENTAS,
+        centro=[[round(centro[(M, C)][k], 4) for C in CUENTAS] for M in MESAS],
+        minimo=[[round(min(corners[c][(M, C)][k] for c in corners), 4) for C in CUENTAS] for M in MESAS],
+        maximo=[[round(max(corners[c][(M, C)][k] for c in corners), 4) for C in CUENTAS] for M in MESAS])
+out["dos_planes_candidatos"] = [dict(mesas=M, cuentas=C, dentro_0_5=dict(centro=centro[(M, C)]["dentro_0_5"], min=min(corners[c][(M, C)]["dentro_0_5"] for c in corners), max=max(corners[c][(M, C)]["dentro_0_5"] for c in corners)), dentro_6_10=dict(centro=centro[(M, C)]["dentro_6_10"], min=min(corners[c][(M, C)]["dentro_6_10"] for c in corners), max=max(corners[c][(M, C)]["dentro_6_10"] for c in corners))) for (M, C) in [(5, 1), (6, 1), (6, 2), (8, 2), (10, 3), (25, 4)]]
 # tabla de «negocios de hasta 10 personas dentro del gratuito» para varias combinaciones
 out["seguridad_chico_por_topes"] = [dict(mesas=M, cuentas=C, centro=round(centro[(M, C)]["seguridad_chico"], 3), sin_dispersion=round(sin_dispersion[(0.425, 3.25)][(M, C)]["seguridad_chico"], 3), minimo=round(min(corners[k][(M, C)]["seguridad_chico"] for k in corners), 3), dentro_todos=round(centro[(M, C)]["dentro_todos"], 3), fuga=round(centro[(M, C)]["fuga"], 3)) for (M, C) in [(10, 3), (12, 3), (15, 4), (15, 5), (20, 5), (20, 6), (25, 8), (30, 8)]]
 json.dump(out, open(f"{AQUI}/2026-11-14-segmentacion-datos.json", "w"), ensure_ascii=False, indent=1)

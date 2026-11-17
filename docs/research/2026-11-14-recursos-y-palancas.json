@@ -1,7 +1,101 @@
 {
- "version": "2026-11-16-r7",
+ "version": "2026-11-17-r8",
  "fecha": "2026-11-14",
  "config_palancas": [],
+ "estado_elegido": {
+  "canal": "sondeo",
+  "meses_historial": 12,
+  "palancas": [],
+  "nota": "la escalera responde a este estado; ningún parámetro de entrada se modifica"
+ },
+ "escalera": [
+  {
+   "id": "hobby_eventos",
+   "tamano": "Hobby (el que pagamos hoy): 2 procesos, 5 GB",
+   "procesos": 2,
+   "disco_gb": 5,
+   "costo_usd_base": 8.1,
+   "costo_usd_con_carga": 12,
+   "restaurantes_que_caben": 23,
+   "recurso_que_obliga_a_subir": "disco",
+   "por_recurso": {
+    "procesador": 148,
+    "memoria": 476800,
+    "disco": 23,
+    "conexiones_bd": 3288,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_2",
+   "tamano": "Pro, 2 procesos, 50 GB",
+   "procesos": 2,
+   "disco_gb": 50,
+   "costo_usd_base": 20,
+   "costo_usd_con_carga": 30,
+   "restaurantes_que_caben": 148,
+   "recurso_que_obliga_a_subir": "procesador",
+   "por_recurso": {
+    "procesador": 148,
+    "memoria": 476800,
+    "disco": 236,
+    "conexiones_bd": 3288,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_4",
+   "tamano": "Pro, 4 procesos, 50 GB",
+   "procesos": 4,
+   "disco_gb": 50,
+   "costo_usd_base": 23,
+   "costo_usd_con_carga": 44,
+   "restaurantes_que_caben": 236,
+   "recurso_que_obliga_a_subir": "disco",
+   "por_recurso": {
+    "procesador": 263,
+    "memoria": 473600,
+    "disco": 236,
+    "conexiones_bd": 6577,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": false
+  },
+  {
+   "id": "pro_8",
+   "tamano": "Pro, 8 procesos, 50 GB",
+   "procesos": 8,
+   "disco_gb": 50,
+   "costo_usd_base": 30,
+   "costo_usd_con_carga": 54,
+   "restaurantes_que_caben": 236,
+   "recurso_que_obliga_a_subir": "disco",
+   "por_recurso": {
+    "procesador": 294,
+    "memoria": 467200,
+    "disco": 236,
+    "conexiones_bd": 7400,
+    "lineas": null,
+    "fotos": null
+   },
+   "supera_postgres": true
+  },
+  {
+   "id": "otra_pila",
+   "tamano": "Una segunda copia de toda la pila (extrapolación sin medir)",
+   "procesos": 16,
+   "costo_usd_base": null,
+   "costo_usd_con_carga": 108,
+   "restaurantes_que_caben": 472,
+   "recurso_que_obliga_a_subir": "disco",
+   "extrapolacion_sin_medir": true
+  }
+ ],
  "definicion_restaurante_tipico": "un gratuito típico = 1800 visitas al mes y 113.9 comensales al día (SUPUESTO del simulador, rango 40–250), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)",
  "estado": {
   "meses_historial": 12,
@@ -656,7 +750,7 @@
    "palancas": []
   }
  ],
- "escalera": [
+ "escalera_comparada": [
   {
    "restaurantes_con_historial_30_dias": 148,
    "recurso_que_obliga_a_subir_con_historial_30_dias": "procesador",

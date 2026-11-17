@@ -178,12 +178,11 @@ Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)
 
 | Tamaño del servidor | USD al mes (base a con carga) | Restaurantes que caben · recurso que obliga a subir (sin purga) | Con el historial a 30 días |
 |---|---|---|---|
-| Hoy: Hobby, 2 procesos, el teléfono pregunta cada 3 s | 8.1 a 20 | 23 · **disco** | 148 · **procesador** |
-| Hobby, 2 procesos, con avisos en vez de preguntas (Fase 3) | 8.1 a 12 | 23 · **disco** | 279 · **disco** |
-| Pro, 2 procesos, con avisos | 20 a 30 | 236 · **disco** | 1,064 · **procesador** |
-| Pro, 4 procesos, con avisos | 23 a 44 | 236 · **disco** | 1,896 · **procesador** |
-| Pro, 8 procesos, con avisos | 30 a 54 | 236 · **disco** | 2,116 · **lineas** |
-| Una segunda copia de toda la pila (extrapolación sin medir) | — | 472 · **líneas abiertas** | — |
+| Hobby (el que pagamos hoy): 2 procesos, 5 GB | 8.1 a 12 | 23 · **disco** | — |
+| Pro, 2 procesos, 50 GB | 20 a 30 | 148 · **procesador** | — |
+| Pro, 4 procesos, 50 GB | 23 a 44 | 236 · **disco** | — |
+| Pro, 8 procesos, 50 GB | 30 a 54 | 236 · **disco** | — |
+| Una segunda copia de toda la pila (extrapolación sin medir) | — | 472 · **disco** | — |
 
 **Lectura.** Cada tamaño se llena por **el recurso en negritas**. Sin purga el disco manda en todos los tamaños de Hobby y Pro (50 GB tampoco alcanza con 12 meses); con 30 días de historial el procesador manda a partir del servidor Pro. **El de 8 procesos topa en las 10,000 líneas abiertas de Railway (tope de diseño supuesto, sin medir); más allá hay que repetir toda la pila (extrapolación sin medir).**
 
