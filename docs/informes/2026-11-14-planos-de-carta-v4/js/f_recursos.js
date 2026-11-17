@@ -13,6 +13,25 @@ const HIS = [["sin", "sin purga (hoy)", 12], ["12", "12 meses", 12], ["6", "6 me
 const PAL_CORTO = {estado_en_memoria_60s: "Estado de mesa en memoria 60 s", analitica_agregada_por_dia: "Analítica por día", retencion_analitica_7_dias: "Analítica en bruto 7 días", indices_de_evento_minimos: "Dos índices en analítica", tipos_mas_chicos: "Tipos más chicos", purga_claves_idempotencia: "Purgar claves de idempotencia", archivar_sesiones_cerradas: "Archivar sesiones en R2", pool_acotado: "Acotar conexiones a la base", cerrar_lineas_ociosas: "Cerrar líneas ociosas"};
 const parr = (t, m) => { const o = []; let cur = ""; t.split(" ").forEach(w => { if ((cur + " " + w).trim().length > m && cur) { o.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }); if (cur) o.push(cur); return o; };
 const TIPICO = "Restaurante típico (supuesto): 1,800 visitas al mes y 114 comensales al día.";
+const PHR_PAL = {
+  analitica_agregada_por_dia: "La base guarda un conteo por día, no una fila por cada toque.",
+  retencion_analitica_7_dias: "Los eventos sueltos duran una semana; después sólo queda el conteo diario.",
+  indices_de_evento_minimos: "La tabla de analítica conserva sólo los dos índices que se usan.",
+  tipos_mas_chicos: "Los campos de analítica pasan de texto largo a números y huellas.",
+  purga_claves_idempotencia: "Evita 34 MB por restaurante al año; sin efecto hasta la Fase 3.",
+  archivar_sesiones_cerradas: "Las sesiones cerradas de más de tres meses salen de la base, a un archivo en R2.",
+  estado_en_memoria_60s: "El servidor recuerda el estado de cada mesa un minuto.",
+  cerrar_lineas_ociosas: "La conexión con el teléfono se cierra tras 2 minutos sin cambios y se reabre sola.",
+  pool_acotado: "Protege la base, con menos conexiones por proceso: no suma restaurantes.",
+};
+const FRASE_REC = {
+  procesador: "Hoy cada teléfono pregunta cada 3 s; con avisos sólo habla cuando algo cambia.",
+  disco: "Cada visita deja filas en la base, y sin purga el historial crece cada mes.",
+  conexiones_bd: "Cada petición usa una conexión a la base; el tope es el grupo de cada proceso.",
+  memoria: "Casi vacía: ≈ 320 MB de hasta 48 GB posibles.",
+  lineas: "Hoy no se usan; con avisos de la Fase 3, el tope de 2,116 líneas es de diseño (supuesto).",
+  fotos: "0.05 GB por restaurante gratuito; R2 da 10 GB gratis.",
+};
 DET.recursos7 = {
   titulo: "Hoy nada limpia el historial: el disco manda y empeora cada mes; con 30 días, manda el procesador.",
   fu: ["carta_capacidad", "railway_limites", "carta_disco", "cloudflare_r2_precios"],
@@ -71,8 +90,8 @@ DET.recursos7 = {
     const key = [ps.join(), ck, he].join("|"); if (key === this.palKey) return; this.palKey = key;
     $("#palR").innerHTML = filas.map(p => {
       const [a, d] = par(p), al = MOD.PALANCAS[p.id] || {}, dif = a != null && d != null ? d - a : null;
-      const cif = dif == null ? "sin efecto medido" : dif === 0 ? `sin cambio: ${n(a)}` : `${n(a)} → ${n(d)} restaurantes`;
-      const fr = p.id === "pool_acotado" ? "Protege la base; no suma restaurantes." : p.id === "purga_claves_idempotencia" ? "Evita 34 MB por restaurante al año; sin efecto hasta la Fase 3." : (al.que_es || "");
+      const cif = dif == null ? "sin efecto medido" : dif === 0 ? `sin cambio: ${n(a)}` : `${n(a)} → ${n(d)}`;
+      const fr = PHR_PAL[p.id] || "";
       const tip = `${al.accion || p.nombre}|${cif}|${fr}`;
       return `<button class="btn pchip" data-pal="${p.id}" aria-pressed="${ps.includes(p.id)}" data-tip="${esc2(tip)}"${dif != null && a ? ` data-tipv="tri:antes|${a}|${n(a)};después|${d}|${n(d)}"` : ""}>${esc(al.accion || PAL_CORTO[p.id] || p.nombre)}</button>`;
     }).join("");
@@ -105,7 +124,7 @@ DET.recursos7 = {
     let b = T(20, 26, `Con ${n(N)} restaurantes, ¿qué tan lleno está cada recurso?`, 14, C.vino, "start", 700);
     ["procesador", "disco", "conexiones_bd"].forEach((nom, i) => {
       const y = 44 + i * 70, v = cap(nom), p = V["p_" + nom] ?? 0, rojo = llena && llena.recurso === nom, on = this.sel === nom, col = rojo ? C.rojo : C.dorado;
-      const tipTxt = `${REC_NOM[nom]}|${txt(p)}|${(r.recursos.find(q => q.recurso === nom).como_funciona || "").replace(/[`*]/g, "")} ${TIPICO}${nom === "procesador" ? " " + rp.nota : nom === "disco" ? " Historial guardado: " + (HIS.find(h => h[0] === he) || HIS[0])[1] + "." : ""}`;
+      const tipTxt = `${REC_NOM[nom]}|${txt(p)} lleno|${FRASE_REC[nom]}`;
       b += `<g data-rec="${nom}" tabindex="0" role="button" aria-label="${REC_NOM[nom]}" style="cursor:pointer" data-tip="${esc2(tipTxt)}" data-tipp="${clamp(p, 0, 1)}">` + Rc(8, y - 8, 684, 62, on ? C.a2 : "rgba(0,0,0,0)", 14) + T(X0 - 12, y + 26, REC_NOM[nom], 14, rojo ? C.rojo : C.tinta, "end", 700) + Rc(X0, y + 6, W, 30, "#f6f1e8", 15);
       b += Rc(X0, y + 6, Math.max(W * Math.min(p, 1), p > 0.001 ? 6 : 0), 30, col, 15, rojo ? 'class="pulso"' : "") + T(X0 + W + 14, y + 28, txt(p), 21, rojo ? C.rojo : C.t2, "start", 400, true) + T(X0 + W + 14, y + 46, "tope: " + n(v), 11.5, C.t2, "start", 700);
       if (nom === "procesador") { const x1 = X0 + W * Math.min(1, N / rg[1]), x2 = X0 + W * Math.min(1, N / rg[0]); b += `<line x1="${x1}" x2="${x2}" y1="${y + 21}" y2="${y + 21}" stroke="${C.osc}" stroke-width="2.4"/><line x1="${x1}" x2="${x1}" y1="${y + 13}" y2="${y + 29}" stroke="${C.osc}" stroke-width="2.4"/><line x1="${x2}" x2="${x2}" y1="${y + 13}" y2="${y + 29}" stroke="${C.osc}" stroke-width="2.4"/>` + T(X0 + 4, y + 52, `margen ±2×: entre ${n(rg[0])} y ${n(rg[1])}; falta medirlo en Railway`, 11, C.osc, "start", 700); }
@@ -115,7 +134,7 @@ DET.recursos7 = {
     b += T(20, 270, "Sin tope práctico (casi vacíos):", 12, C.t2, "start", 700);
     ["memoria", "lineas", "fotos"].forEach((nom, i) => {
       const x = 14 + i * 228, v = cap(nom), p = V["p_" + nom] ?? 0, on = this.sel === nom;
-      b += `<g data-rec="${nom}" tabindex="0" role="button" aria-label="${REC_NOM[nom]}" style="cursor:pointer" data-tip="${esc2(REC_NOM[nom] + "|" + (v == null ? "sin tope" : txt(p)) + "|" + TIPICO + (nom === "lineas" ? " El tope de 2,116 líneas es de diseño: supuesto." : ""))}">` + Rc(x - 6, 278, 214, 76, on ? C.a2 : "rgba(0,0,0,0)", 12) + T(x + 4, 298, REC_NOM[nom], 13, C.tinta, "start", 700) + Rc(x + 4, 308, 180, 10, "#f6f1e8", 5);
+      b += `<g data-rec="${nom}" tabindex="0" role="button" aria-label="${REC_NOM[nom]}" style="cursor:pointer" data-tip="${esc2(REC_NOM[nom] + "|" + (v == null ? "sin tope" : txt(p) + " lleno") + "|" + FRASE_REC[nom])}" data-tipp="${v == null ? 0 : clamp(p, 0, 1)}">` + Rc(x - 6, 278, 214, 76, on ? C.a2 : "rgba(0,0,0,0)", 12) + T(x + 4, 298, REC_NOM[nom], 13, C.tinta, "start", 700) + Rc(x + 4, 308, 180, 10, "#f6f1e8", 5);
       if (v == null) b += T(x + 4, 340, nom === "lineas" ? "hoy no se usan (sondeo)" : "10 GB gratis, sin tope", 11.5, C.t2, "start", 700);
       else b += Rc(x + 4, 308, Math.max(180 * Math.min(p, 1), 3), 10, C.dorado, 5) + T(x + 4, 340, `${txt(p)} · tope: ${n(v)}${nom === "lineas" ? " (supuesto)" : ""}`, 11.5, C.t2, "start", 700);
       b += `</g>`;
@@ -130,7 +149,7 @@ DET.recursos7 = {
     let b = T(20, 24, "La escalera de tamaños: cada escalón es un tamaño de servidor que se renta en Railway", 13, C.vino, "start", 700) + T(20, 42, "Con el historial, las palancas y los avisos que elegiste arriba. Sin purga caben menos.", 11.5, C.rojo, "start", 700);
     es.forEach((e, i) => {
       const x = 12 + i * w, v = V["es" + i] ?? 0, h = 24 + 120 * (lg(Math.max(v, 10)) - lg(10)) / Math.max(lg(mx) - lg(10), 0.2), on = i === act, sube = e.recurso_que_obliga_a_subir_con_historial_30_dias || e.recurso_que_obliga_a_subir;
-      b += `<g data-tip="${esc2(e.tamano + "|" + n(v) + " restaurantes|base " + n(e.costo_usd_base, 1) + " USD al mes" + (sube ? "; sube por " + (REC_NOM[sube] || sube).toLowerCase() : ""))}">` + Rc(x, 218 - h, w - 10, h, on ? C.vino : "#d9b9c1", 12) + T(x + (w - 10) / 2, 218 - h - 8, n(v), 20, C.vino, "middle", 400, true) + `</g>`;
+      b += `<g data-tip="${esc2(e.tamano.split(":")[0] + "|" + n(v) + " restaurantes|" + (e.tamano.split(":")[1] || "").trim() + ". Base " + n(e.costo_usd_base, 1) + " USD al mes" + (sube ? "; lo frena " + (REC_NOM[sube] || sube).toLowerCase() : "") + ".")}">` + Rc(x, 218 - h, w - 10, h, on ? C.vino : "#d9b9c1", 12) + T(x + (w - 10) / 2, 218 - h - 8, n(v), 20, C.vino, "middle", 400, true) + `</g>`;
       lin(e.tamano, mc).slice(0, 4).forEach((l, j) => { b += T(x + (w - 10) / 2, 236 + j * 13, l, 10.5, C.tinta, "middle", 700); });
       lin((e.costo_usd_base > 0 ? `base ${n(e.costo_usd_base, 1)} USD` : "costo sin medir"), mc).slice(0, 2).forEach((l, j) => { b += T(x + (w - 10) / 2, 296 + j * 13, l, 10.5, C.rojo, "middle", 700); });
     });
@@ -140,7 +159,7 @@ DET.recursos7 = {
   pintaH() {
     const r = this.r, hoy = this.hoy, V = this.vals, he = this.his, cuello = this.cuello, rg = this.rg, f = r.disco_por_historial, selM = (HIS.find(h => h[0] === he) || HIS[0])[2];
     const sa = r.sensibilidad_actividad.find(q => q.factor_de_actividad === 2), pk = r.pico_simultaneo;
-    const tipF = `${REC_NOM[cuello.recurso]}|${n(cuello.v)} restaurantes|${TIPICO} Si todos van a la vez caben ${n(hoy ? pk.procesador_hoy : pk.procesador_con_eventos)} (supuesto). Con el doble de actividad: procesador ${n(hoy ? sa.procesador_hoy : sa.procesador_con_eventos)}, disco ${n(sa.disco)} sin purga y ${n(sa.disco_con_historial_30_dias)} con 30 días.`;
+    const tipF = `${REC_NOM[cuello.recurso]}|${n(cuello.v)} restaurantes|Es el recurso que se llena primero. Si todos entran a la vez caben ${n(hoy ? pk.procesador_hoy : pk.procesador_con_eventos)} (supuesto).`;
     let b = `<g data-tip="${esc2(tipF)}">` + Rc(0, 0, 380, 132, "#fff", 22) + T(20, 32, hoy ? "Hoy frena" : "Con avisos frena", 13, C.t2, "start", 700) + T(20, 76, REC_NOM[cuello.recurso] || cuello.recurso, 28, C.rojo, "start", 400, true) + T(20, 108, `${n(cuello.v)} restaurantes · historial: ${(HIS.find(h => h[0] === he) || HIS[0])[1]}`, 12.5, C.tinta, "start", 700) + `</g>`;
     const W = 330, H = 130, X0 = 25, Y0 = 400, mx = 300, Y = v => Y0 - H * Math.min(v, mx) / mx;
     b += Rc(0, 146, 380, 304, "#fff", 22) + T(20, 172, "Restaurantes que caben por disco,", 12.5, C.vino, "start", 700) + T(20, 188, "según los meses de historial guardado", 12.5, C.vino, "start", 700);
@@ -172,7 +191,7 @@ DET.recursos7 = {
       const bl = RYP.disco_a_fondo.bytes_por_visita_por_tabla, tot = RYP.disco_a_fondo.bytes_por_visita_total, ps = S.palancas || [];
       const disco = r.recursos.find(x => x.recurso === "disco"), rat = ps.reduce((a, id) => { const p = disco.palancas.find(q => q.id === id); return p && p.mb_por_restaurante_antes ? a * (p.mb_por_restaurante_despues / p.mb_por_restaurante_antes) : a; }, 1);
       let yy = py + 150; const k = 120 / tot;
-      bl.forEach((t, i) => { const an = t.tabla === "evento_analitica", h = Math.max(8, t.total_por_visita * k * (an ? Math.max(rat, 0.12) : 1)); yy -= h; o += `<g data-tip="${esc2(t.tabla + ": " + n(t.total_por_visita) + " bytes por visita")}">` + Rc(px + 24, yy, 150, h - 1.5, an ? C.dorado : ["#6b2d3e", "#7d4452", "#8f5a66", "#a17180", "#b3899a", "#c4a0ad", "#d4b9c2"][i % 7], 5) + `</g>` + (h > 14 ? T(px + 180, yy + h / 2 + 4, t.tabla.replace(/_/g, " "), 10.5, C.t2) : ""); });
+      bl.forEach((t, i) => { const an = t.tabla === "evento_analitica", h = Math.max(8, t.total_por_visita * k * (an ? Math.max(rat, 0.12) : 1)); yy -= h; o += `<g data-tip="${esc2(t.tabla.replace(/_/g, " ") + "|" + n(t.total_por_visita) + " bytes|Lo que esta tabla guarda por cada visita.")}">` + Rc(px + 24, yy, 150, h - 1.5, an ? C.dorado : ["#6b2d3e", "#7d4452", "#8f5a66", "#a17180", "#b3899a", "#c4a0ad", "#d4b9c2"][i % 7], 5) + `</g>` + (h > 14 ? T(px + 180, yy + h / 2 + 4, t.tabla.replace(/_/g, " "), 10.5, C.t2) : ""); });
       o += T(px + 24, py + 172, `Una visita pesa ${n(tot)} bytes; ${n(100 * RYP.disco_a_fondo.parte_de_la_visita_que_es_analitica)} % es analítica`, 11.5, C.osc, "start", 700);
     } else if (this.sel === "lineas") {
       [0, 1, 2, 3].forEach(i => { o += Rc(px + 24, py + 6 + i * 38, 26, 32, C.vino, 6) + `<line x1="${px + 54}" y1="${py + 22 + i * 38}" x2="${px + 266}" y2="${py + 78}" stroke="${C.dorado}" stroke-width="2.5" stroke-dasharray="6 5"><animate attributeName="stroke-dashoffset" values="0;-22" dur="1.2s" repeatCount="indefinite"/></line>`; });

@@ -25,7 +25,7 @@ DET.sostiene = {
   },
   actualizar() {
     $$("#tabsK [data-vista]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vista === this.v));
-    const bk = $("#banK"); bk.hidden = this.v !== 1; bk.innerHTML = BAND.banderas.map(b => `<span class="chip" data-tip="${esc2(b.que_hacer + ". " + b.estado_de_la_medicion + ". Proyección: no medido en Railway.")}" tabindex="0">${esc(b.nombre.replace(/ \(.*\)/, ""))} <b>${b.umbral_aviso}/${b.umbral_accion}</b></span>`).join("");
+    const bk = $("#banK"); bk.hidden = this.v !== 1; bk.innerHTML = BAND.banderas.map(b => `<span class="chip" data-tip="${esc2(b.nombre.replace(/ \(.*\)/, "") + "|avisa a " + b.umbral_aviso + ", actúa a " + b.umbral_accion + "|" + pal20(b.que_hacer, 20))}" tabindex="0">${esc(b.nombre.replace(/ \(.*\)/, ""))} <b>${b.umbral_aviso}/${b.umbral_accion}</b></span>`).join("");
     return this.pinta();
   },
   pinta() { const o = [this.v0, this.v1, this.v2, this.v3, this.v4][this.v].call(this); return o; },
@@ -54,7 +54,7 @@ DET.sostiene = {
     b += T(px, 394, "Se paga solo con anuncios desde:", 13, C.t2, "start", 700);
     [["baja", "baja", C.vino], ["medio", "media", C.verde], ["adverso", "adversa", C.dorado]].forEach(([k, nm, col], i) => { b += T(px + i * 96, 422, desde[k] == null ? "—" : n(desde[k]), 22, col, "start", 400, true) + T(px + i * 96, 440, `tarifa ${nm}`, 11.5, C.t2) + T(px + i * 96, 456, `rango ${rg(rs[k])}`, 11, C.t2); });
     const bolSin = conCache("bolsaSin" + S.bolsa, () => MOD.rangoBolsa(MOD.conHistorialGratuito(c, s, 12), s, S.bolsa));
-    b += `<rect x="30" y="462" width="900" height="24" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que este cálculo no incluye: " + bol.no_modelado.join("; "))}" tabindex="0"/>` + T(30, 478, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) con historial a 30 días (propuesta);`, 14, C.osc, "start", 700) + T(30, 498, `sin purga caben ${n(bolSin.centro.restaurantes)}: hoy nada limpia el disco. El costo y el margen suponen la purga a 30 días.`, 14, C.rojo, "start", 700);
+    b += `<rect x="30" y="462" width="900" height="24" rx="8" fill="rgba(0,0,0,0)" data-tip="${esc2("Lo que no cuenta este cálculo|" + bol.no_modelado.length + " cosas|Moderar anuncios, la comisión de la red de anuncios y los impuestos; se miden en el piloto.")}" tabindex="0"/>` + T(30, 478, `Con ${mxn(S.bolsa)} al mes de tu bolsa caben ${n(bol.centro.restaurantes)} restaurantes gratuitos (de ${n(bol.minimo)} a ${n(bol.maximo)} según el soporte) con historial a 30 días (propuesta);`, 14, C.osc, "start", 700) + T(30, 498, `sin purga caben ${n(bolSin.centro.restaurantes)}: hoy nada limpia el disco. El costo y el margen suponen la purga a 30 días.`, 14, C.rojo, "start", 700);
     b += T(30, 524, "Vale con la Fase 3 (canal de eventos); hoy, con sondeo, caben 148 con 30 días y 23 sin purga. Los umbrales son rangos.", 12, C.t2);
     sv.innerHTML = b;
     this.invN = x => clamp(Math.round(Math.pow(10, lo + (x - X0) / W * (hi - lo)) / 5) * 5, 10, 2000);
@@ -115,7 +115,7 @@ DET.sostiene = {
     filas.forEach((f, i) => {
       const y = 70 + i * 118; let x = X0;
       b += T(X0 - 14, y + 30, f.nm, 15, f.col, "end", 700);
-      f.partes.forEach(([nm, v, col], j) => { const w = Math.max(0, v) * K; b += `<g class="gh" style="animation-delay:${j * 90}ms" data-tip="${esc2(nm)}: ${n(v, 1)} de cada 100">${Rc(x, y, w, 44, col, 6)}</g>`; if (w > 54) b += T(x + w / 2, y + 27, `${n(v, 0)}`, 13, C.tinta, "middle", 700); x += w; });
+      f.partes.forEach(([nm, v, col], j) => { const w = Math.max(0, v) * K; b += `<g class="gh" style="animation-delay:${j * 90}ms" data-tip="${esc2(nm + "|" + n(v, 1) + " de cada 100 pesos|" + (f.nm === "Peor" ? "Escenario peor." : f.nm === "Mejor" ? "Escenario mejor." : "Escenario recomendado."))}">${Rc(x, y, w, 44, col, 6)}</g>`; if (w > 54) b += T(x + w / 2, y + 27, `${n(v, 0)}`, 13, C.tinta, "middle", 700); x += w; });
       const mw = Math.max(0, 100 * K - (x - X0));
       if (f.mo >= 0) { b += `<g class="gh" style="animation-delay:360ms">${Rc(x, y, mw, 44, C.verde, 6)}</g>` + T(x + mw / 2, y + 27, `margen ${n(f.mo, 0)}`, 13, "#fff", "middle", 700); }
       else b += T(x + 12, y + 27, `faltan ${n(-f.mo, 0)}`, 13, C.rojo, "start", 700);
@@ -158,7 +158,7 @@ DET.sostiene = {
     let b = T(30, 28, "¿Qué hay que medir primero? El supuesto que más mueve el margen, arriba", 14.5, C.vino, "start", 700);
     fil.forEach((f, i) => {
       const y = 56 + i * 56, w = Math.max(6, W * f.efecto / mx);
-      b += `<g data-tip="${esc2(f.frase)}">` + Rc(14, y - 4, 932, 52, i % 2 ? "rgba(0,0,0,0)" : C.a2, 14) + T(X0 - 14, y + 18, f.que_es.charAt(0).toUpperCase() + f.que_es.slice(1), 13, C.tinta, "end", 700) + T(X0 - 14, y + 36, "Cómo: " + f.medir_en_el_piloto, 11.5, C.t2, "end") + `<g class="gh" style="animation-delay:${i * 70}ms">${Rc(X0, y + 6, w, 26, i === 0 ? C.vino : C.dorado, 8)}</g>` + T(X0 + w + 10, y + 25, `mueve ${fmP(f.efecto)} al mes`, 13, C.tinta, "start", 700) + `</g>`;
+      b += `<g data-tip="${esc2(f.que_es.charAt(0).toUpperCase() + f.que_es.slice(1) + "|mueve " + fmP(f.efecto) + " al mes|" + pal20("Cómo medirlo en el piloto: " + f.medir_en_el_piloto, 20))}">` + Rc(14, y - 4, 932, 52, i % 2 ? "rgba(0,0,0,0)" : C.a2, 14) + T(X0 - 14, y + 18, f.que_es.charAt(0).toUpperCase() + f.que_es.slice(1), 13, C.tinta, "end", 700) + T(X0 - 14, y + 36, "Cómo: " + f.medir_en_el_piloto, 11.5, C.t2, "end") + `<g class="gh" style="animation-delay:${i * 70}ms">${Rc(X0, y + 6, w, 26, i === 0 ? C.vino : C.dorado, 8)}</g>` + T(X0 + w + 10, y + 25, `mueve ${fmP(f.efecto)} al mes`, 13, C.tinta, "start", 700) + `</g>`;
     });
     sv.innerHTML = b;
     return {
@@ -185,7 +185,7 @@ const PARCHES = {
   soporte: [{soporte: 30}, {soporte: 60}, {soporte: 150}],
   avisos_reloj: [null, null],
 };
-const segC = (mesas, cuentas, plat) => 100 * MOD.seguridadChico({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas, platillos: plat}}}, SP, "centro");
+const segC = (mesas, cuentas, plat) => 100 * chef05({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, mesas, cuentas}}});
 const TARJ = {
   tope_platillos: {
     que: "Tope de platillos de Chef: abierta, sin recomendación",
@@ -195,7 +195,7 @@ const TARJ = {
   },
   dos_planes: {
     que: "Chef gratis (0 a 5 personas): 6 mesas, 1 cuenta, 150 platillos; el resto, Master Chef",
-    cif: () => [n(segC(6, 1, 150), 1) + " %", "de los negocios de 0 a 5 personas queda en Chef (modelo; rango 42–55 %)"],
+    cif: () => [n(segC(6, 1, 150), 1) + " %", "de los negocios de 0 a 5 personas cabe en Chef por mesas y cuentas (modelo; rango 42–55 %)"],
     si: () => `Con 2 cuentas queda ${n(segC(6, 2, 150), 1)} %: más gratuitos y un margen menor.`,
     rec: 1,
   },

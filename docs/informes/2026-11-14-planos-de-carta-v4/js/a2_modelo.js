@@ -2,6 +2,8 @@
 const SP = MOD.valores(PAR);
 const SERVS = SP.escalones.filter(e => e.id !== "hobby_sondeo"); // los de «con eventos»: Hobby 2, Pro 2, Pro 4, Pro 8
 const SUSTS = ["Meniu Business", "Fudo Avanzado", "Fudo Avanzado + módulo de mesas"];
+/* parte de los negocios de 0 a 5 personas que cabe en Chef por mesas y cuentas (modelo; el de 6 a 10 no cabe con 1 cuenta): la seguridad de «hasta 10 personas» entre el peso de los de 0 a 5 en ese grupo; incluye la cobertura del tope de platillos */
+const chef05 = (c, k = "centro", s = SP) => { const q = SEG.estratos, w0 = q[0].negocios / (q[0].negocios + q[1].negocios); return Math.min(1, MOD.seguridadChico(c, s, k) / w0); };
 const PLAN = {gratis: "Chef", paga: "Master Chef", ejec: "Chef Ejecutivo"}; // Chef y Master Chef son del prototipo; «Chef Ejecutivo» es nombre propuesto
 const SUSTP = Object.fromEntries(SUSTS.map(k => [k, SP.sustitutos[k]]));
 const CORTO_SUST = {"Meniu Business": "Meniu", "Fudo Avanzado": "Fudo Avanzado", "Fudo Avanzado + módulo de mesas": "Fudo con mesas"};

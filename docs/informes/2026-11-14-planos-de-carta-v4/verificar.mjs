@@ -134,7 +134,7 @@ ok(th0.includes('Hoy frena') && th0.includes('Disco de la base') && /23 restaura
 ok((await texto(p, '#hisW')).includes('Hoy nada limpia el historial'), 'capítulo 7: dice que hoy nada limpia el historial');
 ok(th0.includes('Restaurantes que caben por disco') && th0.includes('279') && th0.includes('15'), 'capítulo 7: la curva del disco contra los meses guardados');
 ok(/74 y 296/.test(await texto(p, '#svM')) || /74–296/.test(th0), 'capítulo 7: el margen ±2× del procesador a la vista');
-ok((await p.evaluate(() => document.querySelector('#svM [data-rec="procesador"]').getAttribute('data-tip'))).includes('1,800 visitas'), 'capítulo 7: el restaurante típico en el hover de cada cifra');
+ok((await p.evaluate(() => document.querySelector('#svM [data-rec="procesador"]').getAttribute('data-tip'))).includes('lleno'), 'capítulo 7: el hover de cada medidor dice cuánto está lleno');
 const kpf = await texto(p, '#kpis');
 ok(kpf.includes('23') && kpf.includes('279') && kpf.includes('sin purga'), 'cifras fijas: «23 sin purga» y «279 con 30 días»');
 ok(/20,024|\+\$20,0/.test(await p.evaluate(() => document.querySelector('[data-kpi="margen"]').getAttribute('data-tip') + document.querySelector('[data-kpi="margen"]').textContent)), 'cifras fijas: el margen recomendado es +$20,024 (r8)');
@@ -188,12 +188,12 @@ ok((await p.$$('#svT [id], #svT .rm')).length > 20 && (await texto(p, '#svT')).i
 if (png) await p.screenshot({ path: `${png}/v5_topes.png` });
 const t6 = await texto(p, '#svT');
 ok(t6.includes('dos muestras') && t6.includes('sesgos opuestos'), 'topes: la marca del platillo dice «dos muestras, sesgos opuestos»');
-ok(/\d+\.\d–\d+\.\d % se queda en Chef/.test(t6), 'topes: «se queda en Chef» es una banda entre las dos cotas');
+ok(/\d+\.\d–\d+\.\d % de 0 a 5 se queda en Chef/.test(t6), 'topes: «se queda en Chef» es una banda entre las dos cotas');
 await p.evaluate(() => cambiar({ topeMesas: 6, topeCuentas: 1, topePlatillos: 150, platSel: 'todo' })); await p.waitForTimeout(400);
 const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP); return [c.todo.baja, c.todo.alta, c.comida.baja, c.comida.alta].map((v) => +(100 * v).toFixed(1)); });
 ok(cobT.join() === '20.6,38.9,39.7,38.9', 'topes: cobertura de Chef (6 mesas, 1 cuenta, 150 platillos): todo 20.6 / 38.9, sólo comida 39.7 / 38.9 (' + cobT.join(' ') + ')');
 await p.click('#platSel [data-ps="comida"]'); await p.waitForTimeout(500);
-ok((await p.evaluate(() => S.platSel)) === 'comida' && (await texto(p, '#svT')).includes('38.9–39.7'), 'topes: «sólo comida» cierra la banda a 38.9–39.7');
+ok((await p.evaluate(() => S.platSel)) === 'comida' && (await texto(p, '#svT')).includes('48.4–49.4'), 'topes: «sólo comida» cierra la banda a 48.4–49.4');
 await p.click('#platSel [data-ps="sin"]'); await p.waitForTimeout(500);
 ok((await p.evaluate(() => config(S).topes.gratuito.platillos)) === Infinity && (await texto(p, '#svT')).includes('sin tope'), 'topes: «sin tope» deja los platillos sin límite');
 await p.click('#platSel [data-ps="todo"]'); await p.waitForTimeout(300);
@@ -333,6 +333,36 @@ const fuera = async (q, etiqueta) => {
   });
   ok(malos.length === 0, `${etiqueta}: texto dentro de su caja ${malos.slice(0, 4).join(' | ')}`);
 };
+/* hovers: ningún panel pasa de 25 palabras; cada cifra grande sale del modelo o del capítulo; el panel cabe en pantalla */
+async function revisaHovers(q, alcance, et) {
+  const r = await q.evaluate((sel) => {
+    const raiz = document.querySelector(sel) || document;
+    const tips = [...raiz.querySelectorAll('[data-tip]')];
+    const largos = [], sinOrigen = [];
+    const nums = new Set();
+    const junta = (t) => (String(t).match(/-?\d[\d,]*\.?\d*/g) || []).forEach((x) => { const v = parseFloat(x.replace(/,/g, '')); if (!isNaN(v)) { nums.add(Math.round(v)); nums.add(Math.round(v * 10) / 10); nums.add(Math.round(v * 100) / 100); } });
+    junta(document.body.textContent);
+    try { junta(JSON.stringify(SP)); junta(JSON.stringify(D)); junta(JSON.stringify(MOD.resumen(config(S), sup(S)))); junta(JSON.stringify(MOD.desgloses(config(S), sup(S), 1000))); junta(JSON.stringify(MOD.recursos(config(S), sup(S), 'hoy'))); } catch (e) { /* sin modelo: sólo el texto */ }
+    const vistos = new Set();
+    tips.forEach((e) => {
+      const t = e.dataset.tip; if (vistos.has(t)) return; vistos.add(t);
+      const partes = t.split('|'), palabras = (partes[0] + ' ' + (partes[1] || '') + ' ' + partes.slice(2).join(' ')).trim().split(/\s+/).length;
+      if (palabras > 25) largos.push(palabras + ': ' + t.slice(0, 60));
+      (partes[1] || '').match(/\d[\d,]{3,}(\.\d+)?/g)?.forEach((x) => { const v = parseFloat(x.replace(/,/g, '')); if (!nums.has(v) && !nums.has(Math.round(v))) sinOrigen.push(x + ' en «' + partes[0].slice(0, 30) + '»'); });
+    });
+    return { n: vistos.size, largos, sinOrigen };
+  }, alcance);
+  ok(r.largos.length === 0, `${et}: ningún panel pasa de 25 palabras ${r.largos.slice(0, 3).join(' | ')}`);
+  ok(r.sinOrigen.length === 0, `${et}: cada cifra grande de un panel sale del modelo o del capítulo ${r.sinOrigen.slice(0, 3).join(' | ')}`);
+  const cab = await q.evaluate((sel) => {
+    const raiz = document.querySelector(sel) || document, malos = [], vistos = new Set();
+    const els = [...raiz.querySelectorAll('[data-tip]')].filter((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && b.bottom > 0 && b.top < innerHeight && !vistos.has(e.dataset.tip) && vistos.add(e.dataset.tip); }).slice(0, 14);
+    const tt = document.getElementById('tt');
+    els.forEach((e) => { e.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })); const b = tt.getBoundingClientRect(); if (tt.hidden || b.left < -1 || b.top < -1 || b.right > innerWidth + 1 || b.bottom > innerHeight + 1) malos.push((e.dataset.tip || '').slice(0, 30)); });
+    tt.hidden = true; return { n: els.length, malos };
+  }, alcance);
+  ok(cab.malos.length === 0, `${et}: el panel cabe en pantalla (${cab.n} probados) ${cab.malos.slice(0, 3).join(' | ')}`);
+}
 async function pasada(w, h, bloqueadas) {
   const ctx = await nav.newContext({ viewport: { width: w, height: h } });
   if (bloqueadas) { await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort()); await ctx.addInitScript(() => { document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = '*{font-family:Arial,Helvetica,sans-serif!important}'; document.head.appendChild(s); }); }); }
@@ -341,17 +371,17 @@ async function pasada(w, h, bloqueadas) {
   q.on('pageerror', (e) => errores.push(`${w}: ${String(e.stack).split('\n').slice(0, 2).join(' | ')}`));
   await q.goto(url); await q.evaluate(() => document.fonts.ready);
   const et = `${w}×${h}${bloqueadas ? ' sin fuentes' : ''}`;
-  await sinDesborde(q, `${et} portada`); await fuera(q, `${et} portada`);
+  await sinDesborde(q, `${et} portada`); await fuera(q, `${et} portada`); await revisaHovers(q, '#kpis', `${et} cifras de arriba`);
   if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_portada.png`, fullPage: true });
   const ids = await q.$$eval('.cap', (b) => b.map((x) => x.dataset.cap));
   for (const id of ids) {
     await q.evaluate((i) => document.getElementById('cap-' + i).scrollIntoView(), id); await q.waitForTimeout(w < 600 ? 500 : 900);
-    await sinDesborde(q, `${et} ${id}`); await fuera(q, `${et} ${id}`);
+    await sinDesborde(q, `${et} ${id}`); await fuera(q, `${et} ${id}`); await revisaHovers(q, '#cap-' + id, `${et} ${id}`);
     if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_${id}.png` });
   }
   await ctx.close();
 }
-for (const [w, h] of [[1920, 1080], [1366, 768], [1280, 720], [390, 844]]) await pasada(w, h, false);
+for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [768, 1024], [390, 844]]) await pasada(w, h, false);
 await pasada(1440, 900, true);
 await pasada(1280, 720, true);
 await nav.close();

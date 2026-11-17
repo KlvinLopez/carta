@@ -7,7 +7,7 @@ DET.linea = {
   nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea». La tira de sitios sale de la muestra de las 17 zonas metropolitanas (166 sitios declarados en el DENUE, 200 intentos de lectura, 16 de noviembre de 2026; controles del marco en muestra-500-cartas §14, con sus datos en muestra-denue-descartes.csv y muestra-denue-control-dns.csv): fuera de esas zonas no se midió y no hay cifra nacional ni para el núcleo.",
   montar(host) {
     this.sel = 0;
-    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 500" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 530" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
     this.pintaSitios();
     const svg = $("#svLinea", host); this.rm = RM(svg); this.svg = svg;
     const elige = ev => { const t = ev.target.closest("[data-i]"); if (t && +t.dataset.i !== this.sel) { this.sel = +t.dataset.i; refrescar(); } };
@@ -31,14 +31,19 @@ DET.linea = {
     $("#svSitios").innerHTML = b;
   },
   actualizar() {
-    const rm = this.rm, X0 = 216, W = 290, Y0 = 134, RH = 46, sel = this.sel, cfg = config(S), wi = W * M.usa_internet_pct / 100, wc = wi * M.celular_pct / 100;
+    const rm = this.rm, X0 = 216, W = 290, Y0 = 160, RH = 46, sel = this.sel, cfg = config(S), wi = W * M.usa_internet_pct / 100, wc = wi * M.celular_pct / 100;
     rm.put("gl0", "text", {x: X0 - 12, y: 36, text: "Mexicanos que usan internet", size: 13, weight: 700, fill: C.vino, anchor: "end"});
-    rm.put("g0", "rect", {x: X0, y: 16, w: wi, h: 28, rx: 14, fill: C.vino, grow: false});
+    rm.put("g0", "rect", {x: X0, y: 16, w: wi, h: 28, rx: 14, fill: C.vino, grow: false, attrs: {"data-tip": `Usan internet|${M.usa_internet_pct} %|De los mexicanos de 6 años o más (ENDUTIH 2024).`, "data-tipp": M.usa_internet_pct / 100}});
     rm.put("gv0", "text", {x: X0 + wi + 12, y: 36, text: `${M.usa_internet_pct} %`, size: 16, weight: 700, fill: C.vino});
     rm.put("gl1", "text", {x: X0 - 12, y: 64, text: "…y de ellos, desde el celular", size: 13, fill: C.t2, anchor: "end"});
-    rm.put("g1", "rect", {x: X0, y: 48, w: wc, h: 22, rx: 11, fill: C.vino2 || "#6b2d3e", grow: false});
+    rm.put("g1", "rect", {x: X0, y: 48, w: wc, h: 22, rx: 11, fill: C.vino2 || "#6b2d3e", grow: false, attrs: {"data-tip": `Se conectan desde el celular|${Math.round(M.celular_pct)} %|De quienes usan internet; es el equipo que más usan.`, "data-tipp": M.celular_pct / 100}});
+    // cómo se conectan desde el celular (ENDUTIH 2024): un tramo sólo wifi depende de la red del restaurante
+    { const tc = SP.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente, tr = [["solo_wifi", "Sólo wifi", C.rojo, "1 de cada 6 sólo tiene wifi: depende de la red del restaurante."], ["ambos", "Wifi y datos", C.vino, "Pueden pedir aunque el wifi del restaurante falle."], ["solo_datos_moviles", "Sólo datos móviles", C.azul, "No dependen del wifi, pero sí de su plan de datos."]];
+      rm.put("gl2", "text", {x: X0 - 12, y: 90, text: "cómo se conectan desde el celular", size: 12.5, fill: C.t2, anchor: "end"});
+      let xx = X0; tr.forEach(([k, nom, col, fr], q) => { const w = wc * tc[k]; rm.put("gt" + q, "rect", {x: xx, y: 76, w, h: 18, rx: q === 0 ? 9 : 3, fill: col, grow: false, attrs: {"data-tip": `${nom}|${n(100 * tc[k], 1)} %|${fr}`, "data-tipp": tc[k]}}); if (w > 44) rm.put("gtv" + q, "text", {x: xx + w / 2, y: 89, text: `${n(100 * tc[k], 0)} %`, size: 11.5, weight: 700, fill: "#fff", anchor: "middle"}); xx += w; });
+      rm.put("gtn", "text", {x: X0 + wc + 12, y: 89, text: `${n(100 * tc.solo_wifi, 0)} % sólo wifi`, size: 12.5, weight: 700, fill: C.rojo}); }
     rm.put("gv1", "text", {x: X0 + wc + 12, y: 64, text: `${Math.round(M.celular_pct)} % de ellos`, size: 13, weight: 700, fill: C.t2});
-    rm.put("t2", "text", {x: 30, y: 100, text: "Negocios que declaran sitio web, por tamaño (personas ocupadas)", size: 14, weight: 700, fill: C.dorado});
+    rm.put("t2", "text", {x: 30, y: 136, text: "Negocios con sitio web, por tamaño (personas)", size: 14, weight: 700, fill: C.dorado});
     M.estratos.forEach((e, i) => {
       const y = Y0 + i * RH, on = i === sel, op = on ? 1 : 0.62;
       if (on) rm.put("band", "rect", {x: 20, y: y - 6, w: 560, h: RH - 4, rx: 14, fill: C.a2, grow: false});
@@ -51,22 +56,22 @@ DET.linea = {
     // la línea de referencia: va encima de las barras y sube hasta tocar la barra de los mexicanos que usan internet
     rm.put("ref", "rect", {x: X0 + wi - 1.25, y: 44, w: 2.5, h: Y0 + RH * 7 - 6 - 44, rx: 1.2, fill: C.vino, grow: false, op: 0.6});
     // corchetes: a qué plan le toca cada tamaño y cuánto representaría si todos pagaran
-    const grupos = []; SEG.estratos.forEach((q, i) => { const p = planDe(q, cfg), u = grupos[grupos.length - 1]; if (u && u.p === p) { u.f = i; u.neg += q.negocios; } else grupos.push({p, i, f: i, neg: q.negocios}); });
     const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio];
+    const enChef = chef05(cfg), n0 = SEG.estratos[0].negocios * enChef, gr = [{p: 0, i: 0, f: 0, neg: n0}, {p: 1, i: 1, f: SEG.estratos.length - 1, neg: totN - n0}];
     for (let g = 0; g < 2; g++) {
-      const u = grupos.find(z => z.p === g), y1 = u ? Y0 + u.i * RH - 2 : 0, y2 = u ? Y0 + (u.f + 1) * RH - 10 : 0, col = COLPLAN[g];
-      rm.put("bk" + g, "rect", {x: 590, y: y1, w: u ? 6 : 0, h: u ? y2 - y1 : 0, rx: 3, fill: col, grow: false});
-      rm.put("bkt" + g, "rect", {x: 590, y: y1, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
-      rm.put("bkb" + g, "rect", {x: 590, y: y2 - 6, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
-      const ym = u ? (y1 + y2) / 2 : 0;
-      rm.put("bn" + g, "text", {x: 618, y: ym - 14, text: u ? NOMPLAN[g] : "", size: 17, fill: col, serif: true});
-      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: u ? `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %` : "", size: 12.5, weight: 700, fill: C.tinta});
-      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: u ? (g === 0 ? "gratis: lleva anuncios" : `si todos pagaran: $${n(u.neg * precio[g] / 1e6, 1)} M al mes`) : "", size: 12, fill: C.t2});
+      const u = gr[g], y1 = Y0 + u.i * RH - 2, y2 = Y0 + (u.f + 1) * RH - 10, col = COLPLAN[g];
+      rm.put("bk" + g, "rect", {x: 590, y: y1, w: 6, h: y2 - y1, rx: 3, fill: col, grow: false});
+      rm.put("bkt" + g, "rect", {x: 590, y: y1, w: 14, h: 6, rx: 3, fill: col, grow: false});
+      rm.put("bkb" + g, "rect", {x: 590, y: y2 - 6, w: 14, h: 6, rx: 3, fill: col, grow: false});
+      const ym = (y1 + y2) / 2;
+      rm.put("bn" + g, "text", {x: 618, y: ym - 14, text: NOMPLAN[g], size: 17, fill: col, serif: true});
+      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %`, size: 12.5, weight: 700, fill: C.tinta, attrs: {"data-tip": `${NOMPLAN[g]}|${n(u.neg)} negocios|${g === 0 ? `Cabe en ${S.topeMesas} mesas y ${S.topeCuentas} ${S.topeCuentas === 1 ? "cuenta" : "cuentas"}: ≈ ${n(100 * enChef)} % de los de 0 a 5 personas (modelo).` : `Si todos pagaran ${mxn(precio[g])}: $${n(u.neg * precio[g] / 1e6, 1)} M al mes.`}`, "data-tipp": u.neg / totN}});
+      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: g === 0 ? "0 a 5 personas; con anuncios" : `si todos pagaran: $${n(u.neg * precio[g] / 1e6, 1)} M al mes`, size: 12, fill: C.t2});
     }
     // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
     const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 820;
-    rm.put("pn", "rect", {x: px, y: 84, w: 270, h: 410, rx: 24, fill: C.a2, grow: false});
-    const g = rm.put("ej", "g", {x: px + 3, y: 92});
+    rm.put("pn", "rect", {x: px, y: 110, w: 270, h: 410, rx: 24, fill: C.a2, grow: false});
+    const g = rm.put("ej", "g", {x: px + 3, y: 118});
     if (this.ult !== sel) { this.ult = sel; g.innerHTML = escena(tipo); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
     rm.put("e0", "text", {x: px + 18, y: 306, text: ejem, size: 13.5, weight: 700, fill: C.osc});
     rm.put("e1", "text", {x: px + 18, y: 354, text: `${n(e.pct_sitio, 1)} %`, size: 46, fill: C.vino, serif: true});
@@ -79,7 +84,7 @@ DET.linea = {
       leyenda: `<span><i style="background:${C.dorado}"></i>negocios con sitio web</span><span><i style="background:${C.vino}"></i>límite: lo que ya hace el comensal</span>${COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("")}`,
       cifras: [[n(100 * con / tot, 1) + " %", `de los ${n(tot)} negocios de menos de 31 personas declara sitio`], [n(M.estratos[2].pct_sitio, 1) + " %", "de los de 11 a 30 personas: el tramo chico que más declara"], [n(M.micro_con_sitio_pct, 1) + " %", `de ${n(M.micro_n)} micronegocios de comida declara sitio`]],
       puntos: [
-        `Casi todos los comensales usan celular (${Math.round(M.celular_pct)} %): el menú por QR llega a donde ya están.`,
+        `Casi todos los comensales usan celular (${Math.round(M.celular_pct)} %), pero 1 de cada 6 sólo tiene wifi: depende de la red del restaurante.`,
         `Los clientes más fáciles de sumar, gratis y de boca en boca: la fonda familiar y la taquería de barrio (0 a 5 personas) y el restaurante de barrio con 8 a 10 mesas. Por debajo de 31 personas declaran sitio ${n(100 * con / tot, 1)} de cada 100; de 11 a 30, ${n(M.estratos[2].pct_sitio / 10, 1)} de cada 10.`,
         "Los demás costarán más trabajo, conforme el producto demuestre su valor a bajo costo.",
       ],
@@ -145,12 +150,12 @@ DET.matriz = {
       if (f.nombre === "Meniu Business") rm.put("rm" + i, "rect", {x: 14, y: y + 1, w: visible ? 1072 : 0, h: RH - 2, rx: 10, fill: "rgba(184,134,11,.18)", grow: false, op});
       rm.put("rl" + i, "text", {x: xp - 12, y: y + 19, text: f.nombre + " " + f.plan, size: 12.5, weight: 700, fill: C.tinta, anchor: "end", op});
       rm.put("rx" + i, "rect", {x: 0, y: y + 3, w: visible ? xp - 8 : 0, h: 22, rx: 8, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-a": "fila:" + i, "data-tip": "Toca para ocultar esta fila", role: "button", tabindex: 0}});
-      rm.put("pb" + i, "rect", {x: xp, y: y + 5, w: this.sinPrecio || !visible ? 0 : Math.max(6, wp * f.precio / maxp), h: 18, rx: 6, fill: calor(f.precio), op, title: mxn(f.precio) + " al mes"});
+      rm.put("pb" + i, "rect", {x: xp, y: y + 5, w: this.sinPrecio || !visible ? 0 : Math.max(6, wp * f.precio / maxp), h: 18, rx: 6, fill: calor(f.precio), op, attrs: {"data-tip": `${f.nombre} ${f.plan}|${mxn(f.precio)} al mes|Precio público en su página.`, "data-tipp": clamp(f.precio / maxp, 0, 1)}});
       rm.put("pt" + i, "text", {x: xp + 6, y: y + 19, text: this.sinPrecio ? "" : mxn(f.precio), size: 11.5, weight: 700, fill: f.precio / maxp > 0.45 ? "#fff" : C.tinta, op});
       MX.trabajos.forEach((t, j) => {
         const c = f.celdas[j], oc = this.oculC.has(j), x = xj + cols.indexOf(j) * cw, show = visible && !oc;
         const fill = c === "si" ? C.vino : c === "no" ? C.arena : "rgba(0,0,0,0)";
-        rm.put(`c${i}_${j}`, "rect", {x: x, y: y + 4, w: show ? cw - 10 : 0, h: 20, rx: 7, fill, stroke: c === "np" ? C.gris : "rgba(0,0,0,0)", sw: 1.4, dash: "3 3", op, title: `${f.nombre} ${f.plan} · ${t}: ${c === "si" ? "lo incluye" : c === "no" ? "la página dice que no" : "no publicado"}`});
+        rm.put(`c${i}_${j}`, "rect", {x: x, y: y + 4, w: show ? cw - 10 : 0, h: 20, rx: 7, fill, stroke: c === "np" ? C.gris : "rgba(0,0,0,0)", sw: 1.4, dash: "3 3", op, attrs: {"data-tip": `${t}|${c === "si" ? "lo incluye" : c === "no" ? "la página dice que no" : "no publicado"}|${f.nombre} ${f.plan}.`}});
       });
       const r = cob(f) / Math.max(cols.length, 1);
       rm.put("cb" + i, "rect", {x: xc, y: y + 8, w: visible ? 80 * r : 0, h: 12, rx: 6, fill: colCob(r), op});
@@ -167,7 +172,7 @@ DET.matriz = {
     MX.trabajos.forEach((t, j) => {
       const oc = this.oculC.has(j), x = xj + cols.indexOf(j) * cw;
       const estado = j === 0 ? "hoy" : j <= 3 ? "fut" : "def";
-      rm.put("cc" + j, "rect", {x: x, y: yc + 6, w: oc ? 0 : cw - 10, h: 20, rx: 7, fill: estado === "hoy" ? C.dorado : "rgba(0,0,0,0)", stroke: estado === "hoy" ? "rgba(0,0,0,0)" : C.dorado, sw: estado === "fut" ? 2.2 : 1.4, dash: estado === "def" ? "2 4" : "", op: estado === "def" ? 0.8 : 1, title: `Carta · ${t}: ${estado === "hoy" ? "en producción" : estado === "fut" ? "Fase 3, aún no construida" : "fase futura, por definir"}`});
+      rm.put("cc" + j, "rect", {x: x, y: yc + 6, w: oc ? 0 : cw - 10, h: 20, rx: 7, fill: estado === "hoy" ? C.dorado : "rgba(0,0,0,0)", stroke: estado === "hoy" ? "rgba(0,0,0,0)" : C.dorado, sw: estado === "fut" ? 2.2 : 1.4, dash: estado === "def" ? "2 4" : "", op: estado === "def" ? 0.8 : 1, attrs: {"data-tip": `Carta · ${t}|${estado === "hoy" ? "en producción" : estado === "fut" ? "Fase 3, sin construir" : "fase futura"}|${estado === "def" ? "Por definir." : "Lo que Carta ofrece en esta función."}`}});
     });
     const defCols = FUT_DEF.filter(j => !this.oculC.has(j)).map(j => cols.indexOf(j));
     rm.put("br", "line", {x1: defCols.length ? xj + defCols[0] * cw : 0, y1: yc + 36, x2: defCols.length ? xj + defCols[defCols.length - 1] * cw + cw - 10 : 0, y2: yc + 36, stroke: C.dorado, sw: 2});
