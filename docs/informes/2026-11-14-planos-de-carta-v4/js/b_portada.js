@@ -16,7 +16,7 @@ const KPIS = [
   {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
   {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
   {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga", solo: true, nota: "Master Chef: lo que paga cada cliente de paga al mes; cambia con el precio, no con el escenario."},
-  {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes (historial a 30 días)", especial: "margen"},
+  {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: `de margen al mes con ${n(N_REF)} restaurantes (historial a 30 días)`, especial: "margen"},
 ];
 function pintaKpis() {
   const r = resumenS(S), html = KPIS.map(k => {
@@ -29,7 +29,7 @@ function pintaKpis() {
       sostiene: {t: "Gratuitos por cliente de paga", f: "Cuántos gratuitos cubre lo que deja un cliente de paga, sin contar anuncios.", v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)])},
       anuncios: {t: "Anuncios por cliente gratuito", f: "Lo que deja cada gratuito al mes en anuncios; en el peor escenario no hay ninguno.", v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)])},
       ingreso: {t: "Ingreso por cliente de paga", f: "Lo que paga cada cliente de Master Chef al mes; cambia con el precio, no con el escenario."},
-      margen: {t: "Margen de operación al mes", f: `Con 1,000 restaurantes, sin captación ni sueldos; sin purga del historial: ${sinP >= 0 ? "+" : ""}${mp(sinP)}.`, v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)], ["estrés", c.piso_de_verdad, k.f(c.piso_de_verdad)])},
+      margen: {t: "Margen de operación al mes", f: `Con ${n(N_REF)} restaurantes, sin captación ni sueldos; sin purga del historial: ${sinP >= 0 ? "+" : ""}${mp(sinP)}.`, v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)], ["estrés", c.piso_de_verdad, k.f(c.piso_de_verdad)])},
     }[k.id];
     const tip = `${PANEL.t}|${k.f(c.recomendado)}|${PANEL.f}`, tipv = PANEL.v ? ` data-tipv="${esc(PANEL.v)}"` : "";
     const kb = v => k.f(v).replace(" MXN", "");
@@ -62,7 +62,7 @@ const CAJAS = [
   {id: "topes", q: "¿A quién deja dentro cada tope?", c: () => `Dentro del plan ${PLAN.gratis}: ${dentroTxt(motor(S))}.`},
   {id: "precio", q: "¿Cuánto se cobra frente a la competencia?", c: () => `${PLAN.paga} a ${mxn(S.precioServicio)}.`},
   {id: "pagar", q: "¿Cuánto puede pagar un restaurante?", c: () => `${(100 * S.precioServicio / D.inegi_tamano[1].ingreso).toFixed(2)} % del ingreso de uno de 11 a 50 personas.`},
-  {id: "sostiene", q: "¿Cómo se sostiene?", c: () => { const m = motor(S); return `${mp(m.margen)} al mes de margen con 1,000 restaurantes.`; }},
+  {id: "sostiene", q: "¿Cómo se sostiene?", c: () => { const m = motor(S); return `${mp(m.margen)} al mes de margen con ${n(N_REF)} restaurantes.`; }},
 ];
 const RECS_CORTO = ["Master Chef a 225 MXN", "Chef gratis: 25 mesas, 4 cuentas", "12 meses de historial para Master Chef", "Soporte por WhatsApp: 60 MXN", "Anuncios en Chef desde el mes 9"];
 function pintaCajas() {

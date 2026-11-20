@@ -131,7 +131,7 @@ DET.sostiene = {
   v2() { // a dónde se va cada 100 pesos
     const sv = this.sv, X0 = 150, W = 640, esc = 100;
     const casos = [["peor", "Peor", C.rojo], ["rec", "Recomendado", C.vino], ["mejor", "Mejor", C.verde]];
-    let b = T(30, 28, "De cada 100 MXN que entran, a dónde se van (1,000 restaurantes)", 14.5, C.vino, "start", 700);
+    let b = T(30, 28, `De cada 100 MXN que entran, a dónde se van (${n(N_REF)} restaurantes)`, 14.5, C.vino, "start", 700);
     const filas = casos.map(([k, nm, col]) => { const e = ev3(S, k, 1000), t = e.ingresos.total || 1, p = v => 100 * v / t; return {k, nm, col, e, t, partes: [["Servidor", p(e.costos.servidor + e.costos.almacenamiento + e.costos.objetos), "#b9afa3"], ["Soporte", p(e.costos.soporte), "#d9cfc2"], ["Comisión", p(e.costos.comision), "#c9a9a6"], ["Reponer bajas", p(e.captacion.reposicion_de_bajas), C.arena]], mo: p(e.margen_operacion), mc: p(e.margen_despues_de_captacion), mn: p(e.margen_neto)}; });
     const mx = Math.max(100, ...filas.map(f => f.partes.reduce((a, q) => a + q[1], 0))), K = W / mx;
     b += `<rect x="${X0 + esc * K - 1}" y="52" width="2.4" height="${60 + filas.length * 118}" fill="${C.tinta}" opacity=".5"/>` + T(X0 + esc * K, 46, "100 MXN", 12, C.tinta, "middle", 700);
@@ -159,7 +159,7 @@ DET.sostiene = {
     const ads = [["Sin anuncios", {sinAnuncios: true}], ["Tarifa baja", {anuncios: {activo: true, tarifa: "baja"}}], ["Tarifa media", {anuncios: {activo: true, tarifa: "media"}}]];
     const v = MOD.matrizEscenarios(c, s, 1000).filas.map(f => f.celdas.map(z => z.margen_operacion));
     const mxp = Math.max(...v.flat()), mxn2 = Math.max(1, -Math.min(...v.flat()));
-    let b = T(30, 28, "Margen de operación al mes con 1,000 restaurantes (pesos)", 14.5, C.vino, "start", 700);
+    let b = T(30, 28, `Margen de operación al mes con ${n(N_REF)} restaurantes (pesos)`, 14.5, C.vino, "start", 700);
     ads.forEach(([t], j) => { b += T(X0 + j * CW + CW / 2 - 6, Y0 - 16, t, 14, C.vino, "middle", 700); });
     curvas.forEach(([, t], i) => {
       b += T(X0 - 16, Y0 + i * CH + CH / 2 + 5, t, 14, C.vino, "end", 700);
@@ -295,7 +295,7 @@ DET.recomendaciones = {
       $("#r_" + r.id).innerHTML = `<div class="num">${k + 1}</div><h3>${esc(tj.que)}</h3><div class="por"><b>${esc(cif)}</b><span>${esc(sub)}</span></div><div class="si"><i>${r.id === "tope_platillos" ? "Qué mueve" : "Si no"}</i>${esc(tj.si())}</div>${r.id === "tope_platillos" ? opcionesPlatillos() : ""}<div class="acc2">${pr ? `<button class="btn${on ? " on" : ""}" data-aplica='${JSON.stringify(pr)}'>${on ? "✓ aplicado" : "Aplicar al escenario"}</button>` : ""}<button class="btn" data-mas="${r.id}" aria-expanded="false">ver más ›</button></div><div id="mas_${r.id}" hidden><div class="tarjetas" style="margin-top:10px">${r.alternativas.map(op).join("")}</div><div class="ejemplo"><b>Con un restaurante concreto:</b> ${esc(sinMd(r.ejemplo))}</div><div class="ejemplo" style="background:#f6e4e4"><b>De qué depende:</b> ${esc(sinMd(r.depende))}</div><p style="font-size:13px"><b>Prueba que lo cambiaría:</b> ${esc(sinMd(r.prueba))}</p></div>`;
     });
     const m = motor(S);
-    return {cifras: [[n(m.caben), "restaurantes caben con lo aplicado"], [mxn(S.precioServicio), "Master Chef al mes", "propuesta"], [mp(m.margen), "margen de operación con 1,000 restaurantes", "supuesto"], [emTxt(m), "se pasa del plan Chef", "supuesto"]], insight: "Aplica una y las cifras de arriba cambian: lo recomendado es el punto de partida."};
+    return {cifras: [[n(m.caben), "restaurantes caben con lo aplicado"], [mxn(S.precioServicio), "Master Chef al mes", "propuesta"], [mp(m.margen), `margen de operación con ${n(N_REF)} restaurantes`, "supuesto"], [emTxt(m), "se pasa del plan Chef", "supuesto"]], insight: "Aplica una y las cifras de arriba cambian: lo recomendado es el punto de partida."};
   },
 };
 

@@ -210,7 +210,7 @@ DET.matriz = {
       cifras: [["9 de 12", "funciones cubre Meniu Business por 225 MXN al mes"], ["0 de 10", "planes leídos que publican el pedido en grupo"], [mxn(S.precioServicio), "Master Chef de Carta en el escenario activo", "propuesta"]],
       puntos: [
         "Meniu Business es el competidor principal: cubre 9 de 12 funciones por 225 MXN al mes.",
-        "Waitry Premium, el más caro (1,243 MXN) y con menos cobertura, no preocupa.",
+        `Waitry Premium, el más caro (${mxn(MX.filas.find(f => f.nombre === "Waitry").precio)}) y con menos cobertura, no preocupa.`,
         "Las capas gratuitas (Neolo, Loyverse) sirven para ubicar la nuestra: ninguna publica pedir en grupo.",
       ],
     };

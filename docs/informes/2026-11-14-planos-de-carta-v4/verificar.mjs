@@ -215,7 +215,7 @@ await sinDesborde(p, 'capítulo 2 (ingreso por tamaño)'); await cierra(p);
 
 // el control del tope de platillos ofrece las cuatro opciones
 await abre(p, 'topes');
-for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForTimeout(300); ok((await texto(p, '#svT')).includes(String(v)), 'capítulo 6: el control marca ' + v + ' platillos'); }
+for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForFunction((x) => document.querySelector('#svT') && document.querySelector('#svT').textContent.includes(String(x)), v, { timeout: 5000 }); ok((await texto(p, '#svT')).includes(String(v)), 'capítulo 6: el control marca ' + v + ' platillos'); }
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 await cierra(p);
 
@@ -465,6 +465,17 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390,
   ok(n >= 24 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos fuera del cuadro ni encimados ` + mal.slice(0, 3).join('; '));
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
+// cifras a mano: ninguna de estas literales vive en los js (salen del modelo, de los parámetros o de los datos)
+{ const { readFileSync, readdirSync } = await import('node:fs'); const dir = resolve(dirname(fileURLToPath(import.meta.url)), 'js');
+  const prohibidas = ['652 a 1,000', '(1,243 MXN)', '[0.23,', '≈ 3,000 y más', '≈ 0.4 pesos al año', '"7 días"'];
+  const halladas = readdirSync(dir).filter((f) => f.endsWith('.js')).flatMap((f) => { const t = readFileSync(resolve(dir, f), 'utf8'); return prohibidas.filter((x) => t.includes(x)).map((x) => f + ': ' + x); });
+  ok(halladas.length === 0, 'ninguna cifra a mano en js/ (salen del modelo o de los datos) ' + halladas.join(' | ')); }
+// lo que vuelve de localStorage se sanea: tipo y rango
+await p.evaluate(() => localStorage.setItem('carta-v8-escenario', JSON.stringify({ S: { topeMesas: 'x', topeCuentas: 9999, topePlatillos: 80, palancas: 'no', precioServicio: -5, __proto__: { a: 1 } } })));
+await p.reload(); await p.waitForTimeout(800);
+const san = await p.evaluate(() => ({ m: S.topeMesas === BASE.topeMesas, c: S.topeCuentas === BASE.topeCuentas, pl: S.topePlatillos, pa: Array.isArray(S.palancas), ps: S.precioServicio === BASE.precioServicio }));
+ok(san.m && san.c && san.pl === 80 && san.pa && san.ps, 'localStorage: lo inválido se descarta (tipo y rango) y lo válido se conserva');
+await p.evaluate(() => localStorage.removeItem('carta-v8-escenario')); await p.reload(); await p.waitForTimeout(600);
 ok(errores.length === 0, 'presentación: sin errores de consola ' + errores.slice(0, 2).join(' | '));
 if (png) { for (const [i, s] of [[1, 4], [2, 10], [3, 17.5], [4, 25], [5, 30], [6, 37], [7, 41.5], [8, 47.5], [9, 53], [10, 59], [11, 65.5], [12, 72], [13, 76.5], [14, 80.5], [15, 84], [16, 88], [17, 92]]) { await p.evaluate((t) => { tI = t * 1000; pintaIntro(); }, s); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v10_pelicula${i}.png` }); } }
 await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
@@ -495,7 +506,7 @@ async function revisaHovers(q, alcance, et) {
     const nums = new Set();
     const junta = (t) => (String(t).match(/-?\d[\d,]*\.?\d*/g) || []).forEach((x) => { const v = parseFloat(x.replace(/,/g, '')); if (!isNaN(v)) { nums.add(Math.round(v)); nums.add(Math.round(v * 10) / 10); nums.add(Math.round(v * 100) / 100); } });
     junta(document.body.textContent);
-    try { junta(JSON.stringify(SP)); junta(JSON.stringify(D)); junta(JSON.stringify(MOD.resumen(config(S), sup(S)))); junta(JSON.stringify(MOD.desgloses(config(S), sup(S), 1000))); junta(JSON.stringify(MOD.recursos(config(S), sup(S), 'hoy'))); junta(JSON.stringify(MOD.tablaSueldos(config(S), sup(S)))); junta(JSON.stringify(MOD.modelosDeIngreso(config(S), sup(S)))); junta(JSON.stringify(MOD.modeloDeNegocio(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialChef(config(S), sup(S)))); junta(JSON.stringify(MOD.meta12Meses(config(S), sup(S)))); junta(JSON.stringify(MOD.historiaDelDisco(config(S), sup(S)))); junta(JSON.stringify(MOD.visionV2(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialPorTramo(config(S), sup(S)))); } catch (e) { /* sin modelo: sólo el texto */ }
+    try { junta(JSON.stringify(SP)); junta(JSON.stringify(D)); junta(JSON.stringify(MOD.resumen(config(S), sup(S)))); junta(JSON.stringify(MOD.desgloses(config(S), sup(S), 1000))); junta(JSON.stringify(MOD.recursos(config(S), sup(S), 'hoy'))); junta(JSON.stringify(MOD.tablaSueldos(config(S), sup(S)))); junta(JSON.stringify(MOD.modelosDeIngreso(config(S), sup(S)))); junta(JSON.stringify(MOD.modeloDeNegocio(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialChef(config(S), sup(S)))); junta(JSON.stringify(MOD.meta12Meses(config(S), sup(S)))); junta(JSON.stringify(MOD.historiaDelDisco(config(S), sup(S)))); junta(JSON.stringify(MOD.visionV2(config(S), sup(S)))); junta(JSON.stringify(MOD.potencialPorTramo(config(S), sup(S)))); } catch (e) { return { modeloNoCargo: String(e && e.message || e) }; }
     const vistos = new Set();
     tips.forEach((e) => {
       const t = e.dataset.tip; if (vistos.has(t)) return; vistos.add(t);
@@ -505,6 +516,7 @@ async function revisaHovers(q, alcance, et) {
     });
     return { n: vistos.size, largos, sinOrigen };
   }, alcance);
+  if (r.modeloNoCargo) { ok(false, `${et}: el modelo no cargó (${r.modeloNoCargo}): no se pueden comparar las cifras`); return; }
   ok(r.largos.length === 0, `${et}: ningún panel pasa de 25 palabras ${r.largos.slice(0, 3).join(' | ')}`);
   ok(r.sinOrigen.length === 0, `${et}: cada cifra grande de un panel sale del modelo o del capítulo ${r.sinOrigen.slice(0, 3).join(' | ')}`);
   const cab = await q.evaluate((sel) => {
