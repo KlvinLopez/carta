@@ -91,6 +91,8 @@ const CAPAS = {
   "plato-mole": ["apoyo/cine/plato-mole.webp", 0, 0, 400, 400],
   "plato-res": ["apoyo/cine/plato-res.webp", 0, 0, 400, 400],
   "plato-flan": ["apoyo/cine/plato-flan.webp", 0, 0, 400, 400],
+  "plato-jamaica": ["apoyo/cine/plato-jamaica.webp", 0, 0, 400, 400],
+  "plato-limonada": ["apoyo/cine/plato-limonada.webp", 0, 0, 400, 400],
   "cerca-fondo": ["apoyo/cine/cerca-fondo.webp", 0, 0, 1920, 1080],
   "grano": ["apoyo/cine/grano.webp", 0, 0, 256, 256],
 };
@@ -116,7 +118,7 @@ const TOMAS = [
   /* C · Carta, en el mismo orden */
   ["escanea", 3, 7.5, [["hoy", "Entrar con el QR, sin descarga ni registro (capturas reales de la app, con datos de ejemplo)"]], ["Sin descarga.", "*Sin registro*."], "izq", 1.8],
   ["filtra", 3, 6.5, [["hoy", "Lo agotado se ve atenuado en la carta"], ["hoy", "Filtros de alérgenos que viven en tu teléfono (no sustituyen preguntar al personal)"], ["vis", "Una carta que aprende de tus visitas"]], ["~Antes: preguntar platillo por platillo.", "Lo que no comes,", "*fuera*."], "izq"],
-  ["top3", 3, 7, [["vis", "«Elegido para ti»"]], ["Elegido", "*para ti*."], "izq"],
+  ["top3", 3, 7.5, [["vis", "«Elegido para ti»"]], ["Elegido", "*para ti*."], "izq"],
   ["plato", 3, 6.5, [["vis", "El platillo como modelo que gira, con sus ingredientes"]], ["Sabe lo que", "*lleva*."], "izq"],
   ["agrega", 3, 4, [["f3", "Agregar platillos a la orden de la mesa"]], ["Directo a", "*tu mesa*."], "izq"],
   ["juntos", 4, 7, [["f3", "La mesa pide junta: cada quien ve lo de todos"]], ["~Antes: al tanteo.", "La mesa *pide junta*."], "hook", 1.4],
@@ -487,9 +489,9 @@ const pantallas = () => `
   <div class="clisto">${ico.ok}Listo: tu carta</div>
 </div>
 <div class="cs cx pTop3">${sb()}${cab(true)}
-  <div class="sec sx"><h4 class="sx0">Recomendado para ti <span class="es">✦</span></h4><h4 class="sx1">Platos fuertes</h4><h4 class="sx2">Postres</h4></div>
+  <div class="sec sx"><h4 class="sx0">Recomendado para ti <span class="es">✦</span></h4><h4 class="sx1">Platos fuertes</h4><h4 class="sx2">Postres</h4><h4 class="sx3">Bebidas</h4></div>
   <div class="porq">${ico.tel}Por lo que te gustó en otros lugares</div>
-  <div class="tira"><div class="rail">${cTarj("pescado", "Pescado a la talla", "$245", "Te gustó el zarandeado en El Faro")}${cTarj("aguachile", "Aguachile verde", "$210", "Pediste ceviche 3 veces")}${cTarj("ensalada", "Ensalada de betabel", "$140", "Sin lácteos, como te gusta")}${cTarj("res", "Arrachera", "$230", "Para compartir")}${cTarj("mole", "Mole negro", "$190", "Lleva cacahuate")}${cTarj("flan", "Flan de la casa", "$85", "El favorito de la casa")}</div></div>
+  <div class="tira"><div class="rail">${cTarj("pescado", "Pescado a la talla", "$245", "Te gustó el zarandeado en El Faro")}${cTarj("aguachile", "Aguachile verde", "$210", "Pediste ceviche 3 veces")}${cTarj("ensalada", "Ensalada de betabel", "$140", "Sin lácteos, como te gusta")}${cTarj("res", "Arrachera", "$230", "Para compartir")}${cTarj("mole", "Mole negro", "$190", "Lleva cacahuate")}${cTarj("flan", "Flan de la casa", "$85", "El favorito de la casa")}${cTarj("jamaica", "Agua de jamaica", "$45", "Hecha en casa")}${cTarj("limonada", "Limonada", "$45", "Con hierbabuena")}</div></div>
   <div class="sec"><h4>La carta</h4></div>
   <div class="cats"><span>Para empezar</span><span>Del mar</span><span>Postres</span></div>
   <div class="clista">${cRen("tacos", "Tacos de pescado", "$175")}${cRen("flan", "Flan de la casa", "$85")}</div>
@@ -669,7 +671,7 @@ function filmLinea() {
   const pantalla = (sel, t, d = 0.4) => entra(sel, t, d, {scale: 0.97}, {scale: 1});
   const pulsoQR = (t, n = 1) => tl.fromTo(q(".k-qr-brillo"), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1.25, duration: 0.55, yoyo: true, repeat: 2 * n - 1, ease: "sine.inOut", immediateRender: false}, t);
   /* estado inicial */
-  tl.set(q(".pfon, .k-ana-silla, .k-carlos-silla, .gp, .bz:not(.k-ana-brazo):not(.k-carlos-brazo):not(.k-mesero-brazos-carta):not(.k-sofia-brazos):not(.k-diego-brazos), .k-ticket, .k-pastel, .qlk, .qsel, .qinvS, .agQ .dedo, .lupa, .lmarca, .ctrazo, .cpluma, .cchip, .cs.pHola .tel, .pPlato .cing, .pPlato .reco, .pPlato .ficha h4, .pPlato .ficha .cpr, .sx1, .sx2, .noti, .marca b, .marca i, .marca span, .cinv, .cv1, .k-mesa, .k-montaje, .k-copa-a, .k-copa-c, .k-acrilico, .k-vela, .k-llama, .k-resplandor, .k-qr-brillo, .k-sucia-migas, .k-sucia-a, .k-sucia-c, .k-sucia-vaso, .k-platillo-a, .k-platillo-c, .k-nuevos, .buzz, .cerca, .pip, .agarre:not(.agP), .pan>.cs:not(.pMesa), .nom, .r, .r .cw, .globo, .estado, .resu, .reloj, .marca, .conf, .pbt, .pnota span, .mst i, .pbg, .pca, .pok"), {autoAlpha: 0}, 0);
+  tl.set(q(".pfon, .k-ana-silla, .k-carlos-silla, .gp, .bz:not(.k-ana-brazo):not(.k-carlos-brazo):not(.k-mesero-brazos-carta):not(.k-sofia-brazos):not(.k-diego-brazos), .k-ticket, .k-pastel, .qlk, .qsel, .qinvS, .agQ .dedo, .lupa, .lmarca, .ctrazo, .cpluma, .cchip, .cs.pHola .tel, .pPlato .cing, .pPlato .reco, .pPlato .ficha h4, .pPlato .ficha .cpr, .sx1, .sx2, .sx3, .noti, .marca b, .marca i, .marca span, .cinv, .cv1, .k-mesa, .k-montaje, .k-copa-a, .k-copa-c, .k-acrilico, .k-vela, .k-llama, .k-resplandor, .k-qr-brillo, .k-sucia-migas, .k-sucia-a, .k-sucia-c, .k-sucia-vaso, .k-platillo-a, .k-platillo-c, .k-nuevos, .buzz, .cerca, .pip, .agarre:not(.agP), .pan>.cs:not(.pMesa), .nom, .r, .r .cw, .globo, .estado, .resu, .reloj, .marca, .conf, .pbt, .pnota span, .mst i, .pbg, .pca, .pok"), {autoAlpha: 0}, 0);
   tl.set(q(".sala"), {autoAlpha: 1}, 0);
   tl.set(q(".globo"), {yPercent: -50}, 0); tl.set(q(".globo.gl-a"), {xPercent: -50, yPercent: -100}, 0); tl.set(q(".globo.gl-b"), {xPercent: -84, yPercent: -100}, 0); tl.set(q(".globo.gl-c"), {xPercent: -16, yPercent: -100}, 0);
   const TODOS = ".k-ana-silla, .k-carlos-silla, .gA, .gC, .gS, .gD, .k-mesa, .k-montaje, .k-copa-a, .k-copa-c, .k-acrilico, .k-vela, .k-llama, .k-resplandor";
@@ -739,8 +741,8 @@ function filmLinea() {
   habla(10, t + 0.8, t + 2.6, "ana", -6); inclina(".gA", 3, t + 0.8); inclina(".gA", 0, t + 2.5);
   habla(11, t + 2.7, t + 4.5, "diego", 5); inclina(".gD", -2, t + 2.7); inclina(".gD", 0, t + 4.4);
   lupa(1, t + 4.5, t + 9.0);
-  tl.set(q(".lpdf"), {scale: 0.57, x: 0, y: 0}, t + 4.4);
-  tl.to(q(".lpdf"), {scale: 1.5, x: -120, y: -150, duration: 0.8, ease: "power2.inOut"}, t + 5.3);
+  tl.set(q(".lpdf"), {scale: 1.05, x: -130, y: -10}, t + 4.4);
+  tl.to(q(".lpdf"), {scale: 1.6, x: -130, y: -170, duration: 0.8, ease: "power2.inOut"}, t + 5.3);
   tl.to(q(".lpdf"), {x: -470, y: -330, duration: 0.8, ease: "power2.inOut"}, t + 6.4);
   tl.to(q(".lpdf"), {x: -40, y: -430, duration: 0.9, ease: "power2.inOut"}, t + 7.5);
   habla(12, t + 4.9, t + 7.2, "carlos", 6); inclina(".gC", -3, t + 4.9); inclina(".gC", 0, t + 7.0);
@@ -831,10 +833,11 @@ function filmLinea() {
   const sec = (de, a, tt) => { tl.to(q(".sx" + de), {autoAlpha: 0, y: -10, duration: 0.25}, tt); tl.fromTo(q(".sx" + a), {autoAlpha: 0, y: 10}, {autoAlpha: 1, y: 0, duration: 0.3, immediateRender: false}, tt + 0.15); };
   const desliza = (x0, x1, riel, tt, d = 0.8) => { mueve(".agA", x0, 356, tt - 0.35, 0.3); tl.to(q(".agA .dedo"), {x: x1, duration: d, ease: "power2.inOut"}, tt); tl.to(q(".cs.pTop3 .rail"), {x: riel, duration: d, ease: "power2.inOut"}, tt); };
   tl.set(q(".cs.pTop3 .rail"), {x: 0}, t);
-  desliza(318, 110, -702, t + 1.0); sec(0, 1, t + 1.4); tl.to(q(".cs.pTop3 .porq"), {autoAlpha: 0, duration: 0.3}, t + 1.4);
-  desliza(318, 150, -1004, t + 2.3, 0.7); sec(1, 2, t + 2.6);
-  desliza(110, 330, 0, t + 3.7, 1.0); sec(2, 0, t + 4.2); tl.to(q(".cs.pTop3 .porq"), {autoAlpha: 1, duration: 0.3}, t + 4.4);
-  toca(".agA", 130, 300, t + 6.1);
+  desliza(318, 110, -702, t + 1.0, 0.7); sec(0, 1, t + 1.3); tl.to(q(".cs.pTop3 .porq"), {autoAlpha: 0, duration: 0.3}, t + 1.3);
+  desliza(318, 130, -1170, t + 2.1, 0.7); sec(1, 2, t + 2.4);
+  desliza(318, 150, -1420, t + 3.2, 0.6); sec(2, 3, t + 3.4);
+  desliza(110, 330, 0, t + 4.4, 1.0); sec(3, 0, t + 4.9); tl.to(q(".cs.pTop3 .porq"), {autoAlpha: 1, duration: 0.3}, t + 5.1);
+  toca(".agA", 130, 300, t + 6.6);
   /* 6 · al tocar, la tarjeta se expande, la hoja sube hasta tres cuartos y entran en orden nombre, precio, componentes y recomendación */
   t = T("plato");
   tl.to(q(".agA"), {...PB, duration: 1.0, ease: "power3.inOut"}, t);

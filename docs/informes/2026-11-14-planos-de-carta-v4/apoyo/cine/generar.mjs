@@ -29,7 +29,7 @@ const luz = (id, lx, ly, lz, { col = '#ffb875', amb = 0.2, sd = 7, ss = 9, k = 1
 /* paleta de Carta: campo oscuro cálido, vino, dorado, crema */
 const P = { noche: '#171210', noche2: '#2a1b16', vino: '#4f1728', vino2: '#6b2d3e', crema: '#fef9f1', dorado: '#b8860b', oro: '#fdc34d', oliva: '#66713d' };
 const VELA = { x: 902, y: 716 }; // la llama: de ahí sale la luz de la escena
-const DEFS = luz('L', VELA.x, VELA.y - 20, 40, { amb: 0.07, sd: 11, ss: 8, k: 0.9, rim: 0.5 }) + luz('Lm', VELA.x, VELA.y - 10, 46, { amb: 0.2, sd: 4, ss: 5, rim: 0.3 }) + luz('Lf', VELA.x, VELA.y - 40, 120, { amb: 0.5, sd: 3, ss: 4, rim: 0.3, col: '#ffd9a8' }) +
+const DEFS = luz('L', VELA.x, VELA.y - 20, 40, { amb: 0.07, sd: 11, ss: 8, k: 0.9, rim: 0.5 }) + luz('Lcara', VELA.x, VELA.y - 20, 90, { amb: 0.2, sd: 9, ss: 7, k: 1.25, rim: 0.4, col: '#ffcf9a' }) + luz('Lm', VELA.x, VELA.y - 10, 46, { amb: 0.2, sd: 4, ss: 5, rim: 0.3 }) + luz('Lf', VELA.x, VELA.y - 40, 120, { amb: 0.5, sd: 3, ss: 4, rim: 0.3, col: '#ffd9a8' }) +
   des('b3', 3) + des('b6', 6) + des('b12', 12) + des('b24', 24) +
   rad('gVela', [[0, '#ffe2a8', 0.95], [0.18, '#ffc878', 0.55], [0.5, '#f0a050', 0.16], [1, '#f0a050', 0]]) +
   rad('gPant', [[0, '#fff1dc', 0.5], [0.5, '#ffe2c0', 0.16], [1, '#ffe2c0', 0]]);
@@ -164,9 +164,9 @@ const manoF = (x, y, ang, fill, e = 1.2) => `<g transform="translate(${n(x)} ${n
 const CABEZA = 'M-34 48C-52 20-58-30-38-58C-20-84 22-86 42-58C50-46 52-36 52-24C52-18 55-14 57-8C61-2 68 6 70 12C71 16 66 19 60 19C61 23 64 26 63 30C62 33 59 34 60 37C62 40 61 44 57 46C55 49 58 54 58 60C58 70 48 76 38 75C24 74 10 68 2 60L10 112L-46 112Z';
 const CABEZA_H = 'M-36 48C-54 20-60-30-40-58C-20-86 24-88 44-58C52-46 54-36 54-24C54-18 58-15 60-9C64-3 72 5 74 12C75 17 69 20 63 20C64 24 66 26 65 30C64 33 61 34 62 37C64 41 63 45 59 47C58 50 62 56 62 62C62 74 50 82 38 80C24 78 10 70 2 60L10 112L-50 112Z';
 const TIPOS = {
-  ana: { ox: 432, dir: 1, piel: '#b98058', pelo: '#3a2018', ropa: '#59633a', ropa2: '#474f2c', ancho: 1, cabeza: CABEZA,
+  ana: { ox: 432, dir: 1, piel: '#b07448', pelo: '#3a2018', ropa: '#59633a', ropa2: '#474f2c', ancho: 1, cabeza: CABEZA,
     pelo_d: 'M46-52C30-92-30-96-52-60C-64-36-60 4-44 40C-34 52-20 50-12 40C-20 20-18-6-6-22C10-40 30-48 46-52Z', mono: true },
-  carlos: { ox: 1488, dir: -1, piel: '#d0a07c', pelo: '#1c1310', ropa: '#34313d', ropa2: '#2a2731', ancho: 1.14, cabeza: CABEZA_H,
+  carlos: { ox: 1488, dir: -1, piel: '#e8c2a0', pelo: '#1c1310', ropa: '#34313d', ropa2: '#2a2731', ancho: 1.14, cabeza: CABEZA_H,
     pelo_d: 'M48-50C34-92-28-98-50-62C-60-44-58-10-48 14C-40 10-34 0-30-12C-22-34 10-46 48-50Z', barba: true },
 };
 const OY = 852; // la cadera, sobre el asiento
@@ -185,7 +185,7 @@ function comensal(k) {
   const H = (s) => `<g transform="translate(22 -334) scale(.82)">${s}</g>`;
   let pelo = `<path d="${t.pelo_d}" fill="${t.pelo}"/>`;
   if (t.mono) pelo += `<circle cx="-62" cy="8" r="27" fill="${t.pelo}"/>`;
-  let cab = T(H(`<path d="${t.cabeza}" fill="${t.piel}"/>`)) + T(H(pelo), 'Lm');
+  let cab = T(H(`<path d="${t.cabeza}" fill="${t.piel}"/>`), 'Lcara') + T(H(pelo), 'Lm');
   if (t.barba) cab += T(H(`<path d="M-2 14L2 60C10 70 24 78 38 80C50 82 62 74 62 62C62 56 58 50 59 47C50 53 40 50 33 43C25 35 12 22-2 14Z" fill="${t.pelo}"/>`), 'Lm');
   if (t.mono) cab += `<g transform="translate(${t.ox} ${OY})"><circle cx="18" cy="-304" r="3" fill="${P.oro}"/></g>`;
   capa(`${k}-cabeza`, t.dir > 0 ? [t.ox - 60, OY - 424, 160, 190] : [t.ox - 100, OY - 424, 160, 190], cab);
@@ -204,8 +204,8 @@ function comensal(k) {
 }
 
 const FONDO = {
-  sofia: { x: 800, e: 1.22, ex: 1, piel: '#e6bfa2', pelo: '#4a2c1a', ropa: '#7a2f45', largo: true },
-  diego: { x: 1080, e: 1.22, ex: 1.1, piel: '#6b4430', pelo: '#120d0b', ropa: '#2f5a5a', largo: false },
+  sofia: { x: 800, e: 1.22, ex: 1, piel: '#f4d8c0', pelo: '#5a3620', ropa: '#7a2f45', largo: true },
+  diego: { x: 1080, e: 1.22, ex: 1.1, piel: '#5a3626', pelo: '#120d0b', ropa: '#2f5a5a', largo: false },
 };
 function alFondo(k) {
   const t = FONDO[k], x = t.x;
@@ -218,13 +218,13 @@ function alFondo(k) {
   let pelo;
   if (t.largo) pelo = `<path d="M${x - 50} 540 C${x - 62} 470 ${x - 30} 452 ${x} 452 C${x + 30} 452 ${x + 62} 470 ${x + 50} 540 C${x + 60} 580 ${x + 62} 620 ${x + 52} 650 C${x + 40} 640 ${x + 36} 600 ${x + 40} 548 C${x + 40} 510 ${x + 22} 492 ${x} 490 C${x - 22} 492 ${x - 40} 510 ${x - 40} 548 C${x - 36} 600 ${x - 40} 640 ${x - 52} 650 C${x - 62} 620 ${x - 60} 580 ${x - 50} 540Z" fill="${t.pelo}"/>`;
   else { pelo = ''; [[-38, 498, 20], [-22, 474, 22], [0, 464, 24], [22, 474, 22], [38, 498, 20], [-46, 520, 14], [46, 520, 14], [0, 484, 22]].forEach(([dx, y, r]) => { pelo += `<circle cx="${x + dx}" cy="${y}" r="${r}" fill="${t.pelo}"/>`; }); }
-  capa(`${k}-cabeza`, [x - 110, 350, 220, 300], F(cara) + F(pelo, 'Lm'));
+  capa(`${k}-cabeza`, [x - 110, 350, 220, 300], F(cara, 'Lcara') + F(pelo, 'Lm'));
   const caja = [x - 200, 350, 400, 430];
   const m = (dx, y, ang) => manoF(x + dx, y, ang, t.piel, 1.05);
   const ant = (lado, wx, wy) => miembro(x + lado * 92, 694, 36, x + wx, wy, 24, t.ropa);
   capa(`${k}-brazos`, caja, F(ant(-1, -52, 720) + ant(1, 52, 720)) + F(m(-56, 720, 12) + m(56, 720, 168)));
-  capa(`${k}-brazos-cel`, caja, W(`<circle cx="${x}" cy="580" r="130" fill="url(#gPant)" opacity=".42"/>`) + F(ant(-1, -30, 690) + ant(1, 30, 690)) +
-    W(`<rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="#0d0a0a"/><rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".7"/>`) + F(m(-36, 694, 10) + m(36, 694, 170)));
+  capa(`${k}-brazos-cel`, caja, W(`<circle cx="${x}" cy="600" r="140" fill="url(#gPant)" opacity=".6"/>`) + F(ant(-1, -30, 690) + ant(1, 30, 690)) +
+    W(`<rect x="${x - 25}" y="626" width="50" height="86" rx="10" fill="#0d0a0a"/><rect x="${x - 21}" y="630" width="42" height="78" rx="7" fill="#fff4e2"/><rect x="${x - 21}" y="630" width="42" height="16" rx="7" fill="#6b2d3e"/><path d="M${x - 14} 656 h28 M${x - 14} 668 h22 M${x - 14} 680 h26 M${x - 14} 692 h16" stroke="#8a7a62" stroke-width="3" stroke-linecap="round" opacity=".7"/>`) + F(m(-36, 694, 10) + m(36, 694, 170)));
   capa(`${k}-brazos-carta`, caja, F(ant(-1, -62, 676) + ant(1, 62, 676)) +
     F(`<path d="M${x - 78} 612 L${x - 2} 620 V716 L${x - 78} 706Z" fill="#5a1a2c"/><path d="M${x + 78} 612 L${x + 2} 620 V716 L${x + 78} 706Z" fill="#4a1424"/>`, 'Lm') + W(`<path d="M${x - 70} 622 L${x - 8} 628 M${x + 70} 622 L${x + 8} 628" stroke="${P.oro}" stroke-width="2" opacity=".6"/>`) + F(m(-74, 690, 60) + m(74, 690, 120)));
 }
@@ -234,11 +234,11 @@ const MX = 1250;
 function mesero() {
   const F = (s, f = 'L') => `<g filter="url(#${f})">${s}</g>`;
   const camisa = '#b3a792', chaleco = '#1e191b', piel = '#b88562';
-  const torso = `<path d="M${MX - 26} 316 h52 v10 C${MX + 70} 330 ${MX + 118} 344 ${MX + 136} 392 L${MX + 112} 620 L${MX + 118} 800 H${MX - 118} L${MX - 112} 620 L${MX - 136} 392 C${MX - 118} 344 ${MX - 70} 330 ${MX - 26} 326Z" fill="${camisa}"/>`;
-  const chal = `<path d="M${MX - 66} 334 L${MX} 452 L${MX + 66} 334 C${MX + 92} 342 ${MX + 100} 360 ${MX + 100} 380 L${MX + 104} 620 L${MX + 112} 800 H${MX - 112} L${MX - 104} 620 L${MX - 100} 380 C${MX - 100} 360 ${MX - 92} 342 ${MX - 66} 334Z" fill="${chaleco}"/>`;
-  const mandil = `<path d="M${MX - 108} 610 H${MX + 108} L${MX + 114} 800 H${MX - 114}Z" fill="#3a1420"/>`;
+  const torso = `<path d="M${MX - 26} 316 h52 v10 C${MX + 64} 332 ${MX + 104} 346 ${MX + 122} 400 C${MX + 116} 480 ${MX + 100} 560 ${MX + 98} 620 L${MX + 110} 800 H${MX - 110} L${MX - 98} 620 C${MX - 100} 560 ${MX - 116} 480 ${MX - 122} 400 C${MX - 104} 346 ${MX - 64} 332 ${MX - 26} 326Z" fill="${camisa}"/>`;
+  const chal = `<path d="M${MX - 66} 334 L${MX} 452 L${MX + 62} 336 C${MX + 84} 344 ${MX + 92} 362 ${MX + 92} 384 C${MX + 92} 470 ${MX + 88} 560 ${MX + 90} 620 L${MX + 104} 800 H${MX - 104} L${MX - 90} 620 C${MX - 88} 560 ${MX - 92} 470 ${MX - 92} 384 C${MX - 92} 362 ${MX - 84} 344 ${MX - 62} 336Z" fill="${chaleco}"/>`;
+  const mandil = `<path d="M${MX - 94} 610 H${MX + 94} L${MX + 106} 800 H${MX - 106}Z" fill="#3a1420"/>`;
   const mono = `<path d="M${MX - 20} 334 l20 10 l20 -10 v22 l-20 -10 l-20 10z" fill="#141012"/>`;
-  const sup = (s) => `<path d="M${MX + s * 112} 372 L${MX + s * 122} 560" stroke="${camisa}" stroke-width="52" stroke-linecap="round" fill="none"/>`;
+  const sup = (s) => miembro(MX + s * 104, 380, 54, MX + s * 122, 560, 46, camisa);
   capa('mesero-cuerpo', [MX - 170, 270, 340, 540], F(torso + sup(-1) + sup(1)) + F(chal + mandil, 'Lm') + mono);
   const H = (s) => `<g transform="translate(${MX} 248) scale(-.8 .8)">${s}</g>`;
   capa('mesero-cabeza', [MX - 80, 162, 160, 190], F(H(`<path d="${CABEZA_H}" fill="${piel}"/>`)) + F(H(`<path d="M50-48C36-94-30-100-52-62C-62-42-58-8-46 16C-38 10-34 0-30-12C-22-34 12-44 50-48Z" fill="#231814"/>`), 'Lm'));
@@ -425,6 +425,10 @@ function platillos() {
   sale('plato-res', plato() + C(re) + brillo(190, 170, 60, -12));
   const fl = `<ellipse cx="200" cy="210" rx="90" ry="84" fill="#a8541a" opacity=".8"/><circle cx="200" cy="200" r="66" fill="#f2c56a"/><circle cx="200" cy="200" r="46" fill="#c47a2a"/><path d="M270 120 l20 -20 M276 128 l26 -6" stroke="#4f8a2e" stroke-width="6" stroke-linecap="round"/>`;
   sale('plato-flan', plato() + C(fl) + brillo(186, 180, 30));
+  const vaso = (liq, liq2, extra) => `<circle cx="204" cy="212" r="126" fill="#000" opacity=".5" filter="url(#b12)"/><circle cx="200" cy="200" r="122" fill="#f4eee2" opacity=".35"/><circle cx="200" cy="200" r="108" fill="${liq}"/><circle cx="200" cy="200" r="108" fill="none" stroke="#fff" stroke-width="6" opacity=".35"/>` +
+    C(`<circle cx="186" cy="186" r="70" fill="${liq2}" opacity=".55"/><rect x="150" y="150" width="46" height="46" rx="10" fill="#fff" opacity=".4" transform="rotate(18 173 173)"/><rect x="204" y="196" width="42" height="42" rx="10" fill="#fff" opacity=".34" transform="rotate(-12 225 217)"/>${extra}`) + brillo(160, 150, 46) + `<path d="M246 96 L190 214" stroke="#f6e9d2" stroke-width="12" stroke-linecap="round"/>`;
+  sale('plato-jamaica', vaso('#7a1230', '#a01f44', ''));
+  sale('plato-limonada', vaso('#cfe08a', '#e8f0b0', `<g transform="translate(232 150) rotate(30)"><circle r="30" fill="#7dae3a"/><circle r="24" fill="#d7ec8a"/><path d="M0 -24v48M-24 0h48M-17 -17l34 34M17 -17l-34 34" stroke="#b9d66a" stroke-width="2"/></g>`));
 }
 
 /* ===================== el fondo de los primeros planos: la misma mesa, más cerca y fuera de foco ===================== */
