@@ -8,6 +8,7 @@ const CAPS = [
   {id: "topes", q: "¿Qué damos nosotros por ese precio?"},
   {id: "recursos7", q: "¿Qué nos limita?"},
   {id: "sostiene", q: "¿Cómo se sostiene?"},
+  {id: "modelo", q: "¿Cómo gana dinero Carta?"},
 ];
 let capObs = null;
 function montaCaps() {

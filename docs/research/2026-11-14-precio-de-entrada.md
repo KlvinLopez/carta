@@ -6,27 +6,27 @@
 
 1. **El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto.** La curva «media» se construyó con mediana 225 (el precio de Meniu Business) y el óptimo sale 234: **el modelo devuelve su supuesto** (conclusión circular de la versión anterior de este documento, retirada).
 2. **225 es una decisión de posicionamiento de Calvin (quedar pegado a Meniu), no un resultado del modelo.** Con la mediana en 150 gana 199; en 300, 299; en 450, 299 (el óptimo continuo sube a 415).
-3. **La dispersión de la curva (sigma) también cambia al ganador:** con sigma 0.3 gana 199; con 0.9, 299. De 199 a 249 el margen cae con sigma 0.3 (9,122 → 8,083) y sube con 0.9 (8,383 → 8,942).
-4. **Con la curva supuesta, entre 199 y 249 el margen casi no cambia pero sí los pagantes** (199: 34 · 225: 29 · 249: 25): entrar barato compra clientes, no margen.
+3. **La dispersión de la curva (sigma) también cambia al ganador:** con sigma 0.3 gana 199; con 0.9, 299. De 199 a 249 el margen cae con sigma 0.3 (16,447 → 12,142) y sube con 0.9 (13,443 → 15,617).
+4. **Con la curva supuesta, entre 199 y 249 el margen casi no cambia pero sí los pagantes** (199: 135 · 225: 116 · 249: 100): entrar barato compra clientes, no margen.
 5. **No hay evidencia abierta fuerte de que entrar con un precio bajo y subir después convenga a un SaaS de restaurantes** (§3).
 
 ## 1. Margen de operación al mes según la mediana de la curva de pago (1,000 restaurantes, anuncios en marcha, sigma 0.6, techo 0.35)
 
 | Mediana de la curva de pago (supuesto 225) | Margen a 199 | Margen a 225 | Margen a 249 | Margen a 299 | Gana entre los 4 | Óptimo continuo |
 |---|---|---|---|---|---|---|
-| 150 | 6,720 | 6,591 | 6,426 | 6,045 | **199** | 175 |
-| 225 | 8,573 | 8,719 | 8,724 | 8,471 | **249** | 234 |
-| 300 | 9,787 | 10,285 | 10,581 | 10,793 | **299** | 294 |
-| 450 | 10,828 | 11,826 | 12,615 | 13,941 | **299** | 415 |
+| 150 | 6,681 | 6,125 | 5,441 | 3,880 | **199** | 175 |
+| 225 | 14,213 | 14,752 | 14,733 | 13,661 | **225** | 234 |
+| 300 | 19,152 | 21,098 | 22,244 | 23,025 | **299** | 294 |
+| 450 | 23,747 | 27,706 | 30,832 | 35,715 | **299** | 415 |
 
 ## 2. Margen según la dispersión de la curva (mediana 225)
 
 | Sigma de la curva (supuesto 0.6) | Margen a 199 | Margen a 225 | Margen a 249 | Margen a 299 | Gana entre los 4 | Óptimo continuo |
 |---|---|---|---|---|---|---|
-| 0.3 | 9,122 | 8,719 | 8,083 | 6,630 | **199** | 189 |
-| 0.45 | 8,760 | 8,719 | 8,507 | 7,790 | **199** | 205 |
-| 0.6 | 8,573 | 8,719 | 8,724 | 8,471 | **249** | 234 |
-| 0.9 | 8,383 | 8,719 | 8,942 | 9,204 | **299** | 343 |
+| 0.3 | 16,447 | 14,752 | 12,142 | 6,240 | **199** | 189 |
+| 0.45 | 14,973 | 14,752 | 13,857 | 10,917 | **199** | 205 |
+| 0.6 | 14,213 | 14,752 | 14,733 | 13,661 | **225** | 234 |
+| 0.9 | 13,443 | 14,752 | 15,617 | 16,618 | **299** | 343 |
 
 **Qué resultado del piloto lleva a cada precio** (regla de decisión derivada de la primera tabla; «empate» = precios a menos de 1 % del mejor margen): si la mediana (el precio al que la mitad de los dueños dice que sí) sale cerca de 150 → 199; si sale cerca de 225 → 225 o 249; si sale cerca de 300 → 299; si sale cerca de 450 → 299 (el más alto de los candidatos: valdría probar uno mayor). La **dispersión** (qué tan distintos son los dueños) se lee del mismo piloto: con sigma baja gana el precio más bajo y con sigma alta, el más alto (tabla 2).
 
@@ -44,8 +44,8 @@
 
 **Opinión de blog (marcada):** artículos de práctica dicen que comunicar el valor reduce las bajas al subir; sin datos propios, no se usan.
 
-## 4. Antes de cobrar Chef Ejecutivo
-Un negocio de 101 a 250 personas tiene unas 36 a 125 cuentas de personal en el modelo y el tope técnico es de **50 cuentas activas por restaurante** (T-1.6): hay que subirlo antes de vender ese plan (cambio de código, no de este informe).
+## 4. Si algún día se enciende Chef Ejecutivo
+Un negocio de 101 a 250 personas tiene unas 36 a 125 cuentas de personal en el modelo y el tope técnico es de **50 cuentas activas por restaurante** (T-1.6): habría que subirlo antes de vender ese plan (cambio de código, no de este informe). Hoy está apagado por decisión de Calvin (17-nov).
 
 ## 5. Datos por conseguir
 - La curva de pago real (prueba de precio del piloto, tres grupos).
