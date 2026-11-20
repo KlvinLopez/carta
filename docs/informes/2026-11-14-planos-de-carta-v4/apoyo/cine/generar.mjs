@@ -197,12 +197,39 @@ function comensal(k) {
   capa(`${k}-brazo-cel`, caja, ante(126, -172, `<path d="M118 -196 C134 -204 150 -196 152 -180 C152 -164 138 -156 124 -160 C112 -166 110 -186 118 -196Z" fill="${t.piel}"/>`,
     X(`<g transform="rotate(16 142 -214)"><rect x="134" y="-250" width="15" height="74" rx="5" fill="#0d0a0a"/><rect x="131" y="-246" width="5" height="66" rx="2" fill="#fff4e2"/></g>`) + T(`<path d="M140 -190 C150 -192 158 -186 156 -178 C152 -172 142 -174 138 -180Z" fill="${t.piel}"/>`),
     X(`<circle cx="84" cy="-262" r="140" fill="url(#gPant)" opacity=".8"/>`)));
+  capa(`${k}-brazo-carta`, caja, ante(124, -176, `<path d="M116 -200 C132 -208 148 -200 150 -184 C150 -168 136 -160 122 -164 C110 -170 108 -190 116 -200Z" fill="${t.piel}"/>`,
+    X(`<g transform="rotate(14 150 -230)"><rect x="136" y="-282" width="30" height="104" rx="5" fill="#5a1a2c"/><rect x="132" y="-278" width="7" height="96" rx="3" fill="#f3e9d6"/><rect x="160" y="-270" width="3" height="80" fill="${P.oro}" opacity=".7"/></g>`) + T(`<path d="M138 -194 C148 -196 156 -190 154 -182 C150 -176 140 -178 136 -184Z" fill="${t.piel}"/>`)));
   capa(`${k}-brazo-copa`, caja, ante(118, -186, `<path d="M112 -208 C128 -216 142 -208 144 -194 C144 -180 132 -172 118 -176 C106 -182 104 -198 112 -208Z" fill="${t.piel}"/>`,
     X(copa(134, -196).replace(/<ellipse[^>]*filter[^>]*>/, '')) + T(`<path d="M126 -206 C136 -210 146 -204 144 -196 C140 -190 130 -192 124 -198Z" fill="${t.piel}"/>`)));
 }
 
+const FONDO = {
+  sofia: { x: 800, piel: '#c99272', pelo: '#2a1712', ropa: '#7a2f45', largo: true },
+  diego: { x: 1080, piel: '#b07a56', pelo: '#17110f', ropa: '#3b4a5a', largo: false },
+};
+function alFondo(k) {
+  const t = FONDO[k], x = t.x, F = (s, f = 'L') => `<g filter="url(#${f})">${s}</g>`;
+  const cuerpo = `<path d="M${x - 22} 596 h44 v10 C${x + 60} 612 ${x + 98} 628 ${x + 104} 668 L${x + 100} 800 H${x - 100} L${x - 104} 668 C${x - 98} 628 ${x - 60} 612 ${x - 22} 606Z" fill="${t.ropa}"/>`;
+  const escote = `<path d="M${x - 20} 600 L${x} 640 L${x + 20} 600Z" fill="${t.piel}"/>`;
+  capa(`${k}-cuerpo`, [x - 130, 580, 260, 230], F(cuerpo) + F(escote, 'Lm'));
+  const cara = `<ellipse cx="${x}" cy="528" rx="42" ry="54" fill="${t.piel}"/><rect x="${x - 17}" y="566" width="34" height="50" rx="12" fill="${t.piel}"/>`;
+  const pelo = t.largo
+    ? `<path d="M${x - 50} 540 C${x - 62} 470 ${x - 30} 452 ${x} 452 C${x + 30} 452 ${x + 62} 470 ${x + 50} 540 C${x + 60} 580 ${x + 62} 620 ${x + 52} 650 C${x + 40} 640 ${x + 36} 600 ${x + 40} 548 C${x + 40} 510 ${x + 22} 492 ${x} 490 C${x - 22} 492 ${x - 40} 510 ${x - 40} 548 C${x - 36} 600 ${x - 40} 640 ${x - 52} 650 C${x - 62} 620 ${x - 60} 580 ${x - 50} 540Z" fill="${t.pelo}"/>`
+    : `<path d="M${x - 44} 520 C${x - 52} 470 ${x - 26} 458 ${x} 458 C${x + 26} 458 ${x + 52} 470 ${x + 44} 520 C${x + 40} 500 ${x + 24} 490 ${x} 490 C${x - 24} 490 ${x - 40} 500 ${x - 44} 520Z" fill="${t.pelo}"/>`;
+  capa(`${k}-cabeza`, [x - 80, 440, 160, 220], F(cara) + F(pelo, 'Lm'));
+  // brazos: las manos en el borde de la mesa, con el teléfono o con la carta de papel
+  const caja = [x - 150, 440, 300, 320];
+  const m = (dx, y, ang) => manoF(x + dx, y, ang, t.piel, 1.05);
+  const ant = (lado, wx, wy) => miembro(x + lado * 92, 694, 36, x + wx, wy, 24, t.ropa);
+  capa(`${k}-brazos`, caja, F(ant(-1, -52, 720) + ant(1, 52, 720)) + F(m(-56, 720, 12) + m(56, 720, 168)));
+  capa(`${k}-brazos-cel`, caja, `<circle cx="${x}" cy="580" r="130" fill="url(#gPant)" opacity=".42"/>` + F(ant(-1, -30, 690) + ant(1, 30, 690)) +
+    `<rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="#0d0a0a"/><rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".7"/>` + F(m(-36, 694, 10) + m(36, 694, 170)));
+  capa(`${k}-brazos-carta`, caja, F(ant(-1, -62, 676) + ant(1, 62, 676)) +
+    F(`<path d="M${x - 78} 612 L${x - 2} 620 V716 L${x - 78} 706Z" fill="#5a1a2c"/><path d="M${x + 78} 612 L${x + 2} 620 V716 L${x + 78} 706Z" fill="#4a1424"/>`, 'Lm') + `<path d="M${x - 70} 622 L${x - 8} 628 M${x + 70} 622 L${x + 8} 628" stroke="${P.oro}" stroke-width="2" opacity=".6"/>` + F(m(-74, 690, 60) + m(74, 690, 120)));
+}
+
 /* ===================== el mesero: de frente, tras la mesa, con la cabeza de perfil ===================== */
-const MX = 1128;
+const MX = 1250;
 function mesero() {
   const F = (s, f = 'L') => `<g filter="url(#${f})">${s}</g>`;
   const camisa = '#b3a792', chaleco = '#1e191b', piel = '#b88562';
@@ -226,6 +253,10 @@ function mesero() {
   capa('mesero-brazos-cel', caja, `<circle cx="${MX - 20}" cy="500" r="110" fill="url(#gPant)" opacity=".45"/>` + F(ante(-1, MX - 46, 600) + ante(1, MX + 44, 606)) +
     `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 48}" y="516" width="44" height="86" rx="9" fill="#0d0a0a"/><rect x="${MX - 48}" y="516" width="44" height="86" rx="9" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".75"/></g>` +
     F(mano(MX - 40, 604, 22) + mano(MX + 30, 600, 20) + `<path d="M${MX + 22} 594 L${MX - 2} 566" stroke="${piel}" stroke-width="12" stroke-linecap="round"/>`));
+  // apunta a mano en su libreta
+  capa('mesero-brazos-libreta', caja, F(ante(-1, MX - 46, 600) + ante(1, MX + 44, 606)) +
+    `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 56}" y="512" width="60" height="84" rx="4" fill="#efe6d2"/><path d="M${MX - 46} 530 h40 M${MX - 46} 544 h34 M${MX - 46} 558 h38 M${MX - 46} 572 h22" stroke="#8a7a62" stroke-width="2.5" opacity=".8"/></g><path d="M${MX + 30} 600 L${MX - 4} 560" stroke="#1a1414" stroke-width="5" stroke-linecap="round"/>` +
+    F(mano(MX - 40, 604, 22) + mano(MX + 30, 600, 20)));
   // con la terminal de cobro (el cobro ocurre fuera de Carta)
   capa('mesero-brazos-terminal', caja, F(ante(-1, MX - 40, 640) + ante(1, MX + 232, 632)) +
     `<g transform="rotate(18 ${MX + 262} 630)"><rect x="${MX + 236}" y="586" width="56" height="92" rx="10" fill="#17171a"/><rect x="${MX + 243}" y="594" width="42" height="34" rx="4" fill="#cfe6d8"/><rect x="${MX + 243}" y="636" width="42" height="34" rx="4" fill="#2a2a30"/><rect x="${MX + 250}" y="578" width="28" height="12" rx="2" fill="#f4ecdc"/></g>` +
@@ -243,6 +274,17 @@ function platillosMesa() {
   const halo = ({ x, y }) => `<ellipse cx="${x}" cy="${y - 8}" rx="120" ry="46" fill="url(#gVela)" opacity=".5"/>`;
   capa('platillo-a', [PLATO_A.x - 124, PLATO_A.y - 60, 248, 100], halo(PLATO_A) + F(pez(PLATO_A)));
   capa('platillo-c', [PLATO_C.x - 124, PLATO_C.y - 60, 248, 100], halo(PLATO_C) + F(res(PLATO_C)));
+}
+
+function utileria() {
+  let tk = `<g transform="translate(60 6)"><path d="M1016 742 L1052 740 C1070 762 1096 786 1130 806 L1090 812 C1058 790 1034 766 1016 742Z" fill="#f6efe0"/><path d="M1016 742 L1052 740 l-4 -10 q-18 -6 -30 0z" fill="#e2d6bd"/></g>`;
+  for (let i = 0; i < 7; i++) tk += `<path d="M${1090 + i * 13} ${756 + i * 9} l${20 + (i % 3) * 4} -1.5" stroke="#6b5a48" stroke-width="2.2" opacity=".75"/>`;
+  capa('ticket', [1060, 720, 150, 110], `<ellipse cx="1136" cy="790" rx="70" ry="10" fill="#2a1a12" opacity=".3" filter="url(#b3)"/>` + tk);
+  const px = 956, py = 800;
+  const pastel = `<ellipse cx="${px}" cy="${py + 6}" rx="62" ry="11" fill="#2a1a12" opacity=".4" filter="url(#b3)"/><ellipse cx="${px}" cy="${py}" rx="58" ry="11" fill="#f4ead8"/>` +
+    `<g filter="url(#Lf)"><path d="M${px - 40} ${py - 34} v30 a40 9 0 0 0 80 0 v-30z" fill="#6b3a2a"/><ellipse cx="${px}" cy="${py - 34}" rx="40" ry="9" fill="#f6e3c8"/><path d="M${px - 40} ${py - 30} q10 12 20 0 q10 12 20 0 q10 12 20 0 q10 12 20 0" stroke="#f6e3c8" stroke-width="5" fill="none"/></g>` +
+    `<rect x="${px - 2}" y="${py - 56}" width="4" height="22" fill="#e8c9d6"/><path d="M${px} ${py - 72} c5 8 4 13 0 17 c-4 -4 -5 -9 0 -17z" fill="#ffd27a"/><circle cx="${px}" cy="${py - 62}" r="26" fill="url(#gVela)" opacity=".8"/>`;
+  capa('pastel', [px - 80, py - 100, 160, 124], pastel);
 }
 
 /* ===================== la mesa sucia, en tres piezas que el mesero retira ===================== */
@@ -396,7 +438,7 @@ function grano() {
 }
 
 const f = fondo();
-comensal('ana'); comensal('carlos'); mesero(); mesa(); montaje(); vela(); acrilico(); platillosMesa(); sucia(); nuevos();
+comensal('ana'); comensal('carlos'); alFondo('sofia'); alFondo('diego'); mesero(); utileria(); mesa(); montaje(); vela(); acrilico(); platillosMesa(); sucia(); nuevos();
 manos('ana', { piel: '#c99272', manga: '#5d6734' });
 manos('carlos', { piel: '#b98260', manga: '#34313d', puno: '#d8cbb4', espejo: true });
 manos('mesero', { piel: '#b88562', manga: '#cfc3ae' });
@@ -431,10 +473,10 @@ else console.log('aviso: js/e2_film.js no tiene las marcas CAPAS; la tabla no se
 if (process.env.PREVIA) {
   mkdirSync(process.env.PREVIA, { recursive: true });
   const junta = (nombres, extra = '') => `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><defs>${DEFS}${[...new Set(CAPAS.filter((c) => nombres.includes(c.nombre)).map((c) => c.defs))].join('')}</defs><rect width="1920" height="1080" fill="#171210"/>${nombres.map((k) => CAPAS.find((c) => c.nombre === k).cuerpo).join('')}${extra}</svg>`;
-  const sala = ['fondo', 'ana-silla', 'carlos-silla', 'ana-cabeza', 'ana-cuerpo', 'carlos-cabeza', 'carlos-cuerpo', 'mesero-cabeza', 'mesero-cuerpo', 'mesa', 'montaje', 'copa-a', 'copa-c', 'acrilico', 'vela', 'llama', 'resplandor'];
+  const sala = ['fondo', 'ana-silla', 'carlos-silla', 'mesero-cabeza', 'mesero-cuerpo', 'sofia-cabeza', 'sofia-cuerpo', 'diego-cabeza', 'diego-cuerpo', 'ana-cabeza', 'ana-cuerpo', 'carlos-cabeza', 'carlos-cuerpo', 'mesa', 'montaje', 'copa-a', 'copa-c', 'acrilico', 'vela', 'llama', 'resplandor'];
   const cuadros = {
-    sala: junta([...sala, 'mesero-brazos-carta', 'ana-brazo', 'carlos-brazo']),
-    sala2: junta([...sala.filter((k) => !/montaje|copa-a/.test(k)), 'platillo-a', 'platillo-c', 'mesero-brazos-cel', 'ana-brazo-copa', 'carlos-brazo-cel']),
+    sala: junta([...sala, 'sofia-brazos-carta', 'diego-brazos', 'mesero-brazos-libreta', 'ana-brazo-carta', 'carlos-brazo', 'ticket']),
+    sala2: junta([...sala.filter((k) => !/montaje|copa-a|mesero/.test(k)), 'platillo-a', 'platillo-c', 'pastel', 'sofia-brazos-cel', 'diego-brazos-cel', 'ana-brazo-copa', 'carlos-brazo-cel']),
     sucia: junta(['fondo', 'ana-silla', 'carlos-silla', 'mesero-cabeza', 'mesero-cuerpo', 'mesa', 'sucia-migas', 'sucia-a', 'sucia-c', 'sucia-vaso', 'copa-c', 'acrilico', 'vela', 'mesero-brazos-trapo', 'nuevos']),
     terminal: junta([...sala, 'mesero-brazos-terminal', 'ana-brazo-cel', 'carlos-brazo']),
   };
