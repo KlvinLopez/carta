@@ -335,10 +335,9 @@ function manos(k, { piel, manga, puno = null, espejo = false }) {
   // piel: palma (sólo lo que se ve fuera del teléfono), muñeca, pulgar y yemas
   let p = `<path d="M-13 610 C-52 640 -96 700 -112 790 C-120 850 -150 890 ${pt(40, -56)} L${pt(170, -56)} L${pt(170, 58)} L${pt(30, 58)} C-80 1016 -40 1004 -13 986Z" fill="${piel}"/>`;
   p += `<path d="M-56 800 C-52 720 -30 640 -4 572" stroke="${piel}" stroke-width="60" stroke-linecap="round" fill="none"/>`;
-  [[452, 70, 44], [520, 72, 48], [588, 70, 44], [650, 58, 38]].forEach(([y, h, w]) => { p += `<rect x="396" y="${y - h / 2}" width="${w}" height="${h}" rx="15" fill="${piel}"/>`; });
-  // detalle sin relieve: uña del pulgar, pliegues de los nudillos
+    // detalle sin relieve: uña del pulgar, pliegues de los nudillos
   let det = `<g transform="rotate(21 -4 572)"><rect x="-19" y="550" width="30" height="38" rx="13" fill="#fff" opacity=".08"/></g><path d="M-30 684 q18 3 34 16" stroke="#000" stroke-width="3" fill="none" opacity=".14" stroke-linecap="round"/>`;
-  [486, 554, 621].forEach((y) => { det += `<path d="M415 ${y} h22" stroke="#000" stroke-width="3" opacity=".3" stroke-linecap="round"/>`; });
+  
   // manga: del puño hacia fuera del cuadro
   let m = `<path d="M${pt(120, -84)} L${pt(1100, -110)} L${pt(1100, 110)} L${pt(120, 84)}Z" fill="${manga}"/>`;
   if (puno) m = `<path d="M${pt(96, -70)} L${pt(150, -74)} L${pt(150, 74)} L${pt(96, 70)}Z" fill="${puno}"/>` + m;
