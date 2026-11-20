@@ -252,7 +252,7 @@ ok(await p.evaluate(() => S.palancas.includes('archivar_sesiones_cerradas') && S
 await p.evaluate(() => cambiar({ palancas: [] })); await p.waitForTimeout(400);
 const co = await texto(p, '#svCo');
 const cmb = await p.evaluate(() => { const c = config(S), s = sup(S), g = (pl, m) => MOD.recursos({ ...c, palancas: pl }, s, { canal: 'eventos', meses_historial: m }).escalera[0].restaurantes_que_caben; const F = 'fila_por_visita_de_comensal', A = 'archivar_sesiones_cerradas'; return [g([A, F], 12), g([], 1)]; });
-ok(co.includes(f7(cmb[0])) && co.includes(f7(cmb[1])) && co.includes('ya da más que hoy con el recorte a 30 días'), 'capítulo 7: la combinación dice que archivar + fila sin recortar (' + f7(cmb[0]) + ') supera el recorte a 30 días (' + f7(cmb[1]) + ')');
+ok(co.includes(f7(cmb[0])) && co.includes(f7(cmb[1])) && co.includes('En revisión') && !co.includes('ya da más que hoy'), 'capítulo 7: la combinación queda «en revisión» sin concluir nada (' + f7(cmb[0]) + ') supera el recorte a 30 días (' + f7(cmb[1]) + ')');
 await sinDesborde(p, 'capítulo 7 (historia del disco)'); await cierra(p);
 
 // el capítulo 7 recorre varias combinaciones de topes, canal e historial: ninguna etiqueta sobre una línea ni sobre otra etiqueta
@@ -391,12 +391,12 @@ const esq = await p.evaluate(() => { const es = MOD.desgloses(config(S), sup(S),
 const tK = await texto(p, '#svK');
 ok(esq.every((v) => tK.includes(v + ' MXN')), 'sostiene: la matriz 3 × 3 da ' + esq.join(' y ') + ' en las esquinas (modelo)');
 if (png) await p.screenshot({ path: `${png}/v8_sost4.png` });
-// capítulo 8: «qué cambió frente a la versión 11» con la tabla de comparacionDeCarga y la sensibilidad
+// capítulo 8: sensibilidad a las visitas por mesa (sólo estado vigente, sin tabla antes → después)
 await p.click('#tabsK [data-vista="5"]'); await p.waitForTimeout(900);
-const cc = await p.evaluate(() => { const c = MOD.comparacionDeCarga(config(S), sup(S)), f = (v) => Math.round(Math.abs(v)).toLocaleString('en-US'); return { a: f(c.antes_tipica_no_vigente.margen_operacion_1000.recomendado), d: f(c.despues_por_topes_vigente.margen_operacion_1000.recomendado), sens: c.sensibilidad_visitas_por_mesa.map((q) => f(q.margen_operacion_recomendado_1000)) }; });
+const cc = await p.evaluate(() => MOD.comparacionDeCarga(config(S), sup(S)).sensibilidad_visitas_por_mesa.map((q) => Math.round(Math.abs(q.margen_operacion_recomendado_1000)).toLocaleString('en-US')));
 const t5 = await texto(p, '#svK');
-ok([cc.a, cc.d, ...cc.sens].every((v) => t5.includes(v)) && t5.includes('versión 11') && t5.includes('visitas por mesa'), 'capítulo 8: «qué cambió» muestra antes → después y la sensibilidad (' + [cc.a, cc.d, ...cc.sens].join(' · ') + ')');
-ok(await p.evaluate(() => [...document.querySelectorAll('#svK text')].every((t) => parseFloat(t.getAttribute('font-size')) >= 12)), 'capítulo 8: «qué cambió» sin letra menor de 12 px');
+ok(cc.every((v) => t5.includes(v)) && t5.includes('visitas por mesa') && !t5.includes('versión 11'), 'capítulo 8: la sensibilidad a 90 / 180 / 360 visitas por mesa sale del modelo (' + cc.join(' · ') + ') y no hay tabla antes → después');
+ok(await p.evaluate(() => [...document.querySelectorAll('#svK text')].every((t) => parseFloat(t.getAttribute('font-size')) >= 12)), 'capítulo 8: sensibilidad sin letra menor de 12 px');
 if (png) await p.screenshot({ path: `${png}/v12_cambio.png` });
 await p.click('#tabsK [data-vista="0"]'); await p.waitForTimeout(500);
 await sinDesborde(p, 'sostiene'); await cierra(p);

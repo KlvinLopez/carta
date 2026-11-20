@@ -16,7 +16,7 @@
 <div class="r7p r7bar"><span class="selr">Un ejemplo guiado: una mesa de 3 comensales</span><button class="btn" id="hiAt" aria-label="Paso anterior">◀</button><button class="btn" id="hiSig">Siguiente ▶</button><button class="btn" id="hiPl">▶ Reproducir</button><span class="selr" id="hiN"></span></div>
 <div class="viz"><svg id="svHi" viewBox="0 0 1100 500" role="img" aria-label="Cómo se acumulan las filas de una mesa de tres comensales" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz"><svg id="svOp" viewBox="0 0 1100 600" role="img" aria-label="Las formas de guardar la analítica, lado a lado" font-family="DM Sans, sans-serif"></svg></div>
-<div class="viz"><svg id="svCo" viewBox="0 0 1100 360" role="img" aria-label="La combinación de forma, archivo e historial" font-family="DM Sans, sans-serif"></svg></div></div>`);
+<div class="viz"><svg id="svCo" viewBox="0 0 1100 410" role="img" aria-label="La combinación de forma, archivo e historial" font-family="DM Sans, sans-serif"></svg></div></div>`);
     this.rmH = RM($("#svHi", host));
     const mueve = d => { this.hp = clamp(this.hp + d, 0, 8); if (this.hp === 8 || this.hp === 0) this.paraJuego(); this.pintaHistoria(); };
     host.addEventListener("click", ev => {
@@ -134,9 +134,8 @@
         b += `<g data-tip="${esc2(`${cn}|${n(v)} restaurantes|${m === 1 ? "Con 30 días de historial del gratuito." : "Sin purga del gratuito: 12 meses."}${j ? ` ${n(v - base)} más que sin cambios.` : ""}`)}" data-tipp="${v / mx}" tabindex="0">` + Rc(X0 + j * CW - 6, y - 6, BW + 12, 92, on ? "#f6e9d4" : "rgba(0,0,0,0)", 16, on ? `stroke="${C.vino}" stroke-width="3"` : "") + Rc(X0 + j * CW, y + 4, BW, 18, C.a2, 9) + Rc(X0 + j * CW, y + 4, Math.max(BW * v / mx, 4), 18, i ? C.dorado : C.verde, 9) + T(X0 + j * CW, y + 62, n(v), 30, C.tinta, "start", 400, true) + (j ? T(X0 + j * CW + 90, y + 60, `+${n(v - base)}`, 13, C.verde, "start", 700) : "") + `</g>`;
       });
     });
-    const mejor = val(12, [ARCH, FILA]), hoy30 = val(1, []);
-    b += T(30, 318, mejor > hoy30 ? `Archivar más la fila por visita, sin recortar el historial del gratuito (${n(mejor)}), ya da más que hoy con el recorte a 30 días (${n(hoy30)}).` : `Con las cifras de ahora, archivar más la fila (${n(mejor)}) no supera el recorte a 30 días (${n(hoy30)}).`, 14, C.vino, "start", 700);
-    b += T(30, 342, "Cualquiera de estas palancas cambia qué se guarda y por cuánto tiempo: antes de construirse pasa por especificación y por actualizar 03 §7 (y un ADR si toca la regla de no borrar historial).", 11.5, C.t2, "start", 700);
+    parr("En revisión: la cifra de «archivar» se está corrigiendo (el modelo recorta a 3 meses las sesiones de todos los planes). No se saca conclusión de esta tabla todavía.", 112).forEach((l, k) => { b += T(30, 318 + k * 20, l, 14, C.osc, "start", 700); });
+    parr("Cualquiera de estas palancas cambia qué se guarda y por cuánto tiempo: antes de construirse pasa por especificación y por actualizar 03 §7 (y un ADR si toca la regla de no borrar historial).", 140).forEach((l, k) => { b += T(30, 362 + k * 18, l, 12, C.t2, "start", 700); });
     $("#svCo").innerHTML = b;
   };
 })();
