@@ -19,7 +19,9 @@ const sg = (x) => (x >= 0 ? `+${n0(x)}` : `−${n0(-x)}`);
 const fila = (nombre, a, d, fmt = n0) => `| ${nombre} | ${fmt(a)} | ${fmt(d)} |`;
 const NOM = { recomendado: 'recomendado', peor: 'peor', mejor: 'mejor', piso_de_verdad: 'estrés (piso de verdad)' };
 
-const md = `# Una sola carga para el gratuito: antes → después (generado; no editar a mano)
+const md = `# Una sola carga para el gratuito: antes → después (archivado; generado, no editar a mano)
+
+**Estado:** archivado el 20 de noviembre de 2026. No es un informe vigente: documenta el paso del «gratuito típico» a la carga por topes (ronda 11). Lo vigente está en \`docs/research/2026-11-14-recursos-y-palancas.md\` y en \`2026-11-14-modelo-de-escenarios.md\`.
 
 Generado por \`2026-11-17-carga-unica.mjs\`. **Qué cambió (ronda 11):** un restaurante gratuito tiene UNA definición de carga, la de sus topes, y la usan por igual «¿Qué nos limita?», los costos, la bolsa de Calvin, los escalones, el margen, el sueldo y la meta de 12 meses. Antes, los costos usaban un «gratuito típico» de ${n0(A.carga_del_gratuito.visitas_al_mes)} visitas al mes y «¿Qué nos limita?» la carga de los topes. **No cambian precios, topes ni escenarios.**
 
@@ -68,6 +70,6 @@ Más visitas por mesa dejan más anuncios y más margen, pero llenan antes el di
 ## 3. Datos por conseguir
 ${c.datos_por_conseguir.map((x) => `- ${x}`).join('\n')}
 `;
-writeFileSync(join(out, '2026-11-17-carga-unica.md'), md);
+writeFileSync(process.env.CARTA_SALIDA ? join(out, '2026-11-17-carga-unica-antes-y-despues.md') : join(aqui, '..', 'historia', '2026-11-17-carga-unica-antes-y-despues.md'), md);
 writeFileSync(join(out, '2026-11-17-carga-unica.json'), JSON.stringify(c, null, 2) + '\n');
 console.log('ok carga-unica');

@@ -62,13 +62,12 @@ const md = `# Recursos y palancas: qué pagamos, cuánto aguanta cada pieza y c�
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** ${tip}. Con el **doble** de actividad lo que cabe se divide entre 2 (${n0(ac[2].procesador_hoy)} por procesador y ${n0(ac[2].disco_con_historial_30_dias)} por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de ${n0(rE('procesador').restaurantes_hoy)} a ${n0(R.pico_simultaneo.procesador_hoy)} (factor ${R.pico_simultaneo.factor}, supuesto).
 
-## De qué se compone el disco promedio (y por qué ya no es ${n0(R.composicion_del_disco.cifra_de_antes)})
+## De qué se compone el disco promedio
 
-${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos e historial a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (antes: ${n0(c.cifra_de_antes)}).
+${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos y la PROPUESTA de historial del gratuito a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (con la política vigente, 03 §7, caben ${n0(R.disco_por_historial.find((x) => x.meses_historial === '03§7').restaurantes_por_disco)}; la composición de abajo es la de la propuesta).
 - **Mezcla:** ${n1(c.parte_que_paga * 1000)} de paga por cada 1,000 restaurantes registrados. Un gratuito guarda ${n0(c.meses_de_historial.gratuito)} mes (${n1(c.mb_por_restaurante.gratuito)} MB) y uno de paga ${n0(c.meses_de_historial.paga)} meses (${n1(c.mb_por_restaurante.paga)} MB); promedio ${n1(c.mb_por_restaurante.promedio)} MB.
 - **Quién llena el disco:** los gratuitos ${n0(c.parte_del_disco.gratuitos * 100)} %, los de paga ${n0(c.parte_del_disco.de_paga * 100)} %.
 - **Costo de ese disco:** ${n2(c.costo_del_disco_pesos_al_mes.paga)} pesos al mes por restaurante de paga frente a ${n0(c.costo_del_disco_pesos_al_mes.lo_que_paga_un_restaurante_de_paga)} que paga (${n1(c.costo_del_disco_pesos_al_mes.parte_del_precio_que_se_va_en_disco * 100)} %); un gratuito cuesta ${n2(c.costo_del_disco_pesos_al_mes.gratuito)} pesos.
-- **Por qué no es la cifra de antes:** ${c.por_que_no_es_la_cifra_de_antes}
 - **Hallazgo:** ${c.hallazgo}
 
 **Cuánto de cada parte es analítica y cuánto sesiones y órdenes (parte del disco promedio):**
@@ -79,7 +78,15 @@ ${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben
 | De paga (12 meses) | ${n1(c.desglose.parte_del_disco.de_paga.fijo * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.analitica * 100)} % | ${n1((c.desglose.parte_del_disco.de_paga.fijo + c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes + c.desglose.parte_del_disco.de_paga.analitica) * 100)} % |
 | **Todos** | ${n1(c.desglose.parte_fija_del_disco * 100)} % | ${n1(c.desglose.parte_sesiones_y_ordenes_del_disco * 100)} % | ${n1(c.desglose.parte_analitica_del_disco * 100)} % | 100 % |
 
-**Por qué «contar por día» pasó de +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_de_antes * 100)} % (${c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.cifra_de_antes.join(' → ')}, ronda 8) a +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_ahora * 100)} % (${c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.cifra_ahora.join(' → ')}) y por qué ahora la palanca que más da es archivar (${c.por_que_contar_por_dia_ya_no_da_tanto.archivar.cifra_ahora[1]}):** ${c.por_que_contar_por_dia_ya_no_da_tanto.frase}`; })()}
+**Por qué «contar por día» da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_ahora * 100)} % y archivar las sesiones de paga da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.archivar.ganancia_ahora * 100)} %:** ${c.por_que_contar_por_dia_ya_no_da_tanto.frase}`; })()}
+
+## Sensibilidad a las visitas por mesa (el supuesto que mueve la carga del gratuito)
+
+El gratuito carga mesas × visitas por mesa al mes; las **${s.perfil_por_topes.visitas_por_mesa_mes} visitas por mesa** son un supuesto sin medir (se mide con los eventos \`scan\` por mesa del piloto) y la carga de un Chef es el tope entero (cota alta).
+
+| Visitas por mesa al mes | Visitas del gratuito | Caben con avisos / con sondeo / sin purga | Margen recomendado con 1,000 restaurantes |
+|---|---|---|---|
+${M.comparacionDeCarga(rec, s).sensibilidad_visitas_por_mesa.map((x) => `| ${x.visitas_por_mesa_al_mes} | ${n0(x.visitas_del_gratuito_al_mes)} | ${n0(x.capacidad.con_avisos)} / ${n0(x.capacidad.con_sondeo)} / ${n0(x.capacidad.sin_purga)} | ${n0(x.margen_operacion_recomendado_1000)} |`).join('\n')}
 
 ## Conclusiones
 

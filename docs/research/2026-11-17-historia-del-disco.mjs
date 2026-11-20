@@ -39,11 +39,19 @@ Por mesa de ${h.comensales}, lo que ocupa la analítica; y cuántos restaurantes
 |---|---|---|---|---|---|---|
 ${h.opciones.map((x) => `| ${x.nombre} | ${x.que_queda} | ${x.se_pierde} | ${n0(x.bytes_analitica_por_mesa_de_3)} | ${n2(x.mb_analitica_por_restaurante_mes_en_la_copia)} | ${n0(x.restaurantes_que_caben_sin_purga)} | ${n0(x.restaurantes_que_caben_con_historial_30_dias)} |`).join('\n')}
 
-Comprar disco: ${h.comprar_disco} «Archivar» no baja la analítica (mueve las sesiones viejas); las bajas de «contar por día» y «fila por visita» son a **el volumen de la copia** (${n0(fv.sesiones_en_la_copia / fv.restaurantes_en_la_copia)} sesiones por restaurante-mes, ${n0((fv.sesiones_en_la_copia / fv.restaurantes_en_la_copia) * s.tablas_de_una_visita.eventos_por_sesion)} eventos): contar por día crece con los días y los platillos, no con las visitas, así que con más visitas gana más.
+Comprar disco: ${h.comprar_disco} Archivar no es borrar y no baja la analítica: saca de la base las sesiones de más de 3 meses y las deja en R2, de donde se vuelven a leer (toca las reglas 8 y 9 y pide ADR). **Hay dos alcances que no se suman:** sólo las de los restaurantes de paga (3 meses en la base) o las de todos los planes (también el gratuito queda en 3 meses); las bajas de «contar por día» y «fila por visita» son a **el volumen de la copia** (${n0(fv.sesiones_en_la_copia / fv.restaurantes_en_la_copia)} sesiones por restaurante-mes, ${n0((fv.sesiones_en_la_copia / fv.restaurantes_en_la_copia) * s.tablas_de_una_visita.eventos_por_sesion)} eventos): contar por día crece con los días y los platillos, no con las visitas, así que con más visitas gana más.
+
+### Combinaciones (restaurantes registrados que caben por disco, con avisos)
+
+| Archivo de sesiones | Forma de guardar la analítica | Con el historial del gratuito a 30 días (propuesta) | Con el gratuito a 12 meses, sin purga (03 §7: política vigente) |
+|---|---|---|---|
+${h.combinaciones.map((x) => `| ${x.archivo} | ${x.analitica} | ${n0(x.caben_con_historial_del_gratuito_a_30_dias)} | ${n0(x.caben_con_el_gratuito_a_12_meses_sin_purga)} |`).join('\n')}
+
+Lectura: archivar sólo las sesiones de paga ayuda poco si el gratuito conserva 12 meses (${n0(h.combinaciones.find((x) => x.archivo === 'archivar sólo las de paga' && x.analitica === 'una fila por evento (hoy)').caben_con_el_gratuito_a_12_meses_sin_purga)} frente a ${n0(h.combinaciones[0].caben_con_el_gratuito_a_12_meses_sin_purga)} sin archivo); lo que da un salto es recortar también al gratuito, sea a 30 días o archivando a todos (${n0(h.combinaciones.find((x) => x.archivo === 'archivar las de todos los planes' && x.analitica === 'fila por visita').caben_con_el_gratuito_a_12_meses_sin_purga)} con la fila por visita). Las formas de guardar la analítica tampoco se suman entre sí.
 
 ## 3. La propuesta de Calvin, medida
 
-**Qué es:** una fila por comensal y visita, armada en el teléfono, con los pares «veces que entró / segundos totales» para menú, platillo, búsqueda y filtros (ocho enteros chicos), que el teléfono manda al terminar.
+**Qué es:** una fila por comensal y visita, armada en el teléfono, con los pares «veces que entró / segundos totales» para menú, platillo y búsqueda (seis enteros chicos); **los filtros no van por comensal** (revelarían quién usa filtros, indicio indirecto de una restricción alimentaria, regla 10) y se cuentan por restaurante y día junto con el platillo, que el teléfono manda al terminar.
 
 | Medida (PostgreSQL local, ${n0(fv.visitas_de_comensal_en_la_copia)} visitas de comensal) | Valor |
 |---|---|
@@ -57,7 +65,7 @@ Comprar disco: ${h.comprar_disco} «Archivar» no baja la analítica (mueve las 
 
 ### Qué se gana
 - **${pc(1 - fv.sola)} menos disco que hoy** por visita (${n0(fv.bytes_por_visita_de_comensal)} frente a ${n0(h.opciones[0].bytes_analitica_por_mesa_de_3 / h.comensales)} bytes por comensal) y, a diferencia de «contar por día», conserva **qué hizo cada comensal** (tiempo en cada lugar), útil para saber si buscan o sólo miran.
-- **No necesita \`ip_hash\`** ni navegador por evento; la huella de red deja de guardarse y la regla 10 se cumple mejor.
+- **No necesita \`ip_hash\`** ni navegador por evento: la huella de red deja de guardarse. La regla 10 se cuida con la fila anónima (id opaco) y sin los filtros por comensal.
 - Menos peticiones del teléfono (una al terminar frente a lotes cada 5 s) y menos escrituras: un INSERT por visita.
 
 ### Qué se pierde o cuesta

@@ -1,5 +1,5 @@
 """Mide en PostgreSQL LOCAL la propuesta de Calvin (17-nov): UNA fila de analítica por visita de comensal, armada en el teléfono, con pares
-«veces que entró / segundos totales» por lugar (menú, platillo, búsqueda, filtros), frente a «contar por día» y la combinación de ambas.
+«veces que entró / segundos totales» por lugar (menú, platillo y búsqueda; los filtros NO van por comensal: revelarían quién usa filtros, indicio indirecto de una restricción alimentaria, regla 10; se cuentan por restaurante y día), frente a «contar por día» y la combinación de ambas.
 Crea una base NUEVA `carta_med_fila_<n>` a partir de `carta_med_mediano` (nunca borra nada). Datos SINTÉTICOS: los contadores se generan
 con funciones de hash (los bytes de una fila de enteros chicos no dependen del valor). Salida: 2026-11-17-fila-por-visita-datos.json.
 Uso: python3 -I 2026-11-17-fila-por-visita-medir.py   (psql y `carta_med_mediano` deben existir)"""
@@ -9,11 +9,15 @@ import os
 import subprocess
 import sys
 
-ENV = {**os.environ, "PGPASSWORD": "carta_dev_password"}
+if "PGPASSWORD" not in os.environ:
+    sys.exit("Defina PGPASSWORD (la contraseña de la base LOCAL de desarrollo) en el entorno: no se guarda en el repositorio.")
+ENV = dict(os.environ)  # el host es siempre 127.0.0.1 y las bases de trabajo son carta_med_*
 AQUI = os.path.dirname(os.path.abspath(__file__))
 
 
 def sql(db, q, uno=False):
+    if db != "postgres" and not db.startswith("carta_med_"):
+        sys.exit(f"Base {db!r} rechazada: estos guiones sólo tocan bases carta_med_* locales")
     r = subprocess.run(
         [
             "psql",
@@ -57,13 +61,12 @@ sesiones = t("select count(*) from sesion_grupal")
 restaurantes = t("select count(*) from restaurante")
 
 # columnas: par (veces, segundos) por lugar. smallint alcanza: 21,600 s = 6 h de cookie de invitado
-PARES = "menu_n smallint not null, menu_seg smallint not null, platillo_n smallint not null, platillo_seg smallint not null, busqueda_n smallint not null, busqueda_seg smallint not null, filtros_n smallint not null, filtros_seg smallint not null"
+PARES = "menu_n smallint not null, menu_seg smallint not null, platillo_n smallint not null, platillo_seg smallint not null, busqueda_n smallint not null, busqueda_seg smallint not null"
 RELLENO = """(1 + abs(hashtext(m.id::text || 'a')) % 4)::smallint, (10 + abs(hashtext(m.id::text || 'b')) % 600)::smallint,
              (abs(hashtext(m.id::text || 'c')) % 8)::smallint, (abs(hashtext(m.id::text || 'd')) % 900)::smallint,
-             (abs(hashtext(m.id::text || 'e')) % 3)::smallint, (abs(hashtext(m.id::text || 'f')) % 120)::smallint,
-             (abs(hashtext(m.id::text || 'g')) % 3)::smallint, (abs(hashtext(m.id::text || 'h')) % 120)::smallint"""
+             (abs(hashtext(m.id::text || 'e')) % 3)::smallint, (abs(hashtext(m.id::text || 'f')) % 120)::smallint"""
 ORIGEN = "from miembro_sesion m join sesion_grupal s on s.id = m.sesion_id"
-COLS = "restaurante_id, dia, miembro_id, menu_n, menu_seg, platillo_n, platillo_seg, busqueda_n, busqueda_seg, filtros_n, filtros_seg"
+COLS = "restaurante_id, dia, miembro_id, menu_n, menu_seg, platillo_n, platillo_seg, busqueda_n, busqueda_seg"
 
 
 def medida(tabla):
@@ -148,9 +151,9 @@ actualizaciones_ff70 = dict(sin_actualizar=v0, tras_2_actualizaciones_y_vacuum=v
 sql(
     DB,
     """create table evento_dia_platillo as
-  select e.restaurante_id, (e.ocurrido_en at time zone 'UTC')::date dia, (case e.tipo when 'dish_view' then 3 else 6 end)::smallint tipo,
-         (select p.id from platillo p where p.restaurante_id = e.restaurante_id order by md5(p.id::text || e.id::text) limit 1) platillo_id
-  from evento_analitica e where e.tipo in ('dish_view', 'item_add')""",
+  select e.restaurante_id, (e.ocurrido_en at time zone 'UTC')::date dia, (case e.tipo when 'dish_view' then 3 when 'filter' then 5 else 6 end)::smallint tipo,
+         (case when e.tipo = 'filter' then '00000000-0000-0000-0000-000000000000'::uuid else (select p.id from platillo p where p.restaurante_id = e.restaurante_id order by md5(p.id::text || e.id::text) limit 1) end) platillo_id
+  from evento_analitica e where e.tipo in ('dish_view', 'item_add', 'filter')""",
 )
 sql(
     DB,

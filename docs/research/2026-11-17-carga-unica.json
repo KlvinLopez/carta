@@ -96,7 +96,7 @@
     "capacidad": {
       "con_avisos": 279,
       "con_sondeo": 148,
-      "sin_purga": 23
+      "sin_purga": 279
     },
     "bolsa_con_sondeo_de_hoy": 148
   },
@@ -190,7 +190,7 @@
     "capacidad": {
       "con_avisos": 182,
       "con_sondeo": 173,
-      "sin_purga": 41
+      "sin_purga": 182
     },
     "bolsa_con_sondeo_de_hoy": 246
   },
@@ -213,7 +213,7 @@
       "capacidad": {
         "con_avisos": 215,
         "con_sondeo": 215,
-        "sin_purga": 71
+        "sin_purga": 215
       },
       "bolsa_1000": 985
     },
@@ -227,7 +227,7 @@
       "capacidad": {
         "con_avisos": 182,
         "con_sondeo": 173,
-        "sin_purga": 41
+        "sin_purga": 182
       },
       "bolsa_1000": 809
     },
@@ -241,9 +241,53 @@
       "capacidad": {
         "con_avisos": 138,
         "con_sondeo": 106,
-        "sin_purga": 22
+        "sin_purga": 138
       },
       "bolsa_1000": 689
+    }
+  ],
+  "sensibilidad_visitas_por_mesa_con_la_politica_vigente": [
+    {
+      "visitas_por_mesa_al_mes": 90,
+      "visitas_del_gratuito_al_mes": 540,
+      "margen_operacion_recomendado_1000": 15795.231391362871,
+      "margen_operacion_peor_1000": 689.7696150438642,
+      "gratuitos_que_sostiene_sin_anuncios": 76.6939240997267,
+      "ingreso_de_anuncios_por_gratuito": 1.2915,
+      "capacidad": {
+        "con_avisos": 215,
+        "con_sondeo": 215,
+        "sin_purga": 71
+      },
+      "bolsa_1000": 565
+    },
+    {
+      "visitas_por_mesa_al_mes": 180,
+      "visitas_del_gratuito_al_mes": 1080,
+      "margen_operacion_recomendado_1000": 14752.019149409804,
+      "margen_operacion_peor_1000": -1513.4974322993794,
+      "gratuitos_que_sostiene_sin_anuncios": 35.07032562315215,
+      "ingreso_de_anuncios_por_gratuito": 2.583,
+      "capacidad": {
+        "con_avisos": 182,
+        "con_sondeo": 173,
+        "sin_purga": 41
+      },
+      "bolsa_1000": 282
+    },
+    {
+      "visitas_por_mesa_al_mes": 360,
+      "visitas_del_gratuito_al_mes": 2160,
+      "margen_operacion_recomendado_1000": 13671.00986550367,
+      "margen_operacion_peor_1000": -4914.616326985866,
+      "gratuitos_que_sostiene_sin_anuncios": 17.899293188263012,
+      "ingreso_de_anuncios_por_gratuito": 5.166,
+      "capacidad": {
+        "con_avisos": 138,
+        "con_sondeo": 106,
+        "sin_purga": 22
+      },
+      "bolsa_1000": 141
     }
   ]
 }

@@ -61,6 +61,7 @@ const estratos = ['centro', 'minimo', 'maximo'].map((k) => [k, M.coberturaEstrat
 const estratosBaja = M.coberturaEstratos(rec, s, 'centro', 'baja');
 const alternativas = [[5, 1], [6, 1], [6, 2], [8, 2], [10, 3]].map(([mesas, cuentas]) => { const c = { ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, mesas, cuentas } } }; const e = M.coberturaEstratos(c, s, 'centro'); const m = M.evaluar(c, s, 1000, { curva: 'media' }); return { mesas, cuentas, dentro_0_5: e.dentro_0_5, cae_6_10: e.cae_en_master_6_10, pagantes: m.clientes.de_paga, margen_operacion: m.margen_operacion }; });
 const res = M.resumen(rec, s, 1000);
+const politicas = M.politicasDeHistorial(rec, s);
 const cargaG = M.cargaGratuita(rec, s);
 const msj = M.mensajes(rec, s);
 const meta = M.meta12Meses(rec, s);
@@ -176,7 +177,13 @@ const md = `# Modelo de escenarios de Carta: dos planes (Chef y Master Chef), el
 4. **Una sola cuenta frente al ADR-017** (el dueño es el validador y el primer mesero): el plan gratuito es **operación de una persona con un PIN**; el dueño recibe y atiende las comandas en su propio teléfono, sin mesero aparte ni capitán.
 5. **Peor caso real (todos gratuitos): con ${n0(b1000.bolsa)} pesos al mes de bolsa caben ${n0(b1000.centro.restaurantes)} restaurantes gratuitos (rango ${n0(b1000.minimo)} a ${n0(b1000.maximo)} según el soporte, sin fuente), con el canal de eventos construido; los anuncios pagan el sistema desde ${rg(rangos.baja)} restaurantes con la tarifa baja** (son rangos, no puntos). **Qué medir primero: ${sens.medir_primero.slice(0, 3).map((x) => x.supuesto).join(', ')}.**
 
-**Supuesto de historial en TODAS las cifras de costo, bolsa, margen y escalón:** el plan gratuito guarda **${rec.topes.gratuito.meses_en_linea} mes (30 días)** de visitas y analítica. **Es una propuesta que contradice 03 §7 (13 y 24 meses) y hoy nada purga.** Sin purga (12 meses acumulados) la bolsa de ${n0(b1000.bolsa)} pesos carga ${n0(bolsaSinPurga.restaurantes)} restaurantes en vez de ${n0(b1000.centro.restaurantes)}, y el margen recomendado con 1,000 restaurantes es ${sg(margenSinPurga.margen_operacion)} en vez de ${sg(mop.recomendado)}.
+**Supuesto de historial en TODAS las cifras de costo, bolsa, margen y escalón: la política VIGENTE (03 §7).** El plan gratuito conserva **${rec.topes.gratuito.meses_en_linea} meses de sesiones y ${rec.disco.meses_analitica_en_linea.gratuito} de analítica** (lo que dice 03 §7 para todos los planes; hoy nada purga). **Recortar el historial del gratuito a 30 días es una PROPUESTA, decisión pendiente de Calvin, que contradice 03 §7;** va al lado, rotulada:
+
+| Historial del plan gratuito | Margen recomendado, 1,000 restaurantes | Peor | Mejor | Estrés | Gratuitos que sostiene un pagante (sin anuncios) | Mes 12 (300 restaurantes): margen de operación | Sueldo de 1 salario mínimo: restaurantes en régimen |
+|---|---|---|---|---|---|---|---|
+${politicas.map((x) => `| ${x.nombre} | ${sg(x.margen_operacion_1000.recomendado)} | ${sg(x.margen_operacion_1000.peor)} | ${sg(x.margen_operacion_1000.mejor)} | ${sg(x.margen_operacion_1000.piso_de_verdad)} | ${n0(x.gratuitos_que_sostiene_un_pagante_sin_anuncios)} | ${sg(x.mes_12_con_300_restaurantes.margen_operacion)} | ${n0(x.sueldo_de_1_salario_minimo.restaurantes_necesarios_en_regimen)} |`).join('\n')}
+
+*Todo lo demás de este informe usa la primera fila.* La bolsa de ${n0(b1000.bolsa)} pesos carga ${n0(b1000.centro.restaurantes)} restaurantes con la política vigente.
 
 ${lineaDef}
 
@@ -481,7 +488,7 @@ const R = [
     ejemplo: `Con ${n0(b1000.bolsa)} pesos al mes pagas servidor y soporte básico de ≈ ${n0(b1000.centro.restaurantes)} fondas y taquerías gratuitas.`,
     prueba: 'El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte.' },
   { id: 'historial', decision: 'Historial: meses en línea y archivo descargable',
-    recomendacion: '**12 meses en línea para la paga (decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**',
+    recomendacion: '**12 meses en línea para la paga (decidido por Calvin). Para el gratuito, la política vigente es la de 03 §7 (24 meses de sesiones y 13 de analítica); recortarlo a 30 días, con archivo descargable de lo anterior, es una PROPUESTA pendiente de decisión de Calvin.**',
     depende: '**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos)** ([disco-e-historial](2026-11-14-disco-e-historial.md)).',
     cifras: 'Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387) [disco-e-historial].',
     alternativas: [{ opcion: '3 meses + archivo', pros: '128 de paga en Hobby', contras: 'Cambia lo decidido' }, { opcion: '12 meses + archivo (recomendada)', pros: 'Cumple lo decidido', contras: 'En Hobby sólo caben 38 de paga' }],

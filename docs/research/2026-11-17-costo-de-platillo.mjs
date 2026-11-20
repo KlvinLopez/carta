@@ -39,7 +39,7 @@ ${c.conclusion}
 
 ## Por tope
 
-| Platillos | Base por restaurante | Fotos en R2 por restaurante | Restaurantes con foto que caben en R2 gratis | Menú (JSON) | Armar el menú | Disco (restaurantes, con avisos) | Procesador (con avisos / con sondeo) | Cuello |
+| Platillos | Base por restaurante | Fotos en R2 por restaurante | Gratuitos solos con foto que caben en R2 gratis (con la mezcla de paga: menos) | Menú (JSON) | Armar el menú | Disco (restaurantes, con avisos) | Procesador (con avisos / con sondeo) | Cuello |
 |---|---|---|---|---|---|---|---|---|
 ${c.filas.map((f) => `| ${f.platillos} | ${n1(f.base_de_datos.bytes_por_restaurante / 1000)} KB | ${n2(f.fotos_en_r2.gb_por_restaurante)} GB (${n2(f.fotos_en_r2.rango_gb[0])} a ${n2(f.fotos_en_r2.rango_gb[1])}) | ${n0(f.fotos_en_r2.restaurantes_que_caben_en_lo_gratis)} (${n0(f.fotos_en_r2.rango_restaurantes[0])} a ${n0(f.fotos_en_r2.rango_restaurantes[1])}) | ${kb(f.menu.json_bytes)} KB | ${n1(f.menu.ms_armar_por_cada_30_segundos)} ms | ${n0(f.capacidad.con_avisos.disco)} | ${n0(f.capacidad.con_avisos.procesador)} / ${n0(f.capacidad.con_sondeo.procesador)} | ${f.capacidad.con_avisos.cuello} / ${f.capacidad.con_sondeo.cuello} |`).join('\n')}
 

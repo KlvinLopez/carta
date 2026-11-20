@@ -66,6 +66,80 @@
       "acumulado": 8382.121887603971
     }
   ],
+  "combinaciones": [
+    {
+      "archivo": "sin archivo",
+      "analitica": "una fila por evento (hoy)",
+      "caben_con_historial_del_gratuito_a_30_dias": 182,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 41
+    },
+    {
+      "archivo": "sin archivo",
+      "analitica": "contar por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 222,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 68
+    },
+    {
+      "archivo": "sin archivo",
+      "analitica": "fila por visita",
+      "caben_con_historial_del_gratuito_a_30_dias": 222,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 68
+    },
+    {
+      "archivo": "sin archivo",
+      "analitica": "fila por visita más platillo por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 219,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 65
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "una fila por evento (hoy)",
+      "caben_con_historial_del_gratuito_a_30_dias": 347,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 46
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "contar por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 533,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 83
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "fila por visita",
+      "caben_con_historial_del_gratuito_a_30_dias": 532,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 82
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "fila por visita más platillo por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 512,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 78
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "una fila por evento (hoy)",
+      "caben_con_historial_del_gratuito_a_30_dias": 347,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 70
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "contar por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 533,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 217
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "fila por visita",
+      "caben_con_historial_del_gratuito_a_30_dias": 532,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 216
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "fila por visita más platillo por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 512,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 188
+    }
+  ],
   "bytes_de_la_mesa_sin_analitica": 4299.938555555555,
   "bytes_de_analitica": 4082.183332048416,
   "bytes_total": 8382.121887603971,
@@ -102,12 +176,12 @@
       "palancas": [
         "fila_por_visita_de_comensal"
       ],
-      "factor": 0.1181,
-      "que_queda": "una fila por comensal y día con veces y segundos en menú, platillo, búsqueda y filtros; crece con las visitas",
+      "factor": 0.1123,
+      "que_queda": "una fila por comensal y día con veces y segundos en menú, platillo y búsqueda (los filtros se cuentan por restaurante y día, no por comensal); crece con las visitas",
       "se_pierde": "qué platillo se vio y el orden de los toques",
-      "bytes_analitica_por_mesa_de_3": 482.1058515149179,
-      "mb_analitica_por_restaurante_mes_en_la_copia": 0.7504074,
-      "restaurantes_que_caben_sin_purga": 67,
+      "bytes_analitica_por_mesa_de_3": 458.4291881890371,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 0.7135541999999999,
+      "restaurantes_que_caben_sin_purga": 68,
       "restaurantes_que_caben_con_historial_30_dias": 222
     },
     {
@@ -116,13 +190,13 @@
       "palancas": [
         "fila_por_visita_mas_platillo_por_dia"
       ],
-      "factor": 0.1817,
+      "factor": 0.1766,
       "que_queda": "la fila por visita más un conteo diario por platillo",
       "se_pierde": "cuál comensal vio cuál platillo",
-      "bytes_analitica_por_mesa_de_3": 741.7327114331972,
-      "mb_analitica_por_restaurante_mes_en_la_copia": 1.1545218000000004,
-      "restaurantes_que_caben_sin_purga": 64,
-      "restaurantes_que_caben_con_historial_30_dias": 218
+      "bytes_analitica_por_mesa_de_3": 720.9135764397503,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 1.1221164,
+      "restaurantes_que_caben_sin_purga": 65,
+      "restaurantes_que_caben_con_historial_30_dias": 219
     },
     {
       "id": "adelgazar",
@@ -140,14 +214,28 @@
       "restaurantes_que_caben_con_historial_30_dias": 197
     },
     {
-      "id": "archivar",
-      "nombre": "Archivar sesiones cerradas en R2",
+      "id": "archivar_paga",
+      "nombre": "Archivar las sesiones de los restaurantes de paga (3 meses en la base)",
       "palancas": [
-        "archivar_sesiones_cerradas"
+        "archivar_sesiones_de_paga"
       ],
       "factor": 1,
-      "que_queda": "la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo sale a un archivo comprimido",
-      "se_pierde": "consulta inmediata de lo viejo; hay que releer del archivo",
+      "que_queda": "la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo queda en R2 (no se borra)",
+      "se_pierde": "consulta inmediata de lo viejo de los de paga; hay que releer del archivo",
+      "bytes_analitica_por_mesa_de_3": 4082.183332048416,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
+      "restaurantes_que_caben_sin_purga": 46,
+      "restaurantes_que_caben_con_historial_30_dias": 347
+    },
+    {
+      "id": "archivar_todos",
+      "nombre": "Archivar las sesiones de todos los planes (3 meses en la base)",
+      "palancas": [
+        "archivar_sesiones_de_todos_los_planes"
+      ],
+      "factor": 1,
+      "que_queda": "la base conserva sólo 3 meses de las sesiones de cada restaurante, gratuito incluido; lo viejo queda en R2 (no se borra)",
+      "se_pierde": "consulta inmediata de lo viejo de todos; el gratuito pierde historial en línea",
       "bytes_analitica_por_mesa_de_3": 4082.183332048416,
       "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
       "restaurantes_que_caben_sin_purga": 70,

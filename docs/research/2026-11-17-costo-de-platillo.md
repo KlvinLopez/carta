@@ -20,7 +20,7 @@ De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de l
 
 ## Por tope
 
-| Platillos | Base por restaurante | Fotos en R2 por restaurante | Restaurantes con foto que caben en R2 gratis | Menú (JSON) | Armar el menú | Disco (restaurantes, con avisos) | Procesador (con avisos / con sondeo) | Cuello |
+| Platillos | Base por restaurante | Fotos en R2 por restaurante | Gratuitos solos con foto que caben en R2 gratis (con la mezcla de paga: menos) | Menú (JSON) | Armar el menú | Disco (restaurantes, con avisos) | Procesador (con avisos / con sondeo) | Cuello |
 |---|---|---|---|---|---|---|---|---|
 | 50 | 27.9 KB | 0.12 GB (0.04 a 0.33) | 80 (30 a 242) | 38 KB | 7 ms | 182 | 1,091 / 180 | disco / procesador |
 | 80 | 44.6 KB | 0.2 GB (0.07 a 0.53) | 50 (18 a 151) | 60 KB | 9.8 ms | 182 | 1,018 / 177 | disco / procesador |

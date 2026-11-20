@@ -5,9 +5,9 @@
 ## Conclusiones
 
 1. **Seis banderas bastan:** procesador, disco, conexiones, memoria, costo por restaurante y costos sobre ingresos.
-2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone en ≈ 52 % de procesador (el escalón Pro de 2 procesos se llena al 70 %, el tope de diseño: por eso la tabla avisa en 50 % y actúa en 70 %); el escalón de hoy (Hobby, sondeo) cabe ≈ 173 restaurantes registrados (carga por topes, mezcla de paga e historial del gratuito a 30 días).
-3. **Siguiente paso, costo:** de Hobby a Pro 2 procesos sube 12 USD base por mes (8.1 → 20); entra hacia el mes 10 de la proyección recomendada (adopción supuesta).
-4. **Más de ≈ 1,830 restaurantes registrados exige otra arquitectura:** de ahí en adelante todo es extrapolación sin medir.
+2. **El primer muro es el procesador:** con 1,000 restaurantes y curva media el modelo lo pone en ≈ 7 % de procesador (el escalón Pro de 2 procesos se llena al 70 %, el tope de diseño: por eso la tabla avisa en 50 % y actúa en 70 %); el escalón de hoy (Hobby, sondeo) cabe ≈ 173 restaurantes registrados (carga por topes, mezcla de paga e historial del gratuito a 30 días).
+3. **Siguiente paso, costo:** de Hobby a Pro 2 procesos sube 12 USD base por mes (8.1 → 20); entra hacia el mes 4 de la proyección recomendada (adopción supuesta).
+4. **Más de ≈ 290 restaurantes registrados exige otra arquitectura:** de ahí en adelante todo es extrapolación sin medir.
 5. **Dos banderas ya se pueden medir con el primer cliente:** costo por restaurante y costos sobre ingresos.
 6. **Aviso de producto:** un negocio de Chef Ejecutivo (101 a 250 personas) tiene unas 36 a 125 cuentas de personal en el modelo, y el tope técnico es de **50 cuentas activas por restaurante** (T-1.6): hay que subirlo antes de vender ese plan.
 
@@ -32,8 +32,8 @@
 |---|---|---|---|---|---|---|
 | Hoy: sondeo, 2 procesos, Hobby | 148 | 173 | 5 GB | 8.1 | +0 | no entra en 36 meses |
 | Con eventos, 2 procesos, Hobby | 1,064 | 182 | 5 GB | 8.1 | +0 | 1 |
-| Con eventos, 2 procesos, Pro | 1,064 | 880 | 50 GB | 20 | +11.9 | 10 |
-| Con eventos, 4 procesos, Pro | 1,896 | 1,630 | 50 GB | 23 | +3 | 26 |
-| Con eventos, 8 procesos, Pro | 2,116 | 1,823 | 50 GB | 30 | +7 | 30 |
+| Con eventos, 2 procesos, Pro | 1,064 | 880 | 50 GB | 20 | +11.9 | 4 |
+| Con eventos, 4 procesos, Pro | 1,896 | 1,630 | 50 GB | 23 | +3 | no entra en 36 meses |
+| Con eventos, 8 procesos, Pro | 2,116 | 1,823 | 50 GB | 30 | +7 | 12 |
 
 **Datos por conseguir:** p95 real de CPU con tráfico de piloto, bytes por visita real, conexiones SSE por restaurante, y la factura real de Railway del primer mes.

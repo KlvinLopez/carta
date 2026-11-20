@@ -10,7 +10,7 @@ const aqui = dirname(fileURLToPath(import.meta.url));
 const par = JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8'));
 const s = M.valores(par);
 let fallas = 0;
-const CT = (c = M.configInicial()) => ({ ...c, carga: 'tipica' }); // las rondas 4 a 9 miden el gratuito típico (comparación rotulada, no vigente)
+const CT = (c = M.configInicial()) => ({ ...c, carga: 'tipica', topes: { ...c.topes, gratuito: { ...c.topes.gratuito, meses_en_linea: 1 } }, disco: { ...c.disco, meses_analitica_en_linea: { ...c.disco.meses_analitica_en_linea, gratuito: 1 } } }); // las rondas 4 a 9 miden el gratuito típico (comparación rotulada, no vigente)
 const RT = (c, ss, st = {}) => M.recursos(c, ss, { carga: 'tipica', ...st }); // las rondas 5 a 9 miden el gratuito típico de 1,800 visitas
 const TB = (c, ss, u, carga = 'tipica') => M.palancasEnTablero(c, ss, u ?? ss.umbral_tablero, carga);
 const prueba = (nombre, obtenido, esperado, tol = 0) => {
@@ -117,7 +117,7 @@ prueba('el costo con ese número de restaurantes no pasa de la bolsa', M.todosGr
 
 // 8) resumen en tres casos
 const rs = M.resumen(c, s, 1000);
-prueba('el resumen trae once cifras', rs.cifras.length, 11);
+prueba('el resumen trae doce cifras (con la propuesta de 30 días aparte)', rs.cifras.length, 12);
 prueba('cada cifra trae recomendado, peor y mejor', rs.cifras.every((f) => 'recomendado' in f && 'peor' in f && 'mejor' in f), true);
 const mo = rs.cifras.find((f) => f.clave === 'margen_de_operacion');
 prueba('el margen de operación: peor ≤ recomendado ≤ mejor', mo.peor <= mo.recomendado && mo.recomendado <= mo.mejor, true);
@@ -222,13 +222,13 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('palanca cerrar líneas ociosas: +restaurantes antes del tope de líneas', pal('cerrar_lineas_ociosas').ganancia_restaurantes.con_eventos, 906);
   const todasRegla = (id, re) => re.test(M.PALANCAS[id].regla_que_toca);
   prueba('el historial a 30 días contradice 03 §7 y toca la regla 9', todasRegla('historial_gratuito_30_dias', /03_Datos_v1.md §7/) && todasRegla('historial_gratuito_30_dias', /regla 9/), true);
-  prueba('el archivo de sesiones toca las reglas 8 y 9', todasRegla('archivar_sesiones_cerradas', /regla 9/) && todasRegla('archivar_sesiones_cerradas', /regla 8/), true);
+  prueba('el archivo de sesiones (de paga y de todos) toca las reglas 8 y 9', ['archivar_sesiones_de_paga', 'archivar_sesiones_de_todos_los_planes'].every((id) => todasRegla(id, /regla 9/) && todasRegla(id, /regla 8/)), true);
   prueba('toda palanca dice si es medida o estimada', Object.values(M.PALANCAS).every((p) => typeof p.medido === 'boolean'), true);
   // resumen: dice con qué retención
   const caben = (c, k = 'restaurantes_que_caben') => M.resumen(c, s, 1000).cifras.find((f) => f.clave === k).recomendado;
   prueba('resumen con la carga típica (comparación de las rondas 4 a 9): restaurantes que caben (historial del gratuito a 1 mes: propuesta)', caben(cfg), 279);
   prueba('resumen: restaurantes que caben SIN purga (12 meses)', caben(cfg, 'restaurantes_que_caben_sin_purga'), 23);
-  prueba('resumen: el nombre de la cifra dice la retención', /historial del gratuito de 1 mes: PROPUESTA/.test(M.resumen(cfg, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').nombre), true);
+  prueba('resumen: el nombre de la cifra dice la política (03 §7) y la otra, la propuesta', /03 §7: el gratuito guarda 1 meses/.test(M.resumen(cfg, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben').nombre) && /PROPUESTA/.test(M.resumen(cfg, s, 1000).cifras.find((f) => f.clave === 'restaurantes_que_caben_propuesta_30_dias').nombre), true);
   prueba('resumen: con la analítica agregada caben más', caben({ ...cfg, palancas: ['analitica_agregada_por_dia'] }) > 279, true);
   prueba('las palancas bajan los MB por restaurante gratuito', M.mbPorRestaurante('gratuito', { ...cfg, palancas: ['analitica_agregada_por_dia'] }, s) < M.mbPorRestaurante('gratuito', cfg, s), true);
   prueba('con Pro (50 GB) y historial a 30 días manda el procesador', RT({ ...cfg, palancas: ['historial_gratuito_30_dias'] }, s, { tamano_eventos: 'pro_2' }).cuello_con_eventos.recurso, 'procesador');
@@ -355,7 +355,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('potencial de Chef: el rango abarca los tres escenarios de tarifa', ch.potencial_anuncios_mes.baja.rango_por_visitas_y_parte[0] < ch.potencial_anuncios_mes.baja.pesos_al_mes_de_todos_los_chef && ch.potencial_anuncios_mes.alta.rango_por_visitas_y_parte[1] > ch.potencial_anuncios_mes.alta.pesos_al_mes_de_todos_los_chef, true);
   const tb = TB(cfg, s);
   prueba('palancas en el tablero (regla ≥ 15 % del recurso que tocan)', tb.en_tablero.join(','), 'historial_gratuito_30_dias,analitica_agregada_por_dia,retencion_analitica_7_dias,fila_por_visita_de_comensal,fila_por_visita_mas_platillo_por_dia,estado_en_memoria_60s,cerrar_lineas_ociosas');
-  prueba('ajustes menores (fuera del tablero)', tb.ajustes_menores.join(','), 'indices_de_evento_minimos,tipos_mas_chicos,purga_claves_idempotencia,archivar_sesiones_cerradas,pool_acotado');
+  prueba('ajustes menores (fuera del tablero)', tb.ajustes_menores.join(','), 'indices_de_evento_minimos,tipos_mas_chicos,purga_claves_idempotencia,archivar_sesiones_de_paga,archivar_sesiones_de_todos_los_planes,pool_acotado');
   prueba('ganancia de índices y tipos: 11 % (debajo del umbral); con 10 % entrarían', `${Math.round(tb.palancas.indices_de_evento_minimos.ganancia_maxima * 100)}-${TB(cfg, s, 0.10).en_tablero.includes('indices_de_evento_minimos')}`, '11-true');
   prueba('cada palanca de recursos() trae en_tablero', RT(cfg, s, {}).recursos.flatMap((x) => x.palancas).every((p) => typeof p.en_tablero === 'boolean'), true);
   const mg = M.mensajes(cfg, s).margen;
@@ -457,15 +457,15 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
   const h = M.historiaDelDisco(M.configInicial(), s);
   const o = Object.fromEntries(h.opciones.map((x) => [x.id, x]));
-  prueba('fila por visita: 161 bytes por visita de comensal (medido)', s.fila_por_visita.bytes_por_visita_de_comensal, 161);
-  prueba('fila por visita: pesa el 12 % de la analítica de hoy; con el platillo por día, 18 %', `${Math.round(s.fila_por_visita.sola * 100)}-${Math.round(s.fila_por_visita.con_platillo_por_dia * 100)}`, '12-18');
+  prueba('fila por visita: 153 bytes por visita de comensal (medido, sin los filtros por comensal)', s.fila_por_visita.bytes_por_visita_de_comensal, 153);
+  prueba('fila por visita: pesa el 11 % de la analítica de hoy; con el platillo y los filtros por día, 18 %', `${Math.round(s.fila_por_visita.sola * 100)}-${Math.round(s.fila_por_visita.con_platillo_por_dia * 100)}`, '11-18');
   prueba('fila por visita: actualizarla casi nunca es HOT con el fillfactor por omisión', s.fila_por_visita.actualizando_2_veces.hot < 0.01 * s.fila_por_visita.actualizando_2_veces.de, true);
   prueba('fila por visita: actualizarla 2 veces más que duplica la tabla', s.fila_por_visita.actualizando_2_veces.despues > 2 * s.fila_por_visita.actualizando_2_veces.antes, true);
   prueba('historia: ocho tablas en una mesa de tres', h.pasos.length, 8);
   prueba('historia: una mesa de tres deja 8.4 KB y la analítica es la mitad', `${(h.bytes_total / 1000).toFixed(1)}-${Math.round((h.bytes_de_analitica / h.bytes_total) * 100)}`, '8.4-49');
   prueba('historia: hoy caben 41 sin purga y 182 con historial a 30 días', `${o.hoy.restaurantes_que_caben_sin_purga}-${o.hoy.restaurantes_que_caben_con_historial_30_dias}`, '41-182');
   prueba('historia: la fila por visita sola deja caber 222 con historial a 30 días', o.fila_por_visita.restaurantes_que_caben_con_historial_30_dias, 222);
-  prueba('historia: archivar no baja la analítica', o.archivar.bytes_analitica_por_mesa_de_3, o.hoy.bytes_analitica_por_mesa_de_3);
+  prueba('historia: archivar no baja la analítica', o.archivar_paga.bytes_analitica_por_mesa_de_3, o.hoy.bytes_analitica_por_mesa_de_3);
 }
 
 // 12d) correcciones de la maestra: versión con fecha real, nota de la curva por tamaño y composición del disco
@@ -495,7 +495,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const g = M.palancasEnTablero(cfg, s).grupos_excluyentes.forma_de_guardar_la_analitica;
   prueba('grupo excluyente: contar por día, fila por visita y fila más platillo están en el mismo grupo', ['analitica_agregada_por_dia', 'fila_por_visita_de_comensal', 'fila_por_visita_mas_platillo_por_dia'].every((x) => g.miembros.includes(x)), true);
   prueba('el modelo no apila: contar por día con fila por visita da lo mismo que contar por día solo', M.efectosPalancas({ ...cfg, palancas: ['analitica_agregada_por_dia', 'fila_por_visita_de_comensal'] }, s).eventos_disco, M.efectosPalancas({ ...cfg, palancas: ['analitica_agregada_por_dia'] }, s).eventos_disco);
-  prueba('recursos devuelve los grupos excluyentes', Object.keys(M.recursos(cfg, s, {}).grupos_excluyentes)[0], 'forma_de_guardar_la_analitica');
+  prueba('recursos devuelve los grupos excluyentes', Object.keys(M.recursos(cfg, s, {}).grupos_excluyentes).includes('forma_de_guardar_la_analitica'), true);
   const v2 = M.modeloDeNegocio(cfg, s).tipo_de_plataforma.vision_v2_de_calvin;
   prueba('visión v2: los anuncios van con la Spec 002 y no en la Fase 3', /Spec 002/.test(v2.orden_sugerido[0]) && /no están en las tareas de la Fase 3/.test(v2.orden_sugerido[0]), true);
 }
@@ -507,10 +507,11 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const rs = M.resumen(cfg, s);
   const R = M.recursos(cfg, s, {});
   const f = (k) => rs.cifras.find((x) => x.clave === k);
-  prueba('resumen = recursos: con avisos y 30 días', f('restaurantes_que_caben').recomendado, R.cuello_con_eventos.con_historial_30_dias.restaurantes);
-  prueba('resumen = recursos: con sondeo y 30 días', f('restaurantes_que_caben').peor, R.cuello_hoy.con_historial_30_dias.restaurantes);
+  prueba('resumen = recursos: con avisos y la propuesta de 30 días', f('restaurantes_que_caben_propuesta_30_dias').recomendado, R.cuello_con_eventos.con_historial_30_dias.restaurantes);
+  prueba('resumen = recursos: con sondeo y la propuesta de 30 días', f('restaurantes_que_caben_propuesta_30_dias').peor, R.cuello_hoy.con_historial_30_dias.restaurantes);
+  prueba('resumen = recursos: con la política vigente (03 §7) y avisos', f('restaurantes_que_caben').recomendado, R.disco_por_historial.find((x) => x.meses_historial === '03§7').restaurantes_por_disco);
   prueba('resumen = recursos: sin purga', f('restaurantes_que_caben_sin_purga').recomendado, R.cuello_con_eventos.restaurantes);
-  prueba('resumen: 182 / 173 / 41 (ya no 279 / 148 / 23)', `${f('restaurantes_que_caben').recomendado}-${f('restaurantes_que_caben').peor}-${f('restaurantes_que_caben_sin_purga').recomendado}`, '182-173-41');
+  prueba('resumen: política vigente 28, propuesta 182 / 173 y sin purga 41 (ya no 279 / 148 / 23)', `${f('restaurantes_que_caben').recomendado}-${f('restaurantes_que_caben_propuesta_30_dias').recomendado}-${f('restaurantes_que_caben_propuesta_30_dias').peor}-${f('restaurantes_que_caben_sin_purga').recomendado}`, '28-182-173-41');
 }
 
 // 12g) ronda 11: una sola definición de carga para el gratuito en todo el modelo
@@ -551,6 +552,30 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   }
 }
 
+// 12h) ronda 12, commit 1: archivar con alcances, política de historial, dos cuentas del sueldo, redacción y fila sin filtros
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  const h = M.historiaDelDisco(cfg, s);
+  const comb = (a, n) => h.combinaciones.find((x) => x.archivo === a && x.analitica === n);
+  prueba('archivar sólo las de paga, sin recortar al gratuito (12 meses): 46 sin la fila y 82 con la fila', `${comb('archivar sólo las de paga', 'una fila por evento (hoy)').caben_con_el_gratuito_a_12_meses_sin_purga}-${comb('archivar sólo las de paga', 'fila por visita').caben_con_el_gratuito_a_12_meses_sin_purga}`, '46-82');
+  prueba('archivar las de todos los planes con la fila: 216 sin purga con la fila (el gratuito también queda en 3 meses)', comb('archivar las de todos los planes', 'fila por visita').caben_con_el_gratuito_a_12_meses_sin_purga, 216);
+  prueba('archivar sólo las de paga no recorta al gratuito: su MB no cambia', M.cargaGratuita(M.conHistorialGratuito({ ...cfg, palancas: ['archivar_sesiones_de_paga'] }, s, 12), s).mb, M.cargaGratuita(M.conHistorialGratuito(cfg, s, 12), s).mb, 1e-9);
+  prueba('archivar las de todos los planes sí recorta al gratuito', M.cargaGratuita(M.conHistorialGratuito({ ...cfg, palancas: ['archivar_sesiones_de_todos_los_planes'] }, s, 12), s).mb < M.cargaGratuita(M.conHistorialGratuito(cfg, s, 12), s).mb, true);
+  prueba('los dos alcances del archivo son un grupo excluyente', M.palancasEnTablero(cfg, s).grupos_excluyentes.alcance_del_archivo.miembros.join(','), 'archivar_sesiones_de_paga,archivar_sesiones_de_todos_los_planes');
+  const pol = M.politicasDeHistorial(cfg, s);
+  prueba('el dinero según el historial: 14,752 (03 §7) · 15,878 (12 meses) · 18,591 (30 días, propuesta)', pol.map((x) => Math.round(x.margen_operacion_1000.recomendado)).join(' · '), '14752 · 15878 · 18591');
+  prueba('sueldo de 1 salario mínimo en régimen: 760 · 700 · 600 restaurantes', pol.map((x) => x.sueldo_de_1_salario_minimo.restaurantes_necesarios_en_regimen).join(' · '), '760 · 700 · 600');
+  prueba('la base del modelo es la política vigente: 24 meses de sesiones y 13 de analítica', `${cfg.topes.gratuito.meses_en_linea}-${cfg.disco.meses_analitica_en_linea.gratuito}`, '24-13');
+  prueba('resumen, meta de 12 meses y sueldo traen la política y la propuesta aparte', /03 §7/.test(M.meta12Meses(cfg, s).politica_de_historial) && M.meta12Meses(cfg, s).con_la_propuesta_de_30_dias != null && M.sueldo(cfg, s, 9577).con_la_propuesta_de_30_dias != null, true);
+  const su = M.sueldo(cfg, s, 9577).con_la_propuesta_de_30_dias.recomendado;
+  prueba('sueldo de 1 salario mínimo con la propuesta: 600 restaurantes en régimen, los alcanza el mes 17, el margen lo cubre el mes 22 con 1,008', `${su.restaurantes_necesarios_en_regimen}-${su.mes_en_que_la_proyeccion_llega_a_esos_restaurantes}-${su.mes_en_que_el_margen_despues_de_captacion_lo_cubre}-${su.restaurantes_ese_mes_de_la_proyeccion}`, '600-17-22-1008');
+  prueba('la curva de crecimiento se rotula como ajuste a dos metas', /extrapolación/.test(M.sueldo(cfg, s, 9577).curva_de_crecimiento), true);
+  prueba('la fila por visita no lleva filtros por comensal', M.PALANCAS.fila_por_visita_de_comensal.que_es.includes('no van por comensal') && !/filtros_n|filtros_seg/.test(readFileSync(join(aqui, '2026-11-17-fila-por-visita-medir.py'), 'utf8').replace(/#.*|"""[\s\S]*?"""/g, '')), true);
+  prueba('el informe de recursos no cita «antes: 279» ni «279 → 495»', !/antes: 279|279 → 495/.test(readFileSync(join(aqui, '2026-11-14-recursos-y-palancas.md'), 'utf8')), true);
+  prueba('los guiones de medición piden PGPASSWORD y no guardan contraseña', ['2026-11-17-fila-por-visita-medir.py', '2026-11-17-platillo-medir.py', '2026-11-14-recursos-medir.py', '2026-11-14-disco-e-historial-medir.py'].every((f) => { const x = readFileSync(join(aqui, f), 'utf8'); return /PGPASSWORD/.test(x) && !/carta_dev_password/.test(x); }), true);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
@@ -559,7 +584,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
     ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
     ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
     ['node', '2026-11-17-como-gana-dinero.mjs', ['2026-11-17-como-gana-dinero-carta.json', '2026-11-17-como-gana-dinero-carta.md']],
-    ['node', '2026-11-17-carga-unica.mjs', ['2026-11-17-carga-unica.json', '2026-11-17-carga-unica.md']],
+    ['node', '2026-11-17-carga-unica.mjs', ['2026-11-17-carga-unica.json', '../historia/2026-11-17-carga-unica-antes-y-despues.md']],
     ['node', '2026-11-17-historia-del-disco.mjs', ['2026-11-17-historia-del-disco.json', '2026-11-17-historia-del-disco.md']],
     ['node', '2026-11-17-costo-de-platillo.mjs', ['2026-11-17-costo-de-platillo.json', '2026-11-17-costo-de-platillo.md']],
     ['python3', '2026-11-16-cobertura-platillos.py', ['2026-11-16-cobertura-platillos-datos.json']],
@@ -567,7 +592,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   for (const [cmd, script, salidas] of gens) {
     const args = cmd === 'python3' ? ['-I', join(aqui, script)] : [join(aqui, script)];
     execFileSync(cmd, args, { env: entorno, stdio: 'ignore' });
-    for (const f of salidas) prueba(`el archivo commiteado coincide con la salida del generador: ${f}`, readFileSync(join(aqui, f), 'utf8') === readFileSync(join(tmp, f), 'utf8'), true);
+    for (const f of salidas) prueba(`el archivo commiteado coincide con la salida del generador: ${f}`, readFileSync(join(aqui, f), 'utf8') === readFileSync(join(tmp, f.split('/').pop()), 'utf8'), true);
   }
 }
 

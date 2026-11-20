@@ -1,49 +1,49 @@
 {
- "base_de_trabajo": "carta_med_fila_4",
+ "base_de_trabajo": "carta_med_fila_5",
  "nota": "MEDIDO CON DATOS SINTÉTICOS en PostgreSQL local sobre una copia de carta_med_mediano (10 restaurantes, un mes); los contadores son valores de hash; con tráfico real el tamaño de la fila no cambia (enteros de ancho fijo) pero cambia cuántas visitas hay",
  "visitas_de_comensal": 46696,
  "sesiones": 18000,
  "restaurantes": 10,
  "f1_llave_restaurante_dia_miembro": {
   "filas": 46696,
-  "heap": 3948544,
+  "heap": 3579904,
   "indices": 3514368,
-  "total": 7495680
+  "total": 7127040
  },
  "f2_con_indice_por_miembro": {
   "filas": 46696,
-  "heap": 3948544,
+  "heap": 3579904,
   "indices": 4997120,
-  "total": 8978432
+  "total": 8609792
  },
  "f3_sin_restaurante": {
   "filas": 46696,
-  "heap": 3194880,
+  "heap": 2818048,
   "indices": 2441216,
-  "total": 5668864
+  "total": 5292032
  },
  "actualizaciones": {
   "filas": 46696,
   "sin_actualizar": {
    "filas": 46696,
-   "heap": 3948544,
+   "heap": 3579904,
    "indices": 3514368,
-   "total": 7495680
+   "total": 7127040
   },
   "tras_2_actualizaciones_antes_de_vacuum": {
    "filas": 46696,
-   "heap": 11829248,
-   "indices": 5193728,
-   "total": 17055744
+   "heap": 10723328,
+   "indices": 5201920,
+   "total": 15958016
   },
   "tras_vacuum": {
    "filas": 46696,
-   "heap": 11829248,
-   "indices": 5193728,
-   "total": 17055744
+   "heap": 10723328,
+   "indices": 5201920,
+   "total": 15958016
   },
   "actualizaciones_totales": 93392,
-  "actualizaciones_hot": 37
+  "actualizaciones_hot": 42
  },
  "tablas_de_la_visita": {
   "sesion_grupal": {
@@ -82,23 +82,23 @@
  "actualizaciones_fillfactor_70": {
   "sin_actualizar": {
    "filas": 46696,
-   "heap": 5709824,
+   "heap": 5103616,
    "indices": 3514368,
-   "total": 9256960
+   "total": 8650752
   },
   "tras_2_actualizaciones_y_vacuum": {
    "filas": 46696,
-   "heap": 10608640,
-   "indices": 4399104,
-   "total": 15040512
+   "heap": 9699328,
+   "indices": 4415488,
+   "total": 14147584
   },
   "actualizaciones_totales": 93392,
-  "actualizaciones_hot": 53373
+  "actualizaciones_hot": 51307
  },
  "platillo_por_dia": {
-  "filas": 29342,
-  "heap": 2252800,
-  "indices": 1753088,
-  "total": 4038656
+  "filas": 29652,
+  "heap": 2277376,
+  "indices": 1769472,
+  "total": 4079616
  }
 }
