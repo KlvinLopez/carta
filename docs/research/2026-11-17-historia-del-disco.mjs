@@ -76,7 +76,8 @@ Lectura: archivar sólo las sesiones de paga ayuda poco si el gratuito conserva 
 
 ## 4. Supuestos y datos por conseguir
 ${h.supuestos.map((x) => `- ${x}`).join('\n')}
-- **Por conseguir:** con el piloto, medir los eventos reales por comensal, las visitas por restaurante al mes y qué parte de los teléfonos alcanza a mandar la fila al terminar (comparar con los \`scan\`).
+- **Por conseguir (la fila por visita):** la base de ${n0(s.tablas_de_una_visita.evento_bytes_por_fila * s.tablas_de_una_visita.eventos_por_sesion / s.fila_por_visita.miembros_por_sesion)} bytes de analítica por comensal de hoy depende de ${n1(s.tablas_de_una_visita.eventos_por_sesion / s.fila_por_visita.miembros_por_sesion)} eventos por comensal (supuesto del generador); qué parte de las visitas se pierde cuando el teléfono no alcanza a mandar la fila (se mide comparando contra los \`scan\`); el \`fillfactor\` 70, que haría la tabla de ${n0(s.fila_por_visita.actualizando_2_veces_fillfactor_70.antes / s.fila_por_visita.visitas_de_comensal_en_la_copia)} bytes por visita en vez de ${n0(fv.bytes_por_visita_de_comensal)} si se actualiza; y la reserva de ${n0(s.reserva_disco * 100)} % del volumen para el WAL y el vacuum, que no se midió con esta tabla.
+- **Por conseguir (todo):** con el piloto, medir los eventos reales por comensal, las visitas por restaurante al mes y qué parte de los teléfonos alcanza a mandar la fila al terminar (comparar con los \`scan\`).
 `;
 writeFileSync(join(out, '2026-11-17-historia-del-disco.md'), md);
 writeFileSync(join(out, '2026-11-17-historia-del-disco.json'), JSON.stringify(h, null, 2) + '\n');

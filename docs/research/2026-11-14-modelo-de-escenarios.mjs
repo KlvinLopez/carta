@@ -1113,6 +1113,7 @@ export function recursos(config, s, estado = {}) {
   return {
     config_palancas: config.palancas ?? [],
     composicion_del_disco: composicionDelDisco(config, s),
+    sensibilidad_de_la_capacidad: sensibilidadDeLaCapacidad(config, s),
     grupos_excluyentes: palancasEnTablero(config, s, s.umbral_tablero, carga).grupos_excluyentes,
     estado_elegido: { canal: canalE, carga, meses_historial: mesesH, palancas: config.palancas ?? [], nota: 'la escalera responde a este estado; ningún parámetro de entrada se modifica' },
     escalera: escaleraEstado,
@@ -1509,6 +1510,37 @@ export function visionV2(config, s) {
   };
 }
 
+// ---------------------------------------------------------------- sensibilidad de la capacidad a quién paga
+const PERFIL_POR_TRAMO = { '0 a 5': 'chico', '6 a 10': 'mediano', '11 a 30': 'mediano', '31 a 50': 'grande', '51 a 100': 'formal', '101 a 250': 'formal' }; // SUPUESTO: tamaño de negocio → perfil de disco del simulador
+
+/**
+ * La capacidad depende de quién paga: (1) de la parte de restaurantes de paga (el éxito llena antes el servidor: cada uno de paga pesa 2.3
+ * gratuitos de procesador y llena 16 veces el disco de un gratuito) y (2) de la mezcla de tamaños de los de paga (`mezcla_paga` del
+ * simulador: 50 % mediano, 25 % grande, 25 % formal, no cuadra con que más de la mitad de los pagantes del propio modelo son negocios de
+ * 0 a 5 personas). Con la propuesta de 30 días para el gratuito y la carga por topes.
+ */
+export function sensibilidadDeLaCapacidad(config, s) {
+  const cfg = conPropuesta30Dias(config);
+  const cap = (c, ss) => ({ procesador_con_sondeo: topesDeTamano(c, ss, 'hobby_sondeo', 'sondeo', 'topes').procesador, procesador_con_avisos: topesDeTamano(c, ss, 'hobby_eventos', 'eventos', 'topes').procesador, disco: topesDeTamano(c, ss, 'hobby_eventos', 'eventos', 'topes').disco });
+  const partes = ['peor', 'recomendado', 'mejor'].map((e) => {
+    const { ss, opc } = paramsEscenario(e, s);
+    const q = evaluar(cfg, ss, 1000, opc).clientes.de_paga / 1000;
+    return { escenario: e, curva_de_pago: opc.curva, parte_que_paga: q, ...cap({ ...cfg, parte_de_paga_fija: q }, s) };
+  });
+  const pt = potencialPorTramo(config, s).tramos;
+  const peso = {};
+  for (const x of pt) { const k = PERFIL_POR_TRAMO[x.tramo]; if (k) peso[k] = (peso[k] ?? 0) + x.en_master_chef; }
+  const tot = Object.values(peso).reduce((a, b) => a + b, 0);
+  const mezclaModelo = Object.fromEntries(Object.entries(peso).map(([k, v]) => [k, v / tot]));
+  const mezclas = [
+    { id: 'simulador', nombre: 'Mezcla del simulador (50 % mediano, 25 % grande, 25 % formal): la de las rondas anteriores', mezcla: s.mezcla_paga },
+    { id: 'todos_medianos', nombre: 'Todos medianos', mezcla: { mediano: 1 } },
+    { id: 'segun_el_modelo_de_estratos', nombre: 'Según los tamaños de los pagantes del propio modelo (SUPUESTO: tramo → perfil del simulador)', mezcla: mezclaModelo },
+  ].map((m) => ({ ...m, ...cap(cfg, { ...s, mezcla_paga: m.mezcla }) }));
+  return { parte_que_paga: partes, mezcla_de_paga: mezclas, parte_de_los_pagantes_de_0_a_5_personas: (pt.find((x) => x.tramo === '0 a 5')?.en_master_chef ?? 0) / tot, nota: 'la mezcla de los pagantes es un SUPUESTO con rango (de todos medianos a la del modelo de estratos); se mide con el tamaño de los primeros restaurantes de paga del piloto' };
+}
+
+
 // ---------------------------------------------------------------- de qué se compone el disco promedio
 /**
  * De qué se compone el disco por restaurante registrado que usa «¿Qué nos limita?»: cuánto llenan los gratuitos y cuánto los de paga (con sus
@@ -1615,6 +1647,57 @@ export function politicasDeHistorial(config, s) {
       sueldo_de_1_salario_minimo: { restaurantes_necesarios_en_regimen: sm.restaurantes_necesarios_en_regimen, mes_en_que_la_proyeccion_llega_a_ese_numero: sm.mes_en_que_la_proyeccion_llega_a_esos_restaurantes, mes_en_que_el_margen_lo_cubre: sm.mes_en_que_el_margen_despues_de_captacion_lo_cubre, restaurantes_ese_mes: sm.restaurantes_ese_mes_de_la_proyeccion, requiere_otra_arquitectura: sm.requiere_otra_arquitectura },
     };
   });
+}
+
+
+// ---------------------------------------------------------------- escenarios por eje: qué mueve cada uno
+/**
+ * Los escenarios mezclan tres ejes (curva de pago, anuncios, soporte de la paga) y «peor» no es lo peor. Aquí cada eje se mueve solo y se
+ * combinan al final, con nombres que dicen qué mueve cada uno (margen de operación con 1,000 restaurantes, con la política vigente de
+ * historial y con la propuesta de 30 días).
+ */
+export function escenariosPorEje(config, s) {
+  const [smin, smax] = s.rangos.soporte_servicio;
+  const filas = [
+    { id: 'recomendado', nombre: 'Recomendado: curva media, anuncios en tarifa baja, soporte de la paga en su valor central', curva: 'media', anuncios: 'baja', soporte: s.soporte_servicio, mueve: 'nada: es el caso central' },
+    { id: 'sin_anuncios', nombre: 'Sólo anuncios: nunca llegan (cero anuncios)', curva: 'media', anuncios: null, soporte: s.soporte_servicio, mueve: 'los anuncios' },
+    { id: 'curva_pesimista', nombre: 'Sólo la curva de pago: pesimista', curva: 'pesimista', anuncios: 'baja', soporte: s.soporte_servicio, mueve: 'quién paga' },
+    { id: 'curva_optimista', nombre: 'Sólo la curva de pago: optimista', curva: 'optimista', anuncios: 'baja', soporte: s.soporte_servicio, mueve: 'quién paga' },
+    { id: `soporte_${smin}`, nombre: `Sólo el soporte de la paga: ${smin} pesos al mes por cliente`, curva: 'media', anuncios: 'baja', soporte: smin, mueve: 'el soporte de la paga' },
+    { id: `soporte_${smax}`, nombre: `Sólo el soporte de la paga: ${smax} pesos al mes por cliente`, curva: 'media', anuncios: 'baja', soporte: smax, mueve: 'el soporte de la paga' },
+    { id: 'peor', nombre: '«Peor» de las rondas anteriores: curva pesimista y cero anuncios (soporte central)', curva: 'pesimista', anuncios: null, soporte: s.soporte_servicio, mueve: 'quién paga y los anuncios, no el soporte' },
+    { id: 'piso_sin_anuncios', nombre: 'Piso con cero anuncios: curva pesimista, cero anuncios y todos los soportes (gratuito, paga) al máximo de su rango', curva: 'pesimista', anuncios: null, soporte: smax, soporteTodo: true, mueve: 'los tres ejes' },
+    { id: 'estres', nombre: 'Estrés (el «piso de verdad» de las rondas anteriores): curva pesimista, anuncios adversos y todos los soportes al máximo', curva: 'pesimista', anuncios: 'adverso', soporte: smax, soporteTodo: true, mueve: 'los tres ejes' },
+  ];
+  const evalua = (cfg, f) => {
+    let ss = { ...s, soporte_servicio: f.soporte, ...(f.soporteTodo ? { soporte_gratuito: s.rangos.soporte_gratuito[1], soporte_salon: s.rangos.soporte_salon[1] } : {}) };
+    let opc = { curva: f.curva };
+    if (f.anuncios === null) opc.sinAnuncios = true;
+    else if (f.anuncios === 'adverso') { ss = { ...ss, anuncio_pesos_por_mil: { ...ss.anuncio_pesos_por_mil, baja: ss.anuncio_pesos_por_mil.baja / 2 } }; opc = { ...opc, anuncios: { activo: true, tarifa: 'baja' }, parteVisitasConAnuncio: 0.3 }; }
+    else opc.anuncios = { activo: true, tarifa: f.anuncios };
+    return evaluar(cfg, ss, 1000, opc).margen_operacion;
+  };
+  return filas.map((f) => ({ id: f.id, nombre: f.nombre, mueve: f.mueve, margen_con_la_politica_vigente: evalua(config, f), margen_con_la_propuesta_de_30_dias: evalua(conPropuesta30Dias(config), f) }));
+}
+
+
+// ---------------------------------------------------------------- el precio de la curva media no es un resultado
+/**
+ * La mediana de la curva «media» (225) es el precio de Meniu y es también el precio elegido: que la conversión sea 17.5 % y salgan 116
+ * pagantes es una consecuencia de esa igualdad, no un hallazgo. Aquí, el margen (1,000 restaurantes) y los pagantes si la mediana REAL de lo
+ * que pagaría un negocio es 150, 225 o 300, y con el techo de los que rebasan y pagarían (0.35: SUPUESTO) en su rango. Se mide con la prueba de
+ * precio del piloto.
+ */
+export function sensibilidadDeLaMediana(config, s, medianas = [150, 225, 300], techos = [0.2, 0.35, 0.5]) {
+  const filas = [];
+  for (const cfg0 of [{ nombre: 'política vigente (03 §7)', c: config }, { nombre: 'propuesta de 30 días', c: conPropuesta30Dias(config) }]) {
+    for (const m of medianas) for (const tc of techos) {
+      const ss = { ...s, curvas_pago: { ...s.curvas_pago, media: { ...s.curvas_pago.media, mediana: m, techo: tc } } };
+      const e = evaluar(cfg0.c, ss, 1000, { curva: 'media' });
+      filas.push({ historial: cfg0.nombre, mediana_real: m, techo: tc, conversion_al_precio_elegido: conversion('media', config.precios.servicio, ss, 'servicio'), pagantes_por_1000: e.clientes.de_paga, margen_operacion: e.margen_operacion });
+    }
+  }
+  return { precio_elegido: config.precios.servicio, mediana_supuesta: s.curvas_pago.media.mediana, techo_supuesto: s.curvas_pago.media.techo, nota: `La mediana supuesta (${s.curvas_pago.media.mediana}) es el precio de Meniu y el elegido (${config.precios.servicio}): la conversión y los pagantes del titular salen de esa igualdad. El techo ${s.curvas_pago.media.techo} (parte máxima de los que rebasan los topes que llegaría a pagar) es un SUPUESTO sin dato; rango de la tabla ${techos[0]} a ${techos[techos.length - 1]}. Se mide con la prueba de precio del piloto.`, filas };
 }
 
 
@@ -1781,6 +1864,12 @@ export function costoDePlatillo(config, s, topes = [50, 80, 100, 150]) {
       fotos_en_r2: { gb_por_restaurante: gb, rango_gb: [gbMin, gbMax], restaurantes_que_caben_en_lo_gratis: Math.floor(s.r2_gratis_gb / gb), rango_restaurantes: [Math.floor(s.r2_gratis_gb / gbMax), Math.floor(s.r2_gratis_gb / gbMin)], pesos_al_mes_por_restaurante_si_se_pasa: gb * s.r2_usd_gb_mes * s.fx, con_foto: N * pl.parte_con_foto },
       menu: { json_bytes: jsonBytes, ms_armar_por_cada_30_segundos: msArmar, parte_de_un_nucleo: msArmar / 1000 / pl.armado_cada_segundos },
       cobertura_de_platillos: cobertura,
+      con_la_mezcla_de_paga_variable: Object.fromEntries(['baja', 'alta'].map((cota) => {
+        const ss = { ...s, cota_platillos: cota };
+        const cv = conPropuesta30Dias({ ...config, topes: { ...config.topes, gratuito: { ...config.topes.gratuito, platillos: N } } });
+        const ev = evaluar(cv, ss, 1000, { curva: config.curva ?? 'media' });
+        return [cota, { pagantes_por_1000: ev.clientes.de_paga, disco_con_avisos: topesDeTamano(cv, ss, 'hobby_eventos', 'eventos', 'topes').disco, disco_con_sondeo: topesDeTamano(cv, ss, 'hobby_sondeo', 'sondeo', 'topes').disco, margen_operacion: ev.margen_operacion }];
+      })),
       clientes_de_paga_por_1000_por_el_tope: mezcla,
       cobertura_de_0_a_5_dentro_de_chef: { baja: coberturaEstratos(c, s, 'centro', 'baja').dentro_0_5, alta: coberturaEstratos(c, s, 'centro', 'alta').dentro_0_5 },
       continuo: { mb_por_restaurante: continuo.avisos.mb_por_restaurante, carga_cpu_total_con_avisos: continuo.avisos.carga_cpu_total, carga_cpu_total_con_sondeo: continuo.sondeo.carga_cpu_total, menu_en_unidades_de_carga_con_avisos: continuo.avisos.menu_en_unidades_de_carga },
@@ -1793,8 +1882,11 @@ export function costoDePlatillo(config, s, topes = [50, 80, 100, 150]) {
   // efecto por restaurante a mezcla fija: cuánto MENOS cabe por disco (más MB) y por procesador (más carga) al subir el tope
   const efecto = { disco_con_avisos: -rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante) / (1 + rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante)), procesador_con_avisos: -rel(a.continuo.carga_cpu_total_con_avisos, z.continuo.carga_cpu_total_con_avisos) / (1 + rel(a.continuo.carga_cpu_total_con_avisos, z.continuo.carga_cpu_total_con_avisos)), disco_con_sondeo: -rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante) / (1 + rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante)), procesador_con_sondeo: -rel(a.continuo.carga_cpu_total_con_sondeo, z.continuo.carga_cpu_total_con_sondeo) / (1 + rel(a.continuo.carga_cpu_total_con_sondeo, z.continuo.carga_cpu_total_con_sondeo)) };
   const pct = (x) => `${(Math.abs(x) * 100).toFixed(1)} %`;
-  const conclusion = `De ${a.platillos} a ${z.platillos} platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben ${pct(efecto.disco_con_avisos)} menos restaurantes: ${pl.bytes_en_la_base} bytes por platillo); el procesador pierde ${pct(efecto.procesador_con_sondeo)} con el sondeo de hoy y hasta ${pct(efecto.procesador_con_avisos)} con avisos (cota alta: se supone que el menú se arma cada ${pl.armado_cada_segundos} s en la hora pico, de ${a.menu.ms_armar_por_cada_30_segundos.toFixed(0)} a ${z.menu.ms_armar_por_cada_30_segundos.toFixed(0)} ms); NINGUNO de los dos se acaba por el tope: el cuello de botella sigue siendo ${z.capacidad.con_avisos.cuello} (${z.capacidad.con_avisos.restaurantes} restaurantes con avisos y ${z.capacidad.con_sondeo.restaurantes} con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de ${a.fotos_en_r2.gb_por_restaurante.toFixed(2)} a ${z.fotos_en_r2.gb_por_restaurante.toFixed(2)} GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta ${z.fotos_en_r2.pesos_al_mes_por_restaurante_si_se_pasa.toFixed(2)} pesos al mes por restaurante) y el menú que baja el teléfono (de ${Math.round(a.menu.json_bytes / 1000)} a ${Math.round(z.menu.json_bytes / 1000)} KB); y el tope cambia cuántos negocios pasan a pagar (de ${a.clientes_de_paga_por_1000_por_el_tope.toFixed(0)} a ${z.clientes_de_paga_por_1000_por_el_tope.toFixed(0)} de paga por cada 1,000).`;
-  return { filas, efecto_de_subir_el_tope: { de: a.platillos, a: z.platillos, ...efecto }, conclusion, medido_con: 'textos y fotos del repositorio (sintéticos); fotos reales y originales: supuestos con rango', supuestos: { foto_variantes_bytes_real: fotoVar, foto_original_bytes_tipico: fotoOrig, parte_con_foto: pl.parte_con_foto } };
+  const conclusion = `De ${a.platillos} a ${z.platillos} platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben ${pct(efecto.disco_con_avisos)} menos restaurantes: ${pl.bytes_en_la_base} bytes por platillo); el procesador pierde ${pct(efecto.procesador_con_sondeo)} con el sondeo de hoy y hasta ${pct(efecto.procesador_con_avisos)} con avisos (cota alta: se supone que el menú se arma cada ${pl.armado_cada_segundos} s en la hora pico, de ${a.menu.ms_armar_por_cada_30_segundos.toFixed(0)} a ${z.menu.ms_armar_por_cada_30_segundos.toFixed(0)} ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo ${z.capacidad.con_avisos.cuello} (${z.capacidad.con_avisos.restaurantes} restaurantes con avisos y ${z.capacidad.con_sondeo.restaurantes} con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de ${a.fotos_en_r2.gb_por_restaurante.toFixed(2)} a ${z.fotos_en_r2.gb_por_restaurante.toFixed(2)} GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta ${z.fotos_en_r2.pesos_al_mes_por_restaurante_si_se_pasa.toFixed(2)} pesos al mes por restaurante) y el menú que baja el teléfono (de ${Math.round(a.menu.json_bytes / 1000)} a ${Math.round(z.menu.json_bytes / 1000)} KB); y el tope cambia cuántos negocios pasan a pagar (de ${a.clientes_de_paga_por_1000_por_el_tope.toFixed(0)} a ${z.clientes_de_paga_por_1000_por_el_tope.toFixed(0)} de paga por cada 1,000).`;
+  const va = a.con_la_mezcla_de_paga_variable;
+  const vz = z.con_la_mezcla_de_paga_variable;
+  const loQueSiMueve = `Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: con la parte de paga variable y las dos cotas, el tope de ${a.platillos} deja ${n(va.baja.pagantes_por_1000, 0)} pagantes por 1,000 con la cota baja (${n(va.alta.pagantes_por_1000, 0)} con la alta) y caben ${n(va.baja.disco_con_avisos, 0)} restaurantes por disco con avisos (${n(va.alta.disco_con_avisos, 0)} con la alta); el de ${z.platillos}, ${n(vz.baja.pagantes_por_1000, 0)} pagantes (${n(vz.alta.pagantes_por_1000, 0)}) y ${n(vz.baja.disco_con_avisos, 0)} (${n(vz.alta.disco_con_avisos, 0)}). Más gente de paga llena antes el disco (cada restaurante de paga guarda 12 meses). Margen con 1,000 restaurantes: ${n(va.baja.margen_operacion, 0)} → ${n(vz.baja.margen_operacion, 0)} (cota baja).`;
+  return { lo_que_si_mueve_el_tope: loQueSiMueve, filas, efecto_de_subir_el_tope: { de: a.platillos, a: z.platillos, ...efecto }, conclusion, medido_con: 'textos y fotos del repositorio (sintéticos); fotos reales y originales: supuestos con rango', supuestos: { foto_variantes_bytes_real: fotoVar, foto_original_bytes_tipico: fotoOrig, parte_con_foto: pl.parte_con_foto } };
 }
 
 // ---------------------------------------------------------------- lo que deja cada tamaño de negocio

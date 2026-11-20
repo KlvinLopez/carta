@@ -80,6 +80,20 @@ ${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben
 
 **Por qué «contar por día» da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_ahora * 100)} % y archivar las sesiones de paga da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.archivar.ganancia_ahora * 100)} %:** ${c.por_que_contar_por_dia_ya_no_da_tanto.frase}`; })()}
 
+## La capacidad depende de quién paga
+
+Con la propuesta de 30 días para el gratuito y la carga por topes. **El éxito llena antes el servidor:** un restaurante de paga pesa ${s.peso_servicio_cpu} gratuitos de procesador y llena unas 16 veces el disco de un gratuito.
+
+| Parte de los restaurantes que paga | Escenario | Caben por procesador con el sondeo | Caben por procesador con avisos | Caben por disco con avisos |
+|---|---|---|---|---|
+${R.sensibilidad_de_la_capacidad.parte_que_paga.map((x) => `| ${n1(x.parte_que_paga * 100)} % | ${x.escenario} (curva ${x.curva_de_pago}) | ${n0(x.procesador_con_sondeo)} | ${n0(x.procesador_con_avisos)} | ${n0(x.disco)} |`).join('\n')}
+
+**La mezcla de tamaños de los de paga es un supuesto con rango.** El simulador la fija en 50 % mediano, 25 % grande y 25 % formal, pero ${n0(R.sensibilidad_de_la_capacidad.parte_de_los_pagantes_de_0_a_5_personas * 100)} % de los pagantes del propio modelo son negocios de 0 a 5 personas. Se mide con el tamaño de los primeros restaurantes de paga del piloto.
+
+| Mezcla de los de paga | Caben por disco con avisos |
+|---|---|
+${R.sensibilidad_de_la_capacidad.mezcla_de_paga.map((x) => `| ${x.nombre} | ${n0(x.disco)} |`).join('\n')}
+
 ## Sensibilidad a las visitas por mesa (el supuesto que mueve la carga del gratuito)
 
 El gratuito carga mesas × visitas por mesa al mes; las **${s.perfil_por_topes.visitas_por_mesa_mes} visitas por mesa** son un supuesto sin medir (se mide con los eventos \`scan\` por mesa del piloto) y la carga de un Chef es el tope entero (cota alta).

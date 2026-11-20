@@ -85,6 +85,73 @@
   },
   "hallazgo": "El disco lo llenan sobre todo los de paga (68 %), que son 11.6 % de los restaurantes: su disco cuesta 0.36 pesos al mes frente a 225 que pagan (0.2 %). Es una parte chica de lo que pagan: el disco no es el problema económico, sólo el tope técnico del volumen."
  },
+ "sensibilidad_de_la_capacidad": {
+  "parte_que_paga": [
+   {
+    "escenario": "peor",
+    "curva_de_pago": "pesimista",
+    "parte_que_paga": 0.02342696319985383,
+    "procesador_con_sondeo": 212,
+    "procesador_con_avisos": 1012,
+    "disco": 371
+   },
+   {
+    "escenario": "recomendado",
+    "curva_de_pago": "media",
+    "parte_que_paga": 0.11588394988411602,
+    "procesador_con_sondeo": 173,
+    "procesador_con_avisos": 880,
+    "disco": 182
+   },
+   {
+    "escenario": "mejor",
+    "curva_de_pago": "optimista",
+    "parte_que_paga": 0.38218086846161814,
+    "procesador_con_sondeo": 113,
+    "procesador_con_avisos": 640,
+    "disco": 73
+   }
+  ],
+  "mezcla_de_paga": [
+   {
+    "id": "simulador",
+    "nombre": "Mezcla del simulador (50 % mediano, 25 % grande, 25 % formal): la de las rondas anteriores",
+    "mezcla": {
+     "mediano": 0.5,
+     "grande": 0.25,
+     "formal": 0.25
+    },
+    "procesador_con_sondeo": 173,
+    "procesador_con_avisos": 880,
+    "disco": 182
+   },
+   {
+    "id": "todos_medianos",
+    "nombre": "Todos medianos",
+    "mezcla": {
+     "mediano": 1
+    },
+    "procesador_con_sondeo": 173,
+    "procesador_con_avisos": 880,
+    "disco": 230
+   },
+   {
+    "id": "segun_el_modelo_de_estratos",
+    "nombre": "Según los tamaños de los pagantes del propio modelo (SUPUESTO: tramo → perfil del simulador)",
+    "mezcla": {
+     "chico": 0.5439590634169691,
+     "mediano": 0.4128594973853831,
+     "grande": 0.03259492892070618,
+     "formal": 0.010586510276941689
+    },
+    "procesador_con_sondeo": 173,
+    "procesador_con_avisos": 880,
+    "disco": 229
+   }
+  ],
+  "parte_de_los_pagantes_de_0_a_5_personas": 0.5439590634169691,
+  "nota": "la mezcla de los pagantes es un SUPUESTO con rango (de todos medianos a la del modelo de estratos); se mide con el tamaño de los primeros restaurantes de paga del piloto"
+ },
  "grupos_excluyentes": {
   "alcance_del_archivo": {
    "nombre": "Alcance del archivo de sesiones (se elige uno; no se suman)",

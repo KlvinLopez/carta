@@ -138,7 +138,8 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 10) CIFRAS DE TITULAR (las que van a pantalla), con tolerancia estrecha (±1 peso, ±0.002 en proporciones)
 {
   const cfg = CT(M.configTresPlanes25Mesas());
-  prueba('Chef: topes de configInicial (mesas · cuentas · platillos)', `${cfg.topes.gratuito.mesas}·${cfg.topes.gratuito.cuentas}·${cfg.topes.gratuito.platillos}`, '25·4·150');
+  // HISTÓRICO: cifras de las rondas 4 a 7 (config de tres planes con 25 mesas y la carga típica); no son las vigentes
+  prueba('HISTÓRICO (tres planes, 25 mesas) Chef: topes de configInicial (mesas · cuentas · platillos)', `${cfg.topes.gratuito.mesas}·${cfg.topes.gratuito.cuentas}·${cfg.topes.gratuito.platillos}`, '25·4·150');
   prueba('cobertura de Chef (centro, con dispersión σ = 0.5)', M.seguridadChico(cfg, s, 'centro'), 0.951, 0.002);
   prueba('cobertura de Chef (mínimo de las 27 combinaciones)', M.seguridadChico(cfg, s, 'minimo'), 0.867, 0.002);
   prueba('cobertura de Chef (máximo del modelo, no 100 %)', M.seguridadChico(cfg, s, 'maximo'), 0.98, 0.002);
@@ -574,6 +575,46 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('la fila por visita no lleva filtros por comensal', M.PALANCAS.fila_por_visita_de_comensal.que_es.includes('no van por comensal') && !/filtros_n|filtros_seg/.test(readFileSync(join(aqui, '2026-11-17-fila-por-visita-medir.py'), 'utf8').replace(/#.*|"""[\s\S]*?"""/g, '')), true);
   prueba('el informe de recursos no cita «antes: 279» ni «279 → 495»', !/antes: 279|279 → 495/.test(readFileSync(join(aqui, '2026-11-14-recursos-y-palancas.md'), 'utf8')), true);
   prueba('los guiones de medición piden PGPASSWORD y no guardan contraseña', ['2026-11-17-fila-por-visita-medir.py', '2026-11-17-platillo-medir.py', '2026-11-14-recursos-medir.py', '2026-11-14-disco-e-historial-medir.py'].every((f) => { const x = readFileSync(join(aqui, f), 'utf8'); return /PGPASSWORD/.test(x) && !/carta_dev_password/.test(x); }), true);
+}
+
+// 12i) ronda 12, commit 2: sensibilidades y pruebas más duras
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  const sc = M.sensibilidadDeLaCapacidad(cfg, s);
+  prueba('G: con la parte de paga de peor / recomendado / mejor (2.3 / 11.6 / 38.2 %) el procesador con sondeo da 212 / 173 / 113', sc.parte_que_paga.map((x) => x.procesador_con_sondeo).join('/'), '212/173/113');
+  prueba('G: y el disco con la propuesta de 30 días 371 / 182 / 73', sc.parte_que_paga.map((x) => x.disco).join('/'), '371/182/73');
+  prueba('G: la parte que paga es 2.3 / 11.6 / 38.2 %', sc.parte_que_paga.map((x) => (x.parte_que_paga * 100).toFixed(1)).join('/'), '2.3/11.6/38.2');
+  prueba('G: con todos los pagantes medianos el disco da 230; con los tamaños del modelo de estratos, 229', `${sc.mezcla_de_paga.find((x) => x.id === 'todos_medianos').disco}/${sc.mezcla_de_paga.find((x) => x.id === 'segun_el_modelo_de_estratos').disco}`, '230/229');
+  prueba('G: 54 % de los pagantes del modelo son negocios de 0 a 5 personas', Math.round(sc.parte_de_los_pagantes_de_0_a_5_personas * 100), 54);
+  const ej = Object.fromEntries(M.escenariosPorEje(cfg, s).map((x) => [x.id, x]));
+  prueba('H: piso con cero anuncios −2,162 (propuesta) y estrés −1,532', `${Math.round(ej.piso_sin_anuncios.margen_con_la_propuesta_de_30_dias)}/${Math.round(ej.estres.margen_con_la_propuesta_de_30_dias)}`, '-2162/-1532');
+  prueba('H: el soporte de la paga a 150 baja el recomendado a 8,162 (propuesta)', Math.round(ej.soporte_150.margen_con_la_propuesta_de_30_dias), 8162);
+  prueba('H: «peor» +2,388 no es lo peor', ej.peor.margen_con_la_propuesta_de_30_dias > ej.piso_sin_anuncios.margen_con_la_propuesta_de_30_dias, true);
+  const md = M.sensibilidadDeLaMediana(cfg, s).filas.filter((f) => f.techo === 0.35 && f.historial.startsWith('propuesta'));
+  prueba('I: con la mediana real en 150 / 225 / 300 el margen es 10,003 / 18,591 / 24,908 (propuesta)', md.map((f) => Math.round(f.margen_operacion)).join('/'), '10003/18591/24908');
+  prueba('I: y los pagantes 58 / 116 / 159 por 1,000', md.map((f) => Math.round(f.pagantes_por_1000)).join('/'), '58/116/159');
+  const cp = M.costoDePlatillo(cfg, s);
+  const v = (N, cota) => cp.filas.find((x) => x.platillos === N).con_la_mezcla_de_paga_variable[cota];
+  prueba('J: tope 50 con la cota baja: 166 pagantes y 142 restaurantes por disco', `${Math.round(v(50, 'baja').pagantes_por_1000)}/${v(50, 'baja').disco_con_avisos}`, '166/142');
+  prueba('J: tope 150 con la cota alta: 116 pagantes y 182 por disco', `${Math.round(v(150, 'alta').pagantes_por_1000)}/${v(150, 'alta').disco_con_avisos}`, '116/182');
+  const f80 = cp.filas.find((x) => x.platillos === 80), f100 = cp.filas.find((x) => x.platillos === 100);
+  prueba('costoDePlatillo en 80 y 100: fotos que caben en R2 (50 y 40), JSON del menú 60 y 75 KB, 44,560 y 55,700 bytes por restaurante', `${f80.fotos_en_r2.restaurantes_que_caben_en_lo_gratis}/${f100.fotos_en_r2.restaurantes_que_caben_en_lo_gratis}/${Math.round(f80.menu.json_bytes / 1000)}/${Math.round(f100.menu.json_bytes / 1000)}/${f80.base_de_datos.bytes_por_restaurante}/${f100.base_de_datos.bytes_por_restaurante}`, '50/40/60/75/44560/55700');
+  prueba('costoDePlatillo en 80 y 100: de paga por 1,000 con la cota alta 121 y 117', `${Math.round(f80.clientes_de_paga_por_1000_por_el_tope)}/${Math.round(f100.clientes_de_paga_por_1000_por_el_tope)}`, '121/117');
+  // una cuenta a mano desde los parámetros (no contra perfilDeCarga, que usa el mismo código)
+  const d = s.disco_perfiles.chico, pl = s.platillo, g = cfg.topes.gratuito;
+  const ratio = (g.mesas * s.perfil_por_topes.visitas_por_mesa_mes) / s.visitas_mes_gratuito;
+  const aMano = (d.mb_fijo - pl.platillos_del_perfil_chico * (pl.bytes_en_la_base / 1e6) + g.platillos * (pl.bytes_en_la_base / 1e6)) + ratio * (g.meses_en_linea * d.mb_mes_visitas + cfg.disco.meses_analitica_en_linea.gratuito * d.mb_mes_eventos);
+  prueba('la carga del gratuito (MB) a mano desde los parámetros coincide con el modelo', M.cargaGratuita(cfg, s).mb, aMano, 1e-9);
+  prueba('y con las visitas a mano: 6 mesas × 180 = 1,080; razón 0.6', `${g.mesas * s.perfil_por_topes.visitas_por_mesa_mes}/${ratio}`, '1080/0.6');
+  // no apilar: dos formas de guardar la analítica juntas dan lo mismo que la primera de la prioridad
+  const grp = M.GRUPOS_EXCLUYENTES.forma_de_guardar_la_analitica.prioridad.filter((x) => M.PALANCAS[x]);
+  let apiladas = 0;
+  for (let i = 0; i < grp.length; i++) for (let j = i + 1; j < grp.length; j++) { const ambas = M.efectosPalancas({ ...cfg, palancas: [grp[i], grp[j]] }, s).eventos_disco; const primera = M.efectosPalancas({ ...cfg, palancas: [grp[i]] }, s).eventos_disco; if (Math.abs(ambas - primera) > 1e-12) apiladas++; }
+  prueba('ninguna pareja del grupo de formas de guardar la analítica se apila (la de mayor prioridad manda)', apiladas, 0);
+  prueba('fila por visita + fila más platillo no se apilan', M.efectosPalancas({ ...cfg, palancas: ['fila_por_visita_de_comensal', 'fila_por_visita_mas_platillo_por_dia'] }, s).eventos_disco, s.fila_por_visita.con_platillo_por_dia);
+  const cc = M.comparacionDeCarga(cfg, s);
+  prueba('el margen de «mejor» con la carga por topes es 61,364 (literal)', Math.round(cc.despues_por_topes_vigente.margen_operacion_1000.mejor), 61364);
 }
 
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)

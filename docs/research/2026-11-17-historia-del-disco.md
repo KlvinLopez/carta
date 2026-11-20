@@ -81,4 +81,5 @@ Lectura: archivar sólo las sesiones de paga ayuda poco si el gratuito conserva 
 - eventos por sesión: 10 (supuesto del generador de datos)
 - contadores de la fila por visita: sintéticos (el tamaño no depende del valor)
 - bytes por fila: con índices, de una copia con datos sintéticos; con tráfico real cambia
-- **Por conseguir:** con el piloto, medir los eventos reales por comensal, las visitas por restaurante al mes y qué parte de los teléfonos alcanza a mandar la fila al terminar (comparar con los `scan`).
+- **Por conseguir (la fila por visita):** la base de 1,361 bytes de analítica por comensal de hoy depende de 3.9 eventos por comensal (supuesto del generador); qué parte de las visitas se pierde cuando el teléfono no alcanza a mandar la fila (se mide comparando contra los `scan`); el `fillfactor` 70, que haría la tabla de 185 bytes por visita en vez de 153 si se actualiza; y la reserva de 20 % del volumen para el WAL y el vacuum, que no se midió con esta tabla.
+- **Por conseguir (todo):** con el piloto, medir los eventos reales por comensal, las visitas por restaurante al mes y qué parte de los teléfonos alcanza a mandar la fila al terminar (comparar con los `scan`).

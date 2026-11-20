@@ -1,4 +1,5 @@
 {
+  "lo_que_si_mueve_el_tope": "Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: con la parte de paga variable y las dos cotas, el tope de 50 deja 166 pagantes por 1,000 con la cota baja (137 con la alta) y caben 142 restaurantes por disco con avisos (163 con la alta); el de 150, 144 pagantes (116) y 157 (182). Más gente de paga llena antes el disco (cada restaurante de paga guarda 12 meses). Margen con 1,000 restaurantes: 26,088 → 22,715 (cota baja).",
   "filas": [
     {
       "platillos": 50,
@@ -32,6 +33,20 @@
       "cobertura_de_platillos": {
         "baja": 0.14662445935135102,
         "alta": 0.6292964785525512
+      },
+      "con_la_mezcla_de_paga_variable": {
+        "baja": {
+          "pagantes_por_1000": 166.15524588462284,
+          "disco_con_avisos": 142,
+          "disco_con_sondeo": 142,
+          "margen_operacion": 26087.922495485476
+        },
+        "alta": {
+          "pagantes_por_1000": 137.03926303547445,
+          "disco_con_avisos": 163,
+          "disco_con_sondeo": 163,
+          "margen_operacion": 21781.584825443875
+        }
       },
       "clientes_de_paga_por_1000_por_el_tope": 137.03926303547445,
       "cobertura_de_0_a_5_dentro_de_chef": {
@@ -92,6 +107,20 @@
         "baja": 0.25,
         "alta": 0.892
       },
+      "con_la_mezcla_de_paga_variable": {
+        "baja": {
+          "pagantes_por_1000": 159.91937484008062,
+          "disco_con_avisos": 146,
+          "disco_con_sondeo": 146,
+          "margen_operacion": 25148.124330786533
+        },
+        "alta": {
+          "pagantes_por_1000": 121.19232987880766,
+          "disco_con_avisos": 177,
+          "disco_con_sondeo": 177,
+          "margen_operacion": 19419.476409794646
+        }
+      },
       "clientes_de_paga_por_1000_por_el_tope": 121.19232987880766,
       "cobertura_de_0_a_5_dentro_de_chef": {
         "baja": 0.123475,
@@ -150,6 +179,20 @@
       "cobertura_de_platillos": {
         "baja": 0.286,
         "alta": 0.959
+      },
+      "con_la_mezcla_de_paga_variable": {
+        "baja": {
+          "pagantes_por_1000": 157.74776484225222,
+          "disco_con_avisos": 147,
+          "disco_con_sondeo": 147,
+          "margen_operacion": 24815.198328840583
+        },
+        "alta": {
+          "pagantes_por_1000": 117.15072238284925,
+          "disco_con_avisos": 180,
+          "disco_con_sondeo": 180,
+          "margen_operacion": 18809.36982315505
+        }
       },
       "clientes_de_paga_por_1000_por_el_tope": 117.15072238284925,
       "cobertura_de_0_a_5_dentro_de_chef": {
@@ -210,6 +253,20 @@
         "baja": 0.518,
         "alta": 0.98
       },
+      "con_la_mezcla_de_paga_variable": {
+        "baja": {
+          "pagantes_por_1000": 143.752944856247,
+          "disco_con_avisos": 157,
+          "disco_con_sondeo": 157,
+          "margen_operacion": 22715.119164626343
+        },
+        "alta": {
+          "pagantes_por_1000": 115.88394988411602,
+          "disco_con_avisos": 182,
+          "disco_con_sondeo": 182,
+          "margen_operacion": 18591.279995042507
+        }
+      },
       "clientes_de_paga_por_1000_por_el_tope": 115.88394988411602,
       "cobertura_de_0_a_5_dentro_de_chef": {
         "baja": 0.2558402,
@@ -245,7 +302,7 @@
     "disco_con_sondeo": -0.0022453911350037077,
     "procesador_con_sondeo": -0.0379543518409507
   },
-  "conclusion": "De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope: el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).",
+  "conclusion": "De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).",
   "medido_con": "textos y fotos del repositorio (sintéticos); fotos reales y originales: supuestos con rango",
   "supuestos": {
     "foto_variantes_bytes_real": 100000,

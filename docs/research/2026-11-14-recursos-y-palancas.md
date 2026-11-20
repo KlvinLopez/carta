@@ -22,6 +22,24 @@
 
 **Por qué «contar por día» da +22 % y archivar las sesiones de paga da +91 %:** Contar por día sólo recorta la analítica, que es 21 % del disco promedio, y da +22 % (182 → 222). Lo que domina son las sesiones y órdenes de los restaurantes de paga con 12 meses (63 % del disco): archivar las de los restaurantes de paga a 3 meses (en R2, no se borran) da +91 % (182 → 347) con el gratuito a 30 días; por eso es la palanca que más da. Sin recortar al gratuito (12 meses, 03 §7) archivar sólo las de paga ayuda mucho menos (ver las combinaciones en la historia del disco)
 
+## La capacidad depende de quién paga
+
+Con la propuesta de 30 días para el gratuito y la carga por topes. **El éxito llena antes el servidor:** un restaurante de paga pesa 2.3 gratuitos de procesador y llena unas 16 veces el disco de un gratuito.
+
+| Parte de los restaurantes que paga | Escenario | Caben por procesador con el sondeo | Caben por procesador con avisos | Caben por disco con avisos |
+|---|---|---|---|---|
+| 2.3 % | peor (curva pesimista) | 212 | 1,012 | 371 |
+| 11.6 % | recomendado (curva media) | 173 | 880 | 182 |
+| 38.2 % | mejor (curva optimista) | 113 | 640 | 73 |
+
+**La mezcla de tamaños de los de paga es un supuesto con rango.** El simulador la fija en 50 % mediano, 25 % grande y 25 % formal, pero 54 % de los pagantes del propio modelo son negocios de 0 a 5 personas. Se mide con el tamaño de los primeros restaurantes de paga del piloto.
+
+| Mezcla de los de paga | Caben por disco con avisos |
+|---|---|
+| Mezcla del simulador (50 % mediano, 25 % grande, 25 % formal): la de las rondas anteriores | 182 |
+| Todos medianos | 230 |
+| Según los tamaños de los pagantes del propio modelo (SUPUESTO: tramo → perfil del simulador) | 229 |
+
 ## Sensibilidad a las visitas por mesa (el supuesto que mueve la carga del gratuito)
 
 El gratuito carga mesas × visitas por mesa al mes; las **180 visitas por mesa** son un supuesto sin medir (se mide con los eventos `scan` por mesa del piloto) y la carga de un Chef es el tope entero (cota alta).

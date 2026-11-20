@@ -25,6 +25,16 @@ Generado por \`2026-11-17-costo-de-platillo.mjs\` desde \`2026-11-14-parametros.
 
 ${c.conclusion}
 
+## Lo que sí mueve el tope: quién paga
+
+${c.lo_que_si_mueve_el_tope}
+
+| Platillos | De paga por 1,000 (cota baja / alta) | Caben por disco con avisos (cota baja / alta) | Caben por disco con sondeo (cota baja / alta) | Margen con 1,000 restaurantes (cota baja / alta) |
+|---|---|---|---|---|
+${c.filas.map((f) => { const v = f.con_la_mezcla_de_paga_variable; return `| ${f.platillos} | ${n0(v.baja.pagantes_por_1000)} / ${n0(v.alta.pagantes_por_1000)} | ${n0(v.baja.disco_con_avisos)} / ${n0(v.alta.disco_con_avisos)} | ${n0(v.baja.disco_con_sondeo)} / ${n0(v.alta.disco_con_sondeo)} | ${n0(v.baja.margen_operacion)} / ${n0(v.alta.margen_operacion)} |`; }).join('\n')}
+
+*(con la propuesta de historial a 30 días para el gratuito, la parte de paga variable y las dos cotas de cobertura.)*
+
 ## Qué es medido y qué es supuesto
 
 | Concepto | Valor | Origen |
@@ -45,7 +55,7 @@ ${c.filas.map((f) => `| ${f.platillos} | ${n1(f.base_de_datos.bytes_por_restaura
 
 Pasarse de lo gratis de R2 cuesta ${n2(c.filas[0].fotos_en_r2.pesos_al_mes_por_restaurante_si_se_pasa)} pesos al mes por restaurante con ${c.filas[0].platillos} platillos y ${n2(c.filas[c.filas.length - 1].fotos_en_r2.pesos_al_mes_por_restaurante_si_se_pasa)} con ${c.filas[c.filas.length - 1].platillos}.
 
-## Cobertura y negocios de paga
+## Cobertura y negocios de paga (cota alta, mezcla fija)
 
 | Platillos | Caben, cota baja | Caben, cota alta | De 0 a 5 personas dentro de Chef (baja a alta) | De paga por cada 1,000 |
 |---|---|---|---|---|

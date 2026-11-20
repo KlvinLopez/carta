@@ -18,7 +18,44 @@
 | El gratuito acumula 12 meses (sin purga) | +15,878 | −375 | +60,212 | −4,294 | 46 | +5,229 | 700 |
 | PROPUESTA: el gratuito guarda 30 días (decisión pendiente de Calvin) | +18,591 | +2,388 | +61,364 | −1,532 | 144 | +5,292 | 600 |
 
-*Todo lo demás de este informe usa la primera fila.* La bolsa de 1,000 pesos carga 282 restaurantes con la política vigente.
+**Qué mueve cada escenario** (margen de operación con 1,000 restaurantes; «peor» no es lo peor):
+
+| Escenario | Qué mueve | Con la política vigente | Con la propuesta de 30 días |
+|---|---|---|---|
+| Recomendado: curva media, anuncios en tarifa baja, soporte de la paga en su valor central | nada: es el caso central | +14,752 | +18,591 |
+| Sólo anuncios: nunca llegan (cero anuncios) | los anuncios | +12,468 | +16,308 |
+| Sólo la curva de pago: pesimista | quién paga | +1,009 | +4,910 |
+| Sólo la curva de pago: optimista | quién paga | +54,335 | +56,576 |
+| Sólo el soporte de la paga: 30 pesos al mes por cliente | el soporte de la paga | +18,229 | +22,068 |
+| Sólo el soporte de la paga: 150 pesos al mes por cliente | el soporte de la paga | +4,322 | +8,162 |
+| «Peor» de las rondas anteriores: curva pesimista y cero anuncios (soporte central) | quién paga y los anuncios, no el soporte | −1,513 | +2,388 |
+| Piso con cero anuncios: curva pesimista, cero anuncios y todos los soportes (gratuito, paga) al máximo de su rango | los tres ejes | −6,063 | −2,162 |
+| Estrés (el «piso de verdad» de las rondas anteriores): curva pesimista, anuncios adversos y todos los soportes al máximo | los tres ejes | −5,433 | −1,532 |
+
+**El precio de la curva media no es un resultado.** La mediana supuesta (225) es el precio de Meniu y el elegido (225): la conversión y los pagantes del titular salen de esa igualdad. El techo 0.35 (parte máxima de los que rebasan los topes que llegaría a pagar) es un SUPUESTO sin dato; rango de la tabla 0.2 a 0.5. Se mide con la prueba de precio del piloto.
+
+| Historial del gratuito | Mediana real de lo que pagaría un negocio | Techo (SUPUESTO) | Conversión al precio elegido | Pagantes por 1,000 | Margen con 1,000 restaurantes |
+|---|---|---|---|---|---|
+| política vigente (03 §7) | 150 | 0.2 | 5 % | 33 | +2,440 |
+| política vigente (03 §7) | 150 | 0.35 | 8.7 % | 58 | +6,125 |
+| política vigente (03 §7) | 150 | 0.5 | 12.5 % | 83 | +9,810 |
+| política vigente (03 §7) | 225 | 0.2 | 10 % | 66 | +7,370 |
+| política vigente (03 §7) | 225 | 0.35 | 17.5 % | 116 | +14,752 |
+| política vigente (03 §7) | 225 | 0.5 | 25 % | 166 | +22,134 |
+| política vigente (03 §7) | 300 | 0.2 | 13.7 % | 91 | +10,996 |
+| política vigente (03 §7) | 300 | 0.35 | 23.9 % | 159 | +21,098 |
+| política vigente (03 §7) | 300 | 0.5 | 34.2 % | 227 | +31,200 |
+| propuesta de 30 días | 150 | 0.2 | 5 % | 33 | +6,335 |
+| propuesta de 30 días | 150 | 0.35 | 8.7 % | 58 | +10,003 |
+| propuesta de 30 días | 150 | 0.5 | 12.5 % | 83 | +13,672 |
+| propuesta de 30 días | 225 | 0.2 | 10 % | 66 | +11,242 |
+| propuesta de 30 días | 225 | 0.35 | 17.5 % | 116 | +18,591 |
+| propuesta de 30 días | 225 | 0.5 | 25 % | 166 | +25,940 |
+| propuesta de 30 días | 300 | 0.2 | 13.7 % | 91 | +14,852 |
+| propuesta de 30 días | 300 | 0.35 | 23.9 % | 159 | +24,908 |
+| propuesta de 30 días | 300 | 0.5 | 34.2 % | 227 | +34,965 |
+
+*Todo lo demás de este informe usa la política vigente (03 §7).* La bolsa de 1,000 pesos carga 282 restaurantes con la política vigente.
 
 **Recomendado** = curva de pago media (mediana de Master Chef = 225, el precio de Meniu Business) y anuncios en la tarifa baja ya en marcha · **Peor** = curva de pago pesimista y SIN anuncios en ningún mes (los costos los pone Calvin de su bolsa) · **Mejor** = curva de pago optimista y anuncios en la tarifa media · **Piso de verdad** = curva pesimista, anuncios adversos (mitad de la tarifa baja, anuncio en el 30 % de las visitas) y soporte al máximo de su rango. *Cada escenario mueve dos ejes a la vez (curva de pago y anuncios): la matriz de §5 los separa.*
 
@@ -51,7 +88,7 @@
 
 ### Tope de platillos del plan Chef: «cuenta todo» DECIDIDO; el VALOR del tope REABIERTO (17 de noviembre de 2026)
 
-**Decisión de Calvin:** «el tope de platillos incluye bebidas… considera que cuenta todo, bebidas incluidas». **Después la reabrió:** «según yo no quedamos en 150, se me hace demasiado. Quisiera saber si el tema de platillos mueve mucho nuestras gráficas». Lo que cuesta cada platillo, medido y supuesto, está en `2026-11-17-costo-de-platillo.md`. **De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope: el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).**
+**Decisión de Calvin:** «el tope de platillos incluye bebidas… considera que cuenta todo, bebidas incluidas». **Después la reabrió:** «según yo no quedamos en 150, se me hace demasiado. Quisiera saber si el tema de platillos mueve mucho nuestras gráficas». Lo que cuesta cada platillo, medido y supuesto, está en `2026-11-17-costo-de-platillo.md`. **De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).**
 
 | Tope (cuenta todo) | Caben, cota baja (sitios propios) | Caben, cota alta (reparto) | De 0 a 5 personas dentro de Chef (baja a alta) | De paga por cada 1,000 | Restaurantes con foto que caben en R2 gratis |
 |---|---|---|---|---|---|

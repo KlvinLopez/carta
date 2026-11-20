@@ -183,7 +183,19 @@ const md = `# Modelo de escenarios de Carta: dos planes (Chef y Master Chef), el
 |---|---|---|---|---|---|---|---|
 ${politicas.map((x) => `| ${x.nombre} | ${sg(x.margen_operacion_1000.recomendado)} | ${sg(x.margen_operacion_1000.peor)} | ${sg(x.margen_operacion_1000.mejor)} | ${sg(x.margen_operacion_1000.piso_de_verdad)} | ${n0(x.gratuitos_que_sostiene_un_pagante_sin_anuncios)} | ${sg(x.mes_12_con_300_restaurantes.margen_operacion)} | ${n0(x.sueldo_de_1_salario_minimo.restaurantes_necesarios_en_regimen)} |`).join('\n')}
 
-*Todo lo demás de este informe usa la primera fila.* La bolsa de ${n0(b1000.bolsa)} pesos carga ${n0(b1000.centro.restaurantes)} restaurantes con la política vigente.
+**Qué mueve cada escenario** (margen de operación con 1,000 restaurantes; «peor» no es lo peor):
+
+| Escenario | Qué mueve | Con la política vigente | Con la propuesta de 30 días |
+|---|---|---|---|
+${M.escenariosPorEje(rec, s).map((x) => `| ${x.nombre} | ${x.mueve} | ${sg(x.margen_con_la_politica_vigente)} | ${sg(x.margen_con_la_propuesta_de_30_dias)} |`).join('\n')}
+
+**El precio de la curva media no es un resultado.** ${M.sensibilidadDeLaMediana(rec, s).nota}
+
+| Historial del gratuito | Mediana real de lo que pagaría un negocio | Techo (SUPUESTO) | Conversión al precio elegido | Pagantes por 1,000 | Margen con 1,000 restaurantes |
+|---|---|---|---|---|---|
+${M.sensibilidadDeLaMediana(rec, s).filas.map((f) => `| ${f.historial} | ${f.mediana_real} | ${f.techo} | ${pc1(f.conversion_al_precio_elegido)} | ${n0(f.pagantes_por_1000)} | ${sg(f.margen_operacion)} |`).join('\n')}
+
+*Todo lo demás de este informe usa la política vigente (03 §7).* La bolsa de ${n0(b1000.bolsa)} pesos carga ${n0(b1000.centro.restaurantes)} restaurantes con la política vigente.
 
 ${lineaDef}
 
