@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r11",
+ "version": "2026-11-20-r15",
  "banderas": [
   {
    "id": "procesador",
@@ -61,6 +61,7 @@
    "id": "hobby_sondeo",
    "nombre": "Hoy: sondeo, 2 procesos, Hobby",
    "capacidad_restaurantes_tipicos": 148,
+   "restaurantes_registrados_que_caben": 173,
    "volumen_gb": 5,
    "costo_usd_base": 8.1,
    "costo_usd_tope": 20,
@@ -71,6 +72,7 @@
    "id": "hobby_eventos",
    "nombre": "Con eventos, 2 procesos, Hobby",
    "capacidad_restaurantes_tipicos": 1064,
+   "restaurantes_registrados_que_caben": 182,
    "volumen_gb": 5,
    "costo_usd_base": 8.1,
    "costo_usd_tope": 12,
@@ -81,30 +83,33 @@
    "id": "pro_2",
    "nombre": "Con eventos, 2 procesos, Pro",
    "capacidad_restaurantes_tipicos": 1064,
+   "restaurantes_registrados_que_caben": 880,
    "volumen_gb": 50,
    "costo_usd_base": 20,
    "costo_usd_tope": 30,
-   "mes_en_que_entra_recomendado": 9,
+   "mes_en_que_entra_recomendado": 4,
    "sube_costo_usd_vs_anterior": 11.9
   },
   {
    "id": "pro_4",
    "nombre": "Con eventos, 4 procesos, Pro",
    "capacidad_restaurantes_tipicos": 1896,
+   "restaurantes_registrados_que_caben": 1630,
    "volumen_gb": 50,
    "costo_usd_base": 23,
    "costo_usd_tope": 44,
-   "mes_en_que_entra_recomendado": 22,
+   "mes_en_que_entra_recomendado": null,
    "sube_costo_usd_vs_anterior": 3
   },
   {
    "id": "pro_8",
    "nombre": "Con eventos, 8 procesos, Pro",
    "capacidad_restaurantes_tipicos": 2116,
+   "restaurantes_registrados_que_caben": 1823,
    "volumen_gb": 50,
    "costo_usd_base": 30,
    "costo_usd_tope": 54,
-   "mes_en_que_entra_recomendado": 27,
+   "mes_en_que_entra_recomendado": 12,
    "sube_costo_usd_vs_anterior": 7
   }
  ],

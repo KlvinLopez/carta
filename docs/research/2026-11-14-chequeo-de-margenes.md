@@ -4,19 +4,19 @@
 
 ## Conclusiones
 
-1. **El «margen de 10,000 al mes 12 en el mejor caso» venía de una versión anterior del modelo y no se reproduce**; con el modelo actual el **mejor del mes 12 es +19,826 de operación** (+7,086 después de captación) con 115 de paga. La cifra vieja no quedó guardada: no pude desglosarla.
-2. **Mes 12 recomendado: ingresos 8,964, costos 3,215, operación +5,749, después de captación +1,886** con 300 restaurantes y 35 de paga.
-3. **El peor del mes 12 NO lleva anuncios** (ingresos por anuncios 0): +431 de operación y −350 después de captación; **el piso de verdad da −619** de operación.
-4. **De cada 100 pesos que entran en el mes 12 (recomendado): 5.3 van al servidor, 24.7 a soporte, 5.6 a la comisión de cobro, 43.1 a conseguir clientes y 21 se quedan.** Los anuncios son 12.7 de cada 100 que entran y dependen de una tarifa sin dato.
+1. **El «margen de 10,000 al mes 12 en el mejor caso» venía de una versión anterior del modelo y no se reproduce**; con el modelo actual el **mejor del mes 12 es +16,907 de operación** (+4,167 después de captación) con 115 de paga. La cifra vieja no quedó guardada: no pude desglosarla.
+2. **Mes 12 recomendado: ingresos 8,507, costos 4,911, operación +3,596, después de captación −267** con 300 restaurantes y 35 de paga.
+3. **El peor del mes 12 NO lleva anuncios** (ingresos por anuncios 0): −1,284 de operación y −2,065 después de captación; **el piso de verdad da −2,459** de operación.
+4. **De cada 100 pesos que entran en el mes 12 (recomendado): 24.1 van al servidor, 26.1 a soporte, 5.9 a la comisión de cobro, 45.4 a conseguir clientes y -3.1 se quedan.** Los anuncios son 8.1 de cada 100 que entran y dependen de una tarifa sin dato.
 
 ## 1. Mes 12, de dónde sale cada cifra (pesos al mes)
 
 | Caso | Restaurantes | De paga | Ingreso por suscripción | Ingreso por anuncios | **Ingresos** | Costos de operación | Conseguir clientes | **Margen después de captación** |
 |---|---|---|---|---|---|---|---|---|
-| Peor (sin anuncios en ningún mes) | 300 | 7 | 1,581 | 0 | **1,581** | 1,150 | 781 | **−350** |
-| **Recomendado** | 300 | 35 | 7,822 | 1,142 | **8,964** | 3,215 | 3,863 | **+1,886** |
-| Mejor | 300 | 115 | 25,797 | 3,192 | **28,989** | 9,163 | 12,740 | **+7,086** |
-| Piso de verdad | 300 | 7 | 1,581 | 315 | **1,897** | 2,515 | 781 | **−1,400** |
+| Peor (sin anuncios en ningún mes) | 300 | 7 | 1,581 | 0 | **1,581** | 2,865 | 781 | **−2,065** |
+| **Recomendado** | 300 | 35 | 7,822 | 685 | **8,507** | 4,911 | 3,863 | **−267** |
+| Mejor | 300 | 115 | 25,797 | 1,915 | **27,712** | 10,805 | 12,740 | **+4,167** |
+| Piso de verdad | 300 | 7 | 1,581 | 189 | **1,771** | 4,230 | 781 | **−3,240** |
 
 **Cómo se calcula cada columna.** *Restaurantes* = a·t^b con 300 a 12 meses y 1200 a 24 (**supuesto**). *De paga* = restaurantes × los que rebasan los topes (66.2 %) × los que llegan a pagar según la curva. *Anuncios* = gratuitos × 2,050 visitas × 60 % con anuncio × tarifa por mil; **antes del mes 9 es cero** salvo que el escenario lleve anuncios (el peor no los lleva nunca). *Conseguir clientes* = altas × 600 pesos.
 
@@ -24,26 +24,26 @@
 
 | Curva de pago | Sin anuncios | Tarifa baja | Tarifa media |
 |---|---|---|---|
-| pesimista | +2,390 | +6,594 | +19,206 |
-| media | +16,218 | +20,024 | +31,442 |
-| optimista | +55,025 | +57,685 | +65,664 |
+| pesimista | −1,513 | +1,009 | +8,576 |
+| media | +12,468 | +14,752 | +21,603 |
+| optimista | +52,739 | +54,335 | +59,123 |
 
-**Del mejor (+65,664), 7,979 vienen sólo de la tarifa media de anuncios** (optimista con tarifa baja: +57,685).
+**Del mejor (+59,123), 4,787 vienen sólo de la tarifa media de anuncios** (optimista con tarifa baja: +54,335).
 
 ## 3. De cada 100 pesos que entran (mes 12)
 
 | Concepto | Recomendado | Peor | Mejor | Piso de verdad |
 |---|---|---|---|---|
-| Servidor | 5.3 | 29.4 | 1.7 | 24.5 |
-| Almacenamiento y fotos | 0.3 | 1 | 0.2 | 0.8 |
-| Soporte | 24.7 | 35.9 | 24.1 | 101.9 |
-| Comisión de cobro | 5.6 | 6.4 | 5.7 | 5.3 |
-| Conseguir clientes (reponer bajas y altas) | 43.1 | 49.4 | 43.9 | 41.2 |
+| Servidor | 24.1 | 129.6 | 7.4 | 115.8 |
+| Almacenamiento y fotos | 1.7 | 9.2 | 0.5 | 8.2 |
+| Soporte | 26.1 | 35.9 | 25.2 | 109.2 |
+| Comisión de cobro | 5.9 | 6.4 | 5.9 | 5.7 |
+| Conseguir clientes (reponer bajas y altas) | 45.4 | 49.4 | 46 | 44.1 |
 | Sueldos | 0 | 0 | 0 | 0 |
 | Impuestos | 0 | 0 | 0 | 0 |
-| **Se queda (después de captación)** | **21** | -22.1 | 24.4 | -73.8 |
+| **Se queda (después de captación)** | **-3.1** | -130.6 | 15 | -183 |
 
-*Negativo en una fila = costo mayor que lo que entra. **En régimen con 1,000 restaurantes (curva media):** 29,880 de ingresos al mes (26,074 de suscripción y 3,806 de anuncios).*
+*Negativo en una fila = costo mayor que lo que entra. **En régimen con 1,000 restaurantes (curva media):** 28,358 de ingresos al mes (26,074 de suscripción y 2,284 de anuncios).*
 
 ## 4. Lo que no incluye
 Sueldos (0), impuestos (0), ni gasto de ventas más allá de 600 pesos por cliente de paga; bajas y captación sin dato. Ingresos de anuncios sin modelar: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.

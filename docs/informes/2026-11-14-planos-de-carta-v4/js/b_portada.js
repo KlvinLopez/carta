@@ -12,27 +12,29 @@ const fila = (r, k) => r.cifras.find(c => c.clave === k);
 const pesos = v => (v == null ? "—" : mxn(Math.round(v * 10) / 10));
 const KPIS = [
   {id: "potenciales", clave: "clientes_potenciales", f: v => n(v), txt: "clientes potenciales (SAM)", solo: true},
-  {id: "caben", clave: "restaurantes_que_caben_sin_purga", f: v => n(v), txt: "restaurantes gratuitos caben hoy, sin purga del historial", ps: ["", ""], neutro: true, especial: "caben"},
-  {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios"},
+  {id: "caben", clave: "restaurantes_que_caben", f: v => n(v), txt: "restaurantes registrados caben con la política vigente de historial (03 §7)", ps: ["", ""], neutro: true, especial: "caben"},
+  {id: "sostiene", clave: "gratuitos_por_cliente_de_paga", f: v => (v == null ? "—" : n(v)), txt: "gratuitos que sostiene cada cliente de paga, sin anuncios (política vigente)"},
   {id: "anuncios", clave: "ingreso_por_cliente_gratuito", f: pesos, txt: "al mes por cliente gratuito en anuncios"},
   {id: "ingreso", clave: "ingreso_por_cliente_de_paga", f: pesos, txt: "al mes por cliente de paga", solo: true, nota: "Master Chef: lo que paga cada cliente de paga al mes; cambia con el precio, no con el escenario."},
-  {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: "de margen al mes con 1,000 restaurantes (historial a 30 días)", especial: "margen"},
+  {id: "margen", clave: "margen_de_operacion", f: v => mp(v), txt: `de margen al mes con ${n(N_REF)} restaurantes (política vigente de historial, 03 §7)`, especial: "margen"},
 ];
 function pintaKpis() {
   const r = resumenS(S), html = KPIS.map(k => {
-    const c = fila(r, k.clave), c30 = fila(r, "restaurantes_que_caben"), sinP = k.especial === "margen" ? conCache("kpiSinPurga", () => MOD.resumen(MOD.conHistorialGratuito(config(S), sup(S), 12), sup(S)).cifras.find(x => x.clave === "margen_de_operacion").recomendado) : null;
+    const c = fila(r, k.clave), c30 = fila(r, "restaurantes_que_caben_propuesta_30_dias"), c12 = fila(r, "restaurantes_que_caben_sin_purga"), cb = {vig: fila(r, "restaurantes_que_caben").recomendado, d30: c30.recomendado, doce: c12.recomendado, grande: fila(r, "restaurantes_que_caben").mejor},
+      pol = conCache("kpiPol", () => MOD.politicasDeHistorial(config(S), sup(S))), prop = pol.find(x => x.id === "propuesta_30_dias"),
+      sm = conCache("kpiMed", () => MOD.sensibilidadDeLaMediana(config(S), sup(S))), mediana = sm.filas.filter(f => f.historial.startsWith("política vigente") && Math.abs(f.techo - sm.techo_supuesto) < 1e-9).sort((a, z) => a.mediana_real - z.mediana_real);
     const tv = (...q) => "tri:" + q.filter(x => x[1] != null).map(x => `${x[0]}|${x[1]}|${x[2]}`).join(";");
     const PANEL = {
       potenciales: {t: "Clientes potenciales (SAM)", f: "Restaurantes a la carta y bares que Carta atiende hoy; dato del DENUE, no cambia con el escenario."},
-      caben: {t: "Restaurantes gratuitos que caben hoy", f: "Hoy frena el disco, porque nada limpia el historial; con 30 días caben más.", v: tv(["hoy, sin purga", c.recomendado, n(c.recomendado)], ["con 30 días", c30.recomendado, n(c30.recomendado)], ["servidor grande", c30.mejor, n(c30.mejor)])},
-      sostiene: {t: "Gratuitos por cliente de paga", f: "Cuántos gratuitos cubre lo que deja un cliente de paga, sin contar anuncios.", v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)])},
+      caben: {t: "Restaurantes registrados que caben", f: "Cuenta la mezcla de gratuitos y de paga; con la política vigente nada se purga y frena el disco.", v: tv(["política vigente", cb.vig, n(cb.vig)], ["12 meses sin purga", cb.doce, n(cb.doce)], ["propuesta: 30 días", cb.d30, n(cb.d30)], ["servidor grande", cb.grande, n(cb.grande)])},
+      sostiene: {t: "Gratuitos por cliente de paga", f: "Cuántos gratuitos cubre lo que deja un cliente de paga, sin contar anuncios; política vigente de historial.", v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)])},
       anuncios: {t: "Anuncios por cliente gratuito", f: "Lo que deja cada gratuito al mes en anuncios; en el peor escenario no hay ninguno.", v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)])},
-      ingreso: {t: "Ingreso por cliente de paga", f: "Lo que paga cada cliente de Master Chef al mes; cambia con el precio, no con el escenario."},
-      margen: {t: "Margen de operación al mes", f: `Con 1,000 restaurantes, sin captación ni sueldos; sin purga del historial: ${sinP >= 0 ? "+" : ""}${mp(sinP)}.`, v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)], ["estrés", c.piso_de_verdad, k.f(c.piso_de_verdad)])},
+      ingreso: {t: "Ingreso por cliente de paga", f: "Curva centrada en este precio (supuesto). Margen si la mediana real fuera:", v: tv(...mediana.map(f => [`mediana ${f.mediana_real}`, f.margen_operacion, mp(f.margen_operacion)]))},
+      margen: {t: "Margen de operación al mes", f: `Política vigente. «Peor» no es el piso: el estrés sí. Con 30 días (propuesta): ${prop.margen_operacion_1000.recomendado >= 0 ? "+" : ""}${mp(prop.margen_operacion_1000.recomendado)}.`, v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)], ["estrés", c.piso_de_verdad, k.f(c.piso_de_verdad)])},
     }[k.id];
     const tip = `${PANEL.t}|${k.f(c.recomendado)}|${PANEL.f}`, tipv = PANEL.v ? ` data-tipv="${esc(PANEL.v)}"` : "";
     const kb = v => k.f(v).replace(" MXN", "");
-    const tri = k.especial === "caben" ? `<span class="tri ne"><i class="p">con 30 días (propuesta) ${n(c30.recomendado)}</i><i class="m">servidor grande ${n(c30.mejor)}</i></span>` : k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${kb(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${kb(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Estrés|${kb(c.piso_de_verdad)}|Pagan poco, los anuncios dejan la mitad y el soporte cuesta más: lo peor que dice el modelo.">estrés ${kb(c.piso_de_verdad)}</i>` : ""}</span>`;
+    const tri = k.especial === "caben" ? `<span class="tri ne"><i class="p">propuesta 30 días ${n(cb.d30)}</i><i class="m">sin purga 12 meses ${n(cb.doce)}</i></span>` : k.solo ? "" : `<span class="tri${k.neutro ? " ne" : ""}"><i class="p">${k.ps ? k.ps[0] : "peor"} ${kb(c.peor)}</i><i class="m">${k.ps ? k.ps[1] : "mejor"} ${kb(c.mejor)}</i>${c.piso_de_verdad != null && !k.neutro ? `<i class="pv" data-tip="Estrés|${kb(c.piso_de_verdad)}|Pagan poco, los anuncios dejan la mitad y el soporte cuesta más: lo peor que dice el modelo.">estrés ${kb(c.piso_de_verdad)}</i>` : ""}</span>`;
     return `<button class="kpi" data-kpi="${k.id}" aria-label="${k.id}" data-tip="${esc(tip)}"${tipv}><b>${k.f(c.recomendado).replace(" MXN", '<small> MXN</small>')}</b>${tri}<span class="tx">${esc(k.txt)}</span></button>`;
   }).join("");
   $("#kpis").innerHTML = html; const kd = $("#kpisDet"); if (kd) kd.innerHTML = html;
@@ -61,7 +63,7 @@ const CAJAS = [
   {id: "topes", q: "¿A quién deja dentro cada tope?", c: () => `Dentro del plan ${PLAN.gratis}: ${dentroTxt(motor(S))}.`},
   {id: "precio", q: "¿Cuánto se cobra frente a la competencia?", c: () => `${PLAN.paga} a ${mxn(S.precioServicio)}.`},
   {id: "pagar", q: "¿Cuánto puede pagar un restaurante?", c: () => `${(100 * S.precioServicio / D.inegi_tamano[1].ingreso).toFixed(2)} % del ingreso de uno de 11 a 50 personas.`},
-  {id: "sostiene", q: "¿Cómo se sostiene?", c: () => { const m = motor(S); return `${mp(m.margen)} al mes de margen con 1,000 restaurantes.`; }},
+  {id: "sostiene", q: "¿Cómo se sostiene?", c: () => { const m = motor(S); return `${mp(m.margen)} al mes de margen con ${n(N_REF)} restaurantes.`; }},
 ];
 const RECS_CORTO = ["Master Chef a 225 MXN", "Chef gratis: 25 mesas, 4 cuentas", "12 meses de historial para Master Chef", "Soporte por WhatsApp: 60 MXN", "Anuncios en Chef desde el mes 9"];
 function pintaCajas() {

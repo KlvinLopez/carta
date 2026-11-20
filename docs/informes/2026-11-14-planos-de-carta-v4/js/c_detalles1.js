@@ -7,7 +7,7 @@ DET.linea = {
   nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea». La tira de sitios sale de la muestra de las 17 zonas metropolitanas (166 sitios declarados en el DENUE, 200 intentos de lectura, 16 de noviembre de 2026; controles del marco en muestra-500-cartas §14, con sus datos en muestra-denue-descartes.csv y muestra-denue-control-dns.csv): fuera de esas zonas no se midió y no hay cifra nacional ni para el núcleo.",
   montar(host) {
     this.sel = 0;
-    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 530" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 890" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
     this.pintaSitios();
     const svg = $("#svLinea", host); this.rm = RM(svg); this.svg = svg;
     const elige = ev => { const t = ev.target.closest("[data-i]"); if (t && +t.dataset.i !== this.sel) { this.sel = +t.dataset.i; refrescar(); } };
@@ -71,7 +71,7 @@ DET.linea = {
     }
     // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
     const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 820;
-    rm.put("pn", "rect", {x: px, y: 110, w: 270, h: 410, rx: 24, fill: C.a2, grow: false});
+    rm.put("pn", "rect", {x: px, y: 110, w: 270, h: 760, rx: 24, fill: C.a2, grow: false});
     const g = rm.put("ej", "g", {x: px + 3, y: 118});
     if (this.ult !== sel) { this.ult = sel; g.innerHTML = escena(tipo); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
     rm.put("e0", "text", {x: px + 18, y: 306, text: ejem, size: 13.5, weight: 700, fill: C.osc});
@@ -80,6 +80,29 @@ DET.linea = {
     rm.put("e3", "text", {x: px + 18, y: 412, text: `${n(e.con_sitio)} de ${n(e.n)}`, size: 18, fill: C.tinta, serif: true});
     rm.put("e4", "text", {x: px + 18, y: 432, text: "negocios de este tamaño", size: 12.5, fill: C.t2});
     rm.put("e5", "text", {x: px + 18, y: 466, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 13.5, weight: 700, fill: C.vino});
+    // cuánto dejaría de ingreso este tamaño (techo teórico): anuncios en tres barras y la suscripción con los tres escenarios a la vez
+    { const pt = conCache("potTramo", () => MOD.potencialPorTramo(cfg, SP)), t = pt.tramos[sel], sus = t.ingreso_de_suscripcion_al_mes, pa = t.ingreso_de_anuncios_al_mes, ads = t.en_chef > 0;
+      const X = px + 18, BW = 120, base = sus.por_curva_de_pago.media, mxS = Math.max(...Object.values(sus.por_curva_de_pago), 1);
+      let y = 498;
+      rm.put("i0", "text", {x: X, y, text: "Ingreso de este tamaño al mes", size: 15, weight: 700, fill: C.vino, serif: true}); y += 24;
+      rm.put("ia0", "text", {x: X, y, text: ads ? `${n(t.en_chef)} en Chef: anuncios` : "Ninguno cae en Chef", size: 13, weight: 700, fill: C.tinta}); y += 10;
+      [["baja", "baja", C.vino], ["media", "media", C.dorado], ["alta", "alta", C.osc]].forEach(([k, et, col], j) => {
+        const yy = y + j * 24, w = ads ? Math.max(BW * pa[k] / pa.alta, 4) : 0;
+        rm.put("iat" + j, "text", {x: X, y: yy + 13, text: ads ? et : "", size: 12.5, weight: 700, fill: C.t2});
+        rm.put("iab" + j, "rect", {x: X + 44, y: yy, w, h: 16, rx: 8, fill: col, grow: false, attrs: ads ? {"data-tip": `Anuncios, tarifa ${et}|${n(pa[k])} MXN al mes|Techo teórico si todos los de Chef estuvieran en Carta. No es proyección.`, "data-tipp": pa[k] / pa.alta} : {}});
+        rm.put("iav" + j, "text", {x: X + 44 + w + 6, y: yy + 13, text: ads ? n(pa[k]) : "", size: 12.5, weight: 700, fill: C.tinta});
+      });
+      y += ads ? 3 * 24 + 18 : 4;
+      rm.put("is0", "text", {x: X, y, text: `${n(t.en_master_chef)} en Master Chef: suscripción`, size: 13, weight: 700, fill: C.tinta}); y += 20;
+      rm.put("is1", "text", {x: X, y, text: `si todos pagaran: ${n(sus.si_todos_pagaran)}`, size: 12.5, weight: 700, fill: C.t2}); y += 12;
+      [["media", "Recomendado", C.vino], ["pesimista", "Peor", C.rojo], ["optimista", "Mejor", C.verde]].forEach(([k, nom, col], j) => {
+        const v = sus.por_curva_de_pago[k], d = j ? `  (${v >= base ? "+" : "−"}${n(Math.abs(v - base))})` : "", yy = y + j * 44, w = Math.max(2 * BW * v / mxS, 4);
+        rm.put("ict" + j, "text", {x: X, y: yy + 14, text: `${nom}  ${n(v)}${d}`, size: 13, weight: 700, fill: col});
+        rm.put("icb" + j, "rect", {x: X, y: yy + 22, w, h: 12, rx: 6, fill: col, grow: false, attrs: {"data-tip": `${nom}: suscripción|${n(v)} MXN al mes|Paga ${n(100 * sus.parte_que_paga[k], 1)} % de los negocios de este tamaño. Techo teórico.`, "data-tipp": v / mxS}});
+      });
+      y += 3 * 44 + 12;
+      rm.put("in0", "text", {x: X, y, text: "Techo teórico, no proyección.", size: 12.5, weight: 700, fill: C.osc, attrs: {"data-tip": `Supuesto|misma parte que paga en todo tamaño|${pal20(String(pt.nota_curva || "").replace(/^SUPUESTO:\s*/i, ""), 11)}`}});
+      rm.put("in1", "text", {x: X, y: y + 18, text: "La curva de pago no distingue tamaño.", size: 12.5, fill: C.t2}); }
     const chicos = M.estratos.slice(0, 3), con = chicos.reduce((a, x) => a + x.con_sitio, 0), tot = chicos.reduce((a, x) => a + x.n, 0);
     return {
       leyenda: `<span><i style="background:${C.dorado}"></i>negocios con sitio web</span><span><i style="background:${C.vino}"></i>límite: lo que ya hace el comensal</span>${COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("")}`,
@@ -187,7 +210,7 @@ DET.matriz = {
       cifras: [["9 de 12", "funciones cubre Meniu Business por 225 MXN al mes"], ["0 de 10", "planes leídos que publican el pedido en grupo"], [mxn(S.precioServicio), "Master Chef de Carta en el escenario activo", "propuesta"]],
       puntos: [
         "Meniu Business es el competidor principal: cubre 9 de 12 funciones por 225 MXN al mes.",
-        "Waitry Premium, el más caro (1,243 MXN) y con menos cobertura, no preocupa.",
+        `Waitry Premium, el más caro (${mxn(MX.filas.find(f => f.nombre === "Waitry").precio)}) y con menos cobertura, no preocupa.`,
         "Las capas gratuitas (Neolo, Loyverse) sirven para ubicar la nuestra: ninguna publica pedir en grupo.",
       ],
     };

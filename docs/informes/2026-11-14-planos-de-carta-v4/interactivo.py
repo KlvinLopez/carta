@@ -56,6 +56,11 @@ def b64(p: Path) -> str:
     return base64.b64encode(p.read_bytes()).decode()
 
 
+def js_seguro(texto: str) -> str:
+    """JSON que viaja dentro de un <script>: `<` se escapa como \\u003c (sigue siendo JSON válido) para que un texto con `</script` o `<!--` no rompa la página."""
+    return texto.replace("<", "\\u003c")
+
+
 def main() -> None:
     d = cargar5()
     # la cifra de cartas «alcanzables» (1,780) quedó superada por la muestra de las 17 zonas: no viaja
@@ -73,21 +78,23 @@ def main() -> None:
     html = (
         plantilla.replace("__JS__", js)
         .replace("__MODELO__", modelo_js())
-        .replace("__PARAM__", (INV / "2026-11-14-parametros.json").read_text(encoding="utf-8"))
-        .replace("__RECS__", podado(INV / "2026-11-14-recomendaciones.json", ("decisiones",)))
+        .replace("__PARAM__", js_seguro((INV / "2026-11-14-parametros.json").read_text(encoding="utf-8")))
+        .replace("__RECS__", js_seguro(podado(INV / "2026-11-14-recomendaciones.json", ("decisiones",))))
         .replace(
-            "__GLOS__", (INV / "2026-11-14-glosario-de-negocio.json").read_text(encoding="utf-8")
+            "__GLOS__", js_seguro((INV / "2026-11-14-glosario-de-negocio.json").read_text(encoding="utf-8"))
         )
-        .replace("__BAND__", podado(INV / "2026-11-14-banderas-de-operacion.json", ("banderas", "escalones")))
-        .replace("__RYP__", (INV / "2026-11-14-recursos-y-palancas.json").read_text(encoding="utf-8"))
-        .replace("__CLASES__", json.dumps(clases()))
-        .replace("__SEG__", podado(INV / "2026-11-14-segmentacion-datos.json", ("estratos", "parametros")))
-        .replace("__DATOS__", podado(None, ("mercado", "matriz", "mercado_planes", "inegi_tamano"), d))
-        .replace("__REFS__", json.dumps(refs, ensure_ascii=False))
-        .replace("__NEG__", podado(INV / "2026-11-17-como-gana-dinero-carta.json", ("plataformas_de_referencia", "secuencia")))
+        .replace("__BAND__", js_seguro(podado(INV / "2026-11-14-banderas-de-operacion.json", ("banderas", "escalones"))))
+        .replace("__RYP__", js_seguro((INV / "2026-11-14-recursos-y-palancas.json").read_text(encoding="utf-8")))
+        .replace("__CLASES__", js_seguro(json.dumps(clases())))
+        .replace("__SEG__", js_seguro(podado(INV / "2026-11-14-segmentacion-datos.json", ("estratos", "parametros"))))
+        .replace("__DATOS__", js_seguro(podado(None, ("mercado", "matriz", "mercado_planes", "inegi_tamano"), d)))
+        .replace("__REFS__", js_seguro(json.dumps(refs, ensure_ascii=False)))
+        .replace("__NEG__", js_seguro(podado(INV / "2026-11-17-como-gana-dinero-carta.json", ("plataformas_de_referencia", "secuencia"))))
         .replace("__SANS__", b64(FUENTES / "DMSans-variable-latin.woff2"))
         .replace("__SERIF__", b64(FUENTES / "DMSerifDisplay-Regular-latin.woff2"))
     )
+    # ningún dato puede cerrar un <script> de más: sólo los de la plantilla y los del propio código
+    assert html.count("</script") == plantilla.count("</script") + js.count("</script") + modelo_js().count("</script"), "un dato incrusta </script"
     (AQUI / "interactivo.html").write_text(html, encoding="utf-8")
     print(f"escrito interactivo.html ({len(html) // 1024} KB)")
 

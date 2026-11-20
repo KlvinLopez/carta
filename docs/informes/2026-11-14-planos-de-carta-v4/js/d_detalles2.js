@@ -3,7 +3,7 @@ const PASOS_DISCO = ["1 · Qué ocupa el espacio", "2 · Qué se llena primero",
 DET.disco = {
   titulo: "Lo que llena el servidor se ve en tres pasos: qué ocupa, qué se llena primero y qué lo libera.",
   fu: ["carta_disco", "carta_anuncios", "carta_capacidad", "railway_limites", "cloudflare_r2_precios"],
-  nota: "Modelo de escenarios (docs/research/2026-11-14-modelo-de-escenarios.mjs). Archivar sólo cambia la oferta al dueño y el costo del almacenamiento de objetos, no cuántos caben. Hoy en producción aún corre el sondeo hasta que la Fase 3 construya los eventos; ver docs/historia/.",
+  nota: "Modelo de escenarios (docs/research/2026-11-14-modelo-de-escenarios.mjs). «Guardar en objetos lo que sale de línea» sólo cambia la oferta al dueño y el costo del almacenamiento de objetos, no cuántos caben; no es la palanca «Archivar sesiones cerradas» del capítulo 7, que sí cambia cuántos caben. Hoy en producción aún corre el sondeo hasta que la Fase 3 construya los eventos; ver docs/historia/.",
   montar(host) {
     this.paso = 0; this.auto = true;
     host.innerHTML = `<div class="viz"><svg id="svD" viewBox="0 0 960 470" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="panel" id="ctl" style="margin-top:10px" hidden><div class="kick" style="margin-bottom:6px">Plan del servidor</div><div class="seg" id="srv"></div><div class="kick" style="margin:10px 0 6px">Historial de Master Chef en línea</div><div class="seg" id="hist"></div><div class="kick" style="margin:10px 0 6px">Palancas</div><div class="pals2" id="pals"></div></div>`;
@@ -11,7 +11,7 @@ DET.disco = {
     svg.addEventListener("click", ev => { const e = ev.target.closest("[data-paso]"); if (e) { this.auto = false; this.paso = +e.dataset.paso; refrescar(); } });
     $("#srv", host).innerHTML = `<button class="btn" data-s="-1">Automático</button>` + SERVS.map((e, i) => `<button class="btn" data-s="${i}">${esc(e.nombre.replace("Con eventos, ", ""))}<small style="font-weight:400"> · ${e.tope_usd} USD</small></button>`).join("");
     $("#hist", host).innerHTML = [1, 3, 6, 12].map(v => `<button class="btn" data-h="${v}">${v} ${v === 1 ? "mes" : "meses"}</button>`).join("");
-    $("#pals", host).innerHTML = `<div class="seg" style="grid-column:1/-1"><span class="kick" style="align-self:center">Analítica en línea</span>${[[0.23, "7 días"], [1, "1 mes"], [13, "13 meses"]].map(([v, t]) => `<button class="btn" data-ma="${v}">${t}</button>`).join("")}</div><button class="pal" data-p="arch"><span class="sw"></span><span><b>Archivar lo que sale</b><small>≈ 0.4 pesos al año</small></span></button>`;
+    $("#pals", host).innerHTML = `<div class="seg" style="grid-column:1/-1"><span class="kick" style="align-self:center">Analítica en línea</span>${[[DIAS7, Math.round(DIAS7 * 30.4375) + " días"], [1, "1 mes"], [13, "13 meses"]].map(([v, t]) => `<button class="btn" data-ma="${v}">${t}</button>`).join("")}</div><button class="pal" data-p="arch"><span class="sw"></span><span><b>Guardar en objetos lo que sale</b><small>guarda en objetos lo que sale de línea</small></span></button>`;
     host.addEventListener("click", ev => {
       const s = ev.target.closest("[data-s]"); if (s) { cambiar({servidor: +s.dataset.s}); return; }
       const h = ev.target.closest("[data-h]"); if (h) { cambiar({hist: +h.dataset.h}); return; }
@@ -66,7 +66,7 @@ DET.disco = {
     const sube = m.cuello === "disco" ? "acortar el historial y la analítica, o pasar a Pro, lo libera" : m.cuello === "procesador" ? "más procesos lo liberan" : "es el tope de Railway: más procesos no lo suben";
     return {
       leyenda: p === 0 ? `<span><i style="background:${C.vino}"></i>visitas de la mesa</span><span><i style="background:${C.dorado}"></i>analítica</span><span><i style="background:${C.osc}"></i>un cliente de paga</span>` : `<span><i style="background:${C.vino}"></i>lo que se llena primero</span><span><i style="background:${C.dorado}"></i>otro recurso</span>`,
-      cifras: [[n(m.caben), "restaurantes caben con esta orden", "supuesto: modelo de escenarios"], [m.usd + " USD", "costo del servidor al mes (tope del escalón)"], [`${S.hist} meses`, "de historial de Master Chef en línea"], [S.ma < 1 ? "7 días" : S.ma === 1 ? "1 mes" : S.ma + " meses", "de analítica en bruto en línea"]],
+      cifras: [[n(m.caben), "restaurantes caben con esta orden", "supuesto: modelo de escenarios"], [m.usd + " USD", "costo del servidor al mes (tope del escalón)"], [`${S.hist} meses`, "de historial de Master Chef en línea"], [S.ma < 1 ? Math.round(S.ma * 30.4375) + " días" : S.ma === 1 ? "1 mes" : S.ma + " meses", "de analítica en bruto en línea"]],
       insight: p === 0 ? `Un cliente de paga ocupa ≈ ${n(mb.servicio / mb.gratuito, 0)} veces el espacio de uno gratuito: el historial pesa más que la visita.` : p === 1 ? `Lo primero que se llena es ${m.cuello}: ahí está el límite de ${n(m.caben)} restaurantes.` : `Con esta orden caben ${n(m.caben)} y frena ${m.cuello}: ${sube}.`,
     };
   },
@@ -76,7 +76,7 @@ DET.disco = {
 const TRK = [
   {k: "topeMesas", nom: "Mesas", min: 5, max: 60, step: 1, tag: "supuesto", tip: v => `Tope de mesas|${n(v)} mesas|Modelo por tamaño de negocio: en México no hay estadística de mesas.`},
   {k: "topeCuentas", nom: "Cuentas", min: 1, max: 20, step: 1, tag: "supuesto", tip: v => `Tope de cuentas de personal|${n(v)} ${v === 1 ? "cuenta" : "cuentas"}|Una cuenta es una persona con PIN; se mide con los primeros restaurantes.`},
-  {k: "topePlatillos", nom: "Platillos", min: 40, max: 300, step: 10, tag: "dos muestras,|sesgos opuestos", tip: v => `Tope de platillos|${n(v)} platillos|Dos muestras de cartas, de reparto y de sitios propios, dan coberturas distintas; la real está en medio.`, tipv: v => { const cb = MOD.coberturaChef({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, platillos: v}}}, SP).todo; return `tri:reparto (cortas)|${cb.alta}|${n(100 * cb.alta)} %;sitios propios (largas)|${cb.baja}|${n(100 * cb.baja)} %`; }},
+  {k: "topePlatillos", nom: "Platillos", min: 50, max: 150, step: 10, valores: [50, 80, 100, 150], tag: "dos muestras,|sesgos opuestos", tip: v => `Tope de platillos|${n(v)} platillos|Dos muestras de cartas, de reparto y de sitios propios, dan coberturas distintas; la real está en medio.`, tipv: v => { const cb = MOD.coberturaChef({...config(S), topes: {...config(S).topes, gratuito: {...config(S).topes.gratuito, platillos: v}}}, SP).todo; return `tri:reparto (cortas)|${cb.alta}|${n(100 * cb.alta)} %;sitios propios (largas)|${cb.baja}|${n(100 * cb.baja)} %`; }},
 ];
 const COLPLAN = [C.vino, C.dorado], NOMPLAN = [PLAN.gratis, PLAN.paga]; // Chef Ejecutivo: futura escalación, apagado en el modelo
 DET.topes = {
@@ -97,7 +97,8 @@ DET.topes = {
       const h = rm.put("h" + i, "circle", {x: px, y, r: 15, fill: C.vino, stroke: "#fff", sw: 3, cursor: "grab", attrs: {"aria-label": "Tope de " + t.nom.toLowerCase(), "aria-valuemin": t.min, "aria-valuemax": t.max, "aria-valuenow": v, "data-tip": t.tip(v), ...(t.tipv ? {"data-tipv": t.tipv(v)} : {})}});
       rm.put("hv" + i, "text", {x: px, y: y + 4, text: String(v), size: 11, weight: 700, fill: "#fff", anchor: "middle"});
       const tl = t.tag.split("|"); rm.put("tg" + i, "text", {x: X0 + W + 16, y: y + 5 - (tl.length > 1 ? 7 : 0), text: tl[0], size: 11, weight: 700, fill: C.dorado}); if (tl.length > 1) rm.put("tg" + i + "b", "text", {x: X0 + W + 16, y: y + 19 - 7, text: tl[1], size: 11, weight: 700, fill: C.dorado});
-      if (!this.armado) { const set = val => cambiar({[t.k]: clamp(Math.round(val / t.step) * t.step, t.min, t.max)}); arrastrable(h, svg, pt => set(t.min + (pt.x - X0) / W * (t.max - t.min)), (d, mult) => set(S[t.k] + d * mult * t.step)); }
+      if (!this.armado) { const snap = val => t.valores ? t.valores.reduce((a, b) => (Math.abs(b - val) < Math.abs(a - val) ? b : a)) : clamp(Math.round(val / t.step) * t.step, t.min, t.max), set = val => cambiar({[t.k]: snap(val)}), mueve = (d, mult) => t.valores ? t.valores[clamp(t.valores.indexOf(S[t.k]) + Math.sign(d), 0, t.valores.length - 1)] : S[t.k] + d * mult * t.step; arrastrable(h, svg, pt => set(t.min + (pt.x - X0) / W * (t.max - t.min)), (d, mult) => set(mueve(d, mult))); }
+      if (t.valores) t.valores.forEach((v2, j) => { rm.put("tv" + i + "_" + j, "text", {x: X0 + W * (v2 - t.min) / (t.max - t.min), y: y + 30, text: String(v2), size: 11.5, weight: v2 === v ? 700 : 400, fill: v2 === v ? C.vino : C.t2, anchor: "middle"}); });
     });
     this.armado = true;
     // lo que cambia con los topes: ingreso, costo y margen al mes con 1,000 restaurantes
@@ -105,7 +106,7 @@ DET.topes = {
       rm.put("m" + i, "text", {x: 620 + i * 112, y: 78, text: nm, size: 13, weight: 700, fill: C.t2});
       rm.put("mv" + i, "text", {x: 620 + i * 112, y: 118, text: mp(v).replace(" MXN", ""), size: 30, fill: col, serif: true});
     });
-    rm.put("mt", "text", {x: 620, y: 150, text: "MXN al mes con 1,000 restaurantes registrados", size: 12.5, fill: C.t2});
+    rm.put("mt", "text", {x: 620, y: 150, text: `MXN al mes con ${n(N_REF)} restaurantes registrados`, size: 12.5, fill: C.t2});
     const dent = cota => 100 * chef05(c, "centro", supCota(S, cota)), d1 = dent("baja"), d2 = dent("alta"), dLo = Math.min(d1, d2), dHi = Math.max(d1, d2);
     rm.put("md", "text", {x: 620, y: 190, text: Math.abs(dHi - dLo) < 0.5 ? `${n(dHi, 1)} % de 0 a 5 se queda en ${PLAN.gratis}` : `${n(dLo, 1)}–${n(dHi, 1)} % de 0 a 5 se queda en ${PLAN.gratis}`, size: 15, weight: 700, fill: C.vino, attrs: {"data-tip": `Se queda en ${PLAN.gratis}|${Math.abs(dHi - dLo) < 0.5 ? n(dHi, 1) : n(dLo, 1) + "–" + n(dHi, 1)} %|Entre cartas largas de sitios propios y cortas de reparto; «sólo comida» o «sin tope» cierran la banda.`}});
     { const mgB = evalCota(S, "baja").margen_operacion, mgA = e.margen_operacion; rm.put("mgb", "text", {x: 620, y: 240, text: Math.abs(mgB - mgA) < 1 ? "" : `con cartas largas (cota baja): ${mp(mgB)}`, size: 12, weight: 700, fill: C.t2, attrs: {"data-tip": `Margen con cartas largas|${mp(mgB)}|Supone que la mitad de los negocios chicos rebasa el tope y paga: no es un margen real.`}}); }
@@ -159,7 +160,7 @@ DET.precio = {
     const prov = []; D.mercado_planes.forEach(p => { if (!prov.includes(p.proveedor)) prov.push(p.proveedor); });
     this.prov = prov.sort((a, b) => Math.min(...D.mercado_planes.filter(p => p.proveedor === a).map(p => p.precio)) - Math.min(...D.mercado_planes.filter(p => p.proveedor === b).map(p => p.precio)));
     this.oculto = new Set(); this.armado = false;
-    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 600" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><h3 id="pgT">No sabemos cuánto pagarían: lo mide la prueba de tres precios del piloto</h3><div class="rdesl"><label for="pgM">¿Cuánto pagaría el dueño típico?</label><input type="range" id="pgM" min="150" max="450" step="5" value="225"><output id="pgMv">225 MXN</output></div><svg id="svS" viewBox="0 0 960 280" role="img" font-family="DM Sans, sans-serif"></svg></div><details id="masP" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2);padding:8px 2px">ver más: contra quién compites, la curva de pago y el precio como parte del ingreso</summary><div class="panel" style="margin-top:6px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div></details>`;
+    host.innerHTML = `<div class="viz"><svg id="svP" viewBox="0 0 960 600" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svMd" viewBox="0 0 960 270" role="img" aria-label="Si la mediana real fuera otra" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="ocp" style="margin-top:8px"></div><div class="panel" style="margin-top:10px"><h3 id="pgT">No sabemos cuánto pagarían: lo mide la prueba de tres precios del piloto</h3><div class="rdesl"><label for="pgM">¿Cuánto pagaría el dueño típico?</label><input type="range" id="pgM" min="150" max="450" step="5" value="225"><output id="pgMv">225 MXN</output></div><svg id="svS" viewBox="0 0 960 280" role="img" font-family="DM Sans, sans-serif"></svg></div><details id="masP" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--vino2);padding:8px 2px">ver más: contra quién compites, la curva de pago y el precio como parte del ingreso</summary><div class="panel" style="margin-top:6px"><div class="kick" style="margin-bottom:6px">¿Contra quién compites?</div><div class="seg" id="sus"></div></div><div class="dos" style="margin-top:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="panel"><h3>Cuánto pagan: la curva (supuesto)</h3><div class="seg" id="cvs"></div><div id="cvc"></div></div><div class="panel"><h3>El precio como parte del ingreso (INEGI)</h3><div id="inegi"></div></div></div></details>`;
     this.rm = RM($("#svP", host)); this.svg = $("#svP", host);
     this.svg.addEventListener("click", ev => { const t = ev.target.closest("[data-prov]"); if (t) { this.oculto.add(t.dataset.prov); refrescar(); } });
     host.addEventListener("click", ev => {
@@ -176,10 +177,10 @@ DET.precio = {
   },
   actualizar() {
     const rm = this.rm, svg = this.svg, vis = this.prov.filter(p => !this.oculto.has(p)), LH = 29, y0 = 96;
-    const A = p => (p <= 1300 ? 210 + 560 * p / 1300 : 770 + 110 * (Math.min(p, 3000) - 1300) / 1700);
+    const TOPE_EJE = 3000, A = p => (p <= 1300 ? 210 + 560 * p / 1300 : 770 + 110 * (Math.min(p, TOPE_EJE) - 1300) / (TOPE_EJE - 1300));
     const inv = x => clamp(Math.round(((x - 210) / 560) * 1300), 49, 1299);
     [0, 250, 500, 750, 1000, 1300].forEach(t => { rm.put("tk" + t, "text", {x: A(t), y: y0 + this.prov.length * LH + 20, text: mxn(t), size: 11.5, fill: C.t2, anchor: "middle"}); rm.put("tl" + t, "line", {x1: A(t), y1: 74, x2: A(t), y2: y0 + this.prov.length * LH, stroke: C.arena, sw: 1}); });
-    rm.put("tkb", "text", {x: 830, y: y0 + this.prov.length * LH + 20, text: "≈ 3,000 y más", size: 11.5, fill: C.t2, anchor: "middle"});
+    rm.put("tkb", "text", {x: 830, y: y0 + this.prov.length * LH + 20, text: `≈ ${n(TOPE_EJE)} y más`, size: 11.5, fill: C.t2, anchor: "middle"});
     rm.put("tlb", "line", {x1: 770, y1: 74, x2: 770, y2: y0 + this.prov.length * LH, stroke: C.gris, sw: 1.5, dash: "4 3"});
     this.prov.forEach((pv, i) => {
       const idx = vis.indexOf(pv), on = idx >= 0, y = y0 + (on ? idx : vis.length) * LH, col = PCOL[i % PCOL.length], op = on ? 1 : 0;
@@ -216,14 +217,14 @@ DET.precio = {
       rs.put("st", "text", {x: 30, y: 30, text: `Si el dueño típico pagara ${mxn(Math.round(med))}, el mejor precio sería ${mxn(precios[ganador])}`, size: 22, fill: C.vino, serif: true});
       mg.forEach((v, i) => {
         const base = Math.min(...mg) - 0.25 * Math.max(Math.abs(mx - Math.min(...mg)), 1), h = Math.max(10, 146 * (v - base) / Math.max(mx - base, 1)), w = 150, x = 60 + i * 220, win = i === ganador;
-        const tip = {"data-tip": mxn(precios[i]) + " al mes|" + fmP(v) + "|margen al mes con 1,000 restaurantes si el dueño típico pagara " + mxn(Math.round(med)) + (win ? ". Es el que más deja." : "."), "data-tipp": clamp(v / mx, 0, 1)};
+        const tip = {"data-tip": mxn(precios[i]) + " al mes|" + fmP(v) + "|margen al mes con " + n(N_REF) + " restaurantes si el dueño típico pagara " + mxn(Math.round(med)) + (win ? ". Es el que más deja." : "."), "data-tipp": clamp(v / mx, 0, 1)};
         // las barras no se redibujan: pasan del valor anterior al nuevo
         rs.put("sb" + i, "rect", {x, y: 232 - h, w, h, rx: 14, fill: win ? C.dorado : "#d9b9c1", grow: false, attrs: tip});
         rs.put("sv" + i, "text", {x: x + w / 2, y: 232 - h - (win ? 30 : 12), text: fmP(v), size: 15, weight: 700, fill: win ? C.dorado : C.t2, anchor: "middle"});
         rs.put("sg" + i, "text", {x: x + w / 2, y: 232 - h - 12, text: win ? "el que gana" : "", size: 12.5, weight: 700, fill: C.dorado, anchor: "middle"});
         rs.put("sp" + i, "text", {x: x + w / 2, y: 254, text: mxn(precios[i]), size: 18, fill: win ? C.vino : C.t2, anchor: "middle", serif: true});
       });
-      rs.put("sn", "text", {x: 30, y: 268, text: "Margen al mes con 1,000 restaurantes. Las barras no parten de cero: sólo comparan los cuatro precios.", size: 11.5, fill: C.t2});
+      rs.put("sn", "text", {x: 30, y: 268, text: `Margen al mes con ${n(N_REF)} restaurantes. Las barras no parten de cero: sólo comparan los cuatro precios.`, size: 11.5, fill: C.t2});
     }
     const caros = D.mercado_planes.filter(p => p.precio > S.precioServicio).length, tot = D.mercado_planes.length;
     const m = motor(S), sust = SUSTP[S.sustituto], kimp = S.precioServicio / sust, s = sup(S);
@@ -233,7 +234,17 @@ DET.precio = {
     $$("#cvs [data-cv]").forEach(b => b.setAttribute("aria-pressed", b.dataset.cv === S.curva));
     const cvb = m.s.curvas_pago[S.curva];
     [["cMed", cvb.mediana, v => mxn(v)], ["cSig", cvb.sigma, v => v.toFixed(2)], ["cTec", cvb.techo, v => n(100 * v) + " %"]].forEach(([k, v, f]) => { const r = $(`[data-cc="${k}"]`); if (r && document.activeElement !== r) r.value = v; $(`[data-cco="${k}"]`).textContent = f(v); });
-    $("#inegi").innerHTML = D.inegi_tamano.map(t => { const p = 100 * S.precioServicio / t.ingreso, w = clamp(p / 0.3 * 100, 2, 100); return `<div class="ing"><span>${esc(t.estrato)} personas · ${mxn(t.ingreso)} al mes</span><b>${p.toFixed(2)} %</b><div class="ingb"><i style="width:${w}%"></i></div></div>`; }).join("") + `<p class="nota">Ingreso por negocio de la clase 722511 (INEGI, Censos Económicos 2024, año 2023). Barra completa = 0.3 % del ingreso. Un punto de venta cuesta de 652 a 1,000 al mes.</p>`;
+    $("#inegi").innerHTML = D.inegi_tamano.map(t => { const p = 100 * S.precioServicio / t.ingreso, w = clamp(p / 0.3 * 100, 2, 100); return `<div class="ing"><span>${esc(t.estrato)} personas · ${mxn(t.ingreso)} al mes</span><b>${p.toFixed(2)} %</b><div class="ingb"><i style="width:${w}%"></i></div></div>`; }).join("") + `<p class="nota">Ingreso por negocio de la clase 722511 (INEGI, Censos Económicos 2024, año 2023). Barra completa = 0.3 % del ingreso. Un punto de venta cuesta de ${n(Math.min(...SP.punto_de_venta.map(x => x.precio)))} a ${n(Math.max(...SP.punto_de_venta.map(x => x.precio)))} al mes.</p>`;
+    { // si la mediana real fuera otra: la curva está centrada en el precio por construcción (supuesto que mide la prueba de precio del piloto)
+      const sm = conCache("sensMed", () => MOD.sensibilidadDeLaMediana(config(S), sup(S))), fl = sm.filas.filter(f => f.historial.startsWith("política vigente") && Math.abs(f.techo - sm.techo_supuesto) < 1e-9).sort((a, z) => a.mediana_real - z.mediana_real);
+      let g = T(30, 26, `Si la mediana real de lo que pagaría el dueño típico no fuera ${mxn(sm.mediana_supuesta)}`, 14.5, C.vino, "start", 700);
+      parr("La curva se centra en el precio de Meniu, que es también el elegido: por eso salen los pagantes del titular. Es un supuesto; lo mide la prueba de precio del piloto.", 125).forEach((l, k) => { g += T(30, 48 + k * 17, l, 12.5, C.t2, "start", 700); });
+      const mxM = Math.max(...fl.map(f => f.margen_operacion)), CWm = 300;
+      fl.forEach((f, i) => { const x = 30 + i * (CWm + 20), cen = f.mediana_real === sm.mediana_supuesta;
+        g += `<g data-tip="${esc2(`Mediana real de ${mxn(f.mediana_real)}|${n(f.pagantes_por_1000)} pagantes por cada ${n(N_REF)}|Margen ${fmP(f.margen_operacion)} con la política vigente. Supuesto: se mide con la prueba de precio.`)}" tabindex="0">` + Rc(x, 84, CWm, 170, cen ? "#f6e9d4" : "#fff", 18, cen ? `stroke="${C.dorado}" stroke-width="2.4"` : "")
+          + T(x + 16, 114, `Mediana ${mxn(f.mediana_real)}${cen ? " (supuesto actual)" : ""}`, 14, C.vino, "start", 700) + T(x + 16, 160, n(f.pagantes_por_1000), 40, C.tinta, "start", 400, true) + T(x + 16, 180, `pagantes por cada ${n(N_REF)}`, 12.5, C.t2, "start", 700)
+          + Rc(x + 16, 196, CWm - 32, 12, C.a2, 6) + Rc(x + 16, 196, Math.max((CWm - 32) * Math.max(f.margen_operacion, 0) / mxM, 3), 12, C.vino, 6) + T(x + 16, 234, `margen ${fmP(f.margen_operacion)}`, 17, C.vino, "start", 400, true) + `</g>`; });
+      $("#svMd").innerHTML = g; }
     $("[data-regla]", $("#sus")).textContent = `Poner el precio de la regla: ${mxn(regla)} (K = ${S.K})`;
     return {
       leyenda: `<span>Cada color es un proveedor; más claro = plan más barato</span><span><i style="background:${C.vino}"></i>${PLAN.paga}</span><span>Chef Ejecutivo: futura escalación</span>`,

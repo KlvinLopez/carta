@@ -1,0 +1,251 @@
+{
+  "comensales": 3,
+  "pasos": [
+    {
+      "paso": "Escanean el QR: entra el primero y se crea la sesión de la mesa",
+      "tabla": "sesion_grupal",
+      "filas": 1,
+      "bytes_por_fila": 264,
+      "bytes": 264,
+      "acumulado": 264
+    },
+    {
+      "paso": "Cada comensal entra y se vuelve miembro (3)",
+      "tabla": "miembro_sesion",
+      "filas": 3,
+      "bytes_por_fila": 250,
+      "bytes": 750,
+      "acumulado": 1014
+    },
+    {
+      "paso": "Cada uno abre su orden personal",
+      "tabla": "orden_personal",
+      "filas": 3,
+      "bytes_por_fila": 229,
+      "bytes": 687,
+      "acumulado": 1701
+    },
+    {
+      "paso": "Agregan platillos a su orden (3 por comensal en la copia)",
+      "tabla": "item_orden",
+      "filas": 9,
+      "bytes_por_fila": 174,
+      "bytes": 1566,
+      "acumulado": 3267
+    },
+    {
+      "paso": "La mesa envía la comanda al personal",
+      "tabla": "comanda",
+      "filas": 1.3005,
+      "bytes_por_fila": 334,
+      "bytes": 434.367,
+      "acumulado": 3701.367
+    },
+    {
+      "paso": "La comanda enlaza la orden de cada comensal",
+      "tabla": "comanda_orden",
+      "filas": 3,
+      "bytes_por_fila": 169,
+      "bytes": 507,
+      "acumulado": 4208.367
+    },
+    {
+      "paso": "Alguien llama al mesero (en la copia: una de cada 3.3 sesiones)",
+      "tabla": "llamada_mesero",
+      "filas": 0.3012222222222222,
+      "bytes_por_fila": 304,
+      "bytes": 91.57155555555556,
+      "acumulado": 4299.9385555555555
+    },
+    {
+      "paso": "Mientras tanto, el teléfono de cada comensal manda sus eventos (3.9 por comensal: supuesto del generador)",
+      "tabla": "evento_analitica",
+      "filas": 11.564258731015343,
+      "bytes_por_fila": 353,
+      "bytes": 4082.183332048416,
+      "acumulado": 8382.121887603971
+    }
+  ],
+  "combinaciones": [
+    {
+      "archivo": "sin archivo",
+      "analitica": "una fila por evento (hoy)",
+      "caben_con_historial_del_gratuito_a_30_dias": 182,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 41
+    },
+    {
+      "archivo": "sin archivo",
+      "analitica": "contar por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 222,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 68
+    },
+    {
+      "archivo": "sin archivo",
+      "analitica": "fila por visita",
+      "caben_con_historial_del_gratuito_a_30_dias": 222,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 68
+    },
+    {
+      "archivo": "sin archivo",
+      "analitica": "fila por visita más platillo por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 219,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 65
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "una fila por evento (hoy)",
+      "caben_con_historial_del_gratuito_a_30_dias": 347,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 46
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "contar por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 533,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 83
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "fila por visita",
+      "caben_con_historial_del_gratuito_a_30_dias": 532,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 82
+    },
+    {
+      "archivo": "archivar sólo las de paga",
+      "analitica": "fila por visita más platillo por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 512,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 78
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "una fila por evento (hoy)",
+      "caben_con_historial_del_gratuito_a_30_dias": 347,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 70
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "contar por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 533,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 217
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "fila por visita",
+      "caben_con_historial_del_gratuito_a_30_dias": 532,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 216
+    },
+    {
+      "archivo": "archivar las de todos los planes",
+      "analitica": "fila por visita más platillo por día",
+      "caben_con_historial_del_gratuito_a_30_dias": 512,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 188
+    }
+  ],
+  "bytes_de_la_mesa_sin_analitica": 4299.938555555555,
+  "bytes_de_analitica": 4082.183332048416,
+  "bytes_total": 8382.121887603971,
+  "opciones": [
+    {
+      "id": "hoy",
+      "nombre": "Hoy: una fila por evento",
+      "palancas": [],
+      "factor": 1,
+      "que_queda": "una fila por toque del comensal, con sesión, miembro, platillo, huella de red y navegador",
+      "se_pierde": "nada",
+      "bytes_analitica_por_mesa_de_3": 4082.183332048416,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
+      "restaurantes_que_caben_sin_purga": 41,
+      "restaurantes_que_caben_con_historial_30_dias": 182
+    },
+    {
+      "id": "contar_por_dia",
+      "nombre": "Contar por día",
+      "palancas": [
+        "analitica_agregada_por_dia"
+      ],
+      "factor": 0.1101,
+      "que_queda": "un conteo por restaurante, día, tipo y platillo; crece con los días y los platillos, no con las visitas",
+      "se_pierde": "el detalle por sesión y por teléfono",
+      "bytes_analitica_por_mesa_de_3": 449.44838485853063,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 0.6995754,
+      "restaurantes_que_caben_sin_purga": 68,
+      "restaurantes_que_caben_con_historial_30_dias": 222
+    },
+    {
+      "id": "fila_por_visita",
+      "nombre": "Fila por visita de comensal (propuesta de Calvin)",
+      "palancas": [
+        "fila_por_visita_de_comensal"
+      ],
+      "factor": 0.1123,
+      "que_queda": "una fila por comensal y día con veces y segundos en menú, platillo y búsqueda (los filtros se cuentan por restaurante y día, no por comensal); crece con las visitas",
+      "se_pierde": "qué platillo se vio y el orden de los toques",
+      "bytes_analitica_por_mesa_de_3": 458.4291881890371,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 0.7135541999999999,
+      "restaurantes_que_caben_sin_purga": 68,
+      "restaurantes_que_caben_con_historial_30_dias": 222
+    },
+    {
+      "id": "fila_mas_platillo",
+      "nombre": "Fila por visita más conteo de platillo por día",
+      "palancas": [
+        "fila_por_visita_mas_platillo_por_dia"
+      ],
+      "factor": 0.1766,
+      "que_queda": "la fila por visita más un conteo diario por platillo",
+      "se_pierde": "cuál comensal vio cuál platillo",
+      "bytes_analitica_por_mesa_de_3": 720.9135764397503,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 1.1221164,
+      "restaurantes_que_caben_sin_purga": 65,
+      "restaurantes_que_caben_con_historial_30_dias": 219
+    },
+    {
+      "id": "adelgazar",
+      "nombre": "Adelgazar la tabla (índices mínimos y tipos chicos)",
+      "palancas": [
+        "indices_de_evento_minimos",
+        "tipos_mas_chicos"
+      ],
+      "factor": 0.6092,
+      "que_queda": "una fila por evento, más angosta y con dos índices",
+      "se_pierde": "índices de consulta; huella de red de 8 bytes",
+      "bytes_analitica_por_mesa_de_3": 2486.866085883895,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 3.8708567999999994,
+      "restaurantes_que_caben_sin_purga": 49,
+      "restaurantes_que_caben_con_historial_30_dias": 197
+    },
+    {
+      "id": "archivar_paga",
+      "nombre": "Archivar las sesiones de los restaurantes de paga (3 meses en la base)",
+      "palancas": [
+        "archivar_sesiones_de_paga"
+      ],
+      "factor": 1,
+      "que_queda": "la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo queda en R2 (no se borra)",
+      "se_pierde": "consulta inmediata de lo viejo de los de paga; hay que releer del archivo",
+      "bytes_analitica_por_mesa_de_3": 4082.183332048416,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
+      "restaurantes_que_caben_sin_purga": 46,
+      "restaurantes_que_caben_con_historial_30_dias": 347
+    },
+    {
+      "id": "archivar_todos",
+      "nombre": "Archivar las sesiones de todos los planes (3 meses en la base)",
+      "palancas": [
+        "archivar_sesiones_de_todos_los_planes"
+      ],
+      "factor": 1,
+      "que_queda": "la base conserva sólo 3 meses de las sesiones de cada restaurante, gratuito incluido; lo viejo queda en R2 (no se borra)",
+      "se_pierde": "consulta inmediata de lo viejo de todos; el gratuito pierde historial en línea",
+      "bytes_analitica_por_mesa_de_3": 4082.183332048416,
+      "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
+      "restaurantes_que_caben_sin_purga": 70,
+      "restaurantes_que_caben_con_historial_30_dias": 347
+    }
+  ],
+  "comprar_disco": "No cambia los datos guardados: sube el costo del escalón (ver la escalera en recursos y palancas).",
+  "supuestos": [
+    "eventos por sesión: 10 (supuesto del generador de datos)",
+    "contadores de la fila por visita: sintéticos (el tamaño no depende del valor)",
+    "bytes por fila: con índices, de una copia con datos sintéticos; con tráfico real cambia"
+  ]
+}

@@ -2,7 +2,7 @@
 DET.pagar = {
   titulo: "De cada 10,000 pesos que entran, Carta es una fracción de lo que el negocio ya paga por su punto de venta.",
   fu: ["inegi_denue", "carta_precio", "paginas_proveedores_14nov"],
-  nota: "INEGI, Censos Económicos 2024 (datos de 2023), clase 722511: ingreso por negocio y por mes. Un punto de venta cuesta de 652 a 1,000 pesos al mes (páginas de proveedores leídas el 14 de noviembre). Los negocios de 0 a 5 personas caben en Chef (gratis); de 6 en adelante, Master Chef.",
+  nota: "INEGI, Censos Económicos 2024 (datos de 2023), clase 722511: ingreso por negocio y por mes. Lo que cuesta un punto de venta está en la leyenda de la gráfica (páginas de proveedores leídas el 14 de noviembre). Los negocios de 0 a 5 personas caben en Chef (gratis); de 6 en adelante, Master Chef.",
   montar(host) { host.innerHTML = `<div class="viz"><svg id="svV" viewBox="0 0 1100 600" role="img" aria-label="Lo que ya paga por su punto de venta frente a lo que pagaría por Carta" font-family="DM Sans, sans-serif"></svg></div><details class="mas" style="margin-top:12px"><summary>Segundo nivel: lo mismo, por cada 10,000 pesos que entran al negocio</summary><div class="viz" style="margin-top:8px"><svg id="svG" viewBox="0 0 1100 520" role="img" font-family="DM Sans, sans-serif"></svg></div></details>`; this.sv = $("#svG", host); this.svV = $("#svV", host); },
   /* el valor, a la vista: por tamaño, lo que ya paga por su punto de venta junto a lo que pagaría por Carta, en pesos al mes y a la misma escala */
   pintaValor(tam, tipos, rot, precios, planes, pLo, pHi) {
@@ -25,7 +25,7 @@ DET.pagar = {
 
   actualizar() {
     /* cada tira son 100 casillas; cada casilla es 1 peso de cada 10,000 que entran (la tira entera es el 1 % de las ventas) */
-    const tam = D.inegi_tamano, X0 = 290, CW = 8, [pLo, pHi] = [652, 1000], por10k = (pesos, ingreso) => 10000 * pesos / ingreso;
+    const tam = D.inegi_tamano, X0 = 290, CW = 8, [pLo, pHi] = [Math.min(...SP.punto_de_venta.map(x => x.precio)), Math.max(...SP.punto_de_venta.map(x => x.precio))], por10k = (pesos, ingreso) => 10000 * pesos / ingreso;
     const tipos = ["fonda", "restaurante", "salon", "grupo"], rot = ["0 a 10 personas", "11 a 50", "51 a 250", "251 o más"];
     const precios = [0, S.precioServicio, S.precioServicio, S.precioServicio], planes = [`${PLAN.gratis} (0 a 5) · ${PLAN.paga} desde 6`, PLAN.paga, PLAN.paga, PLAN.paga];
     let b = T(30, 28, "De cada 10,000 pesos que entran al negocio, ¿cuántos van a software?", 15, C.vino, "start", 700) + T(30, 48, "Cada tira son 100 casillas: una casilla = 1 peso de cada 10,000 (la tira entera es el 1 % de las ventas).", 12, C.t2);
@@ -45,7 +45,7 @@ DET.pagar = {
     this.pintaValor(tam, tipos, rot, precios, planes, pLo, pHi);
     const f1 = fil[1], f0 = fil[0];
     return {
-      leyenda: `<span><i style="background:${C.azul}"></i>lo que ya paga por su punto de venta (rango de 652 a 1,000 pesos al mes)</span><span><i style="background:${C.dorado}"></i>Carta</span>`,
+      leyenda: `<span><i style="background:${C.azul}"></i>lo que ya paga por su punto de venta (rango de ${n(pLo)} a ${n(pHi)} pesos al mes)</span><span><i style="background:${C.dorado}"></i>Carta</span>`,
       cifras: [[n(f0.a) + " a " + n(f0.z), "pesos de cada 10,000 gasta un negocio de 0 a 10 personas en su punto de venta; en Carta, 0 (Chef es gratis)"], [n(f1.c, 1), `pesos de cada 10,000 serían ${PLAN.paga} para uno de 11 a 50 personas`, "propuesta"], [n(f1.a) + " a " + n(f1.z), "pesos de cada 10,000 gasta ese mismo negocio en su punto de venta"]],
       insight: `Para un negocio mediano, ${PLAN.paga} (${n(S.precioServicio)} MXN) cuesta ${this.frac} de lo que ya paga por su punto de venta (${n(pLo)} MXN a ${n(pHi)} MXN al mes); para el chico, nada.`,
     };

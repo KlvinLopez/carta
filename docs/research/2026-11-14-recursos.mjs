@@ -17,6 +17,7 @@ const topes = (ids) => M.recursos({ ...rec, palancas: ids }, s);
 const n0 = (x) => (x == null ? '—' : Math.round(x).toLocaleString('en-US'));
 const n1 = (x) => (x == null ? '—' : (Math.round(x * 10) / 10).toLocaleString('en-US'));
 const sg = (x) => (x >= 0 ? `+${n0(x)}` : `−${n0(-x)}`);
+const n2 = (x) => (Math.round(x * 100) / 100).toLocaleString('en-US');
 const rE = (id) => R.recursos.find((r) => r.recurso === id);
 const disco = rE('disco');
 const cuelloH = R.cuello_hoy;
@@ -61,10 +62,50 @@ const md = `# Recursos y palancas: qué pagamos, cuánto aguanta cada pieza y c�
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** ${tip}. Con el **doble** de actividad lo que cabe se divide entre 2 (${n0(ac[2].procesador_hoy)} por procesador y ${n0(ac[2].disco_con_historial_30_dias)} por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de ${n0(rE('procesador').restaurantes_hoy)} a ${n0(R.pico_simultaneo.procesador_hoy)} (factor ${R.pico_simultaneo.factor}, supuesto).
 
+## De qué se compone el disco promedio
+
+${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos y la PROPUESTA de historial del gratuito a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (con la política vigente, 03 §7, caben ${n0(R.disco_por_historial.find((x) => x.meses_historial === '03§7').restaurantes_por_disco)}; la composición de abajo es la de la propuesta).
+- **Mezcla:** ${n1(c.parte_que_paga * 1000)} de paga por cada 1,000 restaurantes registrados. Un gratuito guarda ${n0(c.meses_de_historial.gratuito)} mes (${n1(c.mb_por_restaurante.gratuito)} MB) y uno de paga ${n0(c.meses_de_historial.paga)} meses (${n1(c.mb_por_restaurante.paga)} MB); promedio ${n1(c.mb_por_restaurante.promedio)} MB.
+- **Quién llena el disco:** los gratuitos ${n0(c.parte_del_disco.gratuitos * 100)} %, los de paga ${n0(c.parte_del_disco.de_paga * 100)} %.
+- **Costo de ese disco:** ${n2(c.costo_del_disco_pesos_al_mes.paga)} pesos al mes por restaurante de paga frente a ${n0(c.costo_del_disco_pesos_al_mes.lo_que_paga_un_restaurante_de_paga)} que paga (${n1(c.costo_del_disco_pesos_al_mes.parte_del_precio_que_se_va_en_disco * 100)} %); un gratuito cuesta ${n2(c.costo_del_disco_pesos_al_mes.gratuito)} pesos.
+- **Hallazgo:** ${c.hallazgo}
+
+**Cuánto de cada parte es analítica y cuánto sesiones y órdenes (parte del disco promedio):**
+
+| | Fijo (menú, catálogo) | Sesiones y órdenes | Analítica | Total |
+|---|---|---|---|---|
+| Gratuitos | ${n1(c.desglose.parte_del_disco.gratuitos.fijo * 100)} % | ${n1(c.desglose.parte_del_disco.gratuitos.sesiones_y_ordenes * 100)} % | ${n1(c.desglose.parte_del_disco.gratuitos.analitica * 100)} % | ${n1((c.desglose.parte_del_disco.gratuitos.fijo + c.desglose.parte_del_disco.gratuitos.sesiones_y_ordenes + c.desglose.parte_del_disco.gratuitos.analitica) * 100)} % |
+| De paga (12 meses) | ${n1(c.desglose.parte_del_disco.de_paga.fijo * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.analitica * 100)} % | ${n1((c.desglose.parte_del_disco.de_paga.fijo + c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes + c.desglose.parte_del_disco.de_paga.analitica) * 100)} % |
+| **Todos** | ${n1(c.desglose.parte_fija_del_disco * 100)} % | ${n1(c.desglose.parte_sesiones_y_ordenes_del_disco * 100)} % | ${n1(c.desglose.parte_analitica_del_disco * 100)} % | 100 % |
+
+**Por qué «contar por día» da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_ahora * 100)} % y archivar las sesiones de paga da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.archivar.ganancia_ahora * 100)} %:** ${c.por_que_contar_por_dia_ya_no_da_tanto.frase}`; })()}
+
+## La capacidad depende de quién paga
+
+Con la propuesta de 30 días para el gratuito y la carga por topes. **El éxito llena antes el servidor:** un restaurante de paga pesa ${s.peso_servicio_cpu} gratuitos de procesador y llena unas 16 veces el disco de un gratuito.
+
+| Parte de los restaurantes que paga | Escenario | Caben por procesador con el sondeo | Caben por procesador con avisos | Caben por disco con avisos |
+|---|---|---|---|---|
+${R.sensibilidad_de_la_capacidad.parte_que_paga.map((x) => `| ${n1(x.parte_que_paga * 100)} % | ${x.escenario} (curva ${x.curva_de_pago}) | ${n0(x.procesador_con_sondeo)} | ${n0(x.procesador_con_avisos)} | ${n0(x.disco)} |`).join('\n')}
+
+**La mezcla de tamaños de los de paga es un supuesto con rango.** El simulador la fija en 50 % mediano, 25 % grande y 25 % formal, pero ${n0(R.sensibilidad_de_la_capacidad.parte_de_los_pagantes_de_0_a_5_personas * 100)} % de los pagantes del propio modelo son negocios de 0 a 5 personas. Se mide con el tamaño de los primeros restaurantes de paga del piloto.
+
+| Mezcla de los de paga | Caben por disco con avisos |
+|---|---|
+${R.sensibilidad_de_la_capacidad.mezcla_de_paga.map((x) => `| ${x.nombre} | ${n0(x.disco)} |`).join('\n')}
+
+## Sensibilidad a las visitas por mesa (el supuesto que mueve la carga del gratuito)
+
+El gratuito carga mesas × visitas por mesa al mes; las **${s.perfil_por_topes.visitas_por_mesa_mes} visitas por mesa** son un supuesto sin medir (se mide con los eventos \`scan\` por mesa del piloto) y la carga de un Chef es el tope entero (cota alta).
+
+| Visitas por mesa al mes | Visitas del gratuito | Caben con avisos / con sondeo / sin purga | Margen recomendado con 1,000 restaurantes |
+|---|---|---|---|
+${M.comparacionDeCarga(rec, s).sensibilidad_visitas_por_mesa.map((x) => `| ${x.visitas_por_mesa_al_mes} | ${n0(x.visitas_del_gratuito_al_mes)} | ${n0(x.capacidad.con_avisos)} / ${n0(x.capacidad.con_sondeo)} / ${n0(x.capacidad.sin_purga)} | ${n0(x.margen_operacion_recomendado_1000)} |`).join('\n')}
+
 ## Conclusiones
 
 1. **Cuello de botella hoy: ${R.cuello_condicional}.** Hoy **nada purga el historial** (03 §7 pide 13 y 24 meses sin distinguir por plan); la cifra de disco depende de los meses acumulados: ${dh.map((x) => `${x.etiqueta}: ${n0(x.restaurantes_por_disco)}`).join(' · ')} restaurantes.
-2. **El procesador es ±2× y no se ha medido en Railway:** ${n0(rE('procesador').restaurantes_hoy)} restaurantes hoy (de ${n0(rg.procesador_hoy[0])} a ${n0(rg.procesador_hoy[1])}) y ${n0(rE('procesador').restaurantes_con_eventos)} con avisos (de ${n0(rg.procesador_con_eventos[0])} a ${n0(rg.procesador_con_eventos[1])}); **148 frente a 279 (disco con 30 días) está dentro de ese margen**: no se puede decir cuál manda sin medirlo.
+2. **El procesador es ±2× y no se ha medido en Railway:** ${n0(rE('procesador').restaurantes_hoy)} restaurantes hoy (de ${n0(rg.procesador_hoy[0])} a ${n0(rg.procesador_hoy[1])}) y ${n0(rE('procesador').restaurantes_con_eventos)} con avisos (de ${n0(rg.procesador_con_eventos[0])} a ${n0(rg.procesador_con_eventos[1])}); **${n0(rE('procesador').restaurantes_con_eventos)} frente a ${n0(rE('disco').con_historial_30_dias.restaurantes_con_eventos)} (disco con 30 días) ${rE('procesador').restaurantes_con_eventos / rE('disco').con_historial_30_dias.restaurantes_con_eventos > 0.5 && rE('procesador').restaurantes_con_eventos / rE('disco').con_historial_30_dias.restaurantes_con_eventos < 2 ? 'está dentro de ese margen' : 'queda fuera de ese margen'}**: no se puede decir cuál manda sin medirlo.
 3. **Con los avisos de la Fase 3 el procesador sube a ${n0(rE('procesador').restaurantes_con_eventos)} y manda el disco:** ${n0(rE('disco').restaurantes_con_eventos)} restaurantes sin purga (12 meses acumulados) o ${n0(rE('disco').con_historial_30_dias.restaurantes_con_eventos)} con el historial a 30 días. Las líneas abiertas aguantan ${n0(rE('lineas').restaurantes_con_eventos)}: **es un tope de diseño supuesto (10,000 de Railway ÷ 4.7 líneas por restaurante), sin medir.**
 4. **La palanca número uno es el historial del gratuito a 30 días:** ${top3[0].ganancia}. **Contradice 03 §7 (13 y 24 meses) y la regla 9 si se borran sesiones y comandas: hay que cambiar el documento y escribir el ADR antes.** Las siguientes, evaluadas sobre esa base: ${top3.slice(1).map((p) => `${p.nombre} (${p.ganancia})`).join(' · ')}.
 5. **Lo que pagamos hoy: ≈ ${n1(R.hoy.total_usd_mes)} USD al mes.** El disco pesa porque cada visita deja diez filas de analítica de ${bytesEvento} bytes y la analítica es ${n1(parteEventos * 100)} % de lo que ocupa una visita (${n0(totalVisita)} bytes, medido con datos sintéticos).
@@ -105,7 +146,7 @@ ${R.recursos.map((r, i) => `### 2.${i + 1} ${r.nombre}
 
 **Cómo funciona hoy.** ${r.como_funciona}
 
-**Consumo.** ${r.consumo_por_restaurante.nota ? r.consumo_por_restaurante.nota : ''}${r.recurso === 'disco' ? `${n1(r.consumo_por_restaurante.valor)} MB por restaurante gratuito típico con ${n0(r.consumo_por_restaurante.meses_historial)} meses de historial (${n0(s.visitas_mes_gratuito)} visitas al mes), ${n1(totalVisita / 1000)} KB por visita [medido con datos sintéticos].` : ''}${r.recurso === 'memoria' ? `${s.rss_worker_mb} MB fijos por proceso; ${n1(r.consumo_por_restaurante.sondeo)} MB por restaurante con el sondeo (supuesto) y ${n1(r.consumo_por_restaurante.eventos)} MB con avisos (la línea abierta cuesta ${s.mb_por_linea_abierta * 1000} KB [medido]).` : ''}
+**Consumo.** ${r.consumo_por_restaurante.nota ? r.consumo_por_restaurante.nota : ''}${r.recurso === 'disco' ? `${n1(r.consumo_por_restaurante.valor)} MB por restaurante registrado sin purga (12 meses acumulados); con el historial del gratuito a 30 días, ${n1(R.composicion_del_disco.mb_por_restaurante.promedio)} MB (un gratuito ${n1(R.composicion_del_disco.mb_por_restaurante.gratuito)} MB con ${n0(R.composicion_del_disco.meses_de_historial.gratuito)} mes; uno de paga ${n1(R.composicion_del_disco.mb_por_restaurante.paga)} MB con ${n0(R.composicion_del_disco.meses_de_historial.paga)} meses), ${n1(totalVisita / 1000)} KB por visita [medido con datos sintéticos].` : ''}${r.recurso === 'memoria' ? `${s.rss_worker_mb} MB fijos por proceso; ${n1(r.consumo_por_restaurante.sondeo)} MB por restaurante con el sondeo (supuesto) y ${n1(r.consumo_por_restaurante.eventos)} MB con avisos (la línea abierta cuesta ${s.mb_por_linea_abierta * 1000} KB [medido]).` : ''}
 
 **Límite hoy:** ${r.restaurantes_hoy > 100000 ? 'sin tope práctico (más de 100,000 restaurantes)' : r.limite_hoy.texto}. **Con avisos:** ${r.restaurantes_con_eventos == null || r.restaurantes_con_eventos > 100000 ? 'sin tope práctico' : `${n0(r.restaurantes_con_eventos)} restaurantes`}. **${r.es_cuello_hoy ? '🔴 Es el cuello de botella de hoy (sin purga).' : r.es_cuello_con_eventos ? '🔴 Es el cuello de botella con avisos (sin purga).' : 'No es el cuello sin purga.'}**${r.recurso === 'lineas' ? ' **Es un tope de diseño supuesto, sin medir.**' : ''}
 
@@ -127,9 +168,11 @@ ${porTabla.sort((a, b) => b.total_por_visita - a.total_por_visita).map((x) => `|
 
 ## 4. Palancas por recurso
 
-Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de ${s.factores_disco_eventos.platillos_cota} platillos** (el gratuito permite 150; la copia tiene ${s.factores_disco_eventos.platillos_en_la_copia}: con ellos el factor es ${s.factores_disco_eventos.agregada_por_dia_con_platillos_de_la_copia} en vez de ${s.factores_disco_eventos.agregada_por_dia_cota_alta}). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
+Cada palanca se evalúa **sola** sobre la base **de la política vigente (03 §7)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de ${s.factores_disco_eventos.platillos_cota} platillos** (el gratuito permite 150; la copia tiene ${s.factores_disco_eventos.platillos_en_la_copia}: con ellos el factor es ${s.factores_disco_eventos.agregada_por_dia_con_platillos_de_la_copia} en vez de ${s.factores_disco_eventos.agregada_por_dia_cota_alta}). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
 
 ${R.recursos.filter((r) => r.palancas.some((p) => p.en_tablero)).map((r) => `### ${r.nombre}\n\n| Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |\n|---|---|---|---|---|---|---|---|\n${palRows(r)}\n`).join('\n')}
+**Alternativas que no se suman.** ${Object.values(R.grupos_excluyentes).map((g) => `${g.nombre}: ${g.nota} El modelo aplica una sola (en orden de prioridad: ${g.prioridad.join(', ')}); el tablero muestra la ganancia de cada una por separado, no la suma.`).join(' ')}
+
 **Memoria y fotos:** ninguna palanca por ahora.
 
 ### Ajustes menores (fuera del tablero)

@@ -8,11 +8,15 @@ import os
 import subprocess
 import sys
 
-ENV = {**os.environ, "PGPASSWORD": "carta_dev_password"}
+if "PGPASSWORD" not in os.environ:
+    sys.exit("Defina PGPASSWORD (la contraseña de la base LOCAL de desarrollo) en el entorno: no se guarda en el repositorio.")
+ENV = dict(os.environ)  # el host es siempre 127.0.0.1 y las bases de trabajo son carta_med_*
 AQUI = os.path.dirname(os.path.abspath(__file__))
 
 
 def sql(db, q, uno=False):
+    if db != "postgres" and not db.startswith("carta_med_"):
+        sys.exit(f"Base {db!r} rechazada: estos guiones sólo tocan bases carta_med_* locales")
     r = subprocess.run(["psql", "-h", "127.0.0.1", "-U", "carta", "-d", db, "-At", "-F", "|", "-v", "ON_ERROR_STOP=1", "-c", q], capture_output=True, text=True, env=ENV)
     if r.returncode:
         sys.exit(r.stderr)

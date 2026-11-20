@@ -451,6 +451,24 @@
    "nota": "pesos por mil visitas con la app, anuncios no personalizados",
    "mueve_resultado": true
   },
+  "anuncio_personalizado_factor": {
+   "valor": 1.5,
+   "min": 1.04,
+   "max": 2.8,
+   "origen": "supuesto",
+   "fuente": "rango entre dos medidas externas: estudio independiente de 2019 (+4 % de ingreso con cookies; Marotta, Abhishek y Acquisti, citado por MediaPost https://www.mediapost.com/publications/article/339634, consultado el 17-nov-2026) y estudio de Google de 2019 (sin cookies, 52 % menos ingreso para el editor, es decir ×2.1 con cookies; mediana por editor 64 % menos, ×2.8; https://services.google.com/fh/files/misc/disabling_third-party_cookies_publisher_revenue.pdf). Mide cookies, no consentimiento, y es de anuncios programáticos de editores grandes: Carta es un caso distinto",
+   "nota": "cuánto más paga una visita con anuncio personalizado que una genérica; el centro 1.5 es juicio. Se mide con una prueba A/B de AdSense en el piloto",
+   "mueve_resultado": true
+  },
+  "parte_comensales_registrados_v2": {
+   "valor": 0.2,
+   "min": 0.05,
+   "max": 0.6,
+   "origen": "supuesto",
+   "fuente": "juicio: una quinta parte de los comensales se registra si la v2 ofrece algo a cambio (perfil, historial); sin fuente",
+   "nota": "ilustra la v2; no entra en ninguna proyección de la v1",
+   "mueve_resultado": true
+  },
   "visitas_app_gratuito": {
    "valor": 2050,
    "min": 800,
@@ -3795,6 +3813,80 @@
    "nota": "fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy",
    "mueve_resultado": true
   },
+  "fila_por_visita": {
+   "valor": {
+    "sola": 0.1123,
+    "con_platillo_por_dia": 0.1766,
+    "bytes_por_visita_de_comensal": 153,
+    "bytes_con_indice_por_miembro": 184,
+    "bytes_sin_restaurante": 113,
+    "bytes_platillo_por_dia_total": 4079616,
+    "actualizando_2_veces": {
+     "antes": 7127040,
+     "despues": 15958016,
+     "hot": 42,
+     "de": 93392
+    },
+    "actualizando_2_veces_fillfactor_70": {
+     "antes": 8650752,
+     "despues": 14147584,
+     "hot": 51307,
+     "de": 93392
+    },
+    "miembros_por_sesion": 2.5942,
+    "visitas_de_comensal_en_la_copia": 46696,
+    "sesiones_en_la_copia": 18000,
+    "restaurantes_en_la_copia": 10
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-17-fila-por-visita-medir.py: PostgreSQL local sobre la copia carta_med_mediano (10 restaurantes, un mes, 18,000 sesiones y 46,696 visitas de comensal) con contadores SINTÉTICOS; la fila es de enteros chicos de ancho fijo, así que su tamaño no depende del valor",
+   "nota": "Calvin (17-nov): una fila por visita de comensal armada en el teléfono, con pares veces/segundos por lugar. `sola` = tamaño de esa tabla entre el de la analítica de hoy; `con_platillo_por_dia` suma un conteo diario por platillo (la fila por visita no dice qué platillo se vio)",
+   "mueve_resultado": false
+  },
+  "tablas_de_una_visita": {
+   "valor": {
+    "filas_por_tabla": {
+     "sesion_grupal": {
+      "filas": 18000,
+      "bytes_por_fila": 264
+     },
+     "miembro_sesion": {
+      "filas": 46696,
+      "bytes_por_fila": 250
+     },
+     "orden_personal": {
+      "filas": 46696,
+      "bytes_por_fila": 229
+     },
+     "item_orden": {
+      "filas": 140088,
+      "bytes_por_fila": 174
+     },
+     "comanda": {
+      "filas": 23409,
+      "bytes_por_fila": 334
+     },
+     "comanda_orden": {
+      "filas": 46696,
+      "bytes_por_fila": 169
+     },
+     "llamada_mesero": {
+      "filas": 5422,
+      "bytes_por_fila": 304
+     }
+    },
+    "evento_bytes_por_fila": 353,
+    "eventos_por_sesion": 10
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-17-fila-por-visita-medir.py (bytes por fila con sus índices, de la copia de medición); eventos por sesión = 10 es SUPUESTO del generador de datos (ver 2026-11-14-recursos-medicion.json)",
+   "nota": "para la tabla paso a paso de tres comensales; evento_bytes_por_fila sale de la base con valores variados",
+   "mueve_resultado": false
+  },
   "bytes_por_evento": {
    "valor": {
     "hoy": 353,
@@ -4567,6 +4659,54 @@
    "origen": "fuente",
    "fuente": "páginas públicas de meniuapp.com leídas con un navegador el 17-nov-2026 (enlaces en `paginas`); «+4,000 restaurantes» y «4.8 en Google» son afirmaciones de la empresa, no verificadas; en los blogs se llama «alternativa gratis» a un producto que sólo ofrece una prueba de 7 días",
    "nota": "inventario de lo que Meniu publica; la columna de Carta sale de CLAUDE.md y del plan (Fase 3 todavía no construida)",
+   "mueve_resultado": false
+  },
+  "platillo": {
+   "valor": {
+    "bytes_en_la_base": 557,
+    "rango_bytes_en_la_base": [
+     557,
+     1775
+    ],
+    "menu_json_bytes_por_platillo": 751,
+    "menu_gzip_bytes_por_platillo_con_textos_repetidos": 51,
+    "ms_armar_menu_base": 2.42,
+    "ms_armar_menu_por_platillo": 0.092,
+    "armado_cada_segundos": 30,
+    "foto_variantes_bytes_fixtures": 13771,
+    "foto_variantes_bytes_real": 100000,
+    "rango_foto_variantes_bytes_real": [
+     30000,
+     250000
+    ],
+    "foto_original_bytes_tipico": 3000000,
+    "rango_foto_original_bytes": [
+     1000000,
+     8000000
+    ],
+    "foto_original_bytes_tope": 15000000,
+    "parte_con_foto": 0.8,
+    "platillos_del_perfil_chico": 30
+   },
+   "min": null,
+   "max": null,
+   "origen": "medido",
+   "fuente": "2026-11-17-platillo-medir.py (PostgreSQL local, textos y fotos del repositorio, sintéticos): bytes marginales por platillo con 10,000 filas (los 1,775 son el valor con pocas filas: páginas mínimas por índice); tamaño del menú y procesador de armarlo con 50 a 150 platillos; fotos de tests/fixtures/fotos (18 JPEG; sintéticas y chicas: el procesado deja ≈ 14 KB por foto, no representan fotos reales). SUPUESTOS (sin dato): foto real 100 KB procesada (30–250), original típico 3 MB (1–8; el tope es 15 MB, documento), 80 % de los platillos con foto (seed: 18 de 22)",
+   "nota": "costo técnico de un platillo; los originales se guardan en el bucket privado de R2 (AC-17.2)",
+   "mueve_resultado": false
+  },
+  "perfil_por_topes": {
+   "valor": {
+    "visitas_por_mesa_mes": 180,
+    "lineas_staff_por_cuenta": 1,
+    "cuentas_perfil_tipico": 3,
+    "mesas_perfil_tipico": 10
+   },
+   "min": null,
+   "max": null,
+   "origen": "supuesto",
+   "fuente": "el simulador: un negocio chico con 10 mesas y 1,800 visitas al mes [documento: planes-y-costo §0] → 180 visitas por mesa; las líneas del comensal por mesa se calibran para que el perfil típico (10 mesas, 3 cuentas) dé las 4.7 líneas por restaurante de la capacidad",
+   "nota": "la carga por restaurante crece con las mesas (visitas y eventos), las cuentas (líneas del personal) y los platillos (disco, fotos y armado del menú); proporcionalidad supuesta",
    "mueve_resultado": false
   },
   "visitas_mes_gratuito": {

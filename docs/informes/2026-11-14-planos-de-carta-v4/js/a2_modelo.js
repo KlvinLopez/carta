@@ -12,14 +12,35 @@ function desdeConfig(c) {
   return {
     precioServicio: c.precios.servicio, precioSalon: c.precios.salon,
     topePlatillos: c.topes.gratuito.platillos, topeMesas: c.topes.gratuito.mesas, topeCuentas: c.topes.gratuito.cuentas,
-    hist: c.topes.servicio.meses_en_linea, ma: c.disco.meses_analitica_en_linea.gratuito, arch: c.disco.archivar,
+    hist: c.topes.servicio.meses_en_linea, ma: c.disco.meses_analitica_en_linea.servicio, arch: c.disco.archivar,
     platSel: "todo", curva: c.curva, palancas: [], cMed: null, cSig: null, cTec: null, sustituto: c.competencia.sustituto, K: c.competencia.k, soporte: SP.soporte_servicio, servidor: -1, mesAds: SP.mes_inicio_anuncios, bolsa: 1000,
   };
 }
 const BASE = desdeConfig(MOD.configInicial()); // la segmentación de Calvin: lo recomendado
 const LS = "carta-v8-escenario";
 let S = {...BASE};
-try { const g = JSON.parse(localStorage.getItem(LS) || "null"); if (g && g.S) S = {...BASE, ...g.S}; } catch (e) { /* sin almacenamiento: queda en memoria */ }
+/* lo que vuelve de localStorage no es de fiar: cada valor se fuerza al tipo del valor base y a su rango; lo inválido se descarta */
+const RANGOS = {topeMesas: [5, 60], topeCuentas: [1, 20], topePlatillos: [50, 150], cMed: [50, 1000], cSig: [0.2, 1.2], servidor: [-1, SERVS.length - 1]};
+function sanea(g) {
+  const o = {};
+  if (!g || typeof g !== "object" || Array.isArray(g)) return o;
+  for (const k of Object.keys(BASE)) {
+    if (!Object.prototype.hasOwnProperty.call(g, k)) continue;
+    const v = g[k], b = BASE[k];
+    if (Array.isArray(b)) { if (Array.isArray(v) && v.length <= 20 && v.every(x => typeof x === "string" && x.length < 80)) o[k] = v; continue; }
+    if (typeof b === "number" || (b === null && (k in RANGOS || typeof v === "number"))) {
+      if (v === null && b === null) { o[k] = null; continue; }
+      const x = typeof v === "number" ? v : NaN; if (!Number.isFinite(x)) continue;
+      const [lo, hi] = RANGOS[k] || [Math.min(0, b ?? 0), Math.max(1, Math.abs(b ?? 0)) * 100];
+      if (x >= lo && x <= hi) o[k] = x;
+      continue;
+    }
+    if (typeof b === "string") { if (typeof v === "string" && v.length < 80) o[k] = v; continue; }
+    if (typeof b === "boolean") { if (typeof v === "boolean") o[k] = v; }
+  }
+  return o;
+}
+try { const g = JSON.parse(localStorage.getItem(LS) || "null"); if (g && g.S) S = {...BASE, ...sanea(g.S)}; } catch (e) { /* sin almacenamiento: queda en memoria */ }
 const oyentes = [];
 function emitir() { try { localStorage.setItem(LS, JSON.stringify({S})); } catch (e) { /* ignorar */ } oyentes.forEach(f => f()); }
 function cambiar(parche) { S = {...S, ...parche}; emitir(); }
@@ -29,7 +50,7 @@ function config(s0) {
   c.precios = {servicio: s0.precioServicio, salon: s0.precioSalon};
   Object.assign(c.topes.gratuito, {platillos: s0.platSel === "sin" ? Infinity : s0.topePlatillos, platillos_cuenta: s0.platSel === "comida" ? "comida" : "todo", mesas: s0.topeMesas, cuentas: s0.topeCuentas});
   c.topes.servicio.meses_en_linea = s0.hist; c.topes.salon.meses_en_linea = s0.hist;
-  c.disco = {meses_analitica_en_linea: {gratuito: s0.ma, servicio: s0.ma, salon: s0.ma}, archivar: s0.arch};
+  c.disco = {meses_analitica_en_linea: {...c.disco.meses_analitica_en_linea, servicio: s0.ma, salon: s0.ma}, archivar: s0.arch}; // la analítica del gratuito es la del modelo (13 meses, 03 §7); el control mueve la de los planes de paga
   c.palancas = s0.palancas || [];
   c.curva = s0.curva; c.competencia = {sustituto: s0.sustituto, k: s0.K};
   return c;
@@ -41,11 +62,13 @@ function sup(s0) {
   s.curvas_pago = {...s.curvas_pago, [s0.curva]: cv};
   return s;
 }
-const evalS = (s0, n = 1000, opc = {}) => MOD.evaluar(config(s0), sup(s0), n, {curva: s0.curva, ...opc});
-const resumenS = (s0, n = 1000) => MOD.resumen(config(s0), sup(s0), n);
+const N_REF = 1000; // restaurantes de referencia de las cifras de cabecera (la misma escala que usa `resumen`)
+const DIAS7 = 7 / 30.4375; // siete días, en meses
+const evalS = (s0, n = N_REF, opc = {}) => MOD.evaluar(config(s0), sup(s0), n, {curva: s0.curva, ...opc});
+const resumenS = (s0, n = N_REF) => MOD.resumen(config(s0), sup(s0), n);
 /* las dos muestras de cartas con sesgos opuestos: «alta» (reparto, cartas cortas; por omisión) y «baja» (sitios propios, cartas largas) */
 const supCota = (s0, cota) => ({...sup(s0), cota_platillos: cota});
-const evalCota = (s0, cota, n = 1000) => MOD.evaluar(config(s0), supCota(s0, cota), n, {curva: s0.curva});
+const evalCota = (s0, cota, n = N_REF) => MOD.evaluar(config(s0), supCota(s0, cota), n, {curva: s0.curva});
 function motor(s0) {
   const c = config(s0), s = sup(s0), ev = MOD.evaluar(c, s, 1000, {curva: s0.curva});
   const cL = Math.max(ev.capacidad.carga_en_gratuitos_tipicos / 1000, 1e-9), dL = Math.max((ev.capacidad.disco_mb - SP.base_vacia_mb) / 1000, 1e-9);

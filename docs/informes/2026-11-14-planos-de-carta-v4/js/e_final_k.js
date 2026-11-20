@@ -72,7 +72,7 @@ DET.k_ingreso = vizK("ingreso", "De cada pago de un cliente de paga, esto es lo 
 }, es => `De ${mxn(es[0].e.pesos_por_cliente_de_paga.precio)} al mes se quedan ${es.map(q => `${p2(q.e.pesos_por_cliente_de_paga.queda)} (${q.nom.toLowerCase()})`).join(", ")} antes de captación y sueldos.`);
 
 /* 4 · el margen de operación: una cascada por escenario, lado a lado en cada paso */
-DET.k_margen = vizK("margen", "Del ingreso al margen de operación con 1,000 restaurantes (antes de captación, sueldos e impuestos).", null, es => {
+DET.k_margen = vizK("margen", `Del ingreso al margen de operación con ${n(N_REF)} restaurantes (antes de captación, sueldos e impuestos).`, null, es => {
   const nombres = ["Suscripciones", "Anuncios", "Servidor", "Almacenamiento", "Soporte", "Comisión", "Margen"];
   const pasos = es.map(q => { const c = q.e.cascada_margen, v = [c.ingreso_suscripcion, c.ingreso_anuncios, -c.costo_servidor, -c.costo_almacenamiento, -c.costo_soporte, -c.costo_comision, c.margen_operacion]; let t = 0; return v.map((x, j) => { if (j === 6) return [0, x, x]; const a = t; t += x; return [a, t, x]; }); });
   const todo = pasos.flat(2), mx = Math.max(...todo, 1), mn = Math.min(0, ...todo), H0 = 60, H1 = 330, Y = v => H1 - (H1 - H0) * (v - mn) / (mx - mn), gw = 150, bw = 40;

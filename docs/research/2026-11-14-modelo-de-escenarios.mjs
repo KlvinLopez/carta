@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-17-r11';
+export const VERSION = '2026-11-20-r15';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -65,11 +65,11 @@ export function configInicial() {
     precios: { servicio: 225, salon: 0 },
     planes: { chef_ejecutivo: { activo: false, nota: 'futura escalación: precio y topes de configTresPlanes25Mesas()' } },
     topes: {
-      gratuito: { platillos: 150, platillos_cuenta: 'todo', mesas: 6, cuentas: 1, lecturas_pdf: 3, meses_en_linea: 1 }, // el tope de 150 cuenta TODO, bebidas incluidas (decisión de Calvin, 17-nov)
+      gratuito: { platillos: 150, platillos_cuenta: 'todo', mesas: 6, cuentas: 1, lecturas_pdf: 3, meses_en_linea: 24 }, // POLÍTICA VIGENTE (03 §7: sesiones y comandas 24 meses; la analítica 13, abajo). El tope de 150 cuenta TODO, bebidas incluidas (decisión de Calvin, 17-nov)
       servicio: { platillos: 300, mesas: 500, cuentas: 50, lecturas_pdf_mes: 10, meses_en_linea: 12 },
       salon: { platillos: 300, mesas: 500, cuentas: 150, lecturas_pdf_mes: 20, meses_en_linea: 12 },
     },
-    disco: { meses_analitica_en_linea: { gratuito: 1, servicio: 1, salon: 1 }, archivar: true },
+    disco: { meses_analitica_en_linea: { gratuito: 13, servicio: 1, salon: 1 }, archivar: true }, // gratuito: 13 meses de analítica (03 §7); la propuesta de 30 días es la palanca `historial_gratuito_30_dias`
     anuncios: { activo: true, tarifa: 'baja' }, // el plan gratuito lleva anuncios; llegan en s.mes_inicio_anuncios
     curva: 'media',
     competencia: { sustituto: 'Meniu Business', k: 1.0 }, // sólo para la sugerencia de precio
@@ -316,7 +316,7 @@ export function mbPorRestaurante(plan, config, s) {
   const mezcla = plan === 'gratuito' ? s.mezcla_gratuito : plan === 'servicio' ? s.mezcla_paga : { grande: 1 };
   const ef = efectosPalancas(config, s);
   const hg = plan === 'gratuito' ? ef.historial_gratuito_meses : null;
-  const mv = Math.min(plan === 'gratuito' ? (hg ?? config.topes[plan].meses_en_linea) : config.topes[plan].meses_en_linea, ef.meses_paga_en_linea ?? Infinity);
+  const mv = Math.min(plan === 'gratuito' ? (hg ?? config.topes[plan].meses_en_linea) : config.topes[plan].meses_en_linea, (plan === 'gratuito' ? ef.meses_gratuito_en_linea_por_archivo : ef.meses_paga_en_linea) ?? Infinity);
   const me = hg ?? config.disco.meses_analitica_en_linea[plan];
   let t = 0;
   for (const [perfil, w] of Object.entries(mezcla)) {
@@ -324,6 +324,23 @@ export function mbPorRestaurante(plan, config, s) {
     t += w * (d.mb_fijo + mv * d.mb_mes_visitas + me * d.mb_mes_eventos * ef.eventos_disco);
   }
   return t;
+}
+
+/** Lo mismo que `mbPorRestaurante`, separado en lo fijo (menú, fotos de la base, catálogo), las sesiones y órdenes (visitas) y la analítica. */
+export function desglosePorRestaurante(plan, config, s) {
+  const mezcla = plan === 'gratuito' ? s.mezcla_gratuito : plan === 'servicio' ? s.mezcla_paga : { grande: 1 };
+  const ef = efectosPalancas(config, s);
+  const hg = plan === 'gratuito' ? ef.historial_gratuito_meses : null;
+  const mv = Math.min(plan === 'gratuito' ? (hg ?? config.topes[plan].meses_en_linea) : config.topes[plan].meses_en_linea, (plan === 'gratuito' ? ef.meses_gratuito_en_linea_por_archivo : ef.meses_paga_en_linea) ?? Infinity);
+  const me = hg ?? config.disco.meses_analitica_en_linea[plan];
+  const r = { fijo: 0, sesiones_y_ordenes: 0, analitica: 0 };
+  for (const [perfil, w] of Object.entries(mezcla)) {
+    const d = s.disco_perfiles[perfil];
+    r.fijo += w * d.mb_fijo;
+    r.sesiones_y_ordenes += w * mv * d.mb_mes_visitas;
+    r.analitica += w * me * d.mb_mes_eventos * ef.eventos_disco;
+  }
+  return r;
 }
 
 /** Cuántos restaurantes de un plan caben en un volumen (GB) sin reserva (como en los informes). */
@@ -339,15 +356,35 @@ export function cabenEnVolumen(mbPorRest, s, volumenGb = 5) {
  */
 export const PALANCAS = {
   historial_gratuito_30_dias: { recurso: 'disco', nombre: 'Historial del plan gratuito a 30 días (visitas y analítica), con archivo descargable', esfuerzo: 'medio', riesgo: 'medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes', regla_que_toca: 'CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga', medido: true },
-  analitica_agregada_por_dia: { recurso: 'disco', nombre: 'Analítica agregada por día en vez de una fila por evento', esfuerzo: 'medio', riesgo: 'medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo', regla_que_toca: 'ninguna dura (el evento no tiene datos personales: regla 10 se cumple mejor); pide ADR porque cambia el contrato de analítica', medido: true },
-  retencion_analitica_7_dias: { recurso: 'disco', nombre: 'Guardar la analítica en bruto sólo 7 días (después, agregada)', esfuerzo: 'chico', riesgo: 'bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial', regla_que_toca: 'CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial)', medido: false },
-  indices_de_evento_minimos: { recurso: 'disco', nombre: 'Dejar sólo dos índices en la analítica (llave y restaurante-fecha)', esfuerzo: 'chico', riesgo: 'medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos', regla_que_toca: 'convención de /migracion (índice en toda FK con cascada); pide ADR', medido: true },
-  tipos_mas_chicos: { recurso: 'disco', nombre: 'Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)', esfuerzo: 'medio', riesgo: 'bajo: migración con reescritura de la tabla', regla_que_toca: 'ninguna', medido: true },
+  analitica_agregada_por_dia: { grupo: 'forma_de_guardar_la_analitica', recurso: 'disco', nombre: 'Analítica agregada por día en vez de una fila por evento', esfuerzo: 'medio', riesgo: 'medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo', regla_que_toca: 'ninguna dura (sólo conteos por día, sin detalle por comensal; la regla 10 no se toca); pide ADR porque cambia el contrato de analítica', medido: true },
+  retencion_analitica_7_dias: { grupo: 'forma_de_guardar_la_analitica', recurso: 'disco', nombre: 'Guardar la analítica en bruto sólo 7 días (después, agregada)', esfuerzo: 'chico', riesgo: 'bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial', regla_que_toca: 'CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial)', medido: false },
+  fila_por_visita_de_comensal: { grupo: 'forma_de_guardar_la_analitica', recurso: 'disco', nombre: 'Una fila de analítica por visita de comensal, armada en el teléfono (veces y segundos por lugar)', esfuerzo: 'medio', riesgo: 'medio: se pierde el platillo visto y el orden de los toques; depende de que el teléfono mande la fila (si se cierra antes, se pierde); actualizar la fila duplica el tamaño de la tabla; sin ip_hash (no hace falta)', regla_que_toca: 'regla 10 con cuidado: la fila es por comensal anónimo (id opaco) y NO lleva los filtros por comensal (revelarían quién usa filtros: indicio indirecto de una restricción alimentaria); los filtros se cuentan por restaurante y día; la huella de red deja de guardarse; pide ADR porque cambia el contrato de analítica', medido: true },
+  fila_por_visita_mas_platillo_por_dia: { grupo: 'forma_de_guardar_la_analitica', recurso: 'disco', nombre: 'Una fila por visita de comensal más un conteo diario por platillo', esfuerzo: 'medio', riesgo: 'medio: dos tablas y dos envíos; conserva el platillo visto (conteo por día) pero no cuál comensal lo vio', regla_que_toca: 'ninguna dura; pide ADR (contrato de analítica)', medido: true },
+  indices_de_evento_minimos: { grupo: 'forma_de_guardar_la_analitica', recurso: 'disco', nombre: 'Dejar sólo dos índices en la analítica (llave y restaurante-fecha)', esfuerzo: 'chico', riesgo: 'medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos', regla_que_toca: 'convención de /migracion (índice en toda FK con cascada); pide ADR', medido: true },
+  tipos_mas_chicos: { grupo: 'forma_de_guardar_la_analitica', recurso: 'disco', nombre: 'Tipos más chicos en la analítica (tipo y navegador como número, huella de red de 8 bytes)', esfuerzo: 'medio', riesgo: 'bajo: migración con reescritura de la tabla', regla_que_toca: 'ninguna', medido: true },
   purga_claves_idempotencia: { recurso: 'disco', nombre: 'Purgar las claves de idempotencia a las 24 horas', esfuerzo: 'chico', riesgo: 'bajo si la ventana de reintento del teléfono es menor de 24 h', regla_que_toca: 'ninguna', medido: true },
-  archivar_sesiones_cerradas: { recurso: 'disco', nombre: 'Archivar en R2 las sesiones cerradas con más de 3 meses y quitarlas de la base', esfuerzo: 'grande', riesgo: 'alto: se vuelve a leer el historial del archivo; un error pierde datos', regla_que_toca: 'regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes', medido: false },
+  archivar_sesiones_de_paga: { grupo: 'alcance_del_archivo', recurso: 'disco', nombre: 'Archivar en R2 las sesiones cerradas de los restaurantes de paga con más de 3 meses', esfuerzo: 'grande', riesgo: 'alto: se vuelve a leer el historial del archivo; un error pierde datos', regla_que_toca: 'regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes; cambia 03 §7 (13 y 24 meses en línea) sólo para los planes de paga', medido: false },
+  archivar_sesiones_de_todos_los_planes: { grupo: 'alcance_del_archivo', recurso: 'disco', nombre: 'Archivar en R2 las sesiones cerradas de TODOS los planes con más de 3 meses', esfuerzo: 'grande', riesgo: 'alto: igual que archivar sólo las de paga, y además recorta el historial en línea del gratuito a 3 meses', regla_que_toca: 'regla 9 y regla 8: PIDE ADR antes; cambia 03 §7 (13 y 24 meses en línea) para todos los planes', medido: false },
   estado_en_memoria_60s: { recurso: 'procesador', nombre: 'Estado de la mesa en memoria 60 s, invalidado por aviso de la base (sólo con el sondeo)', esfuerzo: 'medio', riesgo: 'bajo-medio: cambia ADR-004 (vida máxima 2 s). EXTRAPOLA una medición por comensal (0.88 → 0.47 ms) a todo el procesador, y DEJA DE IMPORTAR cuando lleguen los avisos de la Fase 3', regla_que_toca: 'ninguna; cambia un ADR', medido: true },
   cerrar_lineas_ociosas: { recurso: 'lineas', nombre: 'Cerrar la línea abierta a los 2 minutos sin cambios y reabrirla al volver', esfuerzo: 'medio', riesgo: 'bajo: el teléfono ya vuelve al sondeo si la línea falla', regla_que_toca: 'ninguna', medido: false },
   pool_acotado: { recurso: 'conexiones_bd', nombre: 'Acotar el pool a 5 + 5 conexiones por proceso (con 8 procesos: 80 de las ≈ 100 que da la base)', esfuerzo: 'chico', riesgo: 'bajo; hay que verificar `SHOW max_connections` en Railway', regla_que_toca: 'ninguna', medido: false },
+};
+
+/**
+ * Palancas que son ALTERNATIVAS y no se suman: son formas de guardar la analítica; el modelo aplica una sola (la primera de esta lista que esté
+ * puesta) y el tablero no las apila. Elegir otra de las del grupo reemplaza a la anterior.
+ */
+export const GRUPOS_EXCLUYENTES = {
+  alcance_del_archivo: {
+    nombre: 'Alcance del archivo de sesiones (se elige uno; no se suman)',
+    prioridad: ['archivar_sesiones_de_todos_los_planes', 'archivar_sesiones_de_paga'],
+    nota: 'Archivar sólo las sesiones de paga y archivar las de todos los planes son dos alcances de la misma palanca: el segundo incluye al primero. Archivar no es borrar: lo viejo queda en R2 y se vuelve a leer.',
+  },
+  forma_de_guardar_la_analitica: {
+    nombre: 'Forma de guardar la analítica (se elige una; no se suman)',
+    prioridad: ['analitica_agregada_por_dia', 'fila_por_visita_mas_platillo_por_dia', 'fila_por_visita_de_comensal', 'indices_de_evento_minimos + tipos_mas_chicos', 'retencion_analitica_7_dias'],
+    nota: 'Contar por día, la fila por visita y la fila por visita más platillo reemplazan la fila por evento; los índices mínimos, los tipos chicos y la retención a 7 días sólo mejoran la fila por evento, así que no suman con ninguna de las tres.',
+  },
 };
 
 /** Las palancas en llano para pintarlas: `accion` (qué hay que hacer, hasta 6 palabras, en infinitivo) y `que_es` (una frase). */
@@ -355,10 +392,13 @@ export const PALANCAS_EN_LLANO = {
   historial_gratuito_30_dias: { accion: 'Guardar 30 días en el gratuito', que_es: 'El plan gratuito conserva un mes de visitas y de analítica; lo anterior se descarga o se borra.' },
   analitica_agregada_por_dia: { accion: 'Contar por día, no por evento', que_es: 'En vez de una fila por cada toque, la base guarda un conteo por día, tipo y platillo.' },
   retencion_analitica_7_dias: { accion: 'Borrar analítica cruda a 7 días', que_es: 'Los eventos sueltos se conservan una semana y después sólo queda el conteo por día.' },
+  fila_por_visita_de_comensal: { accion: 'Guardar una fila por visita', que_es: 'El teléfono arma una sola fila con cuántas veces entró y cuánto tiempo estuvo en el menú, el platillo, y la búsqueda (los filtros no van por comensal: se cuentan por restaurante y día), y la manda al terminar.' },
+  fila_por_visita_mas_platillo_por_dia: { accion: 'Guardar fila por visita y platillo', que_es: 'Lo mismo, más un conteo diario de cuántas veces se vio cada platillo, para no perder qué platillos gustan.' },
   indices_de_evento_minimos: { accion: 'Quitar índices que sobran', que_es: 'La tabla de analítica deja sólo los dos índices que de verdad se usan.' },
   tipos_mas_chicos: { accion: 'Usar tipos de dato más chicos', que_es: 'Los campos de la analítica pasan de texto largo a números y huellas cortas.' },
   purga_claves_idempotencia: { accion: 'Purgar claves de reintento diario', que_es: 'Las claves que evitan duplicar una orden al reintentar se borran al día siguiente.' },
-  archivar_sesiones_cerradas: { accion: 'Archivar sesiones viejas en R2', que_es: 'Las sesiones cerradas de hace más de tres meses se guardan en un archivo aparte y salen de la base.' },
+  archivar_sesiones_de_paga: { accion: 'Archivar sesiones de paga en R2', que_es: 'Las sesiones cerradas de los restaurantes de paga con más de tres meses salen de la base y se guardan en un archivo comprimido en R2 (no se borran: se vuelven a leer de ahí).' },
+  archivar_sesiones_de_todos_los_planes: { accion: 'Archivar sesiones de todos en R2', que_es: 'Lo mismo para todos los planes, gratuito incluido: la base sólo guarda tres meses de sesiones de cada restaurante y lo viejo queda en R2.' },
   estado_en_memoria_60s: { accion: 'Guardar estado en memoria 60 s', que_es: 'El servidor recuerda el estado de cada mesa un minuto y sólo lo recalcula cuando la base avisa.' },
   cerrar_lineas_ociosas: { accion: 'Cerrar líneas sin movimiento', que_es: 'La conexión abierta con el teléfono se cierra a los 2 minutos sin cambios y se reabre sola.' },
   pool_acotado: { accion: 'Acotar conexiones a la base', que_es: 'Cada proceso usa menos conexiones de la base para no pasar su tope con más procesos.' },
@@ -386,6 +426,8 @@ export function efectosPalancas(config, s) {
   const f = s.factores_disco_eventos;
   let eventos = 1;
   if (p.has('analitica_agregada_por_dia')) eventos = f.agregada_por_dia_cota_alta;
+  else if (p.has('fila_por_visita_mas_platillo_por_dia')) eventos = s.fila_por_visita.con_platillo_por_dia;
+  else if (p.has('fila_por_visita_de_comensal')) eventos = s.fila_por_visita.sola;
   else {
     if (p.has('indices_de_evento_minimos') && p.has('tipos_mas_chicos')) eventos = f.ambos;
     else if (p.has('indices_de_evento_minimos')) eventos = f.un_indice;
@@ -394,7 +436,8 @@ export function efectosPalancas(config, s) {
   }
   return {
     eventos_disco: eventos,
-    meses_paga_en_linea: p.has('archivar_sesiones_cerradas') ? 3 : null,
+    meses_paga_en_linea: p.has('archivar_sesiones_de_paga') || p.has('archivar_sesiones_de_todos_los_planes') ? 3 : null,
+    meses_gratuito_en_linea_por_archivo: p.has('archivar_sesiones_de_todos_los_planes') ? 3 : null,
     historial_gratuito_meses: p.has('historial_gratuito_30_dias') ? 1 : null,
     cap_cpu_sondeo: p.has('estado_en_memoria_60s') ? s.factor_estado_memoria_60s : 1,
     lineas_factor: p.has('cerrar_lineas_ociosas') ? s.factor_lineas_ociosas : 1,
@@ -477,8 +520,9 @@ export function evaluar(config, s, n, opc = {}) {
   const gratis = n - pagS - pagL;
 
   // carga y disco
-  const carga = gratis + s.peso_servicio_cpu * pagS + s.peso_salon_cpu * pagL;
-  const mbG = mbPorRestaurante('gratuito', config, s);
+  const cg = cargaGratuita(config, s, opc.carga);
+  const carga = gratis * cg.razon + s.peso_servicio_cpu * pagS + s.peso_salon_cpu * pagL;
+  const mbG = cg.mb;
   const mbS = mbPorRestaurante('servicio', config, s);
   const mbL = mbPorRestaurante('salon', config, s);
   const discoMb = s.base_vacia_mb + gratis * mbG + pagS * mbS + pagL * mbL;
@@ -488,7 +532,7 @@ export function evaluar(config, s, n, opc = {}) {
   const fx = s.fx;
   const servidor = srv.costo_usd * fx + (s.dominio_usd_anio / 12) * fx;
   const almacenamiento = (discoMb / 1000) * s.volumen_usd_gb_mes * fx;
-  const r2gb = gratis * s.r2_gb_gratuito + pagS * s.r2_gb_servicio + pagL * s.r2_gb_salon;
+  const r2gb = gratis * cg.gb_fotos + pagS * s.r2_gb_servicio + pagL * s.r2_gb_salon;
   const objetos = Math.max(0, r2gb - s.r2_gratis_gb) * s.r2_usd_gb_mes * fx;
   const soporte = pagS * s.soporte_servicio + pagL * s.soporte_salon + gratis * s.soporte_gratuito;
   const comision = pagS * comisionTarjeta(ps, s) + pagL * comisionTarjeta(pl, s);
@@ -498,7 +542,7 @@ export function evaluar(config, s, n, opc = {}) {
   const suscripcion = pagS * ps + pagL * pl;
   const tarifa = sinAds ? 0 : s.anuncio_pesos_por_mil[anuncios.tarifa];
   const parteAds = opc.parteVisitasConAnuncio ?? s.parte_visitas_con_anuncio;
-  const ads = (gratis * s.visitas_app_gratuito * parteAds * tarifa) / 1000;
+  const ads = (gratis * cg.visitas_app * parteAds * tarifa) / 1000;
   const ingresos = suscripcion + ads;
   const margen = ingresos - costos;
 
@@ -510,8 +554,8 @@ export function evaluar(config, s, n, opc = {}) {
   // por cliente
   const infra = servidor + almacenamiento + objetos;
   const costoPorCarga = carga > 0 ? infra / carga : 0;
-  const costoGratuito = costoPorCarga + s.soporte_gratuito;
-  const adsGratuito = (s.visitas_app_gratuito * parteAds * tarifa) / 1000;
+  const costoGratuito = costoPorCarga * cg.razon + s.soporte_gratuito;
+  const adsGratuito = (cg.visitas_app * parteAds * tarifa) / 1000;
   const costoServicio = costoPorCarga * s.peso_servicio_cpu + s.soporte_servicio + comisionTarjeta(ps, s);
   const unidadServicio = ps - costoServicio;
   const netoGratuito = costoGratuito - adsGratuito;
@@ -525,14 +569,14 @@ export function evaluar(config, s, n, opc = {}) {
   const mbTodos = s.base_vacia_mb + n * mbG;
   const srv0 = escalonPara(n, mbTodos, s);
   const costo0 = srv0.costo_usd * fx + (s.dominio_usd_anio / 12) * fx + (mbTodos / 1000) * s.volumen_usd_gb_mes * fx + n * s.soporte_gratuito;
-  const ads0 = (n * s.visitas_app_gratuito * parteAds * tarifa) / 1000;
+  const ads0 = (n * cg.visitas_app * parteAds * tarifa) / 1000;
   const equilibrio = unidadServicio > 0 ? Math.max(0, (costo0 - ads0) / unidadServicio) : null;
-  const comensalesMes = (gratis * s.comensales_dia_gratuito + pagantes * s.comensales_dia_servicio) * 30;
+  const comensalesMes = (gratis * cg.comensales_dia + pagantes * s.comensales_dia_servicio) * 30;
 
   return {
     n, rebasan_topes: rebasa, curva, valores_esperados: !opc.redondear, anuncios_incluidos: !sinAds,
     clientes: { gratuito: gratis, servicio: pagS, salon: pagL, de_paga: pagantes },
-    capacidad: { carga_en_gratuitos_tipicos: carga, disco_mb: discoMb, ...srv, mb_por_restaurante: { gratuito: mbG, servicio: mbS, salon: mbL } },
+    capacidad: { carga_del_gratuito: { definicion: cg.carga, razon_de_visitas: cg.razon, visitas_mes: cg.visitas_mes }, carga_en_gratuitos_tipicos: carga, disco_mb: discoMb, ...srv, mb_por_restaurante: { gratuito: mbG, servicio: mbS, salon: mbL } },
     extrapolacion_sin_medir: srv.extrapolacion_sin_medir,
     comensales_mes: comensalesMes,
     ingresos: { suscripcion, anuncios: ads, total: ingresos },
@@ -613,6 +657,13 @@ export function nSePagaSolo(config, s, caso = 'baja', tope = 3000) {
   const c = CASOS_ANUNCIOS(s)[caso];
   for (let n = 1; n <= tope; n++) if (evaluarTodosGratuitos(config, s, n, c).margen_operacion >= 0) return n;
   return null;
+}
+
+/** Cuántos restaurantes gratuitos (con la carga de `config`) caben en un escalón: el menor entre su procesador, su disco y las conexiones. */
+export function cabenGratuitosEnEscalon(config, s, id) {
+  const e = s.escalones.find((x) => x.id === id);
+  const cg = cargaGratuita(config, s);
+  return Math.min(Math.floor(e.cap_cpu / cg.razon), s.cap_conexiones, Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / cg.mb));
 }
 
 /** Con `bolsa` pesos al mes de la bolsa de Calvin (sin anuncios): hasta cuántos restaurantes gratuitos y comensales se cargan (zona medida). */
@@ -713,7 +764,7 @@ export function rangoBolsa(config, s, bolsa) {
   const [smin, smax] = s.rangos.soporte_gratuito;
   const por_soporte = [smin, 1.0, s.soporte_gratuito, smax].filter((x, i, a) => a.indexOf(x) === i).sort((a, b) => a - b).map((x) => { const c = capacidadConBolsa(config, { ...s, soporte_gratuito: x }, bolsa); return { soporte_gratuito: x, restaurantes: c.restaurantes, comensales_mes: c.comensales_mes }; });
   const rs = por_soporte.map((x) => x.restaurantes);
-  return { bolsa, centro: { restaurantes: centro.restaurantes, comensales_mes: centro.comensales_mes, escalon: centro.escalon }, minimo: Math.min(...rs), maximo: Math.max(...rs), por_soporte, vale_con_canal_de_eventos: true, caben_con_el_sondeo_de_hoy: s.escalones.find((e) => e.id === 'hobby_sondeo').cap_cpu, no_modelado: NO_MODELADO };
+  return { bolsa, centro: { restaurantes: centro.restaurantes, comensales_mes: centro.comensales_mes, escalon: centro.escalon }, minimo: Math.min(...rs), maximo: Math.max(...rs), por_soporte, vale_con_canal_de_eventos: true, caben_con_el_sondeo_de_hoy: cabenGratuitosEnEscalon(config, s, 'hobby_sondeo'), no_modelado: NO_MODELADO };
 }
 
 // ---------------------------------------------------------------- el precio de Master Chef: qué decide y qué no
@@ -769,6 +820,11 @@ export function escenarios(config, s, ns = [100, 1000, 10000]) {
 }
 
 // ---------------------------------------------------------------- resumen: recomendado, peor y mejor en cada cifra
+/** `config` con la PROPUESTA de historial del gratuito a 30 días (la palanca `historial_gratuito_30_dias`); la base del modelo es la política vigente (03 §7). */
+export function conPropuesta30Dias(config) {
+  return { ...config, palancas: [...new Set([...(config.palancas ?? []), 'historial_gratuito_30_dias'])] };
+}
+
 /**
  * Para CADA cifra del informe: el valor recomendado, el peor y el mejor, con la definición de cada caso en una línea.
  * Casos: recomendado = curva media, anuncios (tarifa baja) ya en marcha; peor = curva pesimista, todavía sin anuncios (temporal);
@@ -779,15 +835,17 @@ export function resumen(config, s, n = 1000) {
   const peor = evaluarEscenario('peor', config, s, n);
   const mejor = evaluarEscenario('mejor', config, s, n);
   const piso = evaluarEscenario('piso_de_verdad', config, s, n);
-  const cap = (id, cfg = config) => { const e = s.escalones.find((x) => x.id === id); const mb = mbPorRestaurante('gratuito', cfg, s); return Math.min(e.cap_cpu, s.cap_conexiones, Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / mb)); };
+  // la misma cuenta que `recursos`: el menor de los recursos con la carga por topes (una sola fuente de la capacidad)
+  const cap = (id, cfg = config) => { const canal = id === 'hobby_sondeo' ? 'sondeo' : 'eventos'; const tt = topesDeTamano(cfg, s, id, canal, cfg.carga ?? 'topes'); return Math.min(...RECURSOS.filter((r) => r !== 'fotos').map((r) => tt[r]).filter((x) => typeof x === 'number')); };
   const fila = (clave, nombre, unidad, r, p, m, nota, pv) => ({ clave, nombre, unidad, recomendado: r, peor: p, mejor: m, piso_de_verdad: pv, nota });
   return {
     n,
     definiciones: { ...Object.fromEntries(Object.entries(ESCENARIOS).map(([k, v]) => [k, v.definicion])), nota: 'el techo teórico «todos pagan» va aparte, en `todos_pagan`' },
     cifras: [
       fila('clientes_potenciales', 'Clientes potenciales', 'negocios', s.sam_clientes_potenciales, s.sam_clientes_potenciales, s.sam_clientes_potenciales, 'dato medido (DENUE 05/2026): no varía con los escenarios', s.sam_clientes_potenciales),
-      fila('restaurantes_que_caben', 'Restaurantes gratuitos que caben (con historial del gratuito de ' + (efectosPalancas(config, s).historial_gratuito_meses ?? config.topes.gratuito.meses_en_linea) + ' mes: PROPUESTA, hoy nada purga)', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'con el historial del gratuito que dice `config` (30 días es una propuesta que contradice 03 §7); recomendado = Hobby con eventos (por disco); peor = Hobby con sondeo (por procesador); mejor = Pro de 8 procesos (por líneas abiertas, tope de diseño supuesto)', cap('hobby_sondeo')),
-      fila('restaurantes_que_caben_sin_purga', 'Restaurantes gratuitos que caben SIN purga (12 meses de historial acumulado)', 'restaurantes', cap('hobby_eventos', conHistorialGratuito(config, s, 12)), cap('hobby_sondeo', conHistorialGratuito(config, s, 12)), cap('pro_8', conHistorialGratuito(config, s, 12)), 'lo que hay hoy: nada limpia; el disco manda desde el segundo mes de operación', cap('hobby_sondeo', conHistorialGratuito(config, s, 12))),
+      fila('restaurantes_que_caben', 'Restaurantes registrados que caben, con la mezcla de gratuitos y de paga, con la política vigente de historial (03 §7: el gratuito guarda ' + (config.topes.gratuito.meses_en_linea) + ' meses de sesiones y ' + config.disco.meses_analitica_en_linea.gratuito + ' de analítica)', 'restaurantes', cap('hobby_eventos'), cap('hobby_sondeo'), cap('pro_8'), 'política vigente (03 §7); recomendado = Hobby con avisos; peor = Hobby con sondeo; mejor = Pro de 8 procesos; cada uno es el menor de los recursos con la carga por topes (la misma cuenta de `recursos`)', cap('hobby_sondeo')),
+      fila('restaurantes_que_caben_propuesta_30_dias', 'Restaurantes registrados que caben con la PROPUESTA de historial del gratuito a 30 días (decisión pendiente de Calvin; contradice 03 §7)', 'restaurantes', cap('hobby_eventos', conPropuesta30Dias(config)), cap('hobby_sondeo', conPropuesta30Dias(config)), cap('pro_8', conPropuesta30Dias(config)), 'si Calvin aprueba recortar el historial del gratuito a 30 días (con archivo descargable)', cap('hobby_sondeo', conPropuesta30Dias(config))),
+      fila('restaurantes_que_caben_sin_purga', 'Restaurantes registrados que caben SIN purga (12 meses de historial acumulado), con la mezcla de gratuitos y de paga', 'restaurantes', cap('hobby_eventos', conHistorialGratuito(config, s, 12)), cap('hobby_sondeo', conHistorialGratuito(config, s, 12)), cap('pro_8', conHistorialGratuito(config, s, 12)), 'lo que hay hoy: nada limpia; el disco manda desde el segundo mes de operación', cap('hobby_sondeo', conHistorialGratuito(config, s, 12))),
       fila('gratuitos_por_cliente_de_paga', 'Gratuitos que sostiene cada cliente de paga (sin anuncios)', 'restaurantes', rec.gratuitos_que_sostiene_un_pagante_sin_anuncios, peor.gratuitos_que_sostiene_un_pagante_sin_anuncios, mejor.gratuitos_que_sostiene_un_pagante_sin_anuncios, 'con anuncios en marcha cada gratuito se paga solo si deja más de lo que cuesta (`se_paga_solo`)', piso.gratuitos_que_sostiene_un_pagante_sin_anuncios),
       fila('ingreso_por_cliente_gratuito', 'Ingreso por cliente gratuito', 'pesos al mes', rec.por_cliente.ingreso_gratuito, peor.por_cliente.ingreso_gratuito, mejor.por_cliente.ingreso_gratuito, 'sólo anuncios', piso.por_cliente.ingreso_gratuito),
       fila('ingreso_por_cliente_de_paga', 'Ingreso por cliente de paga', 'pesos al mes', rec.por_cliente.ingreso_por_pagante, peor.por_cliente.ingreso_por_pagante, mejor.por_cliente.ingreso_por_pagante, 'promedio entre Master Chef y Chef Ejecutivo según cuántos hay de cada uno', piso.por_cliente.ingreso_por_pagante),
@@ -806,7 +864,73 @@ const PROCESOS = { hobby_sondeo: 2, hobby_eventos: 2, pro_2: 2, pro_4: 4, pro_8:
 const NOMBRE_TAMANO = { hobby_sondeo: 'Hoy: Hobby, 2 procesos, el teléfono pregunta cada 3 s', hobby_eventos: 'Hobby, 2 procesos, con avisos en vez de preguntas (Fase 3)', pro_2: 'Pro, 2 procesos, con avisos', pro_4: 'Pro, 4 procesos, con avisos', pro_8: 'Pro, 8 procesos, con avisos' };
 
 /** Cuántos restaurantes (gratuitos típicos) aguanta cada recurso en un tamaño de servidor; null = no aplica. */
-export function topesDeTamano(config, s, id, canal = null) {
+/**
+ * Lo que carga UN restaurante gratuito, la única definición del modelo (la usan los costos de `evaluar`, la bolsa, las proyecciones y
+ * `recursos`). `carga` = 'topes' (por omisión; sale de `config.topes`: visitas = mesas × `visitas_por_mesa_mes`, platillos del tope) o
+ * 'tipica' (el gratuito típico de las rondas anteriores, SÓLO como comparación rotulada). `razon` = visitas ÷ visitas del gratuito típico:
+ * escala el procesador, las visitas con la app, los comensales y el costo por carga.
+ */
+export function cargaGratuita(config, s, carga) {
+  const c = carga ?? config.carga ?? 'topes';
+  if (c === 'tipica') return { carga: 'tipica', razon: 1, visitas_mes: s.visitas_mes_gratuito, mb: mbPorRestaurante('gratuito', config, s), gb_fotos: s.r2_gb_gratuito, visitas_app: s.visitas_app_gratuito, comensales_dia: s.comensales_dia_gratuito };
+  const ef = efectosPalancas(config, s);
+  const g = config.topes.gratuito;
+  const pt = s.perfil_por_topes;
+  const pl = s.platillo;
+  const visitas = g.mesas * pt.visitas_por_mesa_mes;
+  const ratio = visitas / s.visitas_mes_gratuito;
+  const d = s.disco_perfiles.chico;
+  const hg = ef.historial_gratuito_meses;
+  const mv = Math.min(hg ?? g.meses_en_linea, ef.meses_gratuito_en_linea_por_archivo ?? Infinity);
+  const me = hg ?? config.disco.meses_analitica_en_linea.gratuito;
+  const bp = pl.bytes_en_la_base / 1e6;
+  const mbFijo = d.mb_fijo - pl.platillos_del_perfil_chico * bp + (g.platillos ?? 0) * bp;
+  const mb = mbFijo + ratio * (mv * d.mb_mes_visitas + me * d.mb_mes_eventos * ef.eventos_disco);
+  const gbFoto = (platillos) => (platillos * pl.parte_con_foto * (pl.foto_original_bytes_tipico + pl.foto_variantes_bytes_real)) / 1e9;
+  return {
+    carga: 'topes', razon: ratio, visitas_mes: visitas, mb, gb_fotos: gbFoto(g.platillos ?? 0), visitas_app: s.visitas_app_gratuito * ratio, comensales_dia: s.comensales_dia_gratuito * ratio,
+    desglose: { fijo: mbFijo, sesiones_y_ordenes: ratio * mv * d.mb_mes_visitas, analitica: ratio * me * d.mb_mes_eventos * ef.eventos_disco }, gbFoto,
+  };
+}
+
+/**
+ * La carga de un restaurante registrado, según `carga`:
+ *  - 'tipica': el «gratuito típico» de las rondas anteriores (1,800 visitas al mes, la mezcla del simulador y 4.7 líneas abiertas);
+ *  - 'topes' (por omisión): sale de `config.topes`. Visitas al mes = mesas × 180 [supuesto del simulador: 1,800 visitas con 10 mesas];
+ *    el procesador crece en proporción a las visitas (SUPUESTO; el costo por petición es medido); líneas del personal = cuentas, y del
+ *    comensal por mesa (calibradas para que 10 mesas y 3 cuentas den las 4.7 líneas típicas: supuesto); disco = el perfil chico escalado
+ *    por las visitas + los platillos del tope × `bytes_en_la_base` (MEDIDO); y la mezcla de gratuitos y de paga sale de lo que rebasa los topes.
+ */
+export function perfilDeCarga(config, s, carga = 'topes') {
+  const ef = efectosPalancas(config, s);
+  const lineasTipicas = (s.lineas_max_railway / s.cap_conexiones) * ef.lineas_factor;
+  if (carga === 'tipica') return { carga, visitas_mes: s.visitas_mes_gratuito, carga_cpu: 1, mb_por_restaurante: mbPorRestaurante('gratuito', config, s), lineas_por_restaurante: lineasTipicas, parte_de_paga: 0, platillos: null, gb_fotos_por_restaurante: null };
+  const g = config.topes.gratuito;
+  const pt = s.perfil_por_topes;
+  const cg = cargaGratuita(config, s, 'topes');
+  const { visitas_mes: visitas, razon: ratio, mb: mbG, gbFoto } = cg;
+  const mbFijo = cg.desglose.fijo;
+  const lineasComensalPorMesa = (lineasTipicas / ef.lineas_factor - pt.cuentas_perfil_tipico * pt.lineas_staff_por_cuenta) / pt.mesas_perfil_tipico;
+  const lineasG = (g.cuentas * pt.lineas_staff_por_cuenta + g.mesas * lineasComensalPorMesa) * ef.lineas_factor;
+  const ev = evaluar(config, s, 1000, { curva: config.curva ?? 'media' });
+  const q = config.parte_de_paga_fija ?? ev.clientes.de_paga / 1000; // `parte_de_paga_fija` fija la mezcla para aislar un efecto (costoDePlatillo)
+  const mbP = mbPorRestaurante('servicio', config, s);
+  const gbG = gbFoto(g.platillos ?? 0);
+  const gbP = gbFoto(config.topes.servicio.platillos ?? 0);
+  return {
+    carga, visitas_mes: visitas, razon_de_visitas: ratio, parte_de_paga: q, platillos: g.platillos,
+    carga_cpu: (1 - q) * ratio + q * s.peso_servicio_cpu,
+    mb_por_restaurante: (1 - q) * mbG + q * mbP, mb_gratuito: mbG, mb_paga: mbP,
+    desglose_gratuito: cg.desglose,
+    desglose_paga: desglosePorRestaurante('servicio', config, s),
+    lineas_por_restaurante: (1 - q) * lineasG + q * lineasTipicas * s.peso_servicio_cpu,
+    lineas_gratuito: lineasG, lineas_comensal_por_mesa: lineasComensalPorMesa,
+    gb_fotos_por_restaurante: (1 - q) * gbG + q * gbP, gb_fotos_gratuito: gbG,
+  };
+}
+
+/** Cuántos restaurantes REGISTRADOS (con la carga que dicen los topes, o el gratuito típico) aguanta cada recurso en un tamaño de servidor; null = no aplica. */
+export function topesDeTamano(config, s, id, canal = null, carga = 'topes') {
   canal = canal ?? (id === 'hobby_sondeo' ? 'sondeo' : 'eventos');
   if (canal === 'eventos' && id === 'hobby_sondeo') id = 'hobby_eventos';
   const e = s.escalones.find((x) => x.id === id);
@@ -815,20 +939,27 @@ export function topesDeTamano(config, s, id, canal = null) {
   const ef = efectosPalancas(config, s);
   const sondeo = canal === 'sondeo';
   const procesos = PROCESOS[id];
-  const mb = mbPorRestaurante('gratuito', config, s);
-  const lineasPorRest = (s.lineas_max_railway / s.cap_conexiones) * ef.lineas_factor;
+  const pf = perfilDeCarga(config, s, carga);
+  const mb = pf.mb_por_restaurante;
+  const lineasPorRest = pf.lineas_por_restaurante;
   const razonSondeo = eSondeo.cap_cpu / eEventos.cap_cpu; // lo que rinde el mismo servidor preguntando cada 3 s frente a avisos (medido en local, ±2×)
-  const procesador = Math.floor(sondeo ? (id === 'hobby_eventos' || id === 'hobby_sondeo' ? eSondeo.cap_cpu : e.cap_cpu * razonSondeo) * ef.cap_cpu_sondeo : e.cap_cpu);
+  const capCpu = sondeo ? (id === 'hobby_eventos' || id === 'hobby_sondeo' ? eSondeo.cap_cpu : e.cap_cpu * razonSondeo) * ef.cap_cpu_sondeo : e.cap_cpu;
+  // armar el menú (caché de 30 s) cuesta ms por platillo: en unidades de carga (un núcleo al 70 % rinde `capCpu` unidades por `procesos` núcleos)
+  const msMenu = s.platillo.ms_armar_menu_base + s.platillo.ms_armar_menu_por_platillo * (config.topes.gratuito.platillos ?? 0);
+  const menuUnidades = carga === 'tipica' ? 0 : ((msMenu / 1000 / s.platillo.armado_cada_segundos) * capCpu) / (procesos * (s.banderas.cpu.accion / 100));
+  const cargaCpuTotal = pf.carga_cpu + menuUnidades;
+  const procesador = Math.floor(capCpu / cargaCpuTotal);
   const disco = Math.floor((e.volumen_gb * 1000 * (1 - s.reserva_disco) - s.base_vacia_mb) / mb);
   const lineas = sondeo ? null : Math.floor(s.lineas_max_railway / lineasPorRest);
-  const rpsPorRest = (s.peticiones_por_segundo_tope_sondeo / eSondeo.cap_cpu) * (sondeo ? 1 / ef.cap_cpu_sondeo : eSondeo.cap_cpu / eEventos.cap_cpu);
+  const rpsPorRest = cargaCpuTotal * (s.peticiones_por_segundo_tope_sondeo / eSondeo.cap_cpu) * (sondeo ? 1 / ef.cap_cpu_sondeo : eSondeo.cap_cpu / eEventos.cap_cpu);
   const conexionesPorRest = (rpsPorRest * s.ms_conexion_por_peticion) / 1000;
   const piscina = procesos * ef.pool_por_worker;
   const usables = Math.min(piscina, s.pg_max_conexiones - 10);
   const conexiones_bd = Math.floor(usables / conexionesPorRest);
   const memPorRest = s.mb_por_restaurante_sondeo + (sondeo ? 0 : lineasPorRest * s.mb_por_linea_abierta);
   const memoria = Math.floor((s.ram_max_servicio_mb - procesos * s.rss_worker_mb) / memPorRest);
-  return { id, procesos, mb_por_restaurante: mb, lineas_por_restaurante: sondeo ? 0 : lineasPorRest, procesador, memoria, disco, conexiones_bd, lineas, fotos: null, conexiones_por_restaurante: conexionesPorRest, pool_total: piscina, supera_postgres: piscina > s.pg_max_conexiones, memoria_mb_a_tope: procesos * s.rss_worker_mb + Math.min(procesador, disco) * memPorRest };
+  const fotos_gratis = pf.gb_fotos_por_restaurante ? Math.floor(s.r2_gratis_gb / pf.gb_fotos_por_restaurante) : null; // R2 no es un tope: pasarse cuesta centavos
+  return { id, procesos, carga, carga_cpu: pf.carga_cpu, carga_cpu_total: cargaCpuTotal, menu_en_unidades_de_carga: menuUnidades, parte_de_paga: pf.parte_de_paga, mb_por_restaurante: mb, lineas_por_restaurante: sondeo ? 0 : lineasPorRest, procesador, memoria, disco, conexiones_bd, lineas, fotos: null, fotos_gratis_en_r2: fotos_gratis, gb_fotos_por_restaurante: pf.gb_fotos_por_restaurante, conexiones_por_restaurante: conexionesPorRest, pool_total: piscina, supera_postgres: piscina > s.pg_max_conexiones, memoria_mb_a_tope: procesos * s.rss_worker_mb + Math.min(procesador, disco) * memPorRest };
 }
 
 /**
@@ -856,32 +987,33 @@ export const minimoDe = (t) => { const c = RECURSOS.filter((r) => t[r] != null).
  * `config.palancas` ya están aplicadas a lo que devuelve; cada palanca trae antes → después contra `config` sin ella.
  */
 export function recursos(config, s, estado = {}) {
+  const carga = estado.carga ?? config.carga ?? 'topes'; // 'topes': la carga sale de config.topes; 'tipica': el gratuito típico de 1,800 visitas
   const idHoy = estado.tamano ?? 'hobby_sondeo';
   const idEv = estado.tamano_eventos ?? 'hobby_eventos';
   // «hoy» = lo que hay: NADA purga (planes-y-costo; 03 §7 da 13 y 24 meses sin distinguir por plan). El disco depende de cuántos meses de
-  // historial haya acumulado el restaurante: por defecto 12 («un año de operación sin purga»); la curva completa va en `disco_por_historial`.
-  const mesesH = estado.meses_historial ?? 12;
+  // historial haya acumulado el restaurante: por defecto la política vigente (03 §7); el estado «sin purga a 12 meses» se pide con meses_historial: 12; la curva completa va en `disco_por_historial`.
+  const mesesH = estado.meses_historial ?? '03§7'; // por omisión la política vigente (03 §7), la misma base que el dinero; «sin purga a 12 meses» es el estado { meses_historial: 12 }
   const cfg0 = config;
   config = conHistorialGratuito(cfg0, s, mesesH);
-  const hoy = topesDeTamano(config, s, idHoy);
-  const ev = topesDeTamano(config, s, idEv);
+  const hoy = topesDeTamano(config, s, idHoy, null, carga);
+  const ev = topesDeTamano(config, s, idEv, null, carga);
   const cfg30 = conHistorialGratuito({ ...cfg0, palancas: [...new Set([...(cfg0.palancas ?? []), 'historial_gratuito_30_dias'])] }, s, mesesH);
-  const hoy30 = topesDeTamano(cfg30, s, idHoy);
-  const ev30 = topesDeTamano(cfg30, s, idEv);
+  const hoy30 = topesDeTamano(cfg30, s, idHoy, null, carga);
+  const ev30 = topesDeTamano(cfg30, s, idEv, null, carga);
   const [cuelloHoy] = minimoDe(hoy);
   const [cuelloEv] = minimoDe(ev);
-  const mesEventos = s.comensales_dia_gratuito * 30;
+  const mesEventos = cargaGratuita(config, s, carga).comensales_dia * 30;
   const eHoy = s.escalones.find((x) => x.id === idHoy);
   const eEv = s.escalones.find((x) => x.id === idEv);
   const mbG = hoy.mb_por_restaurante;
   const gb = (r) => r ?? null;
   const consumo = {
-    procesador: { unidad: 'ms de CPU por visita', valor: null, nota: `1 gratuito típico = 1 unidad de carga; un cliente de paga pesa ${s.peso_servicio_cpu}; con el sondeo un teléfono pregunta cada 3 s (≈ ${n(s.peticiones_por_segundo_tope_sondeo / eHoy.cap_cpu, 1)} peticiones/s por restaurante registrado, medido en el tope)` },
+    procesador: { unidad: 'ms de CPU por visita', valor: null, nota: `unidad de carga = un gratuito típico del simulador (${s.visitas_mes_gratuito} visitas al mes); un gratuito por topes pesa ${n(cargaGratuita(config, s, carga).razon, 2)}; un cliente de paga pesa ${s.peso_servicio_cpu}; con el sondeo un teléfono pregunta cada 3 s (≈ ${n(s.peticiones_por_segundo_tope_sondeo / eHoy.cap_cpu, 1)} peticiones/s por restaurante registrado, medido en el tope)` },
     memoria: { unidad: 'MB por restaurante', sondeo: s.mb_por_restaurante_sondeo, eventos: s.mb_por_restaurante_sondeo + ev.lineas_por_restaurante * s.mb_por_linea_abierta, fijo_mb: `${s.rss_worker_mb} MB por proceso en reposo`, medido: 'el proceso y la línea abierta, medido; el resto, supuesto' },
-    disco: { unidad: 'MB al mes por restaurante gratuito típico', valor: mbG, bytes_por_evento: s.bytes_por_evento.hoy, medido: true },
+    disco: { unidad: 'MB por restaurante registrado (mezcla de gratuitos y de paga)', valor: mbG, meses_historial: mesesH, bytes_por_evento: s.bytes_por_evento.hoy, medido: true },
     conexiones_bd: { unidad: 'conexiones de la base a la vez por restaurante registrado', sondeo: hoy.conexiones_por_restaurante, eventos: ev.conexiones_por_restaurante, nota: `cada petición retiene una conexión ≈ ${s.ms_conexion_por_peticion} ms` },
     lineas: { unidad: 'líneas abiertas por restaurante en la hora pico', valor: ev.lineas_por_restaurante, nota: `${s.lineas_max_railway} ÷ ${s.cap_conexiones} restaurantes típicos (la relación del simulador de capacidad)` },
-    fotos: { unidad: 'GB por restaurante', valor: s.r2_gb_gratuito, nota: `${s.r2_gratis_gb} GB gratis y luego ${s.r2_usd_gb_mes} USD por GB-mes` },
+    fotos: { unidad: 'GB por restaurante gratuito', valor: cargaGratuita(config, s, carga).gb_fotos, nota: `${s.r2_gratis_gb} GB gratis y luego ${s.r2_usd_gb_mes} USD por GB-mes` },
   };
   const comoFunciona = {
     procesador: 'Cada teléfono con la app abierta le pregunta al servidor cada 3 segundos si algo cambió; casi siempre la respuesta es «nada nuevo», pero cada pregunta gasta procesador. Con los avisos de la Fase 3, el servidor sólo habla cuando hay un cambio. Ruta: `app/api/publico/sesion.py` (estado con ETag) y `app/services/sesion.py`.',
@@ -891,7 +1023,7 @@ export function recursos(config, s, estado = {}) {
     lineas: 'Con los avisos (ADR-018, Fase 3) cada teléfono mantiene una conexión abierta con el servidor; Railway permite unas 10,000 abiertas a la vez. Hoy no existen. Ruta futura: `/p/sesion/eventos` y `/op/eventos` (T-3.20 y T-3.21).',
     fotos: 'Las fotos de los platillos y los respaldos diarios de la base viven en R2 (almacenamiento tipo S3 de Cloudflare); la API sólo guarda la dirección. Ruta: `app/services/assets.py`.',
   };
-  const tablero = palancasEnTablero(cfg0, s);
+  const tablero = palancasEnTablero(cfg0, s, s.umbral_tablero, carga);
   const evaluarPalanca = (id) => {
     const pl = PALANCAS[id];
     const r = pl.recurso;
@@ -899,13 +1031,13 @@ export function recursos(config, s, estado = {}) {
     const pon = (c) => ({ ...c, palancas: [...new Set([...(c.palancas ?? []), id])] });
     const base = conHistorialGratuito(quita(cfg0), s, mesesH);
     const con = conHistorialGratuito(pon(cfg0), s, mesesH);
-    const a = { h: topesDeTamano(base, s, idHoy), e: topesDeTamano(base, s, idEv) };
-    const d = { h: topesDeTamano(con, s, idHoy), e: topesDeTamano(con, s, idEv) };
+    const a = { h: topesDeTamano(base, s, idHoy, null, carga), e: topesDeTamano(base, s, idEv, null, carga) };
+    const d = { h: topesDeTamano(con, s, idHoy, null, carga), e: topesDeTamano(con, s, idEv, null, carga) };
     // la misma palanca evaluada sobre la base «ya con el historial del gratuito a 30 días»
     const b30 = conHistorialGratuito({ ...quita(cfg0), palancas: [...(quita(cfg0).palancas ?? []), 'historial_gratuito_30_dias'] }, s, mesesH);
     const c30 = conHistorialGratuito({ ...pon(cfg0), palancas: [...(pon(cfg0).palancas ?? []), 'historial_gratuito_30_dias'] }, s, mesesH);
-    const a30 = topesDeTamano(b30, s, idEv);
-    const d30 = topesDeTamano(c30, s, idEv);
+    const a30 = topesDeTamano(b30, s, idEv, null, carga);
+    const d30 = topesDeTamano(c30, s, idEv, null, carga);
     const fila = { id, nombre: pl.nombre, en_tablero: tablero.palancas[id].en_tablero, ganancia_de_capacidad: tablero.palancas[id].ganancia_maxima, accion: pl.accion, que_es: pl.que_es, esfuerzo: pl.esfuerzo, riesgo: pl.riesgo, regla_que_toca: pl.regla_que_toca, medido: pl.medido };
     if (id === 'purga_claves_idempotencia') {
       const mbMes = (s.visitas_mes_gratuito * s.claves_idempotencia_por_visita * s.idempotencia_bytes_por_fila) / 1e6;
@@ -927,7 +1059,7 @@ export function recursos(config, s, estado = {}) {
     nombre: NOMBRE_RECURSO[r],
     como_funciona: comoFunciona[r],
     consumo_por_restaurante: consumo[r],
-    limite_hoy: { restaurantes: hoy[r], texto: r === 'fotos' ? `sin tope práctico: ${s.r2_gratis_gb} GB gratis (≈ ${Math.floor(s.r2_gratis_gb / s.r2_gb_gratuito)} gratuitos) y después ${n(s.r2_gb_gratuito * s.r2_usd_gb_mes * s.fx, 3)} pesos por restaurante al mes` : limiteTexto(hoy, r) + ` (${eHoy.nombre})` },
+    limite_hoy: { restaurantes: hoy[r], texto: r === 'fotos' ? `sin tope práctico: ${s.r2_gratis_gb} GB gratis (≈ ${Math.floor(s.r2_gratis_gb / cargaGratuita(config, s, carga).gb_fotos)} gratuitos solos, con ${n(cargaGratuita(config, s, carga).gb_fotos, 2)} GB de fotos cada uno: supuesto de 3 MB por foto original) y después ${n(cargaGratuita(config, s, carga).gb_fotos * s.r2_usd_gb_mes * s.fx, 3)} pesos por restaurante al mes` : limiteTexto(hoy, r) + ` (${eHoy.nombre})` },
     restaurantes_hoy: hoy[r],
     restaurantes_con_eventos: ev[r],
     con_historial_30_dias: { restaurantes_hoy: hoy30[r], restaurantes_con_eventos: ev30[r], es_cuello_hoy: r === minimoDe(hoy30)[0], es_cuello_con_eventos: r === minimoDe(ev30)[0], nota: 'si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)' },
@@ -940,9 +1072,9 @@ export function recursos(config, s, estado = {}) {
   }));
   const escalera = Object.keys(PROCESOS).map((id) => {
     const e = s.escalones.find((x) => x.id === id);
-    const t = topesDeTamano(config, s, id);
+    const t = topesDeTamano(config, s, id, null, carga);
     const [muro, cabe] = minimoDe(t);
-    const t30 = topesDeTamano(cfg30, s, id);
+    const t30 = topesDeTamano(cfg30, s, id, null, carga);
     const [muro30, cabe30] = minimoDe(t30);
     return { restaurantes_con_historial_30_dias: cabe30, recurso_que_obliga_a_subir_con_historial_30_dias: muro30, id, tamano: NOMBRE_TAMANO[id], procesos: t.procesos, disco_gb: e.volumen_gb, costo_usd_base: e.base_usd, costo_usd_con_carga: e.tope_usd, costo_pesos_base: e.base_usd * s.fx, restaurantes_que_caben: cabe, recurso_que_obliga_a_subir: muro, por_recurso: Object.fromEntries(RECURSOS.map((r) => [r, t[r]])), supera_postgres: t.supera_postgres };
   });
@@ -952,7 +1084,7 @@ export function recursos(config, s, estado = {}) {
   const nombresTam = { hobby_eventos: 'Hobby (el que pagamos hoy): 2 procesos, 5 GB', pro_2: 'Pro, 2 procesos, 50 GB', pro_4: 'Pro, 4 procesos, 50 GB', pro_8: 'Pro, 8 procesos, 50 GB' };
   const escaleraEstado = ids.map((id) => {
     const e = s.escalones.find((x) => x.id === id);
-    const t = topesDeTamano(config, s, id, canalE);
+    const t = topesDeTamano(config, s, id, canalE, carga);
     const [muro, cabe] = minimoDe(t);
     return { id, tamano: nombresTam[id], procesos: t.procesos, disco_gb: e.volumen_gb, costo_usd_base: e.base_usd, costo_usd_con_carga: e.tope_usd, restaurantes_que_caben: cabe, recurso_que_obliga_a_subir: muro, por_recurso: Object.fromEntries(RECURSOS.map((r) => [r, t[r]])), supera_postgres: t.supera_postgres };
   });
@@ -964,15 +1096,15 @@ export function recursos(config, s, estado = {}) {
   const dominio = s.dominio_usd_anio / 12;
   // la curva del disco según los meses de historial que acumule el gratuito, y desde qué mes manda el disco
   const meses = [1, 3, 6, 12, '03§7'];
-  const procHoy = topesDeTamano(cfg0, s, idHoy).procesador;
-  const procEv = topesDeTamano(cfg0, s, idEv).procesador;
+  const procHoy = topesDeTamano(cfg0, s, idHoy, null, carga).procesador;
+  const procEv = topesDeTamano(cfg0, s, idEv, null, carga).procesador;
   const curvaDisco = meses.map((mm) => {
     const c = conHistorialGratuito({ ...cfg0, palancas: (cfg0.palancas ?? []).filter((x) => x !== 'historial_gratuito_30_dias') }, s, mm);
-    const th = topesDeTamano(c, s, idHoy);
-    const te = topesDeTamano(c, s, idEv);
+    const th = topesDeTamano(c, s, idHoy, null, carga);
+    const te = topesDeTamano(c, s, idEv, null, carga);
     return { meses_historial: mm, etiqueta: mm === '03§7' ? 'lo que dice 03 §7 (24 meses de sesiones y 13 de analítica)' : `${mm} ${mm === 1 ? 'mes' : 'meses'}`, mb_por_restaurante: th.mb_por_restaurante, restaurantes_por_disco: th.disco, cuello_hoy: minimoDe(th)[0], cuello_con_eventos: minimoDe(te)[0], restaurantes_cuello_hoy: minimoDe(th)[1], restaurantes_cuello_con_eventos: minimoDe(te)[1] };
   });
-  const primerMesDisco = (cap) => { for (let mm = 1; mm <= 36; mm++) { const c = conHistorialGratuito({ ...cfg0, palancas: [] }, s, mm); if (topesDeTamano(c, s, idHoy).disco < cap) return mm; } return null; };
+  const primerMesDisco = (cap) => { for (let mm = 1; mm <= 36; mm++) { const c = conHistorialGratuito({ ...cfg0, palancas: [] }, s, mm); if (topesDeTamano(c, s, idHoy, null, carga).disco < cap) return mm; } return null; };
   const caben30 = curvaDisco[0].restaurantes_por_disco;
   const actividad = [0.5, 1, 2].map((f) => ({ factor_de_actividad: f, procesador_hoy: Math.floor(procHoy / f), procesador_con_eventos: Math.floor(procEv / f), disco: Math.floor(hoy.disco / f), disco_con_historial_30_dias: Math.floor(caben30 / f), nota: 'el doble de visitas y de comensales por restaurante divide a la mitad lo que cabe (aproximado: el disco fijo por restaurante es despreciable)' }));
   const pico = { factor: s.factor_pico_simultaneo, procesador_hoy: Math.floor(procHoy * s.factor_pico_simultaneo), procesador_con_eventos: Math.floor(procEv * s.factor_pico_simultaneo), nota: 'si todos los restaurantes están en su hora pico a la vez; factor SUPUESTO (calculado en la revisión de la maestra para el peor caso, sin origen en un documento)' };
@@ -980,10 +1112,15 @@ export function recursos(config, s, estado = {}) {
   const cond = `procesador (${procHoy}, de ${rango.procesador_hoy[0]} a ${rango.procesador_hoy[1]}) o disco, según cuánto historial se guarde y cuánto rinda el servidor: con historial del gratuito a 30 días el disco aguanta ${caben30} y manda el ${caben30 > procHoy ? 'procesador' : 'disco'}; sin purga manda el disco desde el mes ${primerMesDisco(procHoy)} de operación de un restaurante`;
   return {
     config_palancas: config.palancas ?? [],
-    estado_elegido: { canal: canalE, meses_historial: mesesH, palancas: config.palancas ?? [], nota: 'la escalera responde a este estado; ningún parámetro de entrada se modifica' },
+    composicion_del_disco: composicionDelDisco(config, s),
+    sensibilidad_de_la_capacidad: sensibilidadDeLaCapacidad(config, s),
+    grupos_excluyentes: palancasEnTablero(config, s, s.umbral_tablero, carga).grupos_excluyentes,
+    estado_elegido: { canal: canalE, carga, meses_historial: mesesH, palancas: config.palancas ?? [], nota: 'la escalera responde a este estado; ningún parámetro de entrada se modifica' },
     escalera: escaleraEstado,
-    definicion_restaurante_tipico: `un gratuito típico = ${s.visitas_mes_gratuito} visitas al mes y ${s.comensales_dia_gratuito} comensales al día (SUPUESTO del simulador, rango ${s.rangos.comensales_dia_gratuito[0]}–${s.rangos.comensales_dia_gratuito[1]}), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)`,
-    estado: { meses_historial: mesesH, nota: 'hoy NADA purga; por defecto se supone un restaurante con 12 meses de historial acumulado (sin purga)' },
+    definicion_restaurante_tipico: carga === 'tipica'
+      ? `COMPARACIÓN (no vigente): un gratuito típico = ${s.visitas_mes_gratuito} visitas al mes y ${s.comensales_dia_gratuito} comensales al día (SUPUESTO del simulador, rango ${s.rangos.comensales_dia_gratuito[0]}–${s.rangos.comensales_dia_gratuito[1]}), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)`
+      : `un gratuito carga lo de sus topes: ${config.topes.gratuito.mesas} mesas × ${s.perfil_por_topes.visitas_por_mesa_mes} visitas por mesa al mes = ${cargaGratuita(config, s, carga).visitas_mes} visitas (el 180 sale de las ${s.visitas_mes_gratuito} visitas con ${s.perfil_por_topes.mesas_perfil_tipico} mesas del simulador: SUPUESTO sin medir; todos al tope = cota alta), ${config.topes.gratuito.platillos} platillos y ${config.topes.gratuito.cuentas} cuenta(s) de personal`,
+    estado: { meses_historial: mesesH, nota: mesesH === '03§7' ? 'estado por omisión: la política vigente (03 §7: el gratuito guarda 24 meses de sesiones y 13 de analítica), la misma base que usa el dinero; hoy nada purga. «Sin purga a 12 meses» es el estado con nombre { meses_historial: 12 }' : `estado elegido: el gratuito con ${mesesH} meses de historial acumulado` },
     disco_por_historial: curvaDisco,
     mes_desde_el_que_manda_el_disco: { con_sondeo: primerMesDisco(procHoy), con_eventos: primerMesDisco(procEv) },
     sensibilidad_actividad: actividad,
@@ -999,7 +1136,7 @@ export function recursos(config, s, estado = {}) {
         { servicio: 'Railway · Postgres (la base de datos, versión 18)', plan: 'Hobby: volumen de 5 GB', costo_usd_mes: null, detalle: `incluido en los ${railway} USD; el volumen cuesta ${s.volumen_usd_gb_mes} USD por GB-mes; Pro sube el volumen a 50 GB (en este modelo)`, limites: { disco: '5 GB (4 GB útiles con la reserva del 20 % para WAL e hinchazón)', conexiones: `≈ ${s.pg_max_conexiones} conexiones [estimada; falta \`SHOW max_connections\`]` } },
         { servicio: 'Railway · respaldo (copia diaria con pg_dump)', plan: 'Hobby', costo_usd_mes: null, detalle: 'trabajo programado; corre unos minutos al día; incluido en la factura de Railway', limites: {} },
         { servicio: 'Cloudflare (DNS, HTTPS y caché del menú)', plan: 'Free', costo_usd_mes: 0, detalle: '[documento: deploy/railway/README.md §Cloudflare, plan Free]; el menú público lo absorbe la caché del borde', limites: { procesador: 'las reglas de tasa del plan Free' } },
-        { servicio: 'Cloudflare R2 (fotos y respaldos)', plan: `${s.r2_gratis_gb} GB gratis, después ${s.r2_usd_gb_mes} USD por GB-mes`, costo_usd_mes: 0, detalle: `[fuente: developers.cloudflare.com/r2/pricing, 14-nov-2026]; ≈ ${s.r2_gb_gratuito} GB por gratuito típico: cubre ≈ ${Math.floor(s.r2_gratis_gb / s.r2_gb_gratuito)} gratuitos sin pagar`, limites: { fotos: 'sin tope práctico' } },
+        { servicio: 'Cloudflare R2 (fotos y respaldos)', plan: `${s.r2_gratis_gb} GB gratis, después ${s.r2_usd_gb_mes} USD por GB-mes`, costo_usd_mes: 0, detalle: `[fuente: developers.cloudflare.com/r2/pricing, 14-nov-2026]; ≈ ${n(cargaGratuita(config, s).gb_fotos, 2)} GB de fotos por gratuito con el tope de platillos (supuesto: foto original de ${n(s.platillo.foto_original_bytes_tipico / 1e6, 0)} MB, ${n(s.platillo.parte_con_foto * 100, 0)} % con foto): cubre ≈ ${Math.floor(s.r2_gratis_gb / cargaGratuita(config, s).gb_fotos)} gratuitos solos; con la mezcla de paga, ${Math.floor(s.r2_gratis_gb / perfilDeCarga(config, s).gb_fotos_por_restaurante)} restaurantes registrados`, limites: { fotos: 'sin tope práctico' } },
         { servicio: 'Dominio carta.cooking', plan: 'anual', costo_usd_mes: dominio, detalle: `${s.dominio_usd_anio} USD al año [documento: dato de Calvin, 13-nov]`, limites: {} },
       ],
       total_usd_mes: railway + dominio,
@@ -1035,8 +1172,9 @@ export function desgloses(config, s, n = 1000) {
     const sinAds = opc.sinAnuncios === true;
     const tarifa = sinAds ? 0 : ss.anuncio_pesos_por_mil[opc.anuncios.tarifa];
     const parte = opc.parteVisitasConAnuncio ?? ss.parte_visitas_con_anuncio;
-    const comensalesMes = ss.comensales_dia_gratuito * 30;
-    const abren = ss.visitas_app_gratuito;
+    const cgE = cargaGratuita(config, ss, opc.carga);
+    const comensalesMes = cgE.comensales_dia * 30;
+    const abren = cgE.visitas_app;
     const ven = abren * parte;
     const pesosAds = (ven * tarifa) / 1000;
     const ps = config.precios.servicio;
@@ -1107,7 +1245,7 @@ export function mensajes(config, s, n = 1000) {
  * recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días (el estado que se propone); la palanca
  * del historial a 30 días se mide sin purga (12 meses), porque es la decisión. Las demás son «ajustes menores». El umbral es un juicio.
  */
-export function palancasEnTablero(config, s, umbral = s.umbral_tablero) {
+export function palancasEnTablero(config, s, umbral = s.umbral_tablero, carga = 'topes') {
   const clave = { disco: 'disco', procesador: 'procesador', lineas: 'lineas', conexiones_bd: 'conexiones_bd' };
   const out = {};
   for (const [id, pl] of Object.entries(PALANCAS)) {
@@ -1118,16 +1256,17 @@ export function palancasEnTablero(config, s, umbral = s.umbral_tablero) {
         const ps = (config.palancas ?? []).filter((x) => x !== id);
         const cfg = { ...config, palancas: on ? [...ps, id] : ps };
         const cc = id === 'historial_gratuito_30_dias' ? conHistorialGratuito(cfg, s, base30) : conHistorialGratuito({ ...cfg, palancas: [...new Set([...(cfg.palancas ?? []), 'historial_gratuito_30_dias'])] }, s, 1);
-        return topesDeTamano(cc, s, 'hobby_eventos', canal)[clave[pl.recurso]];
+        return topesDeTamano(cc, s, 'hobby_eventos', canal, carga)[clave[pl.recurso]];
       };
       const a = mk(false);
       const d = mk(true);
       if (a != null && d != null && a > 0 && d / a - 1 > mejor.ganancia) mejor = { ganancia: d / a - 1, canal, antes: a, despues: d };
     }
-    out[id] = { en_tablero: mejor.ganancia >= umbral, ganancia_maxima: mejor.ganancia, canal: mejor.canal, capacidad_antes: mejor.antes, capacidad_despues: mejor.despues, recurso: pl.recurso };
+    out[id] = { en_tablero: mejor.ganancia >= umbral, ganancia_maxima: mejor.ganancia, canal: mejor.canal, capacidad_antes: mejor.antes, capacidad_despues: mejor.despues, recurso: pl.recurso, grupo: pl.grupo ?? null };
   }
   const ids = Object.keys(out);
-  return { umbral, regla: `entra al tablero si sube al menos ${Math.round(umbral * 100)} % la capacidad del recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días; la palanca del historial se mide sin purga (12 meses) porque es la decisión`, palancas: out, en_tablero: ids.filter((i) => out[i].en_tablero), ajustes_menores: ids.filter((i) => !out[i].en_tablero) };
+  const grupos = Object.fromEntries(Object.entries(GRUPOS_EXCLUYENTES).map(([g, v]) => [g, { ...v, miembros: ids.filter((x) => out[x].grupo === g), en_tablero: ids.filter((x) => out[x].grupo === g && out[x].en_tablero), mejor: ids.filter((x) => out[x].grupo === g).sort((a, b) => out[b].ganancia_maxima - out[a].ganancia_maxima)[0] }]));
+  return { grupos_excluyentes: grupos, umbral, regla: `entra al tablero si sube al menos ${Math.round(umbral * 100)} % la capacidad del recurso que toca, en algún canal (sondeo o avisos), con el historial del gratuito a 30 días; la palanca del historial se mide sin purga (12 meses) porque es la decisión`, palancas: out, en_tablero: ids.filter((i) => out[i].en_tablero), ajustes_menores: ids.filter((i) => !out[i].en_tablero) };
 }
 
 // ---------------------------------------------------------------- la meta de 12 meses, en dinero
@@ -1135,7 +1274,7 @@ export function palancasEnTablero(config, s, umbral = s.umbral_tablero) {
  * La meta de `s.meta_12_meses` restaurantes a 12 meses, en pesos, por escenario (recomendado, peor, mejor): el mes 12 (ingresos por
  * suscripción y por anuncios, costos y margen) y el acumulado de los 12 meses. Sale de `proyectarEscenario`.
  */
-export function meta12Meses(config, s) {
+function meta12MesesBase(config, s) {
   const out = { meta_restaurantes: s.meta_12_meses, escenarios: {} };
   for (const nombre of ['recomendado', 'peor', 'mejor']) {
     const p = proyectarEscenario(nombre, config, s, 12);
@@ -1166,8 +1305,9 @@ export function potencialChef(config, s) {
   const tramos = s.estratos_negocios.map((x) => { const d = dentro[x.estrato] ?? [0, 0, 0]; return { tramo: x.estrato, negocios: x.negocios, parte_en_chef: d[0], parte_en_chef_rango: [Math.min(d[1], d[2]), Math.max(d[1], d[2])], parte_en_master_chef: 1 - d[0], negocios_en_chef: x.negocios * d[0], negocios_en_master_chef: x.negocios * (1 - d[0]) }; });
   const enChef = tramos.reduce((a, x) => a + x.negocios_en_chef, 0);
   const enMaster = tramos.reduce((a, x) => a + x.negocios_en_master_chef, 0);
-  const pesosPorChef = (tarifa, visitas = s.visitas_app_gratuito, parte = s.parte_visitas_con_anuncio) => (visitas * parte * tarifa) / 1000;
-  const [vmin, vmax] = s.rangos.visitas_app_gratuito;
+  const cgC = cargaGratuita(config, s);
+  const pesosPorChef = (tarifa, visitas = cgC.visitas_app, parte = s.parte_visitas_con_anuncio) => (visitas * parte * tarifa) / 1000;
+  const [vmin, vmax] = s.rangos.visitas_app_gratuito.map((x) => x * cgC.razon);
   const [pmin, pmax] = s.rangos.parte_visitas_con_anuncio;
   const tarifas = s.anuncio_pesos_por_mil;
   const potencial = Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, { tarifa_por_mil: tarifas[k], pesos_por_negocio_al_mes: pesosPorChef(tarifas[k]), pesos_al_mes_de_todos_los_chef: enChef * pesosPorChef(tarifas[k]), rango_por_visitas_y_parte: [enChef * pesosPorChef(tarifas[k], vmin, pmin), enChef * pesosPorChef(tarifas[k], vmax, pmax)] }]));
@@ -1181,7 +1321,7 @@ export function potencialChef(config, s) {
  * que el margen después de captación lo cubra (en régimen), el mes de la proyección en que lo cubre y el margen después del sueldo
  * (a 1,000 restaurantes y en los meses 12 y 24). NO MODELADO: impuestos, contabilidad, seguridad social ni prestaciones.
  */
-export function sueldo(config, s, monto = s.sueldo_fundador ?? 0) {
+function sueldoBase(config, s, monto = s.sueldo_fundador ?? 0) {
   const escenarios = {};
   for (const nombre of ['recomendado', 'peor', 'mejor', 'piso_de_verdad']) {
     const { ss, opc } = paramsEscenario(nombre, s);
@@ -1194,15 +1334,22 @@ export function sueldo(config, s, monto = s.sueldo_fundador ?? 0) {
     const p = proyectar(config, ss, 60, opc);
     const mes = p.filas.find((f) => f.margen_despues_de_captacion >= monto && f.margen_despues_de_captacion > 0)?.mes ?? null;
     const e1k = evaluar(config, ss, 1000, opc);
+    const mesLlegada = nNecesario == null ? null : (p.filas.find((f) => f.restaurantes >= nNecesario)?.mes ?? null);
+    const filaCubre = mes == null ? null : p.filas[mes - 1];
+    const filaLlegada = mesLlegada == null ? null : p.filas[mesLlegada - 1];
     escenarios[nombre] = {
-      restaurantes_necesarios: nNecesario,
+      restaurantes_necesarios: nNecesario, // en RÉGIMEN ESTABLE: la captación sólo repone bajas
+      restaurantes_necesarios_en_regimen: nNecesario,
+      mes_en_que_la_proyeccion_llega_a_esos_restaurantes: mesLlegada,
+      margen_despues_de_captacion_al_llegar_a_esos_restaurantes: filaLlegada ? filaLlegada.margen_despues_de_captacion : null,
       clientes_de_paga_necesarios: pagNecesarios,
-      mes_en_que_el_margen_despues_de_captacion_lo_cubre: mes,
+      mes_en_que_el_margen_despues_de_captacion_lo_cubre: mes, // en la PROYECCIÓN de crecimiento: ese mes hay más restaurantes porque la captación cuesta mientras se crece
+      restaurantes_ese_mes_de_la_proyeccion: filaCubre ? filaCubre.restaurantes : null,
       requiere_otra_arquitectura: nNecesario != null && evaluar(config, ss, nNecesario, opc).capacidad.requiere_arquitectura,
       margen_despues_de_sueldo: { con_1000_restaurantes: e1k.margen_despues_de_captacion - monto, mes_12: p.filas[11].margen_despues_de_captacion - monto, mes_24: p.filas[23].margen_despues_de_captacion - monto },
     };
   }
-  return { sueldo_mensual: monto, escenarios, no_modelado: ['impuestos (ISR e IVA)', 'contabilidad y trámites', 'seguridad social y prestaciones', 'costos de ventas más allá del costo de conseguir un cliente de paga'] };
+  return { sueldo_mensual: monto, curva_de_crecimiento: `ajuste a dos metas de Calvin (${s.meta_12_meses} restaurantes a 12 meses y ${s.meta_24_meses} a 24); después del mes 24 es extrapolación sin dato`, que_es_cada_cuenta: 'restaurantes necesarios = en régimen estable (la captación sólo repone bajas); el mes en que el margen cubre el sueldo sale de la proyección de crecimiento, donde ese mes hay más restaurantes porque conseguir clientes de paga cuesta mientras se crece', escenarios, no_modelado: ['impuestos (ISR e IVA)', 'contabilidad y trámites', 'seguridad social y prestaciones', 'costos de ventas más allá del costo de conseguir un cliente de paga'] };
 }
 
 /** Niveles de sueldo de referencia: múltiplos del salario mínimo general (fuente en `s.salario_minimo`); no son una recomendación. */
@@ -1223,15 +1370,15 @@ export function modelosDeIngreso(config, s, n = 1000) {
   const opt = evaluar(config, s, n, { curva: 'optimista' });
   const ps = config.precios.servicio;
   const tarifas = s.anuncio_pesos_por_mil;
-  const adsPor = (k) => (s.visitas_app_gratuito * s.parte_visitas_con_anuncio * tarifas[k]) / 1000;
+  const adsPor = (k) => (cargaGratuita(config, s).visitas_app * s.parte_visitas_con_anuncio * tarifas[k]) / 1000;
   const vp = s.visibilidad_pagada;
   const cm = s.comision_por_transaccion;
   const pc = s.pago_del_comensal;
-  const comensalesMes = s.comensales_dia_gratuito * 30;
+  const comensalesMes = cargaGratuita(config, s).comensales_dia * 30;
   const redond = (x) => Math.round(x * 10) / 10;
   const modelos = [
     { id: 'suscripcion_del_restaurante', nombre: 'Suscripción del restaurante (Master Chef)', vigente: true, se_cobra_a: 'el restaurante que pasa de los topes de Chef', potencial_pesos_por_restaurante_al_mes: { por_restaurante_de_paga: ps, deja_por_restaurante_de_paga: e.por_cliente.margen_servicio, por_restaurante_registrado: { centro: e.ingresos.suscripcion / n, minimo: pes.ingresos.suscripcion / n, maximo: opt.ingresos.suscripcion / n } }, supuestos: 'curva de pago (mediana, sigma y techo) sin dato; parte que rebasa los topes de Chef (modelo de mesas y cuentas)', exige: 'nada nuevo: es la v1 (sin pagos del restaurante dentro de Carta si se cobra fuera)', cuando: 'piloto: se prueba el precio con tres grupos' },
-    { id: 'anuncios_del_comensal', nombre: 'Anuncios al comensal del plan gratuito (no personalizados)', vigente: true, se_cobra_a: 'el anunciante, a través de una red de anuncios (hoy se supone AdSense); anunciantes típicos: marcas de bebidas y consumo, bancos y comercios locales (por definir)', potencial_pesos_por_restaurante_al_mes: { por_restaurante_gratuito: { baja: adsPor('baja'), media: adsPor('media'), alta: adsPor('alta') }, nota: 'visitas con la app y parte con anuncio del modelo; tarifa sin dato' }, supuestos: 'tarifa por mil visitas, visitas con la app, parte con anuncio y que la red apruebe el sitio', exige: 'ADR, abrir la política de seguridad del sitio, aviso de privacidad y aprobación de la red; sin anuncios personalizados (regla 10)', cuando: `hacia el mes ${s.mes_inicio_anuncios} (supuesto) o después de la Fase 3` },
+    { id: 'anuncios_del_comensal', nombre: 'Anuncios al comensal del plan gratuito (en la v1 no hay anuncios personalizados; la v2 los propone y exige spec, ADR y revisión legal)', vigente: true, se_cobra_a: 'el anunciante, a través de una red de anuncios (hoy se supone AdSense); anunciantes típicos: marcas de bebidas y consumo, bancos y comercios locales (por definir)', potencial_pesos_por_restaurante_al_mes: { por_restaurante_gratuito: { baja: adsPor('baja'), media: adsPor('media'), alta: adsPor('alta') }, nota: 'visitas con la app y parte con anuncio del modelo; tarifa sin dato' }, supuestos: 'tarifa por mil visitas, visitas con la app, parte con anuncio y que la red apruebe el sitio', exige: 'ADR, abrir la política de seguridad del sitio, aviso de privacidad y aprobación de la red; sin anuncios personalizados (regla 10)', cuando: `hacia el mes ${s.mes_inicio_anuncios} (supuesto) o después de la Fase 3` },
     { id: 'visibilidad_pagada', nombre: 'Visibilidad pagada dentro de Carta (patrocinio de marca o proveedor en la carta, platillo destacado)', vigente: false, se_cobra_a: 'la marca o el proveedor (cerveza, refrescos, insumos) que patrocina un espacio en la carta del restaurante; o el restaurante que destaca un platillo', potencial_pesos_por_restaurante_al_mes: { por_restaurante_gratuito: { centro: vp.parte_que_compra * vp.cuota_mes, minimo: vp.rango_parte[0] * vp.rango_cuota[0], maximo: vp.rango_parte[1] * vp.rango_cuota[1] } }, supuestos: 'parte de restaurantes con patrocinio y cuota mensual: SUPUESTOS sin dato (referencia de forma: Booking cobra 2–8 % más por visibilidad, por verificar)', exige: 'spec nueva (alcance), regla de qué puede patrocinarse sin engañar al comensal; no toca la v1 ni guarda datos del comensal', cuando: 'después de la Fase 3, con restaurantes reales y una prueba de 3 patrocinadores' },
     { id: 'comision_por_transaccion', nombre: 'Comisión por transacción (FUERA de la v1)', vigente: false, fuera_de_la_v1: true, se_cobra_a: 'el restaurante, sobre lo que se pida o pague por Carta', potencial_pesos_por_restaurante_al_mes: { de_0_a_10_personas: { centro: cm.ventas_mes_0_a_10 * cm.parte_que_pasa_por_carta * cm.tasa, minimo: cm.ventas_mes_0_a_10 * cm.rango_parte[0] * cm.rango_tasa[0], maximo: cm.ventas_mes_0_a_10 * cm.rango_parte[1] * cm.rango_tasa[1] }, de_11_a_50_personas: { centro: cm.ventas_mes_11_a_50 * cm.parte_que_pasa_por_carta * cm.tasa, minimo: cm.ventas_mes_11_a_50 * cm.rango_parte[0] * cm.rango_tasa[0], maximo: cm.ventas_mes_11_a_50 * cm.rango_parte[1] * cm.rango_tasa[1] } }, supuestos: 'ventas promedio de la clase 722511 (INEGI 2023, promedios no medianas); parte que pasaría por Carta y tasa: supuestos sin dato', exige: 'cobrar o procesar pagos: contradice «Qué NO construir» y la v1; ADR nuevo y spec; puede exigir regulación financiera (por verificar con un abogado)', cuando: 'no antes de una v2; sólo se calcula para ver el tamaño' },
     { id: 'pago_del_comensal', nombre: 'Pago del comensal por quitar anuncios o por funciones propias (FUERA de la v1)', vigente: false, fuera_de_la_v1: true, se_cobra_a: 'el comensal (suscripción tipo «Carta+»)', potencial_pesos_por_restaurante_al_mes: { por_restaurante: { centro: (comensalesMes / pc.visitas_por_comensal_mes) * pc.conversion * pc.precio_mes, minimo: (comensalesMes / pc.rango_visitas[1]) * pc.rango_conversion[0] * pc.precio_mes, maximo: (comensalesMes / pc.rango_visitas[0]) * pc.rango_conversion[1] * pc.precio_mes }, nota: 'repartido entre los restaurantes que visita cada comensal: es un techo por restaurante' }, supuestos: 'comensales únicos al mes, conversión y precio (29 pesos del prototipo): supuestos sin dato', exige: 'cuenta o perfil del comensal: contradice «Qué NO construir» y la regla 10 (sin datos personales del comensal en el servidor); ADR y spec', cuando: 'no antes de una v2' },
@@ -1255,8 +1402,8 @@ export function modeloDeNegocio(config, s, n = 1000) {
   const e05 = chef.tramos.find((x) => x.tramo === '0 a 5');
   const gratuitosPorPagante = rec.gratuitos_que_sostiene_un_pagante_sin_anuncios;
   const ps = config.precios.servicio;
-  const adsBaja = (s.visitas_app_gratuito * s.parte_visitas_con_anuncio * s.anuncio_pesos_por_mil.baja) / 1000;
-  const adsAlta = (s.visitas_app_gratuito * s.parte_visitas_con_anuncio * s.anuncio_pesos_por_mil.alta) / 1000;
+  const adsBaja = (cargaGratuita(config, s).visitas_app * s.parte_visitas_con_anuncio * s.anuncio_pesos_por_mil.baja) / 1000;
+  const adsAlta = (cargaGratuita(config, s).visitas_app * s.parte_visitas_con_anuncio * s.anuncio_pesos_por_mil.alta) / 1000;
   const meta = meta12Meses(config, s);
   const hoy = recursos(config, s, {});
   const tipo = {
@@ -1269,11 +1416,7 @@ export function modeloDeNegocio(config, s, n = 1000) {
       { modelo: 'Carta v1', quien_paga: 'el restaurante que pasa de los topes de Chef (suscripción) y, después, el anunciante', quien_usa_gratis: 'el comensal (anónimo) y el restaurante de 0 a 5 personas con 6 mesas y 1 cuenta', conecta_oferta_y_demanda_nuevas: false, hay_transaccion_dentro: false, cifras_verificadas: 'reglas vigentes: sin pagos, sin cuenta del comensal, sin datos personales ni venta de datos' },
     ],
     donde_cae_la_v1: ['Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga.', 'Quién usa gratis: el comensal y el negocio chico de Chef.', 'Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante.', 'Transacción dentro: no; la v1 no cobra ni procesa pagos.'],
-    pasos_para_moverse: [
-      { hacia: 'Marketplace con comisión (Airbnb, Uber)', que_cambiaria: 'descubrimiento entre restaurantes y pagos dentro de Carta', exige: 'directorio público, perfil de restaurante y de comensal, procesar pagos: contradice «Qué NO construir», la regla 10 y la v1; ADR y spec de una v2; posible regulación financiera (verificar con un abogado)' },
-      { hacia: 'Economía de la atención (redes)', que_cambiaria: 'perfil y cuenta del comensal con historial para segmentar anuncios', exige: 'cuenta y perfil del comensal: contradice la regla 10 y «Qué NO construir»; los datos del comensal no se venden (decisión del 14-nov)' },
-      { hacia: 'Freemium del comensal (Spotify)', que_cambiaria: 'el comensal paga por quitar anuncios o por funciones propias', exige: 'cuenta del comensal: misma contradicción con la regla 10; spec y ADR' },
-    ],
+    vision_v2_de_calvin: visionV2(config, s),
   };
   const meniu = s.meniu;
   const hueco = {
@@ -1302,7 +1445,7 @@ export function modeloDeNegocio(config, s, n = 1000) {
     quien_paga_y_cuanto: { restaurante: `Master Chef ${ps} pesos al mes (deja ${Math.round(rec.por_cliente.margen_servicio)} al restaurante de paga tras costos); Chef es gratis`, anunciante: `${adsBaja.toFixed(1)} a ${adsAlta.toFixed(1)} pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato)`, comensal: 'nada' },
     fuentes_de_ingreso_por_etapa: [
       { etapa: 'Piloto', fuente: 'Suscripción de Master Chef (se prueba el precio con tres grupos)' },
-      { etapa: `Después de la Fase 3 (hacia el mes ${s.mes_inicio_anuncios}, supuesto)`, fuente: 'Anuncios en Chef; visibilidad pagada con spec nueva' },
+      { etapa: `Con la Spec 002 «Planes», después del piloto (hacia el mes ${s.mes_inicio_anuncios}, supuesto)`, fuente: 'Anuncios en Chef; visibilidad pagada con spec nueva' },
       { etapa: 'Más adelante (v2)', fuente: 'Tarjetas de lealtad y otras funciones de Meniu, comisión o pago del comensal sólo con ADR y spec' },
     ],
     costos: { infraestructura_hoy_usd_mes: hoy.hoy.total_usd_mes, costo_por_restaurante_gratuito_pesos: rec.por_cliente.costo_gratuito, gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios: gratuitosPorPagante, soporte: 'el costo grande: el soporte de cada cliente de paga' },
@@ -1310,6 +1453,464 @@ export function modeloDeNegocio(config, s, n = 1000) {
     que_hay_que_medir: ['La curva de pago de Master Chef (prueba de tres precios).', 'Mesas y cuentas por negocio de 0 a 5 personas (cuántos caben en Chef).', 'La carta real del piloto (cuántos platillos).', 'La tarifa de anuncios y la parte de visitas con anuncio (prueba con 3 restaurantes).', 'CPU, memoria y conexiones en Railway.'],
   };
   return { n, tipo_de_plataforma: tipo, hueco_frente_a_meniu: hueco, como_opera: opera, una_pagina: pagina };
+}
+
+// ---------------------------------------------------------------- anuncios: genéricos frente a personalizados; la visión v2 de Calvin
+/**
+ * Ingreso de anuncios por restaurante gratuito con dos tarifas: genérica (la de la v1: el comensal es anónimo) y personalizada (sólo para
+ * comensales registrados, que en la v1 no existen: parte 0). El restaurante de paga NO muestra anuncios, así que su ingreso de anuncios es 0:
+ * cada gratuito que paga pierde ese ingreso y lo cambia por la suscripción. El factor de la tarifa personalizada y la parte de registrados
+ * son SUPUESTOS con rango (parámetros `anuncio_personalizado_factor` y `parte_comensales_registrados_v2`).
+ */
+export function anunciosGenericoYPersonalizado(config, s) {
+  const base = (cargaGratuita(config, s).visitas_app * s.parte_visitas_con_anuncio) / 1000;
+  const f = s.anuncio_personalizado_factor;
+  const r = s.parte_comensales_registrados_v2;
+  const [fmin, fmax] = s.rangos.anuncio_personalizado_factor;
+  const [rmin, rmax] = s.rangos.parte_comensales_registrados_v2;
+  const q = evaluar(config, s, 1000, { curva: config.curva ?? 'media' }).clientes.de_paga / 1000;
+  const porTarifa = Object.fromEntries(['baja', 'media', 'alta'].map((k) => {
+    const gen = base * s.anuncio_pesos_por_mil[k];
+    const mezcla = (ff, rr) => gen * ((1 - rr) + rr * ff);
+    return [k, {
+      tarifa_generica_por_mil: s.anuncio_pesos_por_mil[k],
+      tarifa_personalizada_por_mil: s.anuncio_pesos_por_mil[k] * f,
+      pesos_por_gratuito_v1_todo_generico: gen,
+      pesos_por_gratuito_v2_con_registrados: mezcla(f, r),
+      cambio_por_gratuito_v2: mezcla(f, r) - gen,
+      rango_v2: [mezcla(fmin, rmin), mezcla(fmax, rmax)],
+      pesos_por_pagante: 0,
+      pesos_por_1000_restaurantes_v1: gen * 1000 * (1 - q),
+      pesos_por_1000_restaurantes_v2: mezcla(f, r) * 1000 * (1 - q),
+    }];
+  }));
+  return { factor: f, rango_factor: [fmin, fmax], parte_registrados_v2: r, rango_parte: [rmin, rmax], parte_que_paga_por_1000: q, por_tarifa: porTarifa, nota: 'v1: comensal anónimo, todo genérico. El pagante no ve anuncios. Factor y parte de registrados son supuestos; la tarifa base también (anuncio_pesos_por_mil)' };
+}
+
+/**
+ * Las tres rutas de Calvin para una versión 2, con lo que habría que cambiar antes (regla 10, «Qué NO construir», ADR-011 no aplica, aviso
+ * de privacidad y consentimiento, regulación de pagos) y el orden sugerido. Lo legal que no se pudo leer en la fuente primaria queda «por
+ * verificar con un abogado». Nada de esto entra en la v1: los anuncios (genéricos) llegan con la Spec 002 «Planes», después del piloto, no en la Fase 3.
+ */
+export function visionV2(config, s) {
+  const a = anunciosGenericoYPersonalizado(config, s);
+  const ley = { norma: 'Ley Federal de Protección de Datos Personales en Posesión de los Particulares (nueva, DOF 20-mar-2025; reforma del 14-nov-2025 según el texto de la Cámara)', lo_que_dice: 'el aviso de privacidad debe distinguir las finalidades que requieren consentimiento y las que no (art. 15), y una finalidad nueva exige un consentimiento nuevo (art. 11); la autoridad pasó a la Secretaría Anticorrupción y Buen Gobierno', fuente: 'resúmenes de despachos (Garrigues, KPMG México, IAPP; consultados el 17-nov-2026), NO el texto del DOF', estado: 'por verificar con un abogado: no se leyó la fuente primaria ni el reglamento' };
+  return {
+    postura_de_calvin: 'Ingreso principal por anuncios (estilo AdSense): personalizados para el comensal registrado, genéricos para el anónimo; quien paga no ve anuncios. Visión de una versión 2 con tres rutas; Calvin reconoce que choca con reglas «escritas para esta versión» (v1).',
+    en_la_v1: 'Anuncios genéricos (con la Spec 002 «Planes», después del piloto) al comensal anónimo del restaurante gratuito; el restaurante de paga no los lleva. Nada de perfil, cuenta ni pagos.',
+    anuncios: a,
+    rutas: [
+      { ruta: 'Mercado con comisión, directorio, procesador de pagos y perfil del comensal', que_cambiar_antes: ['regla 10 (sin datos personales del comensal en el servidor)', '«Qué NO construir»: pagos o comisión, cuenta y perfil del comensal, directorio', 'ADR nuevo de pagos y spec de v2', 'aviso de privacidad y consentimiento para perfil e historial', 'regulación de pagos (si Carta custodia o procesa dinero): por verificar con un abogado'], riesgo: 'el mayor: cambia qué es el producto y las obligaciones legales' },
+      { ruta: 'Economía de la atención (anuncios personalizados al comensal registrado)', que_cambiar_antes: ['regla 10 y «Qué NO construir» (cuenta y perfil del comensal)', 'aviso de privacidad con finalidades separadas y consentimiento para anuncios personalizados', 'los datos no se venden (decisión del 14-nov): hay que decidir si se comparten con la red de anuncios', 'cabecera de consentimiento en el teléfono antes de cargar el anuncio'], riesgo: 'medio: el cambio técnico es chico, el legal y de confianza no' },
+      { ruta: 'Plan pagado del comensal sin anuncios (como Spotify)', que_cambiar_antes: ['regla 10 y «Qué NO construir» (cuenta del comensal y cobro)', 'procesar un pago pequeño recurrente: por verificar con un abogado', 'spec y ADR'], riesgo: 'medio: depende de que el comensal pague, sin dato de disposición a pagar' },
+    ],
+    orden_sugerido: ['1. Anuncios genéricos al comensal anónimo (con la Spec 002 «Planes», después del piloto; no están en las tareas de la Fase 3): no cambia ninguna regla dura.', '2. Cuenta voluntaria del comensal con consentimiento y anuncios personalizados (ruta 2): primero spec, ADR y revisión legal.', '3. Plan pagado del comensal sin anuncios (ruta 3): reutiliza la cuenta del paso 2.', '4. Directorio, pagos y comisión (ruta 1): al final; es lo que más cambia y lo más regulado.'],
+    marco_legal: ley,
+    conflicto_con_las_reglas: 'sí: reglas 10 y «Qué NO construir» de la v1; se levantan sólo con un ADR y una spec nuevos aprobados por Calvin',
+  };
+}
+
+// ---------------------------------------------------------------- sensibilidad de la capacidad a quién paga
+const PERFIL_POR_TRAMO = { '0 a 5': 'chico', '6 a 10': 'mediano', '11 a 30': 'mediano', '31 a 50': 'grande', '51 a 100': 'formal', '101 a 250': 'formal' }; // SUPUESTO: tamaño de negocio → perfil de disco del simulador
+
+/**
+ * La capacidad depende de quién paga: (1) de la parte de restaurantes de paga (el éxito llena antes el servidor: cada uno de paga pesa 2.3
+ * gratuitos de procesador y llena 16 veces el disco de un gratuito) y (2) de la mezcla de tamaños de los de paga (`mezcla_paga` del
+ * simulador: 50 % mediano, 25 % grande, 25 % formal, no cuadra con que más de la mitad de los pagantes del propio modelo son negocios de
+ * 0 a 5 personas). Con la propuesta de 30 días para el gratuito y la carga por topes.
+ */
+export function sensibilidadDeLaCapacidad(config, s) {
+  const cfg = conPropuesta30Dias(config);
+  const cap = (c, ss) => ({ procesador_con_sondeo: topesDeTamano(c, ss, 'hobby_sondeo', 'sondeo', 'topes').procesador, procesador_con_avisos: topesDeTamano(c, ss, 'hobby_eventos', 'eventos', 'topes').procesador, disco: topesDeTamano(c, ss, 'hobby_eventos', 'eventos', 'topes').disco });
+  const partes = ['peor', 'recomendado', 'mejor'].map((e) => {
+    const { ss, opc } = paramsEscenario(e, s);
+    const q = evaluar(cfg, ss, 1000, opc).clientes.de_paga / 1000;
+    return { escenario: e, curva_de_pago: opc.curva, parte_que_paga: q, ...cap({ ...cfg, parte_de_paga_fija: q }, s) };
+  });
+  const pt = potencialPorTramo(config, s).tramos;
+  const peso = {};
+  for (const x of pt) { const k = PERFIL_POR_TRAMO[x.tramo]; if (k) peso[k] = (peso[k] ?? 0) + x.en_master_chef; }
+  const tot = Object.values(peso).reduce((a, b) => a + b, 0);
+  const mezclaModelo = Object.fromEntries(Object.entries(peso).map(([k, v]) => [k, v / tot]));
+  const mezclas = [
+    { id: 'simulador', nombre: 'Mezcla del simulador (50 % mediano, 25 % grande, 25 % formal): la de las rondas anteriores', mezcla: s.mezcla_paga },
+    { id: 'todos_medianos', nombre: 'Todos medianos', mezcla: { mediano: 1 } },
+    { id: 'segun_el_modelo_de_estratos', nombre: 'Según los tamaños de los pagantes del propio modelo (SUPUESTO: tramo → perfil del simulador)', mezcla: mezclaModelo },
+  ].map((m) => ({ ...m, ...cap(cfg, { ...s, mezcla_paga: m.mezcla }) }));
+  return { parte_que_paga: partes, mezcla_de_paga: mezclas, parte_de_los_pagantes_de_0_a_5_personas: (pt.find((x) => x.tramo === '0 a 5')?.en_master_chef ?? 0) / tot, nota: 'la mezcla de los pagantes es un SUPUESTO con rango (de todos medianos a la del modelo de estratos); se mide con el tamaño de los primeros restaurantes de paga del piloto' };
+}
+
+
+// ---------------------------------------------------------------- de qué se compone el disco promedio
+/**
+ * De qué se compone el disco por restaurante registrado que usa «¿Qué nos limita?»: cuánto llenan los gratuitos y cuánto los de paga (con sus
+ * meses de historial), cuánto cuesta el disco de un restaurante de paga frente a lo que paga, y por qué la cifra no es la de antes (279 fue
+ * «restaurantes gratuitos típicos»; ahora es el restaurante registrado con la mezcla de gratuitos y de paga, y el de paga guarda 12 meses).
+ */
+export function composicionDelDisco(config, s) {
+  const cfg = conHistorialGratuito({ ...config, palancas: [...new Set([...(config.palancas ?? []), 'historial_gratuito_30_dias'])] }, s, 1);
+  const pf = perfilDeCarga(cfg, s, 'topes');
+  const q = pf.parte_de_paga;
+  const mbProm = pf.mb_por_restaurante;
+  const e = topesDeTamano(cfg, s, 'hobby_eventos', 'eventos', 'topes');
+  const antes = topesDeTamano(cfg, s, 'hobby_eventos', 'eventos', 'tipica').disco;
+  const mbAntes = perfilDeCarga(cfg, s, 'tipica').mb_por_restaurante;
+  const precio = config.precios.servicio;
+  const costoDiscoPaga = (pf.mb_paga / 1000) * s.volumen_usd_gb_mes * s.fx;
+  const costoDiscoGratuito = (pf.mb_gratuito / 1000) * s.volumen_usd_gb_mes * s.fx;
+  const parteGratuitos = ((1 - q) * pf.mb_gratuito) / mbProm;
+  const parteDePaga = (q * pf.mb_paga) / mbProm;
+  const mesesPaga = config.topes.servicio.meses_en_linea;
+  const capPuros = Math.floor((e.disco * mbProm) / pf.mb_gratuito);
+  const dg = pf.desglose_gratuito;
+  const dp = pf.desglose_paga;
+  const porte = (peso, d) => ({ fijo: peso * d.fijo, sesiones_y_ordenes: peso * d.sesiones_y_ordenes, analitica: peso * d.analitica });
+  const aporteG = porte(1 - q, dg);
+  const aporteP = porte(q, dp);
+  const total = mbProm;
+  const parte = (x) => x / total;
+  const desgloseComposicion = {
+    mb_por_restaurante_registrado: { gratuitos: aporteG, de_paga: aporteP },
+    parte_del_disco: {
+      gratuitos: { fijo: parte(aporteG.fijo), sesiones_y_ordenes: parte(aporteG.sesiones_y_ordenes), analitica: parte(aporteG.analitica) },
+      de_paga: { fijo: parte(aporteP.fijo), sesiones_y_ordenes: parte(aporteP.sesiones_y_ordenes), analitica: parte(aporteP.analitica) },
+    },
+    parte_analitica_del_disco: parte(aporteG.analitica + aporteP.analitica),
+    parte_sesiones_y_ordenes_del_disco: parte(aporteG.sesiones_y_ordenes + aporteP.sesiones_y_ordenes),
+    parte_fija_del_disco: parte(aporteG.fijo + aporteP.fijo),
+  };
+  const sinPal = { ...cfg, palancas: (cfg.palancas ?? []).filter((x) => x !== 'analitica_agregada_por_dia' && x !== 'archivar_sesiones_de_paga' && x !== 'archivar_sesiones_de_todos_los_planes') };
+  const conPal = (id) => ({ ...sinPal, palancas: [...sinPal.palancas, id] });
+  const capNueva = (c) => topesDeTamano(c, s, 'hobby_eventos', 'eventos', 'topes').disco;
+  const capVieja = (c) => topesDeTamano(c, s, 'hobby_eventos', 'eventos', 'tipica').disco;
+  const hoy2 = { nueva: capNueva(sinPal), vieja: capVieja(sinPal) };
+  const dia2 = { nueva: capNueva(conPal('analitica_agregada_por_dia')), vieja: capVieja(conPal('analitica_agregada_por_dia')) };
+  const arch2 = { nueva: capNueva(conPal('archivar_sesiones_de_paga')), vieja: capVieja(conPal('archivar_sesiones_de_paga')) };
+  const porQueContarPorDia = {
+    contar_por_dia: { cifra_de_antes: [hoy2.vieja, dia2.vieja], ganancia_de_antes: dia2.vieja / hoy2.vieja - 1, cifra_ahora: [hoy2.nueva, dia2.nueva], ganancia_ahora: dia2.nueva / hoy2.nueva - 1 },
+    archivar: { cifra_ahora: [hoy2.nueva, arch2.nueva], ganancia_ahora: arch2.nueva / hoy2.nueva - 1, cifra_de_antes: [hoy2.vieja, arch2.vieja], ganancia_de_antes: arch2.vieja / hoy2.vieja - 1 },
+    frase: `Contar por día sólo recorta la analítica, que es ${n(desgloseComposicion.parte_analitica_del_disco * 100, 0)} % del disco promedio, y da +${n((dia2.nueva / hoy2.nueva - 1) * 100, 0)} % (${hoy2.nueva} → ${dia2.nueva}). Lo que domina son las sesiones y órdenes de los restaurantes de paga con 12 meses (${n(desgloseComposicion.parte_del_disco.de_paga.sesiones_y_ordenes * 100, 0)} % del disco): archivar las de los restaurantes de paga a 3 meses (en R2, no se borran) da +${n((arch2.nueva / hoy2.nueva - 1) * 100, 0)} % (${hoy2.nueva} → ${arch2.nueva}) con el gratuito a 30 días; por eso es la palanca que más da. Sin recortar al gratuito (12 meses, 03 §7) archivar sólo las de paga ayuda mucho menos (ver las combinaciones en la historia del disco)`,
+  };
+  return {
+    parte_que_paga: q,
+    meses_de_historial: { gratuito: 1, paga: mesesPaga },
+    cifra_de_antes: antes,
+    mb_por_restaurante: { promedio: mbProm, gratuito: pf.mb_gratuito, paga: pf.mb_paga },
+    parte_del_disco: { gratuitos: parteGratuitos, de_paga: parteDePaga },
+    restaurantes_que_caben_por_disco: e.disco,
+    si_todos_fueran_gratuitos: capPuros,
+    costo_del_disco_pesos_al_mes: { gratuito: costoDiscoGratuito, paga: costoDiscoPaga, lo_que_paga_un_restaurante_de_paga: precio, parte_del_precio_que_se_va_en_disco: costoDiscoPaga / precio },
+    por_que_no_es_la_cifra_de_antes: `Antes la cifra era ${antes} restaurantes y ahora es ${e.disco}, por dos cambios: (1) la unidad: antes se contaban restaurantes GRATUITOS típicos (${n(s.visitas_mes_gratuito, 0)} visitas al mes y ${n(mbAntes, 1)} MB cada uno con historial a 30 días); ahora se cuenta el restaurante REGISTRADO, con la mezcla de ${n(q * 1000, 0)} de paga por cada 1,000, donde cada uno de paga guarda ${mesesPaga} meses y llena ${n(pf.mb_paga, 1)} MB (${n(pf.mb_paga / pf.mb_gratuito, 1)} veces un gratuito); (2) la carga del gratuito sale de los topes (${n(pf.visitas_mes, 0)} visitas al mes con ${config.topes.gratuito.mesas} mesas, supuesto), así que un gratuito llena ${n(pf.mb_gratuito, 1)} MB y no ${n(mbAntes, 1)}. El promedio queda en ${n(mbProm, 1)} MB y caben menos. Si todos fueran gratuitos de los topes cabrían ${capPuros}.`,
+    desglose: desgloseComposicion,
+    por_que_contar_por_dia_ya_no_da_tanto: porQueContarPorDia,
+    hallazgo: parteDePaga > 0.5 ? `El disco lo llenan sobre todo los de paga (${n(parteDePaga * 100, 0)} %), que son ${n(q * 100, 1)} % de los restaurantes: su disco cuesta ${n(costoDiscoPaga, 2)} pesos al mes frente a ${n(precio, 0)} que pagan (${n((costoDiscoPaga / precio) * 100, 1)} %). Es una parte chica de lo que pagan: el disco no es el problema económico, sólo el tope técnico del volumen.` : `Los gratuitos llenan ${n(parteGratuitos * 100, 0)} % del disco; los de paga, ${n(parteDePaga * 100, 0)} %.`,
+  };
+}
+
+
+const POLITICA_DE_HISTORIAL = 'Política vigente de historial (03 §7: sesiones y comandas 24 meses y analítica 13 para todos los planes; hoy nada purga). La propuesta de 30 días para el gratuito es decisión pendiente de Calvin: va al lado, rotulada «propuesta».';
+
+/** La meta de 12 meses con la política vigente de historial (base) y, al lado, con la propuesta de 30 días. */
+export function meta12Meses(config, s) {
+  const base = meta12MesesBase(config, s);
+  const yaPropuesta = (config.palancas ?? []).includes('historial_gratuito_30_dias');
+  return { ...base, politica_de_historial: POLITICA_DE_HISTORIAL, con_la_propuesta_de_30_dias: yaPropuesta ? null : meta12MesesBase(conPropuesta30Dias(config), s) };
+}
+
+/** El sueldo con la política vigente de historial (base) y, al lado, con la propuesta de 30 días. */
+export function sueldo(config, s, monto = s.sueldo_fundador ?? 0) {
+  const base = sueldoBase(config, s, monto);
+  const yaPropuesta = (config.palancas ?? []).includes('historial_gratuito_30_dias');
+  return { ...base, politica_de_historial: POLITICA_DE_HISTORIAL, con_la_propuesta_de_30_dias: yaPropuesta ? null : sueldoBase(conPropuesta30Dias(config), s, monto).escenarios };
+}
+
+// ---------------------------------------------------------------- el dinero según la política de historial del gratuito
+/**
+ * Las cifras de cabecera con tres supuestos de historial del plan gratuito: la política VIGENTE (03 §7: 24 meses de sesiones y 13 de
+ * analítica, base de todo el modelo), 12 meses acumulados y la PROPUESTA de 30 días (decisión pendiente de Calvin; contradice 03 §7).
+ */
+export function politicasDeHistorial(config, s) {
+  const estados = [
+    { id: 'vigente_03_7', nombre: 'Política vigente (03 §7: 24 meses de sesiones y 13 de analítica)', cfg: config },
+    { id: 'doce_meses', nombre: 'El gratuito acumula 12 meses (sin purga)', cfg: conHistorialGratuito(config, s, 12) },
+    { id: 'propuesta_30_dias', nombre: 'PROPUESTA: el gratuito guarda 30 días (decisión pendiente de Calvin)', cfg: conPropuesta30Dias(config) },
+  ];
+  return estados.map((e) => {
+    const esc = Object.fromEntries(['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map((k) => [k, evaluarEscenario(k, e.cfg, s, 1000)]));
+    const m12 = meta12MesesBase(e.cfg, s).escenarios.recomendado.mes_12;
+    const sm = sueldoBase(e.cfg, s, tablaSueldos(config, s)[0].sueldo_mensual).escenarios.recomendado;
+    return {
+      id: e.id, nombre: e.nombre,
+      margen_operacion_1000: Object.fromEntries(Object.entries(esc).map(([k, v]) => [k, v.margen_operacion])),
+      gratuitos_que_sostiene_un_pagante_sin_anuncios: esc.recomendado.gratuitos_que_sostiene_un_pagante_sin_anuncios,
+      mes_12_con_300_restaurantes: { margen_operacion: m12.margen_operacion, margen_despues_de_captacion: m12.margen_despues_de_captacion },
+      sueldo_de_1_salario_minimo: { restaurantes_necesarios_en_regimen: sm.restaurantes_necesarios_en_regimen, mes_en_que_la_proyeccion_llega_a_ese_numero: sm.mes_en_que_la_proyeccion_llega_a_esos_restaurantes, mes_en_que_el_margen_lo_cubre: sm.mes_en_que_el_margen_despues_de_captacion_lo_cubre, restaurantes_ese_mes: sm.restaurantes_ese_mes_de_la_proyeccion, requiere_otra_arquitectura: sm.requiere_otra_arquitectura },
+    };
+  });
+}
+
+
+// ---------------------------------------------------------------- escenarios por eje: qué mueve cada uno
+/**
+ * Los escenarios mezclan tres ejes (curva de pago, anuncios, soporte de la paga) y «peor» no es lo peor. Aquí cada eje se mueve solo y se
+ * combinan al final, con nombres que dicen qué mueve cada uno (margen de operación con 1,000 restaurantes, con la política vigente de
+ * historial y con la propuesta de 30 días).
+ */
+export function escenariosPorEje(config, s) {
+  const [smin, smax] = s.rangos.soporte_servicio;
+  const filas = [
+    { id: 'recomendado', nombre: 'Recomendado: curva media, anuncios en tarifa baja, soporte de la paga en su valor central', curva: 'media', anuncios: 'baja', soporte: s.soporte_servicio, mueve: 'nada: es el caso central' },
+    { id: 'sin_anuncios', nombre: 'Sólo anuncios: nunca llegan (cero anuncios)', curva: 'media', anuncios: null, soporte: s.soporte_servicio, mueve: 'los anuncios' },
+    { id: 'curva_pesimista', nombre: 'Sólo la curva de pago: pesimista', curva: 'pesimista', anuncios: 'baja', soporte: s.soporte_servicio, mueve: 'quién paga' },
+    { id: 'curva_optimista', nombre: 'Sólo la curva de pago: optimista', curva: 'optimista', anuncios: 'baja', soporte: s.soporte_servicio, mueve: 'quién paga' },
+    { id: `soporte_${smin}`, nombre: `Sólo el soporte de la paga: ${smin} pesos al mes por cliente`, curva: 'media', anuncios: 'baja', soporte: smin, mueve: 'el soporte de la paga' },
+    { id: `soporte_${smax}`, nombre: `Sólo el soporte de la paga: ${smax} pesos al mes por cliente`, curva: 'media', anuncios: 'baja', soporte: smax, mueve: 'el soporte de la paga' },
+    { id: 'peor', nombre: '«Peor» de las rondas anteriores: curva pesimista y cero anuncios (soporte central)', curva: 'pesimista', anuncios: null, soporte: s.soporte_servicio, mueve: 'quién paga y los anuncios, no el soporte' },
+    { id: 'piso_sin_anuncios', nombre: 'Piso con cero anuncios: curva pesimista, cero anuncios y todos los soportes (gratuito, paga) al máximo de su rango', curva: 'pesimista', anuncios: null, soporte: smax, soporteTodo: true, mueve: 'los tres ejes' },
+    { id: 'estres', nombre: 'Estrés (el «piso de verdad» de las rondas anteriores): curva pesimista, anuncios adversos y todos los soportes al máximo', curva: 'pesimista', anuncios: 'adverso', soporte: smax, soporteTodo: true, mueve: 'los tres ejes' },
+  ];
+  const evalua = (cfg, f) => {
+    let ss = { ...s, soporte_servicio: f.soporte, ...(f.soporteTodo ? { soporte_gratuito: s.rangos.soporte_gratuito[1], soporte_salon: s.rangos.soporte_salon[1] } : {}) };
+    let opc = { curva: f.curva };
+    if (f.anuncios === null) opc.sinAnuncios = true;
+    else if (f.anuncios === 'adverso') { ss = { ...ss, anuncio_pesos_por_mil: { ...ss.anuncio_pesos_por_mil, baja: ss.anuncio_pesos_por_mil.baja / 2 } }; opc = { ...opc, anuncios: { activo: true, tarifa: 'baja' }, parteVisitasConAnuncio: 0.3 }; }
+    else opc.anuncios = { activo: true, tarifa: f.anuncios };
+    return evaluar(cfg, ss, 1000, opc).margen_operacion;
+  };
+  return filas.map((f) => ({ id: f.id, nombre: f.nombre, mueve: f.mueve, margen_con_la_politica_vigente: evalua(config, f), margen_con_la_propuesta_de_30_dias: evalua(conPropuesta30Dias(config), f) }));
+}
+
+
+// ---------------------------------------------------------------- el precio de la curva media no es un resultado
+/**
+ * La mediana de la curva «media» (225) es el precio de Meniu y es también el precio elegido: que la conversión sea 17.5 % y salgan 116
+ * pagantes es una consecuencia de esa igualdad, no un hallazgo. Aquí, el margen (1,000 restaurantes) y los pagantes si la mediana REAL de lo
+ * que pagaría un negocio es 150, 225 o 300, y con el techo de los que rebasan y pagarían (0.35: SUPUESTO) en su rango. Se mide con la prueba de
+ * precio del piloto.
+ */
+export function sensibilidadDeLaMediana(config, s, medianas = [150, 225, 300], techos = [0.2, 0.35, 0.5]) {
+  const filas = [];
+  for (const cfg0 of [{ nombre: 'política vigente (03 §7)', c: config }, { nombre: 'propuesta de 30 días', c: conPropuesta30Dias(config) }]) {
+    for (const m of medianas) for (const tc of techos) {
+      const ss = { ...s, curvas_pago: { ...s.curvas_pago, media: { ...s.curvas_pago.media, mediana: m, techo: tc } } };
+      const e = evaluar(cfg0.c, ss, 1000, { curva: 'media' });
+      filas.push({ historial: cfg0.nombre, mediana_real: m, techo: tc, conversion_al_precio_elegido: conversion('media', config.precios.servicio, ss, 'servicio'), pagantes_por_1000: e.clientes.de_paga, margen_operacion: e.margen_operacion });
+    }
+  }
+  return { precio_elegido: config.precios.servicio, mediana_supuesta: s.curvas_pago.media.mediana, techo_supuesto: s.curvas_pago.media.techo, nota: `La mediana supuesta (${s.curvas_pago.media.mediana}) es el precio de Meniu y el elegido (${config.precios.servicio}): la conversión y los pagantes del titular salen de esa igualdad. El techo ${s.curvas_pago.media.techo} (parte máxima de los que rebasan los topes que llegaría a pagar) es un SUPUESTO sin dato; rango de la tabla ${techos[0]} a ${techos[techos.length - 1]}. Se mide con la prueba de precio del piloto.`, filas };
+}
+
+
+// ---------------------------------------------------------------- una sola carga: antes (gratuito típico) y después (por topes)
+/**
+ * La carga de un restaurante gratuito tiene UNA definición (`cargaGratuita`): sale de los topes (visitas = mesas × `visitas_por_mesa_mes`).
+ * Esto devuelve, para las cifras de cabecera que Calvin ya vio, el valor con la carga del gratuito típico de las rondas anteriores
+ * (1,800 visitas al mes: comparación rotulada, no vigente) y con la carga por topes (vigente), y por qué cambian; además la
+ * sensibilidad a las visitas por mesa (el supuesto que ahora mueve todo) y la respuesta a si un Chef carga el tope entero o no.
+ */
+export function comparacionDeCarga(config, s, visitasPorMesa = [90, 180, 360]) {
+  // las cifras de la ronda 11 (archivadas) se calcularon con el historial del gratuito a 30 días: por eso las dos columnas usan la propuesta
+  const tip = conPropuesta30Dias({ ...config, carga: 'tipica' });
+  const top = conPropuesta30Dias({ ...config, carga: 'topes' });
+  const topVigente = { ...config, carga: 'topes' };
+  const ESC = ['recomendado', 'peor', 'mejor', 'piso_de_verdad'];
+  const cifras = (cfg, ss) => {
+    const cg = cargaGratuita(cfg, ss);
+    const esc = Object.fromEntries(ESC.map((e) => [e, evaluarEscenario(e, cfg, ss, 1000)]));
+    const m12 = meta12Meses(cfg, ss).escenarios.recomendado.mes_12;
+    const su = tablaSueldos(cfg, ss);
+    const rs = resumen(cfg, ss);
+    const caben = (k) => rs.cifras.find((x) => x.clave === k);
+    return {
+      carga_del_gratuito: { visitas_al_mes: cg.visitas_mes, razon_frente_al_tipico: cg.razon, mb: cg.mb, gb_fotos: cg.gb_fotos, visitas_con_la_app: cg.visitas_app },
+      margen_operacion_1000: Object.fromEntries(ESC.map((e) => [e, esc[e].margen_operacion])),
+      ingreso_de_anuncios_por_gratuito: esc.recomendado.por_cliente.ingreso_gratuito, // tarifa BAJA: la del escenario recomendado
+      ingreso_de_anuncios_por_gratuito_por_tarifa: Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, anunciosGenericoYPersonalizado(cfg, ss).por_tarifa[k].pesos_por_gratuito_v1_todo_generico])),
+      costo_por_gratuito: esc.recomendado.por_cliente.costo_gratuito,
+      gratuitos_que_sostiene_un_pagante: { con_anuncios: esc.recomendado.gratuitos_que_sostiene_un_pagante, sin_anuncios: esc.recomendado.gratuitos_que_sostiene_un_pagante_sin_anuncios, se_paga_solo: esc.recomendado.se_paga_solo },
+      mes_12_con_300_restaurantes: { ingresos: m12.ingresos, margen_operacion: m12.margen_operacion, margen_despues_de_captacion: m12.margen_despues_de_captacion },
+      sueldo: su.map((x) => ({ veces_el_salario_minimo: x.veces_el_salario_minimo, sueldo_mensual: x.sueldo_mensual, restaurantes_necesarios: x.escenarios.recomendado.restaurantes_necesarios, clientes_de_paga_necesarios: x.escenarios.recomendado.clientes_de_paga_necesarios, mes: x.escenarios.recomendado.mes_en_que_el_margen_despues_de_captacion_lo_cubre })),
+      bolsa: [500, 1000, 2000, 5000].map((b) => { const r = rangoBolsa(cfg, ss, b); return { bolsa: b, centro: r.centro.restaurantes, minimo: r.minimo, maximo: r.maximo }; }),
+      capacidad: { con_avisos: caben('restaurantes_que_caben_propuesta_30_dias').recomendado, con_sondeo: caben('restaurantes_que_caben_propuesta_30_dias').peor, sin_purga: caben('restaurantes_que_caben_sin_purga').recomendado },
+      bolsa_con_sondeo_de_hoy: rangoBolsa(cfg, ss, 1000).caben_con_el_sondeo_de_hoy,
+    };
+  };
+  const antes = cifras(tip, s);
+  const despues = cifras(top, s);
+  const cg = despues.carga_del_gratuito;
+  const r = cg.razon_frente_al_tipico;
+  const porQue = {
+    margen: `El gratuito de los topes (${config.topes.gratuito.mesas} mesas) carga ${n(cg.visitas_al_mes, 0)} visitas al mes y no ${n(antes.carga_del_gratuito.visitas_al_mes, 0)}: ${n(r * 100, 0)} % del típico. Eso baja el costo de servidor y disco por gratuito (${n(antes.costo_por_gratuito, 2)} → ${n(despues.costo_por_gratuito, 2)} pesos con soporte) y también sus anuncios (tarifa baja, la del escenario recomendado: ${n(antes.ingreso_de_anuncios_por_gratuito, 2)} → ${n(despues.ingreso_de_anuncios_por_gratuito, 2)} pesos; tarifa media: ${n(antes.ingreso_de_anuncios_por_gratuito_por_tarifa.media, 2)} → ${n(despues.ingreso_de_anuncios_por_gratuito_por_tarifa.media, 2)}), porque las visitas con la app son proporcionales; las fotos del tope de platillos suben el costo de R2 (${n(antes.carga_del_gratuito.gb_fotos, 2)} → ${n(cg.gb_fotos, 2)} GB por gratuito, supuesto).`,
+    gratuitos_que_sostiene: `Sin anuncios cada cliente de paga sostiene ${n(antes.gratuitos_que_sostiene_un_pagante.sin_anuncios, 0)} → ${n(despues.gratuitos_que_sostiene_un_pagante.sin_anuncios, 0)} gratuitos: el servidor y el disco de un gratuito son proporcionales a su carga (${n(r * 100, 0)} % del típico), el soporte (${s.soporte_gratuito} pesos, supuesto) no, y la suscripción no cambia. Con anuncios el gratuito se paga solo en los dos casos.`,
+    mes_12: `Con 300 restaurantes (misma adopción): ingresos ${n(antes.mes_12_con_300_restaurantes.ingresos, 0)} → ${n(despues.mes_12_con_300_restaurantes.ingresos, 0)} (menos anuncios por gratuito), margen de operación ${n(antes.mes_12_con_300_restaurantes.margen_operacion, 0)} → ${n(despues.mes_12_con_300_restaurantes.margen_operacion, 0)}.`,
+    sueldo: `Para 1 salario mínimo hacen falta ${n(antes.sueldo[0].restaurantes_necesarios, 0)} → ${n(despues.sueldo[0].restaurantes_necesarios, 0)} restaurantes (mes ${antes.sueldo[0].mes} → ${despues.sueldo[0].mes}): el margen por restaurante cambia con el costo y los anuncios de cada gratuito.`,
+    bolsa: `Con la bolsa de 1,000 pesos caben ${n(antes.bolsa[1].centro, 0)} → ${n(despues.bolsa[1].centro, 0)} gratuitos: sin anuncios, el soporte por gratuito (${s.soporte_gratuito} pesos, supuesto, no depende de la carga) domina su costo, así que casi no cambia.`,
+    capacidad: 'Ver `composicion_del_disco`: el promedio incluye a los de paga con 12 meses.',
+  };
+  const sensDe = (cfgBase) => visitasPorMesa.map((v) => {
+    const ss = { ...s, perfil_por_topes: { ...s.perfil_por_topes, visitas_por_mesa_mes: v } };
+    const c = cifras(cfgBase, ss);
+    return { visitas_por_mesa_al_mes: v, visitas_del_gratuito_al_mes: c.carga_del_gratuito.visitas_al_mes, margen_operacion_recomendado_1000: c.margen_operacion_1000.recomendado, margen_operacion_peor_1000: c.margen_operacion_1000.peor, gratuitos_que_sostiene_sin_anuncios: c.gratuitos_que_sostiene_un_pagante.sin_anuncios, ingreso_de_anuncios_por_gratuito: c.ingreso_de_anuncios_por_gratuito, capacidad: c.capacidad, bolsa_1000: c.bolsa.find((x) => x.bolsa === 1000).centro };
+  });
+  const sens = sensDe(top);
+  const sensVigente = sensDe(topVigente);
+  return {
+    version: VERSION,
+    definicion: `Un gratuito carga mesas del tope × ${s.perfil_por_topes.visitas_por_mesa_mes} visitas al mes. El 180 sale del simulador: ${s.visitas_mes_gratuito} visitas al mes con ${s.perfil_por_topes.mesas_perfil_tipico} mesas [documento: planes-y-costo §0]; es un SUPUESTO sin medir.`,
+    tope_entero_o_distribucion: `La carga de un Chef es el tope entero × ${s.perfil_por_topes.visitas_por_mesa_mes} (cota alta: todos los gratuitos tienen ${config.topes.gratuito.mesas} mesas activas). No hay datos para usar la distribución de mesas dentro del tope: el modelo de mesas y cuentas (dispersión lognormal, supuesto) sólo da la parte de negocios que cabe dentro, no cuántas mesas usa cada uno. La sensibilidad con ${visitasPorMesa[0]} visitas por mesa equivale a un negocio promedio con la mitad del tope.`,
+    datos_por_conseguir: ['Visitas por mesa al mes (eventos `scan` por `mesa_id` del piloto): mide el 180.', 'Mesas activas por restaurante al alta (tabla `mesa`, sin datos personales): mide cuántos usan el tope entero y deja usar la distribución.'],
+    antes_tipica_no_vigente: antes,
+    despues_por_topes_vigente: despues,
+    por_que: porQue,
+    sensibilidad_visitas_por_mesa: sens,
+    sensibilidad_visitas_por_mesa_con_la_politica_vigente: sensVigente,
+  };
+}
+
+
+// ---------------------------------------------------------------- historia del disco con una mesa de tres comensales
+/**
+ * Paso a paso, qué fila entra en qué tabla cuando una mesa de tres comensales entra, ordena, llama y se va, con bytes de datos más índices
+ * medidos en la copia (bytes por fila = tamaño total de la tabla entre sus filas). Los conteos por sesión salen de los cocientes de la
+ * copia (medidos) y los eventos por sesión son un supuesto del generador de datos. Luego, cómo queda lo guardado con cada opción para
+ * bajar el uso del disco y cuántos restaurantes caben con cada una (con la carga por topes y el historial del plan gratuito a 30 días).
+ */
+export function historiaDelDisco(config, s, comensales = 3) {
+  const tv = s.tablas_de_una_visita;
+  const fv = s.fila_por_visita;
+  const f = tv.filas_por_tabla;
+  const mps = fv.miembros_por_sesion;
+  const porMiembro = (tabla) => f[tabla].filas / fv.visitas_de_comensal_en_la_copia;
+  const porSesion = (tabla) => f[tabla].filas / fv.sesiones_en_la_copia;
+  const evPorMiembro = tv.eventos_por_sesion / mps;
+  const pasos = [
+    { paso: 'Escanean el QR: entra el primero y se crea la sesión de la mesa', tabla: 'sesion_grupal', filas: 1, bytes_por_fila: f.sesion_grupal.bytes_por_fila },
+    { paso: `Cada comensal entra y se vuelve miembro (${comensales})`, tabla: 'miembro_sesion', filas: comensales, bytes_por_fila: f.miembro_sesion.bytes_por_fila },
+    { paso: 'Cada uno abre su orden personal', tabla: 'orden_personal', filas: comensales * porMiembro('orden_personal'), bytes_por_fila: f.orden_personal.bytes_por_fila },
+    { paso: `Agregan platillos a su orden (${n1x(porMiembro('item_orden'))} por comensal en la copia)`, tabla: 'item_orden', filas: comensales * porMiembro('item_orden'), bytes_por_fila: f.item_orden.bytes_por_fila },
+    { paso: 'La mesa envía la comanda al personal', tabla: 'comanda', filas: porSesion('comanda'), bytes_por_fila: f.comanda.bytes_por_fila },
+    { paso: 'La comanda enlaza la orden de cada comensal', tabla: 'comanda_orden', filas: comensales * porMiembro('comanda_orden'), bytes_por_fila: f.comanda_orden.bytes_por_fila },
+    { paso: 'Alguien llama al mesero (en la copia: una de cada 3.3 sesiones)', tabla: 'llamada_mesero', filas: porSesion('llamada_mesero'), bytes_por_fila: f.llamada_mesero.bytes_por_fila },
+    { paso: `Mientras tanto, el teléfono de cada comensal manda sus eventos (${n1x(evPorMiembro)} por comensal: supuesto del generador)`, tabla: 'evento_analitica', filas: comensales * evPorMiembro, bytes_por_fila: tv.evento_bytes_por_fila },
+  ];
+  let acum = 0;
+  for (const x of pasos) { x.bytes = x.filas * x.bytes_por_fila; acum += x.bytes; x.acumulado = acum; }
+  const analitica = pasos[pasos.length - 1].bytes;
+  const sinAnalitica = acum - analitica;
+  // lo que guardan las opciones de la analítica por mesa de tres (la tabla de la visita no cambia)
+  const base = { ...config, topes: { ...config.topes } };
+  const caben = (palancas, historial) => {
+    const c = { ...base, palancas };
+    const cc = historial ? conHistorialGratuito(c, s, 1) : c;
+    const r = recursos(cc, s, { canal: 'eventos', carga: 'topes', meses_historial: 12 });
+    const d = r.recursos.find((x) => x.recurso === 'disco');
+    return historial ? d.con_historial_30_dias.restaurantes_con_eventos : d.restaurantes_con_eventos;
+  };
+  const mbPorRestMes = (factor) => (factor * tv.evento_bytes_por_fila * tv.eventos_por_sesion * fv.sesiones_en_la_copia) / fv.restaurantes_en_la_copia / 1e6;
+  const opciones = [
+    { id: 'hoy', nombre: 'Hoy: una fila por evento', palancas: [], factor: 1, que_queda: 'una fila por toque del comensal, con sesión, miembro, platillo, huella de red y navegador', se_pierde: 'nada' },
+    { id: 'contar_por_dia', nombre: 'Contar por día', palancas: ['analitica_agregada_por_dia'], factor: s.factores_disco_eventos.agregada_por_dia_cota_alta, que_queda: 'un conteo por restaurante, día, tipo y platillo; crece con los días y los platillos, no con las visitas', se_pierde: 'el detalle por sesión y por teléfono' },
+    { id: 'fila_por_visita', nombre: 'Fila por visita de comensal (propuesta de Calvin)', palancas: ['fila_por_visita_de_comensal'], factor: fv.sola, que_queda: 'una fila por comensal y día con veces y segundos en menú, platillo y búsqueda (los filtros se cuentan por restaurante y día, no por comensal); crece con las visitas', se_pierde: 'qué platillo se vio y el orden de los toques' },
+    { id: 'fila_mas_platillo', nombre: 'Fila por visita más conteo de platillo por día', palancas: ['fila_por_visita_mas_platillo_por_dia'], factor: fv.con_platillo_por_dia, que_queda: 'la fila por visita más un conteo diario por platillo', se_pierde: 'cuál comensal vio cuál platillo' },
+    { id: 'adelgazar', nombre: 'Adelgazar la tabla (índices mínimos y tipos chicos)', palancas: ['indices_de_evento_minimos', 'tipos_mas_chicos'], factor: s.factores_disco_eventos.ambos, que_queda: 'una fila por evento, más angosta y con dos índices', se_pierde: 'índices de consulta; huella de red de 8 bytes' },
+    { id: 'archivar_paga', nombre: 'Archivar las sesiones de los restaurantes de paga (3 meses en la base)', palancas: ['archivar_sesiones_de_paga'], factor: 1, que_queda: 'la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo queda en R2 (no se borra)', se_pierde: 'consulta inmediata de lo viejo de los de paga; hay que releer del archivo' },
+    { id: 'archivar_todos', nombre: 'Archivar las sesiones de todos los planes (3 meses en la base)', palancas: ['archivar_sesiones_de_todos_los_planes'], factor: 1, que_queda: 'la base conserva sólo 3 meses de las sesiones de cada restaurante, gratuito incluido; lo viejo queda en R2 (no se borra)', se_pierde: 'consulta inmediata de lo viejo de todos; el gratuito pierde historial en línea', },
+  ];
+  for (const o of opciones) {
+    o.bytes_analitica_por_mesa_de_3 = analitica * o.factor;
+    o.mb_analitica_por_restaurante_mes_en_la_copia = mbPorRestMes(o.factor);
+    o.restaurantes_que_caben_sin_purga = caben(o.palancas, false);
+    o.restaurantes_que_caben_con_historial_30_dias = caben(o.palancas, true);
+  }
+  const ARCH = [['sin archivo', []], ['archivar sólo las de paga', ['archivar_sesiones_de_paga']], ['archivar las de todos los planes', ['archivar_sesiones_de_todos_los_planes']]];
+  const ANAL = [['una fila por evento (hoy)', []], ['contar por día', ['analitica_agregada_por_dia']], ['fila por visita', ['fila_por_visita_de_comensal']], ['fila por visita más platillo por día', ['fila_por_visita_mas_platillo_por_dia']]];
+  const combinaciones = [];
+  for (const [na, pa] of ARCH) for (const [nn, pn] of ANAL) combinaciones.push({ archivo: na, analitica: nn, caben_con_historial_del_gratuito_a_30_dias: caben([...pa, ...pn], true), caben_con_el_gratuito_a_12_meses_sin_purga: caben([...pa, ...pn], false) });
+  return { comensales, pasos, combinaciones, bytes_de_la_mesa_sin_analitica: sinAnalitica, bytes_de_analitica: analitica, bytes_total: acum, opciones, comprar_disco: 'No cambia los datos guardados: sube el costo del escalón (ver la escalera en recursos y palancas).', supuestos: ['eventos por sesión: 10 (supuesto del generador de datos)', 'contadores de la fila por visita: sintéticos (el tamaño no depende del valor)', 'bytes por fila: con índices, de una copia con datos sintéticos; con tráfico real cambia'] };
+}
+function n1x(x) { return (Math.round(x * 10) / 10).toLocaleString('en-US'); }
+
+
+// ---------------------------------------------------------------- lo que cuesta un platillo (el tope de platillos del plan Chef, reabierto)
+/**
+ * Para decidir el tope de platillos: qué cuesta técnicamente un platillo (bytes en la base, fotos en R2, peso del menú y procesador de
+ * armarlo), cuántos restaurantes caben en lo gratuito de R2 con 50, 80, 100 y 150 platillos con foto, cuánto cuesta pasarse, la cobertura
+ * con las dos cotas, el efecto en el disco y el procesador, y la conclusión en una frase. Medido con textos y fotos del repositorio
+ * (sintéticos); las fotos reales y sus originales son SUPUESTOS marcados.
+ */
+export function costoDePlatillo(config, s, topes = [50, 80, 100, 150]) {
+  const pl = s.platillo;
+  const fotoVar = pl.foto_variantes_bytes_real;
+  const fotoOrig = pl.foto_original_bytes_tipico;
+  const qFija = evaluar(config, s, 1000, { curva: config.curva ?? 'media' }).clientes.de_paga / 1000;
+  const filas = topes.map((N) => {
+    const c = { ...config, parte_de_paga_fija: qFija, palancas: [...new Set([...(config.palancas ?? []), 'historial_gratuito_30_dias'])], topes: { ...config.topes, gratuito: { ...config.topes.gratuito, platillos: N } } };
+    const r = recursos(c, s, { canal: 'eventos', carga: 'topes' });
+    const rs = recursos(c, s, { canal: 'sondeo', carga: 'topes' });
+    const t30 = (canal) => topesDeTamano(conHistorialGratuito(c, s, 1), s, 'hobby_eventos', canal, 'topes');
+    const continuo = { avisos: t30('eventos'), sondeo: t30('sondeo') };
+    const gb = (N * pl.parte_con_foto * (fotoOrig + fotoVar)) / 1e9;
+    const gbMin = (N * pl.parte_con_foto * (pl.rango_foto_original_bytes[0] + pl.rango_foto_variantes_bytes_real[0])) / 1e9;
+    const gbMax = (N * pl.parte_con_foto * (pl.rango_foto_original_bytes[1] + pl.rango_foto_variantes_bytes_real[1])) / 1e9;
+    const jsonBytes = pl.menu_json_bytes_por_platillo * N;
+    const msArmar = pl.ms_armar_menu_base + pl.ms_armar_menu_por_platillo * N;
+    const cap = (res, id) => res.recursos.find((x) => x.recurso === id).con_historial_30_dias.restaurantes_con_eventos;
+    const capS = (res, id) => res.recursos.find((x) => x.recurso === id).con_historial_30_dias.restaurantes_hoy;
+    const mezcla = evaluar({ ...c, parte_de_paga_fija: undefined }, s, 1000, { curva: config.curva ?? 'media' }).clientes.de_paga;
+    const cobertura = { baja: coberturaPlatillos(c, { ...s, cota_platillos: 'baja' }, { tope: N }), alta: coberturaPlatillos(c, { ...s, cota_platillos: 'alta' }, { tope: N }) };
+    return {
+      platillos: N,
+      base_de_datos: { bytes_por_platillo: pl.bytes_en_la_base, bytes_por_restaurante: pl.bytes_en_la_base * N, rango_bytes_por_restaurante: [pl.rango_bytes_en_la_base[0] * N, pl.rango_bytes_en_la_base[1] * N] },
+      fotos_en_r2: { gb_por_restaurante: gb, rango_gb: [gbMin, gbMax], restaurantes_que_caben_en_lo_gratis: Math.floor(s.r2_gratis_gb / gb), rango_restaurantes: [Math.floor(s.r2_gratis_gb / gbMax), Math.floor(s.r2_gratis_gb / gbMin)], pesos_al_mes_por_restaurante_si_se_pasa: gb * s.r2_usd_gb_mes * s.fx, con_foto: N * pl.parte_con_foto },
+      menu: { json_bytes: jsonBytes, ms_armar_por_cada_30_segundos: msArmar, parte_de_un_nucleo: msArmar / 1000 / pl.armado_cada_segundos },
+      cobertura_de_platillos: cobertura,
+      con_la_mezcla_de_paga_variable: Object.fromEntries(['baja', 'alta'].map((cota) => {
+        const ss = { ...s, cota_platillos: cota };
+        const cv = conPropuesta30Dias({ ...config, topes: { ...config.topes, gratuito: { ...config.topes.gratuito, platillos: N } } });
+        const ev = evaluar(cv, ss, 1000, { curva: config.curva ?? 'media' });
+        return [cota, { pagantes_por_1000: ev.clientes.de_paga, disco_con_avisos: topesDeTamano(cv, ss, 'hobby_eventos', 'eventos', 'topes').disco, disco_con_sondeo: topesDeTamano(cv, ss, 'hobby_sondeo', 'sondeo', 'topes').disco, margen_operacion: ev.margen_operacion }];
+      })),
+      clientes_de_paga_por_1000_por_el_tope: mezcla,
+      cobertura_de_0_a_5_dentro_de_chef: { baja: coberturaEstratos(c, s, 'centro', 'baja').dentro_0_5, alta: coberturaEstratos(c, s, 'centro', 'alta').dentro_0_5 },
+      continuo: { mb_por_restaurante: continuo.avisos.mb_por_restaurante, carga_cpu_total_con_avisos: continuo.avisos.carga_cpu_total, carga_cpu_total_con_sondeo: continuo.sondeo.carga_cpu_total, menu_en_unidades_de_carga_con_avisos: continuo.avisos.menu_en_unidades_de_carga },
+      capacidad: { con_avisos: { disco: cap(r, 'disco'), procesador: cap(r, 'procesador'), cuello: r.cuello_con_eventos.con_historial_30_dias.recurso, restaurantes: r.cuello_con_eventos.con_historial_30_dias.restaurantes }, con_sondeo: { disco: capS(rs, 'disco'), procesador: capS(rs, 'procesador'), cuello: rs.cuello_hoy.con_historial_30_dias.recurso, restaurantes: rs.cuello_hoy.con_historial_30_dias.restaurantes } },
+    };
+  });
+  const a = filas[0];
+  const z = filas[filas.length - 1];
+  const rel = (x, y) => (y - x) / x;
+  // efecto por restaurante a mezcla fija: cuánto MENOS cabe por disco (más MB) y por procesador (más carga) al subir el tope
+  const efecto = { disco_con_avisos: -rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante) / (1 + rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante)), procesador_con_avisos: -rel(a.continuo.carga_cpu_total_con_avisos, z.continuo.carga_cpu_total_con_avisos) / (1 + rel(a.continuo.carga_cpu_total_con_avisos, z.continuo.carga_cpu_total_con_avisos)), disco_con_sondeo: -rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante) / (1 + rel(a.continuo.mb_por_restaurante, z.continuo.mb_por_restaurante)), procesador_con_sondeo: -rel(a.continuo.carga_cpu_total_con_sondeo, z.continuo.carga_cpu_total_con_sondeo) / (1 + rel(a.continuo.carga_cpu_total_con_sondeo, z.continuo.carga_cpu_total_con_sondeo)) };
+  const pct = (x) => `${(Math.abs(x) * 100).toFixed(1)} %`;
+  const conclusion = `De ${a.platillos} a ${z.platillos} platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben ${pct(efecto.disco_con_avisos)} menos restaurantes: ${pl.bytes_en_la_base} bytes por platillo); el procesador pierde ${pct(efecto.procesador_con_sondeo)} con el sondeo de hoy y hasta ${pct(efecto.procesador_con_avisos)} con avisos (cota alta: se supone que el menú se arma cada ${pl.armado_cada_segundos} s en la hora pico, de ${a.menu.ms_armar_por_cada_30_segundos.toFixed(0)} a ${z.menu.ms_armar_por_cada_30_segundos.toFixed(0)} ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo ${z.capacidad.con_avisos.cuello} (${z.capacidad.con_avisos.restaurantes} restaurantes con avisos y ${z.capacidad.con_sondeo.restaurantes} con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de ${a.fotos_en_r2.gb_por_restaurante.toFixed(2)} a ${z.fotos_en_r2.gb_por_restaurante.toFixed(2)} GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta ${z.fotos_en_r2.pesos_al_mes_por_restaurante_si_se_pasa.toFixed(2)} pesos al mes por restaurante) y el menú que baja el teléfono (de ${Math.round(a.menu.json_bytes / 1000)} a ${Math.round(z.menu.json_bytes / 1000)} KB); y el tope cambia cuántos negocios pasan a pagar (de ${a.clientes_de_paga_por_1000_por_el_tope.toFixed(0)} a ${z.clientes_de_paga_por_1000_por_el_tope.toFixed(0)} de paga por cada 1,000).`;
+  const va = a.con_la_mezcla_de_paga_variable;
+  const vz = z.con_la_mezcla_de_paga_variable;
+  const loQueSiMueve = `Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: con la parte de paga variable y las dos cotas, el tope de ${a.platillos} deja ${n(va.baja.pagantes_por_1000, 0)} pagantes por 1,000 con la cota baja (${n(va.alta.pagantes_por_1000, 0)} con la alta) y caben ${n(va.baja.disco_con_avisos, 0)} restaurantes por disco con avisos (${n(va.alta.disco_con_avisos, 0)} con la alta); el de ${z.platillos}, ${n(vz.baja.pagantes_por_1000, 0)} pagantes (${n(vz.alta.pagantes_por_1000, 0)}) y ${n(vz.baja.disco_con_avisos, 0)} (${n(vz.alta.disco_con_avisos, 0)}). Más gente de paga llena antes el disco (cada restaurante de paga guarda 12 meses). Margen con 1,000 restaurantes: ${n(va.baja.margen_operacion, 0)} → ${n(vz.baja.margen_operacion, 0)} (cota baja).`;
+  return { lo_que_si_mueve_el_tope: loQueSiMueve, filas, efecto_de_subir_el_tope: { de: a.platillos, a: z.platillos, ...efecto }, conclusion, medido_con: 'textos y fotos del repositorio (sintéticos); fotos reales y originales: supuestos con rango', supuestos: { foto_variantes_bytes_real: fotoVar, foto_original_bytes_tipico: fotoOrig, parte_con_foto: pl.parte_con_foto } };
+}
+
+// ---------------------------------------------------------------- lo que deja cada tamaño de negocio
+/**
+ * Por tramo de personas: negocios que caen en Chef y en Master Chef, ingreso de anuncios de los primeros (tres tarifas) e ingreso de
+ * suscripción de los segundos: si todos pagaran y con la curva de pago en los tres escenarios (pesimista, media, optimista). Es un techo
+ * teórico, no una proyección: sólo los conteos por estrato son medidos; el reparto entre planes es el modelo de mesas y cuentas.
+ */
+export function potencialPorTramo(config, s) {
+  const base = potencialChef(config, s);
+  const ps = config.precios.servicio;
+  const curvas = Object.keys(s.curvas_pago);
+  const tramos = base.tramos.map((x) => {
+    const anuncios = Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, x.negocios_en_chef * base.potencial_anuncios_mes[k].pesos_por_negocio_al_mes]));
+    const suscripcion = {
+      si_todos_pagaran: x.negocios_en_master_chef * ps,
+      por_curva_de_pago: Object.fromEntries(curvas.map((c) => [c, x.negocios_en_master_chef * conversion(c, ps, s, 'servicio') * ps])),
+      parte_que_paga: Object.fromEntries(curvas.map((c) => [c, conversion(c, ps, s, 'servicio')])),
+    };
+    return { tramo: x.tramo, negocios: x.negocios, en_chef: x.negocios_en_chef, en_master_chef: x.negocios_en_master_chef, parte_en_chef: x.parte_en_chef, ingreso_de_anuncios_al_mes: anuncios, ingreso_de_suscripcion_al_mes: suscripcion };
+  });
+  const suma = (f) => tramos.reduce((a, x) => a + f(x), 0);
+  const nota_curva = 'SUPUESTO: la parte que paga es la misma para todos los tamaños (la curva de pago mira el precio, no el tramo); un negocio de 0 a 5 personas no paga igual de fácil que uno de 51 a 100. Los datos por estrato (2026-11-14-lo-que-paga-un-restaurante-por-estrato.csv) dan gasto en comunicación, publicidad y servicios profesionales, no disposición a pagar por un software, y sus estratos (0 a 10, 11 a 50, 51 a 250) no coinciden con los tramos: no alcanzan para diferenciar la curva. Datos por conseguir: la prueba de precio del piloto, repartida por tamaño del negocio (personas y mesas) y registrando quién acepta cada precio.';
+  return { precio_master_chef: ps, nota_curva, tramos, total: { en_chef: suma((x) => x.en_chef), en_master_chef: suma((x) => x.en_master_chef), anuncios_al_mes: Object.fromEntries(['baja', 'media', 'alta'].map((k) => [k, suma((x) => x.ingreso_de_anuncios_al_mes[k])])), suscripcion_si_todos_pagaran: suma((x) => x.ingreso_de_suscripcion_al_mes.si_todos_pagaran), suscripcion_por_curva: Object.fromEntries(curvas.map((c) => [c, suma((x) => x.ingreso_de_suscripcion_al_mes.por_curva_de_pago[c])])) }, supuestos: base.supuestos };
 }
 
 // ---------------------------------------------------------------- banderas de operación

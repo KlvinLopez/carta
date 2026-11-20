@@ -16,10 +16,10 @@ const N = [100, 1000, 10000];
 
 // ------------------------------------------------------------------ cálculo
 const rec = M.configInicial();
-const tres = M.configTresPlanes25Mesas(); // la configuración de las rondas 4 a 7 (Chef 25 · 4 · 150, Master Chef, Chef Ejecutivo)
+const tres = { ...M.configTresPlanes25Mesas(), carga: 'tipica' }; // HISTÓRICO, con la carga típica (comparación rotulada: con la carga por topes 25 mesas × 180 visitas no cabe en la arquitectura de hoy) // la configuración de las rondas 4 a 7 (Chef 25 · 4 · 150, Master Chef, Chef Ejecutivo)
 const opt = M.optimizar(s, {}, tres); // la restricción de ≥ 95 % de ≤ 10 personas era del plan anterior
 const mejor = opt.mejor;
-const antes = M.configTopes10Mesas3Cuentas();
+const antes = { ...M.configTopes10Mesas3Cuentas(), carga: 'tipica' }; // HISTÓRICO, con la carga típica
 
 const resumenEsc = (e) => ({ n: e.n, gratuitos: e.clientes.gratuito, pagantes: e.clientes.de_paga, ingresos: e.ingresos.total, anuncios: e.ingresos.anuncios, suscripcion: e.ingresos.suscripcion, costos: e.costos.total, margen_operacion: e.margen_operacion, margen_despues_de_captacion: e.margen_despues_de_captacion, margen_pct: e.margen.porcentaje, escalon: e.capacidad.escalon, muro: e.capacidad.muro_que_manda, requiere_arquitectura: e.capacidad.requiere_arquitectura, instancias: e.capacidad.instancias, extrapolacion_sin_medir: e.extrapolacion_sin_medir, equilibrio_pagantes: e.equilibrio_pagantes, se_paga_solo: e.se_paga_solo, gratuitos_por_pagante: e.gratuitos_que_sostiene_un_pagante, gratuitos_por_pagante_sin_anuncios: e.gratuitos_que_sostiene_un_pagante_sin_anuncios, ingreso_por_gratuito: e.por_cliente.ingreso_gratuito, costo_por_gratuito: e.por_cliente.costo_gratuito, ingreso_por_pagante: e.por_cliente.ingreso_por_pagante, costo_por_pagante: e.por_cliente.costo_servicio, comensales_mes: e.comensales_mes });
 const esc = M.escenarios(rec, s, N).map((r) => ({ n: r.n, peor_sin_anuncios: resumenEsc(r.peor_firme), peor_anuncios_tarifa_baja: resumenEsc(r.peor_anuncios_tarifa_baja), peor_anuncios_adversos: resumenEsc(r.peor_anuncios_adversos), peor_anuncios_tarifa_media: resumenEsc(r.peor_anuncios_tarifa_media), mejor: resumenEsc(r.mejor), esperado: Object.fromEntries(curvas.map((c) => [c, resumenEsc(r.esperado[c])])) }));
@@ -61,10 +61,14 @@ const estratos = ['centro', 'minimo', 'maximo'].map((k) => [k, M.coberturaEstrat
 const estratosBaja = M.coberturaEstratos(rec, s, 'centro', 'baja');
 const alternativas = [[5, 1], [6, 1], [6, 2], [8, 2], [10, 3]].map(([mesas, cuentas]) => { const c = { ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, mesas, cuentas } } }; const e = M.coberturaEstratos(c, s, 'centro'); const m = M.evaluar(c, s, 1000, { curva: 'media' }); return { mesas, cuentas, dentro_0_5: e.dentro_0_5, cae_6_10: e.cae_en_master_6_10, pagantes: m.clientes.de_paga, margen_operacion: m.margen_operacion }; });
 const res = M.resumen(rec, s, 1000);
+const politicas = M.politicasDeHistorial(rec, s);
+const cargaG = M.cargaGratuita(rec, s);
 const msj = M.mensajes(rec, s);
 const meta = M.meta12Meses(rec, s);
 const chef = M.potencialChef(rec, s);
 const tablero = M.palancasEnTablero(rec, s);
+const costoPl = M.costoDePlatillo(rec, s);
+const fpl = (N) => costoPl.filas.find((f) => f.platillos === N);
 const pisoE = M.evaluarEscenario('piso_de_verdad', rec, s, 1000);
 const sens = M.sensibilidad(rec, s, 1000);
 const sensSin = M.sensibilidad(rec, s, 1000, { sinAnuncios: true });
@@ -99,6 +103,7 @@ const resultados = { version: M.VERSION, config_inicial: rec, config_topes_10_me
   cobertura_platillos: { tabla: s.cobertura_platillos, nota: 'DOS COTAS de sesgo opuesto; NO se sabe cuál es la cobertura real', por_tipo_baja: s.cobertura_platillos.por_tipo_baja },
   cobertura_chef_por_cota: { centro: cobChef, minimo_del_modelo_de_mesas: cobChefMin, topes: { mesas: rec.topes.gratuito.mesas, cuentas: rec.topes.gratuito.cuentas, platillos: rec.topes.gratuito.platillos } },
   opciones_tope_platillos: opcionesPlat,
+  costo_de_platillo: costoPl,
   seguridad_chef: { con_dispersion: segC, topes: { mesas: rec.topes.gratuito.mesas, cuentas: rec.topes.gratuito.cuentas, platillos: rec.topes.gratuito.platillos }, sigma_mesas_por_cuenta: s.sigma_mesas_por_cuenta, rango_sigma: s.rangos.sigma_mesas_por_cuenta, nota: 'centro con sigma 0.5; mínimo y máximo sobre las 27 combinaciones (f, mesas por cuenta, sigma) del modelo' },
   definiciones: M.definiciones(s),
   meta_12_meses: meta,
@@ -172,7 +177,25 @@ const md = `# Modelo de escenarios de Carta: dos planes (Chef y Master Chef), el
 4. **Una sola cuenta frente al ADR-017** (el dueño es el validador y el primer mesero): el plan gratuito es **operación de una persona con un PIN**; el dueño recibe y atiende las comandas en su propio teléfono, sin mesero aparte ni capitán.
 5. **Peor caso real (todos gratuitos): con ${n0(b1000.bolsa)} pesos al mes de bolsa caben ${n0(b1000.centro.restaurantes)} restaurantes gratuitos (rango ${n0(b1000.minimo)} a ${n0(b1000.maximo)} según el soporte, sin fuente), con el canal de eventos construido; los anuncios pagan el sistema desde ${rg(rangos.baja)} restaurantes con la tarifa baja** (son rangos, no puntos). **Qué medir primero: ${sens.medir_primero.slice(0, 3).map((x) => x.supuesto).join(', ')}.**
 
-**Supuesto de historial en TODAS las cifras de costo, bolsa, margen y escalón:** el plan gratuito guarda **${rec.topes.gratuito.meses_en_linea} mes (30 días)** de visitas y analítica. **Es una propuesta que contradice 03 §7 (13 y 24 meses) y hoy nada purga.** Sin purga (12 meses acumulados) la bolsa de ${n0(b1000.bolsa)} pesos carga ${n0(bolsaSinPurga.restaurantes)} restaurantes en vez de ${n0(b1000.centro.restaurantes)}, y el margen recomendado con 1,000 restaurantes es ${sg(margenSinPurga.margen_operacion)} en vez de ${sg(mop.recomendado)}.
+**Supuesto de historial en TODAS las cifras de costo, bolsa, margen y escalón: la política VIGENTE (03 §7).** El plan gratuito conserva **${rec.topes.gratuito.meses_en_linea} meses de sesiones y ${rec.disco.meses_analitica_en_linea.gratuito} de analítica** (lo que dice 03 §7 para todos los planes; hoy nada purga). **Recortar el historial del gratuito a 30 días es una PROPUESTA, decisión pendiente de Calvin, que contradice 03 §7;** va al lado, rotulada:
+
+| Historial del plan gratuito | Margen recomendado, 1,000 restaurantes | Peor | Mejor | Estrés | Gratuitos que sostiene un pagante (sin anuncios) | Mes 12 (300 restaurantes): margen de operación | Sueldo de 1 salario mínimo: restaurantes en régimen |
+|---|---|---|---|---|---|---|---|
+${politicas.map((x) => `| ${x.nombre} | ${sg(x.margen_operacion_1000.recomendado)} | ${sg(x.margen_operacion_1000.peor)} | ${sg(x.margen_operacion_1000.mejor)} | ${sg(x.margen_operacion_1000.piso_de_verdad)} | ${n0(x.gratuitos_que_sostiene_un_pagante_sin_anuncios)} | ${sg(x.mes_12_con_300_restaurantes.margen_operacion)} | ${n0(x.sueldo_de_1_salario_minimo.restaurantes_necesarios_en_regimen)} |`).join('\n')}
+
+**Qué mueve cada escenario** (margen de operación con 1,000 restaurantes; «peor» no es lo peor):
+
+| Escenario | Qué mueve | Con la política vigente | Con la propuesta de 30 días |
+|---|---|---|---|
+${M.escenariosPorEje(rec, s).map((x) => `| ${x.nombre} | ${x.mueve} | ${sg(x.margen_con_la_politica_vigente)} | ${sg(x.margen_con_la_propuesta_de_30_dias)} |`).join('\n')}
+
+**El precio de la curva media no es un resultado.** ${M.sensibilidadDeLaMediana(rec, s).nota}
+
+| Historial del gratuito | Mediana real de lo que pagaría un negocio | Techo (SUPUESTO) | Conversión al precio elegido | Pagantes por 1,000 | Margen con 1,000 restaurantes |
+|---|---|---|---|---|---|
+${M.sensibilidadDeLaMediana(rec, s).filas.map((f) => `| ${f.historial} | ${f.mediana_real} | ${f.techo} | ${pc1(f.conversion_al_precio_elegido)} | ${n0(f.pagantes_por_1000)} | ${sg(f.margen_operacion)} |`).join('\n')}
+
+*Todo lo demás de este informe usa la política vigente (03 §7).* La bolsa de ${n0(b1000.bolsa)} pesos carga ${n0(b1000.centro.restaurantes)} restaurantes con la política vigente.
 
 ${lineaDef}
 
@@ -199,9 +222,15 @@ ${alternativas.map((x) => `| ${x.mesas} · ${x.cuentas}${x.mesas === cs.mesas &&
 
 **Cobertura por platillos: DOS COTAS de sesgo opuesto (SUPUESTO; no se sabe la real).** Con 150 platillos contando todo: **${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} (sitios propios, cota baja; 56 cartas) a ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} (reparto, cota alta; en esa muestra sólo 40 a 120 están medidos y el 150 es extrapolación)**; dentro de 150, por tipo: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, casuales ${coberturaTipo('casual')}, formales ${coberturaTipo('formal')}. Las dos muestras no cuentan «platillo» con la misma regla (148 cartas de reparto: cortas; sitios propios: largas y formales).
 
-### Tope de platillos del plan Chef: DECIDIDO (17 de noviembre de 2026)
+### Tope de platillos del plan Chef: «cuenta todo» DECIDIDO; el VALOR del tope REABIERTO (17 de noviembre de 2026)
 
-**Decisión de Calvin:** «el tope de platillos incluye bebidas… quítalo y considera que cuenta todo, bebidas incluidas». **El tope de ${cs.platillos} platillos cuenta TODO.** La banda de dos cotas de cobertura se conserva porque sigue sin saberse cuál muestra tiene razón: con ${cs.platillos} platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (cota baja) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (cota alta); de 0 a 5 personas caben en Chef ${pc1(estratosBaja.dentro_0_5)} (cota baja) a ${pc1(estratos[0][1].dentro_0_5)} (cota alta).
+**Decisión de Calvin:** «el tope de platillos incluye bebidas… considera que cuenta todo, bebidas incluidas». **Después la reabrió:** «según yo no quedamos en 150, se me hace demasiado. Quisiera saber si el tema de platillos mueve mucho nuestras gráficas». Lo que cuesta cada platillo, medido y supuesto, está en \`2026-11-17-costo-de-platillo.md\`. **${costoPl.conclusion}**
+
+| Tope (cuenta todo) | Caben, cota baja (sitios propios) | Caben, cota alta (reparto) | De 0 a 5 personas dentro de Chef (baja a alta) | De paga por cada 1,000 | Restaurantes con foto que caben en R2 gratis |
+|---|---|---|---|---|---|
+${costoPl.filas.map((f) => `| ${f.platillos} | ${pc(f.cobertura_de_platillos.baja)} | ${pc(f.cobertura_de_platillos.alta)} | ${pc1(f.cobertura_de_0_a_5_dentro_de_chef.baja)} a ${pc1(f.cobertura_de_0_a_5_dentro_de_chef.alta)} | ${n0(f.clientes_de_paga_por_1000_por_el_tope)} | ${n0(f.fotos_en_r2.restaurantes_que_caben_en_lo_gratis)} (rango ${n0(f.fotos_en_r2.rango_restaurantes[0])} a ${n0(f.fotos_en_r2.rango_restaurantes[1])}) |`).join('\n')}
+
+*Bajar el tope no ahorra disco ni procesador de forma apreciable: lo que mueve es cuántos negocios pagan (cobertura) y el peso de las fotos en R2. El valor del tope queda a decisión de Calvin.*
 
 **Alternativas descartadas el 17 de noviembre de 2026** (sólo comida, 200, 300, sin tope; quedan como referencia, no como opciones abiertas). Menos cobertura = más gente obligada a pagar: el margen «sube» a costa de cobrar a quien debía ser gratis y de que acepten pagar (supuesto).
 
@@ -265,7 +294,7 @@ ${tg.extrapolada_sin_medir.map(filaTG).join('\n')}
 |---|---|---|---|
 ${['baja', 'medio', 'adverso'].map((c) => `| ${c === 'baja' ? 'Tarifa baja' : c === 'medio' ? 'Tarifa media' : 'Adverso'} | **${nn(rangos[c].centro)}** | ${nn(rangos[c].minimo)} – ${rangos[c].maximo == null ? 'imposible' : n0(rangos[c].maximo)} | ${rangos[c].por_supuesto.map((v) => `${v.supuesto}: ${v.bajo.variante} → ${nn(v.bajo.n)}, ${v.alto.variante} → ${nn(v.alto.n)}`).join('; ')} |`).join('\n')}
 
-**La bolsa de Calvin, como rango** (restaurantes gratuitos que caben, según el soporte por gratuito):
+**La bolsa de Calvin, como rango** (restaurantes gratuitos que caben con la carga de sus topes: ${n0(cargaG.visitas_mes)} visitas al mes cada uno, la misma definición que usa «¿Qué nos limita?», según el soporte por gratuito):
 
 | Bolsa al mes | Centro (soporte ${s.soporte_gratuito}) | Mínimo – máximo | Por soporte (pesos por gratuito → restaurantes) |
 |---|---|---|---|
@@ -442,8 +471,8 @@ const R = [
     alternativas: alternativas.map((x) => ({ opcion: `${x.mesas} mesas · ${x.cuentas} ${x.cuentas === 1 ? 'cuenta' : 'cuentas'}`, pros: `${pc1(x.dentro_0_5)} de 0 a 5 personas dentro; margen ${sg(x.margen_operacion)}`, contras: `${pc1(x.cae_6_10)} de 6 a 10 personas cae en Master Chef` })),
     ejemplo: 'Una fonda de 2 personas y 4 mesas cabe en Chef (una cuenta); una taquería de 5 personas que quiere cuenta para el mesero y para el cocinero ya necesita Master Chef.',
     prueba: 'Mesas y cuentas por negocio en los primeros 10 a 20 restaurantes (`mesa` y `personal_restaurante` activos al alta, sin datos personales) y cuántos de 0 a 5 personas se arreglan con una cuenta.' },
-  { id: 'tope_platillos', decision: 'Tope de platillos del plan Chef (DECIDIDA por Calvin el 17-nov: cuenta todo, bebidas incluidas)',
-    recomendacion: `**El tope de ${cs.platillos} platillos cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026).** La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (56; largas y formales) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, formales ${coberturaTipo('formal')}.`,
+  { id: 'tope_platillos', decision: 'Tope de platillos del plan Chef (cuenta todo, bebidas incluidas, decidido el 17-nov; el VALOR del tope, REABIERTO por Calvin el mismo día)',
+    recomendacion: `**El tope cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026); su valor (hoy ${cs.platillos}) quedó REABIERTO** («se me hace demasiado»): de 50 a 150 el disco casi no se mueve (${(Math.abs(costoPl.efecto_de_subir_el_tope.disco_con_avisos)*100).toFixed(1)} %) y el procesador tampoco se acaba; cambia la cobertura y los de paga (ver \`2026-11-17-costo-de-platillo.md\`). La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben ${pc(s.cobertura_platillos.baja.todo.find((x) => x[0] === 150)[1])} de las cartas de sitios propios (56; largas y formales) y ${pc(s.cobertura_platillos.alta.todo.find((x) => x[0] === 150)[1])} de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías ${coberturaTipo('taqueria_fonda')}, cafeterías ${coberturaTipo('cafeteria')}, formales ${coberturaTipo('formal')}.`,
     depende: '**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio**. **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.',
     cifras: `Alternativas descartadas el 17 de noviembre: ${opcionesPlat.filter((o) => o.id !== 'actual').map((o) => `${o.nombre}: dentro de Chef de 0 a 5 personas ${pc1(M.coberturaEstratos({ ...rec, topes: { ...rec.topes, gratuito: { ...rec.topes.gratuito, platillos: o.tope ?? Infinity, platillos_cuenta: o.cuenta } } }, s, 'centro', 'baja').dentro_0_5)} (cota baja)`).join(' · ')}.`,
     alternativas: opcionesPlat.filter((o) => o.id !== 'actual').map((o) => ({ opcion: `${o.nombre} (descartada el 17-nov)`, pros: o.id === 'sin_tope' ? 'Cobertura sólo por mesas y cuentas' : o.id === 'solo_comida' ? 'Casi no deja a nadie afuera' : 'Más cobertura con la cota baja', contras: o.id === 'sin_tope' ? 'Sin freno para cartas enormes' : o.id === 'solo_comida' ? 'Hay que clasificar comida y bebida' : 'Sigue dependiendo de una muestra sesgada' })),
@@ -466,12 +495,12 @@ const R = [
   { id: 'bolsa', decision: 'Cuánta bolsa poner mientras no hay anuncios',
     recomendacion: `**${n0(b1000.bolsa)} pesos al mes** alcanzan para ${n0(b1000.centro.restaurantes)} restaurantes gratuitos (rango ${n0(b1000.minimo)} a ${n0(b1000.maximo)}); acumulado, Calvin pone hasta **${n0(proy.media.financiamiento_maximo)} pesos** en el caso recomendado, ${n0(proyPeor.financiamiento_maximo)} en el peor y ${n0(proyPiso.financiamiento_maximo)} en el piso de verdad.`,
     depende: '**Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.',
-    cifras: `Bolsa ${bolsasR.map((b) => n0(b.bolsa)).join(' / ')} → ${bolsasR.map((b) => `${n0(b.centro.restaurantes)} (${n0(b.minimo)}–${n0(b.maximo)})`).join(' / ')} restaurantes.`,
+    cifras: `Bolsa ${bolsasR.map((b) => n0(b.bolsa)).join(' / ')} → ${bolsasR.map((b) => `${n0(b.centro.restaurantes)} (${n0(b.minimo)}–${n0(b.maximo)})`).join(' / ')} restaurantes gratuitos (con la carga de sus topes; sólo gratuitos, sin la mezcla de paga que usa «¿Qué nos limita?»: ${n0(res.cifras.find((f) => f.clave === 'restaurantes_que_caben').recomendado)} registrados con avisos).`,
     alternativas: bolsasR.map((b) => ({ opcion: `${n0(b.bolsa)} pesos al mes`, pros: `${n0(b.centro.restaurantes)} restaurantes y ${comensalesMillones(b.centro.comensales_mes)} M de comensales`, contras: `rango ${n0(b.minimo)}–${n0(b.maximo)} según el soporte` })),
     ejemplo: `Con ${n0(b1000.bolsa)} pesos al mes pagas servidor y soporte básico de ≈ ${n0(b1000.centro.restaurantes)} fondas y taquerías gratuitas.`,
     prueba: 'El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte.' },
   { id: 'historial', decision: 'Historial: meses en línea y archivo descargable',
-    recomendacion: '**12 meses en línea para la paga (decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**',
+    recomendacion: '**12 meses en línea para la paga (decidido por Calvin). Para el gratuito, la política vigente es la de 03 §7 (24 meses de sesiones y 13 de analítica); recortarlo a 30 días, con archivo descargable de lo anterior, es una PROPUESTA pendiente de decisión de Calvin.**',
     depende: '**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos)** ([disco-e-historial](2026-11-14-disco-e-historial.md)).',
     cifras: 'Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387) [disco-e-historial].',
     alternativas: [{ opcion: '3 meses + archivo', pros: '128 de paga en Hobby', contras: 'Cambia lo decidido' }, { opcion: '12 meses + archivo (recomendada)', pros: 'Cumple lo decidido', contras: 'En Hobby sólo caben 38 de paga' }],
