@@ -233,6 +233,10 @@ for (let i = 0; i < 7; i++) await p.click('#hiSig');
 await p.waitForTimeout(700);
 const tf = await texto(p, '#svHi');
 ok(tf.includes(f7(comp7.total) + ' bytes') && tf.includes('% es analítica'), 'capítulo 7: al final la mesa de 3 suma ' + f7(comp7.total) + ' bytes y dice qué parte es analítica');
+const act = await p.evaluate(() => { const t = [...document.querySelectorAll('#svHi text')].map((e) => e.textContent); return { quien: ['A escanea el QR', 'B y C escanean', 'Cada quien abre su orden', 'La mesa envía la comanda', 'Alguien llama al mesero'].every((x) => t.some((y) => y.includes(x.split(' ').slice(0, 3).join(' ')))), chips: new Set([...document.querySelectorAll('#svHi circle')].filter((c) => +getComputedStyle(c).opacity > 0.5).map((c) => getComputedStyle(c).fill)).size, menor12: [...document.querySelectorAll('#svHi text, #svOp text')].filter((e) => e.textContent.trim() && parseFloat(e.getAttribute('font-size')) < 12).map((e) => e.textContent.trim().slice(0, 20)) }; });
+ok(act.quien && act.chips >= 4, 'capítulo 7: la historia dice quién hace qué en cada paso y las piezas llevan el color de A, B, C y la mesa (' + act.chips + ' colores)');
+ok(act.menor12.length === 0, 'capítulo 7: historia y siete formas sin letra menor de 12 px ' + act.menor12.slice(0, 3).join(' | '));
+if (png) await p.locator('#svHi').screenshot({ path: `${png}/v12_historia.png` });
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 ok((await texto(p, '#hiN')).includes('Paso 8 de 8'), 'capítulo 7: tocar otro control no reinicia la historia');
 const FILA = 'fila_por_visita_de_comensal', DIA = 'analitica_agregada_por_dia';
@@ -387,6 +391,14 @@ const esq = await p.evaluate(() => { const es = MOD.desgloses(config(S), sup(S),
 const tK = await texto(p, '#svK');
 ok(esq.every((v) => tK.includes(v + ' MXN')), 'sostiene: la matriz 3 × 3 da ' + esq.join(' y ') + ' en las esquinas (modelo)');
 if (png) await p.screenshot({ path: `${png}/v8_sost4.png` });
+// capítulo 8: «qué cambió frente a la versión 11» con la tabla de comparacionDeCarga y la sensibilidad
+await p.click('#tabsK [data-vista="5"]'); await p.waitForTimeout(900);
+const cc = await p.evaluate(() => { const c = MOD.comparacionDeCarga(config(S), sup(S)), f = (v) => Math.round(Math.abs(v)).toLocaleString('en-US'); return { a: f(c.antes_tipica_no_vigente.margen_operacion_1000.recomendado), d: f(c.despues_por_topes_vigente.margen_operacion_1000.recomendado), sens: c.sensibilidad_visitas_por_mesa.map((q) => f(q.margen_operacion_recomendado_1000)) }; });
+const t5 = await texto(p, '#svK');
+ok([cc.a, cc.d, ...cc.sens].every((v) => t5.includes(v)) && t5.includes('versión 11') && t5.includes('visitas por mesa'), 'capítulo 8: «qué cambió» muestra antes → después y la sensibilidad (' + [cc.a, cc.d, ...cc.sens].join(' · ') + ')');
+ok(await p.evaluate(() => [...document.querySelectorAll('#svK text')].every((t) => parseFloat(t.getAttribute('font-size')) >= 12)), 'capítulo 8: «qué cambió» sin letra menor de 12 px');
+if (png) await p.screenshot({ path: `${png}/v12_cambio.png` });
+await p.click('#tabsK [data-vista="0"]'); await p.waitForTimeout(500);
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
 await abre(p, 'pagar');

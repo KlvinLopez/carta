@@ -10397,7 +10397,7 @@ function proyecta(nivel, s0) {
   const [a, b] = M.metas[nivel], s = {...sup(s0), meta_12_meses: a, meta_24_meses: b};
   return MOD.proyectar(config(s0), s, 24, {curva: s0.curva});
 }
-const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?", "Qué tanto pagan × anuncios"];
+const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?", "Qué tanto pagan × anuncios", "Qué cambió frente a la versión 11"];
 DET.sostiene = {
   titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
@@ -10420,7 +10420,43 @@ DET.sostiene = {
   },
   /* al arrastrar el punto: se redibuja y el hallazgo de abajo cuenta con el mismo número */
   sigue() { const o = this.pinta(), h = document.querySelector("#cap-sostiene .caphall"); if (o && o.insight) { if (h) h.innerHTML = `<b>Hallazgo.</b> ${esc(o.insight)}`; const d = document.querySelector("#det #ins"); if (d) d.innerHTML = `<b>Insight clave.</b> ${esc(o.insight)}`; } },
-  pinta() { const o = [this.v0, this.v1, this.v2, this.v3, this.v4][this.v].call(this); return o; },
+  pinta() { this.sv.setAttribute("viewBox", this.v === 5 ? "0 0 960 600" : "0 0 960 540"); const o = [this.v0, this.v1, this.v2, this.v3, this.v4, this.v5][this.v].call(this); return o; },
+  v5() { // qué cambió frente a la versión 11 y por qué: una sola carga para el gratuito
+    const sv = this.sv, cm = conCache("cmpCarga", () => MOD.comparacionDeCarga(config(S), sup(S))), A = cm.antes_tipica_no_vigente, D = cm.despues_por_topes_vigente, P = cm.por_que, sn = cm.sensibilidad_visitas_por_mesa;
+    const f = (v, d = 0) => (v < 0 ? "−" : v > 0 && d === 0 ? "+" : "") + n(Math.abs(v), d), sd = x => `${n(x.restaurantes_necesarios)} (mes ${x.mes})`;
+    const filas = [
+      ["Margen con 1,000 restaurantes, recomendado", f(A.margen_operacion_1000.recomendado), f(D.margen_operacion_1000.recomendado), P.margen],
+      ["Margen, peor", f(A.margen_operacion_1000.peor), f(D.margen_operacion_1000.peor), P.margen],
+      ["Margen, mejor", f(A.margen_operacion_1000.mejor), f(D.margen_operacion_1000.mejor), P.margen],
+      ["Anuncios por gratuito, tarifa baja", n(A.ingreso_de_anuncios_por_gratuito_por_tarifa.baja, 2), n(D.ingreso_de_anuncios_por_gratuito_por_tarifa.baja, 2), P.margen],
+      ["Anuncios por gratuito, tarifa media", n(A.ingreso_de_anuncios_por_gratuito_por_tarifa.media, 2), n(D.ingreso_de_anuncios_por_gratuito_por_tarifa.media, 2), P.margen],
+      ["Gratuitos que sostiene cada cliente de paga", n(A.gratuitos_que_sostiene_un_pagante.sin_anuncios), n(D.gratuitos_que_sostiene_un_pagante.sin_anuncios), P.gratuitos_que_sostiene],
+      ["Mes 12 con 300 restaurantes: margen", f(A.mes_12_con_300_restaurantes.margen_operacion), f(D.mes_12_con_300_restaurantes.margen_operacion), P.mes_12],
+      ["Restaurantes para 1 salario mínimo", sd(A.sueldo[0]), sd(D.sueldo[0]), P.sueldo],
+      ["Bolsa de 500 pesos: gratuitos que caben", n(A.bolsa[0].centro), n(D.bolsa[0].centro), P.bolsa],
+      ["Registrados que caben, con avisos", n(A.capacidad.con_avisos), n(D.capacidad.con_avisos), P.capacidad]];
+    const X1 = 640, X2 = 800, RH = 31, Y0 = 70;
+    let b = T(30, 26, `Antes: gratuito típico de ${n(A.carga_del_gratuito.visitas_al_mes)} visitas · Ahora: ${n(D.carga_del_gratuito.visitas_al_mes)} visitas (${D.carga_del_gratuito.visitas_al_mes / 180} mesas × 180)`, 14.5, C.vino, "start", 700);
+    b += T(X1, 54, "versión 11", 13, C.t2, "end", 700) + T(X2, 54, "ahora", 13, C.vino, "end", 700);
+    filas.forEach(([t, a, d, why], i) => {
+      const y = Y0 + i * RH, cambia = a !== d;
+      b += `<g data-tip="${esc2(t + "|" + a + " → " + d + "|" + pal20(why, 20))}" tabindex="0">` + Rc(24, y, 912, RH - 3, i % 2 ? "#fff" : "#fbf4e6", 10) + T(40, y + 20, t, 13.5, C.tinta, "start", 700) + T(X1, y + 20, a, 14, C.t2, "end", 400, true) + T(X2, y + 20, d, 15, cambia ? C.vino : C.t2, "end", 700, true) + `</g>`;
+    });
+    const Y1 = Y0 + filas.length * RH + 34;
+    b += T(30, Y1, "El supuesto que ahora mueve todo: visitas por mesa al mes (180 sale del simulador, sin medir)", 14, C.vino, "start", 700);
+    const cx = [40, 230, 420, 610, 790];
+    ["Visitas por mesa", "Margen recomendado", "Gratuitos por cliente de paga", "Anuncios por gratuito (baja)", "Caben con avisos"].forEach((h, j) => { b += T(cx[j], Y1 + 26, h, 12.5, C.t2, "start", 700); });
+    sn.forEach((q, i) => {
+      const y = Y1 + 36 + i * 30, sel = q.visitas_por_mesa_al_mes === 180, col = sel ? C.vino : C.tinta;
+      b += `<g data-tip="${esc2(q.visitas_por_mesa_al_mes + " visitas por mesa|margen " + f(q.margen_operacion_recomendado_1000) + " y " + n(q.visitas_del_gratuito_al_mes) + " visitas del gratuito|Más visitas dejan más anuncios y margen, pero llenan antes el disco y el procesador.")}" tabindex="0">` + Rc(24, y, 912, 27, sel ? "#f6e9d4" : "#fff", 10, sel ? `stroke="${C.dorado}" stroke-width="2.4"` : "") + T(cx[0], y + 19, `${q.visitas_por_mesa_al_mes}${sel ? " (vigente)" : ""}`, 13.5, col, "start", 700) + T(cx[1], y + 19, f(q.margen_operacion_recomendado_1000), 14, col, "start", 400, true) + T(cx[2], y + 19, n(q.gratuitos_que_sostiene_sin_anuncios), 14, col, "start", 400, true) + T(cx[3], y + 19, n(q.ingreso_de_anuncios_por_gratuito, 2), 14, col, "start", 400, true) + T(cx[4], y + 19, n(q.capacidad.con_avisos), 14, col, "start", 400, true) + `</g>`;
+    });
+    sv.innerHTML = b;
+    return {
+      leyenda: `<span>una sola carga para el gratuito: la de sus topes</span>`,
+      cifras: [[f(D.margen_operacion_1000.recomendado), "margen con 1,000 restaurantes (era " + f(A.margen_operacion_1000.recomendado) + ")", "supuesto"], [n(D.gratuitos_que_sostiene_un_pagante.sin_anuncios), "gratuitos por cliente de paga, sin anuncios (eran " + n(A.gratuitos_que_sostiene_un_pagante.sin_anuncios) + ")", "supuesto"], [sd(D.sueldo[0]), "restaurantes para 1 salario mínimo (eran " + sd(A.sueldo[0]) + ")", "supuesto"]],
+      insight: `Antes los costos usaban un gratuito típico de ${n(A.carga_del_gratuito.visitas_al_mes)} visitas al mes y la capacidad usaba los topes; ahora todo usa la de los topes (${n(D.carga_del_gratuito.visitas_al_mes)}). Precios, topes y escenarios no cambian; lo que mueve las cifras es el supuesto de visitas por mesa.`,
+    };
+  },
   v0() { // ¿hasta dónde aguanto con todos gratuitos?
     const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
     const RR8 = conCache("rec8", () => MOD.recursos(c, s, "hoy"));
@@ -11065,7 +11101,7 @@ addEventListener("resize", medirKh); addEventListener("load", medirKh); setTimeo
     host.insertAdjacentHTML("beforeend", `<div class="r7x">
 <div class="viz"><svg id="svDc" viewBox="0 0 1100 300" role="img" aria-label="Quién llena el disco" font-family="DM Sans, sans-serif"></svg></div>
 <div class="r7p r7bar"><span class="selr">Un ejemplo guiado: una mesa de 3 comensales</span><button class="btn" id="hiAt" aria-label="Paso anterior">◀</button><button class="btn" id="hiSig">Siguiente ▶</button><button class="btn" id="hiPl">▶ Reproducir</button><span class="selr" id="hiN"></span></div>
-<div class="viz"><svg id="svHi" viewBox="0 0 1100 540" role="img" aria-label="Cómo se acumulan las filas de una mesa de tres comensales" font-family="DM Sans, sans-serif"></svg></div>
+<div class="viz"><svg id="svHi" viewBox="0 0 1100 500" role="img" aria-label="Cómo se acumulan las filas de una mesa de tres comensales" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz"><svg id="svOp" viewBox="0 0 1100 600" role="img" aria-label="Las formas de guardar la analítica, lado a lado" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz"><svg id="svCo" viewBox="0 0 1100 360" role="img" aria-label="La combinación de forma, archivo e historial" font-family="DM Sans, sans-serif"></svg></div></div>`);
     this.rmH = RM($("#svHi", host));
@@ -11112,29 +11148,35 @@ addEventListener("resize", medirKh); addEventListener("load", medirKh); setTimeo
     const h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), rm = this.rmH, hp = this.hp, pasos = h.pasos, tot = h.bytes_total, X0 = 30, W = 1040, CW = 131;
     const acum = hp ? pasos[hp - 1].acumulado : 0;
     $("#hiAt").disabled = hp <= 0; $("#hiSig").disabled = hp >= 8; $("#hiPl").textContent = this.juego ? "⏸ Pausa" : (hp >= 8 ? "↺ Repetir" : "▶ Reproducir"); $("#hiN").textContent = `Paso ${hp} de 8`;
-    rm.put("t0", "text", {x: X0, y: 28, text: "Tres comensales escanean el QR de la misma mesa", size: 15, weight: 700, fill: C.vino});
-    ["A", "B", "C"].forEach((l, i) => { const on = hp >= 2 || (hp >= 1 && i === 0); rm.put("av" + i, "circle", {x: X0 + 22 + i * 54, y: 70, r: 19, fill: on ? C.vino : C.arena, op: on ? 1 : 0.5}); rm.put("avl" + i, "text", {x: X0 + 22 + i * 54, y: 76, text: l, size: 17, weight: 700, fill: on ? "#fff" : C.t2, anchor: "middle"}); });
+    const ACT = {A: C.vino, B: C.verde, C: "#2b5d8a", M: "#5b5b5b"}, QUIEN = [["A"], ["B", "C"], ["A", "B", "C"], ["A", "B", "C"], ["M"], ["M"], ["M"], ["A", "B", "C"]];
+    const DICE = ["A escanea el QR: nace la sesión de la mesa", "B y C escanean: cada quien queda como miembro", "Cada quien abre su orden personal", "Cada quien agrega sus platillos", "La mesa envía la comanda al personal", "La comanda enlaza la orden de cada uno", "Alguien llama al mesero", "Cada teléfono manda sus eventos mientras tanto"];
+    rm.put("t0", "text", {x: X0, y: 28, text: "Tres comensales (A, B y C) escanean el QR de la misma mesa", size: 15, weight: 700, fill: C.vino});
+    rm.put("t1", "text", {x: X0, y: 50, text: "Cada pieza lleva el color de quien la escribe; gris es lo que guarda la mesa entera. Las piezas con borde dorado son analítica.", size: 12.5, weight: 700, fill: C.t2});
     pasos.forEach((p, i) => {
-      const x = X0 + i * CW, vis = hp > i, esA = p.tabla === "evento_analitica", n0 = Math.floor(p.filas), fr = p.filas - n0, bl = Math.min(12, n0 + (fr > 0.05 ? 1 : 0));
-      rm.put("tn" + i, "text", {x: x + CW / 2 - 6, y: 252, text: NOM_T[p.tabla], size: 12.5, weight: 700, fill: vis ? (esA ? C.dorado : C.vino) : C.t2, anchor: "middle", op: vis ? 1 : 0.55});
-      rm.put("tf" + i, "text", {x: x + CW / 2 - 6, y: 270, text: vis ? `${p.filas >= 2 ? n(p.filas) : n(p.filas, 1)} ${p.filas === 1 ? "fila" : "filas"} · ${n(p.bytes)} B` : "", size: 11.5, fill: C.t2, anchor: "middle", weight: 700, attrs: {"data-tip": `${NOM_T[p.tabla]}|${n(p.bytes)} bytes|${p.filas >= 2 ? n(p.filas) : n(p.filas, 1)} filas de ${n(p.bytes_por_fila)} bytes cada una.`}});
+      const x = X0 + i * CW, vis = hp > i, esA = p.tabla === "evento_analitica", n0 = Math.floor(p.filas), fr = p.filas - n0, bl = Math.min(12, n0 + (fr > 0.05 ? 1 : 0)), q = QUIEN[i], porMesa = q[0] === "M";
+      q.forEach((l, j) => { const cx = x + 14 + j * 28; rm.put(`ch${i}_${j}`, "circle", {x: cx, y: 82, r: 12, fill: ACT[l], op: vis ? 1 : 0, grow: false}); rm.put(`cl${i}_${j}`, "text", {x: cx, y: 87, text: vis ? (porMesa ? "" : l) : "", size: 13, weight: 700, fill: "#fff", anchor: "middle"}); });
+      rm.put(`cm${i}`, "text", {x: x + 32, y: 87, text: vis && porMesa ? "la mesa" : "", size: 13, weight: 700, fill: ACT.M});
+      const lin = parr(DICE[i], 17);
+      for (let k = 0; k < 3; k++) rm.put(`ac${i}_${k}`, "text", {x: x + 4, y: 118 + k * 16, text: vis ? lin[k] || "" : "", size: 13, weight: 700, fill: C.tinta});
+      rm.put("tn" + i, "text", {x: x + CW / 2 - 6, y: 284, text: NOM_T[p.tabla], size: 12.5, weight: 700, fill: vis ? (esA ? C.dorado : C.vino) : C.t2, anchor: "middle", op: vis ? 1 : 0.55});
+      rm.put("tf" + i, "text", {x: x + CW / 2 - 6, y: 302, text: vis ? `${p.filas >= 2 ? n(p.filas) : n(p.filas, 1)} ${p.filas === 1 ? "fila" : "filas"} · ${n(p.bytes)} B` : "", size: 12, fill: C.t2, anchor: "middle", weight: 700, attrs: {"data-tip": `${NOM_T[p.tabla]}|${n(p.bytes)} bytes|${p.filas >= 2 ? n(p.filas) : n(p.filas, 1)} filas de ${n(p.bytes_por_fila)} bytes cada una.`}});
       for (let k = 0; k < 12; k++) {
-        const on = vis && k < bl, parcial = on && k === bl - 1 && fr > 0.05 && n0 < 12;
-        rm.put(`bk${i}_${k}`, "rect", {x: x + 4 + (k % 4) * 28, y: 322 - Math.floor(k / 4) * 18, w: 24, h: 14, rx: 4, fill: esA ? C.dorado : "#6b2d3e", op: on ? (parcial ? Math.max(fr, 0.4) : 1) : 0, grow: false});
+        const on = vis && k < bl, parcial = on && k === bl - 1 && fr > 0.05 && n0 < 12, dueño = porMesa ? "M" : q[k % q.length], col = ACT[dueño];
+        rm.put(`bk${i}_${k}`, "rect", {x: x + 4 + (k % 4) * 31, y: 252 - Math.floor(k / 4) * 26, w: 27, h: 22, rx: 6, fill: col, op: on ? (parcial ? Math.max(fr, 0.4) : 1) : 0, grow: false, attrs: esA ? {stroke: C.dorado, "stroke-width": 2.4} : {}});
       }
-      rm.put("bl" + i, "rect", {x: x + 2, y: 340, w: CW - 12, h: 3, rx: 1.5, fill: C.arena, grow: false});
+      rm.put("bl" + i, "rect", {x: x + 2, y: 312, w: CW - 12, h: 3, rx: 1.5, fill: C.arena, grow: false});
     });
     const sinAn = h.bytes_de_la_mesa_sin_analitica, vino = Math.min(acum, sinAn), oro = Math.max(0, acum - sinAn);
-    rm.put("mt", "text", {x: X0, y: 392, text: "Lo que ocupa esta mesa en la base", size: 13, weight: 700, fill: C.t2});
-    rm.put("mk", "rect", {x: X0, y: 402, w: W, h: 28, rx: 14, fill: C.a2, grow: false});
-    rm.put("mb", "rect", {x: X0, y: 402, w: Math.max(W * vino / tot, vino ? 6 : 0), h: 28, rx: 14, fill: C.vino, grow: false});
-    rm.put("ma", "rect", {x: X0 + W * vino / tot, y: 402, w: W * oro / tot, h: 28, rx: 14, fill: C.dorado, grow: false});
-    rm.put("mn", "text", {x: X0, y: 478, text: `${n(acum)} bytes`, size: 38, fill: C.vino, serif: true});
-    rm.put("mc", "text", {x: X0 + 330, y: 470, text: hp ? "" : "Toca «Siguiente» o «Reproducir»: cada paso agrega filas y bytes.", size: 13.5, weight: 700, fill: C.t2});
+    rm.put("mt", "text", {x: X0, y: 350, text: "Lo que ocupa esta mesa en la base", size: 13, weight: 700, fill: C.t2});
+    rm.put("mk", "rect", {x: X0, y: 360, w: W, h: 28, rx: 14, fill: C.a2, grow: false});
+    rm.put("mb", "rect", {x: X0, y: 360, w: Math.max(W * vino / tot, vino ? 6 : 0), h: 28, rx: 14, fill: C.vino, grow: false});
+    rm.put("ma", "rect", {x: X0 + W * vino / tot, y: 360, w: W * oro / tot, h: 28, rx: 14, fill: C.dorado, grow: false});
+    rm.put("mn", "text", {x: X0, y: 436, text: `${n(acum)} bytes`, size: 38, fill: C.vino, serif: true});
+    rm.put("mc", "text", {x: X0 + 330, y: 428, text: hp ? "" : "Toca «Siguiente» o «Reproducir»: cada paso agrega filas y bytes.", size: 13.5, weight: 700, fill: C.t2});
     const cierre = hp >= 8 ? `Una mesa de ${h.comensales} deja ${n(tot / 1000, 1)} KB y ${n(100 * h.bytes_de_analitica / tot)} % es analítica.` : "";
-    rm.put("mz", "text", {x: X0 + 330, y: 470, text: cierre, size: 15, weight: 700, fill: C.dorado});
-    const lin = hp ? parr(pasos[hp - 1].paso, 118) : [];
-    for (let k = 0; k < 2; k++) rm.put("mp" + k, "text", {x: X0, y: 508 + k * 18, text: lin[k] || "", size: 13, fill: C.tinta});
+    rm.put("mz", "text", {x: X0 + 330, y: 428, text: cierre, size: 15, weight: 700, fill: C.dorado});
+    const lin2 = hp ? parr(pasos[hp - 1].paso, 118) : [];
+    for (let k = 0; k < 2; k++) rm.put("mp" + k, "text", {x: X0, y: 466 + k * 18, text: lin2[k] || "", size: 13, fill: C.tinta});
   };
 
   /* 3 · las formas de guardar la analítica, lado a lado, como una sola elección */
@@ -11149,13 +11191,13 @@ addEventListener("resize", medirKh); addEventListener("load", medirKh); setTimeo
       const nom = o.nombre.replace(/ \(propuesta de Calvin\)/, ""), lin = parr(nom, 17);
       b += `<g ${o.id !== "comprar" ? `data-op="${o.id}" role="button" tabindex="0" style="cursor:pointer" aria-pressed="${sel}"` : ""} data-tip="${esc2(o.id === "comprar" ? "Comprar disco|sube el costo del escalón|No cambia lo que se guarda: es la opción que no ahorra bytes." : `${CORTO_OP[o.id] || nom}|caben ${n(o.restaurantes_que_caben_sin_purga)} y ${n(o.restaurantes_que_caben_con_historial_30_dias)}|Queda: ${pal20(o.que_queda, 6)} Se pierde: ${pal20(o.se_pierde, 5)}`)}">` + Rc(x, 40, W, 540, sel ? "#f6e9d4" : "#fff", 20, `stroke="${sel ? C.vino : calvin ? C.dorado : C.arena}" stroke-width="${sel ? 3.4 : calvin ? 3 : 1.5}" ${calvin && !sel ? 'stroke-dasharray="7 5"' : ""}`);
       lin.slice(0, 3).forEach((l, j) => { b += T(x + 12, 68 + j * 17, l, 12.5, C.tinta, "start", 700); });
-      if (calvin) b += Rc(x + 12, 118, 116, 20, C.dorado, 10) + T(x + 70, 132, "idea de Calvin", 11, "#fff", "middle", 700);
+      if (calvin) b += Rc(x + 12, 118, 116, 20, C.dorado, 10) + T(x + 70, 132, "idea de Calvin", 12, "#fff", "middle", 700);
       if (o.id === "comprar") { b += T(x + 12, 170, "no cambia lo", 12.5, C.t2, "start", 700) + T(x + 12, 187, "guardado: sube el", 12.5, C.t2, "start", 700) + T(x + 12, 204, "costo del escalón", 12.5, C.t2, "start", 700) + T(x + 12, 224, "(ver la escalera)", 12.5, C.t2, "start") + `</g>`; return; }
-      b += T(x + 12, 168, "analítica de la mesa", 11, C.t2, "start", 700) + Rc(x + 12, 176, W - 24, 12, C.a2, 6) + Rc(x + 12, 176, Math.max((W - 24) * o.bytes_analitica_por_mesa_de_3 / mxB, 3), 12, calvin ? C.dorado : C.vino, 6) + T(x + 12, 216, `${n(o.bytes_analitica_por_mesa_de_3)} B`, 21, C.vino, "start", 400, true) + (o.id === "hoy" ? T(x + 12, 234, "una fila por toque", 11.5, C.t2, "start", 700) : o.bytes_analitica_por_mesa_de_3 === hoyB ? T(x + 12, 234, "mismos bytes que hoy", 11.5, C.t2, "start", 700) : T(x + 12, 234, `${n(100 * (1 - o.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy`, 11.5, C.verde, "start", 700));
-      b += T(x + 12, 270, "caben, sin purga", 11, C.t2, "start", 700) + Rc(x + 12, 278, W - 24, 12, C.a2, 6) + Rc(x + 12, 278, Math.max((W - 24) * o.restaurantes_que_caben_sin_purga / mxC, 3), 12, C.dorado, 6) + T(x + 12, 318, n(o.restaurantes_que_caben_sin_purga), 26, C.tinta, "start", 400, true);
-      b += T(x + 12, 350, "caben, con 30 días", 11, C.t2, "start", 700) + Rc(x + 12, 358, W - 24, 12, C.a2, 6) + Rc(x + 12, 358, Math.max((W - 24) * o.restaurantes_que_caben_con_historial_30_dias / mxC, 3), 12, C.verde, 6) + T(x + 12, 398, n(o.restaurantes_que_caben_con_historial_30_dias), 26, C.tinta, "start", 400, true);
-      b += T(x + 12, 432, "se pierde:", 11, C.rojo, "start", 700); parr(o.se_pierde, 20).slice(0, 4).forEach((l, j) => { b += T(x + 12, 448 + j * 15, l, 11.5, C.tinta, "start"); });
-      b += T(x + 12, 530, sel ? "✓ elegida" : o.id === "archivar" ? "toca para sumar" : "toca para elegir", 11.5, sel ? C.vino : C.t2, "start", 700) + `</g>`;
+      b += T(x + 12, 168, "analítica de la mesa", 12, C.t2, "start", 700) + Rc(x + 12, 176, W - 24, 12, C.a2, 6) + Rc(x + 12, 176, Math.max((W - 24) * o.bytes_analitica_por_mesa_de_3 / mxB, 3), 12, calvin ? C.dorado : C.vino, 6) + T(x + 12, 216, `${n(o.bytes_analitica_por_mesa_de_3)} B`, 21, C.vino, "start", 400, true) + (o.id === "hoy" ? T(x + 12, 234, "una fila por toque", 12, C.t2, "start", 700) : o.bytes_analitica_por_mesa_de_3 === hoyB ? T(x + 12, 234, "mismos bytes que hoy", 12, C.t2, "start", 700) : T(x + 12, 234, `${n(100 * (1 - o.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy`, 12, C.verde, "start", 700));
+      b += T(x + 12, 270, "caben, sin purga", 12, C.t2, "start", 700) + Rc(x + 12, 278, W - 24, 12, C.a2, 6) + Rc(x + 12, 278, Math.max((W - 24) * o.restaurantes_que_caben_sin_purga / mxC, 3), 12, C.dorado, 6) + T(x + 12, 318, n(o.restaurantes_que_caben_sin_purga), 26, C.tinta, "start", 400, true);
+      b += T(x + 12, 350, "caben, con 30 días", 12, C.t2, "start", 700) + Rc(x + 12, 358, W - 24, 12, C.a2, 6) + Rc(x + 12, 358, Math.max((W - 24) * o.restaurantes_que_caben_con_historial_30_dias / mxC, 3), 12, C.verde, 6) + T(x + 12, 398, n(o.restaurantes_que_caben_con_historial_30_dias), 26, C.tinta, "start", 400, true);
+      b += T(x + 12, 432, "se pierde:", 12, C.rojo, "start", 700); parr(o.se_pierde, 19).slice(0, 4).forEach((l, j) => { b += T(x + 12, 448 + j * 15, l, 12, C.tinta, "start"); });
+      b += T(x + 12, 530, sel ? "✓ elegida" : o.id === "archivar" ? "toca para sumar" : "toca para elegir", 12, sel ? C.vino : C.t2, "start", 700) + `</g>`;
     });
     // la propuesta de Calvin, medida
     const f = ops.find(o => o.id === "fila_por_visita"), porVisita = f.bytes_analitica_por_mesa_de_3 / h.comensales;

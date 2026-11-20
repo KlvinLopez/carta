@@ -7,7 +7,7 @@ function proyecta(nivel, s0) {
   const [a, b] = M.metas[nivel], s = {...sup(s0), meta_12_meses: a, meta_24_meses: b};
   return MOD.proyectar(config(s0), s, 24, {curva: s0.curva});
 }
-const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?", "Qué tanto pagan × anuncios"];
+const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?", "Qué tanto pagan × anuncios", "Qué cambió frente a la versión 11"];
 DET.sostiene = {
   titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
@@ -30,7 +30,43 @@ DET.sostiene = {
   },
   /* al arrastrar el punto: se redibuja y el hallazgo de abajo cuenta con el mismo número */
   sigue() { const o = this.pinta(), h = document.querySelector("#cap-sostiene .caphall"); if (o && o.insight) { if (h) h.innerHTML = `<b>Hallazgo.</b> ${esc(o.insight)}`; const d = document.querySelector("#det #ins"); if (d) d.innerHTML = `<b>Insight clave.</b> ${esc(o.insight)}`; } },
-  pinta() { const o = [this.v0, this.v1, this.v2, this.v3, this.v4][this.v].call(this); return o; },
+  pinta() { this.sv.setAttribute("viewBox", this.v === 5 ? "0 0 960 600" : "0 0 960 540"); const o = [this.v0, this.v1, this.v2, this.v3, this.v4, this.v5][this.v].call(this); return o; },
+  v5() { // qué cambió frente a la versión 11 y por qué: una sola carga para el gratuito
+    const sv = this.sv, cm = conCache("cmpCarga", () => MOD.comparacionDeCarga(config(S), sup(S))), A = cm.antes_tipica_no_vigente, D = cm.despues_por_topes_vigente, P = cm.por_que, sn = cm.sensibilidad_visitas_por_mesa;
+    const f = (v, d = 0) => (v < 0 ? "−" : v > 0 && d === 0 ? "+" : "") + n(Math.abs(v), d), sd = x => `${n(x.restaurantes_necesarios)} (mes ${x.mes})`;
+    const filas = [
+      ["Margen con 1,000 restaurantes, recomendado", f(A.margen_operacion_1000.recomendado), f(D.margen_operacion_1000.recomendado), P.margen],
+      ["Margen, peor", f(A.margen_operacion_1000.peor), f(D.margen_operacion_1000.peor), P.margen],
+      ["Margen, mejor", f(A.margen_operacion_1000.mejor), f(D.margen_operacion_1000.mejor), P.margen],
+      ["Anuncios por gratuito, tarifa baja", n(A.ingreso_de_anuncios_por_gratuito_por_tarifa.baja, 2), n(D.ingreso_de_anuncios_por_gratuito_por_tarifa.baja, 2), P.margen],
+      ["Anuncios por gratuito, tarifa media", n(A.ingreso_de_anuncios_por_gratuito_por_tarifa.media, 2), n(D.ingreso_de_anuncios_por_gratuito_por_tarifa.media, 2), P.margen],
+      ["Gratuitos que sostiene cada cliente de paga", n(A.gratuitos_que_sostiene_un_pagante.sin_anuncios), n(D.gratuitos_que_sostiene_un_pagante.sin_anuncios), P.gratuitos_que_sostiene],
+      ["Mes 12 con 300 restaurantes: margen", f(A.mes_12_con_300_restaurantes.margen_operacion), f(D.mes_12_con_300_restaurantes.margen_operacion), P.mes_12],
+      ["Restaurantes para 1 salario mínimo", sd(A.sueldo[0]), sd(D.sueldo[0]), P.sueldo],
+      ["Bolsa de 500 pesos: gratuitos que caben", n(A.bolsa[0].centro), n(D.bolsa[0].centro), P.bolsa],
+      ["Registrados que caben, con avisos", n(A.capacidad.con_avisos), n(D.capacidad.con_avisos), P.capacidad]];
+    const X1 = 640, X2 = 800, RH = 31, Y0 = 70;
+    let b = T(30, 26, `Antes: gratuito típico de ${n(A.carga_del_gratuito.visitas_al_mes)} visitas · Ahora: ${n(D.carga_del_gratuito.visitas_al_mes)} visitas (${D.carga_del_gratuito.visitas_al_mes / 180} mesas × 180)`, 14.5, C.vino, "start", 700);
+    b += T(X1, 54, "versión 11", 13, C.t2, "end", 700) + T(X2, 54, "ahora", 13, C.vino, "end", 700);
+    filas.forEach(([t, a, d, why], i) => {
+      const y = Y0 + i * RH, cambia = a !== d;
+      b += `<g data-tip="${esc2(t + "|" + a + " → " + d + "|" + pal20(why, 20))}" tabindex="0">` + Rc(24, y, 912, RH - 3, i % 2 ? "#fff" : "#fbf4e6", 10) + T(40, y + 20, t, 13.5, C.tinta, "start", 700) + T(X1, y + 20, a, 14, C.t2, "end", 400, true) + T(X2, y + 20, d, 15, cambia ? C.vino : C.t2, "end", 700, true) + `</g>`;
+    });
+    const Y1 = Y0 + filas.length * RH + 34;
+    b += T(30, Y1, "El supuesto que ahora mueve todo: visitas por mesa al mes (180 sale del simulador, sin medir)", 14, C.vino, "start", 700);
+    const cx = [40, 230, 420, 610, 790];
+    ["Visitas por mesa", "Margen recomendado", "Gratuitos por cliente de paga", "Anuncios por gratuito (baja)", "Caben con avisos"].forEach((h, j) => { b += T(cx[j], Y1 + 26, h, 12.5, C.t2, "start", 700); });
+    sn.forEach((q, i) => {
+      const y = Y1 + 36 + i * 30, sel = q.visitas_por_mesa_al_mes === 180, col = sel ? C.vino : C.tinta;
+      b += `<g data-tip="${esc2(q.visitas_por_mesa_al_mes + " visitas por mesa|margen " + f(q.margen_operacion_recomendado_1000) + " y " + n(q.visitas_del_gratuito_al_mes) + " visitas del gratuito|Más visitas dejan más anuncios y margen, pero llenan antes el disco y el procesador.")}" tabindex="0">` + Rc(24, y, 912, 27, sel ? "#f6e9d4" : "#fff", 10, sel ? `stroke="${C.dorado}" stroke-width="2.4"` : "") + T(cx[0], y + 19, `${q.visitas_por_mesa_al_mes}${sel ? " (vigente)" : ""}`, 13.5, col, "start", 700) + T(cx[1], y + 19, f(q.margen_operacion_recomendado_1000), 14, col, "start", 400, true) + T(cx[2], y + 19, n(q.gratuitos_que_sostiene_sin_anuncios), 14, col, "start", 400, true) + T(cx[3], y + 19, n(q.ingreso_de_anuncios_por_gratuito, 2), 14, col, "start", 400, true) + T(cx[4], y + 19, n(q.capacidad.con_avisos), 14, col, "start", 400, true) + `</g>`;
+    });
+    sv.innerHTML = b;
+    return {
+      leyenda: `<span>una sola carga para el gratuito: la de sus topes</span>`,
+      cifras: [[f(D.margen_operacion_1000.recomendado), "margen con 1,000 restaurantes (era " + f(A.margen_operacion_1000.recomendado) + ")", "supuesto"], [n(D.gratuitos_que_sostiene_un_pagante.sin_anuncios), "gratuitos por cliente de paga, sin anuncios (eran " + n(A.gratuitos_que_sostiene_un_pagante.sin_anuncios) + ")", "supuesto"], [sd(D.sueldo[0]), "restaurantes para 1 salario mínimo (eran " + sd(A.sueldo[0]) + ")", "supuesto"]],
+      insight: `Antes los costos usaban un gratuito típico de ${n(A.carga_del_gratuito.visitas_al_mes)} visitas al mes y la capacidad usaba los topes; ahora todo usa la de los topes (${n(D.carga_del_gratuito.visitas_al_mes)}). Precios, topes y escenarios no cambian; lo que mueve las cifras es el supuesto de visitas por mesa.`,
+    };
+  },
   v0() { // ¿hasta dónde aguanto con todos gratuitos?
     const sv = this.sv, c = config(S), s = sup(S), N = this.N, g = MOD.todosGratuitos(c, s, N);
     const RR8 = conCache("rec8", () => MOD.recursos(c, s, "hoy"));
