@@ -418,7 +418,11 @@ await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
 await p.click('#verDecisiones'); await p.waitForTimeout(450);
 ok((await p.$$('.rcard')).length === 8 && (await p.evaluate(() => REC.decisiones[1].id)) === 'tope_platillos', 'decisiones: ocho, y la 2 es el tope de platillos');
-ok((await texto(p, '#r_tope_platillos')).includes('por decidir') && (await p.$$('#r_tope_platillos svg g[data-tip]')).length === 4, 'decisiones: el tope de platillos está por decidir, con las cuatro opciones a la vista');
+ok((await texto(p, '#r_tope_platillos')).includes('por decidir') && (await p.$$('#r_tope_platillos svg g[data-tip]')).length === 12, 'decisiones: el tope de platillos está por decidir, con las cuatro opciones a la vista');
+const pv = await p.evaluate(() => MOD.costoDePlatillo(config(S), sup(S)).filas.flatMap((q) => { const v = q.con_la_mezcla_de_paga_variable; return [v.baja.pagantes_por_1000, v.alta.pagantes_por_1000, v.baja.disco_con_avisos, v.alta.disco_con_avisos].map((x) => Math.round(x).toLocaleString('en-US')); }));
+const tpv = await texto(p, '#r_tope_platillos');
+ok(pv.length === 16 && pv.every((x) => tpv.includes(x)) && tpv.includes('parte de paga variable'), 'decisiones: cada tope de platillos dibuja pagantes por 1,000 y restaurantes por disco con las dos cotas (' + pv.slice(0, 4).join(' · ') + ' …)');
+if (png) await p.locator('#r_tope_platillos').screenshot({ path: `${png}/v12_platillos.png` });
 await p.click('[data-mas="dos_planes"]'); await p.waitForTimeout(150);
 await p.click('#r_dos_planes .opcion:not(.rec) .btn'); await p.waitForTimeout(300);
 ok((await p.evaluate(() => S.topeMesas)) === 5, 'recomendaciones: «Probar esta» aplica 5 mesas');
