@@ -6,7 +6,8 @@
   const NOM_T = {sesion_grupal: "sesión", miembro_sesion: "miembros", orden_personal: "órdenes", item_orden: "platillos", comanda: "comanda", comanda_orden: "enlace", llamada_mesero: "llamada", evento_analitica: "eventos del teléfono"};
   const FORMA = () => conCache("palTab", () => MOD.palancasEnTablero(config(S), sup(S))).grupos_excluyentes.forma_de_guardar_la_analitica.miembros;
   const sinForma = ps => ps.filter(x => !FORMA().includes(x));
-  const CORTO_OP = {hoy: "Hoy", contar_por_dia: "Contar por día", fila_por_visita: "Fila por visita", fila_mas_platillo: "Fila más platillo", adelgazar: "Adelgazar la tabla", archivar: "Archivar sesiones"};
+  const CORTO_OP = {hoy: "Hoy", contar_por_dia: "Contar por día", fila_por_visita: "Fila por visita", fila_mas_platillo: "Fila más platillo", adelgazar: "Adelgazar la tabla", archivar_paga: "Archivar sólo las de paga", archivar_todos: "Archivar las de todos los planes"};
+  const ALC = {archivar_paga: "archivar_sesiones_de_paga", archivar_todos: "archivar_sesiones_de_todos_los_planes"};
   D7.hp = 0;
 
   D7.montar = function (host, sec) {
@@ -15,7 +16,7 @@
 <div class="viz"><svg id="svDc" viewBox="0 0 1100 300" role="img" aria-label="Quién llena el disco" font-family="DM Sans, sans-serif"></svg></div>
 <div class="r7p r7bar"><span class="selr">Un ejemplo guiado: una mesa de 3 comensales</span><button class="btn" id="hiAt" aria-label="Paso anterior">◀</button><button class="btn" id="hiSig">Siguiente ▶</button><button class="btn" id="hiPl">▶ Reproducir</button><span class="selr" id="hiN"></span></div>
 <div class="viz"><svg id="svHi" viewBox="0 0 1100 500" role="img" aria-label="Cómo se acumulan las filas de una mesa de tres comensales" font-family="DM Sans, sans-serif"></svg></div>
-<div class="viz"><svg id="svOp" viewBox="0 0 1100 600" role="img" aria-label="Las formas de guardar la analítica, lado a lado" font-family="DM Sans, sans-serif"></svg></div>
+<div class="viz"><svg id="svOp" viewBox="0 0 1100 640" role="img" aria-label="Las formas de guardar la analítica, lado a lado" font-family="DM Sans, sans-serif"></svg></div>
 <div class="viz"><svg id="svCo" viewBox="0 0 1100 410" role="img" aria-label="La combinación de forma, archivo e historial" font-family="DM Sans, sans-serif"></svg></div></div>`);
     this.rmH = RM($("#svHi", host));
     const mueve = d => { this.hp = clamp(this.hp + d, 0, 8); if (this.hp === 8 || this.hp === 0) this.paraJuego(); this.pintaHistoria(); };
@@ -39,7 +40,7 @@
   D7.eligeOpcion = function (id) {
     const h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), o = h.opciones.find(q => q.id === id); if (!o) return;
     const ps = S.palancas || [];
-    if (id === "archivar") { const a = "archivar_sesiones_cerradas"; cambiar({palancas: ps.includes(a) ? ps.filter(x => x !== a) : [...ps, a]}); return; }
+    if (ALC[id]) { const a = ALC[id], otros = Object.values(ALC); cambiar({palancas: ps.includes(a) ? ps.filter(x => x !== a) : [...ps.filter(x => !otros.includes(x)), a]}); return; }
     cambiar({palancas: [...sinForma(ps), ...o.palancas]});
   };
 
@@ -96,46 +97,53 @@
   D7.pintaOpciones = function () {
     const h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), ops = h.opciones, ps = S.palancas || [], enF = ps.filter(x => FORMA().includes(x));
     const mxB = Math.max(...ops.map(o => o.bytes_analitica_por_mesa_de_3)), mxC = Math.max(...ops.flatMap(o => [o.restaurantes_que_caben_sin_purga, o.restaurantes_que_caben_con_historial_30_dias]));
-    const hoyB = ops[0].bytes_analitica_por_mesa_de_3, W = 140, G = 6.5;
-    let b = T(30, 26, "La misma mesa de 3 guardada de siete maneras (una sola forma de guardar la analítica; archivar y comprar disco se suman)", 14, C.vino, "start", 700);
+    const hoyB = ops[0].bytes_analitica_por_mesa_de_3, W = 126, G = 6;
+    let b = T(30, 26, "La misma mesa de 3: cinco formas de guardar la analítica (se elige una) y dos alcances de archivo (se elige uno, se suma a la forma)", 14, C.vino, "start", 700);
     const todas = [...ops, {id: "comprar", nombre: "Comprar disco"}];
     todas.forEach((o, i) => {
-      const x = 20 + i * (W + G), esForma = o.palancas && (o.id !== "archivar"), sel = o.id === "archivar" ? ps.includes("archivar_sesiones_cerradas") : o.id === "comprar" ? false : (o.id === "hoy" ? enF.length === 0 : enF.length === o.palancas.length && o.palancas.every(p => enF.includes(p))), calvin = o.id === "fila_por_visita";
-      const nom = o.nombre.replace(/ \(propuesta de Calvin\)/, ""), lin = parr(nom, 17);
-      b += `<g ${o.id !== "comprar" ? `data-op="${o.id}" role="button" tabindex="0" style="cursor:pointer" aria-pressed="${sel}"` : ""} data-tip="${esc2(o.id === "comprar" ? "Comprar disco|sube el costo del escalón|No cambia lo que se guarda: es la opción que no ahorra bytes." : `${CORTO_OP[o.id] || nom}|caben ${n(o.restaurantes_que_caben_sin_purga)} y ${n(o.restaurantes_que_caben_con_historial_30_dias)}|Queda: ${pal20(o.que_queda, 6)} Se pierde: ${pal20(o.se_pierde, 5)}`)}">` + Rc(x, 40, W, 540, sel ? "#f6e9d4" : "#fff", 20, `stroke="${sel ? C.vino : calvin ? C.dorado : C.arena}" stroke-width="${sel ? 3.4 : calvin ? 3 : 1.5}" ${calvin && !sel ? 'stroke-dasharray="7 5"' : ""}`);
+      const x = 20 + i * (W + G), esForma = o.palancas && !ALC[o.id], sel = ALC[o.id] ? ps.includes(ALC[o.id]) : o.id === "comprar" ? false : (o.id === "hoy" ? enF.length === 0 : enF.length === o.palancas.length && o.palancas.every(p => enF.includes(p))), calvin = o.id === "fila_por_visita";
+      const nom = o.nombre.replace(/ \(propuesta de Calvin\)/, ""), lin = parr(CORTO_OP[o.id] || nom, 15);
+      b += `<g ${o.id !== "comprar" ? `data-op="${o.id}" role="button" tabindex="0" style="cursor:pointer" aria-pressed="${sel}"` : ""} data-tip="${esc2(o.id === "comprar" ? "Comprar disco|sube el costo del escalón|No cambia lo que se guarda: es la opción que no ahorra bytes." : `${CORTO_OP[o.id] || nom}|caben ${n(o.restaurantes_que_caben_sin_purga)} y ${n(o.restaurantes_que_caben_con_historial_30_dias)}|Queda: ${pal20(o.que_queda, 6)} Se pierde: ${pal20(o.se_pierde, 5)}`)}">` + Rc(x, 40, W, 566, sel ? "#f6e9d4" : "#fff", 20, `stroke="${sel ? C.vino : calvin ? C.dorado : C.arena}" stroke-width="${sel ? 3.4 : calvin ? 3 : 1.5}" ${calvin && !sel ? 'stroke-dasharray="7 5"' : ""}`);
       lin.slice(0, 3).forEach((l, j) => { b += T(x + 12, 68 + j * 17, l, 12.5, C.tinta, "start", 700); });
       if (calvin) b += Rc(x + 12, 118, 116, 20, C.dorado, 10) + T(x + 70, 132, "idea de Calvin", 12, "#fff", "middle", 700);
       if (o.id === "comprar") { b += T(x + 12, 170, "no cambia lo", 12.5, C.t2, "start", 700) + T(x + 12, 187, "guardado: sube el", 12.5, C.t2, "start", 700) + T(x + 12, 204, "costo del escalón", 12.5, C.t2, "start", 700) + T(x + 12, 224, "(ver la escalera)", 12.5, C.t2, "start") + `</g>`; return; }
       b += T(x + 12, 168, "analítica de la mesa", 12, C.t2, "start", 700) + Rc(x + 12, 176, W - 24, 12, C.a2, 6) + Rc(x + 12, 176, Math.max((W - 24) * o.bytes_analitica_por_mesa_de_3 / mxB, 3), 12, calvin ? C.dorado : C.vino, 6) + T(x + 12, 216, `${n(o.bytes_analitica_por_mesa_de_3)} B`, 21, C.vino, "start", 400, true) + (o.id === "hoy" ? T(x + 12, 234, "una fila por toque", 12, C.t2, "start", 700) : o.bytes_analitica_por_mesa_de_3 === hoyB ? T(x + 12, 234, "mismos bytes que hoy", 12, C.t2, "start", 700) : T(x + 12, 234, `${n(100 * (1 - o.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy`, 12, C.verde, "start", 700));
-      b += T(x + 12, 270, "caben, sin purga", 12, C.t2, "start", 700) + Rc(x + 12, 278, W - 24, 12, C.a2, 6) + Rc(x + 12, 278, Math.max((W - 24) * o.restaurantes_que_caben_sin_purga / mxC, 3), 12, C.dorado, 6) + T(x + 12, 318, n(o.restaurantes_que_caben_sin_purga), 26, C.tinta, "start", 400, true);
+      b += T(x + 12, 270, "caben, a 12 meses", 12, C.t2, "start", 700) + Rc(x + 12, 278, W - 24, 12, C.a2, 6) + Rc(x + 12, 278, Math.max((W - 24) * o.restaurantes_que_caben_sin_purga / mxC, 3), 12, C.dorado, 6) + T(x + 12, 318, n(o.restaurantes_que_caben_sin_purga), 26, C.tinta, "start", 400, true);
       b += T(x + 12, 350, "caben, con 30 días", 12, C.t2, "start", 700) + Rc(x + 12, 358, W - 24, 12, C.a2, 6) + Rc(x + 12, 358, Math.max((W - 24) * o.restaurantes_que_caben_con_historial_30_dias / mxC, 3), 12, C.verde, 6) + T(x + 12, 398, n(o.restaurantes_que_caben_con_historial_30_dias), 26, C.tinta, "start", 400, true);
-      b += T(x + 12, 432, "se pierde:", 12, C.rojo, "start", 700); parr(o.se_pierde, 19).slice(0, 4).forEach((l, j) => { b += T(x + 12, 448 + j * 15, l, 12, C.tinta, "start"); });
-      b += T(x + 12, 530, sel ? "✓ elegida" : o.id === "archivar" ? "toca para sumar" : "toca para elegir", 12, sel ? C.vino : C.t2, "start", 700) + `</g>`;
+      b += T(x + 12, 432, "se pierde:", 12, C.rojo, "start", 700); parr(o.se_pierde, 16).slice(0, 6).forEach((l, j) => { b += T(x + 12, 448 + j * 15, l, 12, C.tinta, "start"); });
+      b += T(x + 12, 558, sel ? "✓ elegida" : ALC[o.id] ? "toca para sumar" : "toca para elegir", 12, sel ? C.vino : C.t2, "start", 700) + `</g>`;
     });
     // la propuesta de Calvin, medida
     const f = ops.find(o => o.id === "fila_por_visita"), porVisita = f.bytes_analitica_por_mesa_de_3 / h.comensales;
-    $("#svOp").innerHTML = b + T(20, 596, `La propuesta de Calvin, medida: ${n(porVisita)} bytes por visita de comensal, ${n(100 * (1 - f.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy y sin huella de red. Se pierde qué platillo se vio; conviene un solo envío al terminar.`, 12, C.osc, "start", 700);
+    $("#svOp").innerHTML = b + T(20, 626, `La propuesta de Calvin, medida: ${n(porVisita)} bytes por visita de comensal, ${n(100 * (1 - f.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy y sin huella de red. Se pierde qué platillo se vio; conviene un solo envío al terminar.`, 12, C.osc, "start", 700);
   };
 
   /* 4 · la combinación que importa: forma + archivar + historial del gratuito */
   D7.pintaCombo = function () {
-    const c = config(S), s = sup(S), ps = S.palancas || [], FILA = "fila_por_visita_de_comensal", ARCH = "archivar_sesiones_cerradas";
-    const cm = conCache("combo7", () => { const o = {}; [1, 12].forEach(m => [[], [FILA], [ARCH], [ARCH, FILA]].forEach(pl => { o[m + "|" + pl.length + pl.join()] = MOD.recursos({...c, palancas: pl}, s, {canal: "eventos", meses_historial: m}).escalera[0].restaurantes_que_caben; })); return o; });
-    const val = (m, pl) => cm[m + "|" + pl.length + pl.join()];
-    const cols = [["Hoy: una fila por toque", []], ["Fila por visita", [FILA]], ["Archivar sesiones", [ARCH]], ["Archivar + fila por visita", [ARCH, FILA]]], filas = [["Historial del gratuito a 30 días (propuesta)", 1], ["Sin purga del gratuito (12 meses)", 12]];
-    const mx = Math.max(...filas.flatMap(([, m]) => cols.map(([, pl]) => val(m, pl)))), X0 = 330, CW = 180, BW = 160;
-    const selM = this.his === "30d" ? 1 : 12, selC = (ps.includes(ARCH) ? 2 : 0) + (ps.includes(FILA) ? 1 : 0);
-    let b = T(30, 26, "La combinación que importa: forma de guardar + archivar + historial del gratuito (restaurantes que caben)", 14, C.vino, "start", 700);
-    cols.forEach(([nom], j) => { b += T(X0 + j * CW + BW / 2, 62, nom, 12.5, C.tinta, "middle", 700); });
-    filas.forEach(([nom, m], i) => {
-      const y = 90 + i * 108; b += T(30, y + 46, nom, 13, C.tinta, "start", 700);
-      cols.forEach(([cn, pl], j) => {
-        const v = val(m, pl), on = selM === m && selC === j, base = val(m, []);
-        b += `<g data-tip="${esc2(`${cn}|${n(v)} restaurantes|${m === 1 ? "Con 30 días de historial del gratuito." : "Sin purga del gratuito: 12 meses."}${j ? ` ${n(v - base)} más que sin cambios.` : ""}`)}" data-tipp="${v / mx}" tabindex="0">` + Rc(X0 + j * CW - 6, y - 6, BW + 12, 92, on ? "#f6e9d4" : "rgba(0,0,0,0)", 16, on ? `stroke="${C.vino}" stroke-width="3"` : "") + Rc(X0 + j * CW, y + 4, BW, 18, C.a2, 9) + Rc(X0 + j * CW, y + 4, Math.max(BW * v / mx, 4), 18, i ? C.dorado : C.verde, 9) + T(X0 + j * CW, y + 62, n(v), 30, C.tinta, "start", 400, true) + (j ? T(X0 + j * CW + 90, y + 60, `+${n(v - base)}`, 13, C.verde, "start", 700) : "") + `</g>`;
+    const ps = S.palancas || [], h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), cb = h.combinaciones;
+    const ARCHS = ["sin archivo", "archivar sólo las de paga", "archivar las de todos los planes"], AN = [["una fila por evento (hoy)", "Hoy: una fila por toque", []], ["contar por día", "Contar por día", ["analitica_agregada_por_dia"]], ["fila por visita", "Fila por visita", ["fila_por_visita_de_comensal"]], ["fila por visita más platillo por día", "Fila por visita + platillo", ["fila_por_visita_mas_platillo_por_dia"]]];
+    const K30 = "caben_con_historial_del_gratuito_a_30_dias", K12 = "caben_con_el_gratuito_a_12_meses_sin_purga";
+    const val = (arch, an, k) => (cb.find(x => x.archivo === arch && x.analitica === an) || {})[k];
+    const mx = Math.max(...cb.flatMap(x => [x[K30], x[K12]])), X0 = 300, CW = 190, BW = 168, RH = 52, Y0 = 84;
+    const selH = this.his === "30d" ? K30 : this.his === "12" ? K12 : null, selA = ps.includes("archivar_sesiones_de_todos_los_planes") ? 2 : ps.includes("archivar_sesiones_de_paga") ? 1 : 0, selF = AN.findIndex(([, , pl]) => pl.length === ps.filter(x => pl.includes(x)).length && ps.filter(x => FORMA().includes(x)).length === pl.length);
+    let b = T(30, 26, "La combinación que importa: archivo × forma de guardar × historial del gratuito (restaurantes que caben)", 14, C.vino, "start", 700);
+    AN.forEach(([, nom], j) => { b += T(X0 + j * CW + BW / 2, 62, nom, 12.5, C.tinta, "middle", 700); });
+    let i = 0;
+    [[K30, "Gratuito a 30 días (propuesta)", C.verde], [K12, "Gratuito a 12 meses (sin purga)", C.dorado]].forEach(([k, tit, col]) => {
+      ARCHS.forEach((arch, ai) => {
+        const y = Y0 + i * RH;
+        b += T(30, y + 16, tit, 12, C.t2, "start", 700) + T(30, y + 34, arch, 13, C.tinta, "start", 700);
+        AN.forEach(([an, nom], j) => {
+          const v = val(arch, an, k), on = selH === k && selA === ai && selF === j, base = val("sin archivo", "una fila por evento (hoy)", k);
+          b += `<g data-tip="${esc2(`${nom}|${n(v)} restaurantes|${tit}; ${arch}.${v !== base ? ` ${v > base ? n(v - base) + " más" : n(base - v) + " menos"} que sin cambios.` : ""}`)}" data-tipp="${v / mx}" tabindex="0">` + Rc(X0 + j * CW - 6, y - 2, BW + 12, RH - 6, on ? "#f6e9d4" : "rgba(0,0,0,0)", 12, on ? `stroke="${C.vino}" stroke-width="2.4"` : "") + Rc(X0 + j * CW, y + 6, BW, 12, C.a2, 6) + Rc(X0 + j * CW, y + 6, Math.max(BW * v / mx, 3), 12, col, 6) + T(X0 + j * CW, y + 38, n(v), 17, C.tinta, "start", 400, true) + `</g>`;
+        });
+        i++;
       });
     });
-    parr("En revisión: la cifra de «archivar» se está corrigiendo (el modelo recorta a 3 meses las sesiones de todos los planes). No se saca conclusión de esta tabla todavía.", 112).forEach((l, k) => { b += T(30, 318 + k * 20, l, 14, C.osc, "start", 700); });
-    parr("Cualquiera de estas palancas cambia qué se guarda y por cuánto tiempo: antes de construirse pasa por especificación y por actualizar 03 §7 (y un ADR si toca la regla de no borrar historial).", 140).forEach((l, k) => { b += T(30, 362 + k * 18, l, 12, C.t2, "start", 700); });
+    const yC = Y0 + i * RH + 14, d30 = val("sin archivo", "una fila por evento (hoy)", K30), p12 = val("archivar sólo las de paga", "una fila por evento (hoy)", K12), t12 = val("archivar las de todos los planes", "una fila por evento (hoy)", K12), b12 = val("sin archivo", "una fila por evento (hoy)", K12);
+    parr(`Con el gratuito a 12 meses, archivar sólo la paga da ${n(p12)} (sin archivar, ${n(b12)}) y archivar todos los planes, ${n(t12)}; recortar el gratuito a 30 días da ${n(d30)}. El salto lo da sacar de la base el historial del gratuito: archivándolo (se conserva en R2) o recortándolo (se borra). Archivar sólo la paga no alcanza.`, 112).forEach((l, k) => { b += T(30, yC + k * 20, l, 14, C.vino, "start", 700); });
+    parr("Cualquiera de estas palancas cambia qué se guarda y por cuánto tiempo: antes de construirse pasa por especificación, por actualizar 03 §7 y por un ADR (archivar toca las reglas 8 y 9).", 140).forEach((l, k) => { b += T(30, yC + 66 + k * 18, l, 12, C.t2, "start", 700); });
+    $("#svCo").setAttribute("viewBox", `0 0 1100 ${yC + 112}`);
     $("#svCo").innerHTML = b;
   };
 })();

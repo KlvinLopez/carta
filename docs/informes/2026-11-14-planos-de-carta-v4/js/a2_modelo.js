@@ -12,7 +12,7 @@ function desdeConfig(c) {
   return {
     precioServicio: c.precios.servicio, precioSalon: c.precios.salon,
     topePlatillos: c.topes.gratuito.platillos, topeMesas: c.topes.gratuito.mesas, topeCuentas: c.topes.gratuito.cuentas,
-    hist: c.topes.servicio.meses_en_linea, ma: c.disco.meses_analitica_en_linea.gratuito, arch: c.disco.archivar,
+    hist: c.topes.servicio.meses_en_linea, ma: c.disco.meses_analitica_en_linea.servicio, arch: c.disco.archivar,
     platSel: "todo", curva: c.curva, palancas: [], cMed: null, cSig: null, cTec: null, sustituto: c.competencia.sustituto, K: c.competencia.k, soporte: SP.soporte_servicio, servidor: -1, mesAds: SP.mes_inicio_anuncios, bolsa: 1000,
   };
 }
@@ -50,7 +50,7 @@ function config(s0) {
   c.precios = {servicio: s0.precioServicio, salon: s0.precioSalon};
   Object.assign(c.topes.gratuito, {platillos: s0.platSel === "sin" ? Infinity : s0.topePlatillos, platillos_cuenta: s0.platSel === "comida" ? "comida" : "todo", mesas: s0.topeMesas, cuentas: s0.topeCuentas});
   c.topes.servicio.meses_en_linea = s0.hist; c.topes.salon.meses_en_linea = s0.hist;
-  c.disco = {meses_analitica_en_linea: {gratuito: s0.ma, servicio: s0.ma, salon: s0.ma}, archivar: s0.arch};
+  c.disco = {meses_analitica_en_linea: {...c.disco.meses_analitica_en_linea, servicio: s0.ma, salon: s0.ma}, archivar: s0.arch}; // la analítica del gratuito es la del modelo (13 meses, 03 §7); el control mueve la de los planes de paga
   c.palancas = s0.palancas || [];
   c.curva = s0.curva; c.competencia = {sustituto: s0.sustituto, k: s0.K};
   return c;
