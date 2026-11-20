@@ -144,13 +144,15 @@
     const ps = S.palancas || [], h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), cb = h.combinaciones;
     const ARCHS = ["sin archivo", "archivar sólo las de paga", "archivar las de todos los planes"], AN = [["una fila por evento (hoy)", "Hoy: una fila por toque", []], ["contar por día", "Contar por día", ["analitica_agregada_por_dia"]], ["fila por visita", "Fila por visita", ["fila_por_visita_de_comensal"]], ["fila por visita más platillo por día", "Fila por visita + platillo", ["fila_por_visita_mas_platillo_por_dia"]]];
     const K30 = "caben_con_historial_del_gratuito_a_30_dias", K12 = "caben_con_el_gratuito_a_12_meses_sin_purga";
-    const val = (arch, an, k) => (cb.find(x => x.archivo === arch && x.analitica === an) || {})[k];
-    const mx = Math.max(...cb.flatMap(x => [x[K30], x[K12]])), X0 = 300, CW = 190, BW = 168, RH = 52, Y0 = 84;
-    const selH = this.his === "30d" ? K30 : this.his === "12" ? K12 : null, selA = ps.includes("archivar_sesiones_de_todos_los_planes") ? 2 : ps.includes("archivar_sesiones_de_paga") ? 1 : 0, selF = AN.findIndex(([, , pl]) => pl.length === ps.filter(x => pl.includes(x)).length && ps.filter(x => FORMA().includes(x)).length === pl.length);
-    let b = T(30, 26, "La combinación que importa: archivo × forma de guardar × historial del gratuito (restaurantes que caben)", 14, C.vino, "start", 700);
+    const ALCP = [[], ["archivar_sesiones_de_paga"], ["archivar_sesiones_de_todos_los_planes"]];
+    const vig = conCache("comboVig", () => { const c = config(S), s = sup(S), o = {}; ARCHS.forEach((a, ai) => AN.forEach(([an, , pl]) => { o[a + "|" + an] = MOD.recursos({...c, palancas: [...ALCP[ai], ...pl]}, s, {canal: "eventos"}).cuello_con_eventos.restaurantes; })); return o; });
+    const val = (arch, an, k) => k === "vigente" ? vig[arch + "|" + an] : (cb.find(x => x.archivo === arch && x.analitica === an) || {})[k];
+    const mx = Math.max(...cb.flatMap(x => [x[K30], x[K12]]), ...Object.values(vig)), X0 = 300, CW = 190, BW = 168, RH = 52, Y0 = 84;
+    const selH = this.his === "30d" ? K30 : this.his === "12" ? K12 : this.his === "vigente" ? "vigente" : null, selA = ps.includes("archivar_sesiones_de_todos_los_planes") ? 2 : ps.includes("archivar_sesiones_de_paga") ? 1 : 0, selF = AN.findIndex(([, , pl]) => pl.length === ps.filter(x => pl.includes(x)).length && ps.filter(x => FORMA().includes(x)).length === pl.length);
+    let b = T(30, 26, "La combinación que importa: archivo × forma de guardar × historial del gratuito (restaurantes que caben, con avisos)", 14, C.vino, "start", 700);
     AN.forEach(([, nom], j) => { b += T(X0 + j * CW + BW / 2, 62, nom, 12.5, C.tinta, "middle", 700); });
     let i = 0;
-    [[K30, "Gratuito a 30 días (propuesta)", C.verde], [K12, "Gratuito a 12 meses (sin purga)", C.dorado]].forEach(([k, tit, col]) => {
+    [["vigente", "Política vigente (03 §7)", C.vino], [K12, "Gratuito a 12 meses (sin purga)", C.dorado], [K30, "Gratuito a 30 días (propuesta)", C.verde]].forEach(([k, tit, col]) => {
       ARCHS.forEach((arch, ai) => {
         const y = Y0 + i * RH;
         b += T(30, y + 16, tit, 12, C.t2, "start", 700) + T(30, y + 34, arch, 13, C.tinta, "start", 700);
@@ -161,8 +163,8 @@
         i++;
       });
     });
-    const yC = Y0 + i * RH + 14, d30 = val("sin archivo", "una fila por evento (hoy)", K30), p12 = val("archivar sólo las de paga", "una fila por evento (hoy)", K12), t12 = val("archivar las de todos los planes", "una fila por evento (hoy)", K12), b12 = val("sin archivo", "una fila por evento (hoy)", K12);
-    parr(`Con el gratuito a 12 meses, archivar sólo la paga da ${n(p12)} (sin archivar, ${n(b12)}) y archivar todos los planes, ${n(t12)}; recortar el gratuito a 30 días da ${n(d30)}. El salto lo da sacar de la base el historial del gratuito: archivándolo (se conserva en R2) o recortándolo (se borra). Archivar sólo la paga no alcanza.`, 112).forEach((l, k) => { b += T(30, yC + k * 20, l, 14, C.vino, "start", 700); });
+    const yC = Y0 + i * RH + 14, v0 = val("sin archivo", "una fila por evento (hoy)", "vigente"), vP = val("archivar sólo las de paga", "fila por visita", "vigente"), vT = val("archivar las de todos los planes", "fila por visita", "vigente"), d30 = val("sin archivo", "una fila por evento (hoy)", K30), p12 = val("archivar sólo las de paga", "una fila por evento (hoy)", K12), t12 = val("archivar las de todos los planes", "una fila por evento (hoy)", K12), b12 = val("sin archivo", "una fila por evento (hoy)", K12);
+    parr(`Con la política vigente, archivar en R2 el historial de más de 3 meses de todos los planes más la fila por visita lleva de ${n(v0)} a ${n(vT)} sin borrar nada; archivar sólo la paga con la fila por visita da ${n(vP)}. Con el gratuito a 12 meses, archivar sólo la paga da ${n(p12)} (sin archivar, ${n(b12)}) y archivar todos los planes, ${n(t12)}; recortar el gratuito a 30 días da ${n(d30)}. El salto lo da sacar de la base el historial del gratuito: archivándolo (se conserva en R2) o recortándolo (se borra). Archivar sólo la paga no alcanza.`, 112).forEach((l, k) => { b += T(30, yC + k * 20, l, 14, C.vino, "start", 700); });
     parr("Cualquiera de estas palancas cambia qué se guarda y por cuánto tiempo: antes de construirse pasa por especificación, por actualizar 03 §7 y por un ADR (archivar toca las reglas 8 y 9).", 140).forEach((l, k) => { b += T(30, yC + 66 + k * 18, l, 12, C.t2, "start", 700); });
     $("#svCo").setAttribute("viewBox", `0 0 1100 ${yC + 112}`);
     $("#svCo").innerHTML = b;

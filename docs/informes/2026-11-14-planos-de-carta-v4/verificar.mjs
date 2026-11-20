@@ -255,6 +255,8 @@ await p.evaluate(() => cambiar({ palancas: [] })); await p.waitForTimeout(400);
 const co = await texto(p, '#svCo');
 const cmb = await p.evaluate(() => { const c = MOD.historiaDelDisco(config(S), sup(S)).combinaciones, v = (a, an, k) => c.find((x) => x.archivo === a && x.analitica === an)[k], H = 'una fila por evento (hoy)'; return [v('archivar sólo las de paga', H, 'caben_con_el_gratuito_a_12_meses_sin_purga'), v('archivar las de todos los planes', H, 'caben_con_el_gratuito_a_12_meses_sin_purga'), v('sin archivo', H, 'caben_con_historial_del_gratuito_a_30_dias'), c.length]; });
 ok(co.includes(f7(cmb[0])) && co.includes(f7(cmb[1])) && co.includes(f7(cmb[2])) && cmb[3] === 24 && co.includes('archivar sólo la paga no alcanza') || co.includes('Archivar sólo la paga no alcanza'), 'capítulo 7: la combinación sale de historiaDelDisco().combinaciones (' + cmb.join(' · ') + ') y concluye que archivar sólo la paga no alcanza');
+const vg = await p.evaluate(() => { const c = config(S), s = sup(S), g = (pl) => MOD.recursos({ ...c, palancas: pl }, s, { canal: 'eventos' }).cuello_con_eventos.restaurantes; return [g([]), g(['archivar_sesiones_de_todos_los_planes', 'fila_por_visita_de_comensal'])]; });
+ok(co.includes('Política vigente (03 §7)') && co.includes('de ' + f7(vg[0]) + ' a ' + f7(vg[1]) + ' sin borrar nada'), 'capítulo 7: la tabla tiene la columna de la política vigente (' + vg.join(' → ') + ' con archivar todos + fila por visita)');
 await sinDesborde(p, 'capítulo 7 (historia del disco)'); await cierra(p);
 
 // el capítulo 7 recorre varias combinaciones de topes, canal e historial: ninguna etiqueta sobre una línea ni sobre otra etiqueta
