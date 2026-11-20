@@ -443,9 +443,11 @@ function grano() {
 
 const f = fondo();
 comensal('ana'); comensal('carlos'); alFondo('sofia'); alFondo('diego'); mesero(); utileria(); mesa(); montaje(); vela(); acrilico(); platillosMesa(); sucia(); nuevos();
-manos('ana', { piel: '#c99272', manga: '#5d6734' });
-manos('carlos', { piel: '#b98260', manga: '#34313d', puno: '#d8cbb4', espejo: true });
+manos('ana', { piel: '#b98058', manga: '#5d6734' });
+manos('carlos', { piel: '#d0a07c', manga: '#34313d', puno: '#d8cbb4', espejo: true });
 manos('mesero', { piel: '#b88562', manga: '#cfc3ae' });
+manos('sofia', { piel: '#e6bfa2', manga: '#7a2f45' });
+manos('diego', { piel: '#7a5038', manga: '#2f5a5a', espejo: true });
 visor(); platillos(); fondoCerca(f); grano();
 
 /* ---- pintar en Chromium y guardar ---- */
