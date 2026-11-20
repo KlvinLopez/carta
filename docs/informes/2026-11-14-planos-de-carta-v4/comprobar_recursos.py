@@ -27,22 +27,13 @@ def a_publicar() -> list[str]:
 
 
 def referenciados() -> set[str]:
-    """Rutas relativas que aparecen en el HTML y en los módulos: literales `apoyo/...` y nombres de la película (`CINE + "x.svg"`)."""
+    """Rutas relativas que aparecen en el HTML y en los módulos: literales `apoyo/...`."""
     textos = [(AQUI / "interactivo.html").read_text(encoding="utf-8")] + [
         p.read_text(encoding="utf-8") for p in sorted((AQUI / "js").glob("*.js"))
     ]
     refs: set[str] = set()
     for t in textos:
         refs |= set(re.findall(r"apoyo/[A-Za-z0-9_./-]*\.(?:webp|png|jpg|svg|woff2|css|js|mp4)", t))
-    cine = (AQUI / "js" / "e2_film.js").read_text(encoding="utf-8")
-    for nombre in re.findall(r"[\"'`]([A-Za-z0-9_-]+\.svg)[\"'`]", cine) + re.findall(
-        r"\$\{CINE\}([A-Za-z0-9_-]+\.svg)", cine
-    ):
-        refs.add(f"apoyo/cine/{nombre}")
-    for nombre in re.findall(
-        r"(?:cFila|tarjeta)\(\"([A-Za-z0-9_-]+)\"", cine
-    ):  # `plato-${img}.svg`
-        refs.add(f"apoyo/cine/plato-{nombre}.svg")
     return refs
 
 
