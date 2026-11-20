@@ -257,6 +257,10 @@ function mesero() {
   capa('mesero-brazos-libreta', caja, F(ante(-1, MX - 46, 600) + ante(1, MX + 44, 606)) +
     `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 56}" y="512" width="60" height="84" rx="4" fill="#efe6d2"/><path d="M${MX - 46} 530 h40 M${MX - 46} 544 h34 M${MX - 46} 558 h38 M${MX - 46} 572 h22" stroke="#8a7a62" stroke-width="2.5" opacity=".8"/></g><path d="M${MX + 30} 600 L${MX - 4} 560" stroke="#1a1414" stroke-width="5" stroke-linecap="round"/>` +
     F(mano(MX - 40, 604, 22) + mano(MX + 30, 600, 20)));
+  // o con una tableta que carga y carga (el círculo que gira lo pone la película encima)
+  capa('mesero-brazos-tableta', caja, `<circle cx="${MX - 26}" cy="500" r="120" fill="url(#gPant)" opacity=".4"/>` + F(ante(-1, MX - 60, 606) + ante(1, MX + 50, 606)) +
+    `<g transform="rotate(-6 ${MX - 6} 556)"><rect x="${MX - 70}" y="506" width="128" height="96" rx="10" fill="#0d0a0a"/><rect x="${MX - 70}" y="506" width="128" height="96" rx="10" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".7"/></g>` +
+    F(mano(MX - 58, 606, 22) + mano(MX + 46, 606, 22)));
   // con la terminal de cobro (el cobro ocurre fuera de Carta)
   capa('mesero-brazos-terminal', caja, F(ante(-1, MX - 40, 640) + ante(1, MX + 232, 632)) +
     `<g transform="rotate(18 ${MX + 262} 630)"><rect x="${MX + 236}" y="586" width="56" height="92" rx="10" fill="#17171a"/><rect x="${MX + 243}" y="594" width="42" height="34" rx="4" fill="#cfe6d8"/><rect x="${MX + 243}" y="636" width="42" height="34" rx="4" fill="#2a2a30"/><rect x="${MX + 250}" y="578" width="28" height="12" rx="2" fill="#f4ecdc"/></g>` +
@@ -279,6 +283,12 @@ function platillosMesa() {
 function utileria() {
   let tk = `<g transform="translate(60 6)"><path d="M1016 742 L1052 740 C1070 762 1096 786 1130 806 L1090 812 C1058 790 1034 766 1016 742Z" fill="#f6efe0"/><path d="M1016 742 L1052 740 l-4 -10 q-18 -6 -30 0z" fill="#e2d6bd"/></g>`;
   for (let i = 0; i < 7; i++) tk += `<path d="M${1090 + i * 13} ${756 + i * 9} l${20 + (i % 3) * 4} -1.5" stroke="#6b5a48" stroke-width="2.2" opacity=".75"/>`;
+  // la causa de fondo: una carta, una libreta y un ticket; un solo papel para todos
+  const carta = `<path d="M640 792 L742 776 L780 806 L676 824Z" fill="#5a1a2c"/><path d="M654 794 L740 781 L766 803 L680 818Z" fill="none" stroke="${P.oro}" stroke-width="2" opacity=".65"/><path d="M640 792 l36 32 l0 6 l-38 -32z" fill="#3a0f1c"/>`;
+  let lib = `<path d="M848 796 L920 790 L940 826 L864 834Z" fill="#efe6d2"/>`;
+  for (let i = 0; i < 4; i++) lib += `<path d="M${860 + i * 4} ${802 + i * 7} l${52 - i * 4} -4" stroke="#8a7a62" stroke-width="2.2" opacity=".8"/>`;
+  lib += `<path d="M930 800 l34 22" stroke="#1a1414" stroke-width="5" stroke-linecap="round"/>`;
+  capa('papeles', [620, 760, 360, 90], `<ellipse cx="710" cy="812" rx="80" ry="10" fill="#2a1a12" opacity=".3" filter="url(#b3)"/><ellipse cx="896" cy="826" rx="56" ry="8" fill="#2a1a12" opacity=".3" filter="url(#b3)"/>` + carta + lib);
   capa('ticket', [1060, 720, 150, 110], `<ellipse cx="1136" cy="790" rx="70" ry="10" fill="#2a1a12" opacity=".3" filter="url(#b3)"/>` + tk);
   const px = 956, py = 800;
   const pastel = `<ellipse cx="${px}" cy="${py + 6}" rx="62" ry="11" fill="#2a1a12" opacity=".4" filter="url(#b3)"/><ellipse cx="${px}" cy="${py}" rx="58" ry="11" fill="#f4ead8"/>` +
