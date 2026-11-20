@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r14",
+ "version": "2026-11-20-r15",
  "fecha": "2026-11-14",
  "config_palancas": [],
  "composicion_del_disco": {
@@ -200,7 +200,7 @@
  "estado_elegido": {
   "canal": "sondeo",
   "carga": "topes",
-  "meses_historial": 12,
+  "meses_historial": "03§7",
   "palancas": [],
   "nota": "la escalera responde a este estado; ningún parámetro de entrada se modifica"
  },
@@ -212,12 +212,12 @@
    "disco_gb": 5,
    "costo_usd_base": 8.1,
    "costo_usd_con_carga": 12,
-   "restaurantes_que_caben": 41,
+   "restaurantes_que_caben": 28,
    "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 173,
     "memoria": 476800,
-    "disco": 41,
+    "disco": 28,
     "conexiones_bd": 3850,
     "lineas": null,
     "fotos": null
@@ -236,7 +236,7 @@
    "por_recurso": {
     "procesador": 173,
     "memoria": 476800,
-    "disco": 413,
+    "disco": 285,
     "conexiones_bd": 3850,
     "lineas": null,
     "fotos": null
@@ -250,12 +250,12 @@
    "disco_gb": 50,
    "costo_usd_base": 23,
    "costo_usd_con_carga": 44,
-   "restaurantes_que_caben": 311,
-   "recurso_que_obliga_a_subir": "procesador",
+   "restaurantes_que_caben": 285,
+   "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 311,
     "memoria": 473600,
-    "disco": 413,
+    "disco": 285,
     "conexiones_bd": 7757,
     "lineas": null,
     "fotos": null
@@ -269,12 +269,12 @@
    "disco_gb": 50,
    "costo_usd_base": 30,
    "costo_usd_con_carga": 54,
-   "restaurantes_que_caben": 356,
-   "recurso_que_obliga_a_subir": "procesador",
+   "restaurantes_que_caben": 285,
+   "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 356,
     "memoria": 467200,
-    "disco": 413,
+    "disco": 285,
     "conexiones_bd": 8965,
     "lineas": null,
     "fotos": null
@@ -287,15 +287,15 @@
    "procesos": 16,
    "costo_usd_base": null,
    "costo_usd_con_carga": 108,
-   "restaurantes_que_caben": 712,
-   "recurso_que_obliga_a_subir": "procesador",
+   "restaurantes_que_caben": 570,
+   "recurso_que_obliga_a_subir": "disco",
    "extrapolacion_sin_medir": true
   }
  ],
  "definicion_restaurante_tipico": "un gratuito carga lo de sus topes: 6 mesas × 180 visitas por mesa al mes = 1080 visitas (el 180 sale de las 1800 visitas con 10 mesas del simulador: SUPUESTO sin medir; todos al tope = cota alta), 150 platillos y 1 cuenta(s) de personal",
  "estado": {
-  "meses_historial": 12,
-  "nota": "hoy NADA purga; por defecto se supone un restaurante con 12 meses de historial acumulado (sin purga)"
+  "meses_historial": "03§7",
+  "nota": "estado por omisión: la política vigente (03 §7: el gratuito guarda 24 meses de sesiones y 13 de analítica), la misma base que usa el dinero; hoy nada purga. «Sin purga a 12 meses» es el estado con nombre { meses_historial: 12 }"
  },
  "disco_por_historial": [
   {
@@ -358,7 +358,7 @@
    "factor_de_actividad": 0.5,
    "procesador_hoy": 346,
    "procesador_con_eventos": 1760,
-   "disco": 82,
+   "disco": 56,
    "disco_con_historial_30_dias": 364,
    "nota": "el doble de visitas y de comensales por restaurante divide a la mitad lo que cabe (aproximado: el disco fijo por restaurante es despreciable)"
   },
@@ -366,7 +366,7 @@
    "factor_de_actividad": 1,
    "procesador_hoy": 173,
    "procesador_con_eventos": 880,
-   "disco": 41,
+   "disco": 28,
    "disco_con_historial_30_dias": 182,
    "nota": "el doble de visitas y de comensales por restaurante divide a la mitad lo que cabe (aproximado: el disco fijo por restaurante es despreciable)"
   },
@@ -374,7 +374,7 @@
    "factor_de_actividad": 2,
    "procesador_hoy": 86,
    "procesador_con_eventos": 440,
-   "disco": 20,
+   "disco": 14,
    "disco_con_historial_30_dias": 91,
    "nota": "el doble de visitas y de comensales por restaurante divide a la mitad lo que cabe (aproximado: el disco fijo por restaurante es despreciable)"
   }
@@ -401,8 +401,8 @@
  "cuello_hoy": {
   "recurso": "disco",
   "nombre": "Disco de la base de datos",
-  "restaurantes": 41,
-  "comensales_mes": 84058.20000000001,
+  "restaurantes": 28,
+  "comensales_mes": 57405.600000000006,
   "con_historial_30_dias": {
    "recurso": "procesador",
    "restaurantes": 173
@@ -415,8 +415,8 @@
  "cuello_con_eventos": {
   "recurso": "disco",
   "nombre": "Disco de la base de datos",
-  "restaurantes": 41,
-  "comensales_mes": 84058.20000000001,
+  "restaurantes": 28,
+  "comensales_mes": 57405.600000000006,
   "con_historial_30_dias": {
    "recurso": "disco",
    "restaurantes": 182
@@ -530,8 +530,8 @@
      "riesgo": "bajo-medio: cambia ADR-004 (vida máxima 2 s). EXTRAPOLA una medición por comensal (0.88 → 0.47 ms) a todo el procesador, y DEJA DE IMPORTAR cuando lleguen los avisos de la Fase 3",
      "regla_que_toca": "ninguna; cambia un ADR",
      "medido": true,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 96.73853579923981,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 139.8922402053961,
      "restaurantes_antes": {
       "hoy": 173,
       "con_eventos": 880
@@ -588,17 +588,17 @@
    "como_funciona": "Cada visita deja filas en `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden` y `llamada_mesero`, y **diez filas de analítica en `evento_analitica`**; las tablas y sus índices viven en el volumen de PostgreSQL. Ruta: `app/db/models.py`; analítica en `app/services/analitica.py`.",
    "consumo_por_restaurante": {
     "unidad": "MB por restaurante registrado (mezcla de gratuitos y de paga)",
-    "valor": 96.73853579923981,
-    "meses_historial": 12,
+    "valor": 139.8922402053961,
+    "meses_historial": "03§7",
     "bytes_por_evento": 353,
     "medido": true
    },
    "limite_hoy": {
-    "restaurantes": 41,
-    "texto": "41 restaurantes (Hoy: sondeo, 2 procesos, Hobby)"
+    "restaurantes": 28,
+    "texto": "28 restaurantes (Hoy: sondeo, 2 procesos, Hobby)"
    },
-   "restaurantes_hoy": 41,
-   "restaurantes_con_eventos": 41,
+   "restaurantes_hoy": 28,
+   "restaurantes_con_eventos": 28,
    "con_historial_30_dias": {
     "restaurantes_hoy": 182,
     "restaurantes_con_eventos": 182,
@@ -606,8 +606,8 @@
     "es_cuello_con_eventos": true,
     "nota": "si el gratuito guarda sólo 30 días (PROPUESTA que contradice 03 §7: hoy nada purga)"
    },
-   "comensales_mes_hoy": 84058.20000000001,
-   "comensales_mes_con_eventos": 84058.20000000001,
+   "comensales_mes_hoy": 57405.600000000006,
+   "comensales_mes_con_eventos": 57405.600000000006,
    "es_cuello_hoy": true,
    "es_cuello_con_eventos": true,
    "medido": "medido con datos sintéticos en PostgreSQL local (10 restaurantes medianos, un mes); depende de los meses de historial que se guarden (hoy nada purga)",
@@ -623,28 +623,28 @@
      "riesgo": "medio: un trabajo de purga; hay que avisar al dueño y ofrecer la descarga antes",
      "regla_que_toca": "CONTRADICE docs/plan/03_Datos_v1.md §7 (analítica 13 meses, sesiones y comandas 24 meses, sin distinguir por plan) y la regla 9 si se borran filas de entidades con historial (sesiones, comandas): hay que cambiar el documento y escribir el ADR ANTES (regla del repositorio); hoy NADA purga",
      "medido": true,
-     "mb_por_restaurante_antes": 96.73853579923981,
+     "mb_por_restaurante_antes": 139.8922402053961,
      "mb_por_restaurante_despues": 21.93170856683463,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
       "hoy": 182,
       "con_eventos": 182
      },
      "ganancia_restaurantes": {
-      "hoy": 141,
-      "con_eventos": 141
+      "hoy": 154,
+      "con_eventos": 154
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 182,
       "ganancia": 0
      },
-     "antes": "96.7 MB por restaurante · caben 41",
+     "antes": "139.9 MB por restaurante · caben 28",
      "despues": "21.9 MB por restaurante · caben 182",
-     "ganancia": "74.8 MB menos por restaurante (acumulados con el historial supuesto); caben +141 restaurantes en el mismo disco"
+     "ganancia": "118.0 MB menos por restaurante (acumulados con el historial supuesto); caben +154 restaurantes en el mismo disco"
     },
     {
      "id": "analitica_agregada_por_dia",
@@ -657,28 +657,28 @@
      "riesgo": "medio: se pierde el detalle por sesión y por teléfono; sólo quedan conteos por día, tipo y platillo",
      "regla_que_toca": "ninguna dura (sólo conteos por día, sin detalle por comensal; la regla 10 no se toca); pide ADR porque cambia el contrato de analítica",
      "medido": true,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 58.504265512688335,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 98.54706207101005,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 68,
-      "con_eventos": 68
+      "hoy": 40,
+      "con_eventos": 40
      },
      "ganancia_restaurantes": {
-      "hoy": 27,
-      "con_eventos": 27
+      "hoy": 12,
+      "con_eventos": 12
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 222,
       "ganancia": 40
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "58.5 MB por restaurante · caben 68",
-     "ganancia": "38.2 MB menos por restaurante (acumulados con el historial supuesto); caben +27 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "98.5 MB por restaurante · caben 40",
+     "ganancia": "41.3 MB menos por restaurante (acumulados con el historial supuesto); caben +12 restaurantes en el mismo disco"
     },
     {
      "id": "retencion_analitica_7_dias",
@@ -691,28 +691,28 @@
      "riesgo": "bajo: un trabajo diario que borra eventos viejos; la analítica no es una entidad con historial",
      "regla_que_toca": "CONTRADICE 03 §7 (analítica 13 meses con «agregación diaria y purga»): cambiar el documento antes; ninguna regla dura (el evento no es una entidad con historial)",
      "medido": false,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 63.797514303904364,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 104.27099278924396,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 62,
-      "con_eventos": 62
+      "hoy": 38,
+      "con_eventos": 38
      },
      "ganancia_restaurantes": {
-      "hoy": 21,
-      "con_eventos": 21
+      "hoy": 10,
+      "con_eventos": 10
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 216,
       "ganancia": 34
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "63.8 MB por restaurante · caben 62",
-     "ganancia": "32.9 MB menos por restaurante (acumulados con el historial supuesto); caben +21 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "104.3 MB por restaurante · caben 38",
+     "ganancia": "35.6 MB menos por restaurante (acumulados con el historial supuesto); caben +10 restaurantes en el mismo disco"
     },
     {
      "id": "fila_por_visita_de_comensal",
@@ -725,28 +725,28 @@
      "riesgo": "medio: se pierde el platillo visto y el orden de los toques; depende de que el teléfono mande la fila (si se cierra antes, se pierde); actualizar la fila duplica el tamaño de la tabla; sin ip_hash (no hace falta)",
      "regla_que_toca": "regla 10 con cuidado: la fila es por comensal anónimo (id opaco) y NO lleva los filtros por comensal (revelarían quién usa filtros: indicio indirecto de una restricción alimentaria); los filtros se cuentan por restaurante y día; la huella de red deja de guardarse; pide ADR porque cambia el contrato de analítica",
      "medido": true,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 58.598787812531484,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 98.64927511954996,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 68,
-      "con_eventos": 68
+      "hoy": 40,
+      "con_eventos": 40
      },
      "ganancia_restaurantes": {
-      "hoy": 27,
-      "con_eventos": 27
+      "hoy": 12,
+      "con_eventos": 12
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 222,
       "ganancia": 40
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "58.6 MB por restaurante · caben 68",
-     "ganancia": "38.1 MB menos por restaurante (acumulados con el historial supuesto); caben +27 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "98.6 MB por restaurante · caben 40",
+     "ganancia": "41.2 MB menos por restaurante (acumulados con el historial supuesto); caben +12 restaurantes en el mismo disco"
     },
     {
      "id": "fila_por_visita_mas_platillo_por_dia",
@@ -759,28 +759,28 @@
      "riesgo": "medio: dos tablas y dos envíos; conserva el platillo visto (conteo por día) pero no cuál comensal lo vio",
      "regla_que_toca": "ninguna dura; pide ADR (contrato de analítica)",
      "medido": true,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 61.36141684885608,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 101.63668376551131,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 65,
-      "con_eventos": 65
+      "hoy": 39,
+      "con_eventos": 39
      },
      "ganancia_restaurantes": {
-      "hoy": 24,
-      "con_eventos": 24
+      "hoy": 11,
+      "con_eventos": 11
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 219,
       "ganancia": 37
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "61.4 MB por restaurante · caben 65",
-     "ganancia": "35.4 MB menos por restaurante (acumulados con el historial supuesto); caben +24 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "101.6 MB por restaurante · caben 39",
+     "ganancia": "38.3 MB menos por restaurante (acumulados con el historial supuesto); caben +11 restaurantes en el mismo disco"
     },
     {
      "id": "indices_de_evento_minimos",
@@ -793,28 +793,28 @@
      "riesgo": "medio: las llaves foráneas con SET NULL piden índice en esa columna (skill /migracion); habría que quitar esas llaves y guardar ids opacos",
      "regla_que_toca": "convención de /migracion (índice en toda FK con cascada); pide ADR",
      "medido": true,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 88.11122770446563,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 130.56297650230056,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 45,
-      "con_eventos": 45
+      "hoy": 30,
+      "con_eventos": 30
      },
      "ganancia_restaurantes": {
-      "hoy": 4,
-      "con_eventos": 4
+      "hoy": 2,
+      "con_eventos": 2
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 189,
       "ganancia": 7
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "88.1 MB por restaurante · caben 45",
-     "ganancia": "8.6 MB menos por restaurante (acumulados con el historial supuesto); caben +4 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "130.6 MB por restaurante · caben 30",
+     "ganancia": "9.3 MB menos por restaurante (acumulados con el historial supuesto); caben +2 restaurantes en el mismo disco"
     },
     {
      "id": "tipos_mas_chicos",
@@ -827,28 +827,28 @@
      "riesgo": "bajo: migración con reescritura de la tabla",
      "regla_que_toca": "ninguna",
      "medido": true,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 88.09833829994159,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 130.54903835931785,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 45,
-      "con_eventos": 45
+      "hoy": 30,
+      "con_eventos": 30
      },
      "ganancia_restaurantes": {
-      "hoy": 4,
-      "con_eventos": 4
+      "hoy": 2,
+      "con_eventos": 2
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 189,
       "ganancia": 7
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "88.1 MB por restaurante · caben 45",
-     "ganancia": "8.6 MB menos por restaurante (acumulados con el historial supuesto); caben +4 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "130.5 MB por restaurante · caben 30",
+     "ganancia": "9.3 MB menos por restaurante (acumulados con el historial supuesto); caben +2 restaurantes en el mismo disco"
     },
     {
      "id": "purga_claves_idempotencia",
@@ -879,28 +879,28 @@
      "riesgo": "alto: se vuelve a leer el historial del archivo; un error pierde datos",
      "regla_que_toca": "regla 9 (sin borrado físico de entidades con historial) y regla 8 (ninguna comanda se pierde): PIDE ADR antes; cambia 03 §7 (13 y 24 meses en línea) sólo para los planes de paga",
      "medido": false,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 86.3037655319246,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 129.45746993808086,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 46,
-      "con_eventos": 46
+      "hoy": 30,
+      "con_eventos": 30
      },
      "ganancia_restaurantes": {
-      "hoy": 5,
-      "con_eventos": 5
+      "hoy": 2,
+      "con_eventos": 2
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 347,
       "ganancia": 165
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "86.3 MB por restaurante · caben 46",
-     "ganancia": "10.4 MB menos por restaurante (acumulados con el historial supuesto); caben +5 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "129.5 MB por restaurante · caben 30",
+     "ganancia": "10.4 MB menos por restaurante (acumulados con el historial supuesto); caben +2 restaurantes en el mismo disco"
     },
     {
      "id": "archivar_sesiones_de_todos_los_planes",
@@ -913,28 +913,28 @@
      "riesgo": "alto: igual que archivar sólo las de paga, y además recorta el historial en línea del gratuito a 3 meses",
      "regla_que_toca": "regla 9 y regla 8: PIDE ADR antes; cambia 03 §7 (13 y 24 meses en línea) para todos los planes",
      "medido": false,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 56.560333373926,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 60.05612823608421,
      "restaurantes_antes": {
-      "hoy": 41,
-      "con_eventos": 41
+      "hoy": 28,
+      "con_eventos": 28
      },
      "restaurantes_despues": {
-      "hoy": 70,
-      "con_eventos": 70
+      "hoy": 66,
+      "con_eventos": 66
      },
      "ganancia_restaurantes": {
-      "hoy": 29,
-      "con_eventos": 29
+      "hoy": 38,
+      "con_eventos": 38
      },
      "sobre_historial_30_dias": {
       "restaurantes_antes": 182,
       "restaurantes_despues": 347,
       "ganancia": 165
      },
-     "antes": "96.7 MB por restaurante · caben 41",
-     "despues": "56.6 MB por restaurante · caben 70",
-     "ganancia": "40.2 MB menos por restaurante (acumulados con el historial supuesto); caben +29 restaurantes en el mismo disco"
+     "antes": "139.9 MB por restaurante · caben 28",
+     "despues": "60.1 MB por restaurante · caben 66",
+     "ganancia": "79.8 MB menos por restaurante (acumulados con el historial supuesto); caben +38 restaurantes en el mismo disco"
     }
    ]
   },
@@ -978,8 +978,8 @@
      "riesgo": "bajo; hay que verificar `SHOW max_connections` en Railway",
      "regla_que_toca": "ninguna",
      "medido": false,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 96.73853579923981,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 139.8922402053961,
      "restaurantes_antes": {
       "hoy": 3850,
       "con_eventos": 19574
@@ -1038,8 +1038,8 @@
      "riesgo": "bajo: el teléfono ya vuelve al sondeo si la línea falla",
      "regla_que_toca": "ninguna",
      "medido": false,
-     "mb_por_restaurante_antes": 96.73853579923981,
-     "mb_por_restaurante_despues": 96.73853579923981,
+     "mb_por_restaurante_antes": 139.8922402053961,
+     "mb_por_restaurante_despues": 139.8922402053961,
      "restaurantes_antes": {
       "hoy": null,
       "con_eventos": 3268
@@ -1100,12 +1100,12 @@
    "costo_usd_base": 8.1,
    "costo_usd_con_carga": 20,
    "costo_pesos_base": 150.81228,
-   "restaurantes_que_caben": 41,
+   "restaurantes_que_caben": 28,
    "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 173,
     "memoria": 476800,
-    "disco": 41,
+    "disco": 28,
     "conexiones_bd": 3850,
     "lineas": null,
     "fotos": null
@@ -1122,12 +1122,12 @@
    "costo_usd_base": 8.1,
    "costo_usd_con_carga": 12,
    "costo_pesos_base": 150.81228,
-   "restaurantes_que_caben": 41,
+   "restaurantes_que_caben": 28,
    "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 880,
     "memoria": 279872,
-    "disco": 41,
+    "disco": 28,
     "conexiones_bd": 19574,
     "lineas": 3268,
     "fotos": null
@@ -1144,12 +1144,12 @@
    "costo_usd_base": 20,
    "costo_usd_con_carga": 30,
    "costo_pesos_base": 372.376,
-   "restaurantes_que_caben": 413,
+   "restaurantes_que_caben": 285,
    "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 880,
     "memoria": 279872,
-    "disco": 413,
+    "disco": 285,
     "conexiones_bd": 19574,
     "lineas": 3268,
     "fotos": null
@@ -1166,12 +1166,12 @@
    "costo_usd_base": 23,
    "costo_usd_con_carga": 44,
    "costo_pesos_base": 428.2324,
-   "restaurantes_que_caben": 413,
+   "restaurantes_que_caben": 285,
    "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 1630,
     "memoria": 277994,
-    "disco": 413,
+    "disco": 285,
     "conexiones_bd": 40657,
     "lineas": 3268,
     "fotos": null
@@ -1188,12 +1188,12 @@
    "costo_usd_base": 30,
    "costo_usd_con_carga": 54,
    "costo_pesos_base": 558.564,
-   "restaurantes_que_caben": 413,
+   "restaurantes_que_caben": 285,
    "recurso_que_obliga_a_subir": "disco",
    "por_recurso": {
     "procesador": 2113,
     "memoria": 274237,
-    "disco": 413,
+    "disco": 285,
     "conexiones_bd": 53131,
     "lineas": 3268,
     "fotos": null
@@ -1206,7 +1206,7 @@
    "procesos": 16,
    "costo_usd_base": null,
    "costo_usd_con_carga": 108,
-   "restaurantes_que_caben": 826,
+   "restaurantes_que_caben": 570,
    "recurso_que_obliga_a_subir": "líneas abiertas",
    "extrapolacion_sin_medir": true
   }
@@ -1373,15 +1373,15 @@
  "top3_palancas": [
   {
    "nombre": "Historial del plan gratuito a 30 días (visitas y analítica), con archivo descargable",
-   "ganancia": "74.8 MB menos por restaurante (acumulados con el historial supuesto); caben +141 restaurantes en el mismo disco (de 41 a 182 por disco)"
+   "ganancia": "118.0 MB menos por restaurante (acumulados con el historial supuesto); caben +154 restaurantes en el mismo disco (de 28 a 182 por disco)"
   },
   {
    "nombre": "Analítica agregada por día en vez de una fila por evento",
-   "ganancia": "38.2 MB menos por restaurante (acumulados con el historial supuesto); caben +27 restaurantes en el mismo disco; sobre la base con historial a 30 días: +40"
+   "ganancia": "41.3 MB menos por restaurante (acumulados con el historial supuesto); caben +12 restaurantes en el mismo disco; sobre la base con historial a 30 días: +40"
   },
   {
    "nombre": "Guardar la analítica en bruto sólo 7 días (después, agregada)",
-   "ganancia": "32.9 MB menos por restaurante (acumulados con el historial supuesto); caben +21 restaurantes en el mismo disco; sobre la base con historial a 30 días: +34"
+   "ganancia": "35.6 MB menos por restaurante (acumulados con el historial supuesto); caben +10 restaurantes en el mismo disco; sobre la base con historial a 30 días: +34"
   }
  ],
  "disco_a_fondo": {

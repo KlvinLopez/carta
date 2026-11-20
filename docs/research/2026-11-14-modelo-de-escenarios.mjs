@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-17-r14';
+export const VERSION = '2026-11-20-r15';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -991,8 +991,8 @@ export function recursos(config, s, estado = {}) {
   const idHoy = estado.tamano ?? 'hobby_sondeo';
   const idEv = estado.tamano_eventos ?? 'hobby_eventos';
   // «hoy» = lo que hay: NADA purga (planes-y-costo; 03 §7 da 13 y 24 meses sin distinguir por plan). El disco depende de cuántos meses de
-  // historial haya acumulado el restaurante: por defecto 12 («un año de operación sin purga»); la curva completa va en `disco_por_historial`.
-  const mesesH = estado.meses_historial ?? 12;
+  // historial haya acumulado el restaurante: por defecto la política vigente (03 §7); el estado «sin purga a 12 meses» se pide con meses_historial: 12; la curva completa va en `disco_por_historial`.
+  const mesesH = estado.meses_historial ?? '03§7'; // por omisión la política vigente (03 §7), la misma base que el dinero; «sin purga a 12 meses» es el estado { meses_historial: 12 }
   const cfg0 = config;
   config = conHistorialGratuito(cfg0, s, mesesH);
   const hoy = topesDeTamano(config, s, idHoy, null, carga);
@@ -1120,7 +1120,7 @@ export function recursos(config, s, estado = {}) {
     definicion_restaurante_tipico: carga === 'tipica'
       ? `COMPARACIÓN (no vigente): un gratuito típico = ${s.visitas_mes_gratuito} visitas al mes y ${s.comensales_dia_gratuito} comensales al día (SUPUESTO del simulador, rango ${s.rangos.comensales_dia_gratuito[0]}–${s.rangos.comensales_dia_gratuito[1]}), con la mezcla de tamaños del simulador (60 % chico, 25 % mediano, 5 % grande, 10 % formal)`
       : `un gratuito carga lo de sus topes: ${config.topes.gratuito.mesas} mesas × ${s.perfil_por_topes.visitas_por_mesa_mes} visitas por mesa al mes = ${cargaGratuita(config, s, carga).visitas_mes} visitas (el 180 sale de las ${s.visitas_mes_gratuito} visitas con ${s.perfil_por_topes.mesas_perfil_tipico} mesas del simulador: SUPUESTO sin medir; todos al tope = cota alta), ${config.topes.gratuito.platillos} platillos y ${config.topes.gratuito.cuentas} cuenta(s) de personal`,
-    estado: { meses_historial: mesesH, nota: 'hoy NADA purga; por defecto se supone un restaurante con 12 meses de historial acumulado (sin purga)' },
+    estado: { meses_historial: mesesH, nota: mesesH === '03§7' ? 'estado por omisión: la política vigente (03 §7: el gratuito guarda 24 meses de sesiones y 13 de analítica), la misma base que usa el dinero; hoy nada purga. «Sin purga a 12 meses» es el estado con nombre { meses_historial: 12 }' : `estado elegido: el gratuito con ${mesesH} meses de historial acumulado` },
     disco_por_historial: curvaDisco,
     mes_desde_el_que_manda_el_disco: { con_sondeo: primerMesDisco(procHoy), con_eventos: primerMesDisco(procEv) },
     sensibilidad_actividad: actividad,
@@ -1802,7 +1802,7 @@ export function historiaDelDisco(config, s, comensales = 3) {
   const caben = (palancas, historial) => {
     const c = { ...base, palancas };
     const cc = historial ? conHistorialGratuito(c, s, 1) : c;
-    const r = recursos(cc, s, { canal: 'eventos', carga: 'topes' });
+    const r = recursos(cc, s, { canal: 'eventos', carga: 'topes', meses_historial: 12 });
     const d = r.recursos.find((x) => x.recurso === 'disco');
     return historial ? d.con_historial_30_dias.restaurantes_con_eventos : d.restaurantes_con_eventos;
   };

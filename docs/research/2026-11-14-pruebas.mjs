@@ -11,7 +11,7 @@ const par = JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'u
 const s = M.valores(par);
 let fallas = 0;
 const CT = (c = M.configInicial()) => ({ ...c, carga: 'tipica', topes: { ...c.topes, gratuito: { ...c.topes.gratuito, meses_en_linea: 1 } }, disco: { ...c.disco, meses_analitica_en_linea: { ...c.disco.meses_analitica_en_linea, gratuito: 1 } } }); // las rondas 4 a 9 miden el gratuito típico (comparación rotulada, no vigente)
-const RT = (c, ss, st = {}) => M.recursos(c, ss, { carga: 'tipica', ...st }); // las rondas 5 a 9 miden el gratuito típico de 1,800 visitas
+const RT = (c, ss, st = {}) => M.recursos(c, ss, { carga: 'tipica', meses_historial: 12, ...st }); // las rondas 5 a 9 miden el gratuito típico de 1,800 visitas
 const TB = (c, ss, u, carga = 'tipica') => M.palancasEnTablero(c, ss, u ?? ss.umbral_tablero, carga);
 const prueba = (nombre, obtenido, esperado, tol = 0) => {
   const ok = typeof esperado === 'number' ? Math.abs(obtenido - esperado) <= tol : obtenido === esperado;
@@ -473,7 +473,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
   const cfg = M.configInicial();
-  prueba('la versión lleva la fecha real (17 de noviembre)', /^2026-11-17-/.test(M.VERSION), true);
+  prueba('la versión lleva la fecha real (20 de noviembre)', /^2026-11-20-/.test(M.VERSION), true);
   const pt = M.potencialPorTramo(cfg, s);
   prueba('potencial por tramo: nota de que la curva no distingue por tamaño', /no paga igual de fácil/.test(pt.nota_curva) && /prueba de precio del piloto/.test(pt.nota_curva), true);
   const c = M.composicionDelDisco(cfg, s);
@@ -511,7 +511,10 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('resumen = recursos: con avisos y la propuesta de 30 días', f('restaurantes_que_caben_propuesta_30_dias').recomendado, R.cuello_con_eventos.con_historial_30_dias.restaurantes);
   prueba('resumen = recursos: con sondeo y la propuesta de 30 días', f('restaurantes_que_caben_propuesta_30_dias').peor, R.cuello_hoy.con_historial_30_dias.restaurantes);
   prueba('resumen = recursos: con la política vigente (03 §7) y avisos', f('restaurantes_que_caben').recomendado, R.disco_por_historial.find((x) => x.meses_historial === '03§7').restaurantes_por_disco);
-  prueba('resumen = recursos: sin purga', f('restaurantes_que_caben_sin_purga').recomendado, R.cuello_con_eventos.restaurantes);
+  prueba('recursos() sin argumentos = la primera fila de capacidad de resumen (política vigente, 03 §7)', `${R.cuello_con_eventos.restaurantes}-${R.cuello_hoy.restaurantes}`, `${f('restaurantes_que_caben').recomendado}-${f('restaurantes_que_caben').peor}`);
+  const R12 = M.recursos(cfg, s, { meses_historial: 12 });
+  prueba('resumen = recursos con el estado con nombre «sin purga a 12 meses»', f('restaurantes_que_caben_sin_purga').recomendado, R12.cuello_con_eventos.restaurantes);
+  prueba('el estado por omisión de recursos es la política vigente y lo dice', /03 §7/.test(R.estado.nota) && R.estado.meses_historial === '03§7', true);
   prueba('resumen: política vigente 28, propuesta 182 / 173 y sin purga 41 (ya no 279 / 148 / 23)', `${f('restaurantes_que_caben').recomendado}-${f('restaurantes_que_caben_propuesta_30_dias').recomendado}-${f('restaurantes_que_caben_propuesta_30_dias').peor}-${f('restaurantes_que_caben_sin_purga').recomendado}`, '28-182-173-41');
 }
 
