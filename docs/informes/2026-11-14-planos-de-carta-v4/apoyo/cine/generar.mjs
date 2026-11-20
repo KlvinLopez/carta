@@ -164,9 +164,9 @@ const manoF = (x, y, ang, fill, e = 1.2) => `<g transform="translate(${n(x)} ${n
 const CABEZA = 'M-34 48C-52 20-58-30-38-58C-20-84 22-86 42-58C50-46 52-36 52-24C52-18 55-14 57-8C61-2 68 6 70 12C71 16 66 19 60 19C61 23 64 26 63 30C62 33 59 34 60 37C62 40 61 44 57 46C55 49 58 54 58 60C58 70 48 76 38 75C24 74 10 68 2 60L10 112L-46 112Z';
 const CABEZA_H = 'M-36 48C-54 20-60-30-40-58C-20-86 24-88 44-58C52-46 54-36 54-24C54-18 58-15 60-9C64-3 72 5 74 12C75 17 69 20 63 20C64 24 66 26 65 30C64 33 61 34 62 37C64 41 63 45 59 47C58 50 62 56 62 62C62 74 50 82 38 80C24 78 10 70 2 60L10 112L-50 112Z';
 const TIPOS = {
-  ana: { ox: 432, dir: 1, piel: '#c99272', pelo: '#3a2018', ropa: '#59633a', ropa2: '#474f2c', ancho: 1, cabeza: CABEZA,
+  ana: { ox: 432, dir: 1, piel: '#b98058', pelo: '#3a2018', ropa: '#59633a', ropa2: '#474f2c', ancho: 1, cabeza: CABEZA,
     pelo_d: 'M46-52C30-92-30-96-52-60C-64-36-60 4-44 40C-34 52-20 50-12 40C-20 20-18-6-6-22C10-40 30-48 46-52Z', mono: true },
-  carlos: { ox: 1488, dir: -1, piel: '#a06a48', pelo: '#1c1310', ropa: '#34313d', ropa2: '#2a2731', ancho: 1.14, cabeza: CABEZA_H,
+  carlos: { ox: 1488, dir: -1, piel: '#d0a07c', pelo: '#1c1310', ropa: '#34313d', ropa2: '#2a2731', ancho: 1.14, cabeza: CABEZA_H,
     pelo_d: 'M48-50C34-92-28-98-50-62C-60-44-58-10-48 14C-40 10-34 0-30-12C-22-34 10-46 48-50Z', barba: true },
 };
 const OY = 852; // la cadera, sobre el asiento
@@ -204,28 +204,29 @@ function comensal(k) {
 }
 
 const FONDO = {
-  sofia: { x: 800, piel: '#c99272', pelo: '#2a1712', ropa: '#7a2f45', largo: true },
-  diego: { x: 1080, piel: '#b07a56', pelo: '#17110f', ropa: '#3b4a5a', largo: false },
+  sofia: { x: 800, e: 1.22, ex: 1, piel: '#e6bfa2', pelo: '#4a2c1a', ropa: '#7a2f45', largo: true },
+  diego: { x: 1080, e: 1.22, ex: 1.1, piel: '#6b4430', pelo: '#120d0b', ropa: '#2f5a5a', largo: false },
 };
 function alFondo(k) {
-  const t = FONDO[k], x = t.x, F = (s, f = 'L') => `<g filter="url(#${f})">${s}</g>`;
+  const t = FONDO[k], x = t.x;
+  const W = (s) => `<g transform="translate(${x} 800) scale(${n(t.e * t.ex)} ${t.e}) translate(${-x} -800)">${s}</g>`; // más cerca de la cámara de lo que estaban: adultos, no niños
+  const F = (s, f = 'L') => `<g filter="url(#${f})">${W(s)}</g>`;
   const cuerpo = `<path d="M${x - 22} 596 h44 v10 C${x + 60} 612 ${x + 98} 628 ${x + 104} 668 L${x + 100} 800 H${x - 100} L${x - 104} 668 C${x - 98} 628 ${x - 60} 612 ${x - 22} 606Z" fill="${t.ropa}"/>`;
   const escote = `<path d="M${x - 20} 600 L${x} 640 L${x + 20} 600Z" fill="${t.piel}"/>`;
-  capa(`${k}-cuerpo`, [x - 130, 580, 260, 230], F(cuerpo) + F(escote, 'Lm'));
+  capa(`${k}-cuerpo`, [x - 170, 530, 340, 280], F(cuerpo) + F(escote, 'Lm'));
   const cara = `<ellipse cx="${x}" cy="528" rx="42" ry="54" fill="${t.piel}"/><rect x="${x - 17}" y="566" width="34" height="50" rx="12" fill="${t.piel}"/>`;
-  const pelo = t.largo
-    ? `<path d="M${x - 50} 540 C${x - 62} 470 ${x - 30} 452 ${x} 452 C${x + 30} 452 ${x + 62} 470 ${x + 50} 540 C${x + 60} 580 ${x + 62} 620 ${x + 52} 650 C${x + 40} 640 ${x + 36} 600 ${x + 40} 548 C${x + 40} 510 ${x + 22} 492 ${x} 490 C${x - 22} 492 ${x - 40} 510 ${x - 40} 548 C${x - 36} 600 ${x - 40} 640 ${x - 52} 650 C${x - 62} 620 ${x - 60} 580 ${x - 50} 540Z" fill="${t.pelo}"/>`
-    : `<path d="M${x - 44} 520 C${x - 52} 470 ${x - 26} 458 ${x} 458 C${x + 26} 458 ${x + 52} 470 ${x + 44} 520 C${x + 40} 500 ${x + 24} 490 ${x} 490 C${x - 24} 490 ${x - 40} 500 ${x - 44} 520Z" fill="${t.pelo}"/>`;
-  capa(`${k}-cabeza`, [x - 80, 440, 160, 220], F(cara) + F(pelo, 'Lm'));
-  // brazos: las manos en el borde de la mesa, con el teléfono o con la carta de papel
-  const caja = [x - 150, 440, 300, 320];
+  let pelo;
+  if (t.largo) pelo = `<path d="M${x - 50} 540 C${x - 62} 470 ${x - 30} 452 ${x} 452 C${x + 30} 452 ${x + 62} 470 ${x + 50} 540 C${x + 60} 580 ${x + 62} 620 ${x + 52} 650 C${x + 40} 640 ${x + 36} 600 ${x + 40} 548 C${x + 40} 510 ${x + 22} 492 ${x} 490 C${x - 22} 492 ${x - 40} 510 ${x - 40} 548 C${x - 36} 600 ${x - 40} 640 ${x - 52} 650 C${x - 62} 620 ${x - 60} 580 ${x - 50} 540Z" fill="${t.pelo}"/>`;
+  else { pelo = ''; [[-38, 498, 20], [-22, 474, 22], [0, 464, 24], [22, 474, 22], [38, 498, 20], [-46, 520, 14], [46, 520, 14], [0, 484, 22]].forEach(([dx, y, r]) => { pelo += `<circle cx="${x + dx}" cy="${y}" r="${r}" fill="${t.pelo}"/>`; }); }
+  capa(`${k}-cabeza`, [x - 110, 350, 220, 300], F(cara) + F(pelo, 'Lm'));
+  const caja = [x - 200, 350, 400, 430];
   const m = (dx, y, ang) => manoF(x + dx, y, ang, t.piel, 1.05);
   const ant = (lado, wx, wy) => miembro(x + lado * 92, 694, 36, x + wx, wy, 24, t.ropa);
   capa(`${k}-brazos`, caja, F(ant(-1, -52, 720) + ant(1, 52, 720)) + F(m(-56, 720, 12) + m(56, 720, 168)));
-  capa(`${k}-brazos-cel`, caja, `<circle cx="${x}" cy="580" r="130" fill="url(#gPant)" opacity=".42"/>` + F(ant(-1, -30, 690) + ant(1, 30, 690)) +
-    `<rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="#0d0a0a"/><rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".7"/>` + F(m(-36, 694, 10) + m(36, 694, 170)));
+  capa(`${k}-brazos-cel`, caja, W(`<circle cx="${x}" cy="580" r="130" fill="url(#gPant)" opacity=".42"/>`) + F(ant(-1, -30, 690) + ant(1, 30, 690)) +
+    W(`<rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="#0d0a0a"/><rect x="${x - 22}" y="630" width="44" height="80" rx="9" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".7"/>`) + F(m(-36, 694, 10) + m(36, 694, 170)));
   capa(`${k}-brazos-carta`, caja, F(ant(-1, -62, 676) + ant(1, 62, 676)) +
-    F(`<path d="M${x - 78} 612 L${x - 2} 620 V716 L${x - 78} 706Z" fill="#5a1a2c"/><path d="M${x + 78} 612 L${x + 2} 620 V716 L${x + 78} 706Z" fill="#4a1424"/>`, 'Lm') + `<path d="M${x - 70} 622 L${x - 8} 628 M${x + 70} 622 L${x + 8} 628" stroke="${P.oro}" stroke-width="2" opacity=".6"/>` + F(m(-74, 690, 60) + m(74, 690, 120)));
+    F(`<path d="M${x - 78} 612 L${x - 2} 620 V716 L${x - 78} 706Z" fill="#5a1a2c"/><path d="M${x + 78} 612 L${x + 2} 620 V716 L${x + 78} 706Z" fill="#4a1424"/>`, 'Lm') + W(`<path d="M${x - 70} 622 L${x - 8} 628 M${x + 70} 622 L${x + 8} 628" stroke="${P.oro}" stroke-width="2" opacity=".6"/>`) + F(m(-74, 690, 60) + m(74, 690, 120)));
 }
 
 /* ===================== el mesero: de frente, tras la mesa, con la cabeza de perfil ===================== */
@@ -248,14 +249,14 @@ function mesero() {
   capa('mesero-brazos', caja, F(ante(-1, MX - 40, 640) + ante(1, MX + 40, 640)) + F(mano(MX - 16, 646) + mano(MX + 14, 650)));
   // ofrece las cartas: una a cada lado
   const carta = (x, y, r) => `<g transform="rotate(${r} ${x} ${y})"><rect x="${x - 34}" y="${y - 50}" width="68" height="100" rx="6" fill="#5a1a2c"/><rect x="${x - 26}" y="${y - 42}" width="52" height="84" rx="3" fill="none" stroke="${P.oro}" stroke-width="2" opacity=".7"/><rect x="${x - 12}" y="${y - 6}" width="24" height="4" rx="2" fill="${P.oro}" opacity=".8"/></g>`;
-  capa('mesero-brazos-carta', caja, F(ante(-1, MX - 236, 628) + ante(1, MX + 60, 630)) + F(carta(MX - 276, 640, -24) + carta(MX + 70, 600, 8), 'Lm') + F(mano(MX - 246, 634, 22) + mano(MX + 62, 640, 22)));
+  capa('mesero-brazos-carta', caja, F(ante(-1, MX - 150, 640) + ante(1, MX + 60, 630)) + F(carta(MX - 178, 630, -16) + carta(MX + 70, 600, 8), 'Lm') + F(mano(MX - 158, 646, 22) + mano(MX + 62, 640, 22)));
   // con su teléfono: lo sostiene con una mano y toca con la otra
   capa('mesero-brazos-cel', caja, `<circle cx="${MX - 20}" cy="500" r="110" fill="url(#gPant)" opacity=".45"/>` + F(ante(-1, MX - 46, 600) + ante(1, MX + 44, 606)) +
     `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 48}" y="516" width="44" height="86" rx="9" fill="#0d0a0a"/><rect x="${MX - 48}" y="516" width="44" height="86" rx="9" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".75"/></g>` +
     F(mano(MX - 40, 604, 22) + mano(MX + 30, 600, 20) + `<path d="M${MX + 22} 594 L${MX - 2} 566" stroke="${piel}" stroke-width="12" stroke-linecap="round"/>`));
   // apunta a mano en su libreta
   capa('mesero-brazos-libreta', caja, F(ante(-1, MX - 46, 600) + ante(1, MX + 44, 606)) +
-    `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 56}" y="512" width="60" height="84" rx="4" fill="#efe6d2"/><path d="M${MX - 46} 530 h40 M${MX - 46} 544 h34 M${MX - 46} 558 h38 M${MX - 46} 572 h22" stroke="#8a7a62" stroke-width="2.5" opacity=".8"/></g><path d="M${MX + 30} 600 L${MX - 4} 560" stroke="#1a1414" stroke-width="5" stroke-linecap="round"/>` +
+    `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 60}" y="508" width="68" height="92" rx="5" fill="#3a2a22"/><rect x="${MX - 56}" y="512" width="60" height="84" rx="4" fill="#efe6d2"/></g>` +
     F(mano(MX - 40, 604, 22) + mano(MX + 30, 600, 20)));
   // o con una tableta que carga y carga (el círculo que gira lo pone la película encima)
   capa('mesero-brazos-tableta', caja, `<circle cx="${MX - 26}" cy="500" r="120" fill="url(#gPant)" opacity=".4"/>` + F(ante(-1, MX - 60, 606) + ante(1, MX + 50, 606)) +
@@ -283,12 +284,6 @@ function platillosMesa() {
 function utileria() {
   let tk = `<g transform="translate(60 6)"><path d="M1016 742 L1052 740 C1070 762 1096 786 1130 806 L1090 812 C1058 790 1034 766 1016 742Z" fill="#f6efe0"/><path d="M1016 742 L1052 740 l-4 -10 q-18 -6 -30 0z" fill="#e2d6bd"/></g>`;
   for (let i = 0; i < 7; i++) tk += `<path d="M${1090 + i * 13} ${756 + i * 9} l${20 + (i % 3) * 4} -1.5" stroke="#6b5a48" stroke-width="2.2" opacity=".75"/>`;
-  // la causa de fondo: una carta, una libreta y un ticket; un solo papel para todos
-  const carta = `<path d="M640 792 L742 776 L780 806 L676 824Z" fill="#5a1a2c"/><path d="M654 794 L740 781 L766 803 L680 818Z" fill="none" stroke="${P.oro}" stroke-width="2" opacity=".65"/><path d="M640 792 l36 32 l0 6 l-38 -32z" fill="#3a0f1c"/>`;
-  let lib = `<path d="M848 796 L920 790 L940 826 L864 834Z" fill="#efe6d2"/>`;
-  for (let i = 0; i < 4; i++) lib += `<path d="M${860 + i * 4} ${802 + i * 7} l${52 - i * 4} -4" stroke="#8a7a62" stroke-width="2.2" opacity=".8"/>`;
-  lib += `<path d="M930 800 l34 22" stroke="#1a1414" stroke-width="5" stroke-linecap="round"/>`;
-  capa('papeles', [620, 760, 360, 90], `<ellipse cx="710" cy="812" rx="80" ry="10" fill="#2a1a12" opacity=".3" filter="url(#b3)"/><ellipse cx="896" cy="826" rx="56" ry="8" fill="#2a1a12" opacity=".3" filter="url(#b3)"/>` + carta + lib);
   capa('ticket', [1060, 720, 150, 110], `<ellipse cx="1136" cy="790" rx="70" ry="10" fill="#2a1a12" opacity=".3" filter="url(#b3)"/>` + tk);
   const px = 956, py = 800;
   const pastel = `<ellipse cx="${px}" cy="${py + 6}" rx="62" ry="11" fill="#2a1a12" opacity=".4" filter="url(#b3)"/><ellipse cx="${px}" cy="${py}" rx="58" ry="11" fill="#f4ead8"/>` +
@@ -348,7 +343,7 @@ function manos(k, { piel, manga, puno = null, espejo = false }) {
   capa(`${k}-mano-atras`, caja, mano, { defs: Lp });
   capa(`${k}-mano-frente`, espejo ? [-80, 270, 580, 480] : [-100, 270, 580, 480], `<g clip-path="url(#cf)">${mano}</g>`, { defs: Lp + recorte });
   // la otra mano: el índice extendido toca la pantalla; la yema está en (0,0) y el antebrazo sale del cuadro por abajo
-  const Ld = luz('Ld', espejo ? 80 : -80, -120, 150, { col: '#ffe6c8', amb: 0.14, sd: 8, ss: 11, k: 0.9, rim: 0.4, az: 200 });
+  const Ld = luz('Ld', espejo ? 120 : -120, 60, 200, { col: '#ffe6c8', amb: 0.2, sd: 9, ss: 11, k: 0.95, rim: 0.24, az: 250 });
   const d = [-0.458, -0.889], q = [0.889, -0.458], K = [78, 150];
   const kp = (a, b) => [K[0] + q[0] * a + d[0] * b, K[1] + q[1] * a + d[1] * b];
   const L2 = (A, B, w) => `<path d="M${n(A[0])} ${n(A[1])} L${n(B[0])} ${n(B[1])}" stroke="${piel}" stroke-width="${w}" stroke-linecap="round" fill="none"/>`;
