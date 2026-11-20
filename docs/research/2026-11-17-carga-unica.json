@@ -1,0 +1,293 @@
+{
+  "version": "2026-11-20-r15",
+  "definicion": "Un gratuito carga mesas del tope × 180 visitas al mes. El 180 sale del simulador: 1800 visitas al mes con 10 mesas [documento: planes-y-costo §0]; es un SUPUESTO sin medir.",
+  "tope_entero_o_distribucion": "La carga de un Chef es el tope entero × 180 (cota alta: todos los gratuitos tienen 6 mesas activas). No hay datos para usar la distribución de mesas dentro del tope: el modelo de mesas y cuentas (dispersión lognormal, supuesto) sólo da la parte de negocios que cabe dentro, no cuántas mesas usa cada uno. La sensibilidad con 90 visitas por mesa equivale a un negocio promedio con la mitad del tope.",
+  "datos_por_conseguir": [
+    "Visitas por mesa al mes (eventos `scan` por `mesa_id` del piloto): mide el 180.",
+    "Mesas activas por restaurante al alta (tabla `mesa`, sin datos personales): mide cuántos usan el tope entero y deja usar la distribución."
+  ],
+  "antes_tipica_no_vigente": {
+    "carga_del_gratuito": {
+      "visitas_al_mes": 1800,
+      "razon_frente_al_tipico": 1,
+      "mb": 14.265,
+      "gb_fotos": 0.05,
+      "visitas_con_la_app": 2050
+    },
+    "margen_operacion_1000": {
+      "recomendado": 20023.83342039106,
+      "peor": 2389.8171172844886,
+      "mejor": 65663.66710735272,
+      "piso_de_verdad": -1109.0054318465645
+    },
+    "ingreso_de_anuncios_por_gratuito": 4.305,
+    "ingreso_de_anuncios_por_gratuito_por_tarifa": {
+      "baja": 4.305,
+      "media": 17.22,
+      "alta": 45.51
+    },
+    "costo_por_gratuito": 1.190690866140888,
+    "gratuitos_que_sostiene_un_pagante": {
+      "con_anuncios": null,
+      "sin_anuncios": 125.16435226458,
+      "se_paga_solo": true
+    },
+    "mes_12_con_300_restaurantes": {
+      "ingresos": 8964.002495902496,
+      "margen_operacion": 5748.812651233771,
+      "margen_despues_de_captacion": 1885.7052978968786
+    },
+    "sueldo": [
+      {
+        "veces_el_salario_minimo": 1,
+        "sueldo_mensual": 9577,
+        "restaurantes_necesarios": 550,
+        "clientes_de_paga_necesarios": 63.73617243626381,
+        "mes": 21
+      },
+      {
+        "veces_el_salario_minimo": 3,
+        "sueldo_mensual": 28732,
+        "restaurantes_necesarios": 1660,
+        "clientes_de_paga_necesarios": 192.3673568076326,
+        "mes": 32
+      },
+      {
+        "veces_el_salario_minimo": 5,
+        "sueldo_mensual": 47886,
+        "restaurantes_necesarios": 2680,
+        "clientes_de_paga_necesarios": 310.5689856894309,
+        "mes": 40
+      },
+      {
+        "veces_el_salario_minimo": 10,
+        "sueldo_mensual": 95772,
+        "restaurantes_necesarios": 5360,
+        "clientes_de_paga_necesarios": 621.1379713788618,
+        "mes": 55
+      }
+    ],
+    "bolsa": [
+      {
+        "bolsa": 500,
+        "centro": 279,
+        "minimo": 94,
+        "maximo": 400
+      },
+      {
+        "bolsa": 1000,
+        "centro": 811,
+        "minimo": 246,
+        "maximo": 1896
+      },
+      {
+        "bolsa": 2000,
+        "centro": 1896,
+        "minimo": 492,
+        "maximo": 2116
+      },
+      {
+        "bolsa": 5000,
+        "centro": 2116,
+        "minimo": 1391,
+        "maximo": 2116
+      }
+    ],
+    "capacidad": {
+      "con_avisos": 279,
+      "con_sondeo": 148,
+      "sin_purga": 279
+    },
+    "bolsa_con_sondeo_de_hoy": 148
+  },
+  "despues_por_topes_vigente": {
+    "carga_del_gratuito": {
+      "visitas_al_mes": 1080,
+      "razon_frente_al_tipico": 0.6,
+      "mb": 7.89684,
+      "gb_fotos": 0.372,
+      "visitas_con_la_app": 1230
+    },
+    "margen_operacion_1000": {
+      "recomendado": 18591.279995042507,
+      "peor": 2387.7192522011946,
+      "mejor": 61363.55718397038,
+      "piso_de_verdad": -1531.5179892723208
+    },
+    "ingreso_de_anuncios_por_gratuito": 2.583,
+    "ingreso_de_anuncios_por_gratuito_por_tarifa": {
+      "baja": 2.583,
+      "media": 10.332,
+      "alta": 27.306
+    },
+    "costo_por_gratuito": 1.03062436666599,
+    "gratuitos_que_sostiene_un_pagante": {
+      "con_anuncios": null,
+      "sin_anuncios": 144.17142145440374,
+      "se_paga_solo": true
+    },
+    "mes_12_con_300_restaurantes": {
+      "ingresos": 8507.26814441263,
+      "margen_operacion": 5291.508524789685,
+      "margen_despues_de_captacion": 1428.4011714527924
+    },
+    "sueldo": [
+      {
+        "veces_el_salario_minimo": 1,
+        "sueldo_mensual": 9577,
+        "restaurantes_necesarios": 600,
+        "clientes_de_paga_necesarios": 69.53036993046962,
+        "mes": 22
+      },
+      {
+        "veces_el_salario_minimo": 3,
+        "sueldo_mensual": 28732,
+        "restaurantes_necesarios": 1730,
+        "clientes_de_paga_necesarios": 200.4792332995207,
+        "mes": 34
+      },
+      {
+        "veces_el_salario_minimo": 5,
+        "sueldo_mensual": 47886,
+        "restaurantes_necesarios": 2930,
+        "clientes_de_paga_necesarios": 339.53997316045997,
+        "mes": 42
+      },
+      {
+        "veces_el_salario_minimo": 10,
+        "sueldo_mensual": 95772,
+        "restaurantes_necesarios": 5860,
+        "clientes_de_paga_necesarios": 679.0799463209199,
+        "mes": 58
+      }
+    ],
+    "bolsa": [
+      {
+        "bolsa": 500,
+        "centro": 405,
+        "minimo": 95,
+        "maximo": 505
+      },
+      {
+        "bolsa": 1000,
+        "centro": 809,
+        "minimo": 248,
+        "maximo": 2116
+      },
+      {
+        "bolsa": 2000,
+        "centro": 2048,
+        "minimo": 505,
+        "maximo": 2116
+      },
+      {
+        "bolsa": 5000,
+        "centro": 2116,
+        "minimo": 1421,
+        "maximo": 2116
+      }
+    ],
+    "capacidad": {
+      "con_avisos": 182,
+      "con_sondeo": 173,
+      "sin_purga": 182
+    },
+    "bolsa_con_sondeo_de_hoy": 246
+  },
+  "por_que": {
+    "margen": "El gratuito de los topes (6 mesas) carga 1,080 visitas al mes y no 1,800: 60 % del típico. Eso baja el costo de servidor y disco por gratuito (1.19 → 1.03 pesos con soporte) y también sus anuncios (tarifa baja, la del escenario recomendado: 4.31 → 2.58 pesos; tarifa media: 17.22 → 10.33), porque las visitas con la app son proporcionales; las fotos del tope de platillos suben el costo de R2 (0.05 → 0.37 GB por gratuito, supuesto).",
+    "gratuitos_que_sostiene": "Sin anuncios cada cliente de paga sostiene 125 → 144 gratuitos: el servidor y el disco de un gratuito son proporcionales a su carga (60 % del típico), el soporte (0.5 pesos, supuesto) no, y la suscripción no cambia. Con anuncios el gratuito se paga solo en los dos casos.",
+    "mes_12": "Con 300 restaurantes (misma adopción): ingresos 8,964 → 8,507 (menos anuncios por gratuito), margen de operación 5,749 → 5,292.",
+    "sueldo": "Para 1 salario mínimo hacen falta 550 → 600 restaurantes (mes 21 → 22): el margen por restaurante cambia con el costo y los anuncios de cada gratuito.",
+    "bolsa": "Con la bolsa de 1,000 pesos caben 811 → 809 gratuitos: sin anuncios, el soporte por gratuito (0.5 pesos, supuesto, no depende de la carga) domina su costo, así que casi no cambia.",
+    "capacidad": "Ver `composicion_del_disco`: el promedio incluye a los de paga con 12 meses."
+  },
+  "sensibilidad_visitas_por_mesa": [
+    {
+      "visitas_por_mesa_al_mes": 90,
+      "visitas_del_gratuito_al_mes": 540,
+      "margen_operacion_recomendado_1000": 17505.353672271165,
+      "margen_operacion_peor_1000": 2449.475584796132,
+      "gratuitos_que_sostiene_sin_anuncios": 170.6655027475199,
+      "ingreso_de_anuncios_por_gratuito": 1.2915,
+      "capacidad": {
+        "con_avisos": 215,
+        "con_sondeo": 215,
+        "sin_purga": 215
+      },
+      "bolsa_1000": 985
+    },
+    {
+      "visitas_por_mesa_al_mes": 180,
+      "visitas_del_gratuito_al_mes": 1080,
+      "margen_operacion_recomendado_1000": 18591.279995042507,
+      "margen_operacion_peor_1000": 2387.7192522011946,
+      "gratuitos_que_sostiene_sin_anuncios": 144.17142145440374,
+      "ingreso_de_anuncios_por_gratuito": 2.583,
+      "capacidad": {
+        "con_avisos": 182,
+        "con_sondeo": 173,
+        "sin_purga": 182
+      },
+      "bolsa_1000": 809
+    },
+    {
+      "visitas_por_mesa_al_mes": 360,
+      "visitas_del_gratuito_al_mes": 2160,
+      "margen_operacion_recomendado_1000": 20665.816406244354,
+      "margen_operacion_peor_1000": 2170.066747646252,
+      "gratuitos_que_sostiene_sin_anuncios": 112.37755961397727,
+      "ingreso_de_anuncios_por_gratuito": 5.166,
+      "capacidad": {
+        "con_avisos": 138,
+        "con_sondeo": 106,
+        "sin_purga": 138
+      },
+      "bolsa_1000": 689
+    }
+  ],
+  "sensibilidad_visitas_por_mesa_con_la_politica_vigente": [
+    {
+      "visitas_por_mesa_al_mes": 90,
+      "visitas_del_gratuito_al_mes": 540,
+      "margen_operacion_recomendado_1000": 15795.231391362871,
+      "margen_operacion_peor_1000": 689.7696150438642,
+      "gratuitos_que_sostiene_sin_anuncios": 76.6939240997267,
+      "ingreso_de_anuncios_por_gratuito": 1.2915,
+      "capacidad": {
+        "con_avisos": 215,
+        "con_sondeo": 215,
+        "sin_purga": 71
+      },
+      "bolsa_1000": 565
+    },
+    {
+      "visitas_por_mesa_al_mes": 180,
+      "visitas_del_gratuito_al_mes": 1080,
+      "margen_operacion_recomendado_1000": 14752.019149409804,
+      "margen_operacion_peor_1000": -1513.4974322993794,
+      "gratuitos_que_sostiene_sin_anuncios": 35.07032562315215,
+      "ingreso_de_anuncios_por_gratuito": 2.583,
+      "capacidad": {
+        "con_avisos": 182,
+        "con_sondeo": 173,
+        "sin_purga": 41
+      },
+      "bolsa_1000": 282
+    },
+    {
+      "visitas_por_mesa_al_mes": 360,
+      "visitas_del_gratuito_al_mes": 2160,
+      "margen_operacion_recomendado_1000": 13671.00986550367,
+      "margen_operacion_peor_1000": -4914.616326985866,
+      "gratuitos_que_sostiene_sin_anuncios": 17.899293188263012,
+      "ingreso_de_anuncios_por_gratuito": 5.166,
+      "capacidad": {
+        "con_avisos": 138,
+        "con_sondeo": 106,
+        "sin_purga": 22
+      },
+      "bolsa_1000": 141
+    }
+  ]
+}
