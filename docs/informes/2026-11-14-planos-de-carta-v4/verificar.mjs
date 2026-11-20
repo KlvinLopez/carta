@@ -400,6 +400,12 @@ const t5 = await texto(p, '#svK');
 ok(cc.every((v) => t5.includes(v)) && t5.includes('visitas por mesa') && !t5.includes('versión 11'), 'capítulo 8: la sensibilidad a 90 / 180 / 360 visitas por mesa sale del modelo (' + cc.join(' · ') + ') y no hay tabla antes → después');
 ok(await p.evaluate(() => [...document.querySelectorAll('#svK text')].every((t) => parseFloat(t.getAttribute('font-size')) >= 12)), 'capítulo 8: sensibilidad sin letra menor de 12 px');
 if (png) await p.screenshot({ path: `${png}/v12_cambio.png` });
+await p.click('#tabsK [data-vista="6"]'); await p.waitForTimeout(900);
+const tor = await p.evaluate(() => MOD.escenariosPorEje(config(S), sup(S)).flatMap((e) => [e.margen_con_la_politica_vigente, e.margen_con_la_propuesta_de_30_dias]).map((v) => Math.round(Math.abs(v)).toLocaleString('en-US')));
+const tt6 = await texto(p, '#svK');
+ok(tor.every((v) => tt6.includes(v)) && tt6.includes('Estrés') && tt6.includes('propuesta'), 'capítulo 8: el tornado trae los nueve ejes del modelo con la política vigente y la propuesta de 30 días al lado');
+ok(await p.evaluate(() => [...document.querySelectorAll('#svK text')].every((t) => parseFloat(t.getAttribute('font-size')) >= 12)), 'capítulo 8: tornado sin letra menor de 12 px');
+if (png) await p.screenshot({ path: `${png}/v12_tornado.png` });
 await p.click('#tabsK [data-vista="0"]'); await p.waitForTimeout(500);
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
@@ -467,6 +473,21 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390,
   ok(n >= 24 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos fuera del cuadro ni encimados ` + mal.slice(0, 3).join('; '));
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
+// capítulo 7: la capacidad depende de quién paga; capítulo 5: si la mediana real fuera otra
+await p.evaluate(() => { const i = document.getElementById('intro'); if (i) i.style.display = 'none'; });
+await abre(p, 'recursos7');
+const sc7 = await p.evaluate(() => MOD.recursos(config(S), sup(S), 'hoy').sensibilidad_de_la_capacidad.parte_que_paga.flatMap((f) => [f.procesador_con_sondeo, f.disco]).map((v) => Math.round(v).toLocaleString('en-US')));
+const tse = await texto(p, '#svSe');
+ok(sc7.every((v) => tse.includes(v)) && tse.includes('si pagan más, el servidor se llena antes') && tse.includes('Supuesto'), 'capítulo 7: la capacidad con 2.3 / 11.6 / 38.2 % de paga sale del modelo (' + sc7.join(' · ') + ') y dice que la mezcla es supuesto');
+if (png) await p.locator('#svSe').screenshot({ path: `${png}/v12_sensib.png` });
+await cierra(p);
+await abre(p, 'precio');
+const md = await p.evaluate(() => { const sm = MOD.sensibilidadDeLaMediana(config(S), sup(S)); return sm.filas.filter((f) => f.historial.startsWith('política vigente') && Math.abs(f.techo - sm.techo_supuesto) < 1e-9).map((f) => Math.round(f.pagantes_por_1000).toLocaleString('en-US')); });
+const tmd = await texto(p, '#svMd');
+ok(md.length === 3 && md.every((v) => tmd.includes(v)) && tmd.includes('supuesto') || tmd.includes('Supuesto') || tmd.includes('es un supuesto'), 'capítulo 5: la mediana real de 150 / 225 / 300 da ' + md.join(' · ') + ' pagantes y se rotula como supuesto');
+if (png) await p.locator('#svMd').screenshot({ path: `${png}/v12_mediana.png` });
+await cierra(p);
+await p.evaluate(() => { const i = document.getElementById('intro'); if (i) i.style.display = ''; });
 // cifras a mano: ninguna de estas literales vive en los js (salen del modelo, de los parámetros o de los datos)
 { const { readFileSync, readdirSync } = await import('node:fs'); const dir = resolve(dirname(fileURLToPath(import.meta.url)), 'js');
   const prohibidas = ['652 a 1,000', '(1,243 MXN)', '[0.23,', '≈ 3,000 y más', '≈ 0.4 pesos al año', '"7 días"'];

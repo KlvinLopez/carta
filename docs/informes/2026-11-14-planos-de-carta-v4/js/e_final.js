@@ -7,7 +7,7 @@ function proyecta(nivel, s0) {
   const [a, b] = M.metas[nivel], s = {...sup(s0), meta_12_meses: a, meta_24_meses: b};
   return MOD.proyectar(config(s0), s, 24, {curva: s0.curva});
 }
-const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?", "Qué tanto pagan × anuncios", "Visitas por mesa: el supuesto que mueve todo"];
+const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes a mes", "A dónde se va cada 100 pesos", "¿Qué hay que medir primero?", "Qué tanto pagan × anuncios", "Visitas por mesa: el supuesto que mueve todo", "Qué mueve más el margen"];
 DET.sostiene = {
   titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
@@ -30,7 +30,28 @@ DET.sostiene = {
   },
   /* al arrastrar el punto: se redibuja y el hallazgo de abajo cuenta con el mismo número */
   sigue() { const o = this.pinta(), h = document.querySelector("#cap-sostiene .caphall"); if (o && o.insight) { if (h) h.innerHTML = `<b>Hallazgo.</b> ${esc(o.insight)}`; const d = document.querySelector("#det #ins"); if (d) d.innerHTML = `<b>Insight clave.</b> ${esc(o.insight)}`; } },
-  pinta() { this.sv.setAttribute("viewBox", this.v === 5 ? "0 0 960 330" : "0 0 960 540"); const o = [this.v0, this.v1, this.v2, this.v3, this.v4, this.v5][this.v].call(this); return o; },
+  pinta() { this.sv.setAttribute("viewBox", this.v === 5 ? "0 0 960 330" : this.v === 6 ? "0 0 960 520" : "0 0 960 540"); const o = [this.v0, this.v1, this.v2, this.v3, this.v4, this.v5, this.v6][this.v].call(this); return o; },
+  v6() { // tornado: qué eje mueve más el margen con N restaurantes, política vigente y propuesta de 30 días al lado
+    const sv = this.sv, ex = conCache("porEje", () => MOD.escenariosPorEje(config(S), sup(S))).slice().sort((a, z) => z.margen_con_la_politica_vigente - a.margen_con_la_politica_vigente);
+    const NOM = {recomendado: "Recomendado (caso central)", sin_anuncios: "Cero anuncios", curva_pesimista: "Pagan poco", curva_optimista: "Pagan más", soporte_30: "Soporte de la paga a 30 MXN", soporte_150: "Soporte de la paga a 150 MXN", peor: "«Peor»: pagan poco y cero anuncios", piso_sin_anuncios: "Piso con cero anuncios", estres: "Estrés: los tres ejes en contra"};
+    const lo = Math.min(...ex.map(e => Math.min(e.margen_con_la_politica_vigente, e.margen_con_la_propuesta_de_30_dias, 0))), hi = Math.max(...ex.map(e => Math.max(e.margen_con_la_politica_vigente, e.margen_con_la_propuesta_de_30_dias))), X0 = 330, W = 470, X = v => X0 + W * (v - lo) / (hi - lo);
+    let b = T(30, 26, `Margen al mes con ${n(N_REF)} restaurantes: qué lo mueve más (pesos)`, 14.5, C.vino, "start", 700);
+    b += `<g>${Rc(X0 + 0, 38, 14, 10, C.vino, 3)}</g>` + T(X0 + 20, 48, "política vigente (03 §7)", 12.5, C.tinta, "start", 700) + Rc(X0 + 200, 38, 14, 10, C.verde, 3) + T(X0 + 220, 48, "propuesta: 30 días (decisión pendiente de Calvin)", 12.5, C.tinta, "start", 700);
+    b += `<line x1="${X(0)}" x2="${X(0)}" y1="60" y2="${60 + ex.length * 50}" stroke="${C.tinta}" stroke-width="1.6"/>`;
+    ex.forEach((e, i) => {
+      const y = 64 + i * 50, v = e.margen_con_la_politica_vigente, p = e.margen_con_la_propuesta_de_30_dias, rec = e.id === "recomendado";
+      b += `<g data-tip="${esc2(`${NOM[e.id] || e.id}|${mp(v)} MXN|Mueve: ${e.mueve}. Con 30 días: ${mp(p)}.`)}" tabindex="0">` + (rec ? Rc(24, y - 6, 912, 46, "#f6e9d4", 12) : "") + T(40, y + 22, NOM[e.id] || e.id, 13.5, C.tinta, "start", 700)
+        + Rc(Math.min(X(0), X(v)), y, Math.max(Math.abs(X(v) - X(0)), 2), 16, v < 0 ? C.rojo : C.vino, 6) + T(v < 0 ? X(v) - 8 : X(v) + 8, y + 13, mp(v), 14, v < 0 ? C.rojo : C.vino, v < 0 ? "end" : "start", 700, true)
+        + Rc(Math.min(X(0), X(p)), y + 20, Math.max(Math.abs(X(p) - X(0)), 2), 10, C.verde, 5) + T(p < 0 ? X(p) - 8 : X(p) + 8, y + 30, mp(p), 12.5, C.verde, p < 0 ? "end" : "start", 700, true) + `</g>`;
+    });
+    sv.innerHTML = b;
+    const e0 = ex.find(q => q.id === "estres"), pe = ex.find(q => q.id === "peor");
+    return {
+      leyenda: `<span><i style="background:${C.vino}"></i>política vigente</span><span><i style="background:${C.verde}"></i>propuesta de 30 días</span>`,
+      cifras: [[mp(ex.find(q => q.id === "recomendado").margen_con_la_politica_vigente), "recomendado, política vigente", "supuesto"], [mp(pe.margen_con_la_politica_vigente), "«peor»: pagan poco y cero anuncios; no es el piso", "supuesto"], [mp(e0.margen_con_la_politica_vigente), "estrés: el piso", "supuesto"]],
+      insight: `Quién paga es el eje que más mueve el margen (de ${mp(ex.find(q => q.id === "curva_pesimista").margen_con_la_politica_vigente)} a ${mp(ex.find(q => q.id === "curva_optimista").margen_con_la_politica_vigente)}); el soporte de la paga y los anuncios mueven menos. «Peor» no es el piso: el estrés es el piso.`,
+    };
+  },
   v5() { // sensibilidad al supuesto que ahora mueve todo: visitas por mesa al mes
     const sv = this.sv, cm = conCache("cmpCarga", () => MOD.comparacionDeCarga(config(S), sup(S))), D = cm.despues_por_topes_vigente, sn = cm.sensibilidad_visitas_por_mesa;
     const f = (v, d = 0) => (v < 0 ? "−" : v > 0 && d === 0 ? "+" : "") + n(Math.abs(v), d);
@@ -230,7 +251,7 @@ const TARJ = {
   tope_platillos: {
     que: "Tope de platillos de Chef: por decidir (50, 80, 100 o 150; cuenta todo, decidido)",
     cif: () => { const f = costoPl().filas; return [`${n(f[f.length - 1].clientes_de_paga_por_1000_por_el_tope)} a ${n(f[0].clientes_de_paga_por_1000_por_el_tope)}`, "de paga por cada 1,000 restaurantes, de 150 a 50 platillos"]; },
-    si: () => "El tope no es una decisión de servidores: el disco no se mueve y el procesador casi nada. Es de cuántos pagan y a cuántos les cabe la carta.",
+    si: () => "Los bytes del platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: más gente de paga llena antes el disco.",
     rec: -1,
   },
   dos_planes: {

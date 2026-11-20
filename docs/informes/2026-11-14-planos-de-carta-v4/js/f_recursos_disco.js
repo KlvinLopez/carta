@@ -16,8 +16,9 @@
 <div class="viz"><svg id="svDc" viewBox="0 0 1100 300" role="img" aria-label="Quién llena el disco" font-family="DM Sans, sans-serif"></svg></div>
 <div class="r7p r7bar"><span class="selr">Un ejemplo guiado: una mesa de 3 comensales</span><button class="btn" id="hiAt" aria-label="Paso anterior">◀</button><button class="btn" id="hiSig">Siguiente ▶</button><button class="btn" id="hiPl">▶ Reproducir</button><span class="selr" id="hiN"></span></div>
 <div class="viz"><svg id="svHi" viewBox="0 0 1100 500" role="img" aria-label="Cómo se acumulan las filas de una mesa de tres comensales" font-family="DM Sans, sans-serif"></svg></div>
-<div class="viz"><svg id="svOp" viewBox="0 0 1100 640" role="img" aria-label="Las formas de guardar la analítica, lado a lado" font-family="DM Sans, sans-serif"></svg></div>
-<div class="viz"><svg id="svCo" viewBox="0 0 1100 410" role="img" aria-label="La combinación de forma, archivo e historial" font-family="DM Sans, sans-serif"></svg></div></div>`);
+<div class="viz"><svg id="svOp" viewBox="0 0 1100 710" role="img" aria-label="Las formas de guardar la analítica, lado a lado" font-family="DM Sans, sans-serif"></svg></div>
+<div class="viz"><svg id="svCo" viewBox="0 0 1100 410" role="img" aria-label="La combinación de forma, archivo e historial" font-family="DM Sans, sans-serif"></svg></div>
+<div class="viz"><svg id="svSe" viewBox="0 0 1100 330" role="img" aria-label="La capacidad depende de quién paga" font-family="DM Sans, sans-serif"></svg></div></div>`);
     this.rmH = RM($("#svHi", host));
     const mueve = d => { this.hp = clamp(this.hp + d, 0, 8); if (this.hp === 8 || this.hp === 0) this.paraJuego(); this.pintaHistoria(); };
     host.addEventListener("click", ev => {
@@ -34,7 +35,7 @@
   };
   D7.paraJuego = function () { if (this.juego) { clearInterval(this.juego); this.juego = null; } };
   D7.actualizar = function () { const o = actBase.call(this); if (this.r && $("#svDc")) this.pintaExtra(); return o; };
-  D7.pintaExtra = function () { this.pintaComposicion(); this.pintaHistoria(); this.pintaOpciones(); this.pintaCombo(); };
+  D7.pintaExtra = function () { this.pintaComposicion(); this.pintaHistoria(); this.pintaOpciones(); this.pintaCombo(); this.pintaSensib(); };
 
   /* una opción de las formas de guardar: reemplaza la forma elegida (nunca se suman) */
   D7.eligeOpcion = function (id) {
@@ -115,7 +116,27 @@
     });
     // la propuesta de Calvin, medida
     const f = ops.find(o => o.id === "fila_por_visita"), porVisita = f.bytes_analitica_por_mesa_de_3 / h.comensales;
-    $("#svOp").innerHTML = b + T(20, 626, `La propuesta de Calvin, medida: ${n(porVisita)} bytes por visita de comensal, ${n(100 * (1 - f.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy y sin huella de red. Se pierde qué platillo se vio; conviene un solo envío al terminar.`, 12, C.osc, "start", 700);
+    const cap1 = `La propuesta de Calvin, medida: ${n(porVisita)} bytes por visita de comensal, ${n(100 * (1 - f.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy y sin huella de red. Se pierde qué platillo se vio; conviene un solo envío al terminar.`, cap2 = "Por conseguir con el piloto: los eventos reales por comensal; cuántas visitas el teléfono no alcanza a mandar (se compara con los scan); el tamaño con fillfactor 70 si se actualiza la fila; la reserva de disco para WAL y vacuum.";
+    b += parr(cap1, 150).map((l, k) => T(20, 626 + k * 17, l, 12, C.osc, "start", 700)).join("") + parr(cap2, 150).map((l, k) => T(20, 668 + k * 17, l, 12, C.t2, "start", 700)).join("");
+    $("#svOp").innerHTML = b;
+  };
+
+  /* 5 · la capacidad depende de quién paga: tres casos a la vez (`recursos().sensibilidad_de_la_capacidad`) */
+  D7.pintaSensib = function () {
+    const sc = this.r.sensibilidad_de_la_capacidad; if (!sc) return;
+    const filas = sc.parte_que_paga, mezc = sc.mezcla_de_paga.filter(q => q.id !== "simulador"), dsc = mezc.map(q => q.disco), lo = Math.min(...dsc), hi = Math.max(...dsc);
+    const mx = Math.max(...filas.flatMap(f => [f.procesador_con_sondeo, f.disco])), X0 = 330, BW = 330, NOMS = {peor: "Peor: pagan poco", recomendado: "Recomendado", mejor: "Mejor: pagan más"};
+    let b = T(30, 26, "La capacidad depende de quién paga: si pagan más, el servidor se llena antes", 14.5, C.vino, "start", 700);
+    b += T(X0, 52, "Procesador, con sondeo", 12.5, C.vino, "start", 700) + T(X0 + BW + 90, 52, "Disco, con el gratuito a 30 días (propuesta)", 12.5, C.verde, "start", 700);
+    filas.forEach((f, i) => {
+      const y = 70 + i * 62, sel = f.escenario === "recomendado";
+      b += `<g data-tip="${esc2(`${NOMS[f.escenario]}|${n(100 * f.parte_que_paga, 1)} % paga|Procesador con sondeo: ${n(f.procesador_con_sondeo)}; disco: ${n(f.disco)} restaurantes.`)}" tabindex="0">` + Rc(24, y - 8, 1052, 54, sel ? "#f6e9d4" : "rgba(0,0,0,0)", 14) + T(40, y + 14, NOMS[f.escenario], 14, C.tinta, "start", 700) + T(40, y + 34, `${n(100 * f.parte_que_paga, 1)} % de los restaurantes paga`, 12.5, C.t2, "start", 700)
+        + Rc(X0, y + 4, BW, 16, C.a2, 8) + Rc(X0, y + 4, Math.max(BW * f.procesador_con_sondeo / mx, 3), 16, C.vino, 8) + T(X0, y + 42, n(f.procesador_con_sondeo), 17, C.tinta, "start", 400, true)
+        + Rc(X0 + BW + 90, y + 4, BW, 16, C.a2, 8) + Rc(X0 + BW + 90, y + 4, Math.max(BW * f.disco / mx, 3), 16, C.verde, 8) + T(X0 + BW + 90, y + 42, n(f.disco), 17, C.tinta, "start", 400, true) + `</g>`;
+    });
+    const yN = 70 + filas.length * 62 + 8, sm = sc.mezcla_de_paga.find(q => q.id === "simulador").mezcla;
+    parr(`Supuesto: la mezcla de tamaños de los restaurantes de paga es la del simulador (${n(100 * sm.mediano)} % medianos, ${n(100 * sm.grande)} % grandes, ${n(100 * sm.formal)} % formales). Con otra mezcla el disco da de ${n(lo)} a ${n(hi)} en el caso recomendado.`, 140).forEach((l, k) => { b += T(30, yN + k * 17, l, 12, C.t2, "start", 700); });
+    $("#svSe").innerHTML = b;
   };
 
   /* 4 · la combinación que importa: forma + archivar + historial del gratuito */

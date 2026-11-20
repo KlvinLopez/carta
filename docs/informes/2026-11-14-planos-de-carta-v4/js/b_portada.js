@@ -21,14 +21,15 @@ const KPIS = [
 function pintaKpis() {
   const r = resumenS(S), html = KPIS.map(k => {
     const c = fila(r, k.clave), c30 = fila(r, "restaurantes_que_caben_propuesta_30_dias"), c12 = fila(r, "restaurantes_que_caben_sin_purga"), cb = {vig: fila(r, "restaurantes_que_caben").recomendado, d30: c30.recomendado, doce: c12.recomendado, grande: fila(r, "restaurantes_que_caben").mejor},
-      pol = conCache("kpiPol", () => MOD.politicasDeHistorial(config(S), sup(S))), prop = pol.find(x => x.id === "propuesta_30_dias");
+      pol = conCache("kpiPol", () => MOD.politicasDeHistorial(config(S), sup(S))), prop = pol.find(x => x.id === "propuesta_30_dias"),
+      sm = conCache("kpiMed", () => MOD.sensibilidadDeLaMediana(config(S), sup(S))), mediana = sm.filas.filter(f => f.historial.startsWith("política vigente") && Math.abs(f.techo - sm.techo_supuesto) < 1e-9).sort((a, z) => a.mediana_real - z.mediana_real);
     const tv = (...q) => "tri:" + q.filter(x => x[1] != null).map(x => `${x[0]}|${x[1]}|${x[2]}`).join(";");
     const PANEL = {
       potenciales: {t: "Clientes potenciales (SAM)", f: "Restaurantes a la carta y bares que Carta atiende hoy; dato del DENUE, no cambia con el escenario."},
       caben: {t: "Restaurantes registrados que caben", f: "Cuenta la mezcla de gratuitos y de paga; con la política vigente nada se purga y frena el disco.", v: tv(["política vigente", cb.vig, n(cb.vig)], ["12 meses sin purga", cb.doce, n(cb.doce)], ["propuesta: 30 días", cb.d30, n(cb.d30)], ["servidor grande", cb.grande, n(cb.grande)])},
       sostiene: {t: "Gratuitos por cliente de paga", f: "Cuántos gratuitos cubre lo que deja un cliente de paga, sin contar anuncios; política vigente de historial.", v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)])},
       anuncios: {t: "Anuncios por cliente gratuito", f: "Lo que deja cada gratuito al mes en anuncios; en el peor escenario no hay ninguno.", v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)])},
-      ingreso: {t: "Ingreso por cliente de paga", f: "Lo que paga cada cliente de Master Chef al mes; cambia con el precio, no con el escenario."},
+      ingreso: {t: "Ingreso por cliente de paga", f: "Curva centrada en este precio (supuesto). Margen si la mediana real fuera:", v: tv(...mediana.map(f => [`mediana ${f.mediana_real}`, f.margen_operacion, mp(f.margen_operacion)]))},
       margen: {t: "Margen de operación al mes", f: `Política vigente. «Peor» no es el piso: el estrés sí. Con 30 días (propuesta): ${prop.margen_operacion_1000.recomendado >= 0 ? "+" : ""}${mp(prop.margen_operacion_1000.recomendado)}.`, v: tv(["peor", c.peor, k.f(c.peor)], ["recomendado", c.recomendado, k.f(c.recomendado)], ["mejor", c.mejor, k.f(c.mejor)], ["estrés", c.piso_de_verdad, k.f(c.piso_de_verdad)])},
     }[k.id];
     const tip = `${PANEL.t}|${k.f(c.recomendado)}|${PANEL.f}`, tipv = PANEL.v ? ` data-tipv="${esc(PANEL.v)}"` : "";

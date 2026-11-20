@@ -9,7 +9,7 @@ NEG.plataformas_de_referencia.filter(q => q.verificada && q.url).forEach(q => { 
 DET.modelo = {
   titulo: "¿Cómo gana dinero Carta?",
   fu: ["meniu", "carta_precio", "carta_anuncios", "carta_planes", "plat_Airbnb", "plat_YouTube", "plat_Meta", "plat_Uber"],
-  nota: "Tamaño, no proyección: la suscripción es la v1; anuncios y visibilidad dependen de la Fase 3; comisión y pago del comensal están fuera de la v1.",
+  nota: "Tamaño, no proyección. La v1 no cobra, no tiene planes ni anuncios: planes y anuncios son la postura de Calvin para la Spec 002, posterior al piloto. En la v1 no hay anuncios personalizados; la v2 los propone y exige spec, ADR y revisión legal. Comisión y pago del comensal están fuera de la v1.",
   monto: 0,
   montar(host) {
     host.innerHTML = `<div class="viz"><svg id="svG9a" viewBox="0 0 1100 440" role="img" aria-label="Dónde cae Carta entre los modelos de plataforma" font-family="DM Sans, sans-serif"></svg></div>
@@ -146,7 +146,7 @@ DET.modelo = {
   opera() {
     const tarj = [
       ["Datos", ["sin datos personales", "ids opacos", "no se venden"], "Datos|sin datos personales|Los filtros de alérgenos viven en el teléfono; la analítica usa ids opacos y no se venden datos."],
-      ["Dinero", ["la v1 no cobra pagos", "precio desde el servidor", "suscripción y anuncios"], "Dinero|la v1 no cobra|El precio nunca viene del cliente; entra suscripción y, después, anuncios."],
+      ["Dinero", ["la v1 no cobra ni tiene planes", "precio desde el servidor", "planes y anuncios: Spec 002"], "Dinero|la v1 no cobra|Planes y anuncios: postura de Calvin para la Spec 002, tras el piloto."],
       ["Usuarios", ["comensal anónimo", "personal con PIN", "operador con cuenta"], "Usuarios|tres roles|Comensal anónimo con cookie de 6 horas, personal con PIN y operador con cuenta."],
     ];
     let b = "";
