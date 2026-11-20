@@ -3815,22 +3815,22 @@
   },
   "fila_por_visita": {
    "valor": {
-    "sola": 0.1181,
-    "con_platillo_por_dia": 0.1817,
-    "bytes_por_visita_de_comensal": 161,
-    "bytes_con_indice_por_miembro": 192,
-    "bytes_sin_restaurante": 121,
-    "bytes_platillo_por_dia_total": 4038656,
+    "sola": 0.1123,
+    "con_platillo_por_dia": 0.1766,
+    "bytes_por_visita_de_comensal": 153,
+    "bytes_con_indice_por_miembro": 184,
+    "bytes_sin_restaurante": 113,
+    "bytes_platillo_por_dia_total": 4079616,
     "actualizando_2_veces": {
-     "antes": 7495680,
-     "despues": 17055744,
-     "hot": 37,
+     "antes": 7127040,
+     "despues": 15958016,
+     "hot": 42,
      "de": 93392
     },
     "actualizando_2_veces_fillfactor_70": {
-     "antes": 9256960,
-     "despues": 15040512,
-     "hot": 53373,
+     "antes": 8650752,
+     "despues": 14147584,
+     "hot": 51307,
      "de": 93392
     },
     "miembros_por_sesion": 2.5942,

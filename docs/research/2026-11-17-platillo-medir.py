@@ -17,10 +17,14 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 AQUI = Path(__file__).resolve().parent
-ENV = {**os.environ, "PGPASSWORD": "carta_dev_password"}
+if "PGPASSWORD" not in os.environ:
+    sys.exit("Defina PGPASSWORD (la contraseña de la base LOCAL de desarrollo) en el entorno: no se guarda en el repositorio.")
+ENV = dict(os.environ)  # el host es siempre 127.0.0.1 y las bases de trabajo son carta_med_*
 
 
 def psql(db, q, uno=False):
+    if db != "postgres" and not db.startswith("carta_med_"):
+        sys.exit(f"Base {db!r} rechazada: estos guiones sólo tocan bases carta_med_* locales")
     r = subprocess.run(["psql", "-h", "127.0.0.1", "-U", "carta", "-d", db, "-At", "-F", "|", "-v", "ON_ERROR_STOP=1", "-c", q], capture_output=True, text=True, env=ENV)
     if r.returncode:
         sys.exit(r.stderr)
@@ -33,7 +37,7 @@ while psql("postgres", f"select 1 from pg_database where datname='carta_med_plat
     n += 1
 DB = f"carta_med_platillo_{n}"
 psql("postgres", f"CREATE DATABASE {DB} TEMPLATE carta_med_mediano")
-os.environ["DATABASE_URL"] = f"postgresql+asyncpg://carta:carta_dev_password@127.0.0.1:5432/{DB}"
+os.environ["DATABASE_URL"] = f"postgresql+asyncpg://carta:{os.environ["PGPASSWORD"]}@127.0.0.1:5432/{DB}"
 sys.path.insert(0, str(RAIZ))
 os.chdir(RAIZ)
 

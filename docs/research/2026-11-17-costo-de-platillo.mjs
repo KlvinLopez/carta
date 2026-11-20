@@ -25,6 +25,16 @@ Generado por \`2026-11-17-costo-de-platillo.mjs\` desde \`2026-11-14-parametros.
 
 ${c.conclusion}
 
+## Lo que sí mueve el tope: quién paga
+
+${c.lo_que_si_mueve_el_tope}
+
+| Platillos | De paga por 1,000 (cota baja / alta) | Caben por disco con avisos (cota baja / alta) | Caben por disco con sondeo (cota baja / alta) | Margen con 1,000 restaurantes (cota baja / alta) |
+|---|---|---|---|---|
+${c.filas.map((f) => { const v = f.con_la_mezcla_de_paga_variable; return `| ${f.platillos} | ${n0(v.baja.pagantes_por_1000)} / ${n0(v.alta.pagantes_por_1000)} | ${n0(v.baja.disco_con_avisos)} / ${n0(v.alta.disco_con_avisos)} | ${n0(v.baja.disco_con_sondeo)} / ${n0(v.alta.disco_con_sondeo)} | ${n0(v.baja.margen_operacion)} / ${n0(v.alta.margen_operacion)} |`; }).join('\n')}
+
+*(con la propuesta de historial a 30 días para el gratuito, la parte de paga variable y las dos cotas de cobertura.)*
+
 ## Qué es medido y qué es supuesto
 
 | Concepto | Valor | Origen |
@@ -39,13 +49,13 @@ ${c.conclusion}
 
 ## Por tope
 
-| Platillos | Base por restaurante | Fotos en R2 por restaurante | Restaurantes con foto que caben en R2 gratis | Menú (JSON) | Armar el menú | Disco (restaurantes, con avisos) | Procesador (con avisos / con sondeo) | Cuello |
+| Platillos | Base por restaurante | Fotos en R2 por restaurante | Gratuitos solos con foto que caben en R2 gratis (con la mezcla de paga: menos) | Menú (JSON) | Armar el menú | Disco (restaurantes, con avisos) | Procesador (con avisos / con sondeo) | Cuello |
 |---|---|---|---|---|---|---|---|---|
 ${c.filas.map((f) => `| ${f.platillos} | ${n1(f.base_de_datos.bytes_por_restaurante / 1000)} KB | ${n2(f.fotos_en_r2.gb_por_restaurante)} GB (${n2(f.fotos_en_r2.rango_gb[0])} a ${n2(f.fotos_en_r2.rango_gb[1])}) | ${n0(f.fotos_en_r2.restaurantes_que_caben_en_lo_gratis)} (${n0(f.fotos_en_r2.rango_restaurantes[0])} a ${n0(f.fotos_en_r2.rango_restaurantes[1])}) | ${kb(f.menu.json_bytes)} KB | ${n1(f.menu.ms_armar_por_cada_30_segundos)} ms | ${n0(f.capacidad.con_avisos.disco)} | ${n0(f.capacidad.con_avisos.procesador)} / ${n0(f.capacidad.con_sondeo.procesador)} | ${f.capacidad.con_avisos.cuello} / ${f.capacidad.con_sondeo.cuello} |`).join('\n')}
 
 Pasarse de lo gratis de R2 cuesta ${n2(c.filas[0].fotos_en_r2.pesos_al_mes_por_restaurante_si_se_pasa)} pesos al mes por restaurante con ${c.filas[0].platillos} platillos y ${n2(c.filas[c.filas.length - 1].fotos_en_r2.pesos_al_mes_por_restaurante_si_se_pasa)} con ${c.filas[c.filas.length - 1].platillos}.
 
-## Cobertura y negocios de paga
+## Cobertura y negocios de paga (cota alta, mezcla fija)
 
 | Platillos | Caben, cota baja | Caben, cota alta | De 0 a 5 personas dentro de Chef (baja a alta) | De paga por cada 1,000 |
 |---|---|---|---|---|

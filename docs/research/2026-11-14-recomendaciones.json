@@ -1,36 +1,36 @@
 {
- "version": "2026-11-17-r14",
+ "version": "2026-11-20-r15",
  "decisiones": [
   {
    "id": "dos_planes",
    "decision": "Dos planes: Chef (gratis, 0 a 5 personas) y Master Chef (DECIDIDA por Calvin el 17-nov)",
    "recomendacion": "**Chef = 6 mesas y 1 cuenta de personal (una sola persona con PIN); Master Chef 225 = todo lo que pase de ahí, hasta los topes técnicos (500 mesas y 50 personas activas); Chef Ejecutivo apagado.** Con el modelo de mesas y cuentas cabe en Chef el 48.4 % de los negocios de 0 a 5 personas (rango 42.4 %–54.5 %) y ninguno de 6 a 10.",
    "depende": "**Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato): «cuentas» = las que el negocio querría crear.** Si una fonda de 4 personas se arregla con una sola cuenta, cabría más que el 48.4 %; con la alternativa de 2 cuentas cabría el 66.5 %. **Sobre el ADR-017:** el dueño es el validador y el primer mesero; con una cuenta, el plan gratuito es operación de una sola persona con PIN.",
-   "cifras": "Frente a tres planes (1,000 restaurantes, curva media): pagantes 116 (antes 30); margen recomendado +18,591 (antes +8,719); peor +2,388 (antes −47).",
+   "cifras": "Frente a tres planes (1,000 restaurantes, curva media): pagantes 116 (antes 30); margen recomendado +14,752 (antes +8,719); peor −1,513 (antes −47).",
    "alternativas": [
     {
      "opcion": "5 mesas · 1 cuenta",
-     "pros": "48.4 % de 0 a 5 personas dentro; margen +18,229",
+     "pros": "48.4 % de 0 a 5 personas dentro; margen +15,435",
      "contras": "100 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "6 mesas · 1 cuenta",
-     "pros": "48.4 % de 0 a 5 personas dentro; margen +18,591",
+     "pros": "48.4 % de 0 a 5 personas dentro; margen +14,752",
      "contras": "100 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "6 mesas · 2 cuentas",
-     "pros": "66.5 % de 0 a 5 personas dentro; margen +15,323",
+     "pros": "66.5 % de 0 a 5 personas dentro; margen +11,469",
      "contras": "100 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "8 mesas · 2 cuentas",
-     "pros": "76.2 % de 0 a 5 personas dentro; margen +14,326",
+     "pros": "76.2 % de 0 a 5 personas dentro; margen +9,377",
      "contras": "100 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "10 mesas · 3 cuentas",
-     "pros": "85.9 % de 0 a 5 personas dentro; margen +11,934",
+     "pros": "85.9 % de 0 a 5 personas dentro; margen +5,969",
      "contras": "69.7 % de 6 a 10 personas cae en Master Chef"
     }
    ],
@@ -73,7 +73,7 @@
    "decision": "Precio de Master Chef",
    "recomendacion": "**Master Chef 225 es una decisión de posicionamiento de Calvin (pegado a Meniu Business), no un resultado del modelo.** El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto. Chef Ejecutivo queda apagado (futura escalación).",
    "depende": "**De la curva de pago (supuesto).** Con la mediana en 150 gana 199; en 225, 225; en 300, 299; en 450, 299. Ver [precio de entrada](2026-11-14-precio-de-entrada.md). **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un POS (652), 225 deja dinero sobre la mesa.",
-   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 135 / 116 / 100 / 74; margen de operación (media) 18,040 / 18,591 / 18,583 / 17,528.",
+   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 135 / 116 / 100 / 74; margen de operación (media) 14,213 / 14,752 / 14,733 / 13,661.",
    "alternativas": [
     {
      "opcion": "199",
@@ -102,8 +102,8 @@
   {
    "id": "anuncios",
    "decision": "Anuncios en Chef: cuándo llegan y cuánto dejan",
-   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 809 restaurantes (rango 248 a 2,116).",
-   "depende": "**De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 104 (rango 43 a imposible) (tarifa baja), 20 (rango 10 a 43) (media) y no se paga solo (rango 360 a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 246). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.",
+   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 282 restaurantes (rango 164 a 282).",
+   "depende": "**De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 277 (rango 101 a imposible) (tarifa baja), 21 (rango 10 a 101) (media) y no se paga solo (rango ∞ a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 28). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.",
    "cifras": "Requisitos: ADR, abrir la política de seguridad (`script-src 'self'`), aviso de privacidad, aprobación de la red.",
    "alternativas": [
     {
@@ -114,7 +114,7 @@
     {
      "opcion": "Anuncios desde el mes 9 (supuesto)",
      "pros": "Tiempo realista",
-     "contras": "Calvin pone hasta 4,290 pesos acumulados"
+     "contras": "Calvin pone hasta 5,550 pesos acumulados"
     },
     {
      "opcion": "Sin anuncios",
@@ -128,38 +128,38 @@
   {
    "id": "bolsa",
    "decision": "Cuánta bolsa poner mientras no hay anuncios",
-   "recomendacion": "**1,000 pesos al mes** alcanzan para 809 restaurantes gratuitos (rango 248 a 2,116); acumulado, Calvin pone hasta **4,290 pesos** en el caso recomendado, 3,604 en el peor y 101,933 en el piso de verdad.",
+   "recomendacion": "**1,000 pesos al mes** alcanzan para 282 restaurantes gratuitos (rango 164 a 282); acumulado, Calvin pone hasta **5,550 pesos** en el caso recomendado, 98,706 en el peor y 231,283 en el piso de verdad.",
    "depende": "**Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.",
-   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 405 (95–505) / 809 (248–2,116) / 2,048 (505–2,116) / 2,116 (1,421–2,116) restaurantes gratuitos (con la carga de sus topes; sólo gratuitos, sin la mezcla de paga que usa «¿Qué nos limita?»: 182 registrados con avisos).",
+   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 83 (28–151) / 282 (164–282) / 282 (282–282) / 943 (566–1,132) restaurantes gratuitos (con la carga de sus topes; sólo gratuitos, sin la mezcla de paga que usa «¿Qué nos limita?»: 28 registrados con avisos).",
    "alternativas": [
     {
      "opcion": "500 pesos al mes",
-     "pros": "405 restaurantes y 0.8 M de comensales",
-     "contras": "rango 95–505 según el soporte"
+     "pros": "83 restaurantes y 0.2 M de comensales",
+     "contras": "rango 28–151 según el soporte"
     },
     {
      "opcion": "1,000 pesos al mes",
-     "pros": "809 restaurantes y 1.7 M de comensales",
-     "contras": "rango 248–2,116 según el soporte"
+     "pros": "282 restaurantes y 0.6 M de comensales",
+     "contras": "rango 164–282 según el soporte"
     },
     {
      "opcion": "2,000 pesos al mes",
-     "pros": "2,048 restaurantes y 4.2 M de comensales",
-     "contras": "rango 505–2,116 según el soporte"
+     "pros": "282 restaurantes y 0.6 M de comensales",
+     "contras": "rango 282–282 según el soporte"
     },
     {
      "opcion": "5,000 pesos al mes",
-     "pros": "2,116 restaurantes y 4.3 M de comensales",
-     "contras": "rango 1,421–2,116 según el soporte"
+     "pros": "943 restaurantes y 1.9 M de comensales",
+     "contras": "rango 566–1,132 según el soporte"
     }
    ],
-   "ejemplo": "Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 809 fondas y taquerías gratuitas.",
+   "ejemplo": "Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 282 fondas y taquerías gratuitas.",
    "prueba": "El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte."
   },
   {
    "id": "historial",
    "decision": "Historial: meses en línea y archivo descargable",
-   "recomendacion": "**12 meses en línea para la paga (decidido por Calvin) y 30 días para el gratuito, con archivo descargable de lo anterior.**",
+   "recomendacion": "**12 meses en línea para la paga (decidido por Calvin). Para el gratuito, la política vigente es la de 03 §7 (24 meses de sesiones y 13 de analítica); recortarlo a 30 días, con archivo descargable de lo anterior, es una PROPUESTA pendiente de decisión de Calvin.**",
    "depende": "**Del volumen de disco que se pague y de los 7.1–8.5 KB por visita medidos (con 10 eventos por visita supuestos)** ([disco-e-historial](2026-11-14-disco-e-historial.md)).",
    "cifras": "Con 1, 3, 6 y 12 meses el margen casi no cambia; en Hobby caben 263, 128, 72 y 38 clientes de paga (Pro: 2,637 · 1,283 · 724 · 387) [disco-e-historial].",
    "alternativas": [
@@ -247,7 +247,7 @@
       "mesas": 6,
       "cuentas": 1,
       "lecturas_pdf": 3,
-      "meses_en_linea": 1
+      "meses_en_linea": 24
      },
      "servicio": {
       "platillos": 300,
@@ -266,7 +266,7 @@
     },
     "disco": {
      "meses_analitica_en_linea": {
-      "gratuito": 1,
+      "gratuito": 13,
       "servicio": 1,
       "salon": 1
      },

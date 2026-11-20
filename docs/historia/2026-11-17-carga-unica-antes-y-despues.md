@@ -1,4 +1,6 @@
-# Una sola carga para el gratuito: antes → después (generado; no editar a mano)
+# Una sola carga para el gratuito: antes → después (archivado; generado, no editar a mano)
+
+**Estado:** archivado el 20 de noviembre de 2026. No es un informe vigente: documenta el paso del «gratuito típico» a la carga por topes (ronda 11). Lo vigente está en `docs/research/2026-11-14-recursos-y-palancas.md` y en `2026-11-14-modelo-de-escenarios.md`.
 
 Generado por `2026-11-17-carga-unica.mjs`. **Qué cambió (ronda 11):** un restaurante gratuito tiene UNA definición de carga, la de sus topes, y la usan por igual «¿Qué nos limita?», los costos, la bolsa de Calvin, los escalones, el margen, el sueldo y la meta de 12 meses. Antes, los costos usaban un «gratuito típico» de 1,800 visitas al mes y «¿Qué nos limita?» la carga de los topes. **No cambian precios, topes ni escenarios.**
 
@@ -35,7 +37,7 @@ Generado por `2026-11-17-carga-unica.mjs`. **Qué cambió (ronda 11):** un resta
 | Gratuitos que caben con el sondeo de hoy, sólo gratuitos (bolsa) | 148 | 246 |
 | Restaurantes registrados que caben, con avisos (historial 30 días) | 279 | 182 |
 | Restaurantes registrados que caben, con sondeo (historial 30 días) | 148 | 173 |
-| Restaurantes registrados que caben, sin purga | 23 | 41 |
+| Restaurantes registrados que caben, sin purga | 279 | 182 |
 
 **Por qué:**
 - **Margen:** El gratuito de los topes (6 mesas) carga 1,080 visitas al mes y no 1,800: 60 % del típico. Eso baja el costo de servidor y disco por gratuito (1.19 → 1.03 pesos con soporte) y también sus anuncios (tarifa baja, la del escenario recomendado: 4.31 → 2.58 pesos; tarifa media: 17.22 → 10.33), porque las visitas con la app son proporcionales; las fotos del tope de platillos suben el costo de R2 (0.05 → 0.37 GB por gratuito, supuesto).
@@ -49,9 +51,9 @@ Generado por `2026-11-17-carga-unica.mjs`. **Qué cambió (ronda 11):** un resta
 
 | Visitas por mesa al mes | Visitas del gratuito al mes | Margen recomendado, 1,000 restaurantes | Margen peor | Gratuitos que sostiene un pagante (sin anuncios) | Anuncios por gratuito (tarifa baja) | Caben con avisos / con sondeo / sin purga | Bolsa de 1,000 pesos |
 |---|---|---|---|---|---|---|---|
-| 90 | 540 | +17,505 | +2,449 | 171 | 1.29 | 215 / 215 / 71 | 985 |
-| 180 | 1,080 | +18,591 | +2,388 | 144 | 2.58 | 182 / 173 / 41 | 809 |
-| 360 | 2,160 | +20,666 | +2,170 | 112 | 5.17 | 138 / 106 / 22 | 689 |
+| 90 | 540 | +17,505 | +2,449 | 171 | 1.29 | 215 / 215 / 215 | 985 |
+| 180 | 1,080 | +18,591 | +2,388 | 144 | 2.58 | 182 / 173 / 182 | 809 |
+| 360 | 2,160 | +20,666 | +2,170 | 112 | 5.17 | 138 / 106 / 138 | 689 |
 
 Más visitas por mesa dejan más anuncios y más margen, pero llenan antes el disco y el procesador (caben menos restaurantes).
 

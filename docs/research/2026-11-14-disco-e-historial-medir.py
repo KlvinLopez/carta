@@ -12,7 +12,9 @@ import os
 import subprocess
 import sys
 
-ENV = {**os.environ, "PGPASSWORD": "carta_dev_password"}
+if "PGPASSWORD" not in os.environ:
+    sys.exit("Defina PGPASSWORD (la contraseña de la base LOCAL de desarrollo) en el entorno: no se guarda en el repositorio.")
+ENV = dict(os.environ)  # el host es siempre 127.0.0.1 y las bases de trabajo son carta_med_*
 
 
 def sql(db: str, consulta: str) -> list[list[str]]:

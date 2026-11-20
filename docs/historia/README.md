@@ -15,3 +15,4 @@ Un documento archivado apunta a las mediciones y a los ADR en vez de copiarlos. 
 | Archivo | De qué trata | Cierre |
 |---|---|---|
 | [`2026-11-sondeo-cada-3-segundos.md`](2026-11-sondeo-cada-3-segundos.md) | Cómo el teléfono preguntaba al servidor cada 3 s (ADR-004), qué costaba y por qué se pasó a eventos (ADR-018) | 13 de noviembre de 2026 |
+| [`2026-11-17-carga-unica-antes-y-despues.md`](2026-11-17-carga-unica-antes-y-despues.md) | Paso del «gratuito típico» de 1,800 visitas a la carga por topes en todo el modelo: cifras de cabecera antes y después, y por qué (ronda 11) | 20 de noviembre de 2026 |

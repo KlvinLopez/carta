@@ -62,13 +62,12 @@ const md = `# Recursos y palancas: qué pagamos, cuánto aguanta cada pieza y c�
 
 **Qué es un «restaurante típico» (en toda cifra de capacidad):** ${tip}. Con el **doble** de actividad lo que cabe se divide entre 2 (${n0(ac[2].procesador_hoy)} por procesador y ${n0(ac[2].disco_con_historial_30_dias)} por disco con el historial a 30 días); con **todos en su hora pico a la vez**, el procesador de hoy baja de ${n0(rE('procesador').restaurantes_hoy)} a ${n0(R.pico_simultaneo.procesador_hoy)} (factor ${R.pico_simultaneo.factor}, supuesto).
 
-## De qué se compone el disco promedio (y por qué ya no es ${n0(R.composicion_del_disco.cifra_de_antes)})
+## De qué se compone el disco promedio
 
-${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos e historial a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (antes: ${n0(c.cifra_de_antes)}).
+${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben por disco con avisos y la PROPUESTA de historial del gratuito a 30 días: ${n0(c.restaurantes_que_caben_por_disco)}** (con la política vigente, 03 §7, caben ${n0(R.disco_por_historial.find((x) => x.meses_historial === '03§7').restaurantes_por_disco)}; la composición de abajo es la de la propuesta).
 - **Mezcla:** ${n1(c.parte_que_paga * 1000)} de paga por cada 1,000 restaurantes registrados. Un gratuito guarda ${n0(c.meses_de_historial.gratuito)} mes (${n1(c.mb_por_restaurante.gratuito)} MB) y uno de paga ${n0(c.meses_de_historial.paga)} meses (${n1(c.mb_por_restaurante.paga)} MB); promedio ${n1(c.mb_por_restaurante.promedio)} MB.
 - **Quién llena el disco:** los gratuitos ${n0(c.parte_del_disco.gratuitos * 100)} %, los de paga ${n0(c.parte_del_disco.de_paga * 100)} %.
 - **Costo de ese disco:** ${n2(c.costo_del_disco_pesos_al_mes.paga)} pesos al mes por restaurante de paga frente a ${n0(c.costo_del_disco_pesos_al_mes.lo_que_paga_un_restaurante_de_paga)} que paga (${n1(c.costo_del_disco_pesos_al_mes.parte_del_precio_que_se_va_en_disco * 100)} %); un gratuito cuesta ${n2(c.costo_del_disco_pesos_al_mes.gratuito)} pesos.
-- **Por qué no es la cifra de antes:** ${c.por_que_no_es_la_cifra_de_antes}
 - **Hallazgo:** ${c.hallazgo}
 
 **Cuánto de cada parte es analítica y cuánto sesiones y órdenes (parte del disco promedio):**
@@ -79,7 +78,29 @@ ${(() => { const c = R.composicion_del_disco; return `- **Restaurantes que caben
 | De paga (12 meses) | ${n1(c.desglose.parte_del_disco.de_paga.fijo * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes * 100)} % | ${n1(c.desglose.parte_del_disco.de_paga.analitica * 100)} % | ${n1((c.desglose.parte_del_disco.de_paga.fijo + c.desglose.parte_del_disco.de_paga.sesiones_y_ordenes + c.desglose.parte_del_disco.de_paga.analitica) * 100)} % |
 | **Todos** | ${n1(c.desglose.parte_fija_del_disco * 100)} % | ${n1(c.desglose.parte_sesiones_y_ordenes_del_disco * 100)} % | ${n1(c.desglose.parte_analitica_del_disco * 100)} % | 100 % |
 
-**Por qué «contar por día» pasó de +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_de_antes * 100)} % (${c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.cifra_de_antes.join(' → ')}, ronda 8) a +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_ahora * 100)} % (${c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.cifra_ahora.join(' → ')}) y por qué ahora la palanca que más da es archivar (${c.por_que_contar_por_dia_ya_no_da_tanto.archivar.cifra_ahora[1]}):** ${c.por_que_contar_por_dia_ya_no_da_tanto.frase}`; })()}
+**Por qué «contar por día» da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.contar_por_dia.ganancia_ahora * 100)} % y archivar las sesiones de paga da +${n0(c.por_que_contar_por_dia_ya_no_da_tanto.archivar.ganancia_ahora * 100)} %:** ${c.por_que_contar_por_dia_ya_no_da_tanto.frase}`; })()}
+
+## La capacidad depende de quién paga
+
+Con la propuesta de 30 días para el gratuito y la carga por topes. **El éxito llena antes el servidor:** un restaurante de paga pesa ${s.peso_servicio_cpu} gratuitos de procesador y llena unas 16 veces el disco de un gratuito.
+
+| Parte de los restaurantes que paga | Escenario | Caben por procesador con el sondeo | Caben por procesador con avisos | Caben por disco con avisos |
+|---|---|---|---|---|
+${R.sensibilidad_de_la_capacidad.parte_que_paga.map((x) => `| ${n1(x.parte_que_paga * 100)} % | ${x.escenario} (curva ${x.curva_de_pago}) | ${n0(x.procesador_con_sondeo)} | ${n0(x.procesador_con_avisos)} | ${n0(x.disco)} |`).join('\n')}
+
+**La mezcla de tamaños de los de paga es un supuesto con rango.** El simulador la fija en 50 % mediano, 25 % grande y 25 % formal, pero ${n0(R.sensibilidad_de_la_capacidad.parte_de_los_pagantes_de_0_a_5_personas * 100)} % de los pagantes del propio modelo son negocios de 0 a 5 personas. Se mide con el tamaño de los primeros restaurantes de paga del piloto.
+
+| Mezcla de los de paga | Caben por disco con avisos |
+|---|---|
+${R.sensibilidad_de_la_capacidad.mezcla_de_paga.map((x) => `| ${x.nombre} | ${n0(x.disco)} |`).join('\n')}
+
+## Sensibilidad a las visitas por mesa (el supuesto que mueve la carga del gratuito)
+
+El gratuito carga mesas × visitas por mesa al mes; las **${s.perfil_por_topes.visitas_por_mesa_mes} visitas por mesa** son un supuesto sin medir (se mide con los eventos \`scan\` por mesa del piloto) y la carga de un Chef es el tope entero (cota alta).
+
+| Visitas por mesa al mes | Visitas del gratuito | Caben con avisos / con sondeo / sin purga | Margen recomendado con 1,000 restaurantes |
+|---|---|---|---|
+${M.comparacionDeCarga(rec, s).sensibilidad_visitas_por_mesa.map((x) => `| ${x.visitas_por_mesa_al_mes} | ${n0(x.visitas_del_gratuito_al_mes)} | ${n0(x.capacidad.con_avisos)} / ${n0(x.capacidad.con_sondeo)} / ${n0(x.capacidad.sin_purga)} | ${n0(x.margen_operacion_recomendado_1000)} |`).join('\n')}
 
 ## Conclusiones
 
@@ -147,7 +168,7 @@ ${porTabla.sort((a, b) => b.total_por_visita - a.total_por_visita).map((x) => `|
 
 ## 4. Palancas por recurso
 
-Cada palanca se evalúa **sola** sobre la base **sin purga (12 meses acumulados)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de ${s.factores_disco_eventos.platillos_cota} platillos** (el gratuito permite 150; la copia tiene ${s.factores_disco_eventos.platillos_en_la_copia}: con ellos el factor es ${s.factores_disco_eventos.agregada_por_dia_con_platillos_de_la_copia} en vez de ${s.factores_disco_eventos.agregada_por_dia_cota_alta}). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
+Cada palanca se evalúa **sola** sobre la base **de la política vigente (03 §7)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de ${s.factores_disco_eventos.platillos_cota} platillos** (el gratuito permite 150; la copia tiene ${s.factores_disco_eventos.platillos_en_la_copia}: con ellos el factor es ${s.factores_disco_eventos.agregada_por_dia_con_platillos_de_la_copia} en vez de ${s.factores_disco_eventos.agregada_por_dia_cota_alta}). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
 
 ${R.recursos.filter((r) => r.palancas.some((p) => p.en_tablero)).map((r) => `### ${r.nombre}\n\n| Palanca | Antes | Después | Ganancia | Esfuerzo | Riesgo | Regla dura o ADR | Cifra |\n|---|---|---|---|---|---|---|---|\n${palRows(r)}\n`).join('\n')}
 **Alternativas que no se suman.** ${Object.values(R.grupos_excluyentes).map((g) => `${g.nombre}: ${g.nota} El modelo aplica una sola (en orden de prioridad: ${g.prioridad.join(', ')}); el tablero muestra la ganancia de cada una por separado, no la suma.`).join(' ')}

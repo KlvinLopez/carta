@@ -1,5 +1,5 @@
 {
- "version": "2026-11-17-r14",
+ "version": "2026-11-20-r15",
  "fecha": "2026-11-17",
  "sueldo_fundador": {
   "por_omision": 0,
@@ -15,11 +15,86 @@
    {
     "veces_el_salario_minimo": 1,
     "sueldo_mensual": 9577,
+    "curva_de_crecimiento": "ajuste a dos metas de Calvin (300 restaurantes a 12 meses y 1200 a 24); después del mes 24 es extrapolación sin dato",
+    "que_es_cada_cuenta": "restaurantes necesarios = en régimen estable (la captación sólo repone bajas); el mes en que el margen cubre el sueldo sale de la proyección de crecimiento, donde ese mes hay más restaurantes porque conseguir clientes de paga cuesta mientras se crece",
     "escenarios": {
      "recomendado": {
+      "restaurantes_necesarios": 760,
+      "restaurantes_necesarios_en_regimen": 760,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 20,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 5415.649759699288,
+      "clientes_de_paga_necesarios": 88.07180191192818,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 25,
+      "restaurantes_ese_mes_de_la_proyeccion": 1302,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 3089.1080514957157,
+       "mes_12": -9844.04604223702,
+       "mes_24": -1181.106837017569
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -11512.182769896748,
+       "mes_12": -11641.554908643207,
+       "mes_24": -13429.279130164943
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 179,
+      "restaurantes_necesarios_en_regimen": 179,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 10,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 2581.9732727065657,
+      "clientes_de_paga_necesarios": 68.41037545462966,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 15,
+      "restaurantes_ese_mes_de_la_proyeccion": 469,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 42666.25714415926,
+       "mes_12": -5410.172031819062,
+       "mes_24": 31122.961026192264
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -15431.420011370265,
+       "mes_12": -12817.326081085263,
+       "mes_24": -18132.36381993316
+      }
+     }
+    },
+    "no_modelado": [
+     "impuestos (ISR e IVA)",
+     "contabilidad y trámites",
+     "seguridad social y prestaciones",
+     "costos de ventas más allá del costo de conseguir un cliente de paga"
+    ],
+    "politica_de_historial": "Política vigente de historial (03 §7: sesiones y comandas 24 meses y analítica 13 para todos los planes; hoy nada purga). La propuesta de 30 días para el gratuito es decisión pendiente de Calvin: va al lado, rotulada «propuesta».",
+    "con_la_propuesta_de_30_dias": {
+     "recomendado": {
       "restaurantes_necesarios": 600,
+      "restaurantes_necesarios_en_regimen": 600,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 17,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 5120.023790136718,
       "clientes_de_paga_necesarios": 69.53036993046962,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 22,
+      "restaurantes_ese_mes_de_la_proyeccion": 1008,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": 6928.368897128417,
@@ -29,8 +104,12 @@
      },
      "peor": {
       "restaurantes_necesarios": 4680,
+      "restaurantes_necesarios_en_regimen": 4680,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 48,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 7188.193353843569,
       "clientes_de_paga_necesarios": 109.63818777531593,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 54,
+      "restaurantes_ese_mes_de_la_proyeccion": 6075,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -7610.966085396174,
@@ -40,8 +119,12 @@
      },
      "mejor": {
       "restaurantes_necesarios": 178,
+      "restaurantes_necesarios_en_regimen": 178,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 10,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 2629.857786266979,
       "clientes_de_paga_necesarios": 68.02819458616804,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 14,
+      "restaurantes_ese_mes_de_la_proyeccion": 408,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": 44907.30155166125,
@@ -51,13 +134,85 @@
      },
      "piso_de_verdad": {
       "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
       "clientes_de_paga_necesarios": null,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -11530.20332686969,
        "mes_12": -10894.754966580334,
        "mes_24": -13175.345558532472
+      }
+     }
+    }
+   },
+   {
+    "veces_el_salario_minimo": 3,
+    "sueldo_mensual": 28732,
+    "curva_de_crecimiento": "ajuste a dos metas de Calvin (300 restaurantes a 12 meses y 1200 a 24); después del mes 24 es extrapolación sin dato",
+    "que_es_cada_cuenta": "restaurantes necesarios = en régimen estable (la captación sólo repone bajas); el mes en que el margen cubre el sueldo sale de la proyección de crecimiento, donde ese mes hay más restaurantes porque conseguir clientes de paga cuesta mientras se crece",
+    "escenarios": {
+     "recomendado": {
+      "restaurantes_necesarios": 2210,
+      "restaurantes_necesarios_en_regimen": 2210,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 33,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 20694.485773322776,
+      "clientes_de_paga_necesarios": 256.1035292438964,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 39,
+      "restaurantes_ese_mes_de_la_proyeccion": 3169,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -16065.891948504284,
+       "mes_12": -28999.04604223702,
+       "mes_24": -20336.10683701757
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -30667.18276989675,
+       "mes_12": -30796.554908643207,
+       "mes_24": -32584.27913016494
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 550,
+      "restaurantes_necesarios_en_regimen": 550,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 17,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 15493.280708213933,
+      "clientes_de_paga_necesarios": 210.19947765388997,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 22,
+      "restaurantes_ese_mes_de_la_proyeccion": 1008,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 23511.25714415926,
+       "mes_12": -24565.172031819064,
+       "mes_24": 11967.961026192264
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -34586.42001137026,
+       "mes_12": -31972.326081085263,
+       "mes_24": -37287.36381993316
       }
      }
     },
@@ -66,16 +221,17 @@
      "contabilidad y trámites",
      "seguridad social y prestaciones",
      "costos de ventas más allá del costo de conseguir un cliente de paga"
-    ]
-   },
-   {
-    "veces_el_salario_minimo": 3,
-    "sueldo_mensual": 28732,
-    "escenarios": {
+    ],
+    "politica_de_historial": "Política vigente de historial (03 §7: sesiones y comandas 24 meses y analítica 13 para todos los planes; hoy nada purga). La propuesta de 30 días para el gratuito es decisión pendiente de Calvin: va al lado, rotulada «propuesta».",
+    "con_la_propuesta_de_30_dias": {
      "recomendado": {
       "restaurantes_necesarios": 1730,
+      "restaurantes_necesarios_en_regimen": 1730,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 29,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 21099.160250442183,
       "clientes_de_paga_necesarios": 200.4792332995207,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 34,
+      "restaurantes_ese_mes_de_la_proyeccion": 2408,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -12226.631102871583,
@@ -85,8 +241,12 @@
      },
      "peor": {
       "restaurantes_necesarios": 13190,
+      "restaurantes_necesarios_en_regimen": 13190,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
       "clientes_de_paga_necesarios": 309.00164460607203,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -26765.966085396176,
@@ -96,8 +256,12 @@
      },
      "mejor": {
       "restaurantes_necesarios": 520,
+      "restaurantes_necesarios_en_regimen": 520,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 16,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 15370.67720092995,
       "clientes_de_paga_necesarios": 198.73405160004145,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 21,
+      "restaurantes_ese_mes_de_la_proyeccion": 919,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": 25752.30155166125,
@@ -107,13 +271,85 @@
      },
      "piso_de_verdad": {
       "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
       "clientes_de_paga_necesarios": null,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -30685.20332686969,
        "mes_12": -30049.754966580334,
        "mes_24": -32330.34555853247
+      }
+     }
+    }
+   },
+   {
+    "veces_el_salario_minimo": 5,
+    "sueldo_mensual": 47886,
+    "curva_de_crecimiento": "ajuste a dos metas de Calvin (300 restaurantes a 12 meses y 1200 a 24); después del mes 24 es extrapolación sin dato",
+    "que_es_cada_cuenta": "restaurantes necesarios = en régimen estable (la captación sólo repone bajas); el mes en que el margen cubre el sueldo sale de la proyección de crecimiento, donde ese mes hay más restaurantes porque conseguir clientes de paga cuesta mientras se crece",
+    "escenarios": {
+     "recomendado": {
+      "restaurantes_necesarios": 3650,
+      "restaurantes_necesarios_en_regimen": 3650,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 42,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 36685.60845437062,
+      "clientes_de_paga_necesarios": 422.97641707702354,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 48,
+      "restaurantes_ese_mes_de_la_proyeccion": 4800,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -35219.891948504286,
+       "mes_12": -48153.046042237016,
+       "mes_24": -39490.10683701757
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -49821.182769896746,
+       "mes_12": -49950.55490864321,
+       "mes_24": -51738.27913016494
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 930,
+      "restaurantes_necesarios_en_regimen": 930,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 22,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 32897.46000340876,
+      "clientes_de_paga_necesarios": 355.4282076693049,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 26,
+      "restaurantes_ese_mes_de_la_proyeccion": 1408,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": 4357.257144159259,
+       "mes_12": -43719.172031819064,
+       "mes_24": -7186.038973807736
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -53740.42001137026,
+       "mes_12": -51126.326081085266,
+       "mes_24": -56441.36381993316
       }
      }
     },
@@ -122,16 +358,17 @@
      "contabilidad y trámites",
      "seguridad social y prestaciones",
      "costos de ventas más allá del costo de conseguir un cliente de paga"
-    ]
-   },
-   {
-    "veces_el_salario_minimo": 5,
-    "sueldo_mensual": 47886,
-    "escenarios": {
+    ],
+    "politica_de_historial": "Política vigente de historial (03 §7: sesiones y comandas 24 meses y analítica 13 para todos los planes; hoy nada purga). La propuesta de 30 días para el gratuito es decisión pendiente de Calvin: va al lado, rotulada «propuesta».",
+    "con_la_propuesta_de_30_dias": {
      "recomendado": {
       "restaurantes_necesarios": 2930,
+      "restaurantes_necesarios_en_regimen": 2930,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 38,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 38727.92907163997,
       "clientes_de_paga_necesarios": 339.53997316045997,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 42,
+      "restaurantes_ese_mes_de_la_proyeccion": 3675,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -31380.631102871583,
@@ -141,8 +378,12 @@
      },
      "peor": {
       "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
       "clientes_de_paga_necesarios": null,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -45919.966085396176,
@@ -152,8 +393,12 @@
      },
      "mejor": {
       "restaurantes_necesarios": 890,
+      "restaurantes_necesarios_en_regimen": 890,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 21,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 30776.36161509064,
       "clientes_de_paga_necesarios": 340.1409729308401,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 25,
+      "restaurantes_ese_mes_de_la_proyeccion": 1302,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": 6598.30155166125,
@@ -163,13 +408,85 @@
      },
      "piso_de_verdad": {
       "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
       "clientes_de_paga_necesarios": null,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -49839.20332686969,
        "mes_12": -49203.75496658034,
        "mes_24": -51484.34555853247
+      }
+     }
+    }
+   },
+   {
+    "veces_el_salario_minimo": 10,
+    "sueldo_mensual": 95772,
+    "curva_de_crecimiento": "ajuste a dos metas de Calvin (300 restaurantes a 12 meses y 1200 a 24); después del mes 24 es extrapolación sin dato",
+    "que_es_cada_cuenta": "restaurantes necesarios = en régimen estable (la captación sólo repone bajas); el mes en que el margen cubre el sueldo sale de la proyección de crecimiento, donde ese mes hay más restaurantes porque conseguir clientes de paga cuesta mientras se crece",
+    "escenarios": {
+     "recomendado": {
+      "restaurantes_necesarios": 7300,
+      "restaurantes_necesarios_en_regimen": 7300,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 60,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 81519.94416602975,
+      "clientes_de_paga_necesarios": 845.9528341540471,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -83105.89194850429,
+       "mes_12": -96039.04604223702,
+       "mes_24": -87376.10683701756
+      }
+     },
+     "peor": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -97707.18276989675,
+       "mes_12": -97836.55490864321,
+       "mes_24": -99624.27913016494
+      }
+     },
+     "mejor": {
+      "restaurantes_necesarios": 1830,
+      "restaurantes_necesarios_en_regimen": 1830,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 30,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 71131.53043775905,
+      "clientes_de_paga_necesarios": 699.3909892847613,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 35,
+      "restaurantes_ese_mes_de_la_proyeccion": 2552,
+      "requiere_otra_arquitectura": true,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -43528.74285584074,
+       "mes_12": -91605.17203181906,
+       "mes_24": -55072.038973807736
+      }
+     },
+     "piso_de_verdad": {
+      "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+      "clientes_de_paga_necesarios": null,
+      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
+      "requiere_otra_arquitectura": false,
+      "margen_despues_de_sueldo": {
+       "con_1000_restaurantes": -101626.42001137027,
+       "mes_12": -99012.32608108527,
+       "mes_24": -104327.36381993316
       }
      }
     },
@@ -178,16 +495,17 @@
      "contabilidad y trámites",
      "seguridad social y prestaciones",
      "costos de ventas más allá del costo de conseguir un cliente de paga"
-    ]
-   },
-   {
-    "veces_el_salario_minimo": 10,
-    "sueldo_mensual": 95772,
-    "escenarios": {
+    ],
+    "politica_de_historial": "Política vigente de historial (03 §7: sesiones y comandas 24 meses y analítica 13 para todos los planes; hoy nada purga). La propuesta de 30 días para el gratuito es decisión pendiente de Calvin: va al lado, rotulada «propuesta».",
+    "con_la_propuesta_de_30_dias": {
      "recomendado": {
       "restaurantes_necesarios": 5860,
+      "restaurantes_necesarios_en_regimen": 5860,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 54,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 84500.57301939146,
       "clientes_de_paga_necesarios": 679.0799463209199,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 58,
+      "restaurantes_ese_mes_de_la_proyeccion": 7008,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -79266.63110287159,
@@ -197,8 +515,12 @@
      },
      "peor": {
       "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
       "clientes_de_paga_necesarios": null,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -93805.96608539617,
@@ -208,8 +530,12 @@
      },
      "mejor": {
       "restaurantes_necesarios": 1750,
+      "restaurantes_necesarios_en_regimen": 1750,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 29,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": 69521.22817688108,
       "clientes_de_paga_necesarios": 668.8165198078317,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 34,
+      "restaurantes_ese_mes_de_la_proyeccion": 2408,
       "requiere_otra_arquitectura": true,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -41287.69844833875,
@@ -219,8 +545,12 @@
      },
      "piso_de_verdad": {
       "restaurantes_necesarios": null,
+      "restaurantes_necesarios_en_regimen": null,
+      "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+      "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
       "clientes_de_paga_necesarios": null,
       "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+      "restaurantes_ese_mes_de_la_proyeccion": null,
       "requiere_otra_arquitectura": false,
       "margen_despues_de_sueldo": {
        "con_1000_restaurantes": -97725.20332686968,
@@ -228,22 +558,91 @@
        "mes_24": -99370.34555853247
       }
      }
-    },
-    "no_modelado": [
-     "impuestos (ISR e IVA)",
-     "contabilidad y trámites",
-     "seguridad social y prestaciones",
-     "costos de ventas más allá del costo de conseguir un cliente de paga"
-    ]
+    }
    }
   ],
   "sin_sueldo": {
    "sueldo_mensual": 0,
+   "curva_de_crecimiento": "ajuste a dos metas de Calvin (300 restaurantes a 12 meses y 1200 a 24); después del mes 24 es extrapolación sin dato",
+   "que_es_cada_cuenta": "restaurantes necesarios = en régimen estable (la captación sólo repone bajas); el mes en que el margen cubre el sueldo sale de la proyección de crecimiento, donde ese mes hay más restaurantes porque conseguir clientes de paga cuesta mientras se crece",
    "escenarios": {
     "recomendado": {
      "restaurantes_necesarios": 12,
+     "restaurantes_necesarios_en_regimen": 12,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 3,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": -659.0080475479252,
+     "clientes_de_paga_necesarios": 1.3906073986093923,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 10,
+     "restaurantes_ese_mes_de_la_proyeccion": 208,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": 12666.108051495716,
+      "mes_12": -267.0460422370188,
+      "mes_24": 8395.893162982431
+     }
+    },
+    "peor": {
+     "restaurantes_necesarios": 210,
+     "restaurantes_necesarios_en_regimen": 210,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 11,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": -501.6568263643426,
+     "clientes_de_paga_necesarios": 4.919662271969304,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+     "restaurantes_ese_mes_de_la_proyeccion": null,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": -1935.1827698967484,
+      "mes_12": -2064.5549086432084,
+      "mes_24": -3852.279130164943
+     }
+    },
+    "mejor": {
+     "restaurantes_necesarios": 4,
+     "restaurantes_necesarios_en_regimen": 4,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 2,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": -1126.6692086989144,
+     "clientes_de_paga_necesarios": 1.5287234738464726,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 9,
+     "restaurantes_ese_mes_de_la_proyeccion": 169,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": 52243.25714415926,
+      "mes_12": 4166.827968180938,
+      "mes_24": 40699.961026192264
+     }
+    },
+    "piso_de_verdad": {
+     "restaurantes_necesarios": null,
+     "restaurantes_necesarios_en_regimen": null,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
+     "clientes_de_paga_necesarios": null,
+     "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+     "restaurantes_ese_mes_de_la_proyeccion": null,
+     "requiere_otra_arquitectura": false,
+     "margen_despues_de_sueldo": {
+      "con_1000_restaurantes": -5854.420011370264,
+      "mes_12": -3240.3260810852626,
+      "mes_24": -8555.363819933162
+     }
+    }
+   },
+   "no_modelado": [
+    "impuestos (ISR e IVA)",
+    "contabilidad y trámites",
+    "seguridad social y prestaciones",
+    "costos de ventas más allá del costo de conseguir un cliente de paga"
+   ],
+   "politica_de_historial": "Política vigente de historial (03 §7: sesiones y comandas 24 meses y analítica 13 para todos los planes; hoy nada purga). La propuesta de 30 días para el gratuito es decisión pendiente de Calvin: va al lado, rotulada «propuesta».",
+   "con_la_propuesta_de_30_dias": {
+    "recomendado": {
+     "restaurantes_necesarios": 12,
+     "restaurantes_necesarios_en_regimen": 12,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 3,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": -652.7486394404798,
      "clientes_de_paga_necesarios": 1.3906073986093923,
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 9,
+     "restaurantes_ese_mes_de_la_proyeccion": 169,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
       "con_1000_restaurantes": 16505.368897128417,
@@ -253,8 +652,12 @@
     },
     "peor": {
      "restaurantes_necesarios": 81,
+     "restaurantes_necesarios_en_regimen": 81,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 7,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": -317.1985479536022,
      "clientes_de_paga_necesarios": 1.89758401918816,
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 17,
+     "restaurantes_ese_mes_de_la_proyeccion": 602,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
       "con_1000_restaurantes": 1966.0339146038257,
@@ -264,8 +667,12 @@
     },
     "mejor": {
      "restaurantes_necesarios": 4,
+     "restaurantes_necesarios_en_regimen": 4,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": 2,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": -1124.8274966388985,
      "clientes_de_paga_necesarios": 1.5287234738464726,
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": 9,
+     "restaurantes_ese_mes_de_la_proyeccion": 169,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
       "con_1000_restaurantes": 54484.30155166125,
@@ -275,8 +682,12 @@
     },
     "piso_de_verdad": {
      "restaurantes_necesarios": null,
+     "restaurantes_necesarios_en_regimen": null,
+     "mes_en_que_la_proyeccion_llega_a_esos_restaurantes": null,
+     "margen_despues_de_captacion_al_llegar_a_esos_restaurantes": null,
      "clientes_de_paga_necesarios": null,
      "mes_en_que_el_margen_despues_de_captacion_lo_cubre": null,
+     "restaurantes_ese_mes_de_la_proyeccion": null,
      "requiere_otra_arquitectura": false,
      "margen_despues_de_sueldo": {
       "con_1000_restaurantes": -1953.2033268696898,
@@ -284,13 +695,7 @@
       "mes_24": -3598.345558532472
      }
     }
-   },
-   "no_modelado": [
-    "impuestos (ISR e IVA)",
-    "contabilidad y trámites",
-    "seguridad social y prestaciones",
-    "costos de ventas más allá del costo de conseguir un cliente de paga"
-   ]
+   }
   }
  },
  "modelos_de_ingreso": {
@@ -303,7 +708,7 @@
     "se_cobra_a": "el restaurante que pasa de los topes de Chef",
     "potencial_pesos_por_restaurante_al_mes": {
      "por_restaurante_de_paga": 225,
-     "deja_por_restaurante_de_paga": 148.6,
+     "deja_por_restaurante_de_paga": 137.5,
      "por_restaurante_registrado": {
       "centro": 26.1,
       "minimo": 5.3,
@@ -316,7 +721,7 @@
    },
    {
     "id": "anuncios_del_comensal",
-    "nombre": "Anuncios al comensal del plan gratuito (no personalizados)",
+    "nombre": "Anuncios al comensal del plan gratuito (en la v1 no hay anuncios personalizados; la v2 los propone y exige spec, ADR y revisión legal)",
     "vigente": true,
     "se_cobra_a": "el anunciante, a través de una red de anuncios (hoy se supone AdSense); anunciantes típicos: marcas de bebidas y consumo, bancos y comercios locales (por definir)",
     "potencial_pesos_por_restaurante_al_mes": {
@@ -756,7 +1161,7 @@
    "a_quien_sirve": "Al restaurante y a la cafetería de México, desde la fonda de 0 a 5 personas hasta el negocio de 100, y al comensal que ya está sentado.",
    "que_le_resuelve": "Sube la carta en PDF y en minutos tiene un menú visual por QR; los comensales arman su orden juntos desde sus teléfonos y el mesero la recibe en el suyo.",
    "quien_paga_y_cuanto": {
-    "restaurante": "Master Chef 225 pesos al mes (deja 149 al restaurante de paga tras costos); Chef es gratis",
+    "restaurante": "Master Chef 225 pesos al mes (deja 138 al restaurante de paga tras costos); Chef es gratis",
     "anunciante": "2.6 a 27.3 pesos al mes por restaurante gratuito (tarifa baja a alta, sin dato)",
     "comensal": "nada"
    },
@@ -776,13 +1181,13 @@
    ],
    "costos": {
     "infraestructura_hoy_usd_mes": 10.183333333333334,
-    "costo_por_restaurante_gratuito_pesos": 1.03062436666599,
-    "gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios": 144.17142145440374,
+    "costo_por_restaurante_gratuito_pesos": 3.9208987215645363,
+    "gratuitos_que_sostiene_un_cliente_de_paga_sin_anuncios": 35.07032562315215,
     "soporte": "el costo grande: el soporte de cada cliente de paga"
    },
    "meta_12_meses": {
     "restaurantes": 300,
-    "margen_operacion_mes_12": 5291.508524789685
+    "margen_operacion_mes_12": 3596.061311099874
    },
    "que_hay_que_medir": [
     "La curva de pago de Master Chef (prueba de tres precios).",
