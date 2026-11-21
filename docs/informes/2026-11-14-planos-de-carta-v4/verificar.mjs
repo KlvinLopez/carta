@@ -445,10 +445,39 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   await p.mouse.click(300, 420); await p.waitForTimeout(200);
   ok((await p.evaluate(() => tI)) === tq && (await p.isVisible('#introPuerta')) && !(await p.evaluate(() => vozLibre)), 'presentación con voz: un clic fuera de los botones no hace nada');
   /* los mp3 los publica la sesión maestra y no están en el repositorio: la prueba usa un doble de Audio que anota qué pista se pide */
-  await p.evaluate(() => { window.__pistas = []; window.Audio = class { constructor(src) { this.src = src; this.paused = true; this.currentTime = 0; this.duration = NaN; window.__pistas.push(String(src)); } play() { this.paused = false; return Promise.resolve(); } pause() { this.paused = true; } }; });
+  /* el doble corre con su propio reloj (a `ritmo` veces el tiempo real) y cuenta cuántas veces se le escribe `currentTime` */
+  await p.evaluate(() => { window.__pistas = []; window.__ritmo = 1; window.__escrituras = 0; window.Audio = class {
+    constructor(src) { this.src = src; this.paused = true; this._t = 0; this._t0 = 0; this.duration = NaN; this.readyState = 4; this.seeking = false; this.ended = false; window.__pistas.push(String(src)); }
+    get currentTime() { return this.paused ? this._t : this._t + (performance.now() - this._t0) / 1000 * window.__ritmo; }
+    set currentTime(v) { window.__escrituras++; this._t = v; this._t0 = performance.now(); }
+    play() { if (this.paused) { this._t0 = performance.now(); this.paused = false; } return Promise.resolve(); }
+    pause() { if (!this.paused) { this._t = this.currentTime; this.paused = true; } } }; });
   await p.click('#introPuerta [data-intro="consonido"]'); await p.waitForTimeout(600);
   ok(!(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && tI > 0)), 'presentación con voz: «Ver con sonido» quita la puerta, desbloquea el sonido y la película corre');
   ok((await p.evaluate(() => window.__pistas[0] || '')).endsWith('apoyo/voz/mesa.mp3'), 'presentación con voz: pide la pista de la primera toma');
+  /* mientras suena, la imagen sigue al audio y nadie rebobina la pista; sólo un salto del usuario la coloca, una vez */
+  const e0 = await p.evaluate(() => window.__escrituras);
+  await p.evaluate(() => { window.__ritmo = 1.6; }); await p.waitForTimeout(1200);
+  const sigue = await p.evaluate(() => ({ dif: Math.abs(tI / 1000 - T0[vozToma] - vozAct.currentTime), esc: window.__escrituras }));
+  ok(sigue.dif < 0.2 && sigue.esc === e0, `presentación con voz: con el audio más rápido, la imagen lo sigue (${sigue.dif.toFixed(2)} s) y nadie escribe currentTime (${sigue.esc - e0})`);
+  await p.evaluate(() => { window.__ritmo = 1; }); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(500);
+  const trasSalto = await p.evaluate(() => window.__escrituras);
+  ok(trasSalto === e0 + 1, `presentación con voz: tras +3 s, currentTime se escribe exactamente una vez (${trasSalto - e0})`);
+  /* cada globo dice lo mismo que su frase en VOZ (sin las marcas), y con tiempos medidos toda frase de personaje tiene su globo a la vista a media frase */
+  const globos = await p.evaluate(async () => {
+    const limpia = (t) => t.replace(/\[[^\]]*\]\s*/g, '').trim(), el = (g) => document.querySelector(typeof g === 'string' ? '.g' + g : '.g' + g);
+    const visible = (n) => { if (!n) return false; for (let x = n; x && x.id !== 'intro'; x = x.parentElement) { const c = getComputedStyle(x); if (c.visibility === 'hidden' || c.display === 'none' || +c.opacity < 0.5) return false; } return n.getBoundingClientRect().width > 0; };
+    const distintos = [], sinGlobo = []; let frases = 0; const antes = [tI, pausaI]; pausaI = true;
+    for (const [toma, ls] of Object.entries(VOZ)) { const ix = TOMAS.findIndex((x) => x[0] === toma), med = VOZ_TIEMPOS[toma];
+      for (let i = 0; i < ls.length; i++) { const [, quien, texto, o] = ls[i]; if (quien === 'narrador') continue; frases++;
+        const n = o && o.g !== undefined ? el(o.g) : null, frase = limpia(texto);
+        if (n && frase && n.textContent.trim() !== frase) distintos.push(`${toma}: «${n.textContent.trim()}» ≠ «${frase}»`);
+        if (med && med[i]) { tI = (T0[ix] + med[i][0] + Math.min(0.9, (med[i][1] - med[i][0]) / 2)) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 20)); if (!visible(n)) sinGlobo.push(`${toma}-${i + 1} ${quien}`); } } }
+    tI = antes[0]; pausaI = antes[1]; vozSalto = true; pintaIntro();
+    return { distintos, sinGlobo, frases };
+  });
+  ok(globos.distintos.length === 0, `presentación con voz: cada globo dice lo mismo que su frase (${globos.frases} frases) ${globos.distintos.slice(0, 3).join(' | ')}`);
+  ok(globos.sinGlobo.length === 0, `presentación con voz: toda frase de personaje tiene su globo a la vista a media frase ${globos.sinGlobo.slice(0, 8).join(', ')}`);
 } else ok(!(await p.isVisible('#introPuerta')), 'presentación sin voz: no hay puerta de entrada');
 await p.waitForTimeout(1500);
 const t1 = await p.evaluate(() => tI);

@@ -823,9 +823,16 @@
   "id": "sucia-02",
   "toma": "sucia",
   "quien": "narrador",
-  "texto": "[warmly] Fue una gran noche para nuestros invitados. [pause] [softly] Ahora, a preparar la mesa para los que siguen.",
+  "texto": "[warmly] Fue una gran noche para nuestros invitados.",
   "inicio": 2.3,
   "tras": 0.3
+ },
+ {
+  "id": "prepara-01",
+  "toma": "prepara",
+  "quien": "narrador",
+  "texto": "[softly] Preparemos la mesa para los siguientes.",
+  "inicio": 0.3
  },
  {
   "id": "limpia-01",
