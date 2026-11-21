@@ -437,6 +437,18 @@ await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);
 ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
+/* la voz en disco: las tablas de la película son las medidas, el guion tiene las mismas frases que las grabaciones, y hay un mp3 por toma */
+{
+  const fs = require('node:fs');
+  const medido = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/tiempos.json'), 'utf8'));
+  const tablas = await p.evaluate(() => ({ VOZ_AUDIO, VOZ_TIEMPOS }));
+  ok(JSON.stringify(tablas.VOZ_AUDIO) === JSON.stringify(medido.VOZ_AUDIO) && JSON.stringify(tablas.VOZ_TIEMPOS) === JSON.stringify(medido.VOZ_TIEMPOS), 'voz: VOZ_AUDIO y VOZ_TIEMPOS de la película son iguales a voz/tiempos.json');
+  const ids = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8')).map((l) => l.id).sort();
+  const grabadas = fs.readdirSync(resolve(aqui, 'voz/lineas')).filter((f) => f.endsWith('.mp3')).map((f) => f.slice(0, -4)).sort();
+  ok(JSON.stringify(ids) === JSON.stringify(grabadas), `voz: apoyo/voz/guion.json tiene los mismos id que voz/lineas (${ids.length} y ${grabadas.length})`);
+  const faltan = Object.keys(tablas.VOZ_AUDIO).filter((t) => !fs.existsSync(resolve(aqui, `apoyo/voz/${t}.mp3`)));
+  ok(faltan.length === 0, `voz: existe apoyo/voz/<toma>.mp3 para cada toma de VOZ_AUDIO (${Object.keys(tablas.VOZ_AUDIO).length}) ${faltan.join(', ')}`);
+}
 /* con voz, la película espera tras una puerta de entrada; sin voz, no hay puerta */
 if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   ok(await p.isVisible('#introPuerta'), 'presentación con voz: la puerta de entrada aparece');
