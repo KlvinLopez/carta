@@ -219,7 +219,7 @@ details.mas{margin-top:8px}details.mas summary{cursor:pointer;font-weight:700;co
 </style>
 <div class="wrap">
   <header class="top">
-    <div><div class="kick">Planos de Carta · 20 de noviembre de 2026 · versión 14</div>
+    <div><div class="kick">Planos de Carta · 21 de noviembre de 2026 · versión 15</div>
     <h1 class="op">Carta hoy, Carta mañana</h1><p class="sub" id="oportunidad"></p></div>
     <div class="acc"><button class="btn gran" id="verIntro">▶ Ver la presentación</button><button class="btn gran dec" id="verDecisiones">Decisiones a tomar</button><span id="pantallaTop"></span><span class="et prop">propuesta · la v1 no cobra</span></div>
   </header>
@@ -10000,6 +10000,69 @@ const TOMAS = [
   ["fin", 6, 5, [], [], ""],
 ];
 const ACTOS = [[1, "El gancho"], [2, "El problema"], [3, "Tu carta"], [4, "La mesa"], [5, "El ciclo"], [6, "Fin"]];
+/* ===== la voz =====
+   Guion para oírse (español de México): por toma, [segundo dentro de la toma, quién, lo que dice, efecto].
+   «narrador» cuenta la historia; los demás son los personajes y dicen lo mismo que su globo. Efecto: risa, risas, suspiro o pausa.
+   El audio es un archivo por toma, apoyo/voz/<toma>.mp3, con todo lo de esa toma ya mezclado en sus segundos. */
+const VOZ = {
+  mesa: [[0.6, "narrador", "Una mesa. Un código. Y una cena donde nadie hace cuentas."], [3.6, "narrador", "Pero antes, mira cómo es hoy."]],
+  cumple: [[0.3, "narrador", "Viernes en la noche. Es el cumpleaños de Sofía."], [3.5, "mesero", "Buenas noches. Aquí está la carta."]],
+  b1: [[0, "narrador", "Uno: ponerse de acuerdo."], [0.8, "ana", "¿Pedimos algo para compartir?"], [2.7, "diego", "¿La parrillada alcanza para cuatro?"], [4.9, "carlos", "Es el mismo menú, pero en PDF.", "suspiro"], [7.4, "sofia", "¿Y eso qué trae?"]],
+  b2: [[0, "narrador", "Dos: un menú que no te conoce."], [1.0, "ana", "Los tacos de pescado, por favor."], [3.0, "mesero", "Se nos terminaron. Una disculpa."], [5.0, "ana", "¿Y el mole?"], [6.4, "mesero", "¿Es alérgica a algo? Lleva cacahuate."],
+    [8.7, "ana", "Sí… ¿y las enchiladas?"], [10.6, "ana", "Espere… ¿llevan cacahuate?"], [12.5, "mesero", "Déjeme pregunto en cocina."], [14.7, "narrador", "Y a esperar.", "pausa"], [16.7, "mesero", "Sí llevan cacahuate."]],
+  b3: [[0, "narrador", "Tres: cuatro órdenes, a mano."], [0.9, "mesero", "¿Eran dos aguachiles… o tres?"], [2.8, "carlos", "El mío sin cebolla."], [4.8, "ana", "Yo cambié de opinión.", "risa"]],
+  b3t: [[0.2, "narrador", "Con tableta, lo mismo."], [1.5, "mesero", "Un momento… está cargando."]],
+  espera: [[0.9, "narrador", "Por fin sale la orden."], [3.0, "carlos", "Ya tardó, ¿no?"], [4.7, "diego", "Yo ya tengo hambre."], [7.0, "narrador", "Llega la comida. Comen. Y al final…"], [10.5, "ana", "¿Nos trae la cuenta, por favor?"]],
+  ticket: [[0.9, "mesero", "Muchas gracias por venir."], [3.6, "narrador", "Cuatro: un solo papel para todos."]],
+  b4: [[0, "narrador", "Y cuatro calculadoras."], [1.0, "diego", "¿Quién pidió las limonadas?"], [3.0, "ana", "A Sofi la invitamos: ¿entre tres?"], [5.4, "carlos", "¿Y la propina?", "suspiro"]],
+  pivote: [[0.6, "narrador", "¿Y si lo reimaginamos? Misma mesa. Misma noche."]],
+  ofrece: [[1.2, "mesero", "Aquí usamos Carta: con el QR ven el menú y piden desde su teléfono."]],
+  escanea: [[1.2, "narrador", "Escaneas, y ya estás dentro. Sin descarga. Sin registro."]],
+  filtra: [[0.4, "narrador", "Antes, preguntabas platillo por platillo. Ahora dices qué no comes, y la carta se acomoda."], [5.2, "narrador", "Si tienes una alergia, avísale también al mesero."]],
+  top3: [[0.4, "narrador", "Y un día, una carta que te conoce: elegido para ti."]],
+  plato: [[0.4, "narrador", "Cada platillo te dice lo que lleva."]],
+  agrega: [[0.3, "narrador", "Un toque, y va a tu mesa."]],
+  juntos: [[0.2, "narrador", "Antes, al tanteo. Ahora la mesa pide junta."], [2.6, "ana", "Ya pedí. ¿Tú qué vas a pedir?"], [4.7, "carlos", "Estoy viendo, todavía no sé."]],
+  recomienda: [[0.4, "narrador", "¿Se te antojó algo para alguien más? Pásaselo."]],
+  confirma: [[0.3, "narrador", "Cuando todos están listos, la mesa llama al mesero."]],
+  avisa: [[0.4, "narrador", "Le llega a su teléfono: una sola comanda, clara."]],
+  llega: [[0.5, "mesero", "Para Ana, pescado a la talla."], [2.2, "mesero", "Para Sofía, ensalada. Para Diego, aguachile."], [4.5, "mesero", "Y para Carlos, arrachera."], [6.3, "ana", "Sí, todo bien."], [7.8, "narrador", "Él la valida. Nada se pierde."]],
+  abierta: [[0.3, "narrador", "La mesa está abierta."], [1.3, "sofia", "¿Han visto a Luis?"], [3.1, "diego", "Fuimos a Cancún, estuvo muy bonito."], [5.4, "todos", "", "risas"], [6.8, "narrador", "Llega la comida."],
+    [8.7, "ana", "Prueba el pescado, está increíble."], [10.6, "carlos", "Y la arrachera. Hay que volver."], [12.6, "sofia", "¡Qué rico estuvo!"]],
+  cierres: [[0.5, "ana", "Yo ya quedé. Me gustó mucho."], [2.7, "narrador", "Cada quien cierra su cuenta cuando quiere."], [3.8, "diego", "Deja veo si pido un postre."], [6.4, "carlos", "Yo sí quiero un flan."],
+    [9.2, "diego", "Y un pastel para la cumpleañera."], [13.1, "sofia", "¡Ay, gracias!", "risa"], [15.3, "narrador", "Los demás van cerrando."], [17.6, "carlos", "¿Ya nadie va a pedir nada más?"], [19.6, "ana", "No, todo bien."],
+    [21.8, "narrador", "Cierra el último, y la mesa queda en cuenta cerrada."]],
+  cuenta: [[0.3, "narrador", "Antes, un ticket y cuatro calculadoras. Ahora, cada quien su cuenta."], [5.8, "ana", "Sofi, nosotros te invitamos. ¡Es tu cumpleaños!"], [8.3, "sofia", "¡Ay, muchas gracias, amigos!", "risa"],
+    [11.0, "narrador", "Lo de Sofía se reparte solo: entre uno, entre dos, entre tres."]],
+  pagada: [[1.2, "mesero", "Con la terminal, cuando gusten."], [3.3, "narrador", "Se paga como siempre: con el mesero."], [4.6, "mesero", "Todo pagado. ¡Muchas gracias!"]],
+  factura: [[0.4, "ana", "¿Facturan?"], [2.1, "mesero", "Sí, se pide desde la aplicación."], [4.6, "narrador", "La solicitud le llega al restaurante, que es quien la emite."]],
+  sucia: [[0.1, "ana", "¡Gracias, buenas noches!"], [2.6, "narrador", "La mesa todavía no está libre."]],
+  limpia: [[1.6, "narrador", "Hasta que él la marca limpia. Entonces sí: libre."]],
+  fin: [[1.2, "narrador", "Carta. Del código en la mesa a la última cuenta."]],
+};
+/* Las tomas que ya tienen audio y cuánto dura cada uno, en segundos: {b1: 9.8, …}. Vacío = película en silencio.
+   Una toma se alarga sola a lo que dure su audio más el margen. */
+const VOZ_AUDIO = {};
+const VOZ_MARGEN = 0.6;
+TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
+const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
+let vozOn = true, vozLibre = false, vozAct = null;
+const vozPistas = {};
+const vozRuta = id => ["apoyo", "voz", id + ".mp3"].join("/");
+/* cada cuadro: suena la pista de la toma en curso, en el segundo que marca la película; pausa, saltos y repetir la mueven igual */
+function vozSync() {
+  if (!HAY_VOZ) return;
+  const s = tI / 1000; let i = 0; while (i < TOMAS.length - 1 && s >= T0[i + 1]) i++;
+  const id = TOMAS[i][0];
+  const a = vozOn && vozLibre && !REDUCE && VOZ_AUDIO[id] ? (vozPistas[id] || (vozPistas[id] = Object.assign(new Audio(vozRuta(id)), {preload: "auto"}))) : null;
+  if (vozAct && vozAct !== a) vozAct.pause();
+  vozAct = a; if (!a) return;
+  const seg = s - T0[i];
+  if (pausaI || $("#intro").hidden || seg >= (a.duration || VOZ_AUDIO[id])) { if (!a.paused) a.pause(); return; }
+  if (Math.abs(a.currentTime - seg) > 0.3) { try { a.currentTime = seg; } catch (e) { /* aún sin datos */ } }
+  if (a.paused) a.play().catch(() => { /* falta el archivo o el permiso: la película sigue en silencio */ });
+}
+function vozBoton() { const b = $("#introSon"); if (!b) return; b.textContent = HAY_VOZ && vozOn ? "🔊" : "🔇"; b.title = HAY_VOZ ? (vozOn ? "Quitar el sonido" : "Poner el sonido") : "Esta versión todavía no tiene voz"; b.disabled = !HAY_VOZ; }
 const T0 = TOMAS.reduce((a, t) => (a.push(a[a.length - 1] + t[2]), a), [0]);
 const TOT = T0[T0.length - 1], TOTI = TOT * 1000;
 const tomaIni = id => T0[TOMAS.findIndex(t => t[0] === id)];
@@ -11074,13 +11137,14 @@ function filmLinea() {
   return tl;
 }
 
-function cerrarIntro() { cancelAnimationFrame(rafI); $("#intro").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("carta-v9-intro", "1"); } catch (e) { /* ignorar */ } }
+function cerrarIntro() { cancelAnimationFrame(rafI); if (vozAct) vozAct.pause(); $("#intro").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("carta-v9-intro", "1"); } catch (e) { /* ignorar */ } }
 function pintaIntro() {
   const s = tI / 1000;
   if (tlF) tlF.time(s, false);
   const av = $("#intro .barras i b"); if (av) av.style.width = (100 * s / TOT) + "%";
   const bp = $("#introPausa"); if (bp) bp.textContent = pausaI ? "▶" : "❚❚";
   const cta = $("#introCta"); if (cta) cta.hidden = s < tomaIni("fin") + 2.6;
+  vozSync();
 }
 function irActo(k) { tI = (REDUCE ? CLAVES[TOMAS.findIndex(t => t[1] === ACTOS[k][0])] : ACT_INI[k]) * 1000; pintaIntro(); }
 function saltaI(ms) {
@@ -11098,19 +11162,21 @@ function abrirIntro() {
   if (!$("#cineCss")) { const st = document.createElement("style"); st.id = "cineCss"; st.textContent = cineCss; document.head.appendChild(st); }
   const el = $("#intro");
   el.innerHTML = `${cineHtml()}<div id="introCta" class="icta" hidden><button class="btn" data-intro="repetir">↻ Repetir</button><button class="btn gran" data-intro="saltar">Ver el informe</button></div>` +
-    `<div class="ictl"><button class="btn" data-intro="saltar">Saltar ✕</button></div><div class="barras ictl"><i><b></b></i><button class="btn" data-intro="menos" aria-label="Atrás 3 segundos">−3 s</button><button class="btn" id="introPausa" data-intro="pausa" aria-label="Pausa o reanudar">❚❚</button><button class="btn" data-intro="mas" aria-label="Adelante 3 segundos">+3 s</button>${BTN_PANTALLA}</div>`;
+    `<div class="ictl"><button class="btn" data-intro="saltar">Saltar ✕</button></div><div class="barras ictl"><i><b></b></i><button class="btn" data-intro="menos" aria-label="Atrás 3 segundos">−3 s</button><button class="btn" id="introPausa" data-intro="pausa" aria-label="Pausa o reanudar">❚❚</button><button class="btn" data-intro="mas" aria-label="Adelante 3 segundos">+3 s</button><button class="btn" id="introSon" data-intro="sonido" aria-label="Sonido">🔇</button>${BTN_PANTALLA}</div>`;
   el.hidden = false; document.body.style.overflow = "hidden"; filmEscala();
   if (tlF) tlF.kill(); tlF = filmLinea();
   tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); muestraControles();
   cancelAnimationFrame(rafI); rafI = requestAnimationFrame(frameIntro);
-  el.onpointermove = muestraControles;
+  el.onpointermove = muestraControles; vozBoton();
   el.onclick = ev => {
-    muestraControles(); const b = ev.target.closest("[data-intro]");
+    muestraControles(); vozLibre = true; /* el navegador sólo deja sonar después de un gesto */
+    const b = ev.target.closest("[data-intro]");
     if (!b) { if (!ev.target.closest("button, .icta")) { pausaI = !pausaI; pintaIntro(); } return; } /* un clic en cualquier parte pausa o reanuda */
     const a = b.dataset.intro;
     if (a === "saltar") cerrarIntro();
     else if (a === "repetir") { tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); }
     else if (a === "pausa") { pausaI = !pausaI; pintaIntro(); }
+    else if (a === "sonido") { vozOn = !vozOn; vozBoton(); pintaIntro(); }
     else if (a === "menos") saltaI(-3000); else if (a === "mas") saltaI(3000);
   };
 }
@@ -11118,7 +11184,7 @@ window.addEventListener("resize", filmEscala);
 document.addEventListener("fullscreenchange", () => setTimeout(filmEscala, 60));
 document.addEventListener("keydown", e => {
   if ($("#intro").hidden) return;
-  muestraControles();
+  muestraControles(); vozLibre = true;
   if (e.key === "ArrowLeft") saltaI(-3000); else if (e.key === "ArrowRight") saltaI(3000);
   else if (/^[1-9]$/.test(e.key) && +e.key <= ACTOS.length - 1) irActo(+e.key - 1);
   else if (e.key === " " && document.activeElement.tagName !== "BUTTON") { e.preventDefault(); pausaI = !pausaI; pintaIntro(); }
