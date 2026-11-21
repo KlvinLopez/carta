@@ -10,7 +10,7 @@ const aqui = dirname(fileURLToPath(import.meta.url));
 const par = JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8'));
 const s = M.valores(par);
 let fallas = 0;
-const CT = (c = M.configInicial()) => ({ ...c, carga: 'tipica', topes: { ...c.topes, gratuito: { ...c.topes.gratuito, meses_en_linea: 1 } }, disco: { ...c.disco, meses_analitica_en_linea: { ...c.disco.meses_analitica_en_linea, gratuito: 1 } } }); // las rondas 4 a 9 miden el gratuito típico (comparación rotulada, no vigente)
+const CT = (c = M.configR15()) => ({ ...c, carga: 'tipica', topes: { ...c.topes, gratuito: { ...c.topes.gratuito, meses_en_linea: 1 } }, disco: { ...c.disco, meses_analitica_en_linea: { ...c.disco.meses_analitica_en_linea, gratuito: 1 } } }); // las rondas 4 a 9 miden el gratuito típico (comparación rotulada, no vigente)
 const RT = (c, ss, st = {}) => M.recursos(c, ss, { carga: 'tipica', meses_historial: 12, ...st }); // las rondas 5 a 9 miden el gratuito típico de 1,800 visitas
 const TB = (c, ss, u, carga = 'tipica') => M.palancasEnTablero(c, ss, u ?? ss.umbral_tablero, carga);
 const prueba = (nombre, obtenido, esperado, tol = 0) => {
@@ -436,7 +436,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12b) ronda 10: costo de un platillo, carga por topes y potencial por tramo
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const cfg = M.configInicial();
+  const cfg = M.configR15();
   const cp = M.costoDePlatillo(cfg, s);
   const f = (N) => cp.filas.find((x) => x.platillos === N);
   prueba('platillo: 557 bytes en la base (medido)', f(50).base_de_datos.bytes_por_platillo, 557);
@@ -456,7 +456,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12c) ronda 10: historia del disco y fila por visita de comensal
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const h = M.historiaDelDisco(M.configInicial(), s);
+  const h = M.historiaDelDisco(M.configR15(), s);
   const o = Object.fromEntries(h.opciones.map((x) => [x.id, x]));
   prueba('fila por visita: 153 bytes por visita de comensal (medido, sin los filtros por comensal)', s.fila_por_visita.bytes_por_visita_de_comensal, 153);
   prueba('fila por visita: pesa el 11 % de la analítica de hoy; con el platillo y los filtros por día, 18 %', `${Math.round(s.fila_por_visita.sola * 100)}-${Math.round(s.fila_por_visita.con_platillo_por_dia * 100)}`, '11-18');
@@ -472,8 +472,8 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12d) correcciones de la maestra: versión con fecha real, nota de la curva por tamaño y composición del disco
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const cfg = M.configInicial();
-  prueba('la versión lleva la fecha real (20 de noviembre)', /^2026-11-20-/.test(M.VERSION), true);
+  const cfg = M.configR15();
+  prueba('la versión lleva la fecha real (21 de noviembre, r16)', M.VERSION, '2026-11-21-r16');
   const pt = M.potencialPorTramo(cfg, s);
   prueba('potencial por tramo: nota de que la curva no distingue por tamaño', /no paga igual de fácil/.test(pt.nota_curva) && /prueba de precio del piloto/.test(pt.nota_curva), true);
   const c = M.composicionDelDisco(cfg, s);
@@ -486,7 +486,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12e) segunda tanda de correcciones de la maestra: desglose del disco, +77 % frente a +22 %, grupo excluyente y rótulos
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const cfg = M.configInicial();
+  const cfg = M.configR15();
   const c = M.composicionDelDisco(cfg, s);
   const d = c.desglose.parte_del_disco;
   prueba('desglose: los de paga son 63 % sesiones y órdenes; la analítica total, 21 %', `${Math.round(d.de_paga.sesiones_y_ordenes * 100)}-${Math.round(c.desglose.parte_analitica_del_disco * 100)}`, '63-21');
@@ -504,7 +504,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12f) `resumen` y `recursos` dan la misma capacidad (una sola cuenta con la carga por topes)
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const cfg = M.configInicial();
+  const cfg = M.configR15();
   const rs = M.resumen(cfg, s);
   const R = M.recursos(cfg, s, {});
   const f = (k) => rs.cifras.find((x) => x.clave === k);
@@ -521,7 +521,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12g) ronda 11: una sola definición de carga para el gratuito en todo el modelo
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const cfg = M.configInicial();
+  const cfg = M.configR15();
   const c30 = M.conHistorialGratuito({ ...cfg, palancas: [...(cfg.palancas ?? []), 'historial_gratuito_30_dias'] }, s, 1);
   const R = M.recursos(cfg, s, {});
   const capDisco = R.recursos.find((x) => x.recurso === 'disco').con_historial_30_dias.restaurantes_con_eventos;
@@ -559,7 +559,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12h) ronda 12, commit 1: archivar con alcances, política de historial, dos cuentas del sueldo, redacción y fila sin filtros
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const cfg = M.configInicial();
+  const cfg = M.configR15();
   const h = M.historiaDelDisco(cfg, s);
   const comb = (a, n) => h.combinaciones.find((x) => x.archivo === a && x.analitica === n);
   prueba('archivar sólo las de paga, sin recortar al gratuito (12 meses): 46 sin la fila y 82 con la fila', `${comb('archivar sólo las de paga', 'una fila por evento (hoy)').caben_con_el_gratuito_a_12_meses_sin_purga}-${comb('archivar sólo las de paga', 'fila por visita').caben_con_el_gratuito_a_12_meses_sin_purga}`, '46-82');
@@ -583,7 +583,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
 // 12i) ronda 12, commit 2: sensibilidades y pruebas más duras
 {
   const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-  const cfg = M.configInicial();
+  const cfg = M.configR15();
   const sc = M.sensibilidadDeLaCapacidad(cfg, s);
   prueba('G: con la parte de paga de peor / recomendado / mejor (2.3 / 11.6 / 38.2 %) el procesador con sondeo da 212 / 173 / 113', sc.parte_que_paga.map((x) => x.procesador_con_sondeo).join('/'), '212/173/113');
   prueba('G: y el disco con la propuesta de 30 días 371 / 182 / 73', sc.parte_que_paga.map((x) => x.disco).join('/'), '371/182/73');
@@ -620,6 +620,30 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('el margen de «mejor» con la carga por topes es 61,364 (literal)', Math.round(cc.despues_por_topes_vigente.margen_operacion_1000.mejor), 61364);
 }
 
+// 12j) ronda 13 (r16): el plan Chef que decidió Calvin el 21 de noviembre
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const cfg = M.configInicial();
+  const g = cfg.topes.gratuito;
+  prueba('Chef (21-nov): 6 mesas · 3 cuentas de personal · 50 platillos', `${g.mesas}·${g.cuentas}·${g.platillos}`, '6·3·50');
+  prueba('el plan Chef de la ronda 15 sigue disponible para comparar: 6·1·150', `${M.configR15().topes.gratuito.mesas}·${M.configR15().topes.gratuito.cuentas}·${M.configR15().topes.gratuito.platillos}`, '6·1·150');
+  const c = M.comparacionPlanChef(cfg, s);
+  const A = c.antes_plan_chef_ronda_15, D = c.despues_plan_chef_21_nov;
+  const r = (x) => Math.round(x);
+  prueba('líneas abiertas por gratuito en la hora pico: 2.04 → 4.04 (una línea por cuenta de personal y 1.02 de los comensales)', `${A.carga_del_gratuito.lineas_abiertas_en_la_hora_pico.toFixed(2)}→${D.carga_del_gratuito.lineas_abiertas_en_la_hora_pico.toFixed(2)}`, '2.04→4.04');
+  prueba('la diferencia de líneas es exactamente 2 (dos cuentas de personal más)', Math.abs(D.carga_del_gratuito.lineas_abiertas_en_la_hora_pico - A.carga_del_gratuito.lineas_abiertas_en_la_hora_pico - 2) < 1e-9, true);
+  prueba('quién cae en Chef: 0 a 5 personas 48.4 → 44.3 %, 6 a 10 personas 0 → 7.8 %', `${(A.quien_cae_en_chef.negocios_de_0_a_5_personas_dentro * 100).toFixed(1)}→${(D.quien_cae_en_chef.negocios_de_0_a_5_personas_dentro * 100).toFixed(1)}/${(A.quien_cae_en_chef.negocios_de_6_a_10_personas_dentro * 100).toFixed(1)}→${(D.quien_cae_en_chef.negocios_de_6_a_10_personas_dentro * 100).toFixed(1)}`, '48.4→44.3/0.0→7.8');
+  prueba('cobertura de platillos con tope 50: 14.7 % (cota baja) a 62.9 % (cota alta)', `${(D.quien_cae_en_chef.cobertura_de_platillos_cota_baja * 100).toFixed(1)}-${(D.quien_cae_en_chef.cobertura_de_platillos_cota_alta * 100).toFixed(1)}`, '14.7-62.9');
+  prueba('de paga por 1,000: 116 → 119', `${r(A.pagantes_por_1000)}→${r(D.pagantes_por_1000)}`, '116→119');
+  prueba('margen recomendado con 1,000 restaurantes 14,752 → 15,221 (política vigente) y 18,591 → 19,058 (propuesta)', `${r(A.margen_operacion_1000.recomendado)}→${r(D.margen_operacion_1000.recomendado)}/${r(A.con_la_propuesta_de_30_dias.margen_operacion_1000.recomendado)}→${r(D.con_la_propuesta_de_30_dias.margen_operacion_1000.recomendado)}`, '14752→15221/18591→19058');
+  prueba('margen peor / mejor / estrés: −1,362 · 60,439 · −5,330', `${r(D.margen_operacion_1000.peor)}·${r(D.margen_operacion_1000.mejor)}·${r(D.margen_operacion_1000.piso_de_verdad)}`, '-1362·60439·-5330');
+  prueba('gratuitos que sostiene un pagante 35 → 36; costo por gratuito 3.92 → 3.85; costo por pagante 87.49 → 87.24', `${r(A.gratuitos_que_sostiene_un_pagante_sin_anuncios)}→${r(D.gratuitos_que_sostiene_un_pagante_sin_anuncios)}/${A.costo_por_gratuito.toFixed(2)}→${D.costo_por_gratuito.toFixed(2)}/${A.costo_por_cliente_de_paga.toFixed(2)}→${D.costo_por_cliente_de_paga.toFixed(2)}`, '35→36/3.92→3.85/87.49→87.24');
+  prueba('capacidad: política vigente 28 → 28; propuesta 182/173 → 179/179; sin purga 41 → 41', `${A.capacidad.politica_vigente.con_avisos}→${D.capacidad.politica_vigente.con_avisos}/${A.capacidad.propuesta_30_dias.con_avisos}/${A.capacidad.propuesta_30_dias.con_sondeo}→${D.capacidad.propuesta_30_dias.con_avisos}/${D.capacidad.propuesta_30_dias.con_sondeo}/${A.capacidad.sin_purga_12_meses}→${D.capacidad.sin_purga_12_meses}`, '28→28/182/173→179/179/41→41');
+  prueba('las líneas abiertas no son el recurso que limita con tres cuentas', M.recursos(cfg, s, {}).recursos.find((x) => x.recurso === 'lineas').restaurantes_con_eventos > 1000, true);
+  prueba('los supuestos nuevos incluyen la línea por cuenta de personal en la hora pico', c.supuestos_nuevos.some((x) => /una por teléfono del personal/.test(x)), true);
+  prueba('el sueldo de 1 salario mínimo: 760 → 740 restaurantes en régimen', `${A.sueldo_de_1_salario_minimo.restaurantes_en_regimen}→${D.sueldo_de_1_salario_minimo.restaurantes_en_regimen}`, '760→740');
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
@@ -628,6 +652,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
     ['node', '2026-11-14-banderas.mjs', ['2026-11-14-banderas-de-operacion.json', '2026-11-14-banderas-de-operacion.md']],
     ['node', '2026-11-14-recursos.mjs', ['2026-11-14-recursos-y-palancas.json', '2026-11-14-recursos-y-palancas.md']],
     ['node', '2026-11-17-como-gana-dinero.mjs', ['2026-11-17-como-gana-dinero-carta.json', '2026-11-17-como-gana-dinero-carta.md']],
+    ['node', '2026-11-21-plan-chef.mjs', ['2026-11-21-plan-chef.json', '../historia/2026-11-21-plan-chef-antes-y-despues.md']],
     ['node', '2026-11-17-carga-unica.mjs', ['2026-11-17-carga-unica.json', '../historia/2026-11-17-carga-unica-antes-y-despues.md']],
     ['node', '2026-11-17-historia-del-disco.mjs', ['2026-11-17-historia-del-disco.json', '2026-11-17-historia-del-disco.md']],
     ['node', '2026-11-17-costo-de-platillo.mjs', ['2026-11-17-costo-de-platillo.json', '2026-11-17-costo-de-platillo.md']],
