@@ -437,6 +437,19 @@ await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);
 ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
+/* con voz, la película espera tras una puerta de entrada; sin voz, no hay puerta */
+if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
+  ok(await p.isVisible('#introPuerta'), 'presentación con voz: la puerta de entrada aparece');
+  const tq = await p.evaluate(() => tI); await p.waitForTimeout(1000);
+  ok((await p.evaluate(() => tI)) === tq, 'presentación con voz: no avanza mientras la puerta está puesta');
+  await p.mouse.click(300, 420); await p.waitForTimeout(200);
+  ok((await p.evaluate(() => tI)) === tq && (await p.isVisible('#introPuerta')) && !(await p.evaluate(() => vozLibre)), 'presentación con voz: un clic fuera de los botones no hace nada');
+  /* los mp3 los publica la sesión maestra y no están en el repositorio: la prueba usa un doble de Audio que anota qué pista se pide */
+  await p.evaluate(() => { window.__pistas = []; window.Audio = class { constructor(src) { this.src = src; this.paused = true; this.currentTime = 0; this.duration = NaN; window.__pistas.push(String(src)); } play() { this.paused = false; return Promise.resolve(); } pause() { this.paused = true; } }; });
+  await p.click('#introPuerta [data-intro="consonido"]'); await p.waitForTimeout(600);
+  ok(!(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && tI > 0)), 'presentación con voz: «Ver con sonido» quita la puerta, desbloquea el sonido y la película corre');
+  ok((await p.evaluate(() => window.__pistas[0] || '')).endsWith('apoyo/voz/mesa.mp3'), 'presentación con voz: pide la pista de la primera toma');
+} else ok(!(await p.isVisible('#introPuerta')), 'presentación sin voz: no hay puerta de entrada');
 await p.waitForTimeout(1500);
 const t1 = await p.evaluate(() => tI);
 await p.keyboard.press('ArrowRight'); await p.waitForTimeout(100);

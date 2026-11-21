@@ -10069,7 +10069,7 @@ const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[7.78,9.93]],"b1"
 const VOZ_MARGEN = 0.6;
 TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
 const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
-let vozOn = true, vozLibre = false, vozAct = null;
+let vozOn = true, vozLibre = false, vozAct = null, puertaI = false;
 const vozPistas = {};
 const vozRuta = id => ["apoyo", "voz", id + ".mp3"].join("/");
 /* cada cuadro: suena la pista de la toma en curso, en el segundo que marca la película; pausa, saltos y repetir la mueven igual */
@@ -10559,6 +10559,12 @@ const cineCss = `
 #intro .barras i b{background:rgba(243,213,138,.7)}
 #intro .barras .btn,#intro > .ictl:not(.barras) .btn{background:transparent;color:rgba(254,249,241,.62);padding:6px 10px;font-size:13px}
 #intro .barras .btn:hover,#intro > .ictl:not(.barras) .btn:hover{background:rgba(255,255,255,.12);color:#fff}
+#intro .ipuerta{position:absolute;left:0;top:0;right:0;bottom:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none}
+#intro .ipuerta[hidden]{display:none}
+#intro .ipuerta button{pointer-events:auto;cursor:pointer;border:0;font-family:'DM Sans',sans-serif}
+#intro .ipuerta .ipv{min-height:64px;padding:0 44px;border-radius:999px;background:#fef9f1;color:#4f1728;font-size:24px;font-weight:700;box-shadow:0 18px 44px rgba(8,4,3,.55)}
+#intro .ipuerta .ips{min-height:44px;padding:0 18px;background:none;color:#fef9f1;font-size:18px;font-weight:600;text-decoration:underline;text-underline-offset:4px}
+#intro .ipuerta button:focus-visible{outline:3px solid #fdc34d;outline-offset:4px}
 #intro .icta{transition:opacity .7s ease}
 #intro .icta[hidden]{display:flex;opacity:0;pointer-events:none}
 `;
@@ -11427,16 +11433,26 @@ function frameIntro(ts) {
 function abrirIntro() {
   if (!$("#cineCss")) { const st = document.createElement("style"); st.id = "cineCss"; st.textContent = cineCss; document.head.appendChild(st); }
   const el = $("#intro");
-  el.innerHTML = `${cineHtml()}<div id="introCta" class="icta" hidden><button class="btn" data-intro="repetir">↻ Repetir</button><button class="btn gran" data-intro="saltar">Ver el informe</button></div>` +
+  el.innerHTML = `${cineHtml()}<div id="introPuerta" class="ipuerta" hidden><button class="ipv" data-intro="consonido" autofocus>▶ Ver con sonido</button><button class="ips" data-intro="sinsonido">Ver sin sonido</button></div><div id="introCta" class="icta" hidden><button class="btn" data-intro="repetir">↻ Repetir</button><button class="btn gran" data-intro="saltar">Ver el informe</button></div>` +
     `<div class="ictl"><button class="btn" data-intro="saltar">Saltar ✕</button></div><div class="barras ictl"><i><b></b></i><button class="btn" data-intro="menos" aria-label="Atrás 3 segundos">−3 s</button><button class="btn" id="introPausa" data-intro="pausa" aria-label="Pausa o reanudar">❚❚</button><button class="btn" data-intro="mas" aria-label="Adelante 3 segundos">+3 s</button><button class="btn" id="introSon" data-intro="sonido" aria-label="Sonido">🔇</button>${BTN_PANTALLA}</div>`;
   el.hidden = false; document.body.style.overflow = "hidden"; filmEscala();
   if (tlF) tlF.kill(); tlF = filmLinea();
-  tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); muestraControles();
+  tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE;
+  /* con voz, la película espera en su primer cuadro tras una puerta: el sonido sólo puede empezar con un gesto y no debe perderse el arranque.
+     Si la página ya recibió un gesto (se reabre desde el informe), arranca con sonido directo. */
+  const yaHuboGesto = !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
+  puertaI = HAY_VOZ && !REDUCE && !yaHuboGesto; if (HAY_VOZ && !REDUCE && yaHuboGesto) vozLibre = true;
+  if (puertaI) { pausaI = true; tI = 40; /* un instante después del cero, para que el primer cuadro ya esté pintado */ $("#introPuerta").hidden = false; $("#introPuerta .ipv").focus(); }
+  ultI = performance.now(); pintaIntro(); muestraControles();
   cancelAnimationFrame(rafI); rafI = requestAnimationFrame(frameIntro);
   el.onpointermove = muestraControles; vozBoton();
   el.onclick = ev => {
-    muestraControles(); vozLibre = true; /* el navegador sólo deja sonar después de un gesto */
-    const b = ev.target.closest("[data-intro]");
+    muestraControles(); const b = ev.target.closest("[data-intro]");
+    if (puertaI) { /* con la puerta puesta sólo cuentan sus dos botones y «Saltar» */
+      const a = b && b.dataset.intro; if (a === "saltar") cerrarIntro();
+      else if (a === "consonido" || a === "sinsonido") { vozOn = a === "consonido"; vozLibre = true; tI = 0; pausaI = false; puertaI = false; $("#introPuerta").hidden = true; ultI = performance.now(); vozBoton(); pintaIntro(); }
+      return; }
+    vozLibre = true; /* el navegador sólo deja sonar después de un gesto */
     if (!b) { if (!ev.target.closest("button, .icta")) { pausaI = !pausaI; pintaIntro(); } return; } /* un clic en cualquier parte pausa o reanuda */
     const a = b.dataset.intro;
     if (a === "saltar") cerrarIntro();
@@ -11449,7 +11465,7 @@ function abrirIntro() {
 window.addEventListener("resize", filmEscala);
 document.addEventListener("fullscreenchange", () => setTimeout(filmEscala, 60));
 document.addEventListener("keydown", e => {
-  if ($("#intro").hidden) return;
+  if ($("#intro").hidden || puertaI) return; /* con la puerta puesta, Enter o espacio sobre su botón ya hacen de clic */
   muestraControles(); vozLibre = true;
   if (e.key === "ArrowLeft") saltaI(-3000); else if (e.key === "ArrowRight") saltaI(3000);
   else if (/^[1-9]$/.test(e.key) && +e.key <= ACTOS.length - 1) irActo(+e.key - 1);
