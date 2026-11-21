@@ -220,6 +220,10 @@ await sinDesborde(p, 'capítulo 2 (ingreso por tamaño)'); await cierra(p);
 
 // el control del tope de platillos ofrece las cuatro opciones
 await abre(p, 'topes');
+const pil = await p.evaluate(() => { const pt = MOD.potencialPorTramo(config(S), SP), f = (x) => Math.round(x).toLocaleString('en-US'), txt = [...document.querySelectorAll('#svT text')].map((e) => e.textContent), pills = pt.tramos.slice(0, 2).map((t) => (100 * t.parte_en_chef).toFixed(1) + ' % en Chef'); return { okPills: pills.every((q) => txt.some((x) => x.replace(/,/g, '') === q || x === q)), pills, suma: f(pt.tramos.reduce((a, t) => a + t.en_chef, 0)), total: f(pt.total.en_chef), mismoTotal: Math.abs(pt.tramos.reduce((a, t) => a + t.en_chef, 0) - pt.total.en_chef) < 1 }; });
+ok(pil.okPills && pil.mismoTotal, 'topes: las píldoras «en Chef» (' + pil.pills.join(' · ') + ') salen de potencialPorTramo y suman el total (' + pil.suma + ' = ' + pil.total + ')');
+const igual = await p.evaluate(() => { const c = config(S), pc = MOD.potencialChef(c, SP), pt = MOD.potencialPorTramo(c, SP); return [Math.round(pc.negocios_en_chef), Math.round(pt.total.en_chef)]; });
+ok(igual[0] === igual[1], 'topes: el total «en Chef» es el mismo en el capítulo 2, el hallazgo y las píldoras (' + igual.join(' = ') + ')');
 for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForFunction((x) => document.querySelector('#svT') && document.querySelector('#svT').textContent.includes(String(x)), v, { timeout: 5000 }); ok((await texto(p, '#svT')).includes(String(v)), 'capítulo 6: el control marca ' + v + ' platillos'); }
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 await cierra(p);
@@ -272,6 +276,10 @@ await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(400
 const cd = await p.evaluate(() => { const f = DR.formas.find((x) => x.id === 'contar_por_dia'), g = (v) => Math.round(v).toLocaleString('en-US'); return { tot: g(f.bytes_total), ana: g(f.bytes_analitica) }; });
 tr = await texto(p, '#dReg');
 ok(tr.includes('evento_dia') && !tr.includes('evento_analitica#') && tr.includes(cd.tot + ' B') && tr.includes('propuesta') && tr.includes('primera del día') && tr.includes('Frente a Hoy: desaparecen 12 eventos'), 'capítulo 7: al cambiar a «contar por día» los eventos desaparecen, entran los contadores (' + cd.ana + ' B), se marca propuesta y se dice que la mesa es la primera del día');
+const pct = await p.evaluate(() => { const g = (id) => DR.formas.find((x) => x.id === id), h = g('hoy'), r = (x) => Math.round(Math.abs(x)); return ['contar_por_dia', 'fila_por_visita'].map((id) => ({ id, an: r(100 * (g(id).bytes_analitica / h.bytes_analitica - 1)), me: r(100 * (g(id).bytes_total / h.bytes_total - 1)) })); });
+const tarj = await texto(p, '.drL');
+ok(pct.every((q) => tarj.includes('analítica −' + q.an + ' %') && tarj.includes('la mesa entera −' + q.me + ' %')) && pct[0].an !== pct[0].me, 'capítulo 7: las tarjetas dicen dos porcentajes, el de la analítica y el de la mesa entera, calculados de los bytes del archivo (' + pct.map((q) => q.id + ' −' + q.an + ' / −' + q.me).join('; ') + ')');
+ok(/\d \((scan|menu_view|dish_view|search|filter|item_add)\)/.test(await texto(p, '#dReg')) && (await p.evaluate(() => document.querySelector('#dReg').previousElementSibling.textContent)).includes('lo oscuro son los datos de la fila') , 'capítulo 7: las filas de las formas propuestas nombran el evento y la barra tiene su leyenda');
 await p.click('#drSig'); await p.waitForTimeout(250);
 const trP = await texto(p, '#dReg');
 ok(trP.includes('Paso 1 de 7') && trP.includes('sesion_grupal') && !trP.includes('item_orden'), 'capítulo 7: el paso 1 enciende sólo lo que escribe el primer comensal');

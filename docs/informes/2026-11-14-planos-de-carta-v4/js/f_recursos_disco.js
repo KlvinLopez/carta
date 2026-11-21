@@ -14,7 +14,7 @@
 <div class="viz"><svg id="svDc" viewBox="0 0 1100 300" role="img" aria-label="Quién llena el disco" font-family="DM Sans, sans-serif"></svg></div>
 <div class="r7p r7bar"><span class="selr">Un ejemplo guiado: una mesa de 3 comensales</span><button class="btn" id="hiAt" aria-label="Paso anterior">◀</button><button class="btn" id="hiSig">Siguiente ▶</button><button class="btn" id="hiPl">▶ Reproducir</button><span class="selr" id="hiN"></span></div>
 <div class="viz"><svg id="svHi" viewBox="0 0 1100 500" role="img" aria-label="Cómo se acumulan las filas de una mesa de tres comensales" font-family="DM Sans, sans-serif"></svg></div>
-<div class="r7p r7bar"><span class="selr">Lo que escribe en la base la mesa de ejemplo, registro por registro</span></div><div id="dReg" class="dr"></div>
+<div class="r7p r7bar"><span class="selr">Lo que escribe en la base la mesa de ejemplo, registro por registro. En cada barra, lo oscuro son los datos de la fila y lo dorado sus índices; el largo se mide contra el registro más pesado.</span></div><div id="dReg" class="dr"></div>
 
 <div class="viz"><svg id="svSe" viewBox="0 0 1100 330" role="img" aria-label="La capacidad depende de quién paga" font-family="DM Sans, sans-serif"></svg></div></div>`);
     this.rmH = RM($("#svHi", host));
@@ -90,6 +90,7 @@
   /* 3 · lo que escribe en la base la mesa de ejemplo, registro por registro (datos medidos: docs/research/2026-11-21-disco-por-registro.json) */
   const FM = {hoy: [], contar_por_dia: ["analitica_agregada_por_dia"], fila_por_visita: ["fila_por_visita_de_comensal"], fila_mas_platillo_y_filtros_por_dia: ["fila_por_visita_mas_platillo_por_dia"]};
   const ORD = ["p1", "p2", "p3", "p4", "p5", "p6"], PASO_FORMA = {contar_por_dia: "pcd", fila_por_visita: "pfv", fila_mas_platillo_y_filtros_por_dia: "pcb"};
+  const TIPO_EVENTO = {1: "scan", 2: "menu_view", 3: "dish_view", 4: "search", 5: "filter", 6: "item_add"}; // códigos de tipo de las formas propuestas: CODIGO de docs/research/2026-11-21-disco-por-registro.py (pedirle a análisis que los incluya en el JSON)
   const pasoN = id => { const i = ORD.indexOf(id); return i < 0 ? 7 : i + 1; };
   const todasLasFilas = DR.tablas_de_la_mesa.concat(...DR.formas.map(f => f.tablas)).flatMap(t => t.filas), MXB = Math.max(...todasLasFilas.map(f => f.bytes_total));
   D7.pintaRegistros = function () {
@@ -102,7 +103,7 @@
     if (this.abierta === undefined) this.abierta = hoy.tablas[0].filas[0].id;
     const sumaT = (tbs, cond = visible) => tbs.reduce((a, t) => a + t.filas.filter(cond).reduce((b, f) => b + f.bytes_total, 0), 0);
     const bM = sumaT(DR.tablas_de_la_mesa), bA = sumaT(forma.tablas), bT = bM + bA;
-    const resumen = f => f.columnas.filter(c => c.valor != null && !/^[0-9a-f]{8}-/.test(String(c.valor)) && String(c.valor).length <= 16).slice(0, 3).map(c => `${c.nombre}: ${c.valor}`).join(" · ");
+    const resumen = f => f.columnas.filter(c => c.valor != null && !/^[0-9a-f]{8}-/.test(String(c.valor)) && String(c.valor).length <= 16).slice(0, 3).map(c => `${c.nombre}: ${c.nombre === "tipo" && TIPO_EVENTO[c.valor] ? `${c.valor} (${TIPO_EVENTO[c.valor]})` : c.valor}`).join(" · ");
     const detalle = f => {
       const cols = f.columnas.reduce((a, c) => a + c.bytes, 0);
       return `<div class="ddet"><table class="dcol"><thead><tr><th>Columna</th><th>Tipo</th><th>Valor de ejemplo</th><th>Bytes</th></tr></thead><tbody>${f.columnas.map(c => `<tr><td>${esc(c.nombre)}</td><td>${esc(c.tipo)}</td><td>${c.valor == null ? "<i>vacío</i>" : esc(String(c.valor).slice(0, 44))}</td><td>${n(c.bytes)}${c.relleno_antes ? ` <small>+${c.relleno_antes} de relleno</small>` : ""}</td></tr>`).join("")}</tbody></table>
@@ -115,7 +116,7 @@
     };
     const tabla = (t, an) => { const fl = t.filas.filter(visible); if (!fl.length) return ""; const tot = fl.reduce((a, f) => a + f.bytes_total, 0); return `<section class="dtab${an ? " an" : ""}"><h4>${esc(t.tabla)} <small>${esc(t.que_guarda)}${an ? " · analítica" : ""}</small><b>${n(fl.length)} ${fl.length === 1 ? "fila" : "filas"} · ${n(tot)} B</b></h4>${fl.map(fila).join("")}</section>`; };
     const cmp = id => (DR.comparacion.find(q => q.forma === id) || {}).frente_a_hoy;
-    const lateral = DR.formas.map(f => { const c = cmp(f.id); return `<button class="dfm${f.id === fid ? " on" : ""}" data-forma="${f.id}" aria-pressed="${f.id === fid}"><span>${esc(f.nombre)}</span><small>${f.estado === "propuesta" ? "propuesta" : "lo que hace hoy"}</small><b>${n(f.bytes_total)} B</b><em>${c ? `${n(100 * c)} % frente a Hoy en toda la mesa`.replace("-", "−") : "la base de comparación"}</em></button>`; }).join("");
+    const lateral = DR.formas.map(f => { const c = cmp(f.id); return `<button class="dfm${f.id === fid ? " on" : ""}" data-forma="${f.id}" aria-pressed="${f.id === fid}"><span>${esc(f.nombre)}</span><small>${f.estado === "propuesta" ? "propuesta" : "lo que hace hoy"}</small><b>${n(f.bytes_total)} B</b><em>${c ? `analítica ${n(100 * (f.bytes_analitica / hoy.bytes_analitica - 1)).replace("-", "−")} % · la mesa entera ${n(100 * (f.bytes_total / hoy.bytes_total - 1)).replace("-", "−")} %` : "la base de comparación"}</em></button>`; }).join("");
     const dp = paso ? (DR.pasos.find(q => q.id === (paso <= 6 ? ORD[paso - 1] : PASO_FORMA[fid])) || null) : null;
     const hoyF = hoy.tablas.reduce((a, t) => a + t.filas.length, 0), hoyB = hoy.bytes_analitica, fF = forma.tablas.reduce((a, t) => a + t.filas.length, 0);
     const dif = fid === "hoy" ? "" : `<div class="drDif">Frente a Hoy: desaparecen ${n(hoyF)} eventos (${n(hoyB)} B) y entran ${n(fF)} filas de ${forma.tablas.map(t => esc(t.tabla)).join(" y ")} (${n(forma.bytes_analitica)} B); las ${n(DR.tablas_de_la_mesa.reduce((a, t) => a + t.filas.length, 0))} filas de la mesa quedan igual.</div>`;
