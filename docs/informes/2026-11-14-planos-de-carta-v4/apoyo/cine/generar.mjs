@@ -268,9 +268,9 @@ function mesero() {
     `<g transform="rotate(-14 ${MX - 196} 640)"><rect x="${MX - 216}" y="596" width="40" height="92" rx="3" fill="#fbf6ea"/><path d="M${MX - 208} 612 h24 M${MX - 208} 624 h24 M${MX - 208} 636 h18 M${MX - 208} 648 h24 M${MX - 208} 666 h24" stroke="#8a7a62" stroke-width="2.5"/></g>` +
     F(mano(MX - 176, 656, 22) + mano(MX + 14, 650)));
   // con la terminal de cobro (el cobro ocurre fuera de Carta)
-  capa('mesero-brazos-terminal', caja, F(ante(-1, MX - 40, 640) + ante(1, MX + 232, 632)) +
-    `<g transform="rotate(18 ${MX + 262} 630)"><rect x="${MX + 236}" y="586" width="56" height="92" rx="10" fill="#17171a"/><rect x="${MX + 243}" y="594" width="42" height="34" rx="4" fill="#cfe6d8"/><rect x="${MX + 243}" y="636" width="42" height="34" rx="4" fill="#2a2a30"/><rect x="${MX + 250}" y="578" width="28" height="12" rx="2" fill="#f4ecdc"/></g>` +
-    F(mano(MX - 16, 646) + mano(MX + 240, 642, 22)));
+  capa('mesero-brazos-terminal', caja, F(ante(-1, MX - 44, 606) + ante(1, MX + 44, 606)) +
+    `<g transform="rotate(-6 ${MX} 560)"><rect x="${MX - 30}" y="506" width="60" height="100" rx="10" fill="#17171a"/><rect x="${MX - 22}" y="516" width="44" height="36" rx="4" fill="#cfe6d8"/><rect x="${MX - 22}" y="560" width="44" height="36" rx="4" fill="#2a2a30"/><rect x="${MX - 14}" y="496" width="28" height="14" rx="2" fill="#f4ecdc"/></g>` +
+    F(mano(MX - 38, 608, 22) + mano(MX + 38, 608, 22)));
   // limpia la mesa: un brazo baja con el trapo
   const pila = [0, 1, 2].map((i) => `<ellipse cx="${MX - 60}" cy="${628 - i * 9}" rx="60" ry="12" fill="${i === 2 ? '#f4ead8' : '#d8cbb4'}"/><path d="M${MX - 120} ${628 - i * 9} a60 12 0 0 0 120 0" fill="none" stroke="#a8977c" stroke-width="2" opacity=".6"/>`).join('') + `<path d="M${MX - 90} 606 l52 -8" stroke="#d9cfbf" stroke-width="5" stroke-linecap="round"/>`;
   capa('mesero-brazos-trapo', caja, F(ante(-1, MX - 36, 640) + ante(1, MX + 100, 712)) + pila + F(`<path d="M${MX + 40} 728 q24 -26 64 -22 q36 2 52 20 q-12 18 -54 20 q-42 2 -62 -18z" fill="#efe2c8"/>`, 'Lm') + F(mano(MX - 26, 644, 22) + mano(MX + 102, 718, 24)));
