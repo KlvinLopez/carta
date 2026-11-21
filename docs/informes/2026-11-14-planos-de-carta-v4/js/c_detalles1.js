@@ -3,127 +3,115 @@ const TAM = ["0 a 5 personas", "6 a 10", "11 a 30", "31 a 50", "51 a 100", "101 
 const EJTAM = [["fonda", "Fonda o taquería de barrio"], ["barrio", "Restaurante de barrio"], ["restaurante", "Restaurante con meseros"], ["salon", "Con terraza o salón"], ["restaurante", "Con varias áreas y gerente"], ["hotel", "Restaurante de hotel"], ["grupo", "Grupo de locales"]];
 DET.linea = {
   titulo: "El comensal ya está conectado; la mayoría de los negocios, no.",
-  fu: ["inegi_endutih", "inegi_denue"],
-  nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea».",
+  fu: ["inegi_endutih", "inegi_denue", "carta_mercado", "carta_muestra"],
+  nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea». La tira de sitios sale de la muestra de las 17 zonas metropolitanas (166 sitios declarados en el DENUE, 200 intentos de lectura, 16 de noviembre de 2026; controles del marco en muestra-500-cartas §14, con sus datos en muestra-denue-descartes.csv y muestra-denue-control-dns.csv): fuera de esas zonas no se midió y no hay cifra nacional ni para el núcleo.",
   montar(host) {
     this.sel = 0;
-    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 500" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 890" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
+    this.pintaSitios();
     const svg = $("#svLinea", host); this.rm = RM(svg); this.svg = svg;
     const elige = ev => { const t = ev.target.closest("[data-i]"); if (t && +t.dataset.i !== this.sel) { this.sel = +t.dataset.i; refrescar(); } };
     svg.addEventListener("mouseover", elige); svg.addEventListener("click", elige); svg.addEventListener("focusin", elige);
     svg.addEventListener("keydown", ev => { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); this.sel = clamp(this.sel + (ev.key === "ArrowDown" ? 1 : -1), 0, TAM.length - 1); refrescar(); const f = $(`[data-i="${this.sel}"]`, svg); if (f) f.focus(); } });
   },
+  /* los sitios que declaran los negocios en el DENUE: de 166 (muestra de 17 zonas metropolitanas), sólo 4 de cada 10 siguen vivos */
+  pintaSitios() {
+    const tienda = (x, y, vivo, i) => {
+      if (vivo) return `<g class="gh" style="animation-delay:${i * 70}ms"><ellipse cx="${x + 38}" cy="${y + 96}" rx="40" ry="5" fill="#000" opacity=".14"/><circle cx="${x + 38}" cy="${y + 62}" r="46" fill="#ffd36b" opacity=".35"/><rect x="${x + 8}" y="${y + 34}" width="60" height="60" rx="6" fill="#f6e6cc"/>${[0, 1, 2, 3, 4].map(q => `<path d="M${x + 4 + q * 14.4} ${y + 22} h14.6 v14 q-7.3 8 -14.6 0z" fill="${q % 2 ? "#fef9f1" : "#6b2d3e"}"/>`).join("")}<rect x="${x + 16}" y="${y + 50}" width="22" height="22" rx="3" fill="#ffd98a"/><rect x="${x + 44}" y="${y + 52}" width="16" height="42" rx="3" fill="#4f1728"/><circle cx="${x + 38}" cy="${y + 6}" r="11" fill="${C.verde}"/><path d="M${x + 32} ${y + 6} l4 4 l8 -9" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+      return `<g class="gh" style="animation-delay:${i * 70}ms"><ellipse cx="${x + 38}" cy="${y + 96}" rx="40" ry="5" fill="#000" opacity=".08"/><rect x="${x + 8}" y="${y + 34}" width="60" height="60" rx="6" fill="#d8d0c4"/>${[0, 1, 2, 3, 4].map(q => `<path d="M${x + 4 + q * 14.4} ${y + 22} h14.6 v14 q-7.3 8 -14.6 0z" fill="${q % 2 ? "#e6e0d6" : "#a89f93"}"/>`).join("")}<rect x="${x + 16}" y="${y + 50}" width="22" height="22" rx="3" fill="#8f877b"/><path d="M${x + 16} ${y + 72} L${x + 38} ${y + 50} M${x + 16} ${y + 50} L${x + 38} ${y + 72}" stroke="#d8d0c4" stroke-width="2"/><rect x="${x + 44}" y="${y + 52}" width="16" height="42" rx="3" fill="#6f675c"/><path d="M${x + 44} ${y + 66} L${x + 60} ${y + 60} M${x + 44} ${y + 80} L${x + 60} ${y + 74}" stroke="#d8d0c4" stroke-width="3"/><circle cx="${x + 38}" cy="${y + 6}" r="11" fill="${C.rojo}"/><path d="M${x + 33} ${y + 1} l10 10 M${x + 43} ${y + 1} l-10 10" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></g>`;
+    };
+    const tip = (txt, pr) => `data-tip="${esc2(txt)}" data-tipp="${pr}"`;
+    let b = `<rect x="860" y="12" width="210" height="28" rx="14" fill="${C.dorado}"/>` + T(965, 31, "17 zonas metropolitanas", 12.5, "#fff", "middle", 700);
+    b += T(30, 52, "De cada 10 negocios que declaran sitio web,", 30, C.vino, "start", 400, true) + T(30, 90, "sólo 4 lo mantienen vivo.", 30, C.rojo, "start", 400, true);
+    for (let i = 0; i < 10; i++) {
+      const vivo = i < 4, x = 30 + i * 102, grupo = vivo ? tip("Sitios vivos|64 de 166 · 39 %|llevan a una página viva del negocio", 0.39) : i < 9 ? tip("Sitios caídos|81 de 166 · 49 %|están caídos; 71 con el dominio que ya no existe", 0.49) : tip("Otros|21 de 166 · 13 %|12 bloquean la lectura, 5 son sólo una red social y 4 los ocupa otro sitio", 0.13);
+      b += `<g ${grupo} tabindex="0">${tienda(x, 106, vivo, i)}</g>`;
+    }
+    b += T(30, 226, "Cada ícono son ≈ 17 de los 166 sitios declarados en el DENUE. Su presencia en línea está abandonada: Carta puede ser la que sí está viva.", 14, C.osc, "start", 700);
+    $("#svSitios").innerHTML = b;
+  },
   actualizar() {
-    const rm = this.rm, X0 = 170, W = 400, Y0 = 134, RH = 46, sel = this.sel, cfg = config(S);
-    rm.put("g0", "rect", {x: 30, y: 12, w: 1040, h: 46, rx: 23, fill: C.vino, grow: false});
-    rm.put("gp", "rect", {x: 52, y: 22, w: 15, h: 26, rx: 4, fill: "#fef9f1", grow: false});
-    rm.put("gq", "rect", {x: 55, y: 26, w: 9, h: 16, rx: 2, fill: C.vino, grow: false});
-    rm.put("gt", "text", {x: 82, y: 42, text: `${M.usa_internet_pct} % de los mexicanos usa internet; casi todos (${Math.round(M.celular_pct)} %) desde el celular`, size: 16, weight: 700, fill: "#fff"});
-    rm.put("t2", "text", {x: 30, y: 100, text: "Negocios que declaran sitio web, por tamaño (personas ocupadas)", size: 14, weight: 700, fill: C.dorado});
-    const xl = X0 + W * M.usa_internet_pct / 100;
-    rm.put("ref", "rect", {x: xl - 1, y: Y0 - 14, w: 2.5, h: RH * 7 - 6, rx: 1, fill: C.vino, grow: false, op: 0.5});
-    rm.put("reft", "text", {x: xl, y: Y0 - 20, text: `${M.usa_internet_pct} %`, size: 12, weight: 700, fill: C.vino, anchor: "middle"});
+    const rm = this.rm, X0 = 216, W = 290, Y0 = 160, RH = 46, sel = this.sel, cfg = config(S), wi = W * M.usa_internet_pct / 100, wc = wi * M.celular_pct / 100;
+    rm.put("gl0", "text", {x: X0 - 12, y: 36, text: "Mexicanos que usan internet", size: 13, weight: 700, fill: C.vino, anchor: "end"});
+    rm.put("g0", "rect", {x: X0, y: 16, w: wi, h: 28, rx: 14, fill: C.vino, grow: false, attrs: {"data-tip": `Usan internet|${M.usa_internet_pct} %|De los mexicanos de 6 años o más (ENDUTIH 2024).`, "data-tipp": M.usa_internet_pct / 100}});
+    rm.put("gv0", "text", {x: X0 + wi + 12, y: 36, text: `${M.usa_internet_pct} %`, size: 16, weight: 700, fill: C.vino});
+    rm.put("gl1", "text", {x: X0 - 12, y: 64, text: "…y de ellos, desde el celular", size: 13, fill: C.t2, anchor: "end"});
+    rm.put("g1", "rect", {x: X0, y: 48, w: wc, h: 22, rx: 11, fill: C.vino2 || "#6b2d3e", grow: false, attrs: {"data-tip": `Se conectan desde el celular|${Math.round(M.celular_pct)} %|De quienes usan internet; es el equipo que más usan.`, "data-tipp": M.celular_pct / 100}});
+    // cómo se conectan desde el celular (ENDUTIH 2024): un tramo sólo wifi depende de la red del restaurante
+    { const tc = SP.endutih_2024.tipo_de_conexion_de_usuarios_de_celular_inteligente, tr = [["solo_wifi", "Sólo wifi", C.rojo, "1 de cada 6 sólo tiene wifi: depende de la red del restaurante."], ["ambos", "Wifi y datos", C.vino, "Pueden pedir aunque el wifi del restaurante falle."], ["solo_datos_moviles", "Sólo datos móviles", C.azul, "No dependen del wifi, pero sí de su plan de datos."]];
+      rm.put("gl2", "text", {x: X0 - 12, y: 90, text: "cómo se conectan desde el celular", size: 12.5, fill: C.t2, anchor: "end"});
+      let xx = X0; tr.forEach(([k, nom, col, fr], q) => { const w = wc * tc[k]; rm.put("gt" + q, "rect", {x: xx, y: 76, w, h: 18, rx: q === 0 ? 9 : 3, fill: col, grow: false, attrs: {"data-tip": `${nom}|${n(100 * tc[k], 1)} %|${fr}`, "data-tipp": tc[k]}}); if (w > 44) rm.put("gtv" + q, "text", {x: xx + w / 2, y: 89, text: `${n(100 * tc[k], 0)} %`, size: 11.5, weight: 700, fill: "#fff", anchor: "middle"}); xx += w; });
+      rm.put("gtn", "text", {x: X0 + wc + 12, y: 89, text: `${n(100 * tc.solo_wifi, 0)} % sólo wifi`, size: 12.5, weight: 700, fill: C.rojo}); }
+    rm.put("gv1", "text", {x: X0 + wc + 12, y: 64, text: `${Math.round(M.celular_pct)} % de ellos`, size: 13, weight: 700, fill: C.t2});
+    rm.put("t2", "text", {x: 30, y: 136, text: "Negocios con sitio web, por tamaño (personas)", size: 14, weight: 700, fill: C.dorado});
     M.estratos.forEach((e, i) => {
       const y = Y0 + i * RH, on = i === sel, op = on ? 1 : 0.62;
-      if (on) rm.put("band", "rect", {x: 20, y: y - 6, w: 620, h: RH - 4, rx: 14, fill: C.a2, grow: false});
+      if (on) rm.put("band", "rect", {x: 20, y: y - 6, w: 560, h: RH - 4, rx: 14, fill: C.a2, grow: false});
       rm.put("l" + i, "text", {x: X0 - 12, y: y + 20, text: TAM[i], size: 13.5, weight: on ? 700 : 400, fill: C.tinta, anchor: "end", op: on ? 1 : 0.8});
       rm.put("k" + i, "rect", {x: X0, y: y + 4, w: W, h: 24, rx: 12, fill: on ? "#fff" : C.a2});
       rm.put("f" + i, "rect", {x: X0, y: y + 4, w: Math.max(W * e.pct_sitio / 100, 4), h: 24, rx: 12, fill: C.dorado, op});
       rm.put("v" + i, "text", {x: X0 + W + 12, y: y + 22, text: `${n(e.pct_sitio, 1)} %`, size: 15, weight: 700, fill: C.tinta, op: on ? 1 : 0.8});
-      rm.put("h" + i, "rect", {x: 20, y: y - 6, w: 620, h: RH - 4, rx: 14, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-i": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": `${TAM[i]}: ${n(e.pct_sitio, 1)} % declara sitio web`}});
+      rm.put("h" + i, "rect", {x: 20, y: y - 6, w: 560, h: RH - 4, rx: 14, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-i": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": `${TAM[i]}: ${n(e.pct_sitio, 1)} % declara sitio web`}});
     });
+    // la línea de referencia: va encima de las barras y sube hasta tocar la barra de los mexicanos que usan internet
+    rm.put("ref", "rect", {x: X0 + wi - 1.25, y: 44, w: 2.5, h: Y0 + RH * 7 - 6 - 44, rx: 1.2, fill: C.vino, grow: false, op: 0.6});
     // corchetes: a qué plan le toca cada tamaño y cuánto representaría si todos pagaran
-    const grupos = []; SEG.estratos.forEach((q, i) => { const p = planDe(q, cfg), u = grupos[grupos.length - 1]; if (u && u.p === p) { u.f = i; u.neg += q.negocios; } else grupos.push({p, i, f: i, neg: q.negocios}); });
-    const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio, S.precioSalon];
-    for (let g = 0; g < 3; g++) {
-      const u = grupos.find(z => z.p === g), y1 = u ? Y0 + u.i * RH - 2 : 0, y2 = u ? Y0 + (u.f + 1) * RH - 10 : 0, col = COLPLAN[g];
-      rm.put("bk" + g, "rect", {x: 656, y: y1, w: u ? 6 : 0, h: u ? y2 - y1 : 0, rx: 3, fill: col, grow: false});
-      rm.put("bkt" + g, "rect", {x: 656, y: y1, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
-      rm.put("bkb" + g, "rect", {x: 656, y: y2 - 6, w: u ? 14 : 0, h: 6, rx: 3, fill: col, grow: false});
-      const ym = u ? (y1 + y2) / 2 : 0;
-      rm.put("bn" + g, "text", {x: 684, y: ym - 14, text: u ? NOMPLAN[g] : "", size: 17, fill: col, serif: true});
-      rm.put("bs" + g, "text", {x: 684, y: ym + 4, text: u ? `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %` : "", size: 12.5, weight: 700, fill: C.tinta});
-      rm.put("bg" + g, "text", {x: 684, y: ym + 22, text: u ? (g === 0 ? "gratis: lleva anuncios" : `si todos pagaran: $${n(u.neg * precio[g] / 1e6, 1)} M al mes`) : "", size: 12, fill: C.t2});
+    const totN = SEG.estratos.reduce((a, q) => a + q.negocios, 0), precio = [0, S.precioServicio], potChef = conCache("potChef", () => MOD.potencialChef(cfg, SP));
+    const enChef = chef05(cfg), n0 = potChef.negocios_en_chef, gr = [{p: 0, i: 0, f: 0, neg: n0}, {p: 1, i: 1, f: SEG.estratos.length - 1, neg: totN - n0}];
+    for (let g = 0; g < 2; g++) {
+      const u = gr[g], y1 = Y0 + u.i * RH - 2, y2 = Y0 + (u.f + 1) * RH - 10, col = COLPLAN[g];
+      rm.put("bk" + g, "rect", {x: 590, y: y1, w: 6, h: y2 - y1, rx: 3, fill: col, grow: false});
+      rm.put("bkt" + g, "rect", {x: 590, y: y1, w: 14, h: 6, rx: 3, fill: col, grow: false});
+      rm.put("bkb" + g, "rect", {x: 590, y: y2 - 6, w: 14, h: 6, rx: 3, fill: col, grow: false});
+      const ym = (y1 + y2) / 2;
+      rm.put("bn" + g, "text", {x: 618, y: ym - 14, text: NOMPLAN[g], size: 17, fill: col, serif: true});
+      rm.put("bs" + g, "text", {x: 618, y: ym + 4, text: `${n(u.neg)} negocios · ${n(100 * u.neg / totN, 1)} %`, size: 12.5, weight: 700, fill: C.tinta, attrs: {"data-tip": `${NOMPLAN[g]}|${n(u.neg)} negocios|${g === 0 ? `Cabe en ${S.topeMesas} mesas y ${S.topeCuentas} ${S.topeCuentas === 1 ? "cuenta" : "cuentas"}: ≈ ${n(100 * enChef)} % de los de 0 a 5 personas (modelo).` : `Si todos pagaran ${mxn(precio[g])}: ${n(u.neg * precio[g] / 1e6, 1)} M MXN al mes.`}`, "data-tipp": u.neg / totN}});
+      rm.put("bg" + g, "text", {x: 618, y: ym + 22, text: g === 0 ? "techo en anuncios al mes:" : `si todos pagaran: ${n(u.neg * precio[g] / 1e6, 1)} M MXN`, size: 12, fill: C.t2});
+      if (g === 0) { const pa = potChef.potencial_anuncios_mes; rm.put("bg2", "text", {x: 618, y: ym + 38, text: `${n(pa.baja.pesos_al_mes_de_todos_los_chef)} MXN, tarifa baja`, size: 12, weight: 700, fill: C.vino, attrs: {"data-tip": `Techo en anuncios, Chef|${n(pa.baja.pesos_al_mes_de_todos_los_chef)} MXN al mes|Si los ${n(potChef.negocios_en_chef)} negocios estuvieran en Carta con tarifa baja; techo teórico, no proyección.`, "data-tipv": `tri:tarifa baja|${pa.baja.pesos_al_mes_de_todos_los_chef}|${n(pa.baja.pesos_al_mes_de_todos_los_chef)};media|${pa.media.pesos_al_mes_de_todos_los_chef}|${n(pa.media.pesos_al_mes_de_todos_los_chef)};alta|${pa.alta.pesos_al_mes_de_todos_los_chef}|${n(pa.alta.pesos_al_mes_de_todos_los_chef)}`}}); }
     }
     // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
-    const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 908;
-    rm.put("pn", "rect", {x: px, y: 96, w: 180, h: 370, rx: 22, fill: C.a2, grow: false});
-    const g = rm.put("ej", "g", {x: px + 10, y: 112});
-    if (this.ult !== sel) { this.ult = sel; g.innerHTML = dibujo(tipo, 0, 0, 1.0); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
-    rm.put("e0", "text", {x: px + 16, y: 252, text: ejem, size: 12.5, weight: 700, fill: C.osc});
-    rm.put("e1", "text", {x: px + 16, y: 312, text: `${n(e.pct_sitio, 1)} %`, size: 44, fill: C.vino, serif: true});
-    rm.put("e2", "text", {x: px + 16, y: 334, text: "declara sitio web", size: 12.5, fill: C.t2});
-    rm.put("e3", "text", {x: px + 16, y: 374, text: `${n(e.con_sitio)} de ${n(e.n)}`, size: 17, fill: C.tinta, serif: true});
-    rm.put("e4", "text", {x: px + 16, y: 394, text: "negocios de este tamaño", size: 12, fill: C.t2});
-    rm.put("e5", "text", {x: px + 16, y: 430, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 13, weight: 700, fill: C.vino});
+    const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 820;
+    rm.put("pn", "rect", {x: px, y: 110, w: 270, h: 760, rx: 24, fill: C.a2, grow: false});
+    const g = rm.put("ej", "g", {x: px + 3, y: 118});
+    if (this.ult !== sel) { this.ult = sel; g.innerHTML = escena(tipo); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
+    rm.put("e0", "text", {x: px + 18, y: 306, text: ejem, size: 13.5, weight: 700, fill: C.osc});
+    rm.put("e1", "text", {x: px + 18, y: 354, text: `${n(e.pct_sitio, 1)} %`, size: 46, fill: C.vino, serif: true});
+    rm.put("e2", "text", {x: px + 18, y: 376, text: "declara sitio web", size: 13, fill: C.t2});
+    rm.put("e3", "text", {x: px + 18, y: 412, text: `${n(e.con_sitio)} de ${n(e.n)}`, size: 18, fill: C.tinta, serif: true});
+    rm.put("e4", "text", {x: px + 18, y: 432, text: "negocios de este tamaño", size: 12.5, fill: C.t2});
+    rm.put("e5", "text", {x: px + 18, y: 466, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 13.5, weight: 700, fill: C.vino});
+    // cuánto dejaría de ingreso este tamaño (techo teórico): anuncios en tres barras y la suscripción con los tres escenarios a la vez
+    { const pt = conCache("potTramo", () => MOD.potencialPorTramo(cfg, SP)), t = pt.tramos[sel], sus = t.ingreso_de_suscripcion_al_mes, pa = t.ingreso_de_anuncios_al_mes, ads = t.en_chef > 0;
+      const X = px + 18, BW = 120, base = sus.por_curva_de_pago.media, mxS = Math.max(...Object.values(sus.por_curva_de_pago), 1);
+      let y = 498;
+      rm.put("i0", "text", {x: X, y, text: "Ingreso de este tamaño al mes", size: 15, weight: 700, fill: C.vino, serif: true}); y += 24;
+      rm.put("ia0", "text", {x: X, y, text: ads ? `${n(t.en_chef)} en Chef: anuncios` : "Ninguno cae en Chef", size: 13, weight: 700, fill: C.tinta}); y += 10;
+      [["baja", "baja", C.vino], ["media", "media", C.dorado], ["alta", "alta", C.osc]].forEach(([k, et, col], j) => {
+        const yy = y + j * 24, w = ads ? Math.max(BW * pa[k] / pa.alta, 4) : 0;
+        rm.put("iat" + j, "text", {x: X, y: yy + 13, text: ads ? et : "", size: 12.5, weight: 700, fill: C.t2});
+        rm.put("iab" + j, "rect", {x: X + 44, y: yy, w, h: 16, rx: 8, fill: col, grow: false, attrs: ads ? {"data-tip": `Anuncios, tarifa ${et}|${n(pa[k])} MXN al mes|Techo teórico si todos los de Chef estuvieran en Carta. No es proyección.`, "data-tipp": pa[k] / pa.alta} : {}});
+        rm.put("iav" + j, "text", {x: X + 44 + w + 6, y: yy + 13, text: ads ? n(pa[k]) : "", size: 12.5, weight: 700, fill: C.tinta});
+      });
+      y += ads ? 3 * 24 + 18 : 4;
+      rm.put("is0", "text", {x: X, y, text: `${n(t.en_master_chef)} en Master Chef: suscripción`, size: 13, weight: 700, fill: C.tinta}); y += 20;
+      rm.put("is1", "text", {x: X, y, text: `si todos pagaran: ${n(sus.si_todos_pagaran)}`, size: 12.5, weight: 700, fill: C.t2}); y += 12;
+      [["media", "Recomendado", C.vino], ["pesimista", "Peor", C.rojo], ["optimista", "Mejor", C.verde]].forEach(([k, nom, col], j) => {
+        const v = sus.por_curva_de_pago[k], d = j ? `  (${v >= base ? "+" : "−"}${n(Math.abs(v - base))})` : "", yy = y + j * 44, w = Math.max(2 * BW * v / mxS, 4);
+        rm.put("ict" + j, "text", {x: X, y: yy + 14, text: `${nom}  ${n(v)}${d}`, size: 13, weight: 700, fill: col});
+        rm.put("icb" + j, "rect", {x: X, y: yy + 22, w, h: 12, rx: 6, fill: col, grow: false, attrs: {"data-tip": `${nom}: suscripción|${n(v)} MXN al mes|Paga ${n(100 * sus.parte_que_paga[k], 1)} % de los negocios de este tamaño. Techo teórico.`, "data-tipp": v / mxS}});
+      });
+      y += 3 * 44 + 12;
+      rm.put("in0", "text", {x: X, y, text: "Techo teórico, no proyección.", size: 12.5, weight: 700, fill: C.osc, attrs: {"data-tip": `Supuesto|misma parte que paga en todo tamaño|${pal20(String(pt.nota_curva || "").replace(/^SUPUESTO:\s*/i, ""), 11)}`}});
+      rm.put("in1", "text", {x: X, y: y + 18, text: "La curva de pago no distingue tamaño.", size: 12.5, fill: C.t2}); }
     const chicos = M.estratos.slice(0, 3), con = chicos.reduce((a, x) => a + x.con_sitio, 0), tot = chicos.reduce((a, x) => a + x.n, 0);
     return {
       leyenda: `<span><i style="background:${C.dorado}"></i>negocios con sitio web</span><span><i style="background:${C.vino}"></i>límite: lo que ya hace el comensal</span>${COLPLAN.map((col, i) => `<span><i style="background:${col}"></i>${NOMPLAN[i]}</span>`).join("")}`,
       cifras: [[n(100 * con / tot, 1) + " %", `de los ${n(tot)} negocios de menos de 31 personas declara sitio`], [n(M.estratos[2].pct_sitio, 1) + " %", "de los de 11 a 30 personas: el tramo chico que más declara"], [n(M.micro_con_sitio_pct, 1) + " %", `de ${n(M.micro_n)} micronegocios de comida declara sitio`]],
       puntos: [
-        `Casi todos los comensales usan celular (${Math.round(M.celular_pct)} %): el menú por QR llega a donde ya están.`,
+        `Casi todos los comensales usan celular (${Math.round(M.celular_pct)} %), pero 1 de cada 6 sólo tiene wifi: depende de la red del restaurante.`,
         `Los clientes más fáciles de sumar, gratis y de boca en boca: la fonda familiar y la taquería de barrio (0 a 5 personas) y el restaurante de barrio con 8 a 10 mesas. Por debajo de 31 personas declaran sitio ${n(100 * con / tot, 1)} de cada 100; de 11 a 30, ${n(M.estratos[2].pct_sitio / 10, 1)} de cada 10.`,
         "Los demás costarán más trabajo, conforme el producto demuestre su valor a bajo costo.",
       ],
-    };
-  },
-};
-
-/* ===== detalle: ¿Cuántos negocios hay? (una barra que se parte por niveles) ===== */
-const NIV = () => [
-  {nom: "Restaurantes y bares de México", n: M.total, kd: "grupo", ej: "Todo el sector: tacos, mariscos, cafés, restaurantes y bares", sig: "TAM"},
-  {tot: M.total, keep: M.nucleo, nomK: "Clientes potenciales (SAM): restaurantes a la carta y bares", nomD: "Fondas para llevar, tacos, mariscos y cafés", kd: "restaurante", dd: "puesto", sig: ""},
-  {tot: M.nucleo, keep: M.servible, nomK: "Sin cadenas", nomD: "Posibles cadenas", kd: "barrio", dd: "cadena", sig: "SAM"},
-  {tot: M.servible, keep: SP.meta_12_meses, nomK: "Meta a 12 meses (SOM)", nomD: "El resto del mercado", kd: "puntos", dd: "barrio", sig: "SOM"},
-];
-const ETAPAS = ["México", "A la carta y bares", "Sin cadenas", "Meta a 12 meses"];
-DET.mercado = {
-  titulo: "Hay 104,882 clientes potenciales; ganar 100 a 1,000 en un año es un escenario.",
-  fu: ["inegi_denue", "carta_mercado", "carta_muestra"],
-  nota: "Mercado total (TAM): todos los negocios que algún día podrían usar algo como Carta. Clientes potenciales (SAM): restaurantes a la carta y bares, lo que Carta atiende hoy (sin sus posibles cadenas, ≈ 100,000: entre 96,021 y 104,855 según el umbral). Meta a 12 meses (SOM): escenario, no dato.",
-  montar(host) {
-    this.paso = 0; this.sel = "k"; this.auto = true;
-    host.innerHTML = `<div class="viz"><svg id="svMer" viewBox="0 0 960 520" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
-    const svg = $("#svMer", host); this.rm = RM(svg);
-    svg.addEventListener("click", ev => {
-      const e = ev.target.closest("[data-paso]"); if (e) { this.auto = false; this.paso = +e.dataset.paso; this.sel = "k"; refrescar(); return; }
-      const s = ev.target.closest("[data-seg]"); if (s) { this.auto = false; this.sel = s.dataset.seg; refrescar(); }
-    });
-    svg.addEventListener("mouseover", ev => { const s = ev.target.closest("[data-seg]"); if (s && s.dataset.seg !== this.sel) { this.sel = s.dataset.seg; refrescar(); } });
-    const marcha = () => { if (actual !== this || !this.auto || this.paso >= 3 || REDUCE) return; setTimeout(() => { if (actual === this && this.auto) { this.paso++; this.sel = "k"; refrescar(); marcha(); } }, 1700); };
-    this.marcha = marcha; setTimeout(marcha, 900);
-  },
-  actualizar() {
-    const rm = this.rm, N = NIV(), p = this.paso, X0 = 30, W = 900, Y = 110, H = 74;
-    ETAPAS.forEach((t, i) => {
-      const on = i === p, x = 30 + i * 226;
-      rm.put("pb" + i, "rect", {x, y: 14, w: 212, h: 38, rx: 19, fill: on ? C.vino : i < p ? "#d9b9c1" : C.a2, grow: false, cursor: "pointer", attrs: {"data-paso": i, role: "button", tabindex: 0, "aria-pressed": on, "aria-label": t}});
-      rm.put("pt" + i, "text", {x: x + 106, y: 38, text: `${i + 1} · ${t}`, size: 13, weight: 700, fill: on ? "#fff" : i < p ? C.osc : C.t2, anchor: "middle"});
-    });
-    const nv = p === 0 ? {tot: M.total, keep: M.total, nomK: N[0].nom, nomD: "", kd: "grupo", dd: "", sig: "TAM"} : N[p];
-    const wk = Math.max(W * nv.keep / nv.tot, p === 3 ? 8 : 0), wd = W - wk;
-    rm.put("bk", "rect", {x: X0, y: Y, w: wk, h: H, rx: 16, fill: p === 3 ? C.dorado : C.vino, attrs: {"data-seg": "k", cursor: "pointer"}, cursor: "pointer"});
-    rm.put("bd", "rect", {x: X0 + wk, y: Y, w: wd, h: H, rx: 16, fill: C.arena, cursor: "pointer", attrs: {"data-seg": "d"}});
-    rm.put("tt", "text", {x: X0, y: Y - 10, text: `${n(nv.tot)} ${p === 0 ? "restaurantes y bares" : p === 1 ? "restaurantes y bares" : p === 2 ? "a la carta y bares" : "clientes potenciales"}`, size: 14, weight: 700, fill: C.vino});
-    rm.put("kl", "text", {x: X0, y: Y + H + 26, text: `${n(nv.keep)}`, size: 24, fill: p === 3 ? C.dorado : C.vino, serif: true});
-    rm.put("kn", "text", {x: X0, y: Y + H + 46, text: nv.nomK, size: 12.5, weight: 700, fill: C.t2});
-    rm.put("dl", "text", {x: X0 + W, y: Y + H + 26, text: p === 0 ? "" : n(nv.tot - nv.keep), size: 24, fill: C.t2, anchor: "end", serif: true});
-    rm.put("dn", "text", {x: X0 + W, y: Y + H + 46, text: nv.nomD, size: 12.5, weight: 700, fill: C.t2, anchor: "end"});
-    // lo que se ve del tramo elegido: un dibujo y su número
-    const k = this.sel === "k" || p === 0, dib = k ? nv.kd : nv.dd, num = k ? nv.keep : nv.tot - nv.keep, nom = k ? nv.nomK : nv.nomD, ejem = k ? (p === 0 ? N[0].ej : ["", "Restaurantes de barrio, de mesero y bares", "Un negocio con un dueño, no una cadena", "100 a 1,000 restaurantes en un año"][p]) : ["", "Tacos, mariscos y cafés quedan fuera hoy", "Mismo nombre repetido; casi ninguno es cadena", "Los demás clientes potenciales, por conquistar"][p];
-    rm.put("pn", "rect", {x: 30, y: 270, w: 900, h: 230, rx: 22, fill: C.a2, grow: false});
-    const g = rm.put("ej", "g", {x: 60, y: 300});
-    const clave = p + ":" + (k ? "k" : "d");
-    if (this.ult !== clave) { this.ult = clave; g.innerHTML = dibujo(dib || "grupo", 0, 0, 1.6); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
-    rm.put("pnum", "text", {x: 360, y: 360, text: n(num), size: 64, fill: k && p === 3 ? C.dorado : C.vino, serif: true});
-    rm.put("pnom", "text", {x: 360, y: 396, text: nom, size: 16, weight: 700, fill: C.tinta});
-    rm.put("pej", "text", {x: 360, y: 424, text: ejem, size: 13.5, fill: C.t2});
-    rm.put("pz", "text", {x: 360, y: 466, text: p === 1 ? `${n(M.zonas17)} están en las 17 zonas metropolitanas` : p === 2 ? `entre ${n(M.servible_rango[0])} y ${n(M.servible_rango[1])} según el umbral de cadena` : p === 3 ? "escenario medio del modelo: 300; el alto llega a 1,000" : "", size: 12.5, weight: 700, fill: C.osc});
-    const m = M.muestra;
-    return {
-      leyenda: `<span><i style="background:${C.vino}"></i>lo que se queda</span><span><i style="background:${C.arena}"></i>lo que sale</span><span><i style="background:${C.dorado}"></i>meta a 12 meses (escenario)</span>`,
-      cifras: [[n(M.nucleo), "clientes potenciales (SAM); sin cadenas, ≈ " + n(M.servible)], ["100 a 1,000", "meta a 12 meses (SOM)", "supuesto"], ["≈ " + n(m.alcanzables), "cartas que un lector puede leer del sitio de un negocio", "supuesto"]],
-      insight: "El mercado sobra; lo que falta medir es cuántos dueños prueban Carta y cuántos pagan.",
     };
   },
 };
@@ -186,12 +174,12 @@ DET.matriz = {
       if (f.nombre === "Meniu Business") rm.put("rm" + i, "rect", {x: 14, y: y + 1, w: visible ? 1072 : 0, h: RH - 2, rx: 10, fill: "rgba(184,134,11,.18)", grow: false, op});
       rm.put("rl" + i, "text", {x: xp - 12, y: y + 19, text: f.nombre + " " + f.plan, size: 12.5, weight: 700, fill: C.tinta, anchor: "end", op});
       rm.put("rx" + i, "rect", {x: 0, y: y + 3, w: visible ? xp - 8 : 0, h: 22, rx: 8, fill: "rgba(0,0,0,0)", cursor: "pointer", grow: false, attrs: {"data-a": "fila:" + i, "data-tip": "Toca para ocultar esta fila", role: "button", tabindex: 0}});
-      rm.put("pb" + i, "rect", {x: xp, y: y + 5, w: this.sinPrecio || !visible ? 0 : Math.max(6, wp * f.precio / maxp), h: 18, rx: 6, fill: calor(f.precio), op, title: mxn(f.precio) + " al mes"});
+      rm.put("pb" + i, "rect", {x: xp, y: y + 5, w: this.sinPrecio || !visible ? 0 : Math.max(6, wp * f.precio / maxp), h: 18, rx: 6, fill: calor(f.precio), op, attrs: {"data-tip": `${f.nombre} ${f.plan}|${mxn(f.precio)} al mes|Precio público en su página.`, "data-tipp": clamp(f.precio / maxp, 0, 1)}});
       rm.put("pt" + i, "text", {x: xp + 6, y: y + 19, text: this.sinPrecio ? "" : mxn(f.precio), size: 11.5, weight: 700, fill: f.precio / maxp > 0.45 ? "#fff" : C.tinta, op});
       MX.trabajos.forEach((t, j) => {
         const c = f.celdas[j], oc = this.oculC.has(j), x = xj + cols.indexOf(j) * cw, show = visible && !oc;
         const fill = c === "si" ? C.vino : c === "no" ? C.arena : "rgba(0,0,0,0)";
-        rm.put(`c${i}_${j}`, "rect", {x: x, y: y + 4, w: show ? cw - 10 : 0, h: 20, rx: 7, fill, stroke: c === "np" ? C.gris : "rgba(0,0,0,0)", sw: 1.4, dash: "3 3", op, title: `${f.nombre} ${f.plan} · ${t}: ${c === "si" ? "lo incluye" : c === "no" ? "la página dice que no" : "no publicado"}`});
+        rm.put(`c${i}_${j}`, "rect", {x: x, y: y + 4, w: show ? cw - 10 : 0, h: 20, rx: 7, fill, stroke: c === "np" ? C.gris : "rgba(0,0,0,0)", sw: 1.4, dash: "3 3", op, attrs: {"data-tip": `${t}|${c === "si" ? "lo incluye" : c === "no" ? "la página dice que no" : "no publicado"}|${f.nombre} ${f.plan}.`}});
       });
       const r = cob(f) / Math.max(cols.length, 1);
       rm.put("cb" + i, "rect", {x: xc, y: y + 8, w: visible ? 80 * r : 0, h: 12, rx: 6, fill: colCob(r), op});
@@ -208,7 +196,7 @@ DET.matriz = {
     MX.trabajos.forEach((t, j) => {
       const oc = this.oculC.has(j), x = xj + cols.indexOf(j) * cw;
       const estado = j === 0 ? "hoy" : j <= 3 ? "fut" : "def";
-      rm.put("cc" + j, "rect", {x: x, y: yc + 6, w: oc ? 0 : cw - 10, h: 20, rx: 7, fill: estado === "hoy" ? C.dorado : "rgba(0,0,0,0)", stroke: estado === "hoy" ? "rgba(0,0,0,0)" : C.dorado, sw: estado === "fut" ? 2.2 : 1.4, dash: estado === "def" ? "2 4" : "", op: estado === "def" ? 0.8 : 1, title: `Carta · ${t}: ${estado === "hoy" ? "en producción" : estado === "fut" ? "Fase 3, aún no construida" : "fase futura, por definir"}`});
+      rm.put("cc" + j, "rect", {x: x, y: yc + 6, w: oc ? 0 : cw - 10, h: 20, rx: 7, fill: estado === "hoy" ? C.dorado : "rgba(0,0,0,0)", stroke: estado === "hoy" ? "rgba(0,0,0,0)" : C.dorado, sw: estado === "fut" ? 2.2 : 1.4, dash: estado === "def" ? "2 4" : "", op: estado === "def" ? 0.8 : 1, attrs: {"data-tip": `Carta · ${t}|${estado === "hoy" ? "en producción" : estado === "fut" ? "Fase 3, sin construir" : "fase futura"}|${estado === "def" ? "Por definir." : "Lo que Carta ofrece en esta función."}`}});
     });
     const defCols = FUT_DEF.filter(j => !this.oculC.has(j)).map(j => cols.indexOf(j));
     rm.put("br", "line", {x1: defCols.length ? xj + defCols[0] * cw : 0, y1: yc + 36, x2: defCols.length ? xj + defCols[defCols.length - 1] * cw + cw - 10 : 0, y2: yc + 36, stroke: C.dorado, sw: 2});
@@ -219,10 +207,10 @@ DET.matriz = {
     $("#oc").innerHTML = oc.join("");
     return {
       leyenda: `<span><i style="background:${C.vino}"></i>lo incluye</span><span><i style="background:${C.arena}"></i>la página dice que no</span><span><i style="background:none;border:1.5px dashed ${C.gris}"></i>no publicado</span><span><i style="background:${C.verde}"></i>cobertura alta</span><span><i style="background:${C.dorado}"></i>media</span><span><i style="background:${C.rojo}"></i>baja</span>`,
-      cifras: [["9 de 12", "funciones cubre Meniu Business por $225 al mes"], ["0 de 10", "planes leídos que publican el pedido en grupo"], [mxn(S.precioServicio), "Master Chef de Carta en el escenario activo", "propuesta"]],
+      cifras: [["9 de 12", "funciones cubre Meniu Business por 225 MXN al mes"], ["0 de 10", "planes leídos que publican el pedido en grupo"], [mxn(S.precioServicio), "Master Chef de Carta en el escenario activo", "propuesta"]],
       puntos: [
-        "Meniu Business es el competidor principal: cubre 9 de 12 funciones por $225 al mes.",
-        "Waitry Premium, el más caro ($1,243) y con menos cobertura, no preocupa.",
+        "Meniu Business es el competidor principal: cubre 9 de 12 funciones por 225 MXN al mes.",
+        `Waitry Premium, el más caro (${mxn(MX.filas.find(f => f.nombre === "Waitry").precio)}) y con menos cobertura, no preocupa.`,
         "Las capas gratuitas (Neolo, Loyverse) sirven para ubicar la nuestra: ninguna publica pedir en grupo.",
       ],
     };

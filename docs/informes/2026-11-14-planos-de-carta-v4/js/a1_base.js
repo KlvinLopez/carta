@@ -11,7 +11,7 @@ const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const lg = v => Math.log10(v);
-const mxn = v => "$" + n(v);
+const mxn = v => n(v) + " MXN";
 const T = (x, y, s, size = 12, fill = C.tinta, anchor = "start", w = 400, serif = false, extra = "") =>
   `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" text-anchor="${anchor}" font-weight="${w}"${serif ? ' font-family="DM Serif Display, serif"' : ""} ${extra}>${esc(s)}</text>`;
 const Rc = (x, y, w, h, fill, rx = 6, ex = "") => `<rect x="${x}" y="${y}" width="${Math.max(w, 0)}" height="${h}" rx="${rx}" fill="${fill}" ${ex}/>`;
@@ -84,16 +84,53 @@ function arrastrable(el, svg, onMove, onKey) {
   if (onKey) el.addEventListener("keydown", ev => { if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) { ev.preventDefault(); onKey(ev.key === "ArrowRight" || ev.key === "ArrowUp" ? 1 : -1, ev.shiftKey ? 5 : 1); } });
 }
 const tt = $("#tt");
+/* un hover es un panel escrito como contenido: título · LA cifra · una mini visual · una frase (≤ 20 palabras).
+   `data-tip="título|cifra|frase"`; sin «|» sale sólo el título (para las acciones). Mini visual opcional:
+   `data-tipp="0.39"` barra de proporción · `data-tipv="tri:etiqueta|número|texto;…"` barras comparadas (negativo en rojo) ·
+   `data-tipv="ico:4/10"` diez íconos con 4 llenos · `data-tipv="sp:1,2,3"` chispa de tendencia. Nada se parte solo. */
+const pal20 = (t, m = 20) => { const w = String(t).split(/\s+/); return w.length <= m ? String(t) : w.slice(0, m).join(" ").replace(/[,;:]$/, "") + "…"; };
+function visTip(v, prop) {
+  if (v) {
+    const [k, d] = [v.slice(0, v.indexOf(":")), v.slice(v.indexOf(":") + 1)];
+    if (k === "tri") { const f = d.split(";").map(x => x.split("|")), mx = Math.max(...f.map(q => Math.abs(+q[1])), 1e-9); return `<span class="tt-r">${f.map(q => `<span class="tt-l">${esc(q[0])}</span><span class="tt-b${+q[1] < 0 ? " neg" : ""}"><i style="width:${clamp(100 * Math.abs(+q[1]) / mx, 2, 100)}%"></i></span><span class="tt-n">${esc(q[2])}</span>`).join("")}</span>`; }
+    if (k === "ico") { const [a, z] = d.split("/").map(Number); return `<span class="tt-ic">${Array.from({length: z}, (_, i) => `<i class="${i < a ? "on" : ""}"></i>`).join("")}</span>`; }
+    if (k === "sp") { const q = d.split(",").map(Number), mn = Math.min(...q), mx = Math.max(...q, mn + 1e-9); return `<svg class="tt-sp" viewBox="0 0 120 32" preserveAspectRatio="none"><polyline points="${q.map((y, i) => `${(120 * i / Math.max(q.length - 1, 1)).toFixed(1)},${(28 - 24 * (y - mn) / (mx - mn)).toFixed(1)}`).join(" ")}" fill="none" stroke="#b8860b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`; }
+  }
+  return prop != null && prop !== "" ? `<span class="tt-b"><i style="width:${clamp(100 * +prop, 0, 100)}%"></i></span>` : "";
+}
+function armaPanel(txt, prop, vis) {
+  const q = txt.split("|"), tit = q[0], cif = q[1] || "", fra = q.slice(2).join(" ");
+  return `<span class="tt-i"></span>${tit ? `<b class="tt-t">${esc(tit)}</b>` : ""}${cif ? `<span class="tt-c">${esc(cif)}</span>` : ""}${visTip(vis, prop)}${fra ? `<p>${esc(fra)}</p>` : ""}`;
+}
+let ttEl = null;
+function colocaPanel(t, quieto) {
+  const r = t.getBoundingClientRect(), w = tt.offsetWidth, h = tt.offsetHeight;
+  let x = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8), y = r.top - h - 12;
+  const debajo = y < 8; // el panel no cabe arriba: sale debajo y la flecha apunta hacia arriba
+  if (debajo) y = Math.min(r.bottom + 12, innerHeight - h - 8);
+  const col = t.closest && t.closest(".r7p"), lateral = col && innerWidth > 1000;
+  if (lateral) { const cr = col.getBoundingClientRect(); x = Math.min(cr.right + 12, innerWidth - w - 8); y = clamp(r.top + r.height / 2 - h / 2, 8, innerHeight - h - 8); }
+  tt.style.left = x + "px"; tt.style.top = Math.max(8, y) + "px";
+  if (lateral) { tt.dataset.lado = "izq"; tt.style.setProperty("--ay", clamp(r.top + r.height / 2 - Math.max(8, y), 20, h - 20) + "px"); if (!quieto) { tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = ""; } return; }
+  tt.dataset.lado = debajo ? "abajo" : "arriba"; tt.style.setProperty("--ax", clamp(r.left + r.width / 2 - x, 20, w - 20) + "px");
+  if (!quieto) { tt.style.animation = "none"; void tt.offsetWidth; tt.style.animation = ""; }
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !tt.hidden) { tt.hidden = true; ttEl = null; } });
 function tip(e) {
   const t = e.target.closest ? e.target.closest("[data-tip]") : null;
-  if (!t) { tt.hidden = true; return; }
-  tt.textContent = t.dataset.tip; tt.hidden = false;
-  const r = t.getBoundingClientRect();
-  tt.style.left = clamp(r.left + r.width / 2 - 140, 8, innerWidth - 292) + "px";
-  tt.style.top = Math.max(8, r.top - tt.offsetHeight - 8) + "px";
+  if (!t) { tt.hidden = true; ttEl = null; return; }
+  if (t === ttEl && !tt.hidden) return;
+  ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp, t.dataset.tipv); tt.hidden = false; colocaPanel(t);
 }
 document.addEventListener("mouseover", tip); document.addEventListener("focusin", tip);
-document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) tt.hidden = true; });
+document.addEventListener("mouseout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } });
+/* en teléfono no hay hover: un toque abre el panel y otro toque fuera lo cierra */
+document.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target.closest ? e.target.closest("[data-tip]") : null; if (t) { if (t === ttEl && !tt.hidden) { tt.hidden = true; ttEl = null; } else { ttEl = t; tt.innerHTML = armaPanel(t.dataset.tip, t.dataset.tipp, t.dataset.tipv); tt.hidden = false; colocaPanel(t); } } else { tt.hidden = true; ttEl = null; } });
+addEventListener("scroll", () => { if (!tt.hidden) { tt.hidden = true; ttEl = null; } }, {passive: true, capture: true});
+document.addEventListener("focusout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } });
+document.addEventListener("pointerup", e => { if (e.pointerType === "mouse" && !tt.hidden) { const u = document.elementFromPoint(e.clientX, e.clientY); if (!u || !u.closest("[data-tip]")) { tt.hidden = true; ttEl = null; } } });
+/* tras cada cambio, el panel abierto muestra el valor vigente (o se cierra si su elemento ya no existe) */
+function refrescaPanel() { if (tt.hidden || !ttEl) return; if (!document.body.contains(ttEl)) { tt.hidden = true; ttEl = null; return; } tt.innerHTML = armaPanel(ttEl.dataset.tip, ttEl.dataset.tipp, ttEl.dataset.tipv); colocaPanel(ttEl, true); }
 
 /* ===== pantalla completa (se oculta si el visor no la permite) ===== */
 const FSOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
@@ -130,6 +167,7 @@ function refrescar() {
   if (out && out.puntos) $("#ins", det).innerHTML = `<b>Insight clave.</b><ol>${out.puntos.map(p => `<li>${p}</li>`).join("")}</ol>`;
   else if (out && out.insight) $("#ins", det).innerHTML = `<b>Insight clave.</b> ${esc(out.insight)}`;
   if (out && out.titulo) $("#dt", det).textContent = out.titulo;
+  if (typeof refrescaPanel === "function") refrescaPanel();
 }
 function cierra() { det.hidden = true; det.innerHTML = ""; abierto = null; actual = null; document.body.style.overflow = ""; tt.hidden = true; history.replaceState(null, "", location.pathname); if (ultimoFoco && document.contains(ultimoFoco)) ultimoFoco.focus(); }
 // delegación: todo clic de «cerrar» y de «ir a otra caja» funciona aunque el contenido se redibuje
