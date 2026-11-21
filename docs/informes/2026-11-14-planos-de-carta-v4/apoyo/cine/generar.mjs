@@ -249,19 +249,24 @@ function mesero() {
   capa('mesero-brazos', caja, F(ante(-1, MX - 40, 640) + ante(1, MX + 40, 640)) + F(mano(MX - 16, 646) + mano(MX + 14, 650)));
   // ofrece las cartas: una a cada lado
   const carta = (x, y, r) => `<g transform="rotate(${r} ${x} ${y})"><rect x="${x - 34}" y="${y - 50}" width="68" height="100" rx="6" fill="#5a1a2c"/><rect x="${x - 26}" y="${y - 42}" width="52" height="84" rx="3" fill="none" stroke="${P.oro}" stroke-width="2" opacity=".7"/><rect x="${x - 12}" y="${y - 6}" width="24" height="4" rx="2" fill="${P.oro}" opacity=".8"/></g>`;
-  capa('mesero-brazos-carta', caja, F(ante(-1, MX - 150, 640) + ante(1, MX + 60, 630)) + F(carta(MX - 178, 630, -16) + carta(MX + 70, 600, 8), 'Lm') + F(mano(MX - 158, 646, 22) + mano(MX + 62, 640, 22)));
+  capa('mesero-brazos-carta', caja, F(ante(-1, MX - 40, 612) + ante(1, MX + 40, 612)) + F(carta(MX, 584, -3), 'Lm') + F(mano(MX - 36, 616, 22) + mano(MX + 36, 616, 22)));
   // con su teléfono: lo sostiene con una mano y toca con la otra
   capa('mesero-brazos-cel', caja, `<circle cx="${MX - 20}" cy="500" r="110" fill="url(#gPant)" opacity=".45"/>` + F(ante(-1, MX - 46, 600) + ante(1, MX + 44, 606)) +
     `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 48}" y="516" width="44" height="86" rx="9" fill="#0d0a0a"/><rect x="${MX - 48}" y="516" width="44" height="86" rx="9" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".75"/></g>` +
     F(mano(MX - 40, 604, 22) + mano(MX + 30, 600, 20) + `<path d="M${MX + 22} 594 L${MX - 2} 566" stroke="${piel}" stroke-width="12" stroke-linecap="round"/>`));
   // apunta a mano en su libreta
-  capa('mesero-brazos-libreta', caja, F(ante(-1, MX - 46, 600) + ante(1, MX + 44, 606)) +
-    `<g transform="rotate(-8 ${MX - 26} 560)"><rect x="${MX - 60}" y="508" width="68" height="92" rx="5" fill="#3a2a22"/><rect x="${MX - 56}" y="512" width="60" height="84" rx="4" fill="#efe6d2"/></g>` +
-    F(mano(MX - 40, 604, 22) + mano(MX + 30, 600, 20)));
+  capa('mesero-brazos-libreta', caja, F(ante(-1, MX - 52, 612)) +
+    `<g transform="rotate(-22 ${MX - 44} 580)"><rect x="${MX - 52}" y="532" width="16" height="96" rx="4" fill="#3a2a22"/><rect x="${MX - 46}" y="536" width="8" height="88" rx="2" fill="#efe6d2"/></g>` + F(mano(MX - 52, 616, 22)));
+  // la otra mano, con la pluma: capa aparte para que se vea escribir
+  capa('mesero-brazo-pluma', caja, F(ante(1, MX - 2, 578)) + `<path d="M${MX + 6} 598 L${MX - 30} 552" stroke="#e9d9b8" stroke-width="5" stroke-linecap="round"/><path d="M${MX - 24} 560 L${MX - 30} 552" stroke="#2a1d17" stroke-width="5" stroke-linecap="round"/>` + F(mano(MX - 4, 582, 20, 1)));
   // o con una tableta que carga y carga (el círculo que gira lo pone la película encima)
-  capa('mesero-brazos-tableta', caja, `<circle cx="${MX - 26}" cy="500" r="120" fill="url(#gPant)" opacity=".4"/>` + F(ante(-1, MX - 60, 606) + ante(1, MX + 50, 606)) +
-    `<g transform="rotate(-6 ${MX - 6} 556)"><rect x="${MX - 70}" y="506" width="128" height="96" rx="10" fill="#0d0a0a"/><rect x="${MX - 70}" y="506" width="128" height="96" rx="10" fill="none" stroke="#fff1dc" stroke-width="2.5" opacity=".7"/></g>` +
-    F(mano(MX - 58, 606, 22) + mano(MX + 46, 606, 22)));
+  capa('mesero-brazos-tableta', caja, F(ante(-1, MX - 78, 600) + ante(1, MX + 70, 600)) +
+    `<g transform="rotate(-4 ${MX - 4} 556)"><rect x="${MX - 76}" y="500" width="144" height="106" rx="12" fill="#3b3a40"/><rect x="${MX - 76}" y="500" width="144" height="106" rx="12" fill="none" stroke="#6a6870" stroke-width="2.5"/><circle cx="${MX + 52}" cy="516" r="5" fill="#141316"/><circle cx="${MX + 52}" cy="516" r="2" fill="#4a4a55"/></g>` +
+    F(mano(MX - 74, 600, 22) + mano(MX + 66, 600, 22)));
+  // extiende la cuenta: el papel en la mano, hacia la mesa
+  capa('mesero-brazos-cuenta', caja, F(ante(-1, MX - 170, 650) + ante(1, MX + 40, 640)) +
+    `<g transform="rotate(-14 ${MX - 196} 640)"><rect x="${MX - 216}" y="596" width="40" height="92" rx="3" fill="#fbf6ea"/><path d="M${MX - 208} 612 h24 M${MX - 208} 624 h24 M${MX - 208} 636 h18 M${MX - 208} 648 h24 M${MX - 208} 666 h24" stroke="#8a7a62" stroke-width="2.5"/></g>` +
+    F(mano(MX - 176, 656, 22) + mano(MX + 14, 650)));
   // con la terminal de cobro (el cobro ocurre fuera de Carta)
   capa('mesero-brazos-terminal', caja, F(ante(-1, MX - 40, 640) + ante(1, MX + 232, 632)) +
     `<g transform="rotate(18 ${MX + 262} 630)"><rect x="${MX + 236}" y="586" width="56" height="92" rx="10" fill="#17171a"/><rect x="${MX + 243}" y="594" width="42" height="34" rx="4" fill="#cfe6d8"/><rect x="${MX + 243}" y="636" width="42" height="34" rx="4" fill="#2a2a30"/><rect x="${MX + 250}" y="578" width="28" height="12" rx="2" fill="#f4ecdc"/></g>` +
