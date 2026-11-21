@@ -135,7 +135,7 @@ const TOMAS = [
   ["cocina", 4, 5.6, [["f3", "El seguimiento de la orden en el teléfono de cada quien"]], [], ""],
   ["abierta", 5, 54.2, CICLO, ["Abierta"], "fase", 0.8],
   ["cierres", 5, 38.6, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 36.4],
-  ["cuenta", 5, 21.6, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 2.3],
+  ["cuenta", 5, 22, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 1.9],
   ["pagada", 5, 6.5, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"]], ["Pagada"], "fase", 3.6],
   ["factura", 5, 7, [["vis", "Pedir la factura desde la app; la emite el restaurante (fuera de la v1)"]], [], ""],
   ["sucia", 5, 6, CICLO, ["Mesa *sucia*"], "fase", 2.2],
@@ -1402,7 +1402,7 @@ function filmLinea() {
   /* 14c · la cuenta de cada quien, en cuadrícula: el seguimiento se va y entra «Mi cuenta»; invitan a Sofía y su cuenta se reparte entre 1, entre 2 y entre 3 */
   t = T("cuenta");
   tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, t);
-  corte(".sala", ".cerca", t, 0.7); t -= 0.8;
+  corte(".sala", ".cerca", t, 0.7); t -= 0.4;
   QUIEN.forEach((_, k) => { tl.set(q(".cq" + k), {...GEO(k), x: 0, y: 0, overflow: "hidden", clearProps: "background,boxShadow"}, t); tl.set(q(".agQ" + k + " .qE, .agQ" + k + " .qK"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k + " .qS, .agQ" + k + " .sgw"), {autoAlpha: 1}, t); tl.set(q(".agQ" + k + " .sgb"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k), {...PQ(k), autoAlpha: 1}, t);
     entra(".cq" + k, t + 2.9 + k * 0.12, 0.6, {y: 40}, {y: 0, ease: "power3.out"}); });
   entra(".agQ .nom", t + 3.5, 0.4);
