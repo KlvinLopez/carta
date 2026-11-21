@@ -66,6 +66,12 @@ def main() -> int:
             print("FALLA: referenciados y no publicados en el artefacto:", *sin, sep="\n  ")
             mal = 1
     print(f"{len(refs)} rutas referenciadas · {len(pub)} archivos a publicar bajo apoyo/")
+    # la voz de la película: un mp3 por toma listado en VOZ_AUDIO (js/e2_film.js); los publica la sesión maestra junto a la página
+    m = re.search(r"const VOZ_AUDIO = \{([^}]*)\};", (AQUI / "js" / "e2_film.js").read_text(encoding="utf-8"))
+    voz = [f"apoyo/voz/{k}.mp3" for k in re.findall(r'"(\w+)":', m.group(1))] if m else []
+    fuera = [v for v in voz if not (AQUI / v).is_file()]
+    if voz:
+        print(f"audio que publica la maestra: {len(voz)} mp3 de voz, {len(fuera)} no están en el repositorio (no cuenta como falla)")
     if not mal:
         print("ok: nada referenciado queda fuera de la lista")
         print("\n".join(pub))
