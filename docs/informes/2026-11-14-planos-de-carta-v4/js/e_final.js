@@ -259,7 +259,7 @@ const TARJ = {
     rec: -1,
   },
   dos_planes: {
-    que: `Chef gratis (0 a 5 personas): ${BASE.topeMesas} mesas, ${BASE.topeCuentas} cuentas de personal además del dueño, ${BASE.topePlatillos} platillos; el resto, Master Chef`,
+    que: `Chef gratis (0 a 5 personas): ${BASE.topeMesas} mesas, el dueño y hasta ${BASE.topeCuentas} meseros, ${BASE.topePlatillos} platillos; el resto, Master Chef`,
     cif: () => [n(segC(BASE.topeMesas, BASE.topeCuentas, BASE.topePlatillos), 1) + " %", "de los negocios de 0 a 5 personas cabe en Chef por mesas, cuentas y platillos (modelo)"],
     si: () => `Con ${BASE.topeCuentas + 1} cuentas queda ${n(segC(BASE.topeMesas, BASE.topeCuentas + 1, BASE.topePlatillos), 1)} %: más gratuitos y un margen menor.`,
     rec: 2,

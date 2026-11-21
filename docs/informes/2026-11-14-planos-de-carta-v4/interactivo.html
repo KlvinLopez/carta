@@ -9766,7 +9766,7 @@ const COLPLAN = [C.vino, C.dorado], NOMPLAN = [PLAN.gratis, PLAN.paga]; // Chef 
 DET.topes = {
   titulo: "Chef es gratis para los dos tamaños chicos; mueve los límites y mira dónde cae cada tamaño.",
   fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
-  nota: `Dos planes: Chef gratis para 0 a 5 personas (${BASE.topeMesas} mesas, ${BASE.topeCuentas} cuentas de personal además del dueño, ${BASE.topePlatillos} platillos); Master Chef desde ahí. Chef Ejecutivo queda como futura escalación. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato.`,
+  nota: `Dos planes: Chef gratis para 0 a 5 personas (${BASE.topeMesas} mesas, el dueño y hasta ${BASE.topeCuentas} meseros, ${BASE.topePlatillos} platillos); Master Chef desde ahí. Chef Ejecutivo queda como futura escalación. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato.`,
   montar(host) {
     host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 590" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.rm = RM($("#svT", host)); this.svg = $("#svT", host); this.armado = false;
@@ -11827,7 +11827,7 @@ const TARJ = {
     rec: -1,
   },
   dos_planes: {
-    que: `Chef gratis (0 a 5 personas): ${BASE.topeMesas} mesas, ${BASE.topeCuentas} cuentas de personal además del dueño, ${BASE.topePlatillos} platillos; el resto, Master Chef`,
+    que: `Chef gratis (0 a 5 personas): ${BASE.topeMesas} mesas, el dueño y hasta ${BASE.topeCuentas} meseros, ${BASE.topePlatillos} platillos; el resto, Master Chef`,
     cif: () => [n(segC(BASE.topeMesas, BASE.topeCuentas, BASE.topePlatillos), 1) + " %", "de los negocios de 0 a 5 personas cabe en Chef por mesas, cuentas y platillos (modelo)"],
     si: () => `Con ${BASE.topeCuentas + 1} cuentas queda ${n(segC(BASE.topeMesas, BASE.topeCuentas + 1, BASE.topePlatillos), 1)} %: más gratuitos y un margen menor.`,
     rec: 2,
@@ -12507,7 +12507,7 @@ DET.modelo = {
     const bx = 600, bw = 440;
     b += T(bx, 28, "El hueco: negocios chicos sin plan gratuito", 14, C.vino, "start", 700);
     b += `<g data-tip="${esc2(`Meniu|${m.precio_mes} MXN al mes|Sólo da ${m.prueba_dias} días de prueba y no tiene plan gratuito (consulta del ${m.consulta}).`)}" tabindex="0">` + Rc(bx, 44, 210, 74, "#fff", 20, `stroke="${C.gris}" stroke-width="1.5"`) + T(bx + 105, 74, "Meniu", 17, C.tinta, "middle", 400, true) + T(bx + 105, 98, `${m.prueba_dias} días de prueba · ${m.precio_mes} MXN`, 12.5, C.t2, "middle", 700) + `</g>`;
-    b += `<g data-tip="${esc2(`Carta|plan gratuito, Chef|Entra con ${BASE.topeMesas} mesas y ${BASE.topeCuentas} cuentas de personal; Master Chef cuesta ${n(S.precioServicio)} MXN al mes.`)}" tabindex="0">` + Rc(bx + 230, 44, 210, 74, C.vino, 20) + T(bx + 335, 74, "Carta", 17, "#fff", "middle", 400, true) + T(bx + 335, 98, "plan gratuito para negocios chicos", 12, "#fff", "middle", 700) + `</g>`;
+    b += `<g data-tip="${esc2(`Carta|plan gratuito, Chef|Entra con ${BASE.topeMesas} mesas , el dueño y hasta ${BASE.topeCuentas} meseros; Master Chef cuesta ${n(S.precioServicio)} MXN al mes.`)}" tabindex="0">` + Rc(bx + 230, 44, 210, 74, C.vino, 20) + T(bx + 335, 74, "Carta", 17, "#fff", "middle", 400, true) + T(bx + 335, 98, "plan gratuito para negocios chicos", 12, "#fff", "middle", 700) + `</g>`;
     const tot = hu.clientes_potenciales, nivel = [["Clientes potenciales (SAM)", hu.clientes_potenciales, C.arena, C.tinta, "DENUE, mayo de 2026"], ["De 0 a 5 personas", hu.de_0_a_5_personas, C.dorado, C.tinta, "DENUE, mayo de 2026"], ["Caben en Chef (gratis)", hu.caben_en_chef, C.vino, "#fff", "supuesto del modelo de mesas y cuentas"]];
     nivel.forEach(([nom, v, col, tx, sub], i) => {
       const y = 160 + i * 84, w = Math.max(bw * v / tot, 190);
