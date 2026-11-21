@@ -644,6 +644,27 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('el sueldo de 1 salario mínimo: 760 → 740 restaurantes en régimen', `${A.sueldo_de_1_salario_minimo.restaurantes_en_regimen}→${D.sueldo_de_1_salario_minimo.restaurantes_en_regimen}`, '760→740');
 }
 
+// 12k) bloque B: el disco por registro (archivo de datos medido con pageinspect; lo lee el informe interactivo)
+{
+  const d = JSON.parse(readFileSync(join(aqui, '2026-11-21-disco-por-registro.json'), 'utf8'));
+  const todasFilas = [...d.tablas_de_la_mesa.flatMap((t) => t.filas), ...d.formas.flatMap((f) => f.tablas.flatMap((t) => t.filas))];
+  const suma = (a) => a.reduce((x, y) => x + y, 0);
+  prueba('cada fila: bytes de datos = cabecera + columnas + relleno + puntero de línea', todasFilas.every((f) => f.bytes_datos === f.cabecera_bytes + suma(f.columnas.map((c) => c.bytes)) + f.relleno_bytes + f.puntero_de_linea_bytes), true);
+  prueba('cada fila: total = datos + índices', todasFilas.every((f) => f.bytes_total === f.bytes_datos + f.bytes_indices && f.bytes_indices === suma(f.indices.map((i) => i.bytes))), true);
+  prueba('cada tabla suma sus filas', [...d.tablas_de_la_mesa, ...d.formas.flatMap((f) => f.tablas)].every((t) => t.total_bytes === suma(t.filas.map((f) => f.bytes_total))), true);
+  prueba('la mesa sin analítica: 4,204 bytes', d.bytes_de_la_mesa_sin_analitica, 4204);
+  prueba('la mesa tiene 1 sesión, 3 miembros, 3 órdenes, 9 platillos, 1 comanda, 3 enlaces y 1 llamada', d.tablas_de_la_mesa.map((t) => t.filas.length).join(','), '1,3,3,9,1,3,1');
+  const f = Object.fromEntries(d.formas.map((x) => [x.id, x]));
+  prueba('analítica de hoy: 12 eventos, 4,824 bytes, 53 % de la mesa', `${f.hoy.tablas[0].filas.length}-${f.hoy.bytes_analitica}-${Math.round(f.hoy.parte_analitica * 100)}`, '12-4824-53');
+  prueba('contar por día 1,024 · fila por visita 384 · combinación 1,024 bytes', `${f.contar_por_dia.bytes_analitica}-${f.fila_por_visita.bytes_analitica}-${f.fila_mas_platillo_y_filtros_por_dia.bytes_analitica}`, '1024-384-1024');
+  prueba('las tres formas propuestas están marcadas como propuesta y la actual como base', `${f.hoy.estado}/${f.contar_por_dia.estado}/${f.fila_por_visita.estado}`, 'base_actual/propuesta/propuesta');
+  prueba('la fila de la sesión: 100 de tupla (24 de cabecera) y seis entradas de índice (176)', `${d.tablas_de_la_mesa[0].filas[0].bytes_datos}-${d.tablas_de_la_mesa[0].filas[0].cabecera_bytes}-${d.tablas_de_la_mesa[0].filas[0].bytes_indices}`, '100-24-176');
+  const ids = new Set(todasFilas.map((x) => x.id));
+  prueba('todo lo que un paso escribe existe como fila', d.pasos.every((p) => p.escribe.every((e) => ids.has(e.fila))), true);
+  prueba('la fila por visita no lleva filtros por comensal', !f.fila_por_visita.tablas[0].filas[0].columnas.some((c) => /filtro/.test(c.nombre)), true);
+  prueba('la diferencia con el informe se explica y se concilia tabla por tabla', d.diferencia_con_el_informe.explicacion.length >= 4 && d.diferencia_con_el_informe.conciliacion_por_tabla.length === 8, true);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
