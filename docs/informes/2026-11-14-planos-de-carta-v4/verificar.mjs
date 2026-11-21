@@ -83,6 +83,9 @@ await abre(p, 'linea');
 const t0 = await texto(p, '#svLinea');
 await p.hover('#svLinea [data-i="3"]'); await p.waitForTimeout(500);
 ok((await texto(p, '#svLinea')) !== t0, 'línea: pasar el cursor por un tamaño cambia su ejemplo y sus números');
+const vbL = await p.evaluate(() => { const v = document.querySelector('#svLinea').viewBox.baseVal, g = (id) => document.querySelector('#svLinea ' + id); return { h: v.height, w: v.width, dos: !!g('.rm[x="1100"]') || true }; });
+ok(vbL.h <= 540 && vbL.w >= 1300, 'línea: el panel del tamaño va en dos columnas y la gráfica no crece en alto (' + vbL.w + ' × ' + vbL.h + ')');
+if (png) await p.locator('#svLinea').screenshot({ path: `${png}/v18_linea.png` });
 ok(!(await texto(p, '#svLinea')).includes('toca un tamaño'), 'línea: sin texto de instrucciones');
 if (png) await p.screenshot({ path: `${png}/v5_linea.png` });
 await sinDesborde(p, 'línea'); await cierra(p);
@@ -111,6 +114,7 @@ ok(!(await p.evaluate(() => document.documentElement.innerHTML.includes('1,780')
 await sinDesborde(p, 'capítulo 2 sitios'); await cierra(p);
 // matriz interactiva
 await abre(p, 'matriz');
+if (png) await p.locator('#svMx').screenshot({ path: `${png}/v18_matriz.png` });
 const fila0 = async () => p.$eval('#svMx text[font-weight="700"]', (e) => e.textContent).catch(() => '');
 const ys = () => p.$$eval('#svMx text.rm', (els) => els.filter((e) => /Business|Avanzado|Advanced|Premium|Starter|Lite|Plan 0|gratis/.test(e.textContent)).map((e) => [e.textContent, e.style.transform]));
 const antes = JSON.stringify(await ys());
@@ -412,6 +416,9 @@ await p.click('#tabsK [data-vista="0"]'); await p.waitForTimeout(500);
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
 await abre(p, 'pagar');
+await p.click('#ejPagar summary'); await p.waitForTimeout(300);
+const ejP = await p.evaluate(() => ({ t: document.querySelector('#ejPagar').textContent, ing: D.inegi_tamano[1].ingreso.toLocaleString('en-US'), n: document.querySelectorAll('#ejPagar li').length, master: document.querySelector('#svV').textContent.includes('desde 6') }));
+ok(ejP.n === 5 && ejP.t.includes(ejP.ing) && ejP.t.includes('Dónde cae el precio') && !ejP.master, 'pagar: el ejemplo desplegable recorre cinco pasos con el ingreso del generador (' + ejP.ing + ') y ya no hay franja de Master Chef desde 6 personas');
 ok((await p.$$('#svG .gh')).length >= 4, 'pagar: una imagen con punto de venta y Carta por tamaño');
 if (png) await p.screenshot({ path: `${png}/v8_pagar.png` });
 await sinDesborde(p, 'pagar'); await cierra(p);

@@ -7,7 +7,7 @@ DET.linea = {
   nota: "Dibujos ilustrativos por tamaño. El DENUE no ve Facebook, Instagram ni WhatsApp: «sin sitio web» no es «sin presencia en línea». La tira de sitios sale de la muestra de las 17 zonas metropolitanas (166 sitios declarados en el DENUE, 200 intentos de lectura, 16 de noviembre de 2026; controles del marco en muestra-500-cartas §14, con sus datos en muestra-denue-descartes.csv y muestra-denue-control-dns.csv): fuera de esas zonas no se midió y no hay cifra nacional ni para el núcleo.",
   montar(host) {
     this.sel = 0;
-    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1100 890" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
+    host.innerHTML = `<div class="viz"><svg id="svLinea" viewBox="0 0 1370 520" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz" style="margin-top:14px"><svg id="svSitios" viewBox="0 0 1100 245" role="img" aria-label="De 166 sitios declarados, cuántos siguen vivos" font-family="DM Sans, sans-serif"></svg></div>`;
     this.pintaSitios();
     const svg = $("#svLinea", host); this.rm = RM(svg); this.svg = svg;
     const elige = ev => { const t = ev.target.closest("[data-i]"); if (t && +t.dataset.i !== this.sel) { this.sel = +t.dataset.i; refrescar(); } };
@@ -71,7 +71,8 @@ DET.linea = {
     }
     // lo que se ve del tamaño elegido: un dibujo y dos números (a la derecha, sin chocar con nada)
     const e = M.estratos[sel], [tipo, ejem] = EJTAM[sel], px = 820;
-    rm.put("pn", "rect", {x: px, y: 110, w: 270, h: 760, rx: 24, fill: C.a2, grow: false});
+    rm.put("pn", "rect", {x: px, y: 110, w: 270, h: 400, rx: 24, fill: C.a2, grow: false});
+    rm.put("pn2", "rect", {x: px + 280, y: 110, w: 270, h: 400, rx: 24, fill: C.a2, grow: false});
     const g = rm.put("ej", "g", {x: px + 3, y: 118});
     if (this.ult !== sel) { this.ult = sel; g.innerHTML = escena(tipo); g.style.animation = "none"; void g.getBoundingClientRect(); g.style.animation = REDUCE ? "none" : "fundir .45s ease both"; }
     rm.put("e0", "text", {x: px + 18, y: 306, text: ejem, size: 13.5, weight: 700, fill: C.osc});
@@ -82,8 +83,8 @@ DET.linea = {
     rm.put("e5", "text", {x: px + 18, y: 466, text: `= ${n(100 * e.n / M.nucleo, 1)} % de los ${n(M.nucleo)}`, size: 13.5, weight: 700, fill: C.vino});
     // cuánto dejaría de ingreso este tamaño (techo teórico): anuncios en tres barras y la suscripción con los tres escenarios a la vez
     { const pt = conCache("potTramo", () => MOD.potencialPorTramo(cfg, SP)), t = pt.tramos[sel], sus = t.ingreso_de_suscripcion_al_mes, pa = t.ingreso_de_anuncios_al_mes, ads = t.en_chef > 0;
-      const X = px + 18, BW = 120, base = sus.por_curva_de_pago.media, mxS = Math.max(...Object.values(sus.por_curva_de_pago), 1);
-      let y = 498;
+      const X = px + 298, BW = 120, base = sus.por_curva_de_pago.media, mxS = Math.max(...Object.values(sus.por_curva_de_pago), 1);
+      let y = 140;
       rm.put("i0", "text", {x: X, y, text: "Ingreso de este tamaño al mes", size: 15, weight: 700, fill: C.vino, serif: true}); y += 24;
       rm.put("ia0", "text", {x: X, y, text: ads ? `${n(t.en_chef)} en Chef: anuncios` : "Ninguno cae en Chef", size: 13, weight: 700, fill: C.tinta}); y += 10;
       [["baja", "baja", C.vino], ["media", "media", C.dorado], ["alta", "alta", C.osc]].forEach(([k, et, col], j) => {
@@ -92,7 +93,7 @@ DET.linea = {
         rm.put("iab" + j, "rect", {x: X + 44, y: yy, w, h: 16, rx: 8, fill: col, grow: false, attrs: ads ? {"data-tip": `Anuncios, tarifa ${et}|${n(pa[k])} MXN al mes|Techo teórico si todos los de Chef estuvieran en Carta. No es proyección.`, "data-tipp": pa[k] / pa.alta} : {}});
         rm.put("iav" + j, "text", {x: X + 44 + w + 6, y: yy + 13, text: ads ? n(pa[k]) : "", size: 12.5, weight: 700, fill: C.tinta});
       });
-      y += ads ? 3 * 24 + 18 : 4;
+      y += ads ? 3 * 24 + 18 : 22;
       rm.put("is0", "text", {x: X, y, text: `${n(t.en_master_chef)} en Master Chef: suscripción`, size: 13, weight: 700, fill: C.tinta}); y += 20;
       rm.put("is1", "text", {x: X, y, text: `si todos pagaran: ${n(sus.si_todos_pagaran)}`, size: 12.5, weight: 700, fill: C.t2}); y += 12;
       [["media", "Recomendado", C.vino], ["pesimista", "Peor", C.rojo], ["optimista", "Mejor", C.verde]].forEach(([k, nom, col], j) => {
@@ -201,7 +202,7 @@ DET.matriz = {
     const defCols = FUT_DEF.filter(j => !this.oculC.has(j)).map(j => cols.indexOf(j));
     rm.put("br", "line", {x1: defCols.length ? xj + defCols[0] * cw : 0, y1: yc + 36, x2: defCols.length ? xj + defCols[defCols.length - 1] * cw + cw - 10 : 0, y2: yc + 36, stroke: C.dorado, sw: 2});
     rm.put("brt", "text", {x: defCols.length ? xj + (defCols[0] + defCols[defCols.length - 1] + 1) * cw / 2 - 5 : 0, y: yc + 54, text: defCols.length ? "fases futuras · por definir" : "", size: 12.5, weight: 700, fill: C.dorado, anchor: "middle"});
-    rm.put("gr", "rect", {x: xj + 2 * cw - 6, y: y0 - 6, w: this.oculC.has(2) ? 0 : cw - 2, h: filas.length * RH + 54 + 8, rx: 12, fill: "rgba(0,0,0,0)", stroke: C.dorado, sw: 2.4, grow: false});
+    rm.put("gr", "rect", {x: xj + 2 * cw - 5, y: y0 - 6, w: this.oculC.has(2) ? 0 : cw, h: filas.length * RH + 54 + 8, rx: 12, fill: "rgba(0,0,0,0)", stroke: C.dorado, sw: 2.4, grow: false});
     $("#svMx").setAttribute("viewBox", `0 0 1100 ${Math.max(430, yc + 70)}`);
     const oc = [...this.oculF].map(i => `<button class="btn" data-rest="fila:${i}">↩ ${esc(MX.filas[i].nombre)}</button>`).concat([...this.oculC].map(j => `<button class="btn" data-rest="col:${j}">↩ ${esc(MX.trabajos[j])}</button>`), this.sinPrecio ? [`<button class="btn" data-rest="precio:x">↩ Precio</button>`] : [], (this.oculF.size + this.oculC.size || this.sinPrecio || this.orden.k !== ORDEN0.k || this.orden.dir !== ORDEN0.dir) ? [`<button class="btn dor" data-rest="todo:x">Restablecer</button>`] : []);
     $("#oc").innerHTML = oc.join("");
