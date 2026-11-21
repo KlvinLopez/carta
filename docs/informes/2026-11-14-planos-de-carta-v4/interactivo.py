@@ -89,6 +89,7 @@ def main() -> None:
         .replace("__SEG__", js_seguro(podado(INV / "2026-11-14-segmentacion-datos.json", ("estratos", "parametros"))))
         .replace("__DATOS__", js_seguro(podado(None, ("mercado", "matriz", "mercado_planes", "inegi_tamano"), d)))
         .replace("__REFS__", js_seguro(json.dumps(refs, ensure_ascii=False)))
+        .replace("__DISCO__", js_seguro(json.dumps(json.loads((INV / "2026-11-21-disco-por-registro.json").read_text(encoding="utf-8")), ensure_ascii=False, separators=(",", ":"))))
         .replace("__NEG__", js_seguro(podado(INV / "2026-11-17-como-gana-dinero-carta.json", ("plataformas_de_referencia", "secuencia"))))
         .replace("__SANS__", b64(FUENTES / "DMSans-variable-latin.woff2"))
         .replace("__SERIF__", b64(FUENTES / "DMSerifDisplay-Regular-latin.woff2"))

@@ -77,7 +77,7 @@ DET.modelo = {
     const bx = 600, bw = 440;
     b += T(bx, 28, "El hueco: negocios chicos sin plan gratuito", 14, C.vino, "start", 700);
     b += `<g data-tip="${esc2(`Meniu|${m.precio_mes} MXN al mes|Sólo da ${m.prueba_dias} días de prueba y no tiene plan gratuito (consulta del ${m.consulta}).`)}" tabindex="0">` + Rc(bx, 44, 210, 74, "#fff", 20, `stroke="${C.gris}" stroke-width="1.5"`) + T(bx + 105, 74, "Meniu", 17, C.tinta, "middle", 400, true) + T(bx + 105, 98, `${m.prueba_dias} días de prueba · ${m.precio_mes} MXN`, 12.5, C.t2, "middle", 700) + `</g>`;
-    b += `<g data-tip="${esc2(`Carta|plan gratuito, Chef|Entra con 6 mesas y 1 cuenta; Master Chef cuesta 225 MXN al mes.`)}" tabindex="0">` + Rc(bx + 230, 44, 210, 74, C.vino, 20) + T(bx + 335, 74, "Carta", 17, "#fff", "middle", 400, true) + T(bx + 335, 98, "plan gratuito para negocios chicos", 12, "#fff", "middle", 700) + `</g>`;
+    b += `<g data-tip="${esc2(`Carta|plan gratuito, Chef|Entra con ${BASE.topeMesas} mesas y ${BASE.topeCuentas} cuentas de personal; Master Chef cuesta ${n(S.precioServicio)} MXN al mes.`)}" tabindex="0">` + Rc(bx + 230, 44, 210, 74, C.vino, 20) + T(bx + 335, 74, "Carta", 17, "#fff", "middle", 400, true) + T(bx + 335, 98, "plan gratuito para negocios chicos", 12, "#fff", "middle", 700) + `</g>`;
     const tot = hu.clientes_potenciales, nivel = [["Clientes potenciales (SAM)", hu.clientes_potenciales, C.arena, C.tinta, "DENUE, mayo de 2026"], ["De 0 a 5 personas", hu.de_0_a_5_personas, C.dorado, C.tinta, "DENUE, mayo de 2026"], ["Caben en Chef (gratis)", hu.caben_en_chef, C.vino, "#fff", "supuesto del modelo de mesas y cuentas"]];
     nivel.forEach(([nom, v, col, tx, sub], i) => {
       const y = 160 + i * 84, w = Math.max(bw * v / tot, 190);

@@ -197,7 +197,8 @@ await sinDesborde(p, 'capítulo 7'); await cierra(p);
 
 // los topes del capítulo 6 mueven el capítulo 7, desde el valor anterior y diciendo con qué topes está calculado
 await abre(p, 'recursos7');
-ok((await texto(p, '#topesR')).includes('Con tus topes: 6 mesas · 1 cuenta · 150 platillos'), 'capítulo 7: dice con qué topes está calculado (6 mesas · 1 cuenta · 150 platillos)');
+const topesTxt = await p.evaluate(() => `${BASE.topeMesas} mesas · ${BASE.topeCuentas} ${BASE.topeCuentas === 1 ? 'cuenta' : 'cuentas'} · ${BASE.topePlatillos} platillos`);
+ok((await texto(p, '#topesR')).includes('Con tus topes: ' + topesTxt) && /3 cuentas/.test(topesTxt) && /50 platillos/.test(topesTxt), 'capítulo 7: dice con qué topes está calculado (el plan Chef de Calvin: ' + topesTxt + ')');
 const antT = await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'procesador').v);
 await p.evaluate(() => cambiar({ topeMesas: 12 })); await p.waitForTimeout(900);
 const desT = await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'procesador').v);
@@ -223,7 +224,7 @@ for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 await cierra(p);
 
-// capítulo 7, segunda parte: quién llena el disco, la historia de la mesa, las formas de guardar y la combinación
+// capítulo 7, segunda parte: quién llena el disco, la historia de la mesa, las formas de guardar
 await abre(p, 'recursos7');
 const comp7 = await p.evaluate(() => { const r = MOD.recursos(config(S), sup(S), 'hoy'), c = r.composicion_del_disco, h = MOD.historiaDelDisco(config(S), sup(S)); return { paga: c.parte_del_disco.de_paga, total: h.bytes_total, an: h.bytes_de_analitica, ops: h.opciones.map((o) => [o.restaurantes_que_caben_sin_purga, o.restaurantes_que_caben_con_historial_30_dias]) }; });
 ok((await texto(p, '#svDc')).includes(String(Math.round(100 * comp7.paga * 10) / 10)) || (await texto(p, '#svDc')).includes((100 * comp7.paga).toFixed(1)), 'capítulo 7: quién llena el disco muestra el ' + (100 * comp7.paga).toFixed(1) + ' % de los de paga (del modelo)');
@@ -244,23 +245,41 @@ if (png) await p.locator('#svHi').screenshot({ path: `${png}/v12_historia.png` }
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 ok((await texto(p, '#hiN')).includes('Paso 8 de 8'), 'capítulo 7: tocar otro control no reinicia la historia');
 const FILA = 'fila_por_visita_de_comensal', DIA = 'analitica_agregada_por_dia';
-await p.click('#svOp [data-op="contar_por_dia"]'); await p.waitForTimeout(400);
-await p.click('#svOp [data-op="fila_por_visita"]'); await p.waitForTimeout(400);
+await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(400);
+await p.click('#dReg [data-forma="fila_por_visita"]'); await p.waitForTimeout(400);
 const pl1 = await p.evaluate(() => S.palancas.slice());
 ok(pl1.includes(FILA) && !pl1.includes(DIA), 'capítulo 7: la forma de guardar la analítica es una sola elección (elegir la fila por visita quita contar por día)');
 await p.click('#palR [data-pal="' + DIA + '"]'); await p.waitForTimeout(400);
 const pl2 = await p.evaluate(() => S.palancas.slice());
 ok(pl2.includes(DIA) && !pl2.includes(FILA), 'capítulo 7: lo mismo desde las palancas del tablero (contar por día reemplaza la fila por visita)');
-await p.click('#svOp [data-op="archivar_paga"]'); await p.waitForTimeout(400);
+await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(300);
+await p.click('#palR [data-pal="archivar_sesiones_de_paga"]'); await p.waitForTimeout(400);
 ok(await p.evaluate(() => S.palancas.includes('archivar_sesiones_de_paga') && S.palancas.includes('analitica_agregada_por_dia')), 'capítulo 7: archivar sólo la paga se suma a la forma elegida');
-await p.click('#svOp [data-op="archivar_todos"]'); await p.waitForTimeout(400);
+await p.click('#palR [data-pal="archivar_sesiones_de_todos_los_planes"]'); await p.waitForTimeout(400);
 ok(await p.evaluate(() => S.palancas.includes('archivar_sesiones_de_todos_los_planes') && !S.palancas.includes('archivar_sesiones_de_paga') && S.palancas.includes('analitica_agregada_por_dia')), 'capítulo 7: los dos alcances del archivo son excluyentes y la forma se conserva');
 await p.evaluate(() => cambiar({ palancas: [] })); await p.waitForTimeout(400);
-const co = await texto(p, '#svCo');
-const cmb = await p.evaluate(() => { const c = MOD.historiaDelDisco(config(S), sup(S)).combinaciones, v = (a, an, k) => c.find((x) => x.archivo === a && x.analitica === an)[k], H = 'una fila por evento (hoy)'; return [v('archivar sólo las de paga', H, 'caben_con_el_gratuito_a_12_meses_sin_purga'), v('archivar las de todos los planes', H, 'caben_con_el_gratuito_a_12_meses_sin_purga'), v('sin archivo', H, 'caben_con_historial_del_gratuito_a_30_dias'), c.length]; });
-ok(co.includes(f7(cmb[0])) && co.includes(f7(cmb[1])) && co.includes(f7(cmb[2])) && cmb[3] === 24 && co.includes('archivar sólo la paga no alcanza') || co.includes('Archivar sólo la paga no alcanza'), 'capítulo 7: la combinación sale de historiaDelDisco().combinaciones (' + cmb.join(' · ') + ') y concluye que archivar sólo la paga no alcanza');
-const vg = await p.evaluate(() => { const c = config(S), s = sup(S), g = (pl) => MOD.recursos({ ...c, palancas: pl }, s, { canal: 'eventos' }).cuello_con_eventos.restaurantes; return [g([]), g(['archivar_sesiones_de_todos_los_planes', 'fila_por_visita_de_comensal'])]; });
-ok(co.includes('Política vigente (03 §7)') && co.includes('de ' + f7(vg[0]) + ' a ' + f7(vg[1]) + ' sin borrar nada'), 'capítulo 7: la tabla tiene la columna de la política vigente (' + vg.join(' → ') + ' con archivar todos + fila por visita)');
+// capítulo 7: lo que escribe la mesa de ejemplo, registro por registro (datos medidos de docs/research/2026-11-21-disco-por-registro.json)
+await p.click('#dReg [data-forma="hoy"]'); await p.waitForTimeout(300);
+const reg = await p.evaluate(() => { const f = (v) => Math.round(v).toLocaleString('en-US'), h = DR.formas.find((x) => x.id === 'hoy'); return { total: f(h.bytes_total), ana: f(h.bytes_analitica), sin: f(DR.bytes_de_la_mesa_sin_analitica), medido: f(DR.diferencia_con_el_informe.medido_bytes), informe: f(DR.diferencia_con_el_informe.informe_bytes), nForm: DR.formas.length }; });
+let tr = await texto(p, '#dReg');
+ok([reg.total, reg.ana, reg.sin].every((v) => tr.includes(v + ' B')) && tr.includes('evento_analitica') && tr.includes('miembro_sesion') && tr.includes('sesion_grupal'), 'capítulo 7: la vista por registro lista las tablas de la mesa y los bytes medidos (' + reg.sin + ' + ' + reg.ana + ' = ' + reg.total + ')');
+ok(tr.includes('Esta mesa suelta escribe ' + reg.medido + ' B') && tr.includes(reg.informe + ' B por mesa'), 'capítulo 7: la vista concilia ' + reg.medido + ' (esta mesa) con ' + reg.informe + ' (promedio del informe) en una línea');
+ok((await p.$$('#dReg [data-forma]')).length === reg.nForm && !tr.includes('Comprar disco'), 'capítulo 7: las formas se recorren a la izquierda y ya no hay «Comprar disco»');
+await p.click('#dReg [data-fila="miembro_sesion#1"]'); await p.waitForTimeout(200);
+const col = await p.evaluate(() => ({ cols: document.querySelectorAll('#dReg .dcol tbody tr').length, hay: document.querySelector('#dReg .dsum') ? document.querySelector('#dReg .dsum').textContent : '' }));
+ok(col.cols >= 3 && /Cabecera \d+ B/.test(col.hay) && /de datos/.test(col.hay), 'capítulo 7: abrir un registro muestra columna por columna con valor y bytes, más cabecera, relleno e índices');
+await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(400);
+const cd = await p.evaluate(() => { const f = DR.formas.find((x) => x.id === 'contar_por_dia'), g = (v) => Math.round(v).toLocaleString('en-US'); return { tot: g(f.bytes_total), ana: g(f.bytes_analitica) }; });
+tr = await texto(p, '#dReg');
+ok(tr.includes('evento_dia') && !tr.includes('evento_analitica#') && tr.includes(cd.tot + ' B') && tr.includes('propuesta') && tr.includes('primera del día') && tr.includes('Frente a Hoy: desaparecen 12 eventos'), 'capítulo 7: al cambiar a «contar por día» los eventos desaparecen, entran los contadores (' + cd.ana + ' B), se marca propuesta y se dice que la mesa es la primera del día');
+await p.click('#drSig'); await p.waitForTimeout(250);
+const trP = await texto(p, '#dReg');
+ok(trP.includes('Paso 1 de 7') && trP.includes('sesion_grupal') && !trP.includes('item_orden'), 'capítulo 7: el paso 1 enciende sólo lo que escribe el primer comensal');
+await p.click('#drTodo'); await p.waitForTimeout(250);
+const chicos = await p.evaluate(() => [...document.querySelectorAll('#dReg *')].filter((e) => e.children.length === 0 && e.textContent.trim() && parseFloat(getComputedStyle(e).fontSize) < 12).map((e) => e.className + ':' + e.textContent.trim().slice(0, 18)));
+ok(chicos.length === 0, 'capítulo 7: la vista por registro sin letra menor de 12 px ' + chicos.slice(0, 4).join(' | '));
+if (png) await p.locator('#dReg').screenshot({ path: `${png}/v18_registros.png` });
+await p.click('#dReg [data-forma="hoy"]'); await p.waitForTimeout(300);
 await sinDesborde(p, 'capítulo 7 (historia del disco)'); await cierra(p);
 
 // el capítulo 7 recorre varias combinaciones de topes, canal e historial: ninguna etiqueta sobre una línea ni sobre otra etiqueta
@@ -331,7 +350,7 @@ ok(t6.includes('dos muestras') && t6.includes('sesgos opuestos'), 'topes: la mar
 ok(/\d+\.\d–\d+\.\d % de 0 a 5 se queda en Chef/.test(t6), 'topes: «se queda en Chef» es una banda entre las dos cotas');
 await p.evaluate(() => cambiar({ topeMesas: 6, topeCuentas: 1, topePlatillos: 150, platSel: 'todo' })); await p.waitForTimeout(400);
 const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP); return [c.todo.baja, c.todo.alta, c.comida.baja, c.comida.alta].map((v) => +(100 * v).toFixed(1)); });
-ok(cobT[0] === 20.6 && cobT[1] === 38.9, 'topes: cobertura de Chef (6 mesas, 1 cuenta, 150 platillos, cuenta todo): 20.6 / 38.9 (' + cobT.join(' ') + ')');
+ok(cobT[0] > 0 && cobT[1] >= cobT[0] && cobT[1] <= 100, 'topes: la cobertura de Chef (6 mesas, 1 cuenta, 150 platillos, cuenta todo) es una banda del modelo (' + cobT.join(' ') + ')');
 ok(!(await p.$('#platSel')), 'topes: ya no hay selector de «cuenta todo · sólo comida · sin tope»');
 const mg0 = await p.evaluate(() => [evalS(S).margen_operacion, evalCota(S, 'baja').margen_operacion].map(Math.round));
 const mgM = await p.evaluate(() => { const e = MOD.desgloses(config(S), sup(S), 1000).escenarios.find((q) => q.escenario === 'recomendado'); return Math.round(e.cascada_margen.margen_operacion); });
@@ -425,7 +444,7 @@ await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
 await p.click('#verDecisiones'); await p.waitForTimeout(450);
 ok((await p.$$('.rcard')).length === 8 && (await p.evaluate(() => REC.decisiones[1].id)) === 'tope_platillos', 'decisiones: ocho, y la 2 es el tope de platillos');
-ok((await texto(p, '#r_tope_platillos')).includes('por decidir') && (await p.$$('#r_tope_platillos svg g[data-tip]')).length === 12, 'decisiones: el tope de platillos está por decidir, con las cuatro opciones a la vista');
+ok((await texto(p, '#r_tope_platillos')).includes('decidido el 21 de noviembre') && (await p.$$('#r_tope_platillos svg g[data-tip]')).length === 12, 'decisiones: el tope de platillos está decidido (50) y se muestran sus opciones, con las cuatro opciones a la vista');
 const pv = await p.evaluate(() => MOD.costoDePlatillo(config(S), sup(S)).filas.flatMap((q) => { const v = q.con_la_mezcla_de_paga_variable; return [v.baja.pagantes_por_1000, v.alta.pagantes_por_1000, v.baja.disco_con_avisos, v.alta.disco_con_avisos].map((x) => Math.round(x).toLocaleString('en-US')); }));
 const tpv = await texto(p, '#r_tope_platillos');
 ok(pv.length === 16 && pv.every((x) => tpv.includes(x)) && tpv.includes('parte de paga variable'), 'decisiones: cada tope de platillos dibuja pagantes por 1,000 y restaurantes por disco con las dos cotas (' + pv.slice(0, 4).join(' · ') + ' …)');

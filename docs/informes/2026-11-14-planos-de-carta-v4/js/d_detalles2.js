@@ -82,7 +82,7 @@ const COLPLAN = [C.vino, C.dorado], NOMPLAN = [PLAN.gratis, PLAN.paga]; // Chef 
 DET.topes = {
   titulo: "Chef es gratis para los dos tamaños chicos; mueve los límites y mira dónde cae cada tamaño.",
   fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
-  nota: "Dos planes: Chef gratis para 0 a 5 personas (6 mesas, 1 cuenta); Master Chef desde ahí. Chef Ejecutivo queda como futura escalación. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato.",
+  nota: `Dos planes: Chef gratis para 0 a 5 personas (${BASE.topeMesas} mesas, ${BASE.topeCuentas} cuentas de personal además del dueño, ${BASE.topePlatillos} platillos); Master Chef desde ahí. Chef Ejecutivo queda como futura escalación. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato.`,
   montar(host) {
     host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 590" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.rm = RM($("#svT", host)); this.svg = $("#svT", host); this.armado = false;
