@@ -263,6 +263,9 @@ function mesero() {
   capa('mesero-brazos-tableta', caja, F(ante(-1, MX - 78, 600) + ante(1, MX + 70, 600)) +
     `<g transform="rotate(-4 ${MX - 4} 556)"><rect x="${MX - 76}" y="500" width="144" height="106" rx="12" fill="#3b3a40"/><rect x="${MX - 76}" y="500" width="144" height="106" rx="12" fill="none" stroke="#6a6870" stroke-width="2.5"/><circle cx="${MX + 52}" cy="516" r="5" fill="#141316"/><circle cx="${MX + 52}" cy="516" r="2" fill="#4a4a55"/></g>` +
     F(mano(MX - 74, 600, 22) + mano(MX + 66, 600, 22)));
+  // trae la comida: un plato servido en cada mano
+  const servido = (x, c1, c2) => `<ellipse cx="${x}" cy="592" rx="58" ry="13" fill="#f4ead8"/><path d="M${x - 58} 592 a58 13 0 0 0 116 0" fill="none" stroke="#a8977c" stroke-width="2" opacity=".6"/><ellipse cx="${x - 8}" cy="584" rx="30" ry="9" fill="${c1}"/><ellipse cx="${x + 20}" cy="586" rx="14" ry="6" fill="${c2}"/>`;
+  capa('mesero-brazos-platos', caja, F(ante(-1, MX - 150, 606) + ante(1, MX + 150, 606)) + F(servido(MX - 162, '#c86a3a', '#6f8f3a') + servido(MX + 162, '#7a3a26', '#6f8f3a'), 'Lm') + F(mano(MX - 150, 612, 22) + mano(MX + 150, 612, 22)));
   // extiende la cuenta: el papel en la mano, hacia la mesa
   capa('mesero-brazos-cuenta', caja, F(ante(-1, MX - 170, 650) + ante(1, MX + 40, 640)) +
     `<g transform="rotate(-14 ${MX - 196} 640)"><rect x="${MX - 216}" y="596" width="40" height="92" rx="3" fill="#fbf6ea"/><path d="M${MX - 208} 612 h24 M${MX - 208} 624 h24 M${MX - 208} 636 h18 M${MX - 208} 648 h24 M${MX - 208} 666 h24" stroke="#8a7a62" stroke-width="2.5"/></g>` +
