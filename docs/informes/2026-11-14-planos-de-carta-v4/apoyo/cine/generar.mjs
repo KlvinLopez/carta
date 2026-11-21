@@ -195,8 +195,8 @@ function comensal(k) {
   capa(`${k}-brazo`, caja, ante(146, -92, manoF(150, -93, 3, t.piel, 1.25)));
   const X = (s) => `<g transform="translate(${t.ox} ${OY}) scale(${t.dir} 1)">${s}</g>`;
   capa(`${k}-brazo-cel`, caja, ante(126, -172, `<path d="M118 -196 C134 -204 150 -196 152 -180 C152 -164 138 -156 124 -160 C112 -166 110 -186 118 -196Z" fill="${t.piel}"/>`,
-    X(`<g transform="rotate(16 142 -214)"><rect x="134" y="-250" width="15" height="74" rx="5" fill="#0d0a0a"/><rect x="131" y="-246" width="5" height="66" rx="2" fill="#fff4e2"/></g>`) + T(`<path d="M140 -190 C150 -192 158 -186 156 -178 C152 -172 142 -174 138 -180Z" fill="${t.piel}"/>`),
-    X(`<circle cx="84" cy="-262" r="140" fill="url(#gPant)" opacity=".8"/>`)));
+    X(`<g transform="rotate(16 142 -214)"><rect x="133" y="-250" width="16" height="74" rx="5" fill="#2b2b30"/><rect x="146" y="-244" width="3" height="16" rx="1.5" fill="#55545c"/></g>`) + T(`<path d="M140 -190 C150 -192 158 -186 156 -178 C152 -172 142 -174 138 -180Z" fill="${t.piel}"/>`),
+    X(`<circle cx="84" cy="-262" r="140" fill="url(#gPant)" opacity=".4"/>`)));
   capa(`${k}-brazo-carta`, caja, ante(124, -176, `<path d="M116 -200 C132 -208 148 -200 150 -184 C150 -168 136 -160 122 -164 C110 -170 108 -190 116 -200Z" fill="${t.piel}"/>`,
     X(`<g transform="rotate(14 150 -230)"><rect x="136" y="-282" width="30" height="104" rx="5" fill="#5a1a2c"/><rect x="132" y="-278" width="7" height="96" rx="3" fill="#f3e9d6"/><rect x="160" y="-270" width="3" height="80" fill="${P.oro}" opacity=".7"/></g>`) + T(`<path d="M138 -194 C148 -196 156 -190 154 -182 C150 -176 140 -178 136 -184Z" fill="${t.piel}"/>`)));
   capa(`${k}-brazo-copa`, caja, ante(118, -186, `<path d="M112 -208 C128 -216 142 -208 144 -194 C144 -180 132 -172 118 -176 C106 -182 104 -198 112 -208Z" fill="${t.piel}"/>`,
@@ -223,8 +223,8 @@ function alFondo(k) {
   const m = (dx, y, ang) => manoF(x + dx, y, ang, t.piel, 1.05);
   const ant = (lado, wx, wy) => miembro(x + lado * 92, 694, 36, x + wx, wy, 24, t.ropa);
   capa(`${k}-brazos`, caja, F(ant(-1, -52, 720) + ant(1, 52, 720)) + F(m(-56, 720, 12) + m(56, 720, 168)));
-  capa(`${k}-brazos-cel`, caja, W(`<circle cx="${x}" cy="600" r="140" fill="url(#gPant)" opacity=".6"/>`) + F(ant(-1, -30, 690) + ant(1, 30, 690)) +
-    W(`<rect x="${x - 25}" y="626" width="50" height="86" rx="10" fill="#0d0a0a"/><rect x="${x - 21}" y="630" width="42" height="78" rx="7" fill="#fff4e2"/><rect x="${x - 21}" y="630" width="42" height="16" rx="7" fill="#6b2d3e"/><path d="M${x - 14} 656 h28 M${x - 14} 668 h22 M${x - 14} 680 h26 M${x - 14} 692 h16" stroke="#8a7a62" stroke-width="3" stroke-linecap="round" opacity=".7"/>`) + F(m(-36, 694, 10) + m(36, 694, 170)));
+  capa(`${k}-brazos-cel`, caja, W(`<circle cx="${x}" cy="590" r="130" fill="url(#gPant)" opacity=".28"/>`) + F(ant(-1, -30, 690) + ant(1, 30, 690)) +
+    W(`<rect x="${x - 25}" y="626" width="50" height="86" rx="10" fill="#2b2b30"/><rect x="${x - 25}" y="626" width="50" height="86" rx="10" fill="none" stroke="#55545c" stroke-width="2"/><rect x="${x - 19}" y="632" width="20" height="20" rx="6" fill="#1b1b1f"/><circle cx="${x - 13}" cy="638" r="3" fill="#3d3d46"/><circle cx="${x - 5}" cy="646" r="3" fill="#3d3d46"/>`) + F(m(-36, 694, 10) + m(36, 694, 170)));
   capa(`${k}-brazos-carta`, caja, F(ant(-1, -62, 676) + ant(1, 62, 676)) +
     F(`<path d="M${x - 78} 612 L${x - 2} 620 V716 L${x - 78} 706Z" fill="#5a1a2c"/><path d="M${x + 78} 612 L${x + 2} 620 V716 L${x + 78} 706Z" fill="#4a1424"/>`, 'Lm') + W(`<path d="M${x - 70} 622 L${x - 8} 628 M${x + 70} 622 L${x + 8} 628" stroke="${P.oro}" stroke-width="2" opacity=".6"/>`) + F(m(-74, 690, 60) + m(74, 690, 120)));
 }

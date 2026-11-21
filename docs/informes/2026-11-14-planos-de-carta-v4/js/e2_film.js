@@ -128,10 +128,10 @@ const TOMAS = [
   ["juntos", 4, 7, [["f3", "La mesa pide junta: cada quien ve lo de todos"]], ["~Antes: al tanteo.", "La mesa *pide junta*."], "hook", 1.4],
   ["recomienda", 4, 6.5, [["vis", "Pasarle un platillo a otra persona de la mesa"]], ["Pásaselo *a Carlos*."], "linea"],
   ["confirma", 4, 4.5, [["f3", "La mesa manda una sola comanda desde los teléfonos y avisa al mesero"]], ["La mesa *llama al mesero*."], "centro"],
-  ["esperan", 4, 5.6, [["f3", "Cada quien ve en su teléfono que la mesa llamó al mesero"]], [], ""],
+  ["esperan", 4, 7.6, [["f3", "Cada quien ve en su teléfono que la mesa llamó al mesero"]], [], ""],
   ["avisa", 4, 6, [["f3", "El mesero recibe la comanda en su teléfono"], ["vis", "Aviso con el teléfono bloqueado"]], ["Al mesero le llega", "*al instante*."], "izq", 0.2, 4.2, 0.6],
   ["llega", 4, 9, [["f3", "El mesero valida y atiende la comanda"]], ["~Antes: cuatro órdenes, a mano.", "Una sola comanda. *Él la valida*."], "linea"],
-  ["cocina", 4, 4.8, [["f3", "El seguimiento de la orden en el teléfono de cada quien"]], [], ""],
+  ["cocina", 4, 5.6, [["f3", "El seguimiento de la orden en el teléfono de cada quien"]], [], ""],
   ["abierta", 5, 48, CICLO, ["Abierta"], "fase", 0.8],
   ["cierres", 5, 31.1, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 29.2],
   ["cuenta", 5, 21.6, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 2.3],
@@ -333,6 +333,17 @@ const cineCss = `
 #cine .sb b{position:absolute;left:34px;top:13px;font:700 16px 'DM Sans',sans-serif}
 #cine .sb i{position:absolute;left:50%;top:10px;width:100px;height:28px;margin-left:-50px;border-radius:16px;background:#0b0809}
 #cine .sb u{position:absolute;right:30px;top:16px;width:24px;height:11px;border-radius:4px;box-shadow:inset 0 0 0 1.6px currentColor;background:linear-gradient(90deg,currentColor 72%,transparent 72%)}
+#cine .halo{position:absolute;width:170px;height:66px;margin:-33px 0 0 -85px;border-radius:33px;box-shadow:0 0 0 4px #fdc34d,0 0 26px 8px rgba(253,195,77,.75);opacity:0;visibility:hidden;z-index:8;pointer-events:none}
+#cine .foto{flex:none;display:inline-block;width:64px;height:64px;border-radius:50%;overflow:hidden;background:#2a1d17;box-shadow:0 0 0 2.5px rgba(253,195,77,.7)}
+#cine .foto img{width:100%;height:100%;object-fit:cover;object-position:50% 18%}
+#cine .pjav{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-weight:700}#cine .pjav .foto{width:36px;height:36px;box-shadow:0 0 0 2px #b8860b}
+/* los cuatro teléfonos en fila: líneas doradas entre ellos, y arriba de cada uno su foto y su nombre */
+#cine .dvq{position:absolute;top:196px;width:2px;height:790px;z-index:2;background:linear-gradient(180deg,rgba(253,195,77,0),rgba(253,195,77,.7) 18%,rgba(253,195,77,.7) 82%,rgba(253,195,77,0));transform-origin:50% 0;opacity:0;visibility:hidden}
+#cine .nq{position:absolute;top:122px;width:350px;display:flex;align-items:center;justify-content:center;gap:14px;font:400 40px 'DM Serif Display',serif;color:#fef9f1;z-index:4;opacity:0;visibility:hidden}
+#cine .qL .eord{top:150px}
+#cine .qL .lst{position:absolute;left:24px;top:330px;display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:999px;background:#eef0e2;color:#4c5630;font-size:18px;font-weight:700}
+#cine .qL .lst svg,#intro #cine .qL .lst svg{width:18px;height:18px;stroke:#4c5630}
+#cine .qL .lesp{position:absolute;left:26px;right:26px;bottom:36px;height:56px;border-radius:999px;background:#efe6d6;color:#8a7a6c;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
 #cine .toque{position:absolute;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:rgba(255,255,255,.4);box-shadow:0 0 0 3px rgba(255,255,255,.9),0 6px 18px rgba(0,0,0,.25);opacity:0;z-index:8}
 /* visor de la cámara */
 #cine .cs.visor img{position:absolute;inset:0;width:400px;height:866px}
@@ -450,7 +461,7 @@ const cineCss = `
 #cine .bloq{background:linear-gradient(170deg,#6b2d3e,#2a0d17 70%)!important;color:#fef9f1;text-align:center;padding-top:110px}
 #cine .bloq .hr{font-size:84px;font-weight:300;letter-spacing:-.02em;line-height:1}
 #cine .bloq .fe{font-size:18px;opacity:.8;margin-top:6px}
-#cine .noti{margin:70px 18px 0;padding:16px;border-radius:24px;background:rgba(254,249,241,.94);color:#1a1a1a;text-align:left}
+#cine .noti{margin:66px 14px 0;padding:18px 20px;border-radius:42px;background:rgba(254,249,241,.94);color:#1a1a1a;text-align:left}
 #cine .noti .ap{display:flex;align-items:center;gap:8px;font-size:14px;color:#5b4a3d}
 #cine .noti .ap i{width:24px;height:24px;border-radius:7px;background:#4f1728;color:#fdc34d;font:400 16px 'DM Serif Display',serif;display:flex;align-items:center;justify-content:center;font-style:normal}
 #cine .noti b{display:block;font-size:18px;margin-top:8px}
@@ -526,10 +537,10 @@ const cineCss = `
 #cine .qE .e2 .eic{background:linear-gradient(135deg,#d4a017,#b8860b)}
 #cine .qE .eic svg,#intro #cine .qE .eic svg{width:22px;height:22px;stroke:#fff}
 #cine .qE .ecall b{display:block;font-size:16px;color:#4f1728}#cine .qE .e2 b{color:#8a6508}#cine .qE .ecall small{font-size:13px;color:#5b4a3d;line-height:1.25}
-#cine .qE .eord{position:absolute;left:24px;right:24px;top:404px}
-#cine .qE .eord h5{font:400 22px 'DM Serif Display',serif;margin:0 0 10px}
-#cine .qE .edsh{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:20px;background:#fff;box-shadow:0 2px 10px rgba(29,28,23,.05);font-size:16px;font-weight:600}
-#cine .qE .edsh img{width:56px;height:56px;border-radius:14px;object-fit:cover;background:#2a1d17}
+#cine .eord{position:absolute;left:24px;right:24px;top:404px}
+#cine .eord h5{font:400 22px 'DM Serif Display',serif;margin:0 0 10px}
+#cine .edsh{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:20px;background:#fff;box-shadow:0 2px 10px rgba(29,28,23,.05);font-size:16px;font-weight:600}
+#cine .edsh img{width:56px;height:56px;border-radius:14px;object-fit:cover;background:#2a1d17}
 /* tablero: la solicitud de cambio, con «Rechazar» y «Aceptar» */
 #cine .psol{position:absolute;left:18px;right:18px;top:548px;z-index:2;padding:18px 20px 20px;border-radius:24px;background:#fff;box-shadow:0 8px 24px rgba(79,23,40,.2);display:flex;flex-direction:column;gap:7px;opacity:0;visibility:hidden}
 #cine .psol b{font-size:18px}#cine .psol span{font-size:17px;font-weight:600;color:#4f1728;line-height:1.2}#cine .psol small{font-size:14px;color:#5b4a3d}
@@ -561,7 +572,7 @@ const cineCss = `
 /* la cuenta: cuatro teléfonos en cuadrícula, cada uno en su espacio, con su lupa al lado */
 #cine .celda{position:absolute;width:660px;height:412px;border-radius:30px;overflow:hidden;background:rgba(254,249,241,.06);box-shadow:inset 0 0 0 1.5px rgba(253,195,77,.24);opacity:0;visibility:hidden}
 #cine .celda.cq0{left:40px;top:128px}#cine .celda.cq1{left:716px;top:128px}#cine .celda.cq2{left:40px;top:556px}#cine .celda.cq3{left:716px;top:556px}
-#cine .ctt{position:absolute;left:262px;right:16px;top:24px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;color:#fef9f1}
+#cine .ctt{opacity:0;visibility:hidden;position:absolute;left:262px;right:16px;top:24px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;color:#fef9f1}
 #cine .ctt small{font-size:19px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fdd88a}
 #cine .ctt em{font-style:normal;font-size:18px;color:rgba(254,249,241,.78)}
 #cine .vv{position:relative;display:inline-block;width:74px;height:1.25em;vertical-align:bottom;text-align:left}
@@ -712,7 +723,7 @@ const pantallas = () => `
   <div class="toast">${ico.ok}Se la enviaste a Carlos</div>
 </div>
 ${listos("pListosA")}
-<i class="toque"></i>`;
+<i class="halo"></i><i class="toque"></i>`;
 
 const pantallasB = () => `
 <div class="cs cx pCarlos">${sb()}${cab(true)}
@@ -723,7 +734,7 @@ const pantallasB = () => `
   <div class="btn2 v conf">Confirmar mi orden · $230</div>
 </div>
 ${listos("pListosB")}
-<i class="toque"></i>`;
+<i class="halo"></i><i class="toque"></i>`;
 
 /* los cuatro de la mesa en el ciclo: [capas de la mano, inicial, color del avatar, nombre, lo que pidió] (cifras de ejemplo) */
 const QUIEN = [["ana", "A", "ca", "Ana", [["Pescado a la talla", 245], ["Flan de la casa", 85]]], ["sofia", "S", "cs", "Sofía", [["Ensalada de betabel", 140], ["Limonada", 40]]],
@@ -744,9 +755,10 @@ const pantEspera = (k) => `<div class="cs cx qE">${sb()}<div class="eh">Orden de
   <div class="ecall e1"><span class="eic">${icoCub}</span><div><b>Llamando a tu mesero…</b><small>Confirmará la orden de la mesa y la enviará a cocina.</small></div></div>
   <div class="ecall e2"><span class="eic">${icoCub}</span><div><b>¡Tu mesero va en camino!</b><small>Confirmará la orden completa y la enviará a cocina.</small></div></div>
   <div class="eord"><h5>Tu orden</h5><div class="edsh"><img src="${CI(PLATO_DE[k])}" alt="">${QUIEN[k][4][0][0]}</div></div></div>`;
+const pantLista = (k) => `<div class="cs cx qL">${sb()}${cab(true)}<div class="eord"><h5>Tu orden</h5><div class="edsh"><img src="${CI(PLATO_DE[k])}" alt="">${QUIEN[k][4][0][0]}</div></div><div class="lst">${ico.ok}Lista</div><div class="lesp">Esperando a la mesa…</div></div>`;
 const pantCocina = (sol) => `<div class="cs cx qK sgx">${sb()}<div class="sgc"><i>Carta</i><span>Mesa 7</span></div>
   <div class="sgp"><span><u>${ico.ok}</u>Orden enviada</span><em></em><span class="act"><u>${icoSar}</u>En cocina</span><em class="no"></em><span class="no"><u>${icoCub}</u>Servida</span></div>
-  <div class="sgm"><span class="sgk">${icoSar}<i></i><i></i><i></i></span><b>Tu comida se<br>está preparando</b><small>Tu mesero confirmó tu orden y la mandó a cocina.</small><div class="kbar"><u></u></div><small>Tiempo estimado · 12–15 min</small></div>
+  <div class="sgm"><span class="sgk">${icoSar}<i></i><i></i><i></i></span><b>Tu comida se<br>está preparando</b><div class="kbar"><u></u></div></div>
   <div class="sgb"><div class="sb1">Llamar al mesero</div></div>
   ${sol ? `<div class="mvel"></div><div class="msh m1"><h5>¿Qué deseas hacer?</h5><div class="mop"><b>Modificar orden</b><small>Añadir, eliminar o ajustar cantidades</small></div></div>
   <div class="msh m2"><h5>Modificar orden</h5><small>Ajusta cantidades — en cero se elimina</small>${sol.filas.map(([n, c, cl]) => `<div class="mfi ${cl || ""}"><b>${n}</b><i>${c}</i></div>`).join("")}<div class="mcf">Confirmar con el mesero</div></div>
@@ -754,7 +766,7 @@ const pantCocina = (sol) => `<div class="cs cx qK sgx">${sb()}<div class="sgc"><
 /* el seguimiento de la orden, como en el prototipo (P04b, estado «servida») */
 const pantSeg = () => `<div class="cs cx qS sgx">${sb()}<div class="sgc"><i>Carta</i><span>Mesa 7</span></div>
   <div class="sgp"><span><u>${ico.ok}</u>Orden enviada</span><em></em><span><u>${ico.ok}</u>En cocina</span><em></em><span class="act"><u>${icoCub}</u>Servida</span></div>
-  <div class="sgm"><span class="sgi">${icoCub}</span><b>Comida entregada</b><em>¡Disfruta tu comida!</em><small>Cuando termines, revisa tu cuenta.</small></div>
+  <div class="sgm"><span class="sgi">${icoCub}</span><b>Comida entregada</b><em>¡Disfruta tu comida!</em></div>
   <div class="sgt">✓ Flan de la casa, pedido</div>
   <div class="sgb"><div class="sb1">Llamar al mesero</div><div class="sb1">Agregar otro platillo o postre</div><div class="sb2">Cerrar mi cuenta</div></div>
   <div class="sgw"><span><i></i>Tu cuenta está cerrada · esperando a los demás…</span><div class="sb1">Volver a abrir cuenta</div></div></div>`;
@@ -777,7 +789,7 @@ const pantallasQ = (k) => {
   const filas = (like) => pl.map(([n, pr]) => `<span>${n}<i>$${pr}</i>${like ? `<em class="qlike">♥<u class="qlk">♥</u></em>` : ""}</span>`).join("");
   const t0 = pesoF(totalDe(k, 0)).slice(1), t1 = pesoF(totalDe(k, 3)).slice(1);
   return `
-${pantEspera(k)}${pantCocina(null)}${pantSeg()}
+${pantLista(k)}${pantEspera(k)}${pantCocina(null)}${pantSeg()}
 <div class="cs qC"><div class="qin">${cab(true)}<div class="qhero"><b>Mi cuenta</b><small>${nom} · Mesa 7</small></div>
   <div class="kcta">${filas(true)}</div>
   <div class="kprop"><b>Propina</b>${[10, 15, 20].map(x => `<span class="cpc${x === PROP[k] ? " on" : ""}">${x} %</span>`).join("")}</div>
@@ -785,15 +797,15 @@ ${pantEspera(k)}${pantCocina(null)}${pantSeg()}
     : `<div class="kinv"><span class="av cs">S</span><div><b>Invitar a Sofía</b></div><span class="qseg"><u class="qsel"></u><i>100 %</i><i class="qp">${icoGente}</i><i>%</i></span></div><div class="kcta"><span class="cinv">Tu parte de lo de Sofía<i>$${QPARTE}</i></span></div>`}
   <div class="ktot"><b>Total</b><i class="cv0">$${t0}</i><i class="cv1">$${t1}</i></div>
   <div class="tel">${ico.tel}El pago se hace con el mesero</div></div><div class="btn2 v qll">Llamar al mesero</div>${sb()}</div>
-<i class="toque"></i>`;
+<i class="halo"></i><i class="toque"></i>`;
 };
 
 /* el teléfono del mesero en primer plano (acto 4): el aviso con la pantalla bloqueada y la comanda */
 const pantallasM = () => `
 <div class="cs bloq">${sb(true)}<div class="hr">9:41</div><div class="fe">jueves</div>
-  <div class="noti"><div class="ap"><i>C</i>Carta · ahora</div><b>Mesa 7: los cuatro están listos para ordenar</b><div class="ya">Ya voy</div></div>
+  <div class="noti"><div class="ap"><i>C</i>Carta · ahora</div><b>Mesa 7: Pedidos listos</b><div class="ya">Ya voy</div></div>
 </div>
-<div class="cs cx pOrden">${sb()}<div class="cab"><span class="lg">L</span>La Ceiba · Personal</div>
+<div class="cs cx pOrden">${sb()}<div class="cab"><span class="lg">L</span>La Ceiba<span class="pjav"><span class="foto"><img src="${CI("mesero-cabeza")}" alt=""></span>Javier</span></div>
   <div class="mesa7"><h4>Mesa 7</h4><span>Lista para ordenar</span></div>
   <div class="ped"><img src="${CI("plato-pescado")}" alt=""><div><b>Ana</b><span>Pescado a la talla</span></div></div>
   <div class="ped"><img src="${CI("plato-ensalada")}" alt=""><div><b>Sofía</b><span>Ensalada de betabel</span></div></div>
@@ -801,20 +813,20 @@ const pantallasM = () => `
   <div class="ped"><img src="${CI("plato-res")}" alt=""><div><b>Carlos</b><span>Arrachera</span></div></div>
   <div class="btn2 v">Atender comanda</div>
 </div>
-<i class="toque"></i>`;
+<i class="halo"></i><i class="toque"></i>`;
 
 /* el teléfono del mesero en el recuadro del acto 5: Mesa 7 y su pista de cuatro estados; el estado activo cambia cuando él toca */
-const FASES = [["Abierta", "Piden, comen y platican"], ["Cuenta cerrada", "Cada quien cierra la suya"], ["Pagada", "El cobro, fuera de Carta"], ["Mesa limpia", "Libre para otros comensales"]];
+const FASES = [["Cuenta abierta"], ["Cuenta cerrada"], ["Pagada"], ["Mesa limpia"]];
 const pantallasP = () => `
-<div class="cs cx pMesa">${sb()}<div class="cab"><span class="lg">L</span>La Ceiba · Personal</div>
+<div class="cs cx pMesa">${sb()}<div class="cab"><span class="lg">L</span>La Ceiba<span class="pjav"><span class="foto"><img src="${CI("mesero-cabeza")}" alt=""></span>Javier</span></div>
   <div class="mesaP"><h4>Mesa 7</h4><span class="mst"><i class="m0">Abierta</i><i class="m1">Cuenta cerrada</i><i class="m2">Pagada</i><i class="m3">Libre</i></span></div>
-  <div class="pista">${FASES.map(([n, d], k) => `<div class="ps ps${k}"><i class="pbg"></i><span class="pc"><i class="pca"></i><i class="pok">${ico.ok}</i></span><span class="pt"><b>${n}</b><small>${d}</small></span></div>`).join("")}</div>
-  <div class="pnota"><span class="n0">4 comensales · 1 comanda</span><span class="n1">Las cuatro cuentas, cerradas</span><span class="n2">Falta limpiar la mesa</span><span class="n3">Sesión nueva · lista para otra mesa</span></div>
+  <div class="pista">${FASES.map(([n], k) => `<div class="ps ps${k}"><i class="pbg"></i><span class="pc"><i class="pca"></i><i class="pok">${ico.ok}</i></span><span class="pt"><b>${n}</b></span></div>`).join("")}</div>
+  <div class="pnota"><span class="n0">4 comensales</span><span class="n1">Las cuatro cuentas, cerradas</span><span class="n2">Falta limpiar la mesa</span><span class="n3">Sesión nueva · lista para otra mesa</span></div>
   ${SOLIC.map((x, i) => `<div class="psol so${i}"><b>Solicitud de cambio · ${QUIEN[x.k][3]}</b><span>${x.tarjeta}</span><small>Tú decides qué aplicar</small><div><i class="pr">Rechazar</i><i class="pa">Aceptar</i></div><em class="${x.acepta ? "si" : "no"}">${x.acepta ? "✓ Aceptada" : "✕ Rechazada"}</em></div>`).join("")}
   <div class="pcc"><span>Cuentas cerradas</span>${[0, 1, 2, 3].map(n => `<i><u class="pd${n}"></u></i>`).join("")}</div>
   <div class="pbt b0">Cerrar cuenta</div><div class="pbt b1">Validar pago</div><div class="pbt b2">Marcar mesa limpia</div><div class="pbt b3">${ico.ok}Mesa libre</div>
 </div>
-<i class="toque"></i>`;
+<i class="halo"></i><i class="toque"></i>`;
 
 /* una capa de apoyo/cine en su caja; orig = punto de giro en coordenadas del cuadro */
 const K = (n, cl = "") => { const c = CAPAS[n]; return `<img class="k k-${n}${cl ? " " + cl : ""}" src="${c[0]}" alt="" style="left:${c[1]}px;top:${c[2]}px;width:${c[3]}px;height:${c[4]}px">`; };
@@ -834,7 +846,7 @@ function cineHtml() {
     ["montaje", "ticket", "pastel", "sucia-migas", "sucia-a", "sucia-c", "sucia-vaso", "platillo-a", "platillo-c", "copa-a", "copa-c", "qr-brillo", "acrilico", "vela", "llama"].map(n => K(n)).join("") +
     `<div class="gp gm">${bz("mesero")}<span class="buzz"><i></i><i></i></span>${K("mesero-brazo-pluma", "bz")}</div><div class="gp gA">${bz("ana")}</div><div class="gp gC">${bz("carlos")}</div>` +
     K("resplandor") + K("nuevos") + `</div></div>`;
-  const cerca = `<div class="cerca"><div class="cfon">${K("cerca-fondo")}</div>${agarre("agA", "ana", pantallas(), "Ana")}${agarre("agC", "carlos", pantallasB(), "Carlos")}${agarre("agM", "mesero", pantallasM())}${SOLIC.map((x, i) => agarre("agY" + i, QUIEN[x.k][0], pantCocina(x) + `<i class="toque"></i>`, QUIEN[x.k][3])).join("")}${agarre("agZ", "ana", pantSeg() + `<i class="toque"></i>`, "Ana")}${agarre("agZ2", "carlos", pantSeg() + `<i class="toque"></i>`, "Carlos")}<svg class="repa" viewBox="0 0 1920 1080"><path class="rp1" d="M234 400 L708 548"/><path class="rp2" d="M234 790 L708 548"/><path class="rp3" d="M776 790 L708 548"/></svg>${QUIEN.map((u, k) => `<div class="celda cq${k}">${agarre("agQ agQ" + k, u[0], pantallasQ(k), u[3])}${totalCelda(k)}<div class="gq gq${k}">${DICE[k]}</div>${k === 1 ? `<div class="gq gqf">¡Feliz cumpleaños! Hoy te invitaron</div>` : ""}</div>`).join("")}<div class="cnt4"><span>${icoGente}</span><b class="vv"><i class="w1">entre 1</i><i class="w2">entre 2</i><i class="w3">entre 3</i></b></div></div>`;
+  const cerca = `<div class="cerca"><div class="cfon">${K("cerca-fondo")}</div>${agarre("agA", "ana", pantallas() + pantEspera(0), "Ana")}${agarre("agC", "carlos", pantallasB() + pantEspera(3), "Carlos")}${agarre("agM", "mesero", pantallasM())}${SOLIC.map((x, i) => agarre("agY" + i, QUIEN[x.k][0], pantCocina(x) + `<i class="halo"></i><i class="toque"></i>`, QUIEN[x.k][3])).join("")}${agarre("agZ", "ana", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Ana")}${agarre("agZ2", "carlos", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Carlos")}<svg class="repa" viewBox="0 0 1920 1080"><path class="rp1" d="M234 400 L708 548"/><path class="rp2" d="M234 790 L708 548"/><path class="rp3" d="M776 790 L708 548"/></svg>${QUIEN.map((u, k) => `<div class="celda cq${k}">${agarre("agQ agQ" + k, u[0], pantallasQ(k), u[3])}${totalCelda(k)}<div class="gq gq${k}">${DICE[k]}</div>${k === 1 ? `<div class="gq gqf">¡Feliz cumpleaños! Hoy te invitaron</div>` : ""}</div>`).join("")}<div class="cnt4"><span>${icoGente}</span><b class="vv"><i class="w1">entre 1</i><i class="w2">entre 2</i><i class="w3">entre 3</i></b></div></div>`;
   const pip = `<div class="pip"><b class="pipt">Tablero del mesero</b><div class="reloj"><span class="x4 hd"></span><span class="esfera"><i class="hh"></i><i class="mm"></i></span></div>${agarre("agP", "mesero", pantallasP())}</div>`;
   const rot = TOMAS.map((t, i) => t[4].length ? `<div class="r ${t[5]} r${i}">${t[4].map(l => l[0] === "~" ? `<span class="cln ck">${palabras(l.slice(1))}</span>` : `<span class="cln">${palabras(l)}</span>`).join("")}</div>` : "").join("");
   /* un globo junto a la boca (x, y en el cuadro): lado "i" = el texto queda a la derecha de quien habla; "d" = a su izquierda;
@@ -848,7 +860,7 @@ function cineHtml() {
     `<div class="lupa lu2"><div class="ltab"><b>Mesa 7</b><u style="width:70%"></u><u style="width:48%"></u><i class="ctab"></i><span>Cargando la orden…</span><em class="lok">✓ Orden enviada</em></div></div>` +
     `<div class="lupa lu3"><div class="ltk"><b>MESA 7</b>${TICKET.map(([nm, pr]) => `<p>${nm}<span>$${pr}</span></p>`).join("")}<p class="lt">TOTAL<span>$${TICKET.reduce((a, x) => a + x[1], 0)}</span></p></div></div>` +
     `<div class="lupa lu6">${ACCIONES.map(([q, c, b, r], i) => `<div class="lq q${i}"><small>${q}</small><span class="lb ${c}">${b}</span><em>${r}</em></div>`).join("")}</div>` +
-    `<div class="mnrow">${QUIEN.map(u => `<span class="mnph"><span class="mnk">${icoSar}</span><span class="mns">${icoCub}</span><b class="mnk">Se está preparando</b><b class="mns">Comida entregada</b><small>${u[3]}</small></span>`).join("")}</div><i class="divi"></i><div class="hora"><span class="esfera"><i class="hh"></i><i class="mm"></i></span><b class="hd"></b></div>` +
+    `<div class="mnrow">${QUIEN.map(u => `<span class="mnph"><span class="mnk">${icoSar}</span><span class="mns">${icoCub}</span><b class="mnk">Se está preparando</b><b class="mns">Comida entregada</b><small>${u[3]}</small></span>`).join("")}</div>${[1, 2, 3].map(k => `<i class="dvq" style="left:${50 + k * 378}px"></i>`).join("")}${QUIEN.map((u, k) => `<span class="nq" style="left:${64 + k * 378}px"><span class="foto"><img src="${CI(u[0] + "-cabeza")}" alt=""></span>${u[3]}</span>`).join("")}<i class="divi"></i><div class="hora"><span class="esfera"><i class="hh"></i><i class="mm"></i></span><b class="hd"></b></div>` +
     `<i class="lmarca lm1" style="left:1338px;top:640px"></i><i class="lmarca lm2" style="left:1244px;top:556px"></i><i class="lmarca lm3" style="left:1140px;top:782px"></i>`;
   const sobre = lupas + `<span class="estado lista eA" style="left:372px;top:340px">✓ Lista</span><span class="estado lista eS" style="left:726px;top:300px">✓ Lista</span><span class="estado elige eD" style="left:1000px;top:300px">Eligiendo…</span><span class="estado elige eC" style="left:1340px;top:340px">Eligiendo…</span>` +
     `<span class="estado vino eCom" style="left:112px;top:300px">✓ Comanda atendida</span><span class="estado vino ePago" style="left:112px;top:262px">✓ Pago validado</span><span class="estado lista eLibre" style="left:112px;top:262px">✓ Mesa 7, libre</span>`;
@@ -900,7 +912,8 @@ function filmLinea() {
   const brazo = (quien, v, t, d = 0.22) => BRAZOS[quien].forEach(x => tl.to(q(`.k-${quien}-${x}`), {autoAlpha: x === v ? 1 : 0, duration: d, ease: "none"}, t));
   const cabeza = (quien, ang, t, d = 0.5) => tl.to(q(`.k-${quien}-cabeza`), {rotation: ang, duration: d, ease: "sine.inOut"}, t);
   const gesto = (quien, t, n = 3, ang = 10) => tl.to(q(`.k-${quien}-brazo`), {rotation: quien === "ana" ? -ang : ang, duration: 0.32, yoyo: true, repeat: 2 * n - 1, ease: "sine.inOut"}, t);
-  const toque = (A, x, y, t) => { tl.set(q(A + " .toque"), {left: x, top: y}, t - 0.01); tl.fromTo(q(A + " .toque"), {autoAlpha: 0.95, scale: 0.4}, {autoAlpha: 0, scale: 1.6, duration: 0.7, ease: "power2.out", immediateRender: false}, t); };
+  const toque = (A, x, y, t) => { tl.set(q(A + " .halo"), {left: x, top: y}, t - 0.62); tl.fromTo(q(A + " .halo"), {autoAlpha: 0, scale: 0.8}, {autoAlpha: 1, scale: 1, duration: 0.22, ease: "power2.out", immediateRender: false}, t - 0.6); tl.to(q(A + " .halo"), {autoAlpha: 0, duration: 0.2}, t + 0.02);
+    tl.set(q(A + " .toque"), {left: x, top: y}, t - 0.01); tl.fromTo(q(A + " .toque"), {autoAlpha: 0.95, scale: 0.4}, {autoAlpha: 0, scale: 1.6, duration: 0.7, ease: "power2.out", immediateRender: false}, t); };
   const mueve = (A, x, y, t, d = 0.45) => tl.to(q(A + " .dedo"), {x, y, duration: d, ease: "power2.inOut"}, t);
   /* tocar: el índice llega, baja, deja su marca y se aparta a un lado del teléfono para dejar ver la pantalla; s = -1 si la mano entra por la izquierda */
   const toca = (A, x, y, t, s = 1) => { mueve(A, x + 16 * s, y + 46, t - 0.6, 0.45); tl.to(q(A + " .dedo"), {x, y, duration: 0.12, ease: "power1.in"}, t - 0.13); toque(A, x, y, t); tl.to(q(A + " .dedo"), {x: x + 14 * s, y: y + 40, duration: 0.2, ease: "power1.out"}, t + 0.1); tl.to(q(A + " .dedo"), {x: s > 0 ? 510 : -110, y: y + 80, duration: 0.5, ease: "power2.inOut"}, t + 0.3); };
@@ -1179,18 +1192,24 @@ function filmLinea() {
   pantalla(".cs.pListosA", t + 1.35, 0.4);
   retira(".agC", t + 1.9, REPC);
   /* 10b · a los cuatro les cambia la pantalla: «Orden de la mesa», llamando al mesero y luego «va en camino» */
-  const fila = (t0, t1, cls) => { QUIEN.forEach((_, k) => { tl.set(q(".cq" + k), FILA(k), t0); tl.set(q(".agQ" + k), {...PQF, autoAlpha: 1}, t0); tl.set(q(".agQ" + k + " .pan>.cs"), {autoAlpha: 0}, t0); tl.set(q(".agQ" + k + " " + cls), {autoAlpha: 1}, t0);
-    entra(".cq" + k, t0 + k * 0.1, 0.6, {y: 50}, {y: 0, ease: "power3.out"}); }); entra(".agQ .nom", t0 + 0.6, 0.4); sale(".celda", t1, 0.4); tl.set(q(".agQ .nom"), {autoAlpha: 0}, t1 + 0.4); };
+  const SLOT = k => ({x: 64 + k * 378 + PQF.x, y: 150 + PQF.y, rotation: 0, scale: PQF.scale});
+  const fila = (t0, t1, cls, cuales, lados) => { cuales.forEach(k => { tl.set(q(".cq" + k), {...FILA(k), overflow: "visible", background: "none", boxShadow: "none"}, t0); tl.set(q(".agQ" + k), {...PQF, autoAlpha: 1}, t0);
+      tl.set(q(".agQ" + k + " .pan>.cs"), {autoAlpha: 0}, t0); tl.set(q(".agQ" + k + " " + cls), {autoAlpha: 1}, t0);
+      tl.fromTo(q(".cq" + k), {autoAlpha: 0, x: lados && k === 0 ? -520 : lados && k === 3 ? 520 : 0, y: lados && (k === 0 || k === 3) ? 0 : 640}, {autoAlpha: 1, x: 0, y: 0, duration: 0.95, ease: "power3.out", immediateRender: false}, t0); });
+    entra(".dvq", t0 + 1.0, 0.7, {scaleY: 0}, {scaleY: 1, ease: "power2.out", stagger: 0.1}); entra(".nq", t0 + 1.2, 0.45, {y: -12}, {y: 0, stagger: 0.08});
+    sale(".celda, .dvq, .nq", t1, 0.4); };
   t = T("esperan");
-  tl.to(q(".agA, .agC, .nom, .divi"), {autoAlpha: 0, duration: 0.4, ease: "power1.inOut"}, t);
-  tl.set(q(".agQ .e1"), {autoAlpha: 1}, t); tl.set(q(".agQ .e2"), {autoAlpha: 0}, t);
-  fila(t + 0.3, t + 5.1, ".qE");
-  sale(".agQ .e1", t + 2.9, 0.2); entra(".agQ .e2", t + 3.05, 0.45, {scale: 0.9}, {scale: 1, ease: "back.out(2)"});
+  /* los teléfonos de Ana y de Carlos se hacen pequeños y se van a su lugar; suben los de Sofía y Diego; luego las líneas y los nombres */
+  tl.to(q(".nom, .divi"), {autoAlpha: 0, duration: 0.3}, t);
+  tl.to(q(".agA"), {...SLOT(0), duration: 0.9, ease: "power3.inOut"}, t + 0.1); tl.to(q(".agC"), {...SLOT(3), duration: 0.9, ease: "power3.inOut"}, t + 0.1);
+  tl.set(q(".qE .e1"), {autoAlpha: 1}, t); tl.set(q(".qE .e2"), {autoAlpha: 0}, t);
+  fila(t + 0.8, t + 7.1, ".qL", [1, 2], false); sale(".agA, .agC", t + 7.1, 0.4);
+  [".agA", ".agQ1", ".agQ2", ".agC"].forEach(A => pantalla(A + " .qE", t + 3.0, 0.45));
+  sale(".qE .e1", t + 4.9, 0.2); entra(".qE .e2", t + 5.05, 0.45, {scale: 0.9}, {scale: 1, ease: "back.out(2)"});
   /* ===== acto 4: el mesero ===== */
   /* 11 · el mesero, en otra parte del salón: le vibra el bolsillo (aviso con el teléfono bloqueado: visión), mira y dice «Ya voy» */
   t = T("avisa");
   pon(".cs.bloq", t, true); tl.set(q(".agM"), {...PM, autoAlpha: 0}, t);
-  tl.to(q(".agA, .agC, .nom"), {autoAlpha: 0, duration: 0.5, ease: "power1.inOut"}, t);
   tl.to(q(".cfon"), {x: -160, duration: 1.2, ease: "power2.inOut"}, t);
   tl.fromTo(q(".agM"), {y: PM.y + 220, autoAlpha: 0}, {y: PM.y, autoAlpha: 1, duration: 1.0, ease: "power3.out", immediateRender: false}, t + 0.3);
   entra(".noti", t + 1.1, 0.5, {y: -24, scale: 0.92}, {y: 0, scale: 1, ease: "back.out(1.7)"});
@@ -1216,9 +1235,10 @@ function filmLinea() {
   /* 12b · al validar, los cuatro pasan al seguimiento: «Tu comida se está preparando» */
   t = T("cocina");
   sale(".eCom", t, 0.3); tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, t); corte(".sala", ".cerca", t, 0.5);
-  fila(t + 0.2, t + 4.1, ".qE");
-  QUIEN.forEach((_, k) => pantalla(".agQ" + k + " .qK", t + 1.6, 0.45));
-  corte(".cerca", ".sala", t + 4.2, 0.5);
+  tl.set(q(".qE .e1"), {autoAlpha: 0}, t); tl.set(q(".qE .e2"), {autoAlpha: 1}, t);
+  fila(t + 0.2, t + 4.9, ".qE", [0, 1, 2, 3], true);
+  QUIEN.forEach((_, k) => pantalla(".agQ" + k + " .qK", t + 2.4, 0.45));
+  corte(".cerca", ".sala", t + 5.0, 0.5);
   /* ===== acto 5: el ciclo de la mesa, a cámara rápida; arriba a la derecha, el teléfono del mesero ===== */
   const a5 = T("abierta"), d5 = T("fin") - a5;
   const A = ".agP";
@@ -1339,13 +1359,13 @@ function filmLinea() {
   t = T("cuenta");
   tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, t);
   corte(".sala", ".cerca", t, 0.7); t -= 0.8;
-  QUIEN.forEach((_, k) => { tl.set(q(".cq" + k), GEO(k), t); tl.set(q(".agQ" + k + " .qE, .agQ" + k + " .qK"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k + " .qS, .agQ" + k + " .sgw"), {autoAlpha: 1}, t); tl.set(q(".agQ" + k + " .sgb"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k), {...PQ(k), autoAlpha: 1}, t);
+  QUIEN.forEach((_, k) => { tl.set(q(".cq" + k), {...GEO(k), x: 0, y: 0, overflow: "hidden", clearProps: "background,boxShadow"}, t); tl.set(q(".agQ" + k + " .qE, .agQ" + k + " .qK"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k + " .qS, .agQ" + k + " .sgw"), {autoAlpha: 1}, t); tl.set(q(".agQ" + k + " .sgb"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k), {...PQ(k), autoAlpha: 1}, t);
     entra(".cq" + k, t + 2.9 + k * 0.12, 0.6, {y: 40}, {y: 0, ease: "power3.out"}); });
   entra(".agQ .nom", t + 3.5, 0.4);
   QUIEN.forEach((_, k) => pantalla(".agQ" + k + " .qC", t + 4.3 + k * 0.15, 0.45));
   tl.to(q(".agQ .qin"), {y: -150, duration: 0.9, ease: "power2.inOut", stagger: 0.1}, t + 5.0);
   QUIEN.forEach((_, k) => { const tt = t + 5.9 + k * 0.15; toque(".agQ" + k, 356, 134, tt); tl.fromTo(q(".agQ" + k + " .qlk"), {autoAlpha: 0, scale: 0.3}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(3)", stagger: 0.25, immediateRender: false}, tt + 0.05); });
-  entra(".celda .w0", t + 3.4, 0.4, {y: 10}, {y: 0});
+  entra(".ctt", t + 3.2, 0.4); entra(".celda .w0", t + 3.4, 0.4, {y: 10}, {y: 0});
   tl.fromTo(q(".agQ .cpc.on"), {scale: 1}, {scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, stagger: 0.2, immediateRender: false}, t + 6.5);
   const dice = (k, t0, t1) => { entra(".gq" + k, t0, 0.45, {scale: 0.6}, {scale: 1, ease: "back.out(1.5)"}); if (t1) sale(".gq" + k, t1, 0.25); };
   const paso = [t + 10.0, t + 13.8, t + 16.4];
@@ -1368,7 +1388,7 @@ function filmLinea() {
   /* 15 · pagada: pagan fuera de Carta (la terminal del restaurante) y el mesero valida el pago en su teléfono */
   t = T("pagada");
   brazo("ana", "brazo", t, 0.01); brazo("carlos", "brazo", t, 0.01); brazo("sofia", "brazos", t, 0.01); brazo("diego", "brazos", t, 0.01);
-  corte(".cerca", ".sala", t, 0.7); sale(".cnt4, .gq", t + 0.2, 0.3); sale(".agQ, .celda", t + 0.7, 0.01); tl.set(q(".repa path"), {strokeDashoffset: 900}, t + 0.7);
+  corte(".cerca", ".sala", t, 0.7); sale(".cnt4, .gq", t + 0.2, 0.3); sale(".agQ, .celda, .ctt", t + 0.7, 0.01); tl.set(q(".repa path"), {strokeDashoffset: 900}, t + 0.7);
   brazo("ana", "brazo", t + 0.2); brazo("carlos", "brazo", t + 0.3); brazo("sofia", "brazos", t + 0.25); brazo("diego", "brazos", t + 0.35); cabeza("ana", -4, t + 0.3); cabeza("carlos", 4, t + 0.4);
   brazo("mesero", "brazos-terminal", t, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: -1, rotation: 0}, t);
   tl.fromTo(q(".gm"), {x: 220, autoAlpha: 0}, {x: 0, autoAlpha: 1, duration: 1.0, ease: "power2.out", immediateRender: false}, t + 0.2);
