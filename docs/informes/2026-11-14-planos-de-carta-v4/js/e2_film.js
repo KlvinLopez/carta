@@ -117,7 +117,7 @@ const TOMAS = [
   ["espera", 2, 12.6, [], [], ""],
   ["ticket", 2, 8.5, [], ["Un solo papel *para todos*."], "linea", 3.4],
   ["b4", 2, 8.5, [], ["Una cuenta, *cuatro calculadoras*."], "linea", 0.3],
-  ["pivote", 2, 4.5, [], ["¿Y si lo", "*reimaginamos*?"], "medio", 0.5],
+  ["pivote", 2, 6.6, [], ["¿Y si lo", "*reimaginamos*?"], "medio", 0.5],
   /* C · Carta, en el mismo orden */
   ["ofrece", 3, 6.5, [], [], ""],
   ["escanea", 3, 7.5, [["hoy", "Entrar con el QR, sin descarga ni registro (capturas reales de la app, con datos de ejemplo)"]], ["Sin descarga.", "*Sin registro*."], "izq", 1.8],
@@ -261,7 +261,7 @@ const cineCss = `
 #cine .r .cln.ck{font-family:'DM Sans',sans-serif;font-size:30px;font-weight:500;letter-spacing:0;line-height:1.2;color:rgba(254,249,241,.72);margin-bottom:12px;text-shadow:none}
 #cine .r.linea .cln.ck{margin-bottom:6px}
 /* la lupa: un círculo que amplía lo que alguien ve en su pantalla o en su papel; un aro dorado marca de dónde sale */
-#cine .lupa{position:absolute;left:1520px;top:196px;width:320px;height:320px;border-radius:50%;overflow:hidden;z-index:4;background:#fef9f1;box-shadow:0 0 0 4px rgba(253,195,77,.85),0 0 0 11px rgba(23,18,16,.55),0 30px 60px rgba(8,4,3,.5);opacity:0;visibility:hidden}
+#cine .lupa{position:absolute;left:1520px;top:214px;width:320px;height:320px;border-radius:50%;overflow:hidden;z-index:4;background:#fef9f1;box-shadow:0 0 0 4px rgba(253,195,77,.85),0 0 0 11px rgba(23,18,16,.55),0 30px 60px rgba(8,4,3,.5);opacity:0;visibility:hidden}
 #cine .lmarca{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;z-index:4;box-shadow:0 0 0 3px rgba(253,195,77,.85);opacity:0;visibility:hidden}
 #cine .lpdf{position:absolute;left:0;top:0;width:560px;padding:26px 28px;background:#fbf6ec;color:#2a1c16;transform-origin:0 0}
 #cine .lpdf h5{margin:0 0 4px;font:400 30px 'DM Serif Display',serif;text-align:center;color:#4f1728}
@@ -310,8 +310,8 @@ const cineCss = `
 #cine .resu strong{display:flex;justify-content:space-between;font-size:21px;margin-top:8px;color:#4f1728}
 #cine .divi{position:absolute;left:959px;top:196px;width:2px;height:790px;z-index:2;background:linear-gradient(180deg,rgba(253,195,77,0),rgba(253,195,77,.7) 18%,rgba(253,195,77,.7) 82%,rgba(253,195,77,0));transform-origin:50% 0;opacity:0;visibility:hidden}
 #cine .hora{position:absolute;right:64px;top:116px;display:flex;align-items:center;gap:10px;z-index:5;transform-origin:100% 50%;opacity:0;visibility:hidden}
-#cine .hora .hd{padding:5px 14px;border-radius:999px;background:rgba(23,18,16,.62);color:#fdd88a;font-size:23px;font-weight:700;box-shadow:0 0 0 1.5px rgba(253,195,77,.4)}
-#cine .hora .esfera{width:40px;height:40px}#cine .hora .esfera i{left:18.5px}#cine .hora .esfera .hh{top:10px;height:10px}#cine .hora .esfera .mm{top:5px;height:15px}
+#cine .hora .hd{padding:9px 24px;border-radius:999px;background:rgba(23,18,16,.62);color:#fdd88a;font-size:44px;font-weight:700;box-shadow:0 0 0 1.5px rgba(253,195,77,.4)}
+#cine .hora{gap:16px}#cine .hora .esfera{width:76px;height:76px}#cine .hora .esfera i{left:35.500px;width:5px;transform-origin:2.500px 100%}#cine .hora .esfera .hh{top:19px;height:19px}#cine .hora .esfera .mm{top:9px;height:29px}
 #cine .reloj{position:absolute;right:30px;top:9px;display:flex;align-items:center;gap:8px;z-index:8;opacity:0;visibility:hidden}
 #cine .reloj .x4{padding:4px 11px;border-radius:999px;background:#fdc34d;color:#2a0d17;font-size:16px;font-weight:800}
 #cine .esfera{position:relative;width:32px;height:32px;border-radius:50%;background:#fef9f1}
@@ -473,7 +473,6 @@ const cineCss = `
 #cine .qS .sgm b{font:400 34px 'DM Serif Display',serif;margin-top:24px}
 #cine .qS .sgm em{font:italic 400 21px 'DM Serif Display',serif;color:#4f1728;margin-top:6px}
 #cine .qS .sgm small{font-size:15px;color:#5b4a3d;margin-top:10px}
-#cine .qS .cf{position:absolute;width:9px;height:9px;border-radius:2px;transform:rotate(30deg)}
 #cine .qS .sgb,#cine .qS .sgw{position:absolute;left:26px;right:26px;bottom:36px;display:flex;flex-direction:column;gap:10px}
 #cine .qS .sb1,#cine .qS .sb2{height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
 #cine .qS .sb1{background:#efe6d6;color:#4f1728}#cine .qS .sb2{background:linear-gradient(135deg,#d4a017,#b8860b);color:#fff}
@@ -663,7 +662,7 @@ const icoCub = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 /* el seguimiento de la orden, como en el prototipo (P04b, estado «servida») */
 const pantSeg = () => `<div class="cs cx qS">${sb()}<div class="sgc"><i>Carta</i><span>Mesa 7</span></div>
   <div class="sgp"><span><u>${ico.ok}</u>Orden enviada</span><em></em><span><u>${ico.ok}</u>En cocina</span><em></em><span class="act"><u>${icoCub}</u>Servida</span></div>
-  <div class="sgm">${[...Array(12)].map((_, i) => `<i class="cf" style="left:${(i * 83) % 330 + 26}px;top:${(i * 47) % 150 - 14}px;background:${["#b8860b", "#6b2d3e", "#66713d"][i % 3]}"></i>`).join("")}<span class="sgi">${icoCub}</span><b>Comida entregada</b><em>¡Disfruta tu comida!</em><small>Cuando termines, revisa tu cuenta.</small></div>
+  <div class="sgm"><span class="sgi">${icoCub}</span><b>Comida entregada</b><em>¡Disfruta tu comida!</em><small>Cuando termines, revisa tu cuenta.</small></div>
   <div class="sgt">✓ Flan de la casa, pedido</div>
   <div class="sgb"><div class="sb1">Llamar al mesero</div><div class="sb1">Agregar otro platillo o postre</div><div class="sb2">Cerrar mi cuenta</div></div>
   <div class="sgw"><span><i></i>Tu cuenta está cerrada · esperando a los demás…</span><div class="sb1">Volver a abrir cuenta</div></div></div>`;
@@ -962,7 +961,7 @@ function filmLinea() {
   tl.set(q(".pfig"), {scale: 1, x: 0, y: 0}, t + 0.3); tl.set(q(".pfon"), {scale: 1.04, x: 0, y: 0}, t + 0.3);
   /* ===== C · Carta ===== */
   /* 3 · la misma mesa, ahora con el QR: Ana levanta su teléfono; la cámara se va a su mano (capturas reales) */
-  pulsoHora(T("pivote") + 1.7);
+  { const tp = T("pivote"); tl.to(q(".hora"), {x: -706, y: 590, scale: 1.7, duration: 0.9, ease: "power3.inOut"}, tp + 1.0); tl.to(q(".hora"), {x: 0, y: 0, scale: 1, duration: 0.9, ease: "power3.inOut"}, tp + 5.0); }
   t = T("ofrece");
   tl.set(q(".k-ticket, .k-platillo-a, .k-platillo-c"), {autoAlpha: 0}, t - 0.1);
   brazo("ana", "brazo", t - 0.1, 0.01); brazo("carlos", "brazo", t - 0.1, 0.01); brazo("sofia", "brazos", t - 0.1, 0.01); brazo("diego", "brazos", t - 0.1, 0.01);
@@ -1128,7 +1127,7 @@ function filmLinea() {
   sale(".hora", a5 + 0.3, 0.3);
   /* la hora de la mesa (minutos desde las 8:00 pm) en cada punto de la película; entre puntos corre pareja */
   const HORA = [[T("cumple") + 2.6, 0], [T("b2"), 3], [T("b2") + 14.6, 6], [T("b2") + 16.2, 18], [T("b3t"), 21], [T("espera") + 2.6, 23], [T("espera") + 4.6, 50], [T("espera") + 8.4, 55], [T("espera") + 10.4, 100],
-    [T("b4"), 104], [T("pivote") + 1.5, 108], [T("pivote") + 3.4, 0], [a5, 14], [a5 + 6.4, 42], [a5 + 12.2, 76], [T("cierres"), 80], [T("cierres") + 18.5, 86], [T("cierres") + 21.9, 100], [T("cuenta"), 108], [T("fin"), 128]];
+    [T("b4"), 104], [T("pivote") + 2.0, 108], [T("pivote") + 4.8, 0], [a5, 14], [a5 + 6.4, 42], [a5 + 12.2, 76], [T("cierres"), 80], [T("cierres") + 18.5, 86], [T("cierres") + 21.9, 100], [T("cuenta"), 108], [T("fin"), 128]];
   const hds = q(".hd"), hhs = q(".esfera .hh"), mms = q(".esfera .mm");
   const pintaHora = () => {
     const s = tl.time(); let m = HORA[0][1];
@@ -1262,17 +1261,13 @@ function filmLinea() {
   tl.to(q(".k-copa-a"), {rotation: -78, duration: 0.45, ease: "power2.in"}, t + 0.7);
   sale(".k-copa-a", t + 1.1, 0.15); entra(".k-sucia-vaso", t + 1.05, 0.5); entra(".k-sucia-migas", t + 0.4, 0.4);
   cam(t + 0.6, CSUC, 1.6);
-  brazo("mesero", "brazos-trapo", t + 1.2, 0.01);
-  tl.to(q(".gm"), {x: 0, autoAlpha: 1, duration: 0.9, ease: "power2.out"}, t + 2.0);
-  tl.to(q(".k-sucia-a"), {y: -50, autoAlpha: 0, duration: 0.45, ease: "power2.in"}, t + 3.0);
-  tl.to(q(".k-sucia-c"), {y: -50, autoAlpha: 0, duration: 0.45, ease: "power2.in"}, t + 3.4);
-  tl.fromTo(q(".k-mesero-brazos-trapo"), {x: -24}, {x: 30, duration: 0.4, yoyo: true, repeat: 3, ease: "sine.inOut", immediateRender: false}, t + 3.5);
-  sale(".k-sucia-vaso", t + 3.9, 0.5); sale(".k-sucia-migas", t + 4.1, 0.5);
+  sale(".k-sucia-a, .k-sucia-c", t + 3.0, 0.6); sale(".k-sucia-vaso, .k-sucia-migas", t + 3.3, 0.6);
   /* 17 · mesa limpia: la monta de nuevo, toca «Marcar mesa limpia» y la mesa queda libre; el QR se enciende y llegan otros dos */
   t = T("limpia");
   tl.set(q(".k-copa-a"), {rotation: 0}, t);
   entra(".k-montaje", t + 0.1, 0.5, {y: -14}, {y: 0}); entra(".k-copa-a", t + 0.4, 0.4, {y: -14}, {y: 0});
-  brazo("mesero", "brazos-cel", t + 0.7, 0.3); cabeza("mesero", -8, t + 0.8);
+  brazo("mesero", "brazos-cel", t, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: -1, rotation: 0}, t);
+  tl.fromTo(q(".gm"), {x: 220, autoAlpha: 0}, {x: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out", immediateRender: false}, t + 0.3); cabeza("mesero", -8, t + 1.0);
   pulsa(2, t + 1.7); fase(3, t + 1.8);
   tl.to(q(".ps3 .pca"), {autoAlpha: 0, duration: 0.2}, t + 2.5); tl.fromTo(q(".ps3 .pok"), {autoAlpha: 0, scale: 0.4}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(2.5)", immediateRender: false}, t + 2.5);
   tl.set(q(".mst .m2"), {autoAlpha: 0}, t + 2.9); tl.fromTo(q(".mst .m3"), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(2.2)", immediateRender: false}, t + 2.9);
