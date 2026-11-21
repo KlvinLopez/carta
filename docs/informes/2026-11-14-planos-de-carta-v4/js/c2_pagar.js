@@ -33,7 +33,7 @@ DET.pagar = {
     tam.forEach((t, i) => {
       const y = 78 + i * 108, a = por10k(pLo, t.ingreso), z = por10k(pHi, t.ingreso), c = por10k(precios[i], t.ingreso);
       fil.push({a, z, c});
-      b += dibujo(tipos[i], 22, y - 4, 0.5) + T(112, y + 20, rot[i], 14, C.tinta, "start", 700) + T(112, y + 40, `${planes[i]} · ${t.ingreso >= 1e6 ? n(t.ingreso / 1e6, 1) + " MXN" + " M" : n(t.ingreso / 1e3) + " MXN" + " mil"} al mes`, 11.5, C.t2);
+      b += dibujo(tipos[i], 22, y - 4, 0.5) + T(112, y + 20, rot[i], 14, C.tinta, "start", 700) + T(112, y + 40, planes[i], 12, C.t2) + T(112, y + 56, `${t.ingreso >= 1e6 ? n(t.ingreso / 1e6, 1) + " millones de MXN" : n(t.ingreso / 1e3) + " mil MXN"} al mes`, 12, C.t2);
       b += Rc(X0, y, 100 * CW, 34, C.a2, 6);
       b += `<g class="gh" style="animation-delay:${i * 120}ms">` + Rc(X0, y, Math.min(a, 100) * CW, 34, C.azul, 6) + Rc(X0 + a * CW, y, Math.max((Math.min(z, 100) - a) * CW, 0), 34, "#8fb0d8", 0) + (c > 0 ? Rc(X0 + z * CW, y, Math.max(c * CW, 3), 34, C.dorado, 0) : "") + "</g>";
       let sep = ""; for (let k = 1; k < 100; k++) sep += `<line x1="${X0 + k * CW}" x2="${X0 + k * CW}" y1="${y}" y2="${y + 34}" stroke="#fff" stroke-opacity=".55" stroke-width="1"/>`;
