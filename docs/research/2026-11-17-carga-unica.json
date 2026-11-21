@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-20-r15",
+  "version": "2026-11-21-r16",
   "definicion": "Un gratuito carga mesas del tope × 180 visitas al mes. El 180 sale del simulador: 1800 visitas al mes con 10 mesas [documento: planes-y-costo §0]; es un SUPUESTO sin medir.",
   "tope_entero_o_distribucion": "La carga de un Chef es el tope entero × 180 (cota alta: todos los gratuitos tienen 6 mesas activas). No hay datos para usar la distribución de mesas dentro del tope: el modelo de mesas y cuentas (dispersión lognormal, supuesto) sólo da la parte de negocios que cabe dentro, no cuántas mesas usa cada uno. La sensibilidad con 90 visitas por mesa equivale a un negocio promedio con la mitad del tope.",
   "datos_por_conseguir": [

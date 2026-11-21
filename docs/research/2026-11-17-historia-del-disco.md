@@ -23,13 +23,13 @@ Por mesa de 3, lo que ocupa la analítica; y cuántos restaurantes caben por dis
 
 | Opción | Qué queda en la base | Qué se pierde | Analítica por mesa de 3 (bytes) | Analítica por restaurante al mes (MB, en la copia) | Caben sin purga | Caben con historial a 30 días |
 |---|---|---|---|---|---|---|
-| Hoy: una fila por evento | una fila por toque del comensal, con sesión, miembro, platillo, huella de red y navegador | nada | 4,082 | 6.35 | 41 | 182 |
-| Contar por día | un conteo por restaurante, día, tipo y platillo; crece con los días y los platillos, no con las visitas | el detalle por sesión y por teléfono | 449 | 0.7 | 68 | 222 |
-| Fila por visita de comensal (propuesta de Calvin) | una fila por comensal y día con veces y segundos en menú, platillo y búsqueda (los filtros se cuentan por restaurante y día, no por comensal); crece con las visitas | qué platillo se vio y el orden de los toques | 458 | 0.71 | 68 | 222 |
-| Fila por visita más conteo de platillo por día | la fila por visita más un conteo diario por platillo | cuál comensal vio cuál platillo | 721 | 1.12 | 65 | 219 |
-| Adelgazar la tabla (índices mínimos y tipos chicos) | una fila por evento, más angosta y con dos índices | índices de consulta; huella de red de 8 bytes | 2,487 | 3.87 | 49 | 197 |
-| Archivar las sesiones de los restaurantes de paga (3 meses en la base) | la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo queda en R2 (no se borra) | consulta inmediata de lo viejo de los de paga; hay que releer del archivo | 4,082 | 6.35 | 46 | 347 |
-| Archivar las sesiones de todos los planes (3 meses en la base) | la base conserva sólo 3 meses de las sesiones de cada restaurante, gratuito incluido; lo viejo queda en R2 (no se borra) | consulta inmediata de lo viejo de todos; el gratuito pierde historial en línea | 4,082 | 6.35 | 70 | 347 |
+| Hoy: una fila por evento | una fila por toque del comensal, con sesión, miembro, platillo, huella de red y navegador | nada | 4,082 | 6.35 | 41 | 179 |
+| Contar por día | un conteo por restaurante, día, tipo y platillo; crece con los días y los platillos, no con las visitas | el detalle por sesión y por teléfono | 449 | 0.7 | 68 | 219 |
+| Fila por visita de comensal (propuesta de Calvin) | una fila por comensal y día con veces y segundos en menú, platillo y búsqueda (los filtros se cuentan por restaurante y día, no por comensal); crece con las visitas | qué platillo se vio y el orden de los toques | 458 | 0.71 | 67 | 219 |
+| Fila por visita más conteo de platillo por día | la fila por visita más un conteo diario por platillo | cuál comensal vio cuál platillo | 721 | 1.12 | 64 | 215 |
+| Adelgazar la tabla (índices mínimos y tipos chicos) | una fila por evento, más angosta y con dos índices | índices de consulta; huella de red de 8 bytes | 2,487 | 3.87 | 49 | 195 |
+| Archivar las sesiones de los restaurantes de paga (3 meses en la base) | la base conserva sólo 3 meses de las sesiones del plan de paga; lo viejo queda en R2 (no se borra) | consulta inmediata de lo viejo de los de paga; hay que releer del archivo | 4,082 | 6.35 | 46 | 346 |
+| Archivar las sesiones de todos los planes (3 meses en la base) | la base conserva sólo 3 meses de las sesiones de cada restaurante, gratuito incluido; lo viejo queda en R2 (no se borra) | consulta inmediata de lo viejo de todos; el gratuito pierde historial en línea | 4,082 | 6.35 | 70 | 346 |
 
 Comprar disco: No cambia los datos guardados: sube el costo del escalón (ver la escalera en recursos y palancas). Archivar no es borrar y no baja la analítica: saca de la base las sesiones de más de 3 meses y las deja en R2, de donde se vuelven a leer (toca las reglas 8 y 9 y pide ADR). **Hay dos alcances que no se suman:** sólo las de los restaurantes de paga (3 meses en la base) o las de todos los planes (también el gratuito queda en 3 meses); las bajas de «contar por día» y «fila por visita» son a **el volumen de la copia** (1,800 sesiones por restaurante-mes, 18,000 eventos): contar por día crece con los días y los platillos, no con las visitas, así que con más visitas gana más.
 
@@ -37,18 +37,18 @@ Comprar disco: No cambia los datos guardados: sube el costo del escalón (ver la
 
 | Archivo de sesiones | Forma de guardar la analítica | Con el historial del gratuito a 30 días (propuesta) | Con el gratuito a 12 meses, sin purga (03 §7: política vigente) |
 |---|---|---|---|
-| sin archivo | una fila por evento (hoy) | 182 | 41 |
-| sin archivo | contar por día | 222 | 68 |
-| sin archivo | fila por visita | 222 | 68 |
-| sin archivo | fila por visita más platillo por día | 219 | 65 |
-| archivar sólo las de paga | una fila por evento (hoy) | 347 | 46 |
-| archivar sólo las de paga | contar por día | 533 | 83 |
-| archivar sólo las de paga | fila por visita | 532 | 82 |
-| archivar sólo las de paga | fila por visita más platillo por día | 512 | 78 |
-| archivar las de todos los planes | una fila por evento (hoy) | 347 | 70 |
-| archivar las de todos los planes | contar por día | 533 | 217 |
-| archivar las de todos los planes | fila por visita | 532 | 216 |
-| archivar las de todos los planes | fila por visita más platillo por día | 512 | 188 |
+| sin archivo | una fila por evento (hoy) | 179 | 41 |
+| sin archivo | contar por día | 219 | 68 |
+| sin archivo | fila por visita | 219 | 67 |
+| sin archivo | fila por visita más platillo por día | 215 | 64 |
+| archivar sólo las de paga | una fila por evento (hoy) | 346 | 46 |
+| archivar sólo las de paga | contar por día | 531 | 83 |
+| archivar sólo las de paga | fila por visita | 531 | 83 |
+| archivar sólo las de paga | fila por visita más platillo por día | 511 | 78 |
+| archivar las de todos los planes | una fila por evento (hoy) | 346 | 70 |
+| archivar las de todos los planes | contar por día | 531 | 217 |
+| archivar las de todos los planes | fila por visita | 531 | 216 |
+| archivar las de todos los planes | fila por visita más platillo por día | 511 | 188 |
 
 Lectura: archivar sólo las sesiones de paga ayuda poco si el gratuito conserva 12 meses (46 frente a 41 sin archivo); lo que da un salto es recortar también al gratuito, sea a 30 días o archivando a todos (216 con la fila por visita). Las formas de guardar la analítica tampoco se suman entre sí.
 
@@ -72,7 +72,7 @@ Lectura: archivar sólo las sesiones de paga ayuda poco si el gratuito conserva 
 - Menos peticiones del teléfono (una al terminar frente a lotes cada 5 s) y menos escrituras: un INSERT por visita.
 
 ### Qué se pierde o cuesta
-- **El platillo visto**: la fila no dice qué platillo; se recupera con un conteo diario por platillo (la combinación: 18 % del disco de hoy, 219 restaurantes con historial a 30 días frente a 222 con la fila sola).
+- **El platillo visto**: la fila no dice qué platillo; se recupera con un conteo diario por platillo (la combinación: 18 % del disco de hoy, 215 restaurantes con historial a 30 días frente a 219 con la fila sola).
 - **Depende de que el teléfono mande la fila**: si se cierra el navegador o se apaga el teléfono antes, esa visita no queda; se puede mandar también al ocultarse la página, pero no es garantía.
 - **Actualizar cuesta**: cada actualización deja una versión muerta; con 2 actualizaciones la tabla pasa de 7.1 a 16 MB aun con vacuum. Conviene **un solo INSERT al terminar** (idempotente por la llave) y no actualizar.
 - **Contar por día sigue siendo más chico a más visitas** (crece con días y platillos): con la copia 0.7 MB frente a 0.71 MB por restaurante al mes.

@@ -1,0 +1,5151 @@
+{
+ "version": "2026-11-21-r16",
+ "ejemplo": {
+  "comensales": [
+   "A",
+   "B",
+   "C"
+  ],
+  "descripcion": "Una mesa de tres comensales (Ana, Beto y Carla): entran a la misma sesión, cada uno agrega tres platillos, la mesa envía la comanda y Beto llama al mesero. 12 eventos de analítica (4 por comensal).",
+  "restaurante": "La Ceiba (datos de desarrollo), plan Chef",
+  "base_de_medicion": "carta_med_registro_4"
+ },
+ "medido_con": {
+  "base": "carta_med_registro_4 (PostgreSQL local, esquema de las migraciones)",
+  "extension": "pageinspect",
+  "consultas": [
+   {
+    "que": "bytes de cada columna",
+    "sql": "select pg_column_size(\"columna\") from tabla where <fila>"
+   },
+   {
+    "que": "tipo y alineación de cada columna",
+    "sql": "select a.attname, format_type(a.atttypid, a.atttypmod), t.typalign, t.typlen from pg_attribute a join pg_type t on t.oid = a.atttypid where a.attrelid = 'tabla'::regclass and a.attnum > 0 and not a.attisdropped"
+   },
+   {
+    "que": "posición de la fila (ctid) y su tupla: lp_len (largo) y t_hoff (cabecera con mapa de nulos)",
+    "sql": "select ctid from tabla where <fila>; select lp_len, t_hoff from heap_page_items(get_raw_page('tabla', <bloque>)) where lp = <posición>"
+   },
+   {
+    "que": "relleno de alineación",
+    "sql": "lp_len − t_hoff − suma de pg_column_size de las columnas = relleno entre columnas (verificado con la alineación de cada tipo) + relleno final hasta múltiplo de 8"
+   },
+   {
+    "que": "entrada de índice de la fila",
+    "sql": "select itemlen from bt_page_items('índice', <bloque>) where ctid = '<ctid de la fila>'::tid; bytes = itemlen redondeado a múltiplo de 8 + 4 del puntero de línea"
+   },
+   {
+    "que": "puntero de línea de la fila",
+    "sql": "4 bytes por tupla en la página de la tabla (ItemIdData)"
+   }
+  ],
+  "nota": "Datos sintéticos; el tamaño de una fila no depende del valor salvo en texto y jsonb. Los bytes de datos de una fila = cabecera + columnas + relleno + 4 del puntero de línea; los de índices = entradas de índice (con su puntero de línea)."
+ },
+ "pasos": [
+  {
+   "id": "p1",
+   "quien": "A",
+   "que_hace": "Ana escanea el QR: se crea la sesión de la mesa y ella entra como primera comensal",
+   "escribe": [
+    {
+     "forma": "base",
+     "tabla": "sesion_grupal",
+     "fila": "sesion_grupal#1"
+    },
+    {
+     "forma": "base",
+     "tabla": "miembro_sesion",
+     "fila": "miembro_sesion#1"
+    },
+    {
+     "forma": "base",
+     "tabla": "orden_personal",
+     "fila": "orden_personal#1"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#1"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#2"
+    }
+   ]
+  },
+  {
+   "id": "p2",
+   "quien": "B",
+   "que_hace": "Beto escanea el mismo QR y entra a la sesión; se le abre su orden personal",
+   "escribe": [
+    {
+     "forma": "base",
+     "tabla": "miembro_sesion",
+     "fila": "miembro_sesion#2"
+    },
+    {
+     "forma": "base",
+     "tabla": "orden_personal",
+     "fila": "orden_personal#2"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#3"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#4"
+    }
+   ]
+  },
+  {
+   "id": "p3",
+   "quien": "C",
+   "que_hace": "Carla escanea el mismo QR y entra a la sesión; se le abre su orden personal",
+   "escribe": [
+    {
+     "forma": "base",
+     "tabla": "miembro_sesion",
+     "fila": "miembro_sesion#3"
+    },
+    {
+     "forma": "base",
+     "tabla": "orden_personal",
+     "fila": "orden_personal#3"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#5"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#6"
+    }
+   ]
+  },
+  {
+   "id": "p4",
+   "quien": "A, B y C",
+   "que_hace": "Cada comensal mira un platillo, busca o filtra, y agrega tres platillos a su orden personal",
+   "escribe": [
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#7"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#8"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#1"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#2"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#3"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#9"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#10"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#4"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#5"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#6"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#11"
+    },
+    {
+     "forma": "hoy",
+     "tabla": "evento_analitica",
+     "fila": "evento_analitica#12"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#7"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#8"
+    },
+    {
+     "forma": "base",
+     "tabla": "item_orden",
+     "fila": "item_orden#9"
+    }
+   ]
+  },
+  {
+   "id": "p5",
+   "quien": "A",
+   "que_hace": "Ana envía la comanda de la mesa al personal; cada orden queda enlazada a ella",
+   "escribe": [
+    {
+     "forma": "base",
+     "tabla": "comanda",
+     "fila": "comanda#1"
+    },
+    {
+     "forma": "base",
+     "tabla": "comanda_orden",
+     "fila": "comanda_orden#1"
+    },
+    {
+     "forma": "base",
+     "tabla": "comanda_orden",
+     "fila": "comanda_orden#2"
+    },
+    {
+     "forma": "base",
+     "tabla": "comanda_orden",
+     "fila": "comanda_orden#3"
+    }
+   ]
+  },
+  {
+   "id": "p6",
+   "quien": "B",
+   "que_hace": "Beto llama al mesero",
+   "escribe": [
+    {
+     "forma": "base",
+     "tabla": "llamada_mesero",
+     "fila": "llamada_mesero#1"
+    }
+   ]
+  },
+  {
+   "id": "pcd",
+   "quien": "teléfonos",
+   "que_hace": "(propuesta) Cada evento suma 1 a su contador del día; la mesa es la primera del día, así que cada contador distinto es una fila nueva",
+   "escribe": [
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#1"
+    },
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#2"
+    },
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#3"
+    },
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#4"
+    },
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#5"
+    },
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#6"
+    },
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#7"
+    },
+    {
+     "forma": "contar_por_dia",
+     "tabla": "evento_dia",
+     "fila": "evento_dia#8"
+    }
+   ]
+  },
+  {
+   "id": "pfv",
+   "quien": "teléfonos",
+   "que_hace": "(propuesta) Al terminar, cada teléfono manda UNA fila con las veces que entró y los segundos en el menú, el platillo y la búsqueda",
+   "escribe": [
+    {
+     "forma": "fila_por_visita",
+     "tabla": "visita_comensal",
+     "fila": "visita_comensal#1"
+    },
+    {
+     "forma": "fila_por_visita",
+     "tabla": "visita_comensal",
+     "fila": "visita_comensal#2"
+    },
+    {
+     "forma": "fila_por_visita",
+     "tabla": "visita_comensal",
+     "fila": "visita_comensal#3"
+    }
+   ]
+  },
+  {
+   "id": "pcb",
+   "quien": "teléfonos",
+   "que_hace": "(propuesta) Además de la fila por visita, un contador del día por platillo visto o agregado y por uso de filtros",
+   "escribe": [
+    {
+     "forma": "fila_mas_platillo_y_filtros_por_dia",
+     "tabla": "platillo_dia",
+     "fila": "platillo_dia#1"
+    },
+    {
+     "forma": "fila_mas_platillo_y_filtros_por_dia",
+     "tabla": "platillo_dia",
+     "fila": "platillo_dia#2"
+    },
+    {
+     "forma": "fila_mas_platillo_y_filtros_por_dia",
+     "tabla": "platillo_dia",
+     "fila": "platillo_dia#3"
+    },
+    {
+     "forma": "fila_mas_platillo_y_filtros_por_dia",
+     "tabla": "platillo_dia",
+     "fila": "platillo_dia#4"
+    },
+    {
+     "forma": "fila_mas_platillo_y_filtros_por_dia",
+     "tabla": "platillo_dia",
+     "fila": "platillo_dia#5"
+    }
+   ]
+  }
+ ],
+ "tablas_de_la_mesa": [
+  {
+   "tabla": "sesion_grupal",
+   "que_guarda": "La mesa de la visita: qué mesa, cuándo empezó y cuándo hubo la última actividad.",
+   "filas": [
+    {
+     "id": "sesion_grupal#1",
+     "paso": "p1",
+     "forma": "base",
+     "ctid": "(0,1)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "mesa_id",
+       "tipo": "uuid",
+       "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "restaurante_id",
+       "tipo": "uuid",
+       "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "character varying(20)",
+       "valor": "activa",
+       "bytes": 7,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "inicio",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:05.385152+00",
+       "bytes": 8,
+       "relleno_antes": 1
+      },
+      {
+       "nombre": "fin",
+       "tipo": "timestamp with time zone",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "ultima_actividad_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:05.385152+00",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cerrada_por_personal_id",
+       "tipo": "uuid",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 1,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_sesion_cerrada_por",
+       "bytes": 20,
+       "tupla_de_indice": 16
+      },
+      {
+       "nombre": "idx_sesion_mesa",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_sesion_restaurante",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_sesion_grupal",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_sesion_grupal_id_restaurante_id",
+       "bytes": 44,
+       "tupla_de_indice": 40
+      },
+      {
+       "nombre": "uq_sesion_viva_por_mesa",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 100,
+     "bytes_indices": 176,
+     "bytes_total": 276
+    }
+   ],
+   "total_bytes": 276,
+   "total_bytes_de_datos": 100,
+   "total_bytes_de_indices": 176
+  },
+  {
+   "tabla": "miembro_sesion",
+   "que_guarda": "Cada comensal que entró a la mesa: alias, color y cuándo se unió.",
+   "filas": [
+    {
+     "id": "miembro_sesion#1",
+     "paso": "p1",
+     "forma": "base",
+     "ctid": "(0,1)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "usuario_id",
+       "tipo": "uuid",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "rol",
+       "tipo": "character varying(20)",
+       "valor": "miembro",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "character varying(20)",
+       "valor": "activo",
+       "bytes": 7,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "alias",
+       "tipo": "character varying(24)",
+       "valor": "Ana",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "color_avatar",
+       "tipo": "character varying(7)",
+       "valor": "#4F1728",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "unido_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:05.963269+00",
+       "bytes": 8,
+       "relleno_antes": 5
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 5,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_miembro_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_miembro_usuario",
+       "bytes": 20,
+       "tupla_de_indice": 16
+      },
+      {
+       "nombre": "pk_miembro_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_miembro_sesion_id_sesion_id",
+       "bytes": 44,
+       "tupla_de_indice": 40
+      }
+     ],
+     "bytes_datos": 100,
+     "bytes_indices": 120,
+     "bytes_total": 220
+    },
+    {
+     "id": "miembro_sesion#2",
+     "paso": "p2",
+     "forma": "base",
+     "ctid": "(0,2)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "usuario_id",
+       "tipo": "uuid",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "rol",
+       "tipo": "character varying(20)",
+       "valor": "miembro",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "character varying(20)",
+       "valor": "activo",
+       "bytes": 7,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "alias",
+       "tipo": "character varying(24)",
+       "valor": "Beto",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "color_avatar",
+       "tipo": "character varying(7)",
+       "valor": "#B8860B",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "unido_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:06.87618+00",
+       "bytes": 8,
+       "relleno_antes": 4
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 4,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_miembro_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_miembro_usuario",
+       "bytes": 20,
+       "tupla_de_indice": 16
+      },
+      {
+       "nombre": "pk_miembro_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_miembro_sesion_id_sesion_id",
+       "bytes": 44,
+       "tupla_de_indice": 40
+      }
+     ],
+     "bytes_datos": 100,
+     "bytes_indices": 120,
+     "bytes_total": 220
+    },
+    {
+     "id": "miembro_sesion#3",
+     "paso": "p3",
+     "forma": "base",
+     "ctid": "(0,3)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "usuario_id",
+       "tipo": "uuid",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "rol",
+       "tipo": "character varying(20)",
+       "valor": "miembro",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "character varying(20)",
+       "valor": "activo",
+       "bytes": 7,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "alias",
+       "tipo": "character varying(24)",
+       "valor": "Carla",
+       "bytes": 6,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "color_avatar",
+       "tipo": "character varying(7)",
+       "valor": "#6B2D3E",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "unido_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:07.710612+00",
+       "bytes": 8,
+       "relleno_antes": 3
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 3,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_miembro_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_miembro_usuario",
+       "bytes": 20,
+       "tupla_de_indice": 16
+      },
+      {
+       "nombre": "pk_miembro_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_miembro_sesion_id_sesion_id",
+       "bytes": 44,
+       "tupla_de_indice": 40
+      }
+     ],
+     "bytes_datos": 100,
+     "bytes_indices": 120,
+     "bytes_total": 220
+    }
+   ],
+   "total_bytes": 660,
+   "total_bytes_de_datos": 300,
+   "total_bytes_de_indices": 360
+  },
+  {
+   "tabla": "orden_personal",
+   "que_guarda": "Lo que pide cada comensal: estado, total y si está bloqueada.",
+   "filas": [
+    {
+     "id": "orden_personal#1",
+     "paso": "p1",
+     "forma": "base",
+     "ctid": "(0,1)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "f5311016-230b-41dd-ba70-0148c074326f",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "miembro_id",
+       "tipo": "uuid",
+       "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "character varying(20)",
+       "valor": "armando",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "total",
+       "tipo": "numeric(10,2)",
+       "valor": "0.00",
+       "bytes": 3,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "bloqueada",
+       "tipo": "boolean",
+       "valor": "false",
+       "bytes": 1,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "creada_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:06.435531+00",
+       "bytes": 8,
+       "relleno_antes": 4
+      },
+      {
+       "nombre": "confirmada_en",
+       "tipo": "timestamp with time zone",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 4,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_orden_miembro",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_orden_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_orden_personal",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_orden_viva_por_miembro",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 100,
+     "bytes_indices": 112,
+     "bytes_total": 212
+    },
+    {
+     "id": "orden_personal#2",
+     "paso": "p2",
+     "forma": "base",
+     "ctid": "(0,2)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "2fc9c7b8-f8b0-4cf3-b346-d4a5cfa7fe02",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "miembro_id",
+       "tipo": "uuid",
+       "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "character varying(20)",
+       "valor": "armando",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "total",
+       "tipo": "numeric(10,2)",
+       "valor": "0.00",
+       "bytes": 3,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "bloqueada",
+       "tipo": "boolean",
+       "valor": "false",
+       "bytes": 1,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "creada_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:07.285843+00",
+       "bytes": 8,
+       "relleno_antes": 4
+      },
+      {
+       "nombre": "confirmada_en",
+       "tipo": "timestamp with time zone",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 4,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_orden_miembro",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_orden_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_orden_personal",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_orden_viva_por_miembro",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 100,
+     "bytes_indices": 112,
+     "bytes_total": 212
+    },
+    {
+     "id": "orden_personal#3",
+     "paso": "p3",
+     "forma": "base",
+     "ctid": "(0,3)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "66340d91-277b-463f-86b6-50a02bccd062",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "miembro_id",
+       "tipo": "uuid",
+       "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "character varying(20)",
+       "valor": "armando",
+       "bytes": 8,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "total",
+       "tipo": "numeric(10,2)",
+       "valor": "0.00",
+       "bytes": 3,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "bloqueada",
+       "tipo": "boolean",
+       "valor": "false",
+       "bytes": 1,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "creada_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:08.098877+00",
+       "bytes": 8,
+       "relleno_antes": 4
+      },
+      {
+       "nombre": "confirmada_en",
+       "tipo": "timestamp with time zone",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 4,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_orden_miembro",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_orden_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_orden_personal",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_orden_viva_por_miembro",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 100,
+     "bytes_indices": 112,
+     "bytes_total": 212
+    }
+   ],
+   "total_bytes": 636,
+   "total_bytes_de_datos": 300,
+   "total_bytes_de_indices": 336
+  },
+  {
+   "tabla": "item_orden",
+   "que_guarda": "Cada platillo que un comensal agregó a su orden, con su precio congelado.",
+   "filas": [
+    {
+     "id": "item_orden#1",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,1)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "e9a47df0-be26-4a33-b0c7-2deb1adf55d4",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "f5311016-230b-41dd-ba70-0148c074326f",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "56c05c8b-a2c5-4f21-80c7-b2528279862d",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "185.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "185.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#2",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,2)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "ef22c59e-af73-4a3d-9766-569f0b207012",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "f5311016-230b-41dd-ba70-0148c074326f",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "95b80b87-cf22-488c-bfa0-45759aab8991",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "95.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "95.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#3",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,3)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "2904f802-1ea0-4550-8f04-76342fcb3811",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "f5311016-230b-41dd-ba70-0148c074326f",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "210.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "210.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#4",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,4)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "f1800c6e-f519-4d74-8caf-e841715f2893",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "2fc9c7b8-f8b0-4cf3-b346-d4a5cfa7fe02",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "56c05c8b-a2c5-4f21-80c7-b2528279862d",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "185.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "185.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#5",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,5)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "35246b8d-e404-4b4c-880e-4bd30bcf9611",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "2fc9c7b8-f8b0-4cf3-b346-d4a5cfa7fe02",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "95b80b87-cf22-488c-bfa0-45759aab8991",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "95.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "95.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#6",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,6)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "c499128f-a147-4f77-8f5e-96cfcc7be8ad",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "2fc9c7b8-f8b0-4cf3-b346-d4a5cfa7fe02",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "210.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "210.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#7",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,7)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "3316734c-bfa4-46ac-9fbb-64d3ab8d7c4c",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "66340d91-277b-463f-86b6-50a02bccd062",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "56c05c8b-a2c5-4f21-80c7-b2528279862d",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "185.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "185.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#8",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,8)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "8cc873e5-a36c-4270-9495-50e511095967",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "66340d91-277b-463f-86b6-50a02bccd062",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "95b80b87-cf22-488c-bfa0-45759aab8991",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "95.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "95.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    },
+    {
+     "id": "item_orden#9",
+     "paso": "p4",
+     "forma": "base",
+     "ctid": "(0,9)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "49abfcca-1812-41c8-af56-213c672e7677",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "66340d91-277b-463f-86b6-50a02bccd062",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "platillo_id",
+       "tipo": "uuid",
+       "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "cantidad",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "notas",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "precio_unitario",
+       "tipo": "numeric(10,2)",
+       "valor": "210.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "subtotal",
+       "tipo": "numeric(10,2)",
+       "valor": "210.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 2,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_item_platillo",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_item_orden",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 92,
+     "bytes_indices": 84,
+     "bytes_total": 176
+    }
+   ],
+   "total_bytes": 1584,
+   "total_bytes_de_datos": 828,
+   "total_bytes_de_indices": 756
+  },
+  {
+   "tabla": "comanda",
+   "que_guarda": "El pedido de la mesa enviado al personal: estado, total y número de comensales.",
+   "filas": [
+    {
+     "id": "comanda#1",
+     "paso": "p5",
+     "forma": "base",
+     "ctid": "(0,1)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "b2d45142-ef34-4426-b78d-71e3b3203773",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "restaurante_id",
+       "tipo": "uuid",
+       "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "mesa_id",
+       "tipo": "uuid",
+       "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "secuencia",
+       "tipo": "integer",
+       "valor": "1",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "estado",
+       "tipo": "estado_comanda",
+       "valor": "abierta",
+       "bytes": 4,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "total_estimado",
+       "tipo": "numeric(10,2)",
+       "valor": "1470.00",
+       "bytes": 5,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "num_comensales",
+       "tipo": "integer",
+       "valor": "3",
+       "bytes": 4,
+       "relleno_antes": 3
+      },
+      {
+       "nombre": "creada_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:18.867609+00",
+       "bytes": 8,
+       "relleno_antes": 4
+      },
+      {
+       "nombre": "atendida_en",
+       "tipo": "timestamp with time zone",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "servida_en",
+       "tipo": "timestamp with time zone",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "atendida_por_personal_id",
+       "tipo": "uuid",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "nota_cancelacion",
+       "tipo": "text",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 32,
+     "relleno_bytes": 7,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_comanda_abierta",
+       "bytes": 36,
+       "tupla_de_indice": 32
+      },
+      {
+       "nombre": "idx_comanda_atendida_por",
+       "bytes": 20,
+       "tupla_de_indice": 16
+      },
+      {
+       "nombre": "idx_comanda_mesa",
+       "bytes": 36,
+       "tupla_de_indice": 32
+      },
+      {
+       "nombre": "idx_comanda_restaurante",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_comanda",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "uq_comanda_sesion_id_secuencia",
+       "bytes": 36,
+       "tupla_de_indice": 32
+      }
+     ],
+     "bytes_datos": 132,
+     "bytes_indices": 184,
+     "bytes_total": 316
+    }
+   ],
+   "total_bytes": 316,
+   "total_bytes_de_datos": 132,
+   "total_bytes_de_indices": 184
+  },
+  {
+   "tabla": "comanda_orden",
+   "que_guarda": "Enlaza cada orden personal con la comanda de la mesa.",
+   "filas": [
+    {
+     "id": "comanda_orden#1",
+     "paso": "p5",
+     "forma": "base",
+     "ctid": "(0,1)",
+     "columnas": [
+      {
+       "nombre": "comanda_id",
+       "tipo": "uuid",
+       "valor": "b2d45142-ef34-4426-b78d-71e3b3203773",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "f5311016-230b-41dd-ba70-0148c074326f",
+       "bytes": 16,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 0,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "pk_comanda_orden",
+       "bytes": 44,
+       "tupla_de_indice": 40
+      },
+      {
+       "nombre": "uq_comanda_orden_orden_id",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 60,
+     "bytes_indices": 72,
+     "bytes_total": 132
+    },
+    {
+     "id": "comanda_orden#2",
+     "paso": "p5",
+     "forma": "base",
+     "ctid": "(0,2)",
+     "columnas": [
+      {
+       "nombre": "comanda_id",
+       "tipo": "uuid",
+       "valor": "b2d45142-ef34-4426-b78d-71e3b3203773",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "2fc9c7b8-f8b0-4cf3-b346-d4a5cfa7fe02",
+       "bytes": 16,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 0,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "pk_comanda_orden",
+       "bytes": 44,
+       "tupla_de_indice": 40
+      },
+      {
+       "nombre": "uq_comanda_orden_orden_id",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 60,
+     "bytes_indices": 72,
+     "bytes_total": 132
+    },
+    {
+     "id": "comanda_orden#3",
+     "paso": "p5",
+     "forma": "base",
+     "ctid": "(0,3)",
+     "columnas": [
+      {
+       "nombre": "comanda_id",
+       "tipo": "uuid",
+       "valor": "b2d45142-ef34-4426-b78d-71e3b3203773",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "orden_id",
+       "tipo": "uuid",
+       "valor": "66340d91-277b-463f-86b6-50a02bccd062",
+       "bytes": 16,
+       "relleno_antes": 0
+      }
+     ],
+     "cabecera_bytes": 24,
+     "relleno_bytes": 0,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "pk_comanda_orden",
+       "bytes": 44,
+       "tupla_de_indice": 40
+      },
+      {
+       "nombre": "uq_comanda_orden_orden_id",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 60,
+     "bytes_indices": 72,
+     "bytes_total": 132
+    }
+   ],
+   "total_bytes": 396,
+   "total_bytes_de_datos": 180,
+   "total_bytes_de_indices": 216
+  },
+  {
+   "tabla": "llamada_mesero",
+   "que_guarda": "Una solicitud de atención de un comensal.",
+   "filas": [
+    {
+     "id": "llamada_mesero#1",
+     "paso": "p6",
+     "forma": "base",
+     "ctid": "(0,1)",
+     "columnas": [
+      {
+       "nombre": "id",
+       "tipo": "uuid",
+       "valor": "85aa3099-823c-4f7b-8653-435515911c9d",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "restaurante_id",
+       "tipo": "uuid",
+       "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "mesa_id",
+       "tipo": "uuid",
+       "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "sesion_id",
+       "tipo": "uuid",
+       "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "miembro_id",
+       "tipo": "uuid",
+       "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+       "bytes": 16,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "motivo",
+       "tipo": "character varying(40)",
+       "valor": "atencion",
+       "bytes": 9,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "atendida_en",
+       "tipo": "timestamp with time zone",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "atendida_por_personal_id",
+       "tipo": "uuid",
+       "valor": null,
+       "bytes": 0,
+       "relleno_antes": 0
+      },
+      {
+       "nombre": "creada_en",
+       "tipo": "timestamp with time zone",
+       "valor": "2026-11-21 05:12:20.138825+00",
+       "bytes": 8,
+       "relleno_antes": 7
+      }
+     ],
+     "cabecera_bytes": 32,
+     "relleno_bytes": 7,
+     "puntero_de_linea_bytes": 4,
+     "indices": [
+      {
+       "nombre": "idx_llamada_atendida_por",
+       "bytes": 20,
+       "tupla_de_indice": 16
+      },
+      {
+       "nombre": "idx_llamada_mesa",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_llamada_miembro",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_llamada_pendiente",
+       "bytes": 36,
+       "tupla_de_indice": 32
+      },
+      {
+       "nombre": "idx_llamada_restaurante",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "idx_llamada_sesion",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      },
+      {
+       "nombre": "pk_llamada_mesero",
+       "bytes": 28,
+       "tupla_de_indice": 24
+      }
+     ],
+     "bytes_datos": 140,
+     "bytes_indices": 196,
+     "bytes_total": 336
+    }
+   ],
+   "total_bytes": 336,
+   "total_bytes_de_datos": 140,
+   "total_bytes_de_indices": 196
+  }
+ ],
+ "bytes_de_la_mesa_sin_analitica": 4204,
+ "formas": [
+  {
+   "id": "hoy",
+   "nombre": "Hoy: una fila por evento",
+   "estado": "base_actual",
+   "tablas": [
+    {
+     "tabla": "evento_analitica",
+     "que_guarda": "Hoy: una fila por cada toque del comensal (escaneo, menú, platillo, búsqueda, filtro, agregar), con huella de red y navegador.",
+     "filas": [
+      {
+       "id": "evento_analitica#1",
+       "paso": "p1",
+       "forma": "hoy",
+       "ctid": "(0,1)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "1",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "scan",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:08.601698+00",
+         "bytes": 8,
+         "relleno_antes": 6
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 188,
+       "bytes_total": 392
+      },
+      {
+       "id": "evento_analitica#2",
+       "paso": "p1",
+       "forma": "hoy",
+       "ctid": "(0,2)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "2",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "menu_view",
+         "bytes": 10,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:09.216885+00",
+         "bytes": 8,
+         "relleno_antes": 1
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 1,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 196,
+       "bytes_total": 400
+      },
+      {
+       "id": "evento_analitica#3",
+       "paso": "p2",
+       "forma": "hoy",
+       "ctid": "(0,3)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "3",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "scan",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Chrome",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:09.851089+00",
+         "bytes": 8,
+         "relleno_antes": 6
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 188,
+       "bytes_total": 392
+      },
+      {
+       "id": "evento_analitica#4",
+       "paso": "p2",
+       "forma": "hoy",
+       "ctid": "(0,4)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "4",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "menu_view",
+         "bytes": 10,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Chrome",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:10.390763+00",
+         "bytes": 8,
+         "relleno_antes": 1
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 1,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 196,
+       "bytes_total": 400
+      },
+      {
+       "id": "evento_analitica#5",
+       "paso": "p3",
+       "forma": "hoy",
+       "ctid": "(0,5)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "5",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "scan",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "c13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13a",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:10.967853+00",
+         "bytes": 8,
+         "relleno_antes": 6
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 188,
+       "bytes_total": 392
+      },
+      {
+       "id": "evento_analitica#6",
+       "paso": "p3",
+       "forma": "hoy",
+       "ctid": "(0,6)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "6",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "menu_view",
+         "bytes": 10,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "c13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13a",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:11.5624+00",
+         "bytes": 8,
+         "relleno_antes": 1
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 1,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 196,
+       "bytes_total": 400
+      },
+      {
+       "id": "evento_analitica#7",
+       "paso": "p4",
+       "forma": "hoy",
+       "ctid": "(0,7)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "7",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "56c05c8b-a2c5-4f21-80c7-b2528279862d",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "dish_view",
+         "bytes": 10,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:12.18645+00",
+         "bytes": 8,
+         "relleno_antes": 1
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 1,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 212,
+       "bytes_indices": 204,
+       "bytes_total": 416
+      },
+      {
+       "id": "evento_analitica#8",
+       "paso": "p4",
+       "forma": "hoy",
+       "ctid": "(0,8)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "8",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "search",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c9f2c",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:12.86393+00",
+         "bytes": 8,
+         "relleno_antes": 4
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 4,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 188,
+       "bytes_total": 392
+      },
+      {
+       "id": "evento_analitica#9",
+       "paso": "p4",
+       "forma": "hoy",
+       "ctid": "(0,9)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "9",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "95b80b87-cf22-488c-bfa0-45759aab8991",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "dish_view",
+         "bytes": 10,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Chrome",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:14.518036+00",
+         "bytes": 8,
+         "relleno_antes": 1
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 1,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 212,
+       "bytes_indices": 204,
+       "bytes_total": 416
+      },
+      {
+       "id": "evento_analitica#10",
+       "paso": "p4",
+       "forma": "hoy",
+       "ctid": "(0,10)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "10",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": null,
+         "bytes": 0,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "filter",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e4b7e",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Chrome",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:15.11951+00",
+         "bytes": 8,
+         "relleno_antes": 4
+        }
+       ],
+       "cabecera_bytes": 32,
+       "relleno_bytes": 4,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 204,
+       "bytes_indices": 188,
+       "bytes_total": 392
+      },
+      {
+       "id": "evento_analitica#11",
+       "paso": "p4",
+       "forma": "hoy",
+       "ctid": "(0,11)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "11",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "dish_view",
+         "bytes": 10,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "c13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13a",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:16.728969+00",
+         "bytes": 8,
+         "relleno_antes": 1
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 1,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 212,
+       "bytes_indices": 204,
+       "bytes_total": 416
+      },
+      {
+       "id": "evento_analitica#12",
+       "paso": "p4",
+       "forma": "hoy",
+       "ctid": "(0,12)",
+       "columnas": [
+        {
+         "nombre": "id",
+         "tipo": "bigint",
+         "valor": "12",
+         "bytes": 8,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "mesa_id",
+         "tipo": "uuid",
+         "valor": "6158f647-4c16-455f-addd-4f8b41588e11",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "sesion_id",
+         "tipo": "uuid",
+         "valor": "7e281e50-ad8d-4a70-9252-0a2ae7a21d2b",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "character varying(40)",
+         "valor": "item_add",
+         "bytes": 9,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "propiedades",
+         "tipo": "jsonb",
+         "valor": "{}",
+         "bytes": 5,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ip_hash",
+         "tipo": "character varying(64)",
+         "valor": "c13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13ac13a",
+         "bytes": 65,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "user_agent_fam",
+         "tipo": "character varying(60)",
+         "valor": "Safari",
+         "bytes": 7,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "ocurrido_en",
+         "tipo": "timestamp with time zone",
+         "valor": "2026-11-21 05:12:17.352463+00",
+         "bytes": 8,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 2,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "idx_evento_mesa",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_miembro",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_platillo",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_restaurante_fecha",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "idx_evento_sesion",
+         "bytes": 28,
+         "tupla_de_indice": 24
+        },
+        {
+         "nombre": "idx_evento_tipo",
+         "bytes": 36,
+         "tupla_de_indice": 32
+        },
+        {
+         "nombre": "pk_evento_analitica",
+         "bytes": 20,
+         "tupla_de_indice": 16
+        }
+       ],
+       "bytes_datos": 212,
+       "bytes_indices": 204,
+       "bytes_total": 416
+      }
+     ],
+     "total_bytes": 4824,
+     "total_bytes_de_datos": 2480,
+     "total_bytes_de_indices": 2344
+    }
+   ],
+   "bytes_analitica": 4824,
+   "bytes_mesa_sin_analitica": 4204,
+   "bytes_total": 9028,
+   "parte_analitica": 0.5343376163048295,
+   "notas": [
+    "La tabla evento_analitica existe hoy en el modelo (app/db/models.py); 12 eventos de ejemplo, 4 por comensal."
+   ]
+  },
+  {
+   "id": "contar_por_dia",
+   "nombre": "Contar por día",
+   "estado": "propuesta",
+   "tablas": [
+    {
+     "tabla": "evento_dia",
+     "que_guarda": "(propuesta) Un contador por restaurante, día, tipo de evento y platillo.",
+     "filas": [
+      {
+       "id": "evento_dia#1",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,1)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "00000000-0000-0000-0000-000000000000",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "3",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "evento_dia#2",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,2)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "2",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "00000000-0000-0000-0000-000000000000",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "3",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "evento_dia#3",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,3)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "3",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "evento_dia#4",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,4)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "3",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "56c05c8b-a2c5-4f21-80c7-b2528279862d",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "evento_dia#5",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,5)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "3",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "95b80b87-cf22-488c-bfa0-45759aab8991",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "evento_dia#6",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,6)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "4",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "00000000-0000-0000-0000-000000000000",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "evento_dia#7",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,7)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "5",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "00000000-0000-0000-0000-000000000000",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "evento_dia#8",
+       "paso": "pcd",
+       "forma": "contar_por_dia",
+       "ctid": "(0,8)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "6",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "evento_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      }
+     ],
+     "total_bytes": 1024,
+     "total_bytes_de_datos": 608,
+     "total_bytes_de_indices": 416
+    }
+   ],
+   "bytes_analitica": 1024,
+   "bytes_mesa_sin_analitica": 4204,
+   "bytes_total": 5228,
+   "parte_analitica": 0.19586840091813312,
+   "notas": [
+    "PROPUESTA: la tabla evento_dia no existe en el modelo; se creó en la base de medición. Esquema: (restaurante_id uuid, dia date, tipo smallint, platillo_id uuid, n integer), llave (restaurante_id, dia, tipo, platillo_id), sin llaves foráneas.",
+    "La mesa es la primera del día: los 8 contadores distintos son filas nuevas. En un día con tráfico esos contadores ya existen y cada evento los actualiza (UPSERT): no suma filas, pero cada actualización deja una versión muerta de la fila hasta el vacuum (4 en este ejemplo)."
+   ]
+  },
+  {
+   "id": "fila_por_visita",
+   "nombre": "Fila por visita de comensal",
+   "estado": "propuesta",
+   "tablas": [
+    {
+     "tabla": "visita_comensal",
+     "que_guarda": "(propuesta) Una fila por comensal y día: veces y segundos en menú, platillo y búsqueda; los filtros no van por comensal.",
+     "filas": [
+      {
+       "id": "visita_comensal#1",
+       "paso": "pfv",
+       "forma": "fila_por_visita",
+       "ctid": "(0,1)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_seg",
+         "tipo": "smallint",
+         "valor": "140",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_seg",
+         "tipo": "smallint",
+         "valor": "95",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_seg",
+         "tipo": "smallint",
+         "valor": "20",
+         "bytes": 2,
+         "relleno_antes": 0
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 0,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "visita_comensal_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "visita_comensal#2",
+       "paso": "pfv",
+       "forma": "fila_por_visita",
+       "ctid": "(0,2)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_seg",
+         "tipo": "smallint",
+         "valor": "160",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_seg",
+         "tipo": "smallint",
+         "valor": "80",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_n",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_seg",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 0,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "visita_comensal_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "visita_comensal#3",
+       "paso": "pfv",
+       "forma": "fila_por_visita",
+       "ctid": "(0,3)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_seg",
+         "tipo": "smallint",
+         "valor": "180",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_seg",
+         "tipo": "smallint",
+         "valor": "120",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_n",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_seg",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 0,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "visita_comensal_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      }
+     ],
+     "total_bytes": 384,
+     "total_bytes_de_datos": 228,
+     "total_bytes_de_indices": 156
+    }
+   ],
+   "bytes_analitica": 384,
+   "bytes_mesa_sin_analitica": 4204,
+   "bytes_total": 4588,
+   "parte_analitica": 0.08369659982563209,
+   "notas": [
+    "PROPUESTA: la tabla visita_comensal no existe en el modelo; se creó en la base de medición. Esquema: (restaurante_id uuid, dia date, miembro_id uuid, menu_n, menu_seg, platillo_n, platillo_seg, busqueda_n, busqueda_seg smallint), llave (restaurante_id, dia, miembro_id), sin llaves foráneas.",
+    "El teléfono manda la fila UNA vez al terminar (un INSERT); si se cierra antes, esa visita no queda. Actualizarla duplicaría la tabla. No lleva filtros por comensal (regla 10) ni platillo visto."
+   ]
+  },
+  {
+   "id": "fila_mas_platillo_y_filtros_por_dia",
+   "nombre": "Fila por visita más un contador diario de platillos y filtros",
+   "estado": "propuesta",
+   "tablas": [
+    {
+     "tabla": "visita_comensal",
+     "que_guarda": "(propuesta) Una fila por comensal y día: veces y segundos en menú, platillo y búsqueda; los filtros no van por comensal.",
+     "filas": [
+      {
+       "id": "visita_comensal#1",
+       "paso": "pfv",
+       "forma": "fila_por_visita",
+       "ctid": "(0,1)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "3c0e8383-e886-4442-afb7-777b25f6d581",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_seg",
+         "tipo": "smallint",
+         "valor": "140",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_seg",
+         "tipo": "smallint",
+         "valor": "95",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_seg",
+         "tipo": "smallint",
+         "valor": "20",
+         "bytes": 2,
+         "relleno_antes": 0
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 0,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "visita_comensal_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "visita_comensal#2",
+       "paso": "pfv",
+       "forma": "fila_por_visita",
+       "ctid": "(0,2)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "aaba53e6-b9d8-4458-b359-03ec8c4d92b2",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_seg",
+         "tipo": "smallint",
+         "valor": "160",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_seg",
+         "tipo": "smallint",
+         "valor": "80",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_n",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_seg",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 0,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "visita_comensal_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "visita_comensal#3",
+       "paso": "pfv",
+       "forma": "fila_por_visita",
+       "ctid": "(0,3)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "miembro_id",
+         "tipo": "uuid",
+         "valor": "dbe49117-84c1-4acb-af33-0498e888e5bc",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "menu_seg",
+         "tipo": "smallint",
+         "valor": "180",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_n",
+         "tipo": "smallint",
+         "valor": "1",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_seg",
+         "tipo": "smallint",
+         "valor": "120",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_n",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "busqueda_seg",
+         "tipo": "smallint",
+         "valor": "0",
+         "bytes": 2,
+         "relleno_antes": 0
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 0,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "visita_comensal_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      }
+     ],
+     "total_bytes": 384,
+     "total_bytes_de_datos": 228,
+     "total_bytes_de_indices": 156
+    },
+    {
+     "tabla": "platillo_dia",
+     "que_guarda": "(propuesta) Un contador por día de platillos vistos, agregados y de uso de filtros, sin dato de qué comensal.",
+     "filas": [
+      {
+       "id": "platillo_dia#1",
+       "paso": "pcb",
+       "forma": "fila_mas_platillo_y_filtros_por_dia",
+       "ctid": "(0,1)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "3",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "platillo_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "platillo_dia#2",
+       "paso": "pcb",
+       "forma": "fila_mas_platillo_y_filtros_por_dia",
+       "ctid": "(0,2)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "3",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "56c05c8b-a2c5-4f21-80c7-b2528279862d",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "platillo_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "platillo_dia#3",
+       "paso": "pcb",
+       "forma": "fila_mas_platillo_y_filtros_por_dia",
+       "ctid": "(0,3)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "3",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "95b80b87-cf22-488c-bfa0-45759aab8991",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "platillo_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "platillo_dia#4",
+       "paso": "pcb",
+       "forma": "fila_mas_platillo_y_filtros_por_dia",
+       "ctid": "(0,4)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "5",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "00000000-0000-0000-0000-000000000000",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "platillo_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      },
+      {
+       "id": "platillo_dia#5",
+       "paso": "pcb",
+       "forma": "fila_mas_platillo_y_filtros_por_dia",
+       "ctid": "(0,5)",
+       "columnas": [
+        {
+         "nombre": "restaurante_id",
+         "tipo": "uuid",
+         "valor": "482ec4d3-91a3-4de3-a659-a2df3ccd0835",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "dia",
+         "tipo": "date",
+         "valor": "2026-11-21",
+         "bytes": 4,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "tipo",
+         "tipo": "smallint",
+         "valor": "6",
+         "bytes": 2,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "platillo_id",
+         "tipo": "uuid",
+         "valor": "3bbf2404-0536-4adc-a8e7-1c612e8c6a59",
+         "bytes": 16,
+         "relleno_antes": 0
+        },
+        {
+         "nombre": "n",
+         "tipo": "integer",
+         "valor": "1",
+         "bytes": 4,
+         "relleno_antes": 2
+        }
+       ],
+       "cabecera_bytes": 24,
+       "relleno_bytes": 6,
+       "puntero_de_linea_bytes": 4,
+       "indices": [
+        {
+         "nombre": "platillo_dia_pkey",
+         "bytes": 52,
+         "tupla_de_indice": 48
+        }
+       ],
+       "bytes_datos": 76,
+       "bytes_indices": 52,
+       "bytes_total": 128
+      }
+     ],
+     "total_bytes": 640,
+     "total_bytes_de_datos": 380,
+     "total_bytes_de_indices": 260
+    }
+   ],
+   "bytes_analitica": 1024,
+   "bytes_mesa_sin_analitica": 4204,
+   "bytes_total": 5228,
+   "parte_analitica": 0.19586840091813312,
+   "notas": [
+    "PROPUESTA: la fila por visita más platillo_dia (restaurante, día, tipo, platillo; n) sólo para dish_view, item_add y filter. Los filtros se cuentan por restaurante y día, sin comensal."
+   ]
+  }
+ ],
+ "comparacion": [
+  {
+   "forma": "hoy",
+   "bytes_analitica": 4824,
+   "bytes_total": 9028,
+   "frente_a_hoy": 0.0
+  },
+  {
+   "forma": "contar_por_dia",
+   "bytes_analitica": 1024,
+   "bytes_total": 5228,
+   "frente_a_hoy": -0.7877280265339967
+  },
+  {
+   "forma": "fila_por_visita",
+   "bytes_analitica": 384,
+   "bytes_total": 4588,
+   "frente_a_hoy": -0.9203980099502488
+  },
+  {
+   "forma": "fila_mas_platillo_y_filtros_por_dia",
+   "bytes_analitica": 1024,
+   "bytes_total": 5228,
+   "frente_a_hoy": -0.7877280265339967
+  }
+ ],
+ "diferencia_con_el_informe": {
+  "informe_bytes": 8382,
+  "medido_bytes": 9028,
+  "diferencia_bytes": 646,
+  "conciliacion_por_tabla": [
+   {
+    "tabla": "sesion_grupal",
+    "informe_filas": 1,
+    "informe_bytes_por_fila": 264,
+    "informe_bytes": 264,
+    "medido_filas": 1,
+    "medido_bytes_por_fila": 276,
+    "medido_bytes": 276
+   },
+   {
+    "tabla": "miembro_sesion",
+    "informe_filas": 3,
+    "informe_bytes_por_fila": 250,
+    "informe_bytes": 750,
+    "medido_filas": 3,
+    "medido_bytes_por_fila": 220,
+    "medido_bytes": 660
+   },
+   {
+    "tabla": "orden_personal",
+    "informe_filas": 3,
+    "informe_bytes_por_fila": 229,
+    "informe_bytes": 687,
+    "medido_filas": 3,
+    "medido_bytes_por_fila": 212,
+    "medido_bytes": 636
+   },
+   {
+    "tabla": "item_orden",
+    "informe_filas": 9,
+    "informe_bytes_por_fila": 174,
+    "informe_bytes": 1566,
+    "medido_filas": 9,
+    "medido_bytes_por_fila": 176,
+    "medido_bytes": 1584
+   },
+   {
+    "tabla": "comanda",
+    "informe_filas": 1.3,
+    "informe_bytes_por_fila": 334,
+    "informe_bytes": 434,
+    "medido_filas": 1,
+    "medido_bytes_por_fila": 316,
+    "medido_bytes": 316
+   },
+   {
+    "tabla": "comanda_orden",
+    "informe_filas": 3,
+    "informe_bytes_por_fila": 169,
+    "informe_bytes": 507,
+    "medido_filas": 3,
+    "medido_bytes_por_fila": 132,
+    "medido_bytes": 396
+   },
+   {
+    "tabla": "llamada_mesero",
+    "informe_filas": 0.3,
+    "informe_bytes_por_fila": 304,
+    "informe_bytes": 92,
+    "medido_filas": 1,
+    "medido_bytes_por_fila": 336,
+    "medido_bytes": 336
+   },
+   {
+    "tabla": "evento_analitica",
+    "informe_filas": 11.56,
+    "informe_bytes_por_fila": 353,
+    "informe_bytes": 4082,
+    "medido_filas": 12,
+    "medido_bytes_por_fila": 402,
+    "medido_bytes": 4824
+   }
+  ],
+  "explicacion": [
+   "El informe (2026-11-17-historia-del-disco) usa valores ESPERADOS por mesa de tres (1.3 comandas, 0.3 llamadas, 11.56 eventos) y bytes por fila = tamaño total de la tabla (con sus índices) ÷ sus filas, medido en una copia de 18,000 sesiones. Esta medición escribe UNA mesa concreta (1 comanda, 1 llamada, 12 eventos) y mide cada registro contra el esquema real.",
+   "El promedio de la copia (tamaño de la tabla con sus índices ÷ sus filas) mezcla efectos que un registro suelto no ve: huecos de las páginas de 8 KB, páginas internas de los índices y la deduplicación de entradas de índice iguales; según la tabla empujan el promedio hacia arriba o hacia abajo de la suma exacta de la tupla y sus entradas.",
+   "El informe cuenta en el ejemplo un comensal por comanda_orden y fracciones de comanda y de llamada porque promedia 18,000 mesas; esta mesa escribe filas enteras. No se corrigió la cifra del informe: se añadió esta vista por registro y se explica la diferencia fila por fila en `conciliacion_por_tabla`.",
+   "Dónde está la diferencia: el informe da 8382 bytes por mesa; esta medición da 9028. En las seis tablas de la visita coinciden dentro de unas decenas de bytes por fila (264 contra 276 la sesión: 100 de tupla más 176 de seis entradas de índice). La diferencia grande es la analítica: 402 bytes por evento medidos contra 353 del informe. Un evento real escribe 7 entradas de índice (188 bytes la primera) y en la copia de 180,000 eventos los índices pesan 137 bytes por evento (la tupla, 216): al repetirse miembro, sesión, mesa, tipo y restaurante, PostgreSQL deduplica las entradas de índice iguales (btree con deduplicación) y cada una cuesta menos que el registro suelto, que no puede deduplicar contra nadie.",
+   "Por eso las dos cifras son ciertas y miden cosas distintas: el registro suelto es el costo de escribir ESTA mesa (cota alta de índices); el promedio de la copia es lo que ocupa el disco a escala. La capacidad del informe usa el promedio de la copia. No se corrigió ninguna de las dos; la corrección pendiente es medir con tráfico real cuánto deduplican los índices.",
+   "No se cuentan las ACTUALIZACIONES (estado de la orden, ultima_actividad_en de la sesión, confirmación de la comanda): cada una deja una versión nueva de la fila hasta el vacuum. El informe tampoco las cuenta; es una subestimación común, pendiente de medir cuando exista la Fase 3."
+  ]
+ }
+}

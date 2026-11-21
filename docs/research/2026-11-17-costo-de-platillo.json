@@ -1,5 +1,5 @@
 {
-  "lo_que_si_mueve_el_tope": "Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: con la parte de paga variable y las dos cotas, el tope de 50 deja 166 pagantes por 1,000 con la cota baja (137 con la alta) y caben 142 restaurantes por disco con avisos (163 con la alta); el de 150, 144 pagantes (116) y 157 (182). Más gente de paga llena antes el disco (cada restaurante de paga guarda 12 meses). Margen con 1,000 restaurantes: 26,088 → 22,715 (cota baja).",
+  "lo_que_si_mueve_el_tope": "Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: con la parte de paga variable y las dos cotas, el tope de 50 deja 162 pagantes por 1,000 con la cota baja (119 con la alta) y caben 145 restaurantes por disco con avisos (179 con la alta); el de 150, 129 pagantes (87) y 170 (216). Más gente de paga llena antes el disco (cada restaurante de paga guarda 12 meses). Margen con 1,000 restaurantes: 25,453 → 20,472 (cota baja).",
   "filas": [
     {
       "platillos": 50,
@@ -36,41 +36,41 @@
       },
       "con_la_mezcla_de_paga_variable": {
         "baja": {
-          "pagantes_por_1000": 166.15524588462284,
-          "disco_con_avisos": 142,
-          "disco_con_sondeo": 142,
-          "margen_operacion": 26087.922495485476
+          "pagantes_por_1000": 161.86501420829254,
+          "disco_con_avisos": 145,
+          "disco_con_sondeo": 145,
+          "margen_operacion": 25453.384881670143
         },
         "alta": {
-          "pagantes_por_1000": 137.03926303547445,
-          "disco_con_avisos": 163,
-          "disco_con_sondeo": 163,
-          "margen_operacion": 21781.584825443875
+          "pagantes_por_1000": 118.62604809144003,
+          "disco_con_avisos": 179,
+          "disco_con_sondeo": 179,
+          "margen_operacion": 19058.217335124456
         }
       },
-      "clientes_de_paga_por_1000_por_el_tope": 137.03926303547445,
+      "clientes_de_paga_por_1000_por_el_tope": 118.62604809144003,
       "cobertura_de_0_a_5_dentro_de_chef": {
-        "baja": 0.07241782047363227,
-        "alta": 0.31080953075710505
+        "baja": 0.10313564470774031,
+        "alta": 0.44264714301386454
       },
       "continuo": {
-        "mb_por_restaurante": 21.882463302843174,
-        "carga_cpu_total_con_avisos": 0.9748427148029972,
-        "carga_cpu_total_con_sondeo": 0.8217398576601401,
+        "mb_por_restaurante": 22.214715417960804,
+        "carga_cpu_total_con_avisos": 0.979504281755448,
+        "carga_cpu_total_con_sondeo": 0.8264014246125909,
         "menu_en_unidades_de_carga_con_avisos": 0.17784
       },
       "capacidad": {
         "con_avisos": {
-          "disco": 182,
-          "procesador": 1091,
+          "disco": 179,
+          "procesador": 1086,
           "cuello": "disco",
-          "restaurantes": 182
+          "restaurantes": 179
         },
         "con_sondeo": {
-          "disco": 182,
-          "procesador": 180,
-          "cuello": "procesador",
-          "restaurantes": 180
+          "disco": 179,
+          "procesador": 179,
+          "cuello": "disco",
+          "restaurantes": 179
         }
       }
     },
@@ -109,38 +109,38 @@
       },
       "con_la_mezcla_de_paga_variable": {
         "baja": {
-          "pagantes_por_1000": 159.91937484008062,
-          "disco_con_avisos": 146,
-          "disco_con_sondeo": 146,
-          "margen_operacion": 25148.124330786533
+          "pagantes_por_1000": 152.60437484739563,
+          "disco_con_avisos": 151,
+          "disco_con_sondeo": 151,
+          "margen_operacion": 24066.062439876558
         },
         "alta": {
-          "pagantes_por_1000": 121.19232987880766,
-          "disco_con_avisos": 177,
-          "disco_con_sondeo": 177,
-          "margen_operacion": 19419.476409794646
+          "pagantes_por_1000": 95.09240990490757,
+          "disco_con_avisos": 206,
+          "disco_con_sondeo": 206,
+          "margen_operacion": 15558.679583027859
         }
       },
-      "clientes_de_paga_por_1000_por_el_tope": 121.19232987880766,
+      "clientes_de_paga_por_1000_por_el_tope": 95.09240990490757,
       "cobertura_de_0_a_5_dentro_de_chef": {
-        "baja": 0.123475,
-        "alta": 0.44055880000000003
+        "baja": 0.17585,
+        "alta": 0.6274328
       },
       "continuo": {
-        "mb_por_restaurante": 21.89723688204061,
-        "carga_cpu_total_con_avisos": 1.0447627148029972,
-        "carga_cpu_total_con_sondeo": 0.8314655719458544,
+        "mb_por_restaurante": 22.229443176697195,
+        "carga_cpu_total_con_avisos": 1.049424281755448,
+        "carga_cpu_total_con_sondeo": 0.8361271388983051,
         "menu_en_unidades_de_carga_con_avisos": 0.24775999999999998
       },
       "capacidad": {
         "con_avisos": {
-          "disco": 182,
-          "procesador": 1018,
+          "disco": 179,
+          "procesador": 1013,
           "cuello": "disco",
-          "restaurantes": 182
+          "restaurantes": 179
         },
         "con_sondeo": {
-          "disco": 182,
+          "disco": 179,
           "procesador": 177,
           "cuello": "procesador",
           "restaurantes": 177
@@ -182,41 +182,41 @@
       },
       "con_la_mezcla_de_paga_variable": {
         "baja": {
-          "pagantes_por_1000": 157.74776484225222,
-          "disco_con_avisos": 147,
-          "disco_con_sondeo": 147,
-          "margen_operacion": 24815.198328840583
+          "pagantes_por_1000": 149.37940485062057,
+          "disco_con_avisos": 153,
+          "disco_con_sondeo": 153,
+          "margen_operacion": 23577.20334352019
         },
         "alta": {
-          "pagantes_por_1000": 117.15072238284925,
-          "disco_con_avisos": 180,
-          "disco_con_sondeo": 180,
-          "margen_operacion": 18809.36982315505
+          "pagantes_por_1000": 89.0903824109096,
+          "disco_con_avisos": 213,
+          "disco_con_sondeo": 213,
+          "margen_operacion": 14658.19083391643
         }
       },
-      "clientes_de_paga_por_1000_por_el_tope": 117.15072238284925,
+      "clientes_de_paga_por_1000_por_el_tope": 89.0903824109096,
       "cobertura_de_0_a_5_dentro_de_chef": {
-        "baja": 0.1412554,
-        "alta": 0.47365009999999996
+        "baja": 0.2011724,
+        "alta": 0.6745606
       },
       "continuo": {
-        "mb_por_restaurante": 21.9070859348389,
-        "carga_cpu_total_con_avisos": 1.0913760481363306,
-        "carga_cpu_total_con_sondeo": 0.8379493814696639,
+        "mb_por_restaurante": 22.23926168252146,
+        "carga_cpu_total_con_avisos": 1.0960376150887814,
+        "carga_cpu_total_con_sondeo": 0.8426109484221147,
         "menu_en_unidades_de_carga_con_avisos": 0.2943733333333333
       },
       "capacidad": {
         "con_avisos": {
-          "disco": 182,
-          "procesador": 974,
+          "disco": 179,
+          "procesador": 970,
           "cuello": "disco",
-          "restaurantes": 182
+          "restaurantes": 179
         },
         "con_sondeo": {
-          "disco": 182,
-          "procesador": 176,
+          "disco": 179,
+          "procesador": 175,
           "cuello": "procesador",
-          "restaurantes": 176
+          "restaurantes": 175
         }
       }
     },
@@ -255,41 +255,41 @@
       },
       "con_la_mezcla_de_paga_variable": {
         "baja": {
-          "pagantes_por_1000": 143.752944856247,
-          "disco_con_avisos": 157,
-          "disco_con_sondeo": 157,
-          "margen_operacion": 22715.119164626343
+          "pagantes_por_1000": 128.59626487140372,
+          "disco_con_avisos": 170,
+          "disco_con_sondeo": 170,
+          "margen_operacion": 20472.350429519538
         },
         "alta": {
-          "pagantes_por_1000": 115.88394988411602,
-          "disco_con_avisos": 182,
-          "disco_con_sondeo": 182,
-          "margen_operacion": 18591.279995042507
+          "pagantes_por_1000": 87.20914991279083,
+          "disco_con_avisos": 216,
+          "disco_con_sondeo": 216,
+          "margen_operacion": 14348.204009705314
         }
       },
-      "clientes_de_paga_por_1000_por_el_tope": 115.88394988411602,
+      "clientes_de_paga_por_1000_por_el_tope": 87.20914991279083,
       "cobertura_de_0_a_5_dentro_de_chef": {
-        "baja": 0.2558402,
-        "alta": 0.484022
+        "baja": 0.36436120000000005,
+        "alta": 0.6893320000000001
       },
       "continuo": {
-        "mb_por_restaurante": 21.93170856683463,
-        "carga_cpu_total_con_avisos": 1.2079093814696638,
-        "carga_cpu_total_con_sondeo": 0.8541589052791877,
+        "mb_por_restaurante": 22.26380794708211,
+        "carga_cpu_total_con_avisos": 1.2125709484221145,
+        "carga_cpu_total_con_sondeo": 0.8588204722316385,
         "menu_en_unidades_de_carga_con_avisos": 0.41090666666666664
       },
       "capacidad": {
         "con_avisos": {
-          "disco": 182,
-          "procesador": 880,
+          "disco": 179,
+          "procesador": 877,
           "cuello": "disco",
-          "restaurantes": 182
+          "restaurantes": 179
         },
         "con_sondeo": {
-          "disco": 182,
-          "procesador": 173,
+          "disco": 179,
+          "procesador": 172,
           "cuello": "procesador",
-          "restaurantes": 173
+          "restaurantes": 172
         }
       }
     }
@@ -297,12 +297,12 @@
   "efecto_de_subir_el_tope": {
     "de": 50,
     "a": 150,
-    "disco_con_avisos": -0.0022453911350037077,
-    "procesador_con_avisos": -0.19295045658399826,
-    "disco_con_sondeo": -0.0022453911350037077,
-    "procesador_con_sondeo": -0.0379543518409507
+    "disco_con_avisos": -0.0022050373969265545,
+    "procesador_con_avisos": -0.1922086843412749,
+    "disco_con_sondeo": -0.0022050373969265545,
+    "procesador_con_sondeo": -0.03774834050567859
   },
-  "conclusion": "De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).",
+  "conclusion": "De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.2 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo disco (179 restaurantes con avisos y 172 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 119 a 87 de paga por cada 1,000).",
   "medido_con": "textos y fotos del repositorio (sintéticos); fotos reales y originales: supuestos con rango",
   "supuestos": {
     "foto_variantes_bytes_real": 100000,

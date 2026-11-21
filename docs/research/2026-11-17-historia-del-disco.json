@@ -70,73 +70,73 @@
     {
       "archivo": "sin archivo",
       "analitica": "una fila por evento (hoy)",
-      "caben_con_historial_del_gratuito_a_30_dias": 182,
+      "caben_con_historial_del_gratuito_a_30_dias": 179,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 41
     },
     {
       "archivo": "sin archivo",
       "analitica": "contar por día",
-      "caben_con_historial_del_gratuito_a_30_dias": 222,
+      "caben_con_historial_del_gratuito_a_30_dias": 219,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 68
     },
     {
       "archivo": "sin archivo",
       "analitica": "fila por visita",
-      "caben_con_historial_del_gratuito_a_30_dias": 222,
-      "caben_con_el_gratuito_a_12_meses_sin_purga": 68
+      "caben_con_historial_del_gratuito_a_30_dias": 219,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 67
     },
     {
       "archivo": "sin archivo",
       "analitica": "fila por visita más platillo por día",
-      "caben_con_historial_del_gratuito_a_30_dias": 219,
-      "caben_con_el_gratuito_a_12_meses_sin_purga": 65
+      "caben_con_historial_del_gratuito_a_30_dias": 215,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 64
     },
     {
       "archivo": "archivar sólo las de paga",
       "analitica": "una fila por evento (hoy)",
-      "caben_con_historial_del_gratuito_a_30_dias": 347,
+      "caben_con_historial_del_gratuito_a_30_dias": 346,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 46
     },
     {
       "archivo": "archivar sólo las de paga",
       "analitica": "contar por día",
-      "caben_con_historial_del_gratuito_a_30_dias": 533,
+      "caben_con_historial_del_gratuito_a_30_dias": 531,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 83
     },
     {
       "archivo": "archivar sólo las de paga",
       "analitica": "fila por visita",
-      "caben_con_historial_del_gratuito_a_30_dias": 532,
-      "caben_con_el_gratuito_a_12_meses_sin_purga": 82
+      "caben_con_historial_del_gratuito_a_30_dias": 531,
+      "caben_con_el_gratuito_a_12_meses_sin_purga": 83
     },
     {
       "archivo": "archivar sólo las de paga",
       "analitica": "fila por visita más platillo por día",
-      "caben_con_historial_del_gratuito_a_30_dias": 512,
+      "caben_con_historial_del_gratuito_a_30_dias": 511,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 78
     },
     {
       "archivo": "archivar las de todos los planes",
       "analitica": "una fila por evento (hoy)",
-      "caben_con_historial_del_gratuito_a_30_dias": 347,
+      "caben_con_historial_del_gratuito_a_30_dias": 346,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 70
     },
     {
       "archivo": "archivar las de todos los planes",
       "analitica": "contar por día",
-      "caben_con_historial_del_gratuito_a_30_dias": 533,
+      "caben_con_historial_del_gratuito_a_30_dias": 531,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 217
     },
     {
       "archivo": "archivar las de todos los planes",
       "analitica": "fila por visita",
-      "caben_con_historial_del_gratuito_a_30_dias": 532,
+      "caben_con_historial_del_gratuito_a_30_dias": 531,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 216
     },
     {
       "archivo": "archivar las de todos los planes",
       "analitica": "fila por visita más platillo por día",
-      "caben_con_historial_del_gratuito_a_30_dias": 512,
+      "caben_con_historial_del_gratuito_a_30_dias": 511,
       "caben_con_el_gratuito_a_12_meses_sin_purga": 188
     }
   ],
@@ -154,7 +154,7 @@
       "bytes_analitica_por_mesa_de_3": 4082.183332048416,
       "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
       "restaurantes_que_caben_sin_purga": 41,
-      "restaurantes_que_caben_con_historial_30_dias": 182
+      "restaurantes_que_caben_con_historial_30_dias": 179
     },
     {
       "id": "contar_por_dia",
@@ -168,7 +168,7 @@
       "bytes_analitica_por_mesa_de_3": 449.44838485853063,
       "mb_analitica_por_restaurante_mes_en_la_copia": 0.6995754,
       "restaurantes_que_caben_sin_purga": 68,
-      "restaurantes_que_caben_con_historial_30_dias": 222
+      "restaurantes_que_caben_con_historial_30_dias": 219
     },
     {
       "id": "fila_por_visita",
@@ -181,8 +181,8 @@
       "se_pierde": "qué platillo se vio y el orden de los toques",
       "bytes_analitica_por_mesa_de_3": 458.4291881890371,
       "mb_analitica_por_restaurante_mes_en_la_copia": 0.7135541999999999,
-      "restaurantes_que_caben_sin_purga": 68,
-      "restaurantes_que_caben_con_historial_30_dias": 222
+      "restaurantes_que_caben_sin_purga": 67,
+      "restaurantes_que_caben_con_historial_30_dias": 219
     },
     {
       "id": "fila_mas_platillo",
@@ -195,8 +195,8 @@
       "se_pierde": "cuál comensal vio cuál platillo",
       "bytes_analitica_por_mesa_de_3": 720.9135764397503,
       "mb_analitica_por_restaurante_mes_en_la_copia": 1.1221164,
-      "restaurantes_que_caben_sin_purga": 65,
-      "restaurantes_que_caben_con_historial_30_dias": 219
+      "restaurantes_que_caben_sin_purga": 64,
+      "restaurantes_que_caben_con_historial_30_dias": 215
     },
     {
       "id": "adelgazar",
@@ -211,7 +211,7 @@
       "bytes_analitica_por_mesa_de_3": 2486.866085883895,
       "mb_analitica_por_restaurante_mes_en_la_copia": 3.8708567999999994,
       "restaurantes_que_caben_sin_purga": 49,
-      "restaurantes_que_caben_con_historial_30_dias": 197
+      "restaurantes_que_caben_con_historial_30_dias": 195
     },
     {
       "id": "archivar_paga",
@@ -225,7 +225,7 @@
       "bytes_analitica_por_mesa_de_3": 4082.183332048416,
       "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
       "restaurantes_que_caben_sin_purga": 46,
-      "restaurantes_que_caben_con_historial_30_dias": 347
+      "restaurantes_que_caben_con_historial_30_dias": 346
     },
     {
       "id": "archivar_todos",
@@ -239,7 +239,7 @@
       "bytes_analitica_por_mesa_de_3": 4082.183332048416,
       "mb_analitica_por_restaurante_mes_en_la_copia": 6.354,
       "restaurantes_que_caben_sin_purga": 70,
-      "restaurantes_que_caben_con_historial_30_dias": 347
+      "restaurantes_que_caben_con_historial_30_dias": 346
     }
   ],
   "comprar_disco": "No cambia los datos guardados: sube el costo del escalón (ver la escalera en recursos y palancas).",
