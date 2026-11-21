@@ -219,7 +219,7 @@ details.mas{margin-top:8px}details.mas summary{cursor:pointer;font-weight:700;co
 </style>
 <div class="wrap">
   <header class="top">
-    <div><div class="kick">Planos de Carta · 21 de noviembre de 2026 · versión 16</div>
+    <div><div class="kick">Planos de Carta · 21 de noviembre de 2026 · versión 17</div>
     <h1 class="op">Carta hoy, Carta mañana</h1><p class="sub" id="oportunidad"></p></div>
     <div class="acc"><button class="btn gran" id="verIntro">▶ Ver la presentación</button><button class="btn gran dec" id="verDecisiones">Decisiones a tomar</button><span id="pantallaTop"></span><span class="et prop">propuesta · la v1 no cobra</span></div>
   </header>
@@ -9998,8 +9998,9 @@ const TOMAS = [
   ["cuenta", 5, 29.6, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 1.9],
   ["pagada", 5, 6.5, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"]], ["Pagada"], "fase", 3.6],
   ["factura", 5, 7, [["vis", "Pedir la factura desde la app; la emite el restaurante (fuera de la v1)"]], [], ""],
-  ["sucia", 5, 6, CICLO, ["Mesa *sucia*"], "fase", 2.2],
-  ["limpia", 5, 6.5, CICLO, ["Mesa *limpia*"], "fase", 1.6, 4.4],
+  ["sucia", 5, 4.6, CICLO, ["Fue una gran noche", "*para nuestros invitados*."], "linea", 1.0],
+  ["prepara", 5, 3.6, CICLO, ["Preparemos la mesa", "*para los siguientes*."], "linea", 0.2],
+  ["limpia", 5, 8.3, CICLO, ["Mesa *limpia*"], "fase", 1.6, 6.2],
   ["fin", 6, 5, [], [], ""],
 ];
 const ACTOS = [[1, "El gancho"], [2, "El problema"], [3, "Tu carta"], [4, "La mesa"], [5, "El ciclo"], [6, "Fin"]];
@@ -10033,20 +10034,21 @@ const VOZ = {
   llega: [[0.5, "mesero", "Para Ana, pescado a la talla."], [2.2, "mesero", "Para Sofía, ensalada. Para Diego, aguachile."], [4.5, "mesero", "Y para Carlos, arrachera."], [6.3, "ana", "Sí, todo bien."], [7.8, "narrador", "Él la valida. Nada se pierde."]],
   cocina: [[0.5, "narrador", "Y cada quien ve cómo va su orden."]],
   abierta: [[0.3, "narrador", "La mesa está abierta."], [1.3, "sofia", "¿Han visto a Luis?"], [3.1, "diego", "Fuimos a Cancún, estuvo muy bonito."], [5.4, "ana", "[laughs]"], [5.5, "carlos", "[laughs]"], [5.6, "sofia", "[laughs]"], [5.7, "diego", "[laughs]"],
-    [7.1, "diego", "Se me antojó un guacamole."], [9.4, "narrador", "Lo pide desde su teléfono, y al mesero le llega la solicitud."], [14.9, "mesero", "Sí se puede. Ahorita se lo traigo."],
-    [18.1, "ana", "Mejor quiero los camarones."], [25.9, "mesero", "Ya no es posible: su pescado ya se está preparando."], [27.7, "ana", "No hay problema, muchas gracias."],
-    [29.1, "carlos", "Mejor sin el agua de jamaica."], [36.9, "mesero", "Ése sí: cocina todavía no lo prepara."], [38.8, "narrador", "Él decide. Y la cuenta se ajusta sola."],
-    [40.6, "narrador", "Llega la comida."], [42.3, "ana", "Prueba el pescado, está increíble."], [44.2, "carlos", "Y la arrachera. Hay que volver."], [46.2, "sofia", "¡Qué rico estuvo!"]],
+    [7.1, "diego", "Se me antojó un guacamole."], [9.4, "narrador", "Lo agrega desde su teléfono, y al mesero le llega la solicitud."], [16.0, "mesero", "Sí se puede. Ahorita se lo traigo."],
+    [19.3, "ana", "Mejor quiero los camarones."], [28.2, "mesero", "Ya no es posible: su pescado ya se está preparando."], [30.1, "ana", "No hay problema, muchas gracias."],
+    [31.5, "carlos", "Mejor sin el agua de jamaica."], [40.4, "mesero", "Ése sí: cocina todavía no lo prepara."], [42.4, "narrador", "Él decide. Y la cuenta se ajusta sola."],
+    [44.5, "mesero", "Provecho."], [46.2, "narrador", "Todo servido."], [48.9, "ana", "Prueba el pescado, está increíble."], [50.8, "carlos", "Y la arrachera. Hay que volver."], [52.8, "sofia", "¡Qué rico estuvo!"]],
   cierres: [[0.5, "ana", "Yo ya quedé. Me gustó mucho."], [3.0, "narrador", "Cada quien cierra su cuenta cuando quiere: desde aquí."], [7.7, "diego", "Deja veo si pido un postre."], [10.3, "carlos", "Yo sí quiero un flan."],
-    [15.9, "diego", "Y un pastel para la cumpleañera."], [19.8, "sofia", "[laughs] ¡Ay, gracias!"], [22.0, "narrador", "Los demás van cerrando."], [24.3, "carlos", "¿Ya nadie va a pedir nada más?"], [26.3, "ana", "No, todo bien."],
-    [28.5, "narrador", "Cierra el último, y la mesa queda en cuenta cerrada."]],
-  cuenta: [[0.3, "narrador", "Antes, un ticket y cuatro calculadoras. Ahora, cada quien su cuenta, con su propina."], [6.6, "ana", "[excited] Sofi, nosotros te invitamos, es tu cumpleaños."], [9.6, "narrador", "Entre uno."],
-    [10.5, "sofia", "[warmly] ¡Ay, muchas gracias, amigos!"], [11.7, "diego", "Yo también."], [13.4, "narrador", "Entre dos."], [14.3, "carlos", "También yo."], [16.0, "narrador", "Entre tres. Lo de Sofía se repartió solo."],
-    [18.4, "narrador", "Todos revisan su total, y llaman al mesero."]],
+    [15.9, "diego", "Y un pastel para la cumpleañera."], [19.8, "sofia", "[laughs] ¡Ay, gracias!"], [22.4, "narrador", "Los demás van cerrando."], [29.1, "carlos", "¿Ya nadie va a pedir nada más?"], [31.1, "ana", "No, todo bien."],
+    [34.6, "narrador", "Cierra el último, y la mesa queda en cuenta cerrada."]],
+  cuenta: [[0.3, "narrador", "Antes, un ticket y cuatro calculadoras. Ahora, cada quien su cuenta, con su propina."], [7.0, "ana", "[excited] Sofi, nosotros te invitamos, es tu cumpleaños."], [11.8, "narrador", "Entre uno."],
+    [14.4, "diego", "Sí, nosotros te invitamos."], [16.8, "narrador", "Entre dos."], [19.4, "carlos", "Sí, nosotros te invitamos."], [21.8, "narrador", "Entre tres. Lo de Sofía se repartió solo."],
+    [24.0, "sofia", "[warmly] ¡Ay, muchas gracias, amigos!"], [26.8, "narrador", "Todos revisan su total, y llaman al mesero."]],
   pagada: [[1.2, "mesero", "Con la terminal, cuando gusten."], [3.3, "narrador", "Se paga como siempre: con el mesero."], [4.6, "mesero", "Todo pagado. ¡Muchas gracias!"]],
   factura: [[0.4, "ana", "¿Facturan?"], [2.1, "mesero", "Sí, se pide desde la aplicación."], [4.6, "narrador", "La solicitud le llega al restaurante, que es quien la emite."]],
-  sucia: [[0.1, "ana", "¡Gracias, buenas noches!"], [2.6, "narrador", "La mesa todavía no está libre."]],
-  limpia: [[1.6, "narrador", "Hasta que él la marca limpia. Entonces sí: libre."]],
+  sucia: [[0.1, "ana", "¡Gracias, buenas noches!"], [1.6, "narrador", "Fue una gran noche para nuestros invitados."]],
+  prepara: [[0.3, "narrador", "Preparemos la mesa para los siguientes."]],
+  limpia: [[1.6, "narrador", "Mesa limpia."], [4.6, "narrador", "Y el tablero vuelve a empezar, listo para quien llegue."]],
   fin: [[1.2, "narrador", "[warmly] Carta. Tu menú, tu Carta."]],
 };
 /* Las tomas que ya tienen audio y cuánto dura cada uno, en segundos: {b1: 9.8, …}. Vacío = película en silencio.
@@ -10409,6 +10411,8 @@ const cineCss = `
 #cine .edsh{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:20px;background:#fff;box-shadow:0 2px 10px rgba(29,28,23,.05);font-size:16px;font-weight:600}
 #cine .edsh img{width:56px;height:56px;border-radius:14px;object-fit:cover;background:#2a1d17}
 /* tablero: la solicitud de cambio, con «Rechazar» y «Aceptar» */
+#cine .pgran{position:absolute;left:146px;top:318px;width:108px;height:108px;border-radius:50%;background:#66713d;box-shadow:0 14px 34px rgba(40,50,20,.4);display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;visibility:hidden}
+#cine .pgran svg,#intro #cine .pgran svg{width:60px;height:60px;stroke:#fff}
 #cine .pvelo{position:absolute;left:0;top:0;right:0;bottom:0;z-index:1;background:rgba(26,18,16,.5);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);opacity:0;visibility:hidden}
 #cine .psol{position:absolute;left:18px;right:18px;top:300px;height:196px;z-index:2;padding:20px 20px 0;border-radius:24px;background:#fff;box-shadow:0 12px 34px rgba(20,10,8,.4);display:flex;flex-direction:column;gap:8px;opacity:0;visibility:hidden}
 #cine .psol b{font-size:20px}#cine .psol span{font-size:17px;font-weight:600;color:#4f1728;line-height:1.2}
@@ -10717,8 +10721,8 @@ const pantallasP = () => `
 <div class="cs cx pMesa">${sb()}<div class="cab"><span class="lg">L</span>La Ceiba<span class="pjav"><span class="foto"><img src="${CI("mesero-cabeza")}" alt=""></span>Javier</span></div>
   <div class="mesaP"><h4>Mesa 7</h4><span class="mst"><i class="m0">Abierta</i><i class="m1">Cuenta cerrada</i><i class="m2">Pagada</i><i class="m3">Libre</i></span></div>
   <div class="pista">${FASES.map(([n], k) => `<div class="ps ps${k}"><i class="pbg"></i><span class="pc"><i class="pca"></i><i class="pok">${ico.ok}</i></span><span class="pt"><b>${n}</b></span></div>`).join("")}</div>
-  <div class="pnota"><span class="n0">4 comensales</span><span class="n1">Las cuatro cuentas, cerradas</span><span class="n2">Falta limpiar la mesa</span><span class="n3">Sesión nueva · lista para otra mesa</span></div>
-  <div class="pvelo"></div>${SOLIC.map((x, i) => `<div class="psol so${i}"><b>Solicitud de cambio</b><span>${x.tarjeta}</span><div><i class="pr">Rechazar</i><i class="pa">Aceptar</i></div><em class="${x.acepta ? "si" : "no"}">${x.acepta ? "✓ Aceptada" : "✕ Rechazada"}</em></div>`).join("")}
+  <div class="pnota"><span class="n0">4 comensales</span><span class="n1">Las cuatro cuentas, cerradas</span><span class="n2">Falta limpiar la mesa</span><span class="n3">Lista para otros comensales</span></div>
+  <i class="pgran">${ico.ok}</i><div class="pvelo"></div>${SOLIC.map((x, i) => `<div class="psol so${i}"><b>Solicitud de cambio</b><span>${x.tarjeta}</span><div><i class="pr">Rechazar</i><i class="pa">Aceptar</i></div><em class="${x.acepta ? "si" : "no"}">${x.acepta ? "✓ Aceptada" : "✕ Rechazada"}</em></div>`).join("")}
   <div class="pserv"><h5>Mesa 7 · Comanda</h5><small><i class="v0">0 de ${SERVIDOS.length} servidos</i><i class="v1">${SERVIDOS.length} de ${SERVIDOS.length} servidos</i></small>${SERVIDOS.map(([n, q]) => `<div class="pvr"><u>${ico.ok}</u>${n}<span>${q}</span></div>`).join("")}<div class="pvb"><i class="v0">Todo servido</i><i class="v1">✓ Platos servidos</i></div></div>
   <div class="pcc"><span>Cuentas cerradas</span>${[0, 1, 2, 3].map(n => `<i><u class="pd${n}"></u></i>`).join("")}</div>
   <div class="pbt b0">Cerrar cuenta</div><div class="pbt b1">Validar pago</div><div class="pbt b2">Marcar mesa limpia</div><div class="pbt b3">${ico.ok}Mesa libre</div>
@@ -11348,7 +11352,7 @@ function filmLinea() {
   tl.to(q(".k-copa-a"), {rotation: -78, duration: 0.45, ease: "power2.in"}, t + 0.7);
   sale(".k-copa-a", t + 1.1, 0.15); entra(".k-sucia-vaso", t + 1.05, 0.5); entra(".k-sucia-migas", t + 0.4, 0.4);
   cam(t + 0.6, CSUC, 1.6);
-  sale(".k-sucia-a, .k-sucia-c", t + 3.0, 0.6); sale(".k-sucia-vaso, .k-sucia-migas", t + 3.3, 0.6);
+  sale(".k-sucia-a, .k-sucia-c", t + 5.2, 0.6); sale(".k-sucia-vaso, .k-sucia-migas", t + 5.5, 0.6);
   /* 17 · mesa limpia: la monta de nuevo, toca «Marcar mesa limpia» y la mesa queda libre; el QR se enciende y llegan otros dos */
   t = T("limpia");
   tl.set(q(".k-copa-a"), {rotation: 0}, t);
@@ -11356,6 +11360,12 @@ function filmLinea() {
   brazo("mesero", "brazos-cel", t, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: -1, rotation: 0}, t);
   tl.fromTo(q(".gm"), {x: 220, autoAlpha: 0}, {x: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out", immediateRender: false}, t + 0.3); cabeza("mesero", -8, t + 1.0);
   pulsa(2, t + 1.7); fase(3, t + 1.8);
+  [0, 1, 2, 3].forEach(k => tl.to(q(`.ps${k} .pok`), {x: 150, y: (1.5 - k) * 96, scale: 1.3, duration: 0.55, ease: "power2.in"}, t + 2.7));
+  tl.to(q(".pista .pok"), {autoAlpha: 0, duration: 0.15}, t + 3.2); entra(".pgran", t + 3.2, 0.45, {scale: 0.4}, {scale: 1, ease: "back.out(2.2)"}); sale(".pgran", t + 4.2, 0.35, {scale: 0.6});
+  tl.set(q(".pista .pok"), {x: 0, y: 0, scale: 1}, t + 3.4);
+  tl.fromTo(q(".ps0 .pbg"), {autoAlpha: 0, scale: 0.94}, {autoAlpha: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)", immediateRender: false}, t + 4.4);
+  tl.fromTo(q(".ps0 .pca"), {autoAlpha: 0, scale: 0.3}, {autoAlpha: 1, scale: 1, duration: 0.45, ease: "back.out(2.5)", immediateRender: false}, t + 4.45);
+  t += 1.8;
   pulsoQR(t + 3.1, 2);
   entra(".eLibre", t + 3.3, 0.4, {scale: 0.6}, {scale: 1, ease: "back.out(2)"});
   tl.to(q(".gm"), {x: 220, autoAlpha: 0, duration: 0.9, ease: "power2.in"}, t + 3.7);
