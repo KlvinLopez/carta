@@ -592,6 +592,12 @@ ok(errores.length === 0, 'presentación: sin errores de consola ' + errores.slic
 if (png) { for (const [i, s] of [[1, 4], [2, 10], [3, 17.5], [4, 25], [5, 30], [6, 37], [7, 41.5], [8, 47.5], [9, 53], [10, 59], [11, 65.5], [12, 72], [13, 76.5], [14, 80.5], [15, 84], [16, 88], [17, 92]]) { await p.evaluate((t) => { tI = t * 1000; pintaIntro(); }, s); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v10_pelicula${i}.png` }); } }
 await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
+/* al reabrirla desde el informe la página ya recibió un gesto: no hay puerta y arranca con sonido */
+if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
+  await p.evaluate(() => abrirIntro()); await p.waitForTimeout(600);
+  ok((await p.isVisible('#intro')) && !(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && !pausaI && tI > 0)), 'presentación con voz: al reabrir tras un gesto no hay puerta y arranca con sonido');
+  await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
+}
 await p.reload(); await p.waitForTimeout(400);
 ok(!(await p.isVisible('#intro')), 'la presentación no se repite sola');
 await p.close();

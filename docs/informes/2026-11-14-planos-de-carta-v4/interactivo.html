@@ -10650,7 +10650,7 @@ const cineCss = `
 #intro .barras i b{background:rgba(243,213,138,.7)}
 #intro .barras .btn,#intro > .ictl:not(.barras) .btn{background:transparent;color:rgba(254,249,241,.62);padding:6px 10px;font-size:13px}
 #intro .barras .btn:hover,#intro > .ictl:not(.barras) .btn:hover{background:rgba(255,255,255,.12);color:#fff}
-#intro .ipuerta{position:absolute;left:0;top:0;right:0;bottom:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none}
+#intro .ipuerta{position:absolute;left:0;top:0;right:0;bottom:0;z-index:20;background:rgba(12,9,8,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none}
 #intro .ipuerta[hidden]{display:none}
 #intro .ipuerta button{pointer-events:auto;cursor:pointer;border:0;font-family:'DM Sans',sans-serif}
 #intro .ipuerta .ipv{min-height:64px;padding:0 44px;border-radius:999px;background:#fef9f1;color:#4f1728;font-size:24px;font-weight:700;box-shadow:0 18px 44px rgba(8,4,3,.55)}
@@ -11535,7 +11535,7 @@ function abrirIntro() {
      Si la página ya recibió un gesto (se reabre desde el informe), arranca con sonido directo. */
   const yaHuboGesto = !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
   puertaI = HAY_VOZ && !REDUCE && !yaHuboGesto; if (HAY_VOZ && !REDUCE && yaHuboGesto) vozLibre = true;
-  if (puertaI) { pausaI = true; tI = 40; /* un instante después del cero, para que el primer cuadro ya esté pintado */ $("#introPuerta").hidden = false; $("#introPuerta .ipv").focus(); }
+  if (puertaI) { pausaI = true; tI = 3000; /* de fondo, la mesa ya encendida con su título (la toma «mesa» a los 3 s); al elegir vuelve a 0 */ $("#introPuerta").hidden = false; $("#introPuerta .ipv").focus(); }
   ultI = performance.now(); pintaIntro(); muestraControles();
   cancelAnimationFrame(rafI); rafI = requestAnimationFrame(frameIntro);
   el.onpointermove = muestraControles; vozBoton();
