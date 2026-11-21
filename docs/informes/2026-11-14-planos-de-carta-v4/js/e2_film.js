@@ -108,110 +108,133 @@ const CI = n => CAPAS[n][0];
 const CICLO = [["f3", "El personal lleva el ciclo de la mesa: abierta, cuenta cerrada, pagada y mesa limpia"]];
 const TOMAS = [
   /* A · el gancho */
-  ["mesa", 1, 5.5, [["hoy", "El QR de cada mesa"]], ["Todo empieza en *la mesa*."], "hook", 0.6],
-  ["cumple", 1, 6.5, [], ["Mira esta mesa: *un cumpleaños, cuatro amigos*."], "linea", 1.0],
+  ["mesa", 1, 10, [["hoy", "El QR de cada mesa"]], ["Todo empieza en *la mesa*."], "hook", 0.6],
+  ["cumple", 1, 8.6, [], ["Mira esta mesa: *un cumpleaños, cuatro amigos*."], "linea", 1.0],
   /* B · las problemáticas, rápidas: el problema es el sistema, no las personas */
-  ["b1", 2, 10, [], ["Ponerse de acuerdo, *al tanteo*."], "linea", 0.3],
-  ["b2", 2, 18.7, [], ["Un menú que *no te conoce*."], "linea", 0.3],
-  ["b3", 2, 8.5, [], ["Cuatro órdenes, *a mano*."], "linea", 0.3],
-  ["b3t", 2, 5.5, [], ["En papel o en tableta, *el mismo problema*."], "linea", 0.3],
-  ["espera", 2, 12.6, [], [], ""],
+  ["b1", 2, 13.1, [], ["Ponerse de acuerdo, *al tanteo*."], "linea", 0.3],
+  ["b2", 2, 21.2, [], ["Un menú que *no te conoce*."], "linea", 0.3],
+  ["b3", 2, 11.5, [], ["Cuatro órdenes, *a mano*."], "linea", 0.3],
+  ["b3t", 2, 8.2, [], ["En papel o en tableta, *el mismo problema*."], "linea", 0.3],
+  ["espera", 2, 12.9, [], [], ""],
   ["ticket", 2, 8.5, [], ["Un solo papel *para todos*."], "linea", 3.4],
-  ["b4", 2, 9, [], ["Una cuenta, *cuatro calculadoras*."], "linea", 0.3],
+  ["b4", 2, 10.3, [], ["Una cuenta, *cuatro calculadoras*."], "linea", 0.3],
   ["pivote", 2, 6.6, [], ["¿Y si lo", "*reimaginamos*?"], "medio", 0.5],
   /* C · Carta, en el mismo orden */
   ["ofrece", 3, 6.5, [], [], ""],
   ["escanea", 3, 7.5, [["hoy", "Entrar con el QR, sin descarga ni registro (capturas reales de la app, con datos de ejemplo)"]], ["Sin descarga.", "*Sin registro*."], "izq", 1.8],
-  ["filtra", 3, 6.5, [["hoy", "Lo agotado se ve atenuado en la carta"], ["hoy", "Filtros de alérgenos que viven en tu teléfono (no sustituyen preguntar al personal)"], ["vis", "Una carta que aprende de tus visitas"]], ["~Antes: preguntar platillo por platillo.", "Lo que no comes,", "*fuera*."], "izq"],
+  ["filtra", 3, 12.5, [["hoy", "Lo agotado se ve atenuado en la carta"], ["hoy", "Filtros de alérgenos que viven en tu teléfono (no sustituyen preguntar al personal)"], ["vis", "Una carta que aprende de tus visitas"]], ["~Antes: preguntar platillo por platillo.", "Lo que no comes,", "*fuera*."], "izq"],
   ["top3", 3, 7.5, [["vis", "«Elegido para ti»"]], ["Elegido", "*para ti*."], "izq"],
   ["plato", 3, 6.5, [["vis", "El platillo como modelo que gira, con sus ingredientes"]], ["Sabe lo que", "*lleva*."], "izq"],
   ["agrega", 3, 4, [["f3", "Agregar platillos a la orden de la mesa"]], ["Directo a", "*tu mesa*."], "izq"],
-  ["juntos", 4, 7, [["f3", "La mesa pide junta: cada quien ve lo de todos"]], ["~Antes: al tanteo.", "La mesa *pide junta*."], "hook", 1.4],
+  ["juntos", 4, 10.7, [["f3", "La mesa pide junta: cada quien ve lo de todos"]], ["~Antes: al tanteo.", "La mesa *pide junta*."], "hook", 5.1],
   ["recomienda", 4, 6.5, [["vis", "Pasarle un platillo a otra persona de la mesa"]], ["Pásaselo *a Carlos*."], "linea"],
-  ["confirma", 4, 4.5, [["f3", "La mesa manda una sola comanda desde los teléfonos y avisa al mesero"]], ["La mesa *llama al mesero*."], "centro"],
+  ["confirma", 4, 5.1, [["f3", "La mesa manda una sola comanda desde los teléfonos y avisa al mesero"]], ["La mesa *llama al mesero*."], "centro"],
   ["esperan", 4, 7.6, [["f3", "Cada quien ve en su teléfono que la mesa llamó al mesero"]], [], ""],
   ["avisa", 4, 6, [["f3", "El mesero recibe la comanda en su teléfono"], ["vis", "Aviso con el teléfono bloqueado"]], ["Al mesero le llega", "*al instante*."], "izq", 0.2, 4.2, 0.6],
-  ["llega", 4, 9, [["f3", "El mesero valida y atiende la comanda"]], ["~Antes: cuatro órdenes, a mano.", "Una sola comanda. *Él la valida*."], "linea"],
+  ["llega", 4, 12.4, [["f3", "El mesero valida y atiende la comanda"]], ["~Antes: cuatro órdenes, a mano.", "Una sola comanda. *Él la valida*."], "linea"],
   ["cocina", 4, 5.6, [["f3", "El seguimiento de la orden en el teléfono de cada quien"]], [], ""],
-  ["abierta", 5, 54.2, CICLO, ["Abierta"], "fase", 0.8],
-  ["cierres", 5, 38.6, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 36.4],
-  ["cuenta", 5, 29.6, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 1.9],
-  ["pagada", 5, 6.5, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"]], ["Pagada"], "fase", 3.6],
-  ["factura", 5, 7, [["vis", "Pedir la factura desde la app; la emite el restaurante (fuera de la v1)"]], [], ""],
-  ["sucia", 5, 4.6, CICLO, ["Fue una gran noche", "*para nuestros invitados*."], "linea", 1.0],
-  ["prepara", 5, 3.6, CICLO, ["Preparemos la mesa", "*para los siguientes*."], "linea", 0.2],
+  ["abierta", 5, 67.8, CICLO, ["Abierta"], "fase", 0.8],
+  ["cierres", 5, 39, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 36.8],
+  ["cuenta", 5, 32.9, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 1.9],
+  ["pagada", 5, 9, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"]], ["Pagada"], "fase", 3.6],
+  ["factura", 5, 10.6, [["vis", "Pedir la factura desde la app; la emite el restaurante (fuera de la v1)"]], [], ""],
+  ["sucia", 5, 4.6, CICLO, ["Fue una gran noche", "*para nuestros invitados*."], "linea", 1.6],
+  ["prepara", 5, 4.2, CICLO, ["Preparemos la mesa", "*para los siguientes*."], "linea", 0.0],
   ["limpia", 5, 8.3, CICLO, ["Mesa *limpia*"], "fase", 1.6, 6.2],
   ["fin", 6, 5, [], [], ""],
 ];
 const ACTOS = [[1, "El gancho"], [2, "El problema"], [3, "Tu carta"], [4, "La mesa"], [5, "El ciclo"], [6, "Fin"]];
 /* ===== la voz =====
-   Guion para oírse (español de México): por toma, [segundo dentro de la toma, quién, lo que dice].
+   Guion para oírse (español de México): por toma, [segundo dentro de la toma, quién, lo que dice, {g, tras, encima}].
+   El segundo es el valor de partida. `g` es el globo que muestra la línea (`fin`, si lo lleva, es el segundo en que ese globo debe irse porque cambia el plano); `tras` son los segundos después de que termina la anterior (0.2 entre personajes si no se dice)
+   y `encima` los segundos que se monta sobre el final de la anterior (risas, agradecimientos, respuestas que entran antes de tiempo).
    «narrador» cuenta la historia; los demás son los personajes y dicen lo mismo que su globo. El texto va tal como se le manda al modelo de voz; las marcas ([laughs], [chuckles], [sighs], [warmly], [excited], [pause], [long pause]) van dentro, antes de las palabras que colorean, y sólo donde cambian la entrega: cada carácter cuenta.
    El audio es un archivo por toma, apoyo/voz/<toma>.mp3, con todo lo de esa toma ya mezclado en sus segundos. */
 const VOZ = {
-  mesa: [[0.6, "narrador", "Una mesa. Un código. Y una cena donde nadie hace cuentas."], [3.6, "narrador", "Pero antes, mira cómo es hoy."]],
-  cumple: [[0.3, "narrador", "Viernes en la noche. Es el cumpleaños de Sofía."], [3.5, "mesero", "Buenas noches. Aquí está la carta."]],
-  b1: [[0, "narrador", "Uno: ponerse de acuerdo."], [1.3, "ana", "¿Pedimos algo para compartir?"], [3.2, "diego", "¿La parrillada alcanza para cuatro?"], [5.4, "carlos", "[sighs] Es el mismo menú, pero en PDF."], [7.9, "sofia", "¿Y eso qué trae?"]],
-  b2: [[0, "narrador", "Dos: un menú que no te conoce."], [1.5, "ana", "Los tacos de pescado, por favor."], [3.5, "mesero", "Se nos terminaron. Una disculpa."], [5.5, "ana", "¿Y el mole?"], [6.9, "mesero", "¿Es alérgica a algo? Lleva cacahuate."],
-    [9.2, "ana", "Sí… ¿y las enchiladas?"], [11.1, "ana", "Espere… ¿llevan cacahuate?"], [13.0, "mesero", "Déjeme pregunto en cocina."], [15.2, "narrador", "[pause] Y a esperar."], [17.2, "mesero", "Sí llevan cacahuate."]],
-  b3: [[0, "narrador", "Tres: cuatro órdenes, a mano."], [1.4, "mesero", "¿Eran dos aguachiles… o tres?"], [3.3, "carlos", "El mío sin cebolla."], [5.3, "ana", "[chuckles] Yo cambié de opinión."]],
-  b3t: [[0.2, "narrador", "Con tableta, lo mismo."], [1.5, "mesero", "Un momento… está cargando."]],
-  espera: [[0.9, "narrador", "Por fin sale la orden."], [3.0, "carlos", "Ya tardó, ¿no?"], [4.7, "diego", "Yo ya tengo hambre."], [7.0, "narrador", "Llega la comida. Comen. Y al final…"], [10.5, "ana", "¿Nos trae la cuenta, por favor?"]],
-  ticket: [[0.9, "mesero", "Muchas gracias por venir."], [3.6, "narrador", "Cuatro: un solo papel para todos."]],
-  b4: [[0, "narrador", "Y cuatro calculadoras."], [1.5, "diego", "¿Quién pidió las limonadas?"], [3.5, "ana", "A Sofi la invitamos: ¿entre tres?"], [5.9, "carlos", "[sighs] ¿Y la propina?"]],
-  pivote: [[0.6, "narrador", "¿Y si lo reimaginamos?"], [2.4, "narrador", "Misma mesa. Misma noche. Desde el principio."]],
-  ofrece: [[1.2, "mesero", "Aquí usamos Carta: con el QR ven el menú y piden desde su teléfono."]],
-  escanea: [[1.2, "narrador", "Escaneas, y ya estás dentro. Sin descarga. Sin registro."]],
-  filtra: [[0.4, "narrador", "Antes, preguntabas platillo por platillo. Ahora dices qué no comes, y la carta se acomoda."], [5.2, "narrador", "Si tienes una alergia, avísale también al mesero."]],
-  top3: [[0.4, "narrador", "Y un día, una carta que te conoce: elegido para ti."]],
-  plato: [[0.4, "narrador", "Cada platillo te dice lo que lleva."]],
-  agrega: [[0.3, "narrador", "Un toque, y va a tu mesa."]],
-  juntos: [[0.2, "narrador", "Antes, al tanteo. Ahora la mesa pide junta."], [2.6, "ana", "Ya pedí. ¿Tú qué vas a pedir?"], [4.7, "carlos", "Estoy viendo, todavía no sé."]],
-  recomienda: [[0.4, "narrador", "¿Se te antojó algo para alguien más? Pásaselo."]],
-  confirma: [[0.3, "narrador", "Cuando todos están listos, la mesa llama al mesero."]],
-  esperan: [[0.5, "narrador", "A los cuatro les avisa: su mesero ya viene."]],
-  avisa: [[0.4, "narrador", "Le llega a su teléfono: una sola comanda, clara."]],
-  llega: [[0.5, "mesero", "Para Ana, pescado a la talla."], [2.2, "mesero", "Para Sofía, ensalada. Para Diego, aguachile."], [4.5, "mesero", "Y para Carlos, arrachera."], [6.3, "ana", "Sí, todo bien."], [7.8, "narrador", "Él la valida. Nada se pierde."]],
-  cocina: [[0.5, "narrador", "Y cada quien ve cómo va su orden."]],
-  abierta: [[0.3, "narrador", "La mesa está abierta."], [1.3, "sofia", "¿Han visto a Luis?"], [3.1, "diego", "Fuimos a Cancún, estuvo muy bonito."], [5.4, "ana", "[laughs]"], [5.5, "carlos", "[laughs]"], [5.6, "sofia", "[laughs]"], [5.7, "diego", "[laughs]"],
-    [7.1, "diego", "Se me antojó un guacamole."], [9.4, "narrador", "Lo agrega desde su teléfono, y al mesero le llega la solicitud."], [16.0, "mesero", "Sí se puede. Ahorita se lo traigo."],
-    [19.3, "ana", "Mejor quiero los camarones."], [28.2, "mesero", "Ya no es posible: su pescado ya se está preparando."], [30.1, "ana", "No hay problema, muchas gracias."],
-    [31.5, "carlos", "Mejor sin el agua de jamaica."], [40.4, "mesero", "Ése sí: cocina todavía no lo prepara."], [42.4, "narrador", "Él decide. Y la cuenta se ajusta sola."],
-    [44.5, "mesero", "Provecho."], [46.2, "narrador", "Todo servido."], [48.9, "ana", "Prueba el pescado, está increíble."], [50.8, "carlos", "Y la arrachera. Hay que volver."], [52.8, "sofia", "¡Qué rico estuvo!"]],
-  cierres: [[0.5, "ana", "Yo ya quedé. Me gustó mucho."], [3.0, "narrador", "Cada quien cierra su cuenta cuando quiere: desde aquí."], [7.7, "diego", "Deja veo si pido un postre."], [10.3, "carlos", "Yo sí quiero un flan."],
-    [15.9, "diego", "Y un pastel para la cumpleañera."], [19.8, "sofia", "[laughs] ¡Ay, gracias!"], [22.4, "narrador", "Los demás van cerrando."], [29.1, "carlos", "¿Ya nadie va a pedir nada más?"], [31.1, "ana", "No, todo bien."],
-    [34.6, "narrador", "Cierra el último, y la mesa queda en cuenta cerrada."]],
-  cuenta: [[0.3, "narrador", "Antes, un ticket y cuatro calculadoras. Ahora, cada quien su cuenta, con su propina."], [7.0, "ana", "[excited] Sofi, nosotros te invitamos, es tu cumpleaños."], [11.8, "narrador", "Entre uno."],
-    [14.4, "diego", "Sí, nosotros te invitamos."], [16.8, "narrador", "Entre dos."], [19.4, "carlos", "Sí, nosotros te invitamos."], [21.8, "narrador", "Entre tres. Lo de Sofía se repartió solo."],
-    [24.0, "sofia", "[warmly] ¡Ay, muchas gracias, amigos!"], [26.8, "narrador", "Todos revisan su total, y llaman al mesero."]],
-  pagada: [[1.2, "mesero", "Con la terminal, cuando gusten."], [3.3, "narrador", "Se paga como siempre: con el mesero."], [4.6, "mesero", "Todo pagado. ¡Muchas gracias!"]],
-  factura: [[0.4, "ana", "¿Facturan?"], [2.1, "mesero", "Sí, se pide desde la aplicación."], [4.6, "narrador", "La solicitud le llega al restaurante, que es quien la emite."]],
-  sucia: [[0.1, "ana", "¡Gracias, buenas noches!"], [1.6, "narrador", "Fue una gran noche para nuestros invitados."]],
-  prepara: [[0.3, "narrador", "Preparemos la mesa para los siguientes."]],
-  limpia: [[1.6, "narrador", "Mesa limpia."], [4.6, "narrador", "Y el tablero vuelve a empezar, listo para quien llegue."]],
+  mesa: [[0.4, "narrador", "[whispers] Viernes en la noche. [pause] [mischievously] Imaginemos una mesa. Mantel blanco, una vela… y cuatro sillas que todavía no saben la noche que les espera."]],
+  cumple: [[0.3, "narrador", "[gasps] ¡Es el cumpleaños de Sofía! [warmly] Ana, Diego y Carlos llegaron temprano. [giggles] Bueno… casi."], [6.2, "mesero", "Buenas noches. Aquí está la carta.", {g: 1}]],
+  b1: [[0.2, "narrador", "[mischievously] Primero, lo de siempre: ponerse de acuerdo."], [4.4, "ana", "¿Pedimos algo para compartir?", {g: 10}], [6.3, "diego", "¿La parrillada alcanza para cuatro?", {g: 11}],
+    [8.5, "carlos", "[sighs] Es el mismo menú, pero en PDF.", {g: 12}], [11.0, "sofia", "[jumping in] ¿Y eso qué trae?", {g: 13, encima: 0.2}]],
+  b2: [[0.2, "narrador", "[softly] Luego, un menú que no sabe nada de ellos."], [4.0, "ana", "Los tacos de pescado, por favor.", {g: 14}], [6.0, "mesero", "Se nos terminaron. Una disculpa.", {g: 15}], [8.0, "ana", "¿Y el mole?", {g: 16}],
+    [9.4, "mesero", "¿Es alérgica a algo? Lleva cacahuate.", {g: 17}], [11.7, "ana", "Sí… ¿y las enchiladas?", {g: 18}], [13.6, "ana", "[jumping in] Espere… ¿llevan cacahuate?", {g: 26, encima: 0.2}], [15.5, "mesero", "Déjeme pregunto en cocina.", {g: 27}],
+    [17.9, "narrador", "[sighs] Y a esperar."], [19.7, "mesero", "Sí llevan cacahuate.", {g: 36}]],
+  b3: [[0.2, "narrador", "Cuatro antojos, una libreta… [whispers] y mucha fe."], [3.9, "mesero", "¿Eran dos aguachiles… o tres?", {g: 19}], [5.8, "carlos", "[jumping in] El mío sin cebolla.", {g: 20, encima: 0.2}], [7.8, "ana", "[chuckles] Yo cambié de opinión.", {g: 21}]],
+  b3t: [[0.2, "narrador", "[chuckles] ¿Y con tableta? Lo mismo, pero con pantalla."], [3.5, "mesero", "Un momento… está cargando.", {g: 28}]],
+  espera: [[0.9, "narrador", "[softly] Por fin, la orden salió."], [3.0, "carlos", "Ya tardó, ¿no?", {g: 37}], [4.7, "diego", "Yo ya tengo hambre.", {g: 38, encima: 0.2}],
+    [6.6, "narrador", "Llegó la comida, llegaron las risas… [mischievously] y llegó ese momento."], [10.8, "ana", "¿Nos trae la cuenta, por favor?", {g: 39}]],
+  ticket: [[0.9, "mesero", "Muchas gracias por venir.", {g: 31}], [3.3, "narrador", "[whispers] La cuenta. Un solo papel para los cuatro."]],
+  b4: [[0.2, "narrador", "[giggles] Y cuatro calculadoras."], [2.8, "diego", "¿Quién pidió las limonadas?", {g: 22}], [4.8, "ana", "[jumping in] A Sofi la invitamos: ¿entre tres?", {g: 23, encima: 0.2}], [7.2, "carlos", "[sighs] ¿Y la propina?", {g: 24, encima: 0.3}]],
+  pivote: [[0.6, "narrador", "[mischievously] ¿Y si lo reimaginamos? [pause] Misma mesa. Mismos amigos. [whispers] Desde el principio."]],
+  ofrece: [[1.2, "mesero", "Aquí usamos Carta: con el QR ven el menú y piden desde su teléfono.", {g: 40}]],
+  escanea: [[1.0, "narrador", "[softly] Ana escanea el código… [gasps] y ya está adentro. Sin descargar nada. Sin registrarse."]],
+  filtra: [[0.4, "narrador", "Ana no come cacahuate. [mischievously] Esta vez no tuvo que preguntar platillo por platillo: se lo dijo a la carta, y la carta se acomodó."], [9.2, "narrador", "[whispers] Al mesero se lo dijo también. Por si acaso."]],
+  top3: [[0.4, "narrador", "[warmly] Y algún día, la carta la va a conocer tan bien, que ya le tendrá tres ideas esperándola."]],
+  plato: [[0.4, "narrador", "[softly] Cada platillo le cuenta lo que lleva."]],
+  agrega: [[0.3, "narrador", "Un toque… [giggles] y a la mesa."]],
+  juntos: [[0.2, "narrador", "[mischievously] Esta vez nadie pidió al tanteo: cada quien veía lo que pedían los demás."], [6.3, "ana", "Ya pedí. ¿Tú qué vas a pedir?", {g: 3}], [8.4, "carlos", "Estoy viendo, todavía no sé.", {g: 4}]],
+  recomienda: [[0.4, "narrador", "[whispers] A Ana se le antojó la arrachera… para Carlos. [giggles] Se la pasó."]],
+  confirma: [[0.3, "narrador", "[warmly] Y cuando los cuatro estuvieron listos, la mesa llamó al mesero."]],
+  esperan: [[0.5, "narrador", "[softly] En los cuatro teléfonos, la misma noticia: ya viene."]],
+  avisa: [[0.4, "narrador", "A Javier le llegó una sola comanda. [whispers] Clara. Completa."]],
+  llega: [[0.5, "mesero", "Para Ana, pescado a la talla.", {g: 5}], [2.2, "mesero", "Para Sofía, ensalada. Para Diego, aguachile.", {g: 29}], [4.5, "mesero", "Y para Carlos, arrachera.", {g: 30}], [6.3, "ana", "Sí, todo bien.", {g: 6, encima: 0.2}],
+    [8.0, "narrador", "[warmly] Él la confirmó en voz alta. Nada se perdió en el camino."]],
+  cocina: [[0.5, "narrador", "[softly] Y mientras la cocina trabajaba, cada quien veía cómo iba lo suyo."]],
+  abierta: [[0.3, "narrador", "[warmly] La mesa siguió abierta. Como la plática."], [3.3, "sofia", "¿Han visto a Luis?", {g: 41}], [5.1, "diego", "Fuimos a Cancún, estuvo muy bonito.", {g: 42}],
+    [7.4, "ana", "[jumping in] ¡No te creo!", {g: 71, encima: 0.2}], [7.9, "carlos", "[overlapping] Ahí va otra vez con Cancún.", {g: 72, encima: 0.3}], [9.6, "sofia", "[overlapping] [laughs] ¡Ay, Diego!", {g: 73, encima: 0.4}],
+    [9.9, "ana", "[laughs]", {g: 43, encima: 0.6}], [10.0, "carlos", "[laughs]", {g: 44, encima: 0.9}], [10.1, "diego", "[laughs]", {g: 74, encima: 0.9}],
+    [11.7, "diego", "Se me antojó un guacamole.", {g: 60, fin: 13.4}], [14.0, "narrador", "[mischievously] A Diego se le antojó algo más. Lo pidió desde su teléfono."], [20.6, "mesero", "Sí se puede. Ahorita se lo traigo.", {g: 63}],
+    [23.9, "ana", "Mejor quiero los camarones.", {g: 61, fin: 25.6}], [32.8, "mesero", "Ya no es posible: su pescado ya se está preparando.", {g: 64}], [34.7, "ana", "No hay problema, muchas gracias.", {g: 66, encima: 0.2}],
+    [37.6, "narrador", "[giggles] Ana quiso cambiar de opinión… demasiado tarde."], [41.1, "carlos", "Mejor sin el agua de jamaica.", {g: 62, fin: 42.8}], [50.0, "mesero", "Ése sí: cocina todavía no lo prepara.", {g: 65}],
+    [53.3, "narrador", "[softly] Carlos sí llegó a tiempo."], [55.6, "narrador", "[gasps] ¡Y llegó la comida!"], [57.5, "mesero", "Provecho.", {g: 70}],
+    [61.9, "ana", "Prueba el pescado, está increíble.", {g: 8}], [63.8, "carlos", "[jumping in] Y la arrachera. Hay que volver.", {g: 9, encima: 0.2}], [65.8, "sofia", "¡Qué rico estuvo!", {g: 45, encima: 0.3}]],
+  cierres: [[0.5, "ana", "Yo ya quedé. Me gustó mucho.", {g: 46, fin: 2.4}], [3.0, "narrador", "[softly] Ana fue la primera en decir: ya quedé. Cerró su cuenta desde su lugar."], [8.1, "diego", "Deja veo si pido un postre.", {g: 47}],
+    [10.7, "carlos", "[jumping in] Yo sí quiero un flan.", {g: 48, encima: 0.2}], [16.3, "diego", "Y un pastel para la cumpleañera.", {g: 49}], [20.2, "sofia", "[overlapping] [laughs] ¡Ay, gracias!", {g: 50, encima: 0.4}],
+    [22.2, "narrador", "[mischievously] Los demás, a su ritmo."], [29.5, "carlos", "¿Ya nadie va a pedir nada más?", {g: 32}], [31.5, "ana", "[jumping in] No, todo bien.", {g: 33, encima: 0.2}],
+    [33.2, "narrador", "[warmly] Y cuando cerró el último, la mesa entera quedó en cuenta cerrada."]],
+  cuenta: [[0.3, "narrador", "[whispers] Y aquí viene mi parte favorita. [warmly] Cada quien vio su propia cuenta, con su propina."], [7.0, "ana", "[excited] Sofi, nosotros te invitamos, es tu cumpleaños.", {g: "q0"}], [11.8, "narrador", "Entre uno."],
+    [14.4, "diego", "[jumping in] Sí, nosotros te invitamos.", {g: "q2", encima: 0.3}], [16.8, "narrador", "Entre dos."], [19.4, "carlos", "[overlapping] Sí, nosotros te invitamos.", {g: "q3", encima: 0.3}],
+    [21.8, "narrador", "[giggles] Entre tres. La cuenta de Sofía se repartió sola."], [25.5, "sofia", "[overlapping] [warmly] ¡Ay, muchas gracias, amigos!", {g: "q1", encima: 0.4}], [28.2, "narrador", "[softly] Revisaron su total… y llamaron a Javier."]],
+  pagada: [[1.2, "mesero", "Con la terminal, cuando gusten.", {g: 25}], [3.9, "narrador", "[warmly] Se pagó como siempre: con el mesero."], [6.7, "mesero", "Todo pagado. ¡Muchas gracias!", {g: 7}]],
+  factura: [[0.4, "ana", "¿Facturan?", {g: 51}], [2.1, "mesero", "Sí, se pide desde la aplicación.", {g: 52, encima: 0.2}], [4.9, "narrador", "[mischievously] ¿Factura? También desde el teléfono. [softly] Le llega al restaurante, que es quien la emite."]],
+  sucia: [[0.1, "ana", "¡Gracias, buenas noches!", {g: 53, encima: 0.2}], [2.3, "narrador", "[warmly] Fue una gran noche para nuestros invitados."]],
+  prepara: [[0.3, "narrador", "[softly] Preparemos la mesa para los siguientes."]],
+  limpia: [[2.0, "narrador", "[whispers] Javier la marcó limpia… [mischievously] y la mesa volvió a esperar."]],
   fin: [[1.2, "narrador", "[warmly] Carta. Tu menú, tu Carta."]],
 };
 /* Las tomas que ya tienen audio y cuánto dura cada uno, en segundos: {b1: 9.8, …}. Vacío = película en silencio.
    Una toma se alarga sola a lo que dure su audio más el margen. */
-const VOZ_AUDIO = {};
+const VOZ_AUDIO = {"mesa":11.14,"cumple":10.13,"b1":12.7,"b2":21.12,"b3":10.3,"b3t":6.0,"espera":11.74,"ticket":5.35,"b4":8.45,"pivote":6.43,"ofrece":5.76,"escanea":7.15,"filtra":12.72,"top3":6.29,"plato":2.64,"agrega":3.29,"juntos":10.94,"recomienda":5.28,"confirma":4.27,"esperan":4.32,"avisa":4.82,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":36.14,"cuenta":32.21,"pagada":7.56,"factura":10.03,"sucia":4.54,"prepara":2.54,"limpia":6.0,"fin":3.43};
+/* Los tiempos medidos del audio, por toma: {b1: [[inicio, fin], …]}, uno por línea de VOZ en su orden (null si no se midió). Vacío = se usan los segundos de VOZ.
+   Con tiempos aquí, los globos de esa toma entran y salen con ellos; puede haber dos globos a la vez. */
+const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[7.78,9.93]],"b1":[[0.2,3.43],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[0.2,3.31],[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[17.96,19.49],[19.79,20.93]],"b3":[[0.2,4.14],[4.44,7.02],[6.82,7.94],[8.14,10.12]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[0.9,2.75],[3.05,4.0],[3.8,4.95],[5.25,9.78],[10.08,11.55]],"ticket":[[0.9,2.08],[2.38,5.17]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,6.24]],"ofrece":[[1.2,5.56]],"escanea":[[1.0,6.96]],"filtra":[[0.4,9.33],[9.63,12.54]],"top3":[[0.4,6.09]],"plato":[[0.4,2.46]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"recomienda":[[0.4,5.08]],"confirma":[[0.3,4.08]],"esperan":[[0.5,4.13]],"avisa":[[0.4,4.63]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,13.24],[12.34,13.3],[12.4,13.45],[13.65,15.15],[15.45,19.62],[20.6,22.63],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,42.42],[42.72,44.26],[50.0,52.89],[53.19,54.69],[54.99,56.85],[57.15,57.73],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[20.2,23.37],[23.67,25.95],[29.5,31.0],[30.8,31.82],[32.12,35.95]],"cuenta":[[0.3,5.56],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,32.03]],"pagada":[[1.2,2.77],[3.07,5.22],[5.52,7.36]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,9.83]],"sucia":[[0.1,1.59],[1.89,4.34]],"prepara":[[0.3,2.35]],"limpia":[[2.0,5.81]],"fin":[[1.2,3.24]]};
 const VOZ_MARGEN = 0.6;
 TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
 const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
-let vozOn = true, vozLibre = false, vozAct = null;
+let vozOn = true, vozLibre = false, vozAct = null, puertaI = false, vozSalto = true, vozToma = -1, vozUltT = 0;
 const vozPistas = {};
 const vozRuta = id => ["apoyo", "voz", id + ".mp3"].join("/");
-/* cada cuadro: suena la pista de la toma en curso, en el segundo que marca la película; pausa, saltos y repetir la mueven igual */
+/* cada cuadro: suena la pista de la toma en curso. Mientras suena, la IMAGEN se ajusta al audio (si no, un cuadro lento rebobinaría la voz);
+   el audio sólo se coloca con un salto: ±3 s, teclas de acto, repetir o el cambio de toma. Si la pista no tiene datos o ya terminó, manda el reloj de cuadros. */
 function vozSync() {
   if (!HAY_VOZ) return;
+  if (Math.abs(tI - vozUltT) > 400) vozSalto = true; /* un brinco del tiempo que no viene de un cuadro es un salto */
   const s = tI / 1000; let i = 0; while (i < TOMAS.length - 1 && s >= T0[i + 1]) i++;
-  const id = TOMAS[i][0];
-  const a = vozOn && vozLibre && !REDUCE && VOZ_AUDIO[id] ? (vozPistas[id] || (vozPistas[id] = Object.assign(new Audio(vozRuta(id)), {preload: "auto"}))) : null;
+  const id = TOMAS[i][0], quiere = vozOn && vozLibre && !REDUCE;
+  const pista = n => vozPistas[n] || (vozPistas[n] = Object.assign(new Audio(vozRuta(n)), {preload: "auto"}));
+  const a = quiere && VOZ_AUDIO[id] ? pista(id) : null;
   if (vozAct && vozAct !== a) vozAct.pause();
-  vozAct = a; if (!a) return;
+  if (a !== vozAct || i !== vozToma) vozSalto = true;
+  vozAct = a; vozToma = i; vozUltT = tI;
+  if (quiere && i + 1 < TOMAS.length && T0[i + 1] - s < 3 && VOZ_AUDIO[TOMAS[i + 1][0]]) pista(TOMAS[i + 1][0]); /* la siguiente pista, cargada antes del cambio */
+  if (!a) return;
   const seg = s - T0[i];
   if (pausaI || $("#intro").hidden || seg >= (a.duration || VOZ_AUDIO[id])) { if (!a.paused) a.pause(); return; }
-  if (Math.abs(a.currentTime - seg) > 0.3) { try { a.currentTime = seg; } catch (e) { /* aún sin datos */ } }
-  if (a.paused) a.play().catch(() => { /* falta el archivo o el permiso: la película sigue en silencio */ });
+  if (vozSalto) { vozSalto = false; try { a.currentTime = seg; } catch (e) { /* aún sin datos */ } }
+  if (a.paused) { a.play().catch(() => { /* falta el archivo o el permiso: la película sigue en silencio */ }); return; }
+  if (a.readyState < 2 || a.seeking || a.ended) return;
+  const dif = a.currentTime - seg;
+  if (Math.abs(dif) <= 0.08 || (dif < 0 && dif > -0.25 && seg < 1.5)) return; /* al empezar, si la pista va apenas detrás, que alcance sola */
+  tI = clamp((T0[i] + a.currentTime) * 1000, T0[i] * 1000, T0[i + 1] * 1000 - 1); vozUltT = tI;
 }
 function vozBoton() { const b = $("#introSon"); if (!b) return; b.textContent = HAY_VOZ && vozOn ? "🔊" : "🔇"; b.title = HAY_VOZ ? (vozOn ? "Quitar el sonido" : "Poner el sonido") : "Esta versión todavía no tiene voz"; b.disabled = !HAY_VOZ; }
 const T0 = TOMAS.reduce((a, t) => (a.push(a[a.length - 1] + t[2]), a), [0]);
@@ -687,6 +710,12 @@ const cineCss = `
 #intro .barras i b{background:rgba(243,213,138,.7)}
 #intro .barras .btn,#intro > .ictl:not(.barras) .btn{background:transparent;color:rgba(254,249,241,.62);padding:6px 10px;font-size:13px}
 #intro .barras .btn:hover,#intro > .ictl:not(.barras) .btn:hover{background:rgba(255,255,255,.12);color:#fff}
+#intro .ipuerta{position:absolute;left:0;top:0;right:0;bottom:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none}
+#intro .ipuerta[hidden]{display:none}
+#intro .ipuerta button{pointer-events:auto;cursor:pointer;border:0;font-family:'DM Sans',sans-serif}
+#intro .ipuerta .ipv{min-height:64px;padding:0 44px;border-radius:999px;background:#fef9f1;color:#4f1728;font-size:24px;font-weight:700;box-shadow:0 18px 44px rgba(8,4,3,.55)}
+#intro .ipuerta .ips{min-height:44px;padding:0 18px;background:none;color:#fef9f1;font-size:18px;font-weight:600;text-decoration:underline;text-underline-offset:4px}
+#intro .ipuerta button:focus-visible{outline:3px solid #fdc34d;outline-offset:4px}
 #intro .icta{transition:opacity .7s ease}
 #intro .icta[hidden]{display:flex;opacity:0;pointer-events:none}
 `;
@@ -909,7 +938,7 @@ function cineHtml() {
 ${sala}${cerca}${pip}${sobre}
 <div class="grano"></div><div class="vin"></div><div class="franja fa"></div><div class="franja fb"></div>
 ${globo(1, "i", 1352, 278, "Buenas noches. Aquí está la carta.")}
-${globo(10, "i", 506, 548, "¿Pedimos algo para compartir?", 240)}${globo(11, "b", 1080, 360, "¿La parrillada alcanza para cuatro?")}${globo(12, "d", 1414, 548, "El mismo menú, pero en PDF.", 230)}${globo(13, "a", 800, 360, "¿Y eso qué trae?")}
+${globo(10, "i", 506, 548, "¿Pedimos algo para compartir?", 240)}${globo(11, "b", 1080, 360, "¿La parrillada alcanza para cuatro?")}${globo(12, "d", 1414, 548, "Es el mismo menú, pero en PDF.", 230)}${globo(13, "a", 800, 360, "¿Y eso qué trae?")}
 ${globo(14, "c", 470, 412, "Los tacos de pescado, por favor.", 400)}${globo(15, "d", 1202, 278, "Se nos terminaron. Una disculpa.")}${globo(16, "c", 470, 412, "¿Y el mole?")}${globo(17, "d", 1202, 278, "¿Es alérgica a algo? Lleva cacahuate.")}
 ${globo(18, "c", 470, 412, "Sí… ¿y las enchiladas?", 400)}${globo(26, "c", 470, 412, "Espere… ¿llevan cacahuate?", 400)}${globo(27, "d", 1202, 278, "Déjeme pregunto en cocina.")}
 ${globo(19, "d", 1202, 278, "¿Eran dos aguachiles… o tres?")}${globo(20, "c", 1440, 412, "El mío sin cebolla.")}${globo(21, "i", 506, 548, "Yo cambié de opinión.", 240)}${globo(28, "d", 1202, 278, "Un momento… está cargando.")}${globo(31, "d", 1202, 278, "Muchas gracias por venir.") + globo(36, "d", 1202, 278, "Sí llevan cacahuate.") + globo(37, "d", 1414, 548, "Ya tardó, ¿no?", 240) + globo(38, "b", 1080, 360, "Yo ya tengo hambre.") + globo(39, "c", 470, 412, "¿Nos trae la cuenta, por favor?", 400) + globo(40, "d", 1202, 278, "Aquí usamos Carta: con el QR ven el menú y piden desde su teléfono.", 430)}
@@ -918,7 +947,7 @@ ${globo(3, "i", 506, 548, "Ya pedí. ¿Tú qué vas a pedir?", 240)}${globo(4, "
 ${globo(5, "i", 1298, 278, "Para Ana, pescado a la talla.")}${globo(29, "i", 1298, 278, "Para Sofía, ensalada. Para Diego, aguachile.")}${globo(30, "i", 1298, 278, "Y para Carlos, arrachera.")}${globo(6, "i", 506, 548, "Sí, todo bien.", 240)}
 ${globo(25, "d", 1077, 390, "Con la terminal, cuando gusten.", 380)}${globo(7, "d", 1077, 390, "Todo pagado. ¡Muchas gracias!", 380)}
 ${SOLIC.map((x, i) => globo(60 + i, ["b", "c", "b"][i], [929, 404, 1250][i], [462, 500, 500][i], x.dice, 330) + globo(63 + i, "d", 1077, 390, x.mesero, 380)).join("") + globo(66, "c", 404, 500, SOLIC[1].responde, 330) + globo(70, "d", 1077, 390, "Provecho.") + globo(46, "c", 404, 500, "Yo ya quedé. Me gustó mucho.", 330) + globo(47, "b", 929, 462, "Deja veo si pido un postre.", 330) + globo(48, "b", 1250, 500, "Yo sí quiero un flan.") + globo(49, "b", 929, 462, "Y un pastel para la cumpleañera.", 330) + globo(50, "a", 688, 462, "¡Ay, gracias!") + globo(51, "c", 404, 500, "¿Facturan?") + globo(52, "d", 1077, 390, "Sí, se pide desde la aplicación.", 380) + globo(53, "c", 404, 500, "¡Gracias, buenas noches!") + globo(32, "b", 1250, 500, "¿Ya nadie va a pedir nada más?", 330)}${globo(33, "c", 404, 500, "No, todo bien.")}
-${globo(41, "a", 688, 462, "¿Han visto a Luis?") + globo(42, "b", 929, 462, "Fuimos a Cancún, estuvo muy bonito.", 330) + globo(43, "c", 404, 500, "¡Ja, ja, ja!") + globo(44, "b", 1250, 500, "¡Ja, ja!") + globo(45, "a", 688, 462, "¡Qué rico estuvo!") + globo(8, "c", 404, 500, "Prueba el pescado, está increíble.", 330)}${globo(9, "b", 1250, 500, "Y la arrachera. Hay que volver.", 330)}
+${globo(71, "c", 404, 500, "¡No te creo!") + globo(72, "b", 1250, 500, "Ahí va otra vez con Cancún.", 330) + globo(73, "a", 688, 462, "¡Ay, Diego!") + globo(74, "b", 929, 462, "¡Ja, ja!") + globo(41, "a", 688, 462, "¿Han visto a Luis?") + globo(42, "b", 929, 462, "Fuimos a Cancún, estuvo muy bonito.", 330) + globo(43, "c", 404, 500, "¡Ja, ja, ja!") + globo(44, "b", 1250, 500, "¡Ja, ja!") + globo(45, "a", 688, 462, "¡Qué rico estuvo!") + globo(8, "c", 404, 500, "Prueba el pescado, está increíble.", 330)}${globo(9, "b", 1250, 500, "Y la arrachera. Hay que volver.", 330)}
 
 ${rot}
 <div class="marca"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span></div></div>`;
@@ -959,7 +988,12 @@ function filmLinea() {
   /* tocar: el índice llega, baja, deja su marca y se aparta a un lado del teléfono para dejar ver la pantalla; s = -1 si la mano entra por la izquierda */
   const toca = (A, x, y, t, s = 1) => { mueve(A, x + 16 * s, y + 46, t - 0.6, 0.45); tl.to(q(A + " .dedo"), {x, y, duration: 0.12, ease: "power1.in"}, t - 0.13); toque(A, x, y, t); tl.to(q(A + " .dedo"), {x: x + 14 * s, y: y + 40, duration: 0.2, ease: "power1.out"}, t + 0.1); tl.to(q(A + " .dedo"), {x: s > 0 ? 510 : -110, y: y + 80, duration: 0.5, ease: "power2.inOut"}, t + 0.3); };
   const retira = (A, t, R = REP, d = 0.6) => mueve(A, R.x, R.y, t, d);
-  const globo = (k, t, fin) => { entra(".g" + k, t, 0.45, {scale: 0.6}, {scale: 1, ease: "back.out(1.5)"}); sale(".g" + k, fin, 0.25); };
+  const GT = {};
+  Object.entries(VOZ).forEach(([toma, ls]) => { const ix = TOMAS.findIndex(x => x[0] === toma); if (ix < 0) return; const i0 = T0[ix], i1 = T0[ix + 1], med = VOZ_TIEMPOS[toma];
+    ls.forEach((l, i) => { const o = l[3]; if (!o || o.g === undefined) return; const m = med && med[i], ini = i0 + (m ? m[0] : l[0]);
+      const sig = ls.slice(i + 1).find(x => x[1] === l[1] && x[3] && x[3].g !== undefined);
+      GT[o.g] = [ini, m ? i0 + m[1] : o.fin ? i0 + o.fin : Math.min(ini + Math.max(1.3, l[2].replace(/\[[^\]]*\]\s*/g, "").length / 13), sig ? i0 + sig[0] - 0.1 : 1e9, i1 - 0.15), !!m]; }); });
+  const globo = (k, t, fin) => { if (GT[k]) { t = GT[k][0]; fin = GT[k][1]; } entra(".g" + k, t, 0.45, {scale: 0.6}, {scale: 1, ease: "back.out(1.5)"}); sale(".g" + k, fin, 0.25); };
   const mira = (lado, tt) => tl.to(q(".k-mesero-cabeza"), {scaleX: -lado, duration: 0.3, ease: "power1.inOut"}, tt); /* 1 = hacia Carlos (derecha), -1 = hacia Ana */
   const pantalla = (sel, t, d = 0.4) => entra(sel, t, d, {scale: 0.97}, {scale: 1});
   const pulsoQR = (t, n = 1) => tl.fromTo(q(".k-qr-brillo"), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1.25, duration: 0.55, yoyo: true, repeat: 2 * n - 1, ease: "sine.inOut", immediateRender: false}, t);
@@ -1025,7 +1059,7 @@ function filmLinea() {
   mira(1, t + 3.0); globo(1, t + 3.5, t + 5.9); inclina(".gm", -1.5, t + 3.2, 0.9);
   cabeza("ana", -5, t + 3.5); cabeza("carlos", 5, t + 3.7);
   /* ===== B · las problemáticas ===== */
-  const habla = (k, t0, t1, quien, ang = 4) => { globo(k, t0, t1); if (quien === "mesero") { cabeza("mesero", ang, t0, 0.4); cabeza("mesero", 0, t1 - 0.2, 0.4); } else if (quien) { cabeza(quien, ang, t0, 0.35); cabeza(quien, -ang / 2, (t0 + t1) / 2, 0.35); cabeza(quien, 0, t1 - 0.2, 0.35); } };
+  const habla = (k, t0, t1, quien, ang = 4) => { if (GT[k]) { t0 = GT[k][0]; t1 = GT[k][1]; } globo(k, t0, t1); if (quien === "mesero") { cabeza("mesero", ang, t0, 0.4); cabeza("mesero", 0, t1 - 0.2, 0.4); } else if (quien) { cabeza(quien, ang, t0, 0.35); cabeza(quien, -ang / 2, (t0 + t1) / 2, 0.35); cabeza(quien, 0, t1 - 0.2, 0.35); } };
   /* la lupa: entra junto a quien mira, con un aro sobre su pantalla o su papel */
   const lupa = (k, t0, t1) => { entra(".lu" + k, t0, 0.5, {scale: 0.5}, {scale: 1, ease: "back.out(1.5)"}); entra(".lm" + k, t0, 0.4, {scale: 1.6}, {scale: 1}); sale(".lu" + k + ", .lm" + k, t1, 0.35); };
   /* la pluma escribe: el trazo del renglón k avanza y la pluma lo sigue */
@@ -1034,7 +1068,7 @@ function filmLinea() {
   /* el reloj late cuando el tiempo salta */
   const pulsoHora = tt => tl.fromTo(q(".hora"), {scale: 1}, {scale: 1.3, duration: 0.3, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false}, tt);
   /* B1 · ponerse de acuerdo: unos con la carta de papel, otros con el PDF en el teléfono; es el mismo problema */
-  t = T("b1") + 0.5;
+  t = T("b1") + 3.6;
   tl.to(q(".gm"), {x: 200, autoAlpha: 0, duration: 0.9, ease: "power2.in"}, t); inclina(".gm", 0, t, 0.5);
   brazo("ana", "brazo-carta", t + 0.2); brazo("sofia", "brazos-carta", t + 0.3); brazo("diego", "brazos-cel", t + 0.4); brazo("carlos", "brazo-cel", t + 0.5);
   cabeza("ana", 8, t + 0.3); cabeza("carlos", -8, t + 0.6);
@@ -1048,7 +1082,7 @@ function filmLinea() {
   habla(12, t + 4.9, t + 7.2, "carlos", 6); inclina(".gC", -3, t + 4.9); inclina(".gC", 0, t + 7.0);
   habla(13, t + 7.4, t + 9.1, "sofia", -5); inclina(".gS", 2, t + 7.4); inclina(".gS", 0, t + 9.0);
   /* B2 · el menú no la conoce: tres vueltas entre lo que hay y lo que Ana puede comer; el mesero hace lo correcto, el sistema no ayuda */
-  t = T("b2") + 0.5;
+  t = T("b2") + 3.0;
   brazo("mesero", "brazos-libreta", t, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: 1, rotation: 0}, t);
   tl.fromTo(q(".gm"), {x: 200, autoAlpha: 0}, {x: 0, autoAlpha: 1, duration: 0.9, ease: "power2.out", immediateRender: false}, t + 0.1); libreta(true, t + 0.9);
   brazo("sofia", "brazos", t + 0.3); brazo("carlos", "brazo", t + 0.4); brazo("diego", "brazos", t + 0.5); cabeza("carlos", 0, t + 0.4);
@@ -1065,13 +1099,13 @@ function filmLinea() {
   tl.fromTo(q(".gm"), {x: 200, autoAlpha: 0}, {x: 0, autoAlpha: 1, duration: 0.7, ease: "power2.out", immediateRender: false}, t + 16.1);
   habla(36, t + 16.7, t + 18.0, "mesero", -5);
   /* B3 · ordenar entre muchos: el mesero apunta a mano, orden por orden */
-  t = T("b3") + 0.5;
+  t = T("b3") + 3.5;
   habla(19, t + 0.5, t + 2.6, "mesero", -6); escribe(1, t + 1.2, 1.0);
   mira(1, t + 2.7); habla(20, t + 2.8, t + 4.6, "carlos", 6); inclina(".gC", -3, t + 2.8); inclina(".gC", 0, t + 4.4); escribe(2, t + 3.4, 1.0);
   mira(-1, t + 4.7); habla(21, t + 4.8, t + 6.7, "ana", -6); inclina(".gA", 3, t + 4.8); inclina(".gA", 0, t + 6.5); escribe(3, t + 5.6, 0.9);
   cabeza("mesero", -7, t + 6.9, 0.3); cabeza("mesero", 5, t + 7.3, 0.3); cabeza("mesero", -6, t + 7.7, 0.3);
   /* B3 bis · o trae una tableta: la libreta desaparece, aparece la tableta y la lupa enseña su pantalla, cargando */
-  t = T("b3t");
+  t = T("b3t") + 2.7;
   libreta(false, t); brazo("mesero", "brazos-tableta", t + 0.1, 0.5);
   entra(".lu2", t + 0.7, 0.5, {scale: 0.5}, {scale: 1, ease: "back.out(1.5)"});
   tl.fromTo(q(".ltab .ctab"), {rotation: 0}, {rotation: 1980, duration: 5.8, ease: "none", immediateRender: false}, t + 0.7);
@@ -1103,7 +1137,7 @@ function filmLinea() {
   lupa(3, t + 4.0, t + 8.2);
   tl.fromTo(q(".ltk"), {y: 14}, {y: -210, duration: 3.2, ease: "sine.inOut", immediateRender: false}, t + 4.6);
   /* B4 · la última: una sola cuenta y cada quien haciendo cuentas en su teléfono */
-  t = T("b4") + 0.5;
+  t = T("b4") + 1.8;
   brazo("ana", "brazo-cel", t + 0.3); brazo("sofia", "brazos-cel", t + 0.4); brazo("diego", "brazos-cel", t + 0.5); brazo("carlos", "brazo-cel", t + 0.6);
   cabeza("ana", 7, t + 0.3); cabeza("carlos", -7, t + 0.6);
   habla(22, t + 1.0, t + 2.9, "diego", 5);
@@ -1193,7 +1227,7 @@ function filmLinea() {
   retira(".agA", t + 2.0);
   /* ===== acto 3: la mesa pide junta ===== */
   /* 8 · de vuelta al plano abierto: Ana ya pidió y deja el teléfono; Carlos sigue eligiendo, con la cara alumbrada por la pantalla */
-  t = T("juntos");
+  t = T("juntos") + 3.7;
   tl.set(q(".pfig"), {scale: 1.5, x: -330, y: -430}, t); tl.set(q(".pfon"), {scale: 1.2, x: 60, y: 0}, t);
   tl.set(q(".gm"), {autoAlpha: 0, rotation: 0}, t);
   brazo("ana", "brazo", t, 0.01); brazo("carlos", "brazo-cel", t, 0.01); brazo("sofia", "brazos", t, 0.01); brazo("diego", "brazos-cel", t, 0.01);
@@ -1303,7 +1337,7 @@ function filmLinea() {
   entra(".reloj", t + 0.6, 0.4);
   sale(".hora", a5 + 0.3, 0.3);
   /* la hora de la mesa (minutos desde las 8:00 pm) en cada punto de la película; entre puntos corre pareja */
-  const HORA = [[T("cumple") + 2.6, 0], [T("b2"), 3], [T("b2") + 14.6, 6], [T("b2") + 16.2, 18], [T("b3t"), 21], [T("espera") + 2.6, 23], [T("espera") + 4.6, 50], [T("espera") + 8.4, 55], [T("espera") + 10.4, 100],
+  const HORA = [[T("cumple") + 2.6, 0], [T("b2"), 3], [T("b2") + 17.1, 6], [T("b2") + 18.7, 18], [T("b3t"), 21], [T("espera") + 2.6, 23], [T("espera") + 4.6, 50], [T("espera") + 8.4, 55], [T("espera") + 10.4, 100],
     [T("b4"), 104], [T("pivote") + 2.0, 108], [T("pivote") + 4.8, 0], [a5, 14], [a5 + 6.6, 26], [a5 + 44, 58], [a5 + 52, 76], [T("cierres"), 80], [T("cierres") + 18.5, 86], [T("cierres") + 21.9, 100], [T("cuenta"), 108], [T("fin"), 128]];
   const hds = q(".hd"), hhs = q(".esfera .hh"), mms = q(".esfera .mm");
   const pintaHora = () => {
@@ -1316,32 +1350,37 @@ function filmLinea() {
   tl.eventCallback("onUpdate", pintaHora); pintaHora();
   /* 13 · abierta: plática de amigos y risas mientras corre el reloj; el mesero sirve; siguen platicando y comiendo */
   const rie = (quien, tt, n = 7) => tl.to(q(`.k-${quien}-cabeza`), {y: -6, duration: 0.11, yoyo: true, repeat: n, ease: "sine.inOut"}, tt);
+  t += 2.0;
   habla(41, t + 1.3, t + 3.0, "sofia", -5); inclina(".gS", 2, t + 1.3); inclina(".gS", 0, t + 2.9);
   cabeza("ana", -5, t + 1.5); cabeza("carlos", 5, t + 1.7);
   habla(42, t + 3.1, t + 5.3, "diego", 5); inclina(".gD", -2, t + 3.1); inclina(".gD", 0, t + 5.2); gesto("carlos", t + 3.4, 2, 10);
-  globo(43, t + 5.4, t + 6.6); globo(44, t + 5.6, t + 6.7); rie("ana", t + 5.4); rie("carlos", t + 5.6); rie("sofia", t + 5.5, 5);
-  inclina(".gA", 3, t + 5.4, 0.3); inclina(".gA", 0, t + 6.5, 0.4); inclina(".gC", -3, t + 5.6, 0.3); inclina(".gC", 0, t + 6.6, 0.4);
+  const tr = GT[43] ? GT[43][0] : t + 5.4;
+  [71, 72, 73, 74].forEach(k => globo(k, tr - 3, tr - 1.5)); if (GT[74]) rie("diego", GT[74][0], 5);
+  globo(43, tr, tr + 1.2); globo(44, tr + 0.2, tr + 1.3); rie("ana", tr); rie("carlos", tr + 0.2); rie("sofia", tr + 0.1, 5);
+  inclina(".gA", 3, tr, 0.3); inclina(".gA", 0, tr + 1.1, 0.4); inclina(".gC", -3, tr + 0.2, 0.3); inclina(".gC", 0, tr + 1.2, 0.4);
   /* los cuatro teléfonos, en pequeño, con su estado; y tres solicitudes de cambio antes de que llegue la comida */
   entra(".mnrow", t + 1.0, 0.5, {y: -12}, {y: 0});
-  SOLIC.forEach((x, i) => { const r = t + 7.0 + i * 12.2, quien = QUIEN[x.k][0], A = ".agY" + i, s = x.k === 3 ? -1 : 1, cel = x.k === 0 || x.k === 3 ? "brazo-cel" : "brazos-cel", sin = x.k === 0 || x.k === 3 ? "brazo" : "brazos";
-    brazo(quien, cel, r); habla(60 + i, r + 0.1, r + 1.8, quien, 5);
-    tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, r + 1.9); tl.set(q(A + " .qK"), {autoAlpha: 1}, r + 1.9);
-    tl.set(q(A + " .mvel, " + A + " .msh, " + A + " .mto, " + A + " .qcar, " + A + " .qadd, " + A + " .qcar .mcf, " + A + " .q1, " + A + " .mel"), {autoAlpha: 0}, r + 1.9); tl.set(q(A + " .q0"), {autoAlpha: 1}, r + 1.9);
-    corte(".sala", ".cerca", r + 1.9, 0.5);
-    tl.fromTo(q(A), {...PS, autoAlpha: 0, y: PS.y + 200}, {...PS, autoAlpha: 1, duration: 0.8, ease: "power3.out", immediateRender: false}, r + 1.9); entra(A + " .nom", r + 2.5, 0.3);
+  SOLIC.forEach((x, i) => { const r = t + 9.6 + [0, 12.2, 29.4][i], d = [2.0, 0.5, 1.7][i], cu = r + 1.9 + d, f = (6.4 - d) / 6.4, en = v => cu + v * f;
+    const quien = QUIEN[x.k][0], A = ".agY" + i, s = x.k === 3 ? -1 : 1, cel = x.k === 0 || x.k === 3 ? "brazo-cel" : "brazos-cel", sin = x.k === 0 || x.k === 3 ? "brazo" : "brazos";
+    brazo(quien, cel, r + d); habla(60 + i, r + 0.1 + d, r + 1.8 + d, quien, 5);
+    tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, cu); tl.set(q(A + " .qK"), {autoAlpha: 1}, cu);
+    tl.set(q(A + " .mvel, " + A + " .msh, " + A + " .mto, " + A + " .qcar, " + A + " .qadd, " + A + " .qcar .mcf, " + A + " .q1, " + A + " .mel"), {autoAlpha: 0}, cu); tl.set(q(A + " .q0"), {autoAlpha: 1}, cu);
+    corte(".sala", ".cerca", cu, 0.5);
+    tl.fromTo(q(A), {...PS, autoAlpha: 0, y: PS.y + 200}, {...PS, autoAlpha: 1, duration: 0.7, ease: "power3.out", immediateRender: false}, cu); entra(A + " .nom", cu + 0.5, 0.3);
+    let tc;
     if (x.carta) { /* agrega: del seguimiento a la carta, toca el platillo, se suma a su orden y confirma con el mesero */
-      toca(A, 200, 802, r + 3.3, s); pantalla(A + " .qcar", r + 3.45, 0.4);
-      toca(A, 200, 160, r + 4.7, s); tl.to(q(A + " .gua"), {backgroundColor: "#eef0e2", duration: 0.25}, r + 4.75); entra(A + " .qadd", r + 4.9, 0.35, {y: 14}, {y: 0}); entra(A + " .qcar .mcf", r + 5.0, 0.35, {y: 14}, {y: 0});
-      toca(A, 200, 802, r + 6.3, s); sale(A + " .qcar", r + 6.45, 0.25);
+      toca(A, 200, 802, en(1.4), s); pantalla(A + " .qcar", en(1.4) + 0.15, 0.4);
+      toca(A, 200, 160, en(2.8), s); tl.to(q(A + " .gua"), {backgroundColor: "#eef0e2", duration: 0.25}, en(2.8) + 0.05); entra(A + " .qadd", en(2.8) + 0.2, 0.35, {y: 14}, {y: 0}); entra(A + " .qcar .mcf", en(2.8) + 0.3, 0.35, {y: 14}, {y: 0});
+      tc = en(4.4); toca(A, 200, 802, tc, s); sale(A + " .qcar", tc + 0.15, 0.25);
     } else { /* cambia o quita: el modal con sus platillos y los botones de menos y más */
-      toca(A, 200, 802, r + 3.1, s); entra(A + " .mvel", r + 3.2, 0.3); entra(A + " .m1", r + 3.25, 0.35, {y: 60}, {y: 0});
-      toca(A, 200, 790, r + 4.0, s); sale(A + " .m1", r + 4.1, 0.15); entra(A + " .m2", r + 4.2, 0.35, {y: 60}, {y: 0});
-      x.filas.forEach(([, , c1, cl], j) => { if (!c1) return; const tt = r + 5.0 + (cl === "mas" ? 0.75 : 0), y = 866 - 34 - 56 - 16 - (x.filas.length - j) * 60 + 28;
+      toca(A, 200, 802, en(1.2), s); entra(A + " .mvel", en(1.2) + 0.1, 0.3); entra(A + " .m1", en(1.2) + 0.15, 0.35, {y: 60}, {y: 0});
+      toca(A, 200, 790, en(2.1), s); sale(A + " .m1", en(2.1) + 0.1, 0.15); entra(A + " .m2", en(2.1) + 0.2, 0.35, {y: 60}, {y: 0});
+      x.filas.forEach(([, , c1, cl], j) => { if (!c1) return; const tt = en(3.1 + (cl === "mas" ? 0.75 : 0)), y = 866 - 34 - 56 - 16 - (x.filas.length - j) * 60 + 28;
         toca(A, cl === "mas" ? 343 : 257, y, tt, s); sale(A + " .mq" + j + " .q0", tt + 0.05, 0.1); entra(A + " .mq" + j + " .q1", tt + 0.12, 0.3, {scale: 0.6}, {scale: 1, ease: "back.out(2.5)"}); tl.set(q(A + " .mq" + j + " .q1"), {position: "static"}, tt + 0.1);
         tl.to(q(A + " .mq" + j), {backgroundColor: cl === "mas" ? "#eef0e2" : "#f7e4e1", duration: 0.25}, tt + 0.1); if (cl === "menos") { entra(A + " .mq" + j + " .mel", tt + 0.2, 0.3); tl.to(q(A + " .mq" + j + " b"), {color: "#8a4a44", duration: 0.2}, tt + 0.1); } });
-      toca(A, 200, 804, r + 6.6, s); sale(A + " .m2, " + A + " .mvel", r + 6.75, 0.25);
+      tc = en(4.7); toca(A, 200, 804, tc, s); sale(A + " .m2, " + A + " .mvel", tc + 0.15, 0.25);
     }
-    entra(A + " .t1", r + 6.9, 0.35, {y: -14}, {y: 0}); sale(A + " .t1", r + 7.5, 0.2); entra(A + " .t2", r + 7.6, 0.35, {y: -14}, {y: 0});
+    entra(A + " .t1", tc + 0.3, 0.3, {y: -14}, {y: 0}); sale(A + " .t1", tc + 0.85, 0.15); entra(A + " .t2", tc + 0.95, 0.3, {y: -14}, {y: 0});
     /* en el tablero: el fondo se desenfoca y se atenúa; sólo queda la solicitud con sus botones */
     tl.set(q(".so" + i + " div"), {autoAlpha: 1}, r + 7.3); entra(".pvelo", r + 7.4, 0.4); entra(".so" + i, r + 7.5, 0.45, {y: 30}, {y: 0, ease: "back.out(1.6)"});
     brazo("mesero", "brazos-cel", r + 8.1, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: 1, rotation: 0}, r + 8.1);
@@ -1352,7 +1391,7 @@ function filmLinea() {
     sale(".so" + i + ", .pvelo", r + 11.5, 0.3);
     if (x.responde) habla(66, r + 10.9, r + 12.1, quien, -5);
     tl.to(q(".gm"), {x: 220, autoAlpha: 0, duration: 0.7, ease: "power2.in"}, r + 11.4); brazo(quien, sin, r + 11.6); });
-  t += 37.2;
+  t += 48.2;
   brazo("mesero", "brazos-platos", t + 5.0, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: 1, rotation: 0}, t + 5.0);
   tl.fromTo(q(".gm"), {x: 220, autoAlpha: 0}, {x: 0, autoAlpha: 1, duration: 0.9, ease: "power2.out", immediateRender: false}, t + 6.4);
   habla(70, t + 7.3, t + 8.6, "mesero", -5); inclina(".gm", -3, t + 7.4, 0.5); inclina(".gm", 0, t + 8.3, 0.5);
@@ -1388,10 +1427,10 @@ function filmLinea() {
   const primer = (A, t0, t1) => { tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, t0); tl.set(q(A + " .qS, " + A + " .sgb"), {autoAlpha: 1}, t0); tl.set(q(A + " .sgw, " + A + " .sgt"), {autoAlpha: 0}, t0);
     corte(".sala", ".cerca", t0, 0.6); tl.fromTo(q(A), {...PS, autoAlpha: 0, y: PS.y + 200}, {...PS, autoAlpha: 1, duration: 0.9, ease: "power3.out", immediateRender: false}, t0); entra(A + " .nom", t0 + 0.7, 0.4);
     corte(".cerca", ".sala", t1, 0.6); sale(A, t1 + 0.6, 0.01); };
-  primer(".agZ", t + 2.5, t + 7.0);
+  primer(".agZ", t + 2.9, t + 7.0);
   toca(".agZ", 200, 800, t + 5.2); tl.to(q(".agZ .sb2"), {scale: 0.95, duration: 0.12, yoyo: true, repeat: 1}, t + 5.2);
   sale(".agZ .sgb", t + 5.4, 0.25); entra(".agZ .sgw", t + 5.6, 0.4, {y: 12}, {y: 0}); cerro(0, t + 5.7); brazo("ana", "brazo", t + 6.8);
-  t += 3.9;
+  t += 4.3;
   brazo("diego", "brazos-cel", t + 3.7); habla(47, t + 3.8, t + 5.7, "diego", 5);
   accion(1, t + 4.3, t + 6.2, t + 5.2);
   brazo("carlos", "brazo-cel", t + 6.3); habla(48, t + 6.4, t + 8.1, "carlos", 6);
@@ -1429,7 +1468,7 @@ function filmLinea() {
   entra(".dvv", t + 2.9, 0.7, {scaleY: 0}, {scaleY: 1, ease: "power2.out"}); entra(".dvh", t + 3.1, 0.7, {scaleX: 0}, {scaleX: 1, ease: "power2.out"});
   entra(".ctt", t + 3.2, 0.4); entra(".celda .w0", t + 3.4, 0.4, {y: 10}, {y: 0});
   tl.fromTo(q(".agQ .cpc.on"), {scale: 1}, {scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, stagger: 0.2, immediateRender: false}, t + 6.5);
-  const dice = (k, t0, t1) => { entra(".gq" + k, t0, 0.45, {scale: 0.6}, {scale: 1, ease: "back.out(1.5)"}); if (t1) sale(".gq" + k, t1, 0.25); };
+  const dice = (k, t0, t1) => { const g = GT["q" + k]; if (g) { t0 = g[0]; if (g[2]) t1 = g[1]; } entra(".gq" + k, t0, 0.45, {scale: 0.6}, {scale: 1, ease: "back.out(1.5)"}); if (t1) sale(".gq" + k, t1, 0.25); };
   /* la cifra viaja por su tubería, tramo a tramo */
   const viaja = (sel, pts, t0, d = 0.65) => { tl.set(q(sel), {x: pts[0][0], y: pts[0][1]}, t0 - 0.01); entra(sel, t0, 0.25, {scale: 0.5}, {scale: 1});
     pts.slice(1).forEach((p, j) => tl.to(q(sel), {x: p[0], y: p[1], duration: d, ease: "power1.inOut"}, t0 + 0.25 + j * d)); const fin = t0 + 0.25 + (pts.length - 1) * d; sale(sel, fin, 0.2, {scale: 0.5}); return fin; };
@@ -1452,10 +1491,10 @@ function filmLinea() {
   dice(3, t + 19.8); invita(3, t + 21.6); const s3 = t + 21.9; centro(3, s3); tubo(3, s3 + 0.3); const f3 = reparte(3, s3 + 0.9);
   [0, 2, 3].forEach(k => { tl.to(q(".agQ" + k + " .cv0"), {autoAlpha: 0, duration: 0.2}, f3); entra(".agQ" + k + " .cv1", f3 + 0.15, 0.4, {scale: 0.6}, {scale: 1, ease: "back.out(2.4)"}); });
   /* Sofía agradece; después, sólo la fiesta */
-  dice(1, t + 24.4, t + 26.6); entra(".gqf", t + 26.7, 0.6, {scale: 0.3, rotation: -20}, {scale: 1, rotation: 0, ease: "back.out(2.2)"});
+  dice(1, t + 25.9, t + 29.5); entra(".gqf", t + 29.7, 0.6, {scale: 0.3, rotation: -20}, {scale: 1, rotation: 0, ease: "back.out(2.2)"});
   /* todos validan su total: aparece «Llamar al mesero» y lo tocan */
-  entra(".agQ .qll", t + 27.0, 0.4, {y: 20}, {y: 0, stagger: 0.08});
-  QUIEN.forEach((_, k) => toque(".agQ" + k, 200, 800, t + 28.3 + k * 0.12)); tl.to(q(".agQ .qll"), {scale: 0.95, duration: 0.12, yoyo: true, repeat: 1, stagger: 0.12}, t + 28.3);
+  entra(".agQ .qll", t + 30.0, 0.4, {y: 20}, {y: 0, stagger: 0.08});
+  QUIEN.forEach((_, k) => toque(".agQ" + k, 200, 800, t + 31.2 + k * 0.12)); tl.to(q(".agQ .qll"), {scale: 0.95, duration: 0.12, yoyo: true, repeat: 1, stagger: 0.12}, t + 31.2);
   /* 15 · pagada: pagan fuera de Carta (la terminal del restaurante) y el mesero valida el pago en su teléfono */
   t = T("pagada");
   brazo("ana", "brazo", t, 0.01); brazo("carlos", "brazo", t, 0.01); brazo("sofia", "brazos", t, 0.01); brazo("diego", "brazos", t, 0.01);
@@ -1531,8 +1570,9 @@ function pintaIntro() {
   const cta = $("#introCta"); if (cta) cta.hidden = s < tomaIni("fin") + 2.6;
   vozSync();
 }
-function irActo(k) { tI = (REDUCE ? CLAVES[TOMAS.findIndex(t => t[1] === ACTOS[k][0])] : ACT_INI[k]) * 1000; pintaIntro(); }
+function irActo(k) { vozSalto = true; tI = (REDUCE ? CLAVES[TOMAS.findIndex(t => t[1] === ACTOS[k][0])] : ACT_INI[k]) * 1000; pintaIntro(); }
 function saltaI(ms) {
+  vozSalto = true;
   if (REDUCE) { let e = 0; CLAVES.forEach((c, i) => { if (tI / 1000 >= c - 0.01) e = i; }); e = clamp(e + (ms > 0 ? 1 : -1), 0, TOMAS.length - 1); tI = CLAVES[e] * 1000; }
   else tI = clamp(tI + ms, 0, TOTI - 1);
   pintaIntro();
@@ -1546,20 +1586,30 @@ function frameIntro(ts) {
 function abrirIntro() {
   if (!$("#cineCss")) { const st = document.createElement("style"); st.id = "cineCss"; st.textContent = cineCss; document.head.appendChild(st); }
   const el = $("#intro");
-  el.innerHTML = `${cineHtml()}<div id="introCta" class="icta" hidden><button class="btn" data-intro="repetir">↻ Repetir</button><button class="btn gran" data-intro="saltar">Ver el informe</button></div>` +
+  el.innerHTML = `${cineHtml()}<div id="introPuerta" class="ipuerta" hidden><button class="ipv" data-intro="consonido" autofocus>▶ Ver con sonido</button><button class="ips" data-intro="sinsonido">Ver sin sonido</button></div><div id="introCta" class="icta" hidden><button class="btn" data-intro="repetir">↻ Repetir</button><button class="btn gran" data-intro="saltar">Ver el informe</button></div>` +
     `<div class="ictl"><button class="btn" data-intro="saltar">Saltar ✕</button></div><div class="barras ictl"><i><b></b></i><button class="btn" data-intro="menos" aria-label="Atrás 3 segundos">−3 s</button><button class="btn" id="introPausa" data-intro="pausa" aria-label="Pausa o reanudar">❚❚</button><button class="btn" data-intro="mas" aria-label="Adelante 3 segundos">+3 s</button><button class="btn" id="introSon" data-intro="sonido" aria-label="Sonido">🔇</button>${BTN_PANTALLA}</div>`;
   el.hidden = false; document.body.style.overflow = "hidden"; filmEscala();
   if (tlF) tlF.kill(); tlF = filmLinea();
-  tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); muestraControles();
+  tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE;
+  /* con voz, la película espera en su primer cuadro tras una puerta: el sonido sólo puede empezar con un gesto y no debe perderse el arranque.
+     Si la página ya recibió un gesto (se reabre desde el informe), arranca con sonido directo. */
+  const yaHuboGesto = !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
+  puertaI = HAY_VOZ && !REDUCE && !yaHuboGesto; if (HAY_VOZ && !REDUCE && yaHuboGesto) vozLibre = true;
+  if (puertaI) { pausaI = true; tI = 40; /* un instante después del cero, para que el primer cuadro ya esté pintado */ $("#introPuerta").hidden = false; $("#introPuerta .ipv").focus(); }
+  ultI = performance.now(); pintaIntro(); muestraControles();
   cancelAnimationFrame(rafI); rafI = requestAnimationFrame(frameIntro);
   el.onpointermove = muestraControles; vozBoton();
   el.onclick = ev => {
-    muestraControles(); vozLibre = true; /* el navegador sólo deja sonar después de un gesto */
-    const b = ev.target.closest("[data-intro]");
+    muestraControles(); const b = ev.target.closest("[data-intro]");
+    if (puertaI) { /* con la puerta puesta sólo cuentan sus dos botones y «Saltar» */
+      const a = b && b.dataset.intro; if (a === "saltar") cerrarIntro();
+      else if (a === "consonido" || a === "sinsonido") { vozOn = a === "consonido"; vozLibre = true; vozSalto = true; tI = 0; pausaI = false; puertaI = false; $("#introPuerta").hidden = true; ultI = performance.now(); vozBoton(); pintaIntro(); }
+      return; }
+    vozLibre = true; /* el navegador sólo deja sonar después de un gesto */
     if (!b) { if (!ev.target.closest("button, .icta")) { pausaI = !pausaI; pintaIntro(); } return; } /* un clic en cualquier parte pausa o reanuda */
     const a = b.dataset.intro;
     if (a === "saltar") cerrarIntro();
-    else if (a === "repetir") { tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); }
+    else if (a === "repetir") { vozSalto = true; tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); }
     else if (a === "pausa") { pausaI = !pausaI; pintaIntro(); }
     else if (a === "sonido") { vozOn = !vozOn; vozBoton(); pintaIntro(); }
     else if (a === "menos") saltaI(-3000); else if (a === "mas") saltaI(3000);
@@ -1568,7 +1618,7 @@ function abrirIntro() {
 window.addEventListener("resize", filmEscala);
 document.addEventListener("fullscreenchange", () => setTimeout(filmEscala, 60));
 document.addEventListener("keydown", e => {
-  if ($("#intro").hidden) return;
+  if ($("#intro").hidden || puertaI) return; /* con la puerta puesta, Enter o espacio sobre su botón ya hacen de clic */
   muestraControles(); vozLibre = true;
   if (e.key === "ArrowLeft") saltaI(-3000); else if (e.key === "ArrowRight") saltaI(3000);
   else if (/^[1-9]$/.test(e.key) && +e.key <= ACTOS.length - 1) irActo(+e.key - 1);
