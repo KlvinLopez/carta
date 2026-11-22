@@ -1,0 +1,190 @@
+"""Arma la música de fondo de la película: un solo mp3 continuo, con el volumen ya puesto.
+
+Uso:
+    python3 mezcla_musica.py [linea_de_tiempo.json] [tiempos.json] [música fuente] [salida.mp3] [carpeta de voces]
+
+Sin argumentos usa ./linea_de_tiempo.json (lo escribe apoyo/cine/guion.mjs), ./tiempos.json (lo
+escribe mezcla_tomas.py), ./musica/bossa-antigua.mp3 ../apoyo/musica/fondo.mp3 y las voces de ../apoyo/voz. Necesita ffmpeg.
+
+Qué hace:
+- La música baja cuando alguien habla y sube un poco cuando nadie habla; entre dos frases
+  separadas por menos de HUECO_MINIMO segundos se queda abajo, para que no suba y baje.
+- Suena desde el principio, se apaga en la toma `pivote`, vuelve a empezar en `ofrece` y otra
+  vez en `prepara`; al final se funde. Si falta alguna de esas tomas, suena de corrido.
+- El volumen va horneado en el archivo: en un teléfono el navegador no deja cambiarlo por código.
+
+Los niveles se miden contra la voz: BAJO_LA_VOZ y ENTRE_FRASES son cuántas unidades de sonoridad
+(LU) queda la música por debajo de la voz ya mezclada en apoyo/voz.
+"""
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+AQUI = Path(__file__).resolve().parent
+ARGS = sys.argv[1:]
+LINEA = Path(ARGS[0]) if len(ARGS) > 0 else AQUI / "linea_de_tiempo.json"
+TIEMPOS = Path(ARGS[1]) if len(ARGS) > 1 else AQUI / "tiempos.json"
+FUENTE = Path(ARGS[2]) if len(ARGS) > 2 else AQUI / "musica" / "bossa-antigua.mp3"
+SALIDA = Path(ARGS[3]) if len(ARGS) > 3 else AQUI.parent / "apoyo" / "musica" / "fondo.mp3"
+VOCES = Path(ARGS[4]) if len(ARGS) > 4 else AQUI.parent / "apoyo" / "voz"
+
+BAJO_LA_VOZ = 13.0  # LU por debajo de la voz mientras alguien habla
+ENTRE_FRASES = 9.0  # LU por debajo de la voz cuando nadie habla
+HUECO_MINIMO = 1.5  # con menos silencio que esto entre dos frases, la música no sube
+ANTES = 0.3  # segundos que tarda en bajar; termina de bajar justo cuando empieza la frase
+ESPERA = 0.3  # segundos que espera tras la frase antes de subir
+SUBIDA = 0.8  # segundos que tarda en subir
+FUNDIDO_PIVOTE = 1.5  # la música se apaga al empezar la toma `pivote`
+FUNDIDO_FINAL = 2.5
+ENTRADA = 0.6  # fundido de entrada de cada vuelta a empezar
+
+
+def corre(cmd: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+
+def dur(p: Path) -> float:
+    campos = ["-show_entries", "format=duration", "-of", "csv=p=0"]
+    return float(corre(["ffprobe", "-v", "error", *campos, str(p)]).stdout)
+
+
+def sonoridad(entradas: list[Path], filtro: str = "") -> float:
+    """Sonoridad integrada (LUFS, EBU R128) de uno o varios archivos seguidos."""
+    cmd = ["ffmpeg", "-hide_banner", "-nostats"]
+    for p in entradas:
+        cmd += ["-i", str(p)]
+    n = len(entradas)
+    union = "".join(f"[{i}:a]" for i in range(n)) + f"concat=n={n}:v=0:a=1"
+    cadena = union + (f",{filtro}" if filtro else "") + ",ebur128=framelog=quiet"
+    r = subprocess.run(
+        [*cmd, "-filter_complex", cadena, "-f", "null", "-"], capture_output=True, text=True
+    )
+    m = re.findall(r"I:\s+(-?[0-9.]+) LUFS", r.stderr)
+    if not m:
+        raise SystemExit("no pude medir la sonoridad:\n" + r.stderr[-400:])
+    return float(m[-1])
+
+
+def tramos_de_habla(linea: dict, tiempos: dict) -> list[list[float]]:
+    """Intervalos, en segundos de película, en que alguien habla; juntos si el hueco es corto."""
+    sueltos = []
+    for t in linea["tomas"]:
+        for par in tiempos["VOZ_TIEMPOS"].get(t["toma"], []):
+            if par:
+                sueltos.append([t["inicio"] + par[0], t["inicio"] + par[1]])
+    sueltos.sort()
+    juntos: list[list[float]] = []
+    for a, b in sueltos:
+        if juntos and a - juntos[-1][1] < HUECO_MINIMO:
+            juntos[-1][1] = max(juntos[-1][1], b)
+        else:
+            juntos.append([a, b])
+    return juntos
+
+
+def vueltas(linea: dict, largo: float) -> list[dict]:
+    """Los tramos de música: cuándo empieza cada vuelta, cuánto dura y con qué fundidos."""
+    total = float(linea["total"])
+    t0 = {t["toma"]: float(t["inicio"]) for t in linea["tomas"]}
+    if not {"pivote", "ofrece", "prepara"} <= set(t0):
+        out, ini = [], 0.0
+        while ini < total:
+            out.append(
+                {
+                    "inicio": ini,
+                    "dura": min(largo, total - ini),
+                    "entra": ENTRADA if ini else 0.0,
+                    "sale": 0.0,
+                }
+            )
+            ini += largo
+        out[-1]["sale"] = FUNDIDO_FINAL
+        return out
+    acto1 = {
+        "inicio": 0.0,
+        "dura": min(largo, t0["pivote"] + FUNDIDO_PIVOTE),
+        "entra": 0.0,
+        "sale": FUNDIDO_PIVOTE,
+    }
+    hasta = max(t0["ofrece"] + 1.0, t0["prepara"])
+    dura2 = min(largo, hasta - t0["ofrece"])
+    # si la pieza se acaba sola antes de `prepara`, no hace falta fundirla; si no, se funde
+    acto2 = {
+        "inicio": t0["ofrece"],
+        "dura": dura2,
+        "entra": ENTRADA,
+        "sale": 0.0 if dura2 >= largo else 2.0,
+    }
+    cierre = {
+        "inicio": t0["prepara"],
+        "dura": min(largo, total - t0["prepara"]),
+        "entra": ENTRADA,
+        "sale": FUNDIDO_FINAL,
+    }
+    return [v for v in (acto1, acto2, cierre) if v["dura"] > 0.5]
+
+
+def main() -> int:
+    linea = json.loads(LINEA.read_text(encoding="utf8"))
+    tiempos = json.loads(TIEMPOS.read_text(encoding="utf8"))
+    total = float(linea["total"])
+    largo = dur(FUENTE)
+    habla = tramos_de_habla(linea, tiempos)
+    pistas = [
+        VOCES / f"{t['toma']}.mp3" for t in linea["tomas"] if (VOCES / f"{t['toma']}.mp3").exists()
+    ]
+    if not pistas:
+        raise SystemExit(f"no hay voces en {VOCES}: corre antes mezcla_tomas.py")
+    voz = sonoridad(pistas)
+    fuente = sonoridad([FUENTE])
+    alto = (voz - ENTRE_FRASES) - fuente  # ganancia en dB cuando nadie habla
+    hondo = BAJO_LA_VOZ - ENTRE_FRASES  # cuánto baja cuando alguien habla
+
+    # cuánto está «abajo» la música en cada instante, de 0 (nadie habla) a 1 (alguien habla)
+    partes = []
+    for a, b in habla:
+        partes.append(
+            f"clip((t-{a - ANTES:.3f})/{ANTES},0,1)-clip((t-{b + ESPERA:.3f})/{SUBIDA},0,1)"
+        )
+    abajo = "+".join(partes) if partes else "0"
+    volumen = f"pow(10,({alto:.3f}-{hondo:.3f}*clip({abajo},0,1))/20)"
+
+    vs = vueltas(linea, largo)
+    cmd = ["ffmpeg", "-loglevel", "error", "-y"]
+    grafo = ""
+    for i, v in enumerate(vs):
+        cmd += ["-i", str(FUENTE)]
+        f = f"[{i}:a]atrim=0:{v['dura']:.3f},asetpts=PTS-STARTPTS"
+        if v["entra"]:
+            f += f",afade=t=in:st=0:d={v['entra']}"
+        if v["sale"]:
+            f += f",afade=t=out:st={max(0.0, v['dura'] - v['sale']):.3f}:d={v['sale']}"
+        f += f",adelay={int(round(v['inicio'] * 1000))}:all=1[m{i}];"
+        grafo += f
+    grafo += "".join(f"[m{i}]" for i in range(len(vs)))
+    grafo += f"amix=inputs={len(vs)}:normalize=0:dropout_transition=0,apad,atrim=0:{total:.3f},"
+    grafo += f"asetnsamples=n=256,volume=volume='{volumen}':eval=frame,alimiter=limit=0.95[m]"
+    SALIDA.parent.mkdir(parents=True, exist_ok=True)
+    salida = ["-map", "[m]", "-ar", "44100", "-ac", "2", "-b:a", "112k", str(SALIDA)]
+    corre([*cmd, "-filter_complex", grafo, *salida])
+
+    resumen = {
+        "duracion": round(dur(SALIDA), 2),
+        "pelicula": total,
+        "voz_lufs": voz,
+        "musica_fuente_lufs": fuente,
+        "musica_bajo_la_voz_lufs": round(voz - BAJO_LA_VOZ, 1),
+        "musica_entre_frases_lufs": round(voz - ENTRE_FRASES, 1),
+        "tramos_de_habla": len(habla),
+        "segundos_con_habla": round(sum(b - a for a, b in habla), 1),
+        "vueltas": [{"inicio": round(v["inicio"], 2), "dura": round(v["dura"], 2)} for v in vs],
+    }
+    print(json.dumps(resumen, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
