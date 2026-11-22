@@ -90,7 +90,7 @@
   /* 3 · lo que escribe en la base la mesa de ejemplo, registro por registro (datos medidos: docs/research/2026-11-21-disco-por-registro.json) */
   const FM = {hoy: [], contar_por_dia: ["analitica_agregada_por_dia"], fila_por_visita: ["fila_por_visita_de_comensal"], fila_mas_platillo_y_filtros_por_dia: ["fila_por_visita_mas_platillo_por_dia"]};
   const ORD = ["p1", "p2", "p3", "p4", "p5", "p6"], PASO_FORMA = {contar_por_dia: "pcd", fila_por_visita: "pfv", fila_mas_platillo_y_filtros_por_dia: "pcb"};
-  const TIPO_EVENTO = {1: "scan", 2: "menu_view", 3: "dish_view", 4: "search", 5: "filter", 6: "item_add"}; // códigos de tipo de las formas propuestas: CODIGO de docs/research/2026-11-21-disco-por-registro.py (pedirle a análisis que los incluya en el JSON)
+  const TIPO_EVENTO = DR.codigos_de_evento; // los nombres de los códigos de tipo vienen del archivo de datos
   const pasoN = id => { const i = ORD.indexOf(id); return i < 0 ? 7 : i + 1; };
   const todasLasFilas = DR.tablas_de_la_mesa.concat(...DR.formas.map(f => f.tablas)).flatMap(t => t.filas), MXB = Math.max(...todasLasFilas.map(f => f.bytes_total));
   D7.pintaRegistros = function () {
