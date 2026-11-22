@@ -604,6 +604,46 @@ ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
 if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   await p.evaluate(() => abrirIntro()); await p.waitForTimeout(600);
   ok((await p.isVisible('#intro')) && !(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && !pausaI && tI > 0)), 'presentación con voz: al reabrir tras un gesto no hay puerta y arranca con sonido');
+  /* versión 18: antes de cada toque, el resaltado tiene la caja (± 4 px) y el radio de lo que se toca, y se ve */
+  const hal = await p.evaluate(() => {
+    pausaI = true; const mal = [], marcas = []; let fijas = 0;
+    for (const [A, x, y, t] of TOQUES) {
+      for (const d of [0.3, 0.05]) { vozSalto = true; tI = (t - d) * 1000; pintaIntro(); }
+      const ag = document.querySelector('#cine ' + A), pan = ag.querySelector('.pan'), h = ag.querySelector('.halo'), o = h.__obj, de = A + ' (' + x + ', ' + y + ') a los ' + t.toFixed(1) + ' s';
+      if (!o || !pan.contains(o)) { mal.push(de + ': sin objetivo'); continue; }
+      if (+getComputedStyle(h).opacity < 0.9 || getComputedStyle(h).visibility === 'hidden') { mal.push(de + ': no se ve'); continue; }
+      const k = pan.getBoundingClientRect().width / pan.offsetWidth, rh = h.getBoundingClientRect(), ro = o.getBoundingClientRect(), co = getComputedStyle(o);
+      if (h.__fija) { fijas++; continue; } /* el botón vive dentro de una captura: su caja se declara a mano */
+      if (o.offsetWidth * o.offsetHeight > 0.45 * pan.offsetWidth * pan.offsetHeight) { mal.push(de + ': el objetivo es la pantalla entera (' + o.className + ')'); continue; }
+      const a = HALO_AIRE * k, dif = Math.max(Math.abs(rh.left + a - ro.left), Math.abs(rh.top + a - ro.top), Math.abs(rh.right - a - ro.right), Math.abs(rh.bottom - a - ro.bottom));
+      const r = Math.min(parseFloat(co.borderTopLeftRadius) || 0, o.offsetWidth / 2, o.offsetHeight / 2), rq = r ? r + HALO_AIRE : 0;
+      const pt = document.elementsFromPoint((ro.left + ro.right) / 2, (ro.top + ro.bottom) / 2);
+      if (dif > 4) mal.push(de + ': caja a ' + dif.toFixed(1) + ' px de ' + o.className);
+      else if (Math.abs(parseFloat(h.style.borderRadius) - rq) > 0.5) mal.push(de + ': radio ' + h.style.borderRadius + ' y el de ' + o.className + ' es ' + r);
+      else if (!pt.includes(o)) mal.push(de + ': ' + o.className + ' no está a la vista');
+      /* y la marca del toque cae dentro de la caja de lo que se toca */
+      vozSalto = true; tI = (t + 0.04) * 1000; pintaIntro();
+      const m = ag.querySelector('.toque'), rm = m.getBoundingClientRect(), r2 = o.getBoundingClientRect(), mx = (rm.left + rm.right) / 2, my = (rm.top + rm.bottom) / 2;
+      if (!(+getComputedStyle(m).opacity > 0.3)) marcas.push(de + ': la marca del toque no se ve');
+      else if (mx < r2.left - 1 || mx > r2.right + 1 || my < r2.top - 1 || my > r2.bottom + 1) marcas.push(de + ': la marca cae fuera de ' + o.className);
+    }
+    pausaI = false; return { n: TOQUES.length, fijas, mal, marcas };
+  });
+  /* el avatar del tablero es pequeño y su cabecera cabe en una línea; ninguna foto redonda pasa de su tamaño */
+  const cabT = await p.evaluate(() => { const c = document.querySelector('#cine .pMesa .cab'), f = c.querySelector('.foto'), lg = c.querySelector('.lg'); const fotos = [...document.querySelectorAll('#cine .foto')].map((e) => Math.max(e.offsetWidth, e.offsetHeight));
+    return { foto: Math.max(f.offsetWidth, f.offsetHeight), alto: c.offsetHeight, linea: Math.abs((f.offsetTop + f.offsetHeight / 2) - (lg.offsetTop + lg.offsetHeight / 2)), mayor: Math.max(...fotos), n: fotos.length }; });
+  ok(cabT.foto > 0 && cabT.foto <= 40 && cabT.alto <= 48 && cabT.linea <= 6 && cabT.mayor <= 64, 'película: el avatar del tablero mide ≤ 40 px (' + cabT.foto + '), su cabecera cabe en una línea (' + cabT.alto + ' px de alto) y ninguna de las ' + cabT.n + ' fotos redondas pasa de 64 px (' + cabT.mayor + ')');
+  /* «Invitar a Sofía»: en cada acercamiento la parte es lo de Sofía entre quienes invitan en ese instante, y al final el total del teléfono es el del cuadro grande */
+  const inv = await p.evaluate(() => { pausaI = true; const mal = [], vis = (e) => { const c = getComputedStyle(e); return c.visibility !== 'hidden' && +c.opacity > 0.5; }, txt = (sel) => [...document.querySelectorAll(sel)].filter(vis).map((e) => e.textContent.trim()).join('|');
+    const ix = TOMAS.findIndex((x) => x[0] === 'cuenta'); let n = 0;
+    for (const k of [0, 2, 3].sort((a, b) => ENTRA[a] - ENTRA[b])) { const tq = TOQUES.find((o) => o[0] === '.agQ' + k && o[1] === 271 && o[3] >= T0[ix] && o[3] < T0[ix + 1]); if (!tq) { mal.push('sin toque de invitar para ' + k); continue; }
+      n++; vozSalto = true; tI = (tq[3] + 0.7) * 1000; pintaIntro(); const parte = txt('#cine .agQ' + k + ' .cpar u'), esp = pesoF(QSOFIA / n); if (parte !== esp) mal.push(QUIEN[k][3] + ': dice ' + parte + ' y son ' + esp + ' (entre ' + n + ')'); }
+    vozSalto = true; tI = (T0[ix + 1] - 1.2) * 1000; pintaIntro();
+    for (const k of [0, 2, 3]) { const tel = txt('#cine .agQ' + k + ' .ktot i'), gr = txt('#cine .cq' + k + ' .vt i'); if (!tel || tel !== gr) mal.push(QUIEN[k][3] + ': total del teléfono ' + tel + ' y del cuadro ' + gr); }
+    pausaI = false; return { n, mal }; });
+  ok(inv.n === 3 && inv.mal.length === 0, 'película: en cada acercamiento de «Invitar a Sofía» la parte es lo de Sofía entre quienes invitan en ese instante, y el total del teléfono es el del cuadro grande ' + inv.mal.join(' | '));
+  ok(hal.marcas.length === 0, 'película: toda marca de toque cae dentro de la caja de lo que se toca (' + hal.n + ' toques) ' + hal.marcas.slice(0, 6).join(' | '));
+  ok(hal.n >= 40 && hal.mal.length === 0, 'película: cada resaltado coincide con la caja de lo que se toca (± 4 px), tiene su radio y se ve (' + hal.n + ' toques, ' + hal.fijas + ' con caja declarada dentro de una captura) ' + hal.mal.slice(0, 6).join(' | '));
   await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 }
 await p.reload(); await p.waitForTimeout(400);

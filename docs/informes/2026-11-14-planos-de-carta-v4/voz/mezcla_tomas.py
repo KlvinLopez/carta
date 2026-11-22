@@ -12,6 +12,8 @@ Cuándo entra cada frase, en segundos desde el inicio de su toma:
 - con `tras` t, t segundos después de que termina la anterior (0.2 si no dice nada);
 - si en el guion la frase venía pegada a la anterior (plática), se queda pegada; si el guion la
   esperaba más tarde (algo tiene que pasar en pantalla), no se adelanta a su `inicio`;
+- con `con` c, c segundos después de que EMPIEZA la frase anterior (hablan a la vez); la frase
+  que sigue a un grupo así se mide contra el final de la que termine más tarde del grupo;
 - la narradora nunca se encima con un personaje: entra al menos 0.3 s después.
 
 Cada frase se recorta de silencios, se nivela a un volumen medio común y se mezcla en su segundo.
@@ -81,11 +83,18 @@ def prepara(linea: dict, tmp: Path) -> tuple[Path, float] | None:
     return listo, dur(listo)
 
 
-def entrada(linea: dict, prev: dict, prev_fin: float) -> float:
-    """El segundo en que entra una frase que no es la primera de su toma."""
+def entrada(linea: dict, prev: dict, prev_ini: float, prev_fin: float) -> float:
+    """El segundo en que entra una frase que no es la primera de su toma.
+
+    `prev_ini` es cuando empezó la frase anterior; `prev_fin`, cuando termina la última de su
+    grupo (ella misma, o la que acabe más tarde si venían encadenadas con `con`).
+    """
+    con_narrador = "narrador" in (prev["quien"], linea["quien"])
+    if linea.get("con") is not None and not con_narrador:
+        return prev_ini + float(linea["con"])
     fin_nominal_prev = float(prev["inicio"]) + len(sin_marcas(prev["texto"])) / CPS
     pegada = float(linea["inicio"]) - fin_nominal_prev <= PLATICA
-    if "narrador" in (prev["quien"], linea["quien"]):
+    if con_narrador:
         cand = prev_fin + max(0.3, float(linea.get("tras", 0.3) or 0.3))
     elif linea.get("encima") is not None:
         cand = max(0.0, prev_fin - float(linea["encima"]))
@@ -124,7 +133,7 @@ def main() -> int:
         tmp = Path(carpeta)
         for nombre, lineas in por_toma.items():
             filas: list[dict | None] = []
-            prev, prev_fin = None, 0.0
+            prev, prev_ini, prev_fin = None, 0.0, 0.0
             for linea in lineas:
                 p = prepara(linea, tmp)
                 if p is None:
@@ -132,9 +141,14 @@ def main() -> int:
                     filas.append(None)
                     continue
                 ruta, d = p
-                ini = float(linea["inicio"]) if prev is None else entrada(linea, prev, prev_fin)
+                if prev is None:
+                    ini = float(linea["inicio"])
+                else:
+                    ini = entrada(linea, prev, prev_ini, prev_fin)
                 filas.append({"ruta": ruta, "ini": round(ini, 2), "fin": round(ini + d, 2)})
-                prev, prev_fin = linea, ini + d
+                en_grupo = prev is not None and linea.get("con") is not None
+                prev_fin = max(prev_fin, ini + d) if en_grupo else ini + d
+                prev, prev_ini = linea, ini
             vivas = [f for f in filas if f]
             if vivas:
                 voz_audio[nombre] = round(mezcla(nombre, vivas), 2)

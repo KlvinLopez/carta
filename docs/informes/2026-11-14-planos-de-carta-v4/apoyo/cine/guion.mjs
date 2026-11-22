@@ -13,7 +13,8 @@ for (const [toma] of TOMAS) {
   (VOZ[toma] || []).forEach((l, i, todas) => {
     const [inicio, quien, texto, o = {}] = l, ant = todas[i - 1];
     const fila = { id: `${toma}-${String(i + 1).padStart(2, '0')}`, toma, quien, texto, inicio };
-    if (o.encima !== undefined) fila.encima = o.encima;
+    if (o.con !== undefined) fila.con = o.con; // empieza `con` segundos después de que EMPIEZA la anterior
+    else if (o.encima !== undefined) fila.encima = o.encima;
     else if (o.tras !== undefined) fila.tras = o.tras;
     else if (ant) fila.tras = quien === 'narrador' || ant[1] === 'narrador' ? 0.3 : 0.2; // la narradora nunca se encima con un personaje
     lineas.push(fila);
