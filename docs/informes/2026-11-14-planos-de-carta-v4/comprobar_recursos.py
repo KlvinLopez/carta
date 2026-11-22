@@ -40,7 +40,9 @@ def referenciados() -> set[str]:
 def voz_de_la_pelicula() -> list[str]:
     """La voz: un mp3 por toma listada en VOZ_AUDIO (js/e2_film.js). La película arma la ruta por partes, así que se declaran aquí."""
     m = re.search(r"const VOZ_AUDIO = \{([^}]*)\};", (AQUI / "js" / "e2_film.js").read_text(encoding="utf-8"))
-    return [f"apoyo/voz/{k}.mp3" for k in re.findall(r'"(\w+)":', m.group(1))] if m else []
+    if not m:
+        raise SystemExit("FALLA: no encuentro la tabla VOZ_AUDIO en js/e2_film.js; sin ella no sé qué pistas de voz se publican")
+    return [f"apoyo/voz/{k}.mp3" for k in re.findall(r'"(\w+)":', m.group(1))]
 
 
 def musica_de_la_pelicula() -> list[str]:
