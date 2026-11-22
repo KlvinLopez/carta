@@ -37,7 +37,7 @@ TIEMPOS = Path(ARGS[3]) if len(ARGS) > 3 else AQUI / "tiempos.json"
 
 CPS = 15.0  # caracteres por segundo con que se estimó el guion
 PLATICA = 1.0  # si el hueco nominal es menor, la frase va pegada a la anterior
-OBJETIVO_DB = -21.0  # volumen medio por frase
+OBJETIVO_DB = -23.0  # volumen medio por frase (la música de fondo se mide contra esto)
 COLA = 0.15  # silencio al final de cada mp3 (la película añade su propio margen)
 
 
