@@ -36,12 +36,18 @@ Modelo `eleven_v4`, que entiende las marcas entre corchetes del guion (`[whisper
 La voz de referencia que dio Calvin (una locutora real) **no se subió a ElevenLabs ni se clonó**:
 sólo sirvió para elegir entre voces de la biblioteca.
 
-## Licencia: no es para uso público
+## Licencia de las voces
 
-Todo se grabó con el **plan gratuito** de ElevenLabs, que no incluye licencia comercial (lo dijo
-Calvin el 21 de noviembre de 2026; las condiciones vigentes están en la página de precios de
-ElevenLabs). Sirve para trabajar la película entre nosotros. **Antes de mostrarla fuera se vuelve
-a grabar con un plan de pago.**
+Todo se grabó con el **plan gratuito** de ElevenLabs. Sus términos de uso (sección 1(c), versión del 9 de
+octubre de 2026, leídos el 22 de noviembre de 2026 en https://elevenlabs.io/terms-of-use) dicen que quien
+usa el servicio sin pagar sólo puede usarlo con fines no comerciales; la licencia comercial viene con los
+planes de pago (https://elevenlabs.io/pricing).
+
+El repositorio es público y GitHub Pages publica `master`, así que estas voces quedan a la vista de
+cualquiera. **Calvin lo decidió así el 22 de noviembre de 2026**, sabiendo lo anterior: la película se
+integra con sus voces y las grabaciones se quedan en las ramas de trabajo. **Antes de cualquier uso
+comercial se vuelven a grabar con un plan de pago**; los términos no dicen que pasar a un plan de pago
+cubra lo ya generado.
 
 Gasto: la cuenta marca 9,992 de los 10,000 créditos del mes (leído de la cuenta el 22 de noviembre de
 2026) y no todo es de esta película: la cuenta tuvo otros usos esos días. La voz queda cerrada hasta
