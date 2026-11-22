@@ -479,6 +479,25 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   await p.evaluate(() => { window.__ritmo = 1; }); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(500);
   const trasSalto = await p.evaluate(() => window.__escrituras);
   ok(trasSalto === e0 + 1, `presentación con voz: tras +3 s, currentTime se escribe exactamente una vez (${trasSalto - e0})`);
+  /* versión 19: la música de fondo es una segunda pista (el archivo real, no el doble) que sigue al reloj de la película */
+  { const fs = require('node:fs'); ok(fs.existsSync(resolve(aqui, 'apoyo/musica/fondo.mp3')), 'música: existe apoyo/musica/fondo.mp3');
+    await p.waitForTimeout(1800);
+    const m1 = await p.evaluate(() => (musica ? { src: String(musica.src), pausada: musica.paused, dif: Math.abs(musica.currentTime - tI / 1000), dur: musica.duration, total: TOT, vol: musica.volume, ritmo: musica.playbackRate } : null));
+    ok(m1 && m1.src.endsWith('apoyo/musica/fondo.mp3') && Math.abs(m1.dur - m1.total) <= 0.5, `música: fondo.mp3 dura lo que la película (${m1 ? m1.dur.toFixed(2) : '?'} s y ${m1 ? m1.total.toFixed(1) : '?'} s, ± 0.5)`);
+    ok(m1 && !m1.pausada && m1.dif < 0.6 && m1.vol === 1 && m1.ritmo >= 0.97 && m1.ritmo <= 1.03, `música: con sonido, suena y sigue al reloj de la película (a ${m1 ? m1.dif.toFixed(2) : '?'} s, volumen ${m1 ? m1.vol : '?'}, velocidad ${m1 ? m1.ritmo : '?'})`);
+    const c0 = await p.evaluate(() => musColocadas); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
+    const m2 = await p.evaluate(() => ({ n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000) }));
+    ok(m2.n === c0 + 1 && m2.dif < 0.6, `música: tras +3 s se coloca exactamente una vez (${m2.n - c0}) y queda a ${m2.dif.toFixed(2)} s del reloj`);
+    await p.evaluate(() => { pausaI = true; }); await p.waitForTimeout(300);
+    const m3 = await p.evaluate(() => ({ pausada: musica.paused, voz: !vozAct || vozAct.paused }));
+    await p.evaluate(() => { pausaI = false; ultI = performance.now(); }); await p.waitForTimeout(500);
+    const m4 = await p.evaluate(() => ({ pausada: musica.paused, n: musColocadas }));
+    ok(m3.pausada && m3.voz && !m4.pausada && m4.n === m2.n, 'música: se pausa y se reanuda con la película, sin recolocarse');
+    await p.evaluate(() => { vozOn = false; }); await p.waitForTimeout(300);
+    const m5 = await p.evaluate(() => musica.paused); await p.evaluate(() => { vozOn = true; }); await p.waitForTimeout(300);
+    ok(m5, 'música: sin sonido, la música no suena');
+    const cred = await p.evaluate(() => { const e = document.querySelector('#cine .marca small'); return e ? e.textContent : ''; });
+    ok(cred.includes('Bossa Antigua') && cred.includes('Kevin MacLeod') && cred.includes('incompetech.com') && cred.includes('CC BY 4.0'), 'música: el crédito (CC BY 4.0) está en la toma final: ' + cred); }
   /* cada globo dice lo mismo que su frase en VOZ (sin las marcas), y con tiempos medidos toda frase de personaje tiene su globo a la vista a media frase */
   const globos = await p.evaluate(async () => {
     const limpia = (t) => t.replace(/\[[^\]]*\]\s*/g, '').trim(), el = (g) => document.querySelector(typeof g === 'string' ? '.g' + g : '.g' + g);

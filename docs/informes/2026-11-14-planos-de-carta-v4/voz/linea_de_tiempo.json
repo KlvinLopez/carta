@@ -1,5 +1,5 @@
 {
- "total": 420.6,
+ "total": 420.1,
  "tomas": [
   {
    "toma": "mesa",
@@ -49,116 +49,116 @@
   {
    "toma": "pivote",
    "inicio": 111,
-   "duracion": 7.1
+   "duracion": 6.6
   },
   {
    "toma": "ofrece",
-   "inicio": 118.1,
+   "inicio": 117.6,
    "duracion": 10.1
   },
   {
    "toma": "escanea",
-   "inicio": 128.2,
+   "inicio": 127.7,
    "duracion": 7.5
   },
   {
    "toma": "filtra",
-   "inicio": 135.7,
+   "inicio": 135.2,
    "duracion": 12.5
   },
   {
    "toma": "top3",
-   "inicio": 148.2,
+   "inicio": 147.7,
    "duracion": 8.7
   },
   {
    "toma": "plato",
-   "inicio": 156.9,
+   "inicio": 156.4,
    "duracion": 6.5
   },
   {
    "toma": "agrega",
-   "inicio": 163.4,
+   "inicio": 162.9,
    "duracion": 4
   },
   {
    "toma": "juntos",
-   "inicio": 167.4,
+   "inicio": 166.9,
    "duracion": 11.6
   },
   {
    "toma": "recomienda",
-   "inicio": 179,
+   "inicio": 178.5,
    "duracion": 6.5
   },
   {
    "toma": "confirma",
-   "inicio": 185.5,
+   "inicio": 185,
    "duracion": 5.9
   },
   {
    "toma": "esperan",
-   "inicio": 191.4,
+   "inicio": 190.9,
    "duracion": 3.2
   },
   {
    "toma": "avisa",
-   "inicio": 194.6,
+   "inicio": 194.1,
    "duracion": 6
   },
   {
    "toma": "llega",
-   "inicio": 200.6,
+   "inicio": 200.1,
    "duracion": 13.6
   },
   {
    "toma": "cocina",
-   "inicio": 214.2,
+   "inicio": 213.7,
    "duracion": 5.6
   },
   {
    "toma": "abierta",
-   "inicio": 219.8,
+   "inicio": 219.3,
    "duracion": 68.5
   },
   {
    "toma": "cierres",
-   "inicio": 288.3,
+   "inicio": 287.8,
    "duracion": 41.8
   },
   {
    "toma": "cuenta",
-   "inicio": 330.1,
+   "inicio": 329.6,
    "duracion": 32.9
   },
   {
    "toma": "pagada",
-   "inicio": 363,
+   "inicio": 362.5,
    "duracion": 24.2
   },
   {
    "toma": "factura",
-   "inicio": 387.2,
+   "inicio": 386.7,
    "duracion": 10.7
   },
   {
    "toma": "sucia",
-   "inicio": 397.9,
+   "inicio": 397.4,
    "duracion": 5.2
   },
   {
    "toma": "prepara",
-   "inicio": 403.1,
+   "inicio": 402.6,
    "duracion": 4.2
   },
   {
    "toma": "limpia",
-   "inicio": 407.3,
+   "inicio": 406.8,
    "duracion": 8.3
   },
   {
    "toma": "fin",
-   "inicio": 415.6,
+   "inicio": 415.1,
    "duracion": 5
   }
  ]

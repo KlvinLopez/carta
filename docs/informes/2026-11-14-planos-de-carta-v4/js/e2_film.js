@@ -159,23 +159,22 @@ const VOZ = {
   b2: [[0.2, "narrador", "[softly] Luego, un menú que no sabe nada de ellos."], [4.0, "ana", "Los tacos de pescado, por favor.", {g: 14}], [6.0, "mesero", "Se nos terminaron. Una disculpa.", {g: 15}], [8.0, "ana", "¿Y el mole?", {g: 16}],
     [9.4, "mesero", "¿Es alérgica a algo? Lleva cacahuate.", {g: 17}], [11.7, "ana", "Sí… ¿y las enchiladas?", {g: 18}], [13.6, "ana", "[jumping in] Espere… ¿llevan cacahuate?", {g: 26, encima: 0.2}], [15.5, "mesero", "Déjeme pregunto en cocina.", {g: 27}],
     [17.9, "narrador", "[sighs] Y a esperar."], [19.7, "mesero", "Sí llevan cacahuate.", {g: 36}]],
-  b3: [[0.2, "narrador", "Cuatro antojos, una libreta… [whispers] y mucha fe."], [3.9, "mesero", "¿Eran dos aguachiles… o tres?", {g: 19}], [5.8, "carlos", "[jumping in] El mío sin cebolla.", {g: 20, encima: 0.2}], [7.8, "ana", "[chuckles] Yo cambié de opinión.", {g: 21}]],
+  b3: [[0.2, "narrador", "Cuatro antojos, una libreta…"], [3.9, "mesero", "¿Eran dos aguachiles… o tres?", {g: 19}], [5.8, "carlos", "[jumping in] El mío sin cebolla.", {g: 20, encima: 0.2}], [7.8, "ana", "[chuckles] Yo cambié de opinión.", {g: 21}]],
   b3t: [[0.2, "narrador", "[chuckles] ¿Y con tableta? Lo mismo, pero con pantalla."], [3.5, "mesero", "Un momento… está cargando.", {g: 28}]],
   espera: [[0.9, "narrador", "[softly] Por fin, la orden salió."], [3.0, "carlos", "Ya tardó, ¿no?", {g: 37}], [4.7, "diego", "Yo ya tengo hambre.", {g: 38, encima: 0.2}],
     [6.6, "narrador", "Llegó la comida, llegaron las risas… [mischievously] y llegó ese momento."], [10.8, "ana", "¿Nos trae la cuenta, por favor?", {g: 39}]],
-  ticket: [[0.9, "mesero", "Muchas gracias por venir.", {g: 31}], [3.3, "narrador", "[whispers] La cuenta. Un solo papel para los cuatro."]],
+  ticket: [[0.9, "mesero", "Muchas gracias por venir.", {g: 31}]],
   b4: [[0.2, "narrador", "[giggles] Y cuatro calculadoras."], [2.8, "diego", "¿Quién pidió las limonadas?", {g: 22}], [4.8, "ana", "[jumping in] A Sofi la invitamos: ¿entre tres?", {g: 23, encima: 0.2}], [7.2, "carlos", "[sighs] ¿Y la propina?", {g: 24, encima: 0.3}]],
-  pivote: [[0.6, "narrador", "[mischievously] ¿Y si lo reimaginamos? [pause] Misma mesa. Mismos amigos. [whispers] Desde el principio."]],
+  pivote: [[0.6, "narrador", "[mischievously] ¿Y si lo reimaginamos? [pause] Misma mesa. Mismos amigos."]],
   ofrece: [[1.2, "mesero", "Aquí usamos Carta: con el QR ven el menú y piden desde su teléfono.", {g: 40}], [5.8, "ana", "[excited] ¡Espléndido! Yo ya tengo mi perfil hecho y todo.", {g: 75, tras: 0.2}]],
   escanea: [[1.0, "narrador", "[softly] Ana escanea el código… [gasps] y ya está adentro. Sin descargar nada."]],
-  filtra: [[0.4, "narrador", "Ana no come cacahuate."], [2.2, "narrador", "[mischievously] No tuvo que decir nada: Carta guarda sus restricciones y quita lo que no puede comer.", {tras: 0.3}], [8.6, "narrador", "[whispers] Al mesero se lo dijo también. Por si acaso.", {tras: 0.3}]],
+  filtra: [[0.4, "narrador", "Ana no come cacahuate."], [2.2, "narrador", "[mischievously] No tuvo que decir nada: Carta guarda sus restricciones y quita lo que no puede comer.", {tras: 0.3}]],
   top3: [[0.4, "narrador", "[warmly] Y como ya la conoce, le tenía tres ideas: por los restaurantes que ha visitado [giggles] y por lo que le dio me gusta."]],
   plato: [[0.4, "narrador", "[softly] Cada platillo le cuenta lo que lleva."]],
   agrega: [[0.3, "narrador", "Un toque… [giggles] y a la mesa."]],
   juntos: [[0.2, "narrador", "[mischievously] Esta vez nadie pidió al tanteo: cada quien veía lo que pedían los demás."], [6.3, "ana", "Ya pedí. ¿Tú qué vas a pedir?", {g: 3}], [8.4, "carlos", "Estoy viendo, todavía no sé.", {g: 4}]],
-  recomienda: [[0.4, "narrador", "[whispers] A Ana se le antojó la arrachera… para Carlos. [giggles] Se la pasó."]],
   confirma: [[0.3, "narrador", "[warmly] Y cuando los cuatro estuvieron listos, Carta llamó al mesero automáticamente."]],
-  avisa: [[0.4, "narrador", "A Javier le llegó una sola comanda. [whispers] Clara. Completa."]],
+  avisa: [[0.4, "narrador", "A Javier le llegó una sola comanda."]],
   llega: [[0.5, "mesero", "Para Ana, pescado a la talla.", {g: 5}], [2.2, "mesero", "Para Sofía, ensalada. Para Diego, aguachile.", {g: 29}], [4.5, "mesero", "Y para Carlos, arrachera.", {g: 30}], [6.3, "ana", "Sí, todo bien.", {g: 6, encima: 0.2}],
     [8.0, "narrador", "[warmly] Él la confirmó en voz alta. Nada se perdió en el camino."]],
   cocina: [[0.5, "narrador", "[softly] Y mientras la cocina trabajaba, cada quien veía cómo iba lo suyo."]],
@@ -193,7 +192,7 @@ const VOZ = {
     [21.0, "sofia", "[touched] ¡Ay, amigos… muchas gracias! [giggles]", {g: 50, encima: 0.5}],
     [25.0, "narrador", "[mischievously] Los demás, a su ritmo."], [32.0, "carlos", "¿Ya nadie va a pedir nada más?", {g: 32}], [34.0, "ana", "[jumping in] No, todo bien.", {g: 33, encima: 0.2}],
     [35.7, "narrador", "[warmly] Y cuando cerró el último, la mesa entera quedó en cuenta cerrada.", {tras: 0.3}]],
-  cuenta: [[0.3, "narrador", "[whispers] Y aquí viene mi parte favorita. [warmly] Cada quien vio su propia cuenta, con su propina."], [7.0, "ana", "[excited] Sofi, nosotros te invitamos, es tu cumpleaños.", {g: "q0"}], [11.8, "narrador", "Entre uno."],
+  cuenta: [[0.3, "narrador", "[warmly] Cada quien vio su propia cuenta, con su propina."], [7.0, "ana", "[excited] Sofi, nosotros te invitamos, es tu cumpleaños.", {g: "q0"}], [11.8, "narrador", "Entre uno."],
     [14.4, "diego", "[jumping in] Sí, nosotros te invitamos.", {g: "q2", encima: 0.3}], [16.8, "narrador", "Entre dos."], [19.4, "carlos", "[overlapping] Sí, nosotros te invitamos.", {g: "q3", encima: 0.3}],
     [21.8, "narrador", "[giggles] Entre tres. La cuenta de Sofía se repartió sola."], [25.5, "sofia", "[overlapping] [warmly] ¡Ay, muchas gracias, amigos!", {g: "q1", encima: 0.4}], [28.2, "narrador", "[softly] Revisaron su total… y llamaron a Javier."]],
   pagada: [[0.5, "narrador", "[warmly] Y cada quien pagó a su manera."], [3.6, "mesero", "Con la terminal, cuando gusten.", {g: 25, tras: 0.3}], [7.5, "diego", "Yo, por transferencia.", {g: 79}],
@@ -202,15 +201,15 @@ const VOZ = {
   factura: [[0.4, "ana", "¿Facturan?", {g: 51}], [2.1, "mesero", "Sí, se pide desde la aplicación.", {g: 52, encima: 0.2}], [4.9, "narrador", "[mischievously] ¿Factura? También desde el teléfono. [softly] Le llega al restaurante, que es quien la emite."]],
   sucia: [[0.1, "ana", "¡Gracias, buenas noches!", {g: 53, encima: 0.2}], [2.3, "narrador", "[warmly] Fue una gran noche para nuestros invitados."]],
   prepara: [[0.3, "narrador", "[softly] Preparemos la mesa para los siguientes."]],
-  limpia: [[2.0, "narrador", "[whispers] Javier la marcó limpia… [mischievously] y la mesa volvió a esperar."]],
+  limpia: [[2.0, "narrador", "[mischievously] Y la mesa volvió a esperar."]],
   fin: [[1.2, "narrador", "[warmly] Carta. Tu menú, tu Carta."]],
 };
 /* Las tomas que ya tienen audio y cuánto dura cada uno, en segundos: {b1: 9.8, …}. Vacío = película en silencio.
    Una toma se alarga sola a lo que dure su audio más el margen. */
-const VOZ_AUDIO = {"mesa":11.14,"cumple":12.05,"b1":12.7,"b2":21.12,"b3":10.3,"b3t":6.0,"espera":11.74,"ticket":5.35,"b4":8.45,"pivote":6.43,"ofrece":9.46,"escanea":5.95,"filtra":11.52,"top3":8.06,"plato":2.64,"agrega":3.29,"juntos":10.94,"recomienda":5.28,"confirma":5.23,"avisa":4.82,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":38.64,"cuenta":32.21,"pagada":23.54,"factura":10.03,"sucia":4.54,"prepara":2.54,"limpia":6.0,"fin":3.43};
+const VOZ_AUDIO = {"mesa":11.14,"cumple":12.05,"b1":12.7,"b2":21.12,"b3":9.77,"b3t":6.0,"espera":11.74,"ticket":2.28,"b4":8.45,"pivote":5.14,"ofrece":9.46,"escanea":5.95,"filtra":8.28,"top3":8.06,"plato":2.64,"agrega":3.29,"juntos":10.94,"confirma":5.23,"avisa":2.9,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":38.64,"cuenta":32.21,"pagada":23.54,"factura":10.03,"sucia":4.54,"prepara":2.54,"limpia":4.1,"fin":3.43};
 /* Los tiempos medidos del audio, por toma: {b1: [[inicio, fin], …]}, uno por línea de VOZ en su orden (null si no se midió). Vacío = se usan los segundos de VOZ.
    Con tiempos aquí, los globos de esa toma entran y salen con ellos; puede haber dos globos a la vez. */
-const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[9.7,11.85]],"b1":[[0.2,3.43],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[0.2,3.31],[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[17.96,19.49],[19.79,20.93]],"b3":[[0.2,4.14],[4.44,7.02],[6.82,7.94],[8.14,10.12]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[0.9,2.75],[3.05,4.0],[3.8,4.95],[5.25,9.78],[10.08,11.55]],"ticket":[[0.9,2.08],[2.38,5.17]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,6.24]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,5.77]],"filtra":[[0.4,2.1],[2.4,8.11],[8.41,11.32]],"top3":[[0.4,7.87]],"plato":[[0.4,2.46]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"recomienda":[[0.4,5.08]],"confirma":[[0.3,5.05]],"avisa":[[0.4,4.63]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,20.53],[20.83,22.86],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,42.42],[42.72,44.26],[50.0,52.89],[53.19,54.69],[54.99,56.85],[57.15,57.73],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[17.76,19.51],[18.06,20.76],[18.36,21.34],[20.84,24.37],[25.0,27.29],[32.0,33.5],[33.3,34.32],[34.62,38.45]],"cuenta":[[0.3,5.56],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,32.03]],"pagada":[[0.5,2.56],[3.6,5.17],[7.5,9.05],[9.36,12.05],[14.5,15.83],[18.0,19.88],[21.5,23.35]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,9.83]],"sucia":[[0.1,1.59],[1.89,4.34]],"prepara":[[0.3,2.35]],"limpia":[[2.0,5.81]],"fin":[[1.2,3.24]]};
+const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[9.7,11.85]],"b1":[[0.2,3.43],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[0.2,3.31],[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[17.96,19.49],[19.79,20.93]],"b3":[[0.2,2.7],[3.9,6.48],[6.28,7.4],[7.6,9.58]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[0.9,2.75],[3.05,4.0],[3.8,4.95],[5.25,9.78],[10.08,11.55]],"ticket":[[0.9,2.08]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,4.95]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,5.77]],"filtra":[[0.4,2.1],[2.4,8.11]],"top3":[[0.4,7.87]],"plato":[[0.4,2.46]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"confirma":[[0.3,5.05]],"avisa":[[0.4,2.73]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,20.53],[20.83,22.86],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,42.42],[42.72,44.26],[50.0,52.89],[53.19,54.69],[54.99,56.85],[57.15,57.73],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[17.76,19.51],[18.06,20.76],[18.36,21.34],[20.84,24.37],[25.0,27.29],[32.0,33.5],[33.3,34.32],[34.62,38.45]],"cuenta":[[0.3,3.14],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,32.03]],"pagada":[[0.5,2.56],[3.6,5.17],[7.5,9.05],[9.36,12.05],[14.5,15.83],[18.0,19.88],[21.5,23.35]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,9.83]],"sucia":[[0.1,1.59],[1.89,4.34]],"prepara":[[0.3,2.35]],"limpia":[[2.0,3.91]],"fin":[[1.2,3.24]]};
 const VOZ_MARGEN = 0.6;
 TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
 const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
@@ -240,6 +239,28 @@ function vozSync() {
   if (Math.abs(dif) <= 0.08 || (dif < 0 && dif > -0.25 && seg < 1.5)) return; /* al empezar, si la pista va apenas detrás, que alcance sola */
   tI = clamp((T0[i] + a.currentTime) * 1000, T0[i] * 1000, T0[i + 1] * 1000 - 1); vozUltT = tI;
 }
+/* La música de fondo: UN archivo continuo para toda la película (apoyo/musica/fondo.mp3, de voz/mezcla_musica.py), con los volúmenes ya horneados.
+   Sólo suena con el sonido puesto y sigue al reloj de la película: nunca mueve la imagen. Se coloca una vez en cada salto; en marcha normal,
+   si se separa más de 0.12 s corrige con la velocidad (0.97 a 1.03) y sólo si pasa de 0.6 s se recoloca. Si el archivo no carga, no hay música. */
+const MUS_RUTA = ["apoyo", "musica", "fondo.mp3"].join("/");
+let musica = null, musSalto = true, musUltT = 0, musColocadas = 0;
+function musPista() { return musica || (musica = Object.assign(new Audio(MUS_RUTA), {preload: "auto", volume: 1})); }
+function musSync() {
+  if (!HAY_VOZ) return;
+  if (!(vozOn && vozLibre && !REDUCE)) { if (musica && !musica.paused) musica.pause(); return; }
+  const a = musPista(), obj = tI / 1000;
+  if (Math.abs(tI - musUltT) > 400) musSalto = true; /* un brinco del tiempo que no viene de un cuadro es un salto */
+  musUltT = tI;
+  if (pausaI || $("#intro").hidden || obj >= (a.duration || TOT)) { if (!a.paused) a.pause(); return; }
+  const coloca = () => { try { a.currentTime = obj; musColocadas++; } catch (e) { /* aún sin datos */ } a.playbackRate = 1; };
+  if (musSalto) { musSalto = false; coloca(); }
+  if (a.paused) { a.play().catch(() => { /* falta el archivo o el permiso: la película sigue sin música */ }); return; }
+  if (a.readyState < 2 || a.seeking || a.ended) return;
+  const dif = a.currentTime - obj, ad = Math.abs(dif);
+  if (ad > 0.6) coloca();
+  else if (ad > 0.12) a.playbackRate = dif > 0 ? 0.97 : 1.03;
+  else if (a.playbackRate !== 1 && ad < 0.04) a.playbackRate = 1;
+}
 function vozBoton() { const b = $("#introSon"); if (!b) return; b.textContent = HAY_VOZ && vozOn ? "🔊" : "🔇"; b.title = HAY_VOZ ? (vozOn ? "Quitar el sonido" : "Poner el sonido") : "Esta versión todavía no tiene voz"; b.disabled = !HAY_VOZ; }
 const T0 = TOMAS.reduce((a, t) => (a.push(a[a.length - 1] + t[2]), a), [0]);
 const TOT = T0[T0.length - 1], TOTI = TOT * 1000;
@@ -268,6 +289,8 @@ const cineCss = `
 #cine .silu{position:absolute;left:1318px;top:470px;width:380px;height:520px;border-radius:50%;background:radial-gradient(closest-side,rgba(253,214,140,.55),rgba(253,195,77,.18) 55%,rgba(253,195,77,0));mix-blend-mode:screen;opacity:0;visibility:hidden;pointer-events:none}
 /* B · el nombre de cada quien, bajo su figura: va dentro de su grupo, así entra, sale y se mueve con él */
 #cine .nmb{position:absolute;transform:translateX(-50%);padding:4px 14px;border-radius:999px;background:rgba(23,18,16,.46);color:rgba(254,249,241,.92);font:600 21px 'DM Sans',sans-serif;letter-spacing:.02em;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.6);pointer-events:none}
+#cine .nfil{position:absolute;left:120px;top:742px;z-index:6;display:flex;align-items:center;gap:12px;font:italic 400 30px 'DM Sans',sans-serif;color:rgba(254,249,241,.88);text-shadow:0 2px 8px rgba(0,0,0,.6);opacity:0;visibility:hidden}
+#cine .nfil::before{content:"";width:34px;height:2px;background:#fdc34d}
 #cine .sala{z-index:1}#cine .cerca{z-index:2;opacity:0;visibility:hidden}
 #cine .pfig{transform-origin:0 0}
 #cine img.k{position:absolute;display:block;max-width:none}
@@ -472,6 +495,7 @@ const cineCss = `
 /* cierre */
 #cine .marca{position:absolute;left:0;right:0;top:330px;display:flex;flex-direction:column;align-items:center;gap:26px;opacity:0;visibility:hidden}
 #cine .marca b{font-family:'DM Serif Display',serif;font-weight:400;font-size:230px;line-height:1;color:#fef9f1}
+#cine .marca small{margin-top:56px;font:400 22px 'DM Sans',sans-serif;letter-spacing:.02em;color:rgba(254,249,241,.72)}
 #cine .marca i{display:block;width:420px;height:2px;background:rgba(253,195,77,.7)}
 #cine .marca span{font-family:'DM Serif Display',serif;font-size:76px;color:#fdc34d;font-style:italic}
 #cine .avisoT{margin-top:18px;padding:14px 16px;border-radius:22px;background:#f8f1e5;font-size:15.5px;line-height:1.35;color:#3a2a22;display:flex;gap:10px}
@@ -1010,6 +1034,7 @@ function cineHtml() {
     `<div class="lupa lu2"><div class="ltab"><b>Mesa 7</b><u style="width:70%"></u><u style="width:48%"></u><i class="ctab"></i><span>Cargando la orden…</span><em class="lok">✓ Orden enviada</em></div></div>` +
     `<div class="lupa lu3"><div class="ltk"><b>MESA 7</b>${TICKET.map(([nm, pr]) => `<p>${nm}<span>$${pr}</span></p>`).join("")}<p class="lt">TOTAL<span>$${TICKET.reduce((a, x) => a + x[1], 0)}</span></p></div></div>` +
     `<div class="lupa lu6">${ACCIONES.map(([q, c, b, r], i) => `<div class="lq q${i}"><small>${q}</small><span class="lb ${c}">${b}</span><em>${r}</em></div>`).join("")}</div>` +
+    `<div class="nfil">También se lo dijo al mesero</div>` +
     `<div class="mnrow">${QUIEN.map((u, k) => `<span class="mnph mn${k}"><span class="mnk">${icoSar}</span><span class="mns">${icoCub}</span><span class="mnc">${ico.ok}</span><b class="mnk">Se está preparando</b><b class="mns">Comida entregada</b><b class="mnc">Cuenta cerrada</b><small>${u[3]}</small></span>`).join("")}</div>${[1, 2, 3].map(k => `<i class="dvq" style="left:${50 + k * 378}px"></i>`).join("")}${QUIEN.map((u, k) => `<span class="nq" style="left:${64 + k * 378}px"><span class="foto"><img src="${CI(u[0] + "-cabeza")}" alt=""></span>${u[3]}</span>`).join("")}<i class="divi"></i><div class="hora"><span class="esfera"><i class="hh"></i><i class="mm"></i></span><b class="hd"></b></div>` +
     `<i class="lmarca lm1" style="left:1338px;top:640px"></i><i class="lmarca lm2" style="left:1244px;top:556px"></i><i class="lmarca lm3" style="left:1140px;top:782px"></i>`;
   const sobre = lupas + `<span class="estado lista eA" style="left:372px;top:340px">✓ Lista</span><span class="estado lista eS" style="left:726px;top:300px">✓ Lista</span><span class="estado elige eD" style="left:1000px;top:300px">Eligiendo…</span><span class="estado elige eC" style="left:1340px;top:340px">Eligiendo…</span>` +
@@ -1030,7 +1055,7 @@ ${SOLIC.map((x, i) => globo(60 + i, ["b", "c", "b"][i], [929, 404, 1250][i], [46
 ${globo(71, "c", 404, 500, "¡No te creo!") + globo(72, "b", 1250, 500, "Ahí va otra vez con Cancún.", 330) + globo(73, "a", 688, 462, "¡Ay, Diego!") + globo(74, "b", 929, 462, "¡Ja, ja!") + globo(41, "a", 688, 462, "¿Han visto a Luis?") + globo(42, "b", 929, 462, "Fuimos a Cancún, estuvo muy bonito.", 330) + globo(43, "c", 404, 500, "¡Ja, ja, ja!") + globo(44, "b", 1250, 500, "¡Ja, ja!") + globo(45, "a", 688, 462, "¡Qué rico estuvo!") + globo(8, "c", 404, 500, "Prueba el pescado, está increíble.", 330)}${globo(9, "b", 1250, 500, "Y la arrachera. Hay que volver.", 330)}
 
 ${rot}
-<div class="marca"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span></div></div>`;
+<div class="marca"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span><small>Música: «Bossa Antigua», Kevin MacLeod (incompetech.com) · CC BY 4.0</small></div></div>`;
 }
 
 function filmEscala() {
@@ -1285,6 +1310,7 @@ function filmLinea() {
   entra(".cs.pHola .cfuera .cno", t + 4.6, 0.3, {scale: 0.6}, {scale: 1, stagger: 0.2});
   tl.to(q(".cs.pHola .cfuera"), {height: 0, autoAlpha: 0, duration: 0.6, ease: "power2.inOut", stagger: 0.15}, t + 5.6);
   tl.to(q(".carga span:last-child"), {autoAlpha: 0, duration: 0.3}, t + 6.3);
+  { const n0 = (VOZ_TIEMPOS.filtra && VOZ_TIEMPOS.filtra[1] ? VOZ_TIEMPOS.filtra[1][1] : 8.1) + 0.2; entra(".nfil", t + n0, 0.5, {x: -16}, {x: 0}); sale(".nfil", T("top3") - 0.35, 0.3); }
   entra(".clisto", t + 6.6, 0.5, {y: 30, scale: 0.9}, {y: 0, scale: 1, ease: "back.out(1.8)"});
   /* 5 · su Top 3: el índice de su otra mano lo recorre y elige */
   t = T("top3");
@@ -1698,23 +1724,23 @@ function filmLinea() {
   t = T("fin");
   sale(".sala", t + 0.1, 0.9);
   tl.set(q(".marca"), {autoAlpha: 1}, t + 1.1);
-  tl.fromTo(q(".marca b, .marca i, .marca span"), {y: 24, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 1.0, ease: "power3.out", stagger: 0.3, immediateRender: false}, t + 1.1);
+  tl.fromTo(q(".marca b, .marca i, .marca span, .marca small"), {y: 24, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 1.0, ease: "power3.out", stagger: 0.3, immediateRender: false}, t + 1.1);
   tl.set({}, {}, TOT);
   return tl;
 }
 
-function cerrarIntro() { cancelAnimationFrame(rafI); if (vozAct) vozAct.pause(); $("#intro").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("carta-v9-intro", "1"); } catch (e) { /* ignorar */ } }
+function cerrarIntro() { cancelAnimationFrame(rafI); if (vozAct) vozAct.pause(); if (musica) musica.pause(); $("#intro").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("carta-v9-intro", "1"); } catch (e) { /* ignorar */ } }
 function pintaIntro() {
   const s = tI / 1000;
   if (tlF) tlF.time(s, false);
   const av = $("#intro .barras i b"); if (av) av.style.width = (100 * s / TOT) + "%";
   const bp = $("#introPausa"); if (bp) bp.textContent = pausaI ? "▶" : "❚❚";
   const cta = $("#introCta"); if (cta) cta.hidden = s < tomaIni("fin") + 2.6;
-  vozSync();
+  vozSync(); musSync();
 }
-function irActo(k) { vozSalto = true; tI = (REDUCE ? CLAVES[TOMAS.findIndex(t => t[1] === ACTOS[k][0])] : ACT_INI[k]) * 1000; pintaIntro(); }
+function irActo(k) { vozSalto = musSalto = true; tI = (REDUCE ? CLAVES[TOMAS.findIndex(t => t[1] === ACTOS[k][0])] : ACT_INI[k]) * 1000; pintaIntro(); }
 function saltaI(ms) {
-  vozSalto = true;
+  vozSalto = musSalto = true;
   if (REDUCE) { let e = 0; CLAVES.forEach((c, i) => { if (tI / 1000 >= c - 0.01) e = i; }); e = clamp(e + (ms > 0 ? 1 : -1), 0, TOMAS.length - 1); tI = CLAVES[e] * 1000; }
   else tI = clamp(tI + ms, 0, TOTI - 1);
   pintaIntro();
@@ -1736,7 +1762,7 @@ function abrirIntro() {
   /* con voz, la película espera en su primer cuadro tras una puerta: el sonido sólo puede empezar con un gesto y no debe perderse el arranque.
      Si la página ya recibió un gesto (se reabre desde el informe), arranca con sonido directo. */
   const yaHuboGesto = !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
-  puertaI = HAY_VOZ && !REDUCE && !yaHuboGesto; if (HAY_VOZ && !REDUCE && yaHuboGesto) vozLibre = true;
+  puertaI = HAY_VOZ && !REDUCE && !yaHuboGesto; if (HAY_VOZ && !REDUCE) musPista(); /* la música se va cargando mientras la puerta espera */ if (HAY_VOZ && !REDUCE && yaHuboGesto) vozLibre = true;
   if (puertaI) { pausaI = true; tI = 3000; /* de fondo, la mesa ya encendida con su título (la toma «mesa» a los 3 s); al elegir vuelve a 0 */ $("#introPuerta").hidden = false; $("#introPuerta .ipv").focus(); }
   ultI = performance.now(); pintaIntro(); muestraControles();
   cancelAnimationFrame(rafI); rafI = requestAnimationFrame(frameIntro);
@@ -1745,13 +1771,13 @@ function abrirIntro() {
     muestraControles(); const b = ev.target.closest("[data-intro]");
     if (puertaI) { /* con la puerta puesta sólo cuentan sus dos botones y «Saltar» */
       const a = b && b.dataset.intro; if (a === "saltar") cerrarIntro();
-      else if (a === "consonido" || a === "sinsonido") { vozOn = a === "consonido"; vozLibre = true; vozSalto = true; tI = 0; pausaI = false; puertaI = false; $("#introPuerta").hidden = true; ultI = performance.now(); vozBoton(); pintaIntro(); }
+      else if (a === "consonido" || a === "sinsonido") { vozOn = a === "consonido"; vozLibre = true; vozSalto = musSalto = true; tI = 0; pausaI = false; puertaI = false; $("#introPuerta").hidden = true; ultI = performance.now(); vozBoton(); pintaIntro(); }
       return; }
     vozLibre = true; /* el navegador sólo deja sonar después de un gesto */
     if (!b) { if (!ev.target.closest("button, .icta")) { pausaI = !pausaI; pintaIntro(); } return; } /* un clic en cualquier parte pausa o reanuda */
     const a = b.dataset.intro;
     if (a === "saltar") cerrarIntro();
-    else if (a === "repetir") { vozSalto = true; tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); }
+    else if (a === "repetir") { vozSalto = musSalto = true; tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); }
     else if (a === "pausa") { pausaI = !pausaI; pintaIntro(); }
     else if (a === "sonido") { vozOn = !vozOn; vozBoton(); pintaIntro(); }
     else if (a === "menos") saltaI(-3000); else if (a === "mas") saltaI(3000);
