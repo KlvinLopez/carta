@@ -480,6 +480,10 @@ ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
   const medido = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/tiempos.json'), 'utf8'));
   const tablas = await p.evaluate(() => ({ VOZ_AUDIO, VOZ_TIEMPOS }));
   ok(JSON.stringify(tablas.VOZ_AUDIO) === JSON.stringify(medido.VOZ_AUDIO) && JSON.stringify(tablas.VOZ_TIEMPOS) === JSON.stringify(medido.VOZ_TIEMPOS), 'voz: VOZ_AUDIO y VOZ_TIEMPOS de la película son iguales a voz/tiempos.json');
+  /* versión 19: la línea de tiempo que usa la mezcla de la música es la que calcula la película */
+  const lt = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/linea_de_tiempo.json'), 'utf8'));
+  const peli = await p.evaluate(() => ({ total: Math.round(TOT * 10) / 10, tomas: TOMAS.map((x, i) => ({ toma: x[0], inicio: Math.round(T0[i] * 10) / 10, duracion: Math.round(x[2] * 10) / 10 })) }));
+  ok(JSON.stringify(lt) === JSON.stringify(peli), 'voz: voz/linea_de_tiempo.json es la línea de tiempo que calcula la película (' + peli.tomas.length + ' tomas, ' + peli.total + ' s)');
   const ids = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8')).map((l) => l.id).sort();
   const grabadas = fs.readdirSync(resolve(aqui, 'voz/lineas')).filter((f) => f.endsWith('.mp3')).map((f) => f.slice(0, -4)).sort();
   ok(JSON.stringify(ids) === JSON.stringify(grabadas), `voz: apoyo/voz/guion.json tiene los mismos id que voz/lineas (${ids.length} y ${grabadas.length})`);
@@ -512,6 +516,25 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   await p.evaluate(() => { window.__ritmo = 1; }); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(500);
   const trasSalto = await p.evaluate(() => window.__escrituras);
   ok(trasSalto === e0 + 1, `presentación con voz: tras +3 s, currentTime se escribe exactamente una vez (${trasSalto - e0})`);
+  /* versión 19: la música de fondo es una segunda pista (el archivo real, no el doble) que sigue al reloj de la película */
+  { const fs = require('node:fs'); ok(fs.existsSync(resolve(aqui, 'apoyo/musica/fondo.mp3')), 'música: existe apoyo/musica/fondo.mp3');
+    await p.waitForTimeout(1800);
+    const m1 = await p.evaluate(() => (musica ? { src: String(musica.src), pausada: musica.paused, dif: Math.abs(musica.currentTime - tI / 1000), dur: musica.duration, total: TOT, vol: musica.volume, ritmo: musica.playbackRate } : null));
+    ok(m1 && m1.src.endsWith('apoyo/musica/fondo.mp3') && Math.abs(m1.dur - m1.total) <= 0.5, `música: fondo.mp3 dura lo que la película (${m1 ? m1.dur.toFixed(2) : '?'} s y ${m1 ? m1.total.toFixed(1) : '?'} s, ± 0.5)`);
+    ok(m1 && !m1.pausada && m1.dif < 0.6 && m1.vol === 1 && m1.ritmo >= 0.97 && m1.ritmo <= 1.03, `música: con sonido, suena y sigue al reloj de la película (a ${m1 ? m1.dif.toFixed(2) : '?'} s, volumen ${m1 ? m1.vol : '?'}, velocidad ${m1 ? m1.ritmo : '?'})`);
+    const c0 = await p.evaluate(() => musColocadas); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
+    const m2 = await p.evaluate(() => ({ n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000) }));
+    ok(m2.n === c0 + 1 && m2.dif < 0.6, `música: tras +3 s se coloca exactamente una vez (${m2.n - c0}) y queda a ${m2.dif.toFixed(2)} s del reloj`);
+    await p.evaluate(() => { pausaI = true; }); await p.waitForTimeout(300);
+    const m3 = await p.evaluate(() => ({ pausada: musica.paused, voz: !vozAct || vozAct.paused }));
+    await p.evaluate(() => { pausaI = false; ultI = performance.now(); }); await p.waitForTimeout(500);
+    const m4 = await p.evaluate(() => ({ pausada: musica.paused, n: musColocadas }));
+    ok(m3.pausada && m3.voz && !m4.pausada && m4.n === m2.n, 'música: se pausa y se reanuda con la película, sin recolocarse');
+    await p.evaluate(() => { vozOn = false; }); await p.waitForTimeout(300);
+    const m5 = await p.evaluate(() => musica.paused); await p.evaluate(() => { vozOn = true; }); await p.waitForTimeout(300);
+    ok(m5, 'música: sin sonido, la música no suena');
+    const cred = await p.evaluate(() => { const e = document.querySelector('#cine .marca small'); return e ? e.textContent : ''; });
+    ok(cred.includes('Bossa Antigua') && cred.includes('Kevin MacLeod') && cred.includes('incompetech.com') && cred.includes('CC BY 4.0'), 'música: el crédito (CC BY 4.0) está en la toma final: ' + cred); }
   /* cada globo dice lo mismo que su frase en VOZ (sin las marcas), y con tiempos medidos toda frase de personaje tiene su globo a la vista a media frase */
   const globos = await p.evaluate(async () => {
     const limpia = (t) => t.replace(/\[[^\]]*\]\s*/g, '').trim(), el = (g) => document.querySelector(typeof g === 'string' ? '.g' + g : '.g' + g);
@@ -570,6 +593,30 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390,
   ok(n >= 24 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos fuera del cuadro ni encimados ` + mal.slice(0, 3).join('; '));
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
+/* versión 19: en las tomas de mesa, cada personaje a la vista lleva su nombre, y ningún nombre se encima con un globo o un rótulo.
+   Se mira cada toma en tres instantes; en `cumple`, antes de «casi», la silla de Carlos está vacía y el mesero aún no llega. */
+const nom = await p.evaluate(async () => {
+  const f = document.querySelector('#cine'), mal = [], vistos = {}, tomas = new Set();
+  const vis = (el) => { let o = 1, n = el; while (n && n !== f) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; n = n.parentElement; } return o; };
+  const mira = async (s) => { tI = s * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 30)); };
+  for (let i = 0; i < TOMAS.length; i++) for (const fr of [0.3, 0.55, 0.8]) {
+    const s = T0[i] + (T0[i + 1] - T0[i]) * fr; await mira(s);
+    if (vis(f.querySelector('.sala')) < 0.9) continue;
+    const textos = [...f.querySelectorAll('.r .cln, .globo')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
+    for (const n of [...f.querySelectorAll('.nmb')]) { const g = n.parentElement;
+      if (vis(g) < 0.9) { if (vis(n) > 0.1 && vis(g) < 0.05) mal.push(s.toFixed(1) + ' s: «' + n.textContent + '» sin su personaje'); continue; }
+      tomas.add(TOMAS[i][0]); vistos[n.textContent] = (vistos[n.textContent] || 0) + 1; const r = n.getBoundingClientRect();
+      if (vis(n) < 0.9 || !r.width) { mal.push(s.toFixed(1) + ' s: falta el nombre de ' + n.textContent); continue; }
+      for (const [e, rt] of textos) if (r.left < rt.right - 1 && rt.left < r.right - 1 && r.top < rt.bottom - 1 && rt.top < r.bottom - 1) mal.push(s.toFixed(1) + ' s (' + TOMAS[i][0] + '): «' + n.textContent + '» encima de «' + e.textContent.slice(0, 18) + '»');
+    }
+  }
+  const ic = TOMAS.findIndex((x) => x[0] === 'cumple'); await mira(T0[ic] + VOZ_TIEMPOS.cumple[0][1] - 1.6);
+  const de = (c) => vis(f.querySelector('.gp.' + c)); const antes = { C: de('gC'), m: de('gm'), A: de('gA'), S: de('gS'), D: de('gD'), silla: vis(f.querySelector('.k-carlos-silla')) };
+  await mira(T0[ic] + VOZ_TIEMPOS.cumple[1][0] + 0.3); const luego = { C: de('gC'), m: de('gm'), x: +gsap.getProperty(f.querySelector('.gp.gC'), 'x') };
+  return { mal, vistos, tomas: tomas.size, antes, luego };
+});
+ok(nom.tomas >= 12 && ['Ana', 'Sofía', 'Diego', 'Carlos', 'Javier'].every((n) => nom.vistos[n] > 0) && nom.mal.length === 0, 'película: en las tomas de mesa (' + nom.tomas + ') cada personaje a la vista lleva su nombre y ningún nombre se encima con un globo o un rótulo ' + nom.mal.slice(0, 5).join('; '));
+ok(nom.antes.C < 0.05 && nom.antes.m < 0.05 && nom.antes.silla > 0.9 && nom.antes.A > 0.9 && nom.antes.S > 0.9 && nom.antes.D > 0.9 && nom.luego.C > 0.9 && nom.luego.m > 0.9 && Math.abs(nom.luego.x) < 1, 'película: en `cumple`, antes de «casi» la silla de Carlos está vacía y no hay mesero; cuando el mesero habla, Carlos ya está sentado');
 // capítulo 7: la capacidad depende de quién paga; capítulo 5: si la mediana real fuera otra
 await p.evaluate(() => { const i = document.getElementById('intro'); if (i) i.style.display = 'none'; });
 await abre(p, 'recursos7');

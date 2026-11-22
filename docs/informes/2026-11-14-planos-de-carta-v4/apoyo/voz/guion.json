@@ -18,7 +18,7 @@
   "toma": "cumple",
   "quien": "mesero",
   "texto": "Buenas noches. Aquí está la carta.",
-  "inicio": 6.2,
+  "inicio": 9.7,
   "tras": 0.3
  },
  {
@@ -143,7 +143,7 @@
   "id": "b3-01",
   "toma": "b3",
   "quien": "narrador",
-  "texto": "Cuatro antojos, una libreta… [whispers] y mucha fe.",
+  "texto": "Cuatro antojos, una libreta…",
   "inicio": 0.2
  },
  {
@@ -232,14 +232,6 @@
   "inicio": 0.9
  },
  {
-  "id": "ticket-02",
-  "toma": "ticket",
-  "quien": "narrador",
-  "texto": "[whispers] La cuenta. Un solo papel para los cuatro.",
-  "inicio": 3.3,
-  "tras": 0.3
- },
- {
   "id": "b4-01",
   "toma": "b4",
   "quien": "narrador",
@@ -274,7 +266,7 @@
   "id": "pivote-01",
   "toma": "pivote",
   "quien": "narrador",
-  "texto": "[mischievously] ¿Y si lo reimaginamos? [pause] Misma mesa. Mismos amigos. [whispers] Desde el principio.",
+  "texto": "[mischievously] ¿Y si lo reimaginamos? [pause] Misma mesa. Mismos amigos.",
   "inicio": 0.6
  },
  {
@@ -312,14 +304,6 @@
   "quien": "narrador",
   "texto": "[mischievously] No tuvo que decir nada: Carta guarda sus restricciones y quita lo que no puede comer.",
   "inicio": 2.2,
-  "tras": 0.3
- },
- {
-  "id": "filtra-03",
-  "toma": "filtra",
-  "quien": "narrador",
-  "texto": "[whispers] Al mesero se lo dijo también. Por si acaso.",
-  "inicio": 8.6,
   "tras": 0.3
  },
  {
@@ -367,13 +351,6 @@
   "tras": 0.2
  },
  {
-  "id": "recomienda-01",
-  "toma": "recomienda",
-  "quien": "narrador",
-  "texto": "[whispers] A Ana se le antojó la arrachera… para Carlos. [giggles] Se la pasó.",
-  "inicio": 0.4
- },
- {
   "id": "confirma-01",
   "toma": "confirma",
   "quien": "narrador",
@@ -384,7 +361,7 @@
   "id": "avisa-01",
   "toma": "avisa",
   "quien": "narrador",
-  "texto": "A Javier le llegó una sola comanda. [whispers] Clara. Completa.",
+  "texto": "A Javier le llegó una sola comanda.",
   "inicio": 0.4
  },
  {
@@ -731,7 +708,7 @@
   "id": "cuenta-01",
   "toma": "cuenta",
   "quien": "narrador",
-  "texto": "[whispers] Y aquí viene mi parte favorita. [warmly] Cada quien vio su propia cuenta, con su propina.",
+  "texto": "[warmly] Cada quien vio su propia cuenta, con su propina.",
   "inicio": 0.3
  },
  {
@@ -903,7 +880,7 @@
   "id": "limpia-01",
   "toma": "limpia",
   "quien": "narrador",
-  "texto": "[whispers] Javier la marcó limpia… [mischievously] y la mesa volvió a esperar.",
+  "texto": "[mischievously] Y la mesa volvió a esperar.",
   "inicio": 2
  },
  {
