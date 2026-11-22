@@ -9996,7 +9996,7 @@ const TOMAS = [
   ["abierta", 5, 67.8, CICLO, ["Abierta"], "fase", 0.8],
   ["cierres", 5, 41.8, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 39.6],
   ["cuenta", 5, 32.9, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 1.9],
-  ["pagada", 5, 20.4, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"]], ["Pagada"], "fase", 3.6],
+  ["pagada", 5, 20.4, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"], ["vis", "Elegir el método en la app, ver los datos de transferencia del restaurante y el contador «n de 4 comensales pagaron» (datos de ejemplo)"]], ["Pagada"], "fase", 17.0],
   ["factura", 5, 10.6, [["vis", "Pedir la factura desde la app; la emite el restaurante (fuera de la v1)"]], [], ""],
   ["sucia", 5, 4.6, CICLO, ["Fue una gran noche", "*para nuestros invitados*."], "linea", 1.6],
   ["prepara", 5, 4.2, CICLO, ["Preparemos la mesa", "*para los siguientes*."], "linea", 0.0],
@@ -10126,6 +10126,8 @@ const cineCss = `
 #cine .cf .l2{left:600px;top:430px;width:720px;height:560px;background:radial-gradient(closest-side,rgba(184,134,11,.24),rgba(184,134,11,0))}
 /* los dos decorados: la sala (plano abierto, con cámara) y el primer plano de las manos */
 #cine .sala,#cine .cerca,#cine .pfon,#cine .pfig,#cine .gp,#cine .cfon{position:absolute;left:0;top:0;width:1920px;height:1080px}
+/* el informe tiene una clase .gp (puntos de sus gráficas) con una animación de entrada: aquí no aplica, o anula los movimientos de los personajes */
+#cine .gp{animation:none;transform-box:border-box}
 #cine .sala{z-index:1}#cine .cerca{z-index:2;opacity:0;visibility:hidden}
 #cine .pfig{transform-origin:0 0}
 #cine img.k{position:absolute;display:block;max-width:none}
@@ -10536,6 +10538,25 @@ const cineCss = `
 #cine .kinv b{display:block;font-size:17px}#cine .kinv small{font-size:14px;color:#5b4a3d}
 #cine .ktog{margin-left:auto;position:relative;width:52px;height:30px;border-radius:15px;background:#d9cbb4;flex:none}
 #cine .ktog u{position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff}
+#cine .tsec{margin:18px 0 4px;font:400 22px 'DM Serif Display',serif;color:#4f1728}
+#cine .topc{margin-top:10px;height:72px;padding:0 20px;border-radius:22px;background:#f8f1e5;display:flex;flex-direction:column;justify-content:center}
+#cine .topc b{font-size:18px}#cine .topc small{font-size:14px;color:#5b4a3d}
+#cine .tdat{margin-top:14px;padding:6px 18px;border-radius:22px;background:#f8f1e5;display:flex;flex-direction:column}
+#cine .tdat span{display:flex;justify-content:space-between;align-items:center;height:46px;font-size:15px;color:#5b4a3d}
+#cine .tdat span i{font-style:normal;font-weight:700;font-size:16px;color:#1a1a1a}
+#cine .tcp{position:relative;margin-top:14px;height:52px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 2px #4f1728;color:#4f1728;font-size:17px;font-weight:700}
+#cine .tcp i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;font-style:normal}#cine .tcp .c1{opacity:0;visibility:hidden;color:#4c5630}
+#cine .tcp svg,#intro #cine .tcp svg{width:20px;height:20px;stroke:#4c5630}
+#cine .ppg{position:absolute;left:26px;right:26px;bottom:30px;height:104px;background:#fef9f1;box-shadow:0 0 0 12px #fef9f1;z-index:2;opacity:0;visibility:hidden}
+#cine .ppg .pn{position:relative;height:26px;font-size:19px;font-weight:700;color:#4f1728}
+#cine .ppg .pn i,#cine .ppg .pm i{position:absolute;left:0;top:0;font-style:normal;white-space:nowrap;opacity:0;visibility:hidden}
+#cine .ppg .pm{position:absolute;right:0;top:50px;width:170px;height:22px;font-size:16px;font-weight:600;color:#5b4a3d}#cine .ppg .pm i{left:auto;right:0}
+#cine .ppg .pbar{margin-top:6px;height:10px;border-radius:999px;background:#eee4d3;overflow:hidden}
+#cine .ppg .pbar u{display:block;height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#66713d,#8a9a55);transform-origin:0 50%}
+#cine .ppg .pinv{margin-top:12px;font-size:16px;font-weight:600;color:#5b4a3d}
+#cine .ppg .pve{position:absolute;left:0;right:0;bottom:0;height:56px;border-radius:999px;background:linear-gradient(135deg,#6b2d3e,#4f1728);color:#fff;font-size:19px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+#cine .bill{position:absolute;left:1262px;top:716px;width:78px;height:38px;border-radius:6px;background:linear-gradient(135deg,#8fae7c,#5f8050);box-shadow:5px -5px 0 #7c9c69,0 6px 14px rgba(0,0,0,.35);opacity:0;visibility:hidden}
+#cine .bill::after{content:"";position:absolute;left:28px;top:8px;width:22px;height:22px;border-radius:50%;background:rgba(254,249,241,.55)}
 #cine .ktot{position:relative;margin-top:16px;height:44px;display:flex;align-items:center}
 #cine .ktot b{font-family:'DM Serif Display',serif;font-weight:400;font-size:28px;color:#4f1728}
 #cine .ktot i{font-size:26px;color:#4f1728}
@@ -10710,6 +10731,17 @@ const tuboD = k => "M" + TUBO[k].map(p => p.join(" ")).join(" L");
 const ACCIONES = [["Ana", "d", "Cerrar mi cuenta", "✓ Tu cuenta está cerrada"], ["Diego", "s", "Agregar otro platillo o postre", ""], ["Carlos", "s", "Agregar otro platillo o postre", "✓ Flan de la casa, pedido"],
   ["Diego", "s", "Agregar otro platillo o postre", "✓ Pastel de tres leches, pedido"], ["Sofía y Diego", "d", "Cerrar mi cuenta", "✓ Sus cuentas están cerradas"], ["Carlos", "d", "Cerrar mi cuenta", "✓ Tu cuenta está cerrada"],
   ["Ana", "d", "Solicitar factura", "✓ Solicitud enviada a La Ceiba. La factura la emite el restaurante."]];
+/* el teléfono de Diego al pagar por transferencia (visión): elige el método y Carta le pone los datos del restaurante. Datos de ejemplo. */
+const pantallasT = () => { const tot = pesoF(totalDe(2, 3)); return `
+<div class="cs cx tM">${cab(true)}<div class="qhero"><b>Pagar mi cuenta</b><small>Diego · Mesa 7</small></div>
+  <div class="ktot"><b>Total</b><i>${tot}</i></div><h5 class="tsec">¿Cómo quieres pagar?</h5>
+  <div class="topc"><b>Terminal</b><small>El mesero la trae a la mesa</small></div><div class="topc ttr"><b>Transferencia</b><small>Te mostramos los datos de La Ceiba</small></div><div class="topc"><b>Efectivo</b><small>Le pagas al mesero</small></div>
+  <div class="tel">${ico.tel}Carta no cobra: le pagas al restaurante</div>${sb()}</div>
+<div class="cs cx tD">${cab(true)}<div class="qhero"><b>Transferencia</b><small>Datos de La Ceiba</small></div>
+  <div class="tdat"><span>Beneficiario<i>La Ceiba</i></span><span>Banco<i>Banco de ejemplo</i></span><span>CLABE<i>0000 0000 1234 5678 90</i></span><span>Monto<i>${tot}</i></span><span>Concepto<i>Mesa 7 · Diego</i></span></div>
+  <div class="tcp"><i class="c0">Copiar CLABE</i><i class="c1">${ico.ok}CLABE copiada</i></div>
+  <div class="tel">${ico.tel}Datos de ejemplo. El mesero valida tu pago.</div><div class="btn2 v tya">Ya transferí</div><div class="mto tav">${icoCub}Avisamos a Javier: él valida tu pago</div>${sb()}</div>
+<i class="halo"></i><i class="toque"></i>`; };
 const pantallasQ = (k) => {
   const [, , av, nom, pl] = QUIEN[k], sub = pl.reduce((a, x) => a + x[1], 0), esS = k === 1;
   const filas = (like) => pl.map(([n, pr]) => `<span>${n}<i>$${pr}</i>${like ? `<em class="qlike">♥<u class="qlk">♥</u></em>` : ""}</span>`).join("");
@@ -10742,6 +10774,8 @@ const pantallasM = () => `
 <i class="halo"></i><i class="toque"></i>`;
 
 /* el teléfono del mesero en el recuadro del acto 5: Mesa 7 y su pista de cuatro estados; el estado activo cambia cuando él toca */
+/* el orden en que las cuentas quedan saldadas: Sofía va invitada ($0), Ana paga en la terminal, Diego por transferencia y Carlos en efectivo */
+const PAGAN = [1, 0, 2, 3];
 const FASES = [["Cuenta abierta"], ["Cuenta cerrada"], ["Pagada"], ["Mesa limpia"]];
 const pantallasP = () => `
 <div class="cs cx pMesa">${sb()}<div class="cab"><span class="lg">L</span>La Ceiba<span class="pjav"><span class="foto"><img src="${CI("mesero-cabeza")}" alt=""></span>Javier</span></div>
@@ -10751,13 +10785,15 @@ const pantallasP = () => `
   <i class="pgran">${ico.ok}</i><div class="pvelo"></div>${SOLIC.map((x, i) => `<div class="psol so${i}"><b>Solicitud de cambio</b><span>${x.tarjeta}</span><div><i class="pr">Rechazar</i><i class="pa">Aceptar</i></div><em class="${x.acepta ? "si" : "no"}">${x.acepta ? "✓ Aceptada" : "✕ Rechazada"}</em></div>`).join("")}
   <div class="pserv"><h5>Mesa 7 · Comanda</h5><small><i class="v0">0 de ${SERVIDOS.length} servidos</i><i class="v1">${SERVIDOS.length} de ${SERVIDOS.length} servidos</i></small>${SERVIDOS.map(([n, q]) => `<div class="pvr"><u>${ico.ok}</u>${n}<span>${q}</span></div>`).join("")}<div class="pvb"><i class="v0">Todo servido</i><i class="v1">✓ Platos servidos</i></div></div>
   <div class="pcc"><span>Cuentas cerradas</span>${[0, 1, 2, 3].map(n => `<i><u class="pd${n}"></u></i>`).join("")}</div>
+  <div class="ppg"><div class="pn">${[1, 2, 3, 4].map(n => `<i class="w${n}">${n} de 4 comensales pagaron</i>`).join("")}<span class="pm">${[1, 2, 3, 4].map(n => `<i class="w${n}">${pesoF(PAGAN.slice(0, n).reduce((a, k) => a + totalDe(k, 3), 0))} de ${pesoF(PAGAN.reduce((a, k) => a + totalDe(k, 3), 0))}</i>`).join("")}</span></div>
+    <div class="pbar"><u></u></div><div class="pinv">Sofía: invitada</div><div class="pve">Validar efectivo · ${pesoF(totalDe(3, 3))}</div></div>
   <div class="pbt b0">Cerrar cuenta</div><div class="pbt b1">Validar pago</div><div class="pbt b2">Marcar mesa limpia</div><div class="pbt b3">${ico.ok}Mesa libre</div>
 </div>
 <i class="halo"></i><i class="toque"></i>`;
 
 /* El resaltado antes de un toque: busca lo que hay bajo el punto (x, y) de la pantalla del teléfono A y copia su caja y su radio.
    Las medidas son las de la maqueta (sin la escala ni el giro del teléfono), más lo que GSAP haya desplazado a sus contenedores. */
-const TOQUES = [], HALO_AIRE = 3, HALO_ENTERO = ".tj, .cfila, .qlike", HALO_FIJA = {".agA|200|366": [24, 347, 352, 52, 26]};
+const TOQUES = [], HALO_AIRE = 3, HALO_ENTERO = ".tj, .cfila, .qlike, .kinv, .topc", HALO_FIJA = {".agA|200|366": [24, 347, 352, 52, 26]};
 function haloCaja(pan, el) {
   let x = 0, y = 0;
   for (let n = el; n && n !== pan; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
@@ -10801,9 +10837,9 @@ function cineHtml() {
     `<div class="gp gA">${K("ana-cabeza")}${K("ana-cuerpo")}</div><div class="gp gC">${K("carlos-cabeza")}${K("carlos-cuerpo")}</div>` + K("mesa") +
     `<div class="gp gS">${bz("sofia")}</div><div class="gp gD">${bz("diego")}</div>` +
     ["montaje", "ticket", "pastel", "sucia-migas", "sucia-a", "sucia-c", "sucia-vaso", "platillo-a", "platillo-c", "copa-a", "copa-c", "qr-brillo", "acrilico", "vela", "llama"].map(n => K(n)).join("") +
-    `<div class="gp gm">${bz("mesero")}<span class="buzz"><i></i><i></i></span>${K("mesero-brazo-pluma", "bz")}</div><div class="gp gA">${bz("ana")}</div><div class="gp gC">${bz("carlos")}</div>` +
+    `<div class="gp gm">${bz("mesero")}<span class="buzz"><i></i><i></i></span>${K("mesero-brazo-pluma", "bz")}</div><div class="gp gA">${bz("ana")}</div><div class="gp gC">${bz("carlos")}</div><i class="bill"></i>` +
     K("resplandor") + K("nuevos") + `</div></div>`;
-  const cerca = `<div class="cerca"><div class="cfon">${K("cerca-fondo")}</div>${agarre("agA", "ana", pantallas() + pantEspera(0), "Ana")}${agarre("agC", "carlos", pantallasB() + pantEspera(3), "Carlos")}${agarre("agM", "mesero", pantallasM())}${SOLIC.map((x, i) => agarre("agY" + i, QUIEN[x.k][0], pantCocina(x) + `<i class="halo"></i><i class="toque"></i>`, QUIEN[x.k][3])).join("")}${agarre("agZ3", "sofia", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Sofía")}${agarre("agZ4", "diego", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Diego")}${agarre("agZ", "ana", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Ana")}${agarre("agZ2", "carlos", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Carlos")}<svg class="repa" viewBox="0 0 1920 1080"><path class="rps" d="${tuboD("s")}"/><path class="rp1" d="${tuboD(0)}"/><path class="rp2" d="${tuboD(2)}"/><path class="rp3" d="${tuboD(3)}"/></svg>${QUIEN.map((u, k) => `<div class="celda cq${k}">${agarre("agQ agQ" + k, u[0], pantallasQ(k), u[3])}${totalCelda(k)}<div class="gq gq${k}">${DICE[k]}</div>${k === 1 ? `<div class="gqf">🥳</div>` : ""}</div>`).join("")}<i class="dvc dvv"></i><i class="dvc dvh"></i><div class="cnt4"><span>${icoGente}</span><b class="vv"><i class="w1">entre 1</i><i class="w2">entre 2</i><i class="w3">entre 3</i></b><small class="vv vm"><i class="w1">$180</i><i class="w2">$90 + $90</i><i class="w3">$60 + $60 + $60</i></small></div>${["s", 0, 2, 3].map(k => `<span class="vj vj${k}">${k === "s" ? "$180" : [1, 2, 3].filter(n => n >= ENTRA[k]).map(n => `<i class="w${n}">${pesoF(QSOFIA / n)}</i>`).join("")}</span>`).join("")}</div>`;
+  const cerca = `<div class="cerca"><div class="cfon">${K("cerca-fondo")}</div>${agarre("agA", "ana", pantallas() + pantEspera(0), "Ana")}${agarre("agC", "carlos", pantallasB() + pantEspera(3), "Carlos")}${agarre("agM", "mesero", pantallasM())}${SOLIC.map((x, i) => agarre("agY" + i, QUIEN[x.k][0], pantCocina(x) + `<i class="halo"></i><i class="toque"></i>`, QUIEN[x.k][3])).join("")}${agarre("agZ3", "sofia", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Sofía")}${agarre("agZ4", "diego", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Diego")}${agarre("agZ", "ana", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Ana")}${agarre("agZ2", "carlos", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Carlos")}${agarre("agT", "diego", pantallasT(), "Diego")}<svg class="repa" viewBox="0 0 1920 1080"><path class="rps" d="${tuboD("s")}"/><path class="rp1" d="${tuboD(0)}"/><path class="rp2" d="${tuboD(2)}"/><path class="rp3" d="${tuboD(3)}"/></svg>${QUIEN.map((u, k) => `<div class="celda cq${k}">${agarre("agQ agQ" + k, u[0], pantallasQ(k), u[3])}${totalCelda(k)}<div class="gq gq${k}">${DICE[k]}</div>${k === 1 ? `<div class="gqf">🥳</div>` : ""}</div>`).join("")}<i class="dvc dvv"></i><i class="dvc dvh"></i><div class="cnt4"><span>${icoGente}</span><b class="vv"><i class="w1">entre 1</i><i class="w2">entre 2</i><i class="w3">entre 3</i></b><small class="vv vm"><i class="w1">$180</i><i class="w2">$90 + $90</i><i class="w3">$60 + $60 + $60</i></small></div>${["s", 0, 2, 3].map(k => `<span class="vj vj${k}">${k === "s" ? "$180" : [1, 2, 3].filter(n => n >= ENTRA[k]).map(n => `<i class="w${n}">${pesoF(QSOFIA / n)}</i>`).join("")}</span>`).join("")}</div>`;
   const pip = `<div class="pip"><b class="pipt">Tablero del mesero</b><div class="reloj"><span class="x4 hd"></span><span class="esfera"><i class="hh"></i><i class="mm"></i></span></div>${agarre("agP", "mesero", pantallasP())}</div>`;
   const rot = TOMAS.map((t, i) => t[4].length ? `<div class="r ${t[5]} r${i}">${t[4].map(l => l[0] === "~" ? `<span class="cln ck">${palabras(l.slice(1))}</span>` : `<span class="cln">${palabras(l)}</span>`).join("")}</div>` : "").join("");
   /* un globo junto a la boca (x, y en el cuadro): lado "i" = el texto queda a la derecha de quien habla; "d" = a su izquierda;
@@ -10833,7 +10869,7 @@ ${globo(22, "b", 1080, 360, "¿Quién pidió las limonadas?")}${globo(23, "i", 5
 ${globo(3, "i", 506, 548, "Ya pedí. ¿Tú qué vas a pedir?", 240)}${globo(4, "d", 1414, 548, "Estoy viendo, todavía no sé.", 240)}
 ${globo(5, "i", 1298, 278, "Para Ana, pescado a la talla.")}${globo(29, "i", 1298, 278, "Para Sofía, ensalada. Para Diego, aguachile.")}${globo(30, "i", 1298, 278, "Y para Carlos, arrachera.")}${globo(6, "i", 506, 548, "Sí, todo bien.", 240)}
 ${globo(25, "d", 1077, 390, "Con la terminal, cuando gusten.", 380)}${globo(7, "d", 1077, 390, "Todo pagado. ¡Muchas gracias!", 380)}
-${SOLIC.map((x, i) => globo(60 + i, ["b", "c", "b"][i], [929, 404, 1250][i], [462, 500, 500][i], x.dice, 330) + globo(63 + i, "d", 1077, 390, x.mesero, 380)).join("") + globo(66, "c", 404, 500, SOLIC[1].responde, 330) + globo(70, "d", 1077, 390, "Provecho.") + globo(46, "c", 404, 500, "Yo ya quedé. Me gustó mucho.", 330) + globo(47, "b", 929, 462, "Deja veo si pido un postre.", 330) + globo(48, "b", 1250, 500, "Yo sí quiero un flan.") + globo(49, "b", 929, 462, "Y un pastel para la cumpleañera.", 330) + globo(50, "a", 688, 462, "¡Ay, amigos… muchas gracias!", 330) + globo(76, "c", 404, 500, "¡Feliz cumpleaños, Sofi!", 330) + globo(77, "b", 1250, 500, "¡Felicidades, Sofi! ¡Eeeh!", 330) + globo(78, "b", 929, 462, "¡Feliz cumpleaños a ti…!", 330) + globo(79, "b", 929, 462, "Yo, por transferencia.") + globo(80, "b", 1250, 500, "Yo pago en efectivo.") + globo(81, "d", 1077, 390, "Cuatrocientos treinta y uno… completo. Validado.", 380) + globo(51, "c", 404, 500, "¿Facturan?") + globo(52, "d", 1077, 390, "Sí, se pide desde la aplicación.", 380) + globo(53, "c", 404, 500, "¡Gracias, buenas noches!") + globo(32, "b", 1250, 500, "¿Ya nadie va a pedir nada más?", 330)}${globo(33, "c", 404, 500, "No, todo bien.")}
+${SOLIC.map((x, i) => globo(60 + i, ["b", "c", "b"][i], [929, 404, 1250][i], [462, 500, 500][i], x.dice, 330) + globo(63 + i, "d", 1077, 390, x.mesero, 380)).join("") + globo(66, "c", 404, 500, SOLIC[1].responde, 330) + globo(70, "d", 1077, 390, "Provecho.") + globo(46, "c", 404, 500, "Yo ya quedé. Me gustó mucho.", 330) + globo(47, "b", 929, 462, "Deja veo si pido un postre.", 330) + globo(48, "b", 1250, 500, "Yo sí quiero un flan.") + globo(49, "b", 929, 462, "Y un pastel para la cumpleañera.", 330) + globo(50, "a", 688, 318, "¡Ay, amigos… muchas gracias!", 330) + globo(76, "c", 390, 500, "¡Feliz cumpleaños, Sofi!", 280) + globo(77, "b", 1262, 500, "¡Felicidades, Sofi! ¡Eeeh!", 270) + globo(78, "b", 929, 440, "¡Feliz cumpleaños a ti…!", 250) + globo(79, "b", 929, 462, "Yo, por transferencia.") + globo(80, "b", 1250, 500, "Yo pago en efectivo.") + globo(81, "d", 1077, 390, "Cuatrocientos treinta y uno… completo. Validado.", 380) + globo(51, "c", 404, 500, "¿Facturan?") + globo(52, "d", 1077, 390, "Sí, se pide desde la aplicación.", 380) + globo(53, "c", 404, 500, "¡Gracias, buenas noches!") + globo(32, "b", 1250, 500, "¿Ya nadie va a pedir nada más?", 330)}${globo(33, "c", 404, 500, "No, todo bien.")}
 ${globo(71, "c", 404, 500, "¡No te creo!") + globo(72, "b", 1250, 500, "Ahí va otra vez con Cancún.", 330) + globo(73, "a", 688, 462, "¡Ay, Diego!") + globo(74, "b", 929, 462, "¡Ja, ja!") + globo(41, "a", 688, 462, "¿Han visto a Luis?") + globo(42, "b", 929, 462, "Fuimos a Cancún, estuvo muy bonito.", 330) + globo(43, "c", 404, 500, "¡Ja, ja, ja!") + globo(44, "b", 1250, 500, "¡Ja, ja!") + globo(45, "a", 688, 462, "¡Qué rico estuvo!") + globo(8, "c", 404, 500, "Prueba el pescado, está increíble.", 330)}${globo(9, "b", 1250, 500, "Y la arrachera. Hay que volver.", 330)}
 
 ${rot}
@@ -10914,7 +10950,7 @@ function filmLinea() {
   const FILA = k => ({left: 64 + k * 378, top: 150, width: 350, height: 830}), GEO = k => ({left: [40, 716][k % 2], top: [128, 556][k >> 1], width: 660, height: 412});
   const PQF = {x: 30, y: 72, rotation: 0, scale: 0.725};
   const PQ = k => ({x: 58, y: 30, rotation: 0, scale: 0.43});
-  QUIEN.forEach((_, k) => tl.set(q(".agQ" + k), PQ(k), 0)); tl.set(q(".agZ, .agZ2, .agZ3, .agZ4, .agY0, .agY1, .agY2"), PS, 0); tl.set(q(".agY0 .dedo, .agY1 .dedo, .agZ3 .dedo, .agZ4 .dedo"), REP, 0); tl.set(q(".agY2 .dedo"), REPC, 0); tl.set(q(".agZ .dedo"), REP, 0); tl.set(q(".agZ2 .dedo"), REPC, 0);
+  QUIEN.forEach((_, k) => tl.set(q(".agQ" + k), PQ(k), 0)); tl.set(q(".agZ, .agZ2, .agZ3, .agZ4, .agY0, .agY1, .agY2, .agT"), PS, 0); tl.set(q(".agT .dedo"), REP, 0); tl.set(q(".agY0 .dedo, .agY1 .dedo, .agZ3 .dedo, .agZ4 .dedo"), REP, 0); tl.set(q(".agY2 .dedo"), REPC, 0); tl.set(q(".agZ .dedo"), REP, 0); tl.set(q(".agZ2 .dedo"), REPC, 0);
   tl.set(q(".pMesa"), {autoAlpha: 1}, 0);
   /* la vela respira toda la película */
   tl.fromTo(q(".sgk i"), {y: 0, autoAlpha: 0.9}, {y: -12, autoAlpha: 0.3, duration: 0.8, yoyo: true, repeat: Math.ceil(TOT / 0.8), ease: "sine.inOut", stagger: 0.22}, 0);
@@ -11339,7 +11375,17 @@ function filmLinea() {
   inclina(".gm", -3, t + 12.5, 0.4); inclina(".gm", 0, t + 13.2, 0.4);
   entra(".k-pastel", t + 12.7, 0.6, {y: -18}, {y: 0});
   tl.to(q(".gm"), {x: 220, autoAlpha: 0, duration: 0.7, ease: "power2.in"}, t + 13.4);
-  habla(50, t + 13.1, t + 14.7, "sofia", -5); rie("sofia", t + 13.2, 5); cabeza("ana", -5, t + 13.2); cabeza("carlos", 5, t + 13.3);
+  { const c0 = GT[76] ? GT[76][0] : t + 12.9, c1 = Math.max(GT[76] ? GT[76][1] : c0 + 2.2, GT[77] ? GT[77][1] : 0, GT[78] ? GT[78][1] : 0), vueltas = 2 * Math.max(2, Math.round((c1 - c0) / 0.56)) - 1;
+    habla(76, c0, c1, "ana", -6); habla(77, c0 + 0.3, c1, "carlos", 6); habla(78, c0 + 0.6, c1, "diego", 5);
+    brazo("ana", "brazo-copa", c0 - 0.1); brazo("carlos", "brazo-copa", c0); brazo("diego", "brazos", c0 - 0.1);
+    tl.fromTo(q(".k-ana-brazo-copa, .k-carlos-brazo-copa"), {y: 0}, {y: -22, duration: 0.28, yoyo: true, repeat: vueltas, ease: "sine.inOut", immediateRender: false}, c0 + 0.1);
+    tl.fromTo(q(".k-diego-brazos"), {y: 0, rotation: 0}, {y: -16, rotation: 3, duration: 0.28, yoyo: true, repeat: vueltas, ease: "sine.inOut", immediateRender: false}, c0 + 0.2);
+    ["ana", "carlos", "diego"].forEach((n, j) => rie(n, c0 + 0.2 + j * 0.15, vueltas));
+    inclina(".gA", 3, c0, 0.4); inclina(".gC", -3, c0 + 0.1, 0.4); inclina(".gA, .gC", 0, c1, 0.5);
+    brazo("ana", "brazo", c1 + 0.3); brazo("carlos", "brazo", c1 + 0.35); brazo("diego", "brazos-cel", c1 + 1.2);
+    tl.to(q(".k-copa-a, .k-copa-c"), {autoAlpha: 0, duration: 0.15}, c0 - 0.1); tl.to(q(".k-copa-a, .k-copa-c"), {autoAlpha: 1, duration: 0.15}, c1 + 0.35); /* la copa está en su mano mientras brindan */
+    const s0 = GT[50] ? GT[50][0] : c1 - 0.4, s1 = GT[50] ? GT[50][1] : s0 + 2.2;
+    habla(50, s0, s1, "sofia", -5); rie("sofia", s1 - 0.9, 5); tl.fromTo(q(".k-sofia-brazos"), {y: 0}, {y: -10, duration: 0.3, yoyo: true, repeat: 3, ease: "sine.inOut", immediateRender: false}, s0 + 0.1); }
   t += 2.8; /* la mesa le canta a Sofía antes de que los demás cierren */
   /* los demás cierran uno por uno, cada quien en primer plano; las miniaturas siguen a la vista y la suya pasa a «Cuenta cerrada» */
   const cierra = (A, n, t0) => { primer(A, t0, t0 + 3.0); toca(A, 200, 800, t0 + 1.7, A === ".agZ2" ? -1 : 1); tl.to(q(A + " .sb2"), {scale: 0.95, duration: 0.12, yoyo: true, repeat: 1}, t0 + 1.7);
@@ -11371,19 +11417,24 @@ function filmLinea() {
   tl.set(q(".repa path"), {strokeDasharray: 900, strokeDashoffset: 900}, 0);
   /* al llegar la cifra, cambian la parte de Sofía y el total de esa persona */
   const suma = (k, n, tt) => { tl.to(q(".cq" + k + " .vt i:not(.w" + n + "), .cq" + k + " .vp i:not(.w" + n + ")"), {autoAlpha: 0, duration: 0.15}, tt); entra(".cq" + k + " .w" + n, tt + 0.15, 0.4, {y: 12}, {y: 0, ease: "back.out(2)"}); };
-  const invita = (k, tt) => { toque(".agQ" + k, 287, 326, tt); entra(".agQ" + k + " .qsel", tt + 0.05, 0.3, {scale: 0.6}, {scale: 1, ease: "back.out(2)"}); tl.to(q(".agQ" + k + " .qp"), {color: "#fff", duration: 0.2}, tt + 0.05);
-    tl.fromTo(q(".agQ" + k + " .kinv"), {boxShadow: "0 0 0 0 rgba(253,195,77,0)"}, {boxShadow: "0 0 0 6px rgba(253,195,77,.9)", duration: 0.35, yoyo: true, repeat: 1, immediateRender: false}, tt + 0.1); entra(".agQ" + k + " .cinv", tt + 0.6, 0.4, {x: -12}, {x: 0}); };
+  const invita = (k, tt) => { const yk = 292 + (QUIEN[k][4].length - 2) * 48, Z = 1.3, A = ".agQ" + k; /* la tarjeta «Invitar a Sofía» baja un renglón por platillo */
+    tl.to(q(".cq" + k + " .ctt"), {autoAlpha: 0, duration: 0.25}, tt - 1.15);
+    tl.to(q(A), {scale: Z * PQ(k).scale / 0.43, x: 330 - 200 * Z, y: 150 - yk * Z, duration: 0.5, ease: "power3.inOut"}, tt - 1.1);
+    toque(A, 271, yk, tt); entra(A + " .qsel", tt + 0.05, 0.3, {scale: 0.6}, {scale: 1, ease: "back.out(2)"}); tl.to(q(A + " .qp"), {color: "#fff", duration: 0.2}, tt + 0.05);
+    entra(A + " .cinv", tt + 0.3, 0.35, {x: -12}, {x: 0});
+    tl.to(q(A), {...PQ(k), duration: 0.5, ease: "power3.inOut"}, tt + 0.8); tl.to(q(".cq" + k + " .ctt"), {autoAlpha: 1, duration: 0.3}, tt + 1.15); return tt + 0.9; };
   const centro = (n, tt) => { if (n > 1) sale(".cnt4 .w" + (n - 1), tt, 0.15); entra(".cnt4 .w" + n, tt + 0.15, 0.4, {scale: 0.6}, {scale: 1, ease: "back.out(2.4)"}); if (n > 1) tl.fromTo(q(".cnt4"), {scale: 1}, {scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, immediateRender: false}, tt); };
   const reparte = (n, tt) => { let fin = tt; [0, 2, 3].filter(k => ENTRA[k] <= n).forEach(k => { tl.set(q(".vj" + k + " i"), {autoAlpha: 0}, tt - 0.02); tl.set(q(".vj" + k + " .w" + n), {autoAlpha: 1}, tt - 0.01); fin = viaja(".vj" + k, TUBO[k], tt); suma(k, n, fin); }); return fin; };
   /* entre 1 · Ana invita: los $180 de Sofía salen de su total, van al centro y de ahí al total de Ana */
-  dice(0, t + 7.4); invita(0, t + 10.0); const s1 = t + 10.3;
+  /* el toque cae al final de su frase y la cifra sale cuando el teléfono vuelve a su lugar, a tiempo para «entre uno», «entre dos» y «entre tres» */
+  dice(0, t + 7.4); const s1 = invita(0, t + 9.6);
   tubo("s", s1); suma(1, 1, s1 + 0.3); const c1 = viaja(".vjs", TUBO.s, s1 + 0.2);
   entra(".cnt4", c1 - 0.2, 0.5, {scale: 0.4}, {scale: 1, ease: "back.out(1.8)"}); centro(1, c1); tubo(1, c1 + 0.5); reparte(1, c1 + 0.9);
   entra(".qinvS", s1 + 0.5, 0.5, {y: 14, scale: 0.92}, {y: 0, scale: 1, ease: "back.out(1.7)"}); tl.to(q(".agQ1 .cv0"), {autoAlpha: 0, duration: 0.2}, s1 + 0.6); entra(".agQ1 .cv1", s1 + 0.75, 0.5, {scale: 0.5}, {scale: 1, ease: "back.out(2.6)"});
   /* entre 2 · Diego: el centro cambia a 90 y 90, y cada mitad viaja por su línea */
-  dice(2, t + 14.8); invita(2, t + 16.6); const s2 = t + 16.9; centro(2, s2); tubo(2, s2 + 0.3); reparte(2, s2 + 0.9);
+  dice(2, t + 14.8); const s2 = invita(2, t + 15.95); centro(2, s2); tubo(2, s2 + 0.3); reparte(2, s2 + 0.9);
   /* entre 3 · Carlos: 60, 60 y 60 */
-  dice(3, t + 19.8); invita(3, t + 21.6); const s3 = t + 21.9; centro(3, s3); tubo(3, s3 + 0.3); const f3 = reparte(3, s3 + 0.9);
+  dice(3, t + 19.8); const s3 = invita(3, t + 20.9); centro(3, s3); tubo(3, s3 + 0.3); const f3 = reparte(3, s3 + 0.9);
   [0, 2, 3].forEach(k => { tl.to(q(".agQ" + k + " .cv0"), {autoAlpha: 0, duration: 0.2}, f3); entra(".agQ" + k + " .cv1", f3 + 0.15, 0.4, {scale: 0.6}, {scale: 1, ease: "back.out(2.4)"}); });
   /* Sofía agradece; después, sólo la fiesta */
   dice(1, t + 25.9, t + 29.5); entra(".gqf", t + 29.7, 0.6, {scale: 0.3, rotation: -20}, {scale: 1, rotation: 0, ease: "back.out(2.2)"});
@@ -11395,18 +11446,41 @@ function filmLinea() {
   brazo("ana", "brazo", t, 0.01); brazo("carlos", "brazo", t, 0.01); brazo("sofia", "brazos", t, 0.01); brazo("diego", "brazos", t, 0.01);
   corte(".cerca", ".sala", t, 0.7); sale(".cnt4, .gq, .gqf, .dvc, .vj", t + 0.2, 0.3); sale(".agQ, .celda, .ctt", t + 0.7, 0.01); tl.set(q(".repa path"), {strokeDashoffset: 900}, t + 0.7);
   brazo("ana", "brazo", t + 0.2); brazo("carlos", "brazo", t + 0.3); brazo("sofia", "brazos", t + 0.25); brazo("diego", "brazos", t + 0.35); cabeza("ana", -4, t + 0.3); cabeza("carlos", 4, t + 0.4);
-  brazo("mesero", "brazos-terminal", t, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: -1, rotation: 0}, t);
-  tl.fromTo(q(".gm"), {x: 220, autoAlpha: 0}, {x: 0, autoAlpha: 1, duration: 1.0, ease: "power2.out", immediateRender: false}, t + 0.2);
-  tl.to(q(".k-mesero-cabeza"), {scaleX: 1, duration: 0.3, ease: "power1.inOut"}, t + 1.0);
-  inclina(".gm", 3, t + 1.0, 0.8); inclina(".gm", 0, t + 2.8, 0.6);
-  globo(25, t + 1.2, t + 3.0);
-  tl.to(q(".k-carlos-brazo"), {rotation: 22, duration: 0.45, ease: "power2.out"}, t + 1.5);
-  tl.fromTo(q(".buzz"), {autoAlpha: 0, scale: 0.5, x: 180, y: 0}, {autoAlpha: 1, scale: 1.1, duration: 0.3, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false}, t + 2.0);
-  tl.to(q(".k-carlos-brazo"), {rotation: 0, duration: 0.45, ease: "power2.inOut"}, t + 2.6);
-  brazo("mesero", "brazos-cel", t + 3.0, 0.3); tl.to(q(".k-mesero-cabeza"), {scaleX: -1, duration: 0.3, ease: "power1.inOut"}, t + 3.0); cabeza("mesero", -8, t + 3.1);
-  pulsa(1, t + 3.7); fase(2, t + 3.8);
-  entra(".ePago", t + 4.6, 0.4, {scale: 0.6}, {scale: 1, ease: "back.out(2)"});
-  mira(-1, t + 4.0); globo(7, t + 4.3, t + 6.2); cabeza("mesero", 0, t + 4.3);
+  /* cada quien paga a su manera; en el tablero, «n de 4 comensales pagaron» hasta completar. Los momentos salen de las frases (GT) */
+  const g0 = (k, d) => GT[k] ? GT[k][0] : t + d, g1 = (k, d) => GT[k] ? GT[k][1] : t + d;
+  const pagaron = (n, tt) => { tl.to(q(".ppg .pn i, .ppg .pm i"), {autoAlpha: 0, duration: 0.15}, tt); entra(".ppg .w" + n, tt + 0.15, 0.35, {y: 8}, {y: 0, ease: "back.out(2)"});
+    tl.to(q(".ppg .pbar u"), {scaleX: PAGAN.slice(0, n).reduce((a, k) => a + totalDe(k, 3), 0) / PAGAN.reduce((a, k) => a + totalDe(k, 3), 0), duration: 0.55, ease: "back.out(1.4)"}, tt + 0.1); };
+  tl.set(q(".ppg .pbar u"), {scaleX: 0}, t); tl.to(q(".pnota .n1, .pbt.b1"), {autoAlpha: 0, duration: 0.3}, t + 0.6); entra(".ppg", t + 0.8, 0.4, {y: 14}, {y: 0}); pagaron(1, t + 0.9);
+  /* Ana: la terminal del restaurante. El mesero llega hasta su lado */
+  const MA = -590, tA = g0(25, 2.9), fA = g1(25, 5.3);
+  brazo("mesero", "brazos-terminal", t, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: -1, rotation: 0}, t); tl.set(q(".g25"), {x: MA}, t);
+  tl.fromTo(q(".gm"), {x: 220, autoAlpha: 0}, {x: MA, autoAlpha: 1, duration: 1.6, ease: "power2.inOut", immediateRender: false}, t + 0.2);
+  inclina(".gm", -3, tA, 0.6); globo(25, tA, fA); cabeza("ana", 6, tA + 0.2);
+  tl.to(q(".k-ana-brazo"), {rotation: -20, duration: 0.45, ease: "power2.out"}, tA + 0.9);
+  tl.fromTo(q(".buzz"), {autoAlpha: 0, scale: 0.5, x: 180, y: 0}, {autoAlpha: 1, scale: 1.1, duration: 0.3, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false}, tA + 1.5);
+  tl.to(q(".k-ana-brazo"), {rotation: 0, duration: 0.45, ease: "power2.inOut"}, tA + 2.1); pagaron(2, tA + 1.9); inclina(".gm", 0, fA, 0.5); cabeza("ana", 0, fA);
+  /* Diego: transferencia. En su teléfono, los datos del restaurante */
+  const tD = g0(79, 5.6), tC = g0(80, 11.7), d0 = g1(79, 7.2) + 0.1, d1 = Math.max(d0 + 4.2, tC - 0.5), dd = d1 - d0, AT = ".agT";
+  brazo("diego", "brazos-cel", tD - 0.1); habla(79, tD, g1(79, 7.2), "diego", 5);
+  tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, d0); tl.set(q(AT + " .tM"), {autoAlpha: 1}, d0); tl.set(q(AT + " .tD, " + AT + " .tav, " + AT + " .c1"), {autoAlpha: 0}, d0); tl.set(q(AT + " .c0"), {autoAlpha: 1}, d0);
+  corte(".sala", ".cerca", d0, 0.5); tl.fromTo(q(AT), {...PS, autoAlpha: 0, y: PS.y + 200}, {...PS, autoAlpha: 1, duration: 0.7, ease: "power3.out", immediateRender: false}, d0); entra(AT + " .nom", d0 + 0.5, 0.3);
+  toca(AT, 200, 474, d0 + 0.22 * dd); pantalla(AT + " .tD", d0 + 0.22 * dd + 0.15, 0.4);
+  toca(AT, 200, 534, d0 + 0.56 * dd); sale(AT + " .c0", d0 + 0.56 * dd + 0.05, 0.12); entra(AT + " .c1", d0 + 0.56 * dd + 0.15, 0.3, {scale: 0.8}, {scale: 1, ease: "back.out(2)"});
+  toca(AT, 200, 800, d0 + 0.8 * dd); tl.to(q(AT + " .tya"), {scale: 0.95, duration: 0.12, yoyo: true, repeat: 1}, d0 + 0.8 * dd); entra(AT + " .tav", d0 + 0.8 * dd + 0.2, 0.3, {y: -14}, {y: 0}); pagaron(3, d0 + 0.8 * dd + 0.3);
+  tl.set(q(".gm"), {x: 0, rotation: 0}, d0 + 1); brazo("mesero", "brazos", d0 + 1, 0.01); tl.set(q(".k-mesero-cabeza"), {scaleX: 1}, d0 + 1);
+  corte(".cerca", ".sala", d1, 0.5); sale(AT, d1 + 0.5, 0.01); brazo("diego", "brazos", d1 + 0.4);
+  /* Carlos: efectivo. Entrega los billetes y Javier los valida en su teléfono */
+  const tV = g0(81, 13.6), fV = g1(81, 17.0), tv = Math.max(tV + 1.2, fV - 0.75), tG = Math.max(g0(7, 17.6), tv + 1.0);
+  habla(80, tC, g1(80, 13.3), "carlos", 6); tl.to(q(".k-carlos-brazo"), {rotation: 16, duration: 0.45, ease: "power2.out"}, tC + 0.6);
+  tl.fromTo(q(".bill"), {autoAlpha: 0, x: 0, y: 0, rotation: -8, scale: 0.7}, {autoAlpha: 1, scale: 1, duration: 0.3, immediateRender: false}, tC + 0.8);
+  tl.to(q(".bill"), {x: 46, y: -96, rotation: 6, duration: 0.6, ease: "power2.inOut"}, tC + 1.2); sale(".bill", tC + 1.85, 0.25, {scale: 0.7});
+  tl.to(q(".k-carlos-brazo"), {rotation: 0, duration: 0.45, ease: "power2.inOut"}, tC + 1.9);
+  entra(".ppg .pve", tC + 1.5, 0.4, {y: 14}, {y: 0, ease: "back.out(1.8)"}); sale(".ppg .pinv, .ppg .pm", tC + 1.4, 0.2);
+  brazo("mesero", "brazos-cel", tV - 0.3, 0.3); tl.to(q(".k-mesero-cabeza"), {scaleX: -1, duration: 0.3, ease: "power1.inOut"}, tV - 0.3); cabeza("mesero", -8, tV - 0.2); globo(81, tV, fV);
+  toca(A, 200, 808, tv); tl.to(q(".ppg .pve"), {scale: 0.95, duration: 0.12, yoyo: true, repeat: 1}, tv); retira(A, tv + 0.9); pagaron(4, tv + 0.15);
+  sale(".ppg", tv + 0.75, 0.25); fase(2, tv + 0.8);
+  entra(".ePago", tv + 1.3, 0.4, {scale: 0.6}, {scale: 1, ease: "back.out(2)"});
+  mira(-1, tG - 0.3); tl.to(q(".k-mesero-cabeza"), {scaleX: 1, duration: 0.3, ease: "power1.inOut"}, tG - 0.3); globo(7, tG, g1(7, 19.8)); cabeza("mesero", 0, tG);
   /* 15b · factura (visión, fuera de la v1): se pide desde la app y la emite el restaurante. Toma suelta: quitar su renglón de TOMAS la saca sin mover lo demás */
   if (TOMAS.some(x => x[0] === "factura")) {
     t = T("factura"); sale(".ePago", t, 0.3);
