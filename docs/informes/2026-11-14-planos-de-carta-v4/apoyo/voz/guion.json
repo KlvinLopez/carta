@@ -285,21 +285,37 @@
   "inicio": 1.2
  },
  {
+  "id": "ofrece-02",
+  "toma": "ofrece",
+  "quien": "ana",
+  "texto": "[excited] ¡Espléndido! Yo ya tengo mi perfil hecho y todo.",
+  "inicio": 5.8,
+  "tras": 0.2
+ },
+ {
   "id": "escanea-01",
   "toma": "escanea",
   "quien": "narrador",
-  "texto": "[softly] Ana escanea el código… [gasps] y ya está adentro. Sin descargar nada. Sin registrarse.",
+  "texto": "[softly] Ana escanea el código… [gasps] y ya está adentro. Sin descargar nada.",
   "inicio": 1
  },
  {
   "id": "filtra-01",
   "toma": "filtra",
   "quien": "narrador",
-  "texto": "Ana no come cacahuate. [mischievously] Esta vez no tuvo que preguntar platillo por platillo: se lo dijo a la carta, y la carta se acomodó.",
+  "texto": "Ana no come cacahuate.",
   "inicio": 0.4
  },
  {
   "id": "filtra-02",
+  "toma": "filtra",
+  "quien": "narrador",
+  "texto": "[mischievously] No tuvo que decir nada: Carta guarda sus restricciones y quita lo que no puede comer.",
+  "inicio": 2.2,
+  "tras": 0.3
+ },
+ {
+  "id": "filtra-03",
   "toma": "filtra",
   "quien": "narrador",
   "texto": "[whispers] Al mesero se lo dijo también. Por si acaso.",
@@ -310,7 +326,7 @@
   "id": "top3-01",
   "toma": "top3",
   "quien": "narrador",
-  "texto": "[warmly] Y algún día, la carta la va a conocer tan bien, que ya le tendrá tres ideas esperándola.",
+  "texto": "[warmly] Y como ya la conoce, le tenía tres ideas: por los restaurantes que ha visitado [giggles] y por lo que le dio me gusta.",
   "inicio": 0.4
  },
  {
@@ -361,15 +377,8 @@
   "id": "confirma-01",
   "toma": "confirma",
   "quien": "narrador",
-  "texto": "[warmly] Y cuando los cuatro estuvieron listos, la mesa llamó al mesero.",
+  "texto": "[warmly] Y cuando los cuatro estuvieron listos, Carta llamó al mesero automáticamente.",
   "inicio": 0.3
- },
- {
-  "id": "esperan-01",
-  "toma": "esperan",
-  "quien": "narrador",
-  "texto": "[softly] En los cuatro teléfonos, la misma noticia: ya viene.",
-  "inicio": 0.5
  },
  {
   "id": "avisa-01",
@@ -484,16 +493,16 @@
   "toma": "abierta",
   "quien": "carlos",
   "texto": "[laughs]",
-  "inicio": 10,
-  "encima": 0.9
+  "inicio": 10.2,
+  "con": 0.35
  },
  {
   "id": "abierta-09",
   "toma": "abierta",
   "quien": "diego",
   "texto": "[laughs]",
-  "inicio": 10.1,
-  "encima": 0.9
+  "inicio": 10.5,
+  "con": 0.25
  },
  {
   "id": "abierta-10",
@@ -657,41 +666,65 @@
  {
   "id": "cierres-06",
   "toma": "cierres",
-  "quien": "sofia",
-  "texto": "[overlapping] [laughs] ¡Ay, gracias!",
-  "inicio": 20.2,
-  "encima": 0.4
+  "quien": "ana",
+  "texto": "[excited] ¡Feliz cumpleaños, Sofi!",
+  "inicio": 20,
+  "encima": 0.2
  },
  {
   "id": "cierres-07",
   "toma": "cierres",
-  "quien": "narrador",
-  "texto": "[mischievously] Los demás, a su ritmo.",
-  "inicio": 22.2,
-  "tras": 0.3
+  "quien": "carlos",
+  "texto": "[cheering] ¡Felicidades, Sofi! ¡Eeeh!",
+  "inicio": 20.3,
+  "con": 0.3
  },
  {
   "id": "cierres-08",
   "toma": "cierres",
-  "quien": "carlos",
-  "texto": "¿Ya nadie va a pedir nada más?",
-  "inicio": 29.5,
-  "tras": 0.3
+  "quien": "diego",
+  "texto": "[singing] ¡Feliz cumpleaños a ti…!",
+  "inicio": 20.6,
+  "con": 0.3
  },
  {
   "id": "cierres-09",
   "toma": "cierres",
-  "quien": "ana",
-  "texto": "[jumping in] No, todo bien.",
-  "inicio": 31.5,
-  "encima": 0.2
+  "quien": "sofia",
+  "texto": "[touched] ¡Ay, amigos… muchas gracias! [giggles]",
+  "inicio": 22.6,
+  "encima": 0.5
  },
  {
   "id": "cierres-10",
   "toma": "cierres",
   "quien": "narrador",
+  "texto": "[mischievously] Los demás, a su ritmo.",
+  "inicio": 25,
+  "tras": 0.3
+ },
+ {
+  "id": "cierres-11",
+  "toma": "cierres",
+  "quien": "carlos",
+  "texto": "¿Ya nadie va a pedir nada más?",
+  "inicio": 31.9,
+  "tras": 0.3
+ },
+ {
+  "id": "cierres-12",
+  "toma": "cierres",
+  "quien": "ana",
+  "texto": "[jumping in] No, todo bien.",
+  "inicio": 33.9,
+  "encima": 0.2
+ },
+ {
+  "id": "cierres-13",
+  "toma": "cierres",
+  "quien": "narrador",
   "texto": "[warmly] Y cuando cerró el último, la mesa entera quedó en cuenta cerrada.",
-  "inicio": 33.2,
+  "inicio": 35.6,
   "tras": 0.3
  },
  {
@@ -768,25 +801,57 @@
  {
   "id": "pagada-01",
   "toma": "pagada",
-  "quien": "mesero",
-  "texto": "Con la terminal, cuando gusten.",
-  "inicio": 1.2
+  "quien": "narrador",
+  "texto": "[warmly] Y cada quien pagó a su manera.",
+  "inicio": 0.3
  },
  {
   "id": "pagada-02",
   "toma": "pagada",
-  "quien": "narrador",
-  "texto": "[warmly] Se pagó como siempre: con el mesero.",
-  "inicio": 3.9,
+  "quien": "mesero",
+  "texto": "Con la terminal, cuando gusten.",
+  "inicio": 2.9,
   "tras": 0.3
  },
  {
   "id": "pagada-03",
   "toma": "pagada",
+  "quien": "diego",
+  "texto": "Yo, por transferencia.",
+  "inicio": 5.6,
+  "tras": 0.2
+ },
+ {
+  "id": "pagada-04",
+  "toma": "pagada",
+  "quien": "narrador",
+  "texto": "[softly] Carta le puso en pantalla los datos del restaurante.",
+  "inicio": 7.6,
+  "tras": 0.3
+ },
+ {
+  "id": "pagada-05",
+  "toma": "pagada",
+  "quien": "carlos",
+  "texto": "Yo pago en efectivo.",
+  "inicio": 11.7,
+  "tras": 0.3
+ },
+ {
+  "id": "pagada-06",
+  "toma": "pagada",
+  "quien": "mesero",
+  "texto": "Cuatrocientos treinta y uno… completo. Validado.",
+  "inicio": 13.6,
+  "tras": 0.2
+ },
+ {
+  "id": "pagada-07",
+  "toma": "pagada",
   "quien": "mesero",
   "texto": "Todo pagado. ¡Muchas gracias!",
-  "inicio": 6.7,
-  "tras": 0.3
+  "inicio": 17.6,
+  "tras": 0.2
  },
  {
   "id": "factura-01",
