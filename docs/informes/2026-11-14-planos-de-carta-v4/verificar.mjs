@@ -534,7 +534,7 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     const m5 = await p.evaluate(() => musica.paused); await p.evaluate(() => { vozOn = true; }); await p.waitForTimeout(300);
     ok(m5, 'música: sin sonido, la música no suena');
     const cred = await p.evaluate(() => { const e = document.querySelector('#cine .marca small'); return e ? e.textContent : ''; });
-    ok(cred.includes('Bossa Antigua') && cred.includes('Kevin MacLeod') && cred.includes('incompetech.com') && cred.includes('CC BY 4.0'), 'música: el crédito (CC BY 4.0) está en la toma final: ' + cred); }
+    ok(cred.includes('Bossa Antigua') && cred.includes('Kevin MacLeod') && cred.includes('incompetech.com') && cred.includes('CC BY 4.0') && cred.includes('creativecommons.org/licenses/by/4.0') && cred.includes('adaptada'), 'música: el crédito completo (título, autor, fuente, licencia con su enlace y «adaptada») está en la toma final: ' + cred); }
   /* cada globo dice lo mismo que su frase en VOZ (sin las marcas), y con tiempos medidos toda frase de personaje tiene su globo a la vista a media frase */
   const globos = await p.evaluate(async () => {
     const limpia = (t) => t.replace(/\[[^\]]*\]\s*/g, '').trim(), el = (g) => document.querySelector(typeof g === 'string' ? '.g' + g : '.g' + g);
