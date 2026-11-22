@@ -231,7 +231,7 @@ function vozSync() {
   if (quiere && i + 1 < TOMAS.length && T0[i + 1] - s < 3 && VOZ_AUDIO[TOMAS[i + 1][0]]) pista(TOMAS[i + 1][0]); /* la siguiente pista, cargada antes del cambio */
   if (!a) return;
   const seg = s - T0[i];
-  if (pausaI || $("#intro").hidden || seg >= (a.duration || VOZ_AUDIO[id])) { if (!a.paused) a.pause(); return; }
+  if (pausaI || ocultaI || $("#intro").hidden || seg >= (a.duration || VOZ_AUDIO[id])) { if (!a.paused) a.pause(); return; }
   if (vozSalto) { vozSalto = false; try { a.currentTime = seg; } catch (e) { /* aún sin datos */ } }
   if (a.paused) { a.play().catch(() => { /* falta el archivo o el permiso: la película sigue en silencio */ }); return; }
   if (a.readyState < 2 || a.seeking || a.ended) return;
@@ -243,7 +243,7 @@ function vozSync() {
    Sólo suena con el sonido puesto y sigue al reloj de la película: nunca mueve la imagen. Se coloca una vez en cada salto; en marcha normal,
    si se separa más de 0.12 s corrige con la velocidad (0.97 a 1.03) y sólo si pasa de 0.6 s se recoloca. Si el archivo no carga, no hay música. */
 const MUS_RUTA = ["apoyo", "musica", "fondo.mp3"].join("/");
-let musica = null, musSalto = true, musUltT = 0, musColocadas = 0;
+let musica = null, musSalto = true, musUltT = 0, musColocadas = 0, ocultaI = false; /* ocultaI: la pestaña está oculta */
 function musPista() { return musica || (musica = Object.assign(new Audio(MUS_RUTA), {preload: "auto", volume: 1})); }
 function musSync() {
   if (!HAY_VOZ) return;
@@ -251,7 +251,7 @@ function musSync() {
   const a = musPista(), obj = tI / 1000;
   if (Math.abs(tI - musUltT) > 400) musSalto = true; /* un brinco del tiempo que no viene de un cuadro es un salto */
   musUltT = tI;
-  if (pausaI || $("#intro").hidden || obj >= (a.duration || TOT)) { if (!a.paused) a.pause(); return; }
+  if (pausaI || ocultaI || $("#intro").hidden || obj >= (a.duration || TOT)) { if (!a.paused) a.pause(); return; }
   const coloca = () => { try { a.currentTime = obj; musColocadas++; } catch (e) { /* aún sin datos */ } a.playbackRate = 1; };
   if (musSalto) { musSalto = false; coloca(); }
   if (a.paused) { a.play().catch(() => { /* falta el archivo o el permiso: la película sigue sin música */ }); return; }
@@ -1748,7 +1748,7 @@ function saltaI(ms) {
 function muestraControles() { const el = $("#intro"); if (!el) return; el.classList.remove("quieto"); clearTimeout(ocultoT); ocultoT = setTimeout(() => el.classList.add("quieto"), 2600); }
 function frameIntro(ts) {
   if ($("#intro").hidden) return;
-  if (!pausaI) { tI += clamp(ts - ultI, 0, 100); if (tI >= TOTI) { tI = TOTI - 1; pausaI = true; } }
+  if (!pausaI && !ocultaI) { tI += clamp(ts - ultI, 0, 100); if (tI >= TOTI) { tI = TOTI - 1; pausaI = true; } }
   ultI = ts; pintaIntro(); rafI = requestAnimationFrame(frameIntro);
 }
 function abrirIntro() {
@@ -1783,6 +1783,10 @@ function abrirIntro() {
     else if (a === "menos") saltaI(-3000); else if (a === "mas") saltaI(3000);
   };
 }
+/* con la pestaña oculta no corren los cuadros, pero el audio seguiría: se pausan voz, música y película; al volver siguen si estaban corriendo, recolocadas una vez */
+document.addEventListener("visibilitychange", () => { const el = $("#intro"); if (!el || el.hidden) { ocultaI = false; return; }
+  if (document.hidden) { ocultaI = true; if (vozAct) vozAct.pause(); if (musica) musica.pause(); }
+  else if (ocultaI) { ocultaI = false; ultI = performance.now(); vozSalto = musSalto = true; pintaIntro(); } });
 window.addEventListener("resize", filmEscala);
 document.addEventListener("fullscreenchange", () => setTimeout(filmEscala, 60));
 document.addEventListener("keydown", e => {

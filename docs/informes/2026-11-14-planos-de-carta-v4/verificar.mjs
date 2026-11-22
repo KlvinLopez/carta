@@ -497,7 +497,7 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   ok((await p.evaluate(() => tI)) === tq, 'presentación con voz: no avanza mientras la puerta está puesta');
   await p.mouse.click(300, 420); await p.waitForTimeout(200);
   ok((await p.evaluate(() => tI)) === tq && (await p.isVisible('#introPuerta')) && !(await p.evaluate(() => vozLibre)), 'presentación con voz: un clic fuera de los botones no hace nada');
-  /* los mp3 los publica la sesión maestra y no están en el repositorio: la prueba usa un doble de Audio que anota qué pista se pide */
+  /* la voz se prueba con un doble de Audio que anota qué pista se pide (los mp3 reales los prueba la música, más abajo, y la corrida con carga de la maestra) */
   /* el doble corre con su propio reloj (a `ritmo` veces el tiempo real) y cuenta cuántas veces se le escribe `currentTime` */
   await p.evaluate(() => { window.__pistas = []; window.__ritmo = 1; window.__escrituras = 0; window.Audio = class {
     constructor(src) { this.src = src; this.paused = true; this._t = 0; this._t0 = 0; this.duration = NaN; this.readyState = 4; this.seeking = false; this.ended = false; window.__pistas.push(String(src)); }
@@ -533,8 +533,57 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     await p.evaluate(() => { vozOn = false; }); await p.waitForTimeout(300);
     const m5 = await p.evaluate(() => musica.paused); await p.evaluate(() => { vozOn = true; }); await p.waitForTimeout(300);
     ok(m5, 'música: sin sonido, la música no suena');
-    const cred = await p.evaluate(() => { const e = document.querySelector('#cine .marca small'); return e ? e.textContent : ''; });
-    ok(cred.includes('Bossa Antigua') && cred.includes('Kevin MacLeod') && cred.includes('incompetech.com') && cred.includes('CC BY 4.0') && cred.includes('creativecommons.org/licenses/by/4.0') && cred.includes('adaptada'), 'música: el crédito completo (título, autor, fuente, licencia con su enlace y «adaptada») está en la toma final: ' + cred); }
+    const cred = await p.evaluate(async () => { const f = document.querySelector('#cine'), e = f.querySelector('.marca small'); if (!e) return { texto: '' };
+      const antes = [tI, pausaI]; pausaI = true; vozSalto = musSalto = true; tI = (tomaIni('fin') + 3) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 60));
+      let o = 1; for (let n = e; n && n !== f; n = n.parentElement) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; }
+      const r = e.getBoundingClientRect(), fr = f.getBoundingClientRect(), res = { texto: e.textContent, o, w: r.width, h: r.height, dentro: r.left >= fr.left - 1 && r.right <= fr.right + 1 && r.top >= fr.top - 1 && r.bottom <= fr.bottom + 1 };
+      vozSalto = musSalto = true; tI = antes[0]; pausaI = antes[1]; ultI = performance.now(); pintaIntro(); return res; });
+    ok(['Bossa Antigua', 'Kevin MacLeod', 'incompetech.com', 'CC BY 4.0', 'creativecommons.org/licenses/by/4.0', 'adaptada'].every((x) => cred.texto.includes(x)) && cred.o > 0.9 && cred.w > 0 && cred.h > 0 && cred.dentro, `música: el crédito completo (título, autor, fuente, licencia con su enlace y «adaptada») se ve y está dentro del cuadro a los 3 s de la toma final (opacidad ${cred.o}, ${Math.round(cred.w || 0)}×${Math.round(cred.h || 0)} px): ` + cred.texto);
+    /* con la pestaña oculta paran la voz, la música y la película; al volver siguen, recolocadas una vez (evento simulado) */
+    await p.waitForTimeout(600);
+    const oculta = (v) => p.evaluate((x) => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => x }); Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (x ? 'hidden' : 'visible') }); document.dispatchEvent(new Event('visibilitychange')); }, v);
+    const quieto = async () => { const a = await p.evaluate(() => ({ m: musica.paused, v: !vozAct || vozAct.paused, c: musica.currentTime, cv: vozAct ? vozAct.currentTime : 0, t: tI })); await p.waitForTimeout(700); const b = await p.evaluate(() => ({ c: musica.currentTime, cv: vozAct ? vozAct.currentTime : 0, t: tI })); return { ok: a.m && a.v && a.c === b.c && a.cv === b.cv, quietaPeli: a.t === b.t, det: `música en pausa ${a.m}, voz en pausa ${a.v}, música avanzó ${(b.c - a.c).toFixed(2)} s, voz avanzó ${(b.cv - a.cv).toFixed(2)} s` }; };
+    const corre = async () => { await p.waitForTimeout(700); return p.evaluate(() => !musica.paused && !!vozAct && !vozAct.paused && !pausaI); };
+    ok(await corre(), 'salidas: antes de probarlas, la película corre con voz y música');
+    const cv0 = await p.evaluate(() => musColocadas); await oculta(true); await p.waitForTimeout(200); const q0 = await quieto();
+    await oculta(false); await p.waitForTimeout(700); const v1 = await p.evaluate(() => ({ m: !musica.paused, v: !!vozAct && !vozAct.paused, n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000) }));
+    ok(q0.ok && q0.quietaPeli && v1.m && v1.v && v1.n === cv0 + 1 && v1.dif < 0.6, `pestaña oculta: paran la voz, la música y la película (${q0.det}); al volver siguen y la música se coloca una vez (${v1.n - cv0})`);
+    await p.evaluate(() => { pausaI = true; pintaIntro(); }); await p.waitForTimeout(200); await oculta(true); await p.waitForTimeout(200); await oculta(false); await p.waitForTimeout(500);
+    ok(await p.evaluate(() => pausaI && musica.paused && (!vozAct || vozAct.paused)), 'pestaña oculta: si la película estaba en pausa, al volver sigue en pausa y en silencio');
+    await p.evaluate(() => { pausaI = false; ultI = performance.now(); });
+    /* tras cada forma de salir, la música y la voz quedan en pausa y su posición no avanza en 700 ms */
+    const sal = [];
+    const prueba = async (nombre, salir, volver) => { if (!(await corre())) { sal.push(nombre + ': no estaba corriendo antes'); return; } await salir(); await p.waitForTimeout(250); const q = await quieto(); if (!q.ok) sal.push(nombre + ': ' + q.det); if (volver) await volver(); };
+    const reabre = async () => { await p.evaluate(() => abrirIntro()); await p.waitForTimeout(500); };
+    await prueba('pausa', () => p.click('#introPausa'), () => p.click('#introPausa'));
+    await prueba('botón de sonido', () => p.click('#introSon'), () => p.click('#introSon'));
+    await prueba('«Saltar ✕»', () => p.click('.ictl [data-intro="saltar"]'), reabre);
+    ok(!(await p.isVisible('#introPuerta')), 'salidas: al reabrir tras un gesto no vuelve la puerta');
+    await prueba('Escape', () => p.keyboard.press('Escape'), reabre);
+    await prueba('fin natural', async () => { await p.evaluate(() => { vozSalto = musSalto = true; tI = TOTI - 700; pintaIntro(); }); await p.waitForTimeout(1300); }, null);
+    const alFin = await p.evaluate(() => ({ pausa: pausaI, cta: !document.querySelector('#introCta').hidden }));
+    ok(alFin.pausa && alFin.cta, 'salidas: al terminar, la película queda en pausa y ofrece «Repetir» y «Ver el informe»');
+    await p.click('#introCta [data-intro="repetir"]'); await p.waitForTimeout(300);
+    await prueba('«Ver el informe»', async () => { await p.evaluate(() => { vozSalto = musSalto = true; tI = TOTI - 700; pintaIntro(); }); await p.waitForTimeout(1300); await p.click('#introCta [data-intro="saltar"]'); }, reabre);
+    ok(sal.length === 0, 'salidas: tras la pausa, el botón de sonido, «Saltar ✕», Escape, el fin natural y «Ver el informe», la música y la voz quedan en pausa y quietas 700 ms ' + sal.join(' | '));
+    ok(await corre(), 'salidas: después de probarlas, la película vuelve a correr con voz y música');
+    await p.evaluate(() => localStorage.removeItem('carta-v9-intro')); /* cerrar la película la marca como vista; las pruebas que siguen la esperan sin ver */
+    /* `pagada`: el contador sólo sube cuando Javier valida en su teléfono */
+    const pag = await p.evaluate(() => { const antes = [tI, pausaI]; pausaI = true; const f = document.querySelector('#cine'), ix = TOMAS.findIndex((x) => x[0] === 'pagada');
+      const vis = (el) => { let o = 1; for (let n = el; n && n !== f; n = n.parentElement) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; } return o; };
+      const en = (s) => { vozSalto = musSalto = true; tI = s * 1000; pintaIntro(); return { dice: [...f.querySelectorAll('.ppg .pn i')].filter((e) => vis(e) > 0.6).map((e) => e.textContent).join('|'), bot: [...f.querySelectorAll('.ppg .pve')].filter((e) => vis(e) > 0.6).map((e) => e.textContent).join('|') }; };
+      const tq = TOQUES.filter((o) => o[0] === '.agP' && o[3] >= T0[ix] && o[3] < T0[ix + 1]).map((o) => o[3]), ya = TOQUES.filter((o) => o[0] === '.agT' && o[3] >= T0[ix] && o[3] < T0[ix + 1]).map((o) => o[3]).pop();
+      const r = { n: tq.length, trasYa: ya ? en(ya + 0.45) : null, a0: tq[0] ? en(tq[0] - 0.15) : null, a1: tq[0] ? en(tq[0] + 0.7) : null, b0: tq[1] ? en(tq[1] - 0.15) : null, b1: tq[1] ? en(tq[1] + 0.6) : null };
+      vozSalto = musSalto = true; tI = antes[0]; pausaI = antes[1]; ultI = performance.now(); pintaIntro(); return r; });
+    const dos = (x) => x && x.dice.startsWith('2 de 4'), tres = (x) => x && x.dice.startsWith('3 de 4'), cuatro = (x) => x && x.dice.startsWith('4 de 4');
+    ok(pag.n === 2 && dos(pag.trasYa) && dos(pag.a0) && pag.a0.bot.includes('Validar transferencia') && tres(pag.a1) && tres(pag.b0) && pag.b0.bot.includes('Validar efectivo') && cuatro(pag.b1),
+      'película: en `pagada` el contador dice 2 de 4 tras «Ya transferí» y hasta que Javier toca «Validar transferencia», 3 después y 4 tras «Validar efectivo» ' + JSON.stringify([pag.trasYa, pag.a0, pag.a1, pag.b0, pag.b1].map((x) => x && x.dice)));
+    /* un solo susurro en todo el guion (el del arranque) y guion.json dice lo mismo que VOZ */
+    const gj = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8')).map((l) => [l.id, l.toma, l.quien, l.texto]);
+    const vz = await p.evaluate(() => TOMAS.flatMap(([t]) => (VOZ[t] || []).map((l, i) => [t + '-' + String(i + 1).padStart(2, '0'), t, l[1], l[2]])));
+    const sus = vz.filter((l) => l[3].includes('[whispers]')).map((l) => l[0]);
+    ok(sus.length === 1 && sus[0] === 'mesa-01', 'voz: hay exactamente un susurro en todo VOZ y es mesa-01 (' + sus.join(', ') + ')');
+    ok(vz.length > 100 && JSON.stringify(gj) === JSON.stringify(vz), 'voz: cada frase de apoyo/voz/guion.json (id, toma, quién y texto) es igual a la de VOZ (' + vz.length + ' frases)'); }
   /* cada globo dice lo mismo que su frase en VOZ (sin las marcas), y con tiempos medidos toda frase de personaje tiene su globo a la vista a media frase */
   const globos = await p.evaluate(async () => {
     const limpia = (t) => t.replace(/\[[^\]]*\]\s*/g, '').trim(), el = (g) => document.querySelector(typeof g === 'string' ? '.g' + g : '.g' + g);
@@ -568,13 +617,15 @@ ok((await p.evaluate(() => tI)) < 300, 'presentación: saltar al acto 1');
 await p.evaluate(() => { pausaI = true; });
 // la película en cinco tamaños: en ≥ 24 instantes, rótulos, globos y etiquetas dentro del cuadro, sin encimarse ni tapar el teléfono
 const revisaPelicula = () => p.evaluate(async () => {
-  const mal = []; const f = document.querySelector('#cine'), fr = f.getBoundingClientRect();
+  const mal = []; let nombres = 0; const f = document.querySelector('#cine'), fr = f.getBoundingClientRect();
   const vis = (el) => { let o = 1, n = el; while (n && n !== f) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; n = n.parentElement; } return o; };
   const inst = Array.from({ length: 48 }, (_, k) => (TOT * (k + 0.5)) / 48);
   for (const s of inst) {
     tI = s * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 30));
-    const textos = [...f.querySelectorAll('.r .cln, .globo, .etq span, .estado, .resu, .marca b, .marca span')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
+    const textos = [...f.querySelectorAll('.r .cln, .globo, .etq span, .estado, .resu, .marca b, .marca span, .marca small, .nmb')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
     const cels = [...f.querySelectorAll('.cel')].filter((c) => vis(c) > 0.9).map((c) => c.getBoundingClientRect());
+    /* en cada tamaño, todo personaje a la vista lleva su nombre a la vista (no vale esconderlos en pantallas chicas) */
+    if (vis(f.querySelector('.sala')) > 0.9) for (const n of f.querySelectorAll('.nmb')) if (vis(n.parentElement) > 0.9) { nombres++; if (vis(n) < 0.9 || !n.getBoundingClientRect().width) mal.push(s.toFixed(1) + ' s: no se ve el nombre de ' + n.textContent); }
     for (const [e, r] of textos) {
       if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.top < fr.top - 1 || r.bottom > fr.bottom + 1) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» fuera del cuadro');
       for (const rc of cels) if (e.matches('.r .cln, .globo, .estado, .resu') && r.right > rc.left - 8 && r.left < rc.right && r.bottom > rc.top && r.top < rc.bottom) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» tapa un teléfono');
@@ -585,12 +636,12 @@ const revisaPelicula = () => p.evaluate(async () => {
       if (ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1) mal.push(s.toFixed(1) + ' s: «' + ea.textContent.slice(0, 18) + '» encima de «' + eb.textContent.slice(0, 18) + '»');
     }
   }
-  return { mal, n: inst.length };
+  return { mal, n: inst.length, nombres };
 });
 for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390, 844]]) {
   await p.setViewportSize({ width: w, height: h }); await p.waitForTimeout(120);
-  const { mal, n } = await revisaPelicula();
-  ok(n >= 24 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos fuera del cuadro ni encimados ` + mal.slice(0, 3).join('; '));
+  const { mal, n, nombres } = await revisaPelicula();
+  ok(n >= 24 && nombres >= 40 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos, nombres ni crédito fuera del cuadro ni encimados, y ${nombres} nombres a la vista ` + mal.slice(0, 3).join('; '));
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
 /* versión 19: en las tomas de mesa, cada personaje a la vista lleva su nombre, y ningún nombre se encima con un globo o un rótulo.
@@ -604,7 +655,7 @@ const nom = await p.evaluate(async () => {
     if (vis(f.querySelector('.sala')) < 0.9) continue;
     const textos = [...f.querySelectorAll('.r .cln, .globo')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
     for (const n of [...f.querySelectorAll('.nmb')]) { const g = n.parentElement;
-      if (vis(g) < 0.9) { if (vis(n) > 0.1 && vis(g) < 0.05) mal.push(s.toFixed(1) + ' s: «' + n.textContent + '» sin su personaje'); continue; }
+      if (vis(g) < 0.9) continue;
       tomas.add(TOMAS[i][0]); vistos[n.textContent] = (vistos[n.textContent] || 0) + 1; const r = n.getBoundingClientRect();
       if (vis(n) < 0.9 || !r.width) { mal.push(s.toFixed(1) + ' s: falta el nombre de ' + n.textContent); continue; }
       for (const [e, rt] of textos) if (r.left < rt.right - 1 && rt.left < r.right - 1 && r.top < rt.bottom - 1 && rt.top < r.bottom - 1) mal.push(s.toFixed(1) + ' s (' + TOMAS[i][0] + '): «' + n.textContent + '» encima de «' + e.textContent.slice(0, 18) + '»');
@@ -690,7 +741,7 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     pausaI = false; return { n, mal }; });
   ok(inv.n === 3 && inv.mal.length === 0, 'película: en cada acercamiento de «Invitar a Sofía» la parte es lo de Sofía entre quienes invitan en ese instante, y el total del teléfono es el del cuadro grande ' + inv.mal.join(' | '));
   ok(hal.marcas.length === 0, 'película: toda marca de toque cae dentro de la caja de lo que se toca (' + hal.n + ' toques) ' + hal.marcas.slice(0, 6).join(' | '));
-  ok(hal.n >= 40 && hal.mal.length === 0, 'película: cada resaltado coincide con la caja de lo que se toca (± 4 px), tiene su radio y se ve (' + hal.n + ' toques, ' + hal.fijas + ' con caja declarada dentro de una captura) ' + hal.mal.slice(0, 6).join(' | '));
+  ok(hal.n >= 40 && hal.fijas === 0 && hal.mal.length === 0, 'película: cada resaltado coincide con la caja de lo que se toca (± 4 px), tiene su radio y se ve (' + hal.n + ' toques, ' + hal.fijas + ' con caja declarada dentro de una captura) ' + hal.mal.slice(0, 6).join(' | '));
   await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 }
 await p.reload(); await p.waitForTimeout(400);
