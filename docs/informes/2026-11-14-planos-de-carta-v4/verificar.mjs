@@ -443,6 +443,10 @@ ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
   const medido = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/tiempos.json'), 'utf8'));
   const tablas = await p.evaluate(() => ({ VOZ_AUDIO, VOZ_TIEMPOS }));
   ok(JSON.stringify(tablas.VOZ_AUDIO) === JSON.stringify(medido.VOZ_AUDIO) && JSON.stringify(tablas.VOZ_TIEMPOS) === JSON.stringify(medido.VOZ_TIEMPOS), 'voz: VOZ_AUDIO y VOZ_TIEMPOS de la película son iguales a voz/tiempos.json');
+  /* versión 19: la línea de tiempo que usa la mezcla de la música es la que calcula la película */
+  const lt = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/linea_de_tiempo.json'), 'utf8'));
+  const peli = await p.evaluate(() => ({ total: Math.round(TOT * 10) / 10, tomas: TOMAS.map((x, i) => ({ toma: x[0], inicio: Math.round(T0[i] * 10) / 10, duracion: Math.round(x[2] * 10) / 10 })) }));
+  ok(JSON.stringify(lt) === JSON.stringify(peli), 'voz: voz/linea_de_tiempo.json es la línea de tiempo que calcula la película (' + peli.tomas.length + ' tomas, ' + peli.total + ' s)');
   const ids = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8')).map((l) => l.id).sort();
   const grabadas = fs.readdirSync(resolve(aqui, 'voz/lineas')).filter((f) => f.endsWith('.mp3')).map((f) => f.slice(0, -4)).sort();
   ok(JSON.stringify(ids) === JSON.stringify(grabadas), `voz: apoyo/voz/guion.json tiene los mismos id que voz/lineas (${ids.length} y ${grabadas.length})`);
