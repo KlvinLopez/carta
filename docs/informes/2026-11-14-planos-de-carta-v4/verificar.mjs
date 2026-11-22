@@ -592,6 +592,19 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     }
     pausaI = false; return { n: TOQUES.length, fijas, mal, marcas };
   });
+  /* el avatar del tablero es pequeño y su cabecera cabe en una línea; ninguna foto redonda pasa de su tamaño */
+  const cabT = await p.evaluate(() => { const c = document.querySelector('#cine .pMesa .cab'), f = c.querySelector('.foto'), lg = c.querySelector('.lg'); const fotos = [...document.querySelectorAll('#cine .foto')].map((e) => Math.max(e.offsetWidth, e.offsetHeight));
+    return { foto: Math.max(f.offsetWidth, f.offsetHeight), alto: c.offsetHeight, linea: Math.abs((f.offsetTop + f.offsetHeight / 2) - (lg.offsetTop + lg.offsetHeight / 2)), mayor: Math.max(...fotos), n: fotos.length }; });
+  ok(cabT.foto > 0 && cabT.foto <= 40 && cabT.alto <= 48 && cabT.linea <= 6 && cabT.mayor <= 64, 'película: el avatar del tablero mide ≤ 40 px (' + cabT.foto + '), su cabecera cabe en una línea (' + cabT.alto + ' px de alto) y ninguna de las ' + cabT.n + ' fotos redondas pasa de 64 px (' + cabT.mayor + ')');
+  /* «Invitar a Sofía»: en cada acercamiento la parte es lo de Sofía entre quienes invitan en ese instante, y al final el total del teléfono es el del cuadro grande */
+  const inv = await p.evaluate(() => { pausaI = true; const mal = [], vis = (e) => { const c = getComputedStyle(e); return c.visibility !== 'hidden' && +c.opacity > 0.5; }, txt = (sel) => [...document.querySelectorAll(sel)].filter(vis).map((e) => e.textContent.trim()).join('|');
+    const ix = TOMAS.findIndex((x) => x[0] === 'cuenta'); let n = 0;
+    for (const k of [0, 2, 3].sort((a, b) => ENTRA[a] - ENTRA[b])) { const tq = TOQUES.find((o) => o[0] === '.agQ' + k && o[1] === 271 && o[3] >= T0[ix] && o[3] < T0[ix + 1]); if (!tq) { mal.push('sin toque de invitar para ' + k); continue; }
+      n++; vozSalto = true; tI = (tq[3] + 0.7) * 1000; pintaIntro(); const parte = txt('#cine .agQ' + k + ' .cpar u'), esp = pesoF(QSOFIA / n); if (parte !== esp) mal.push(QUIEN[k][3] + ': dice ' + parte + ' y son ' + esp + ' (entre ' + n + ')'); }
+    vozSalto = true; tI = (T0[ix + 1] - 1.2) * 1000; pintaIntro();
+    for (const k of [0, 2, 3]) { const tel = txt('#cine .agQ' + k + ' .ktot i'), gr = txt('#cine .cq' + k + ' .vt i'); if (!tel || tel !== gr) mal.push(QUIEN[k][3] + ': total del teléfono ' + tel + ' y del cuadro ' + gr); }
+    pausaI = false; return { n, mal }; });
+  ok(inv.n === 3 && inv.mal.length === 0, 'película: en cada acercamiento de «Invitar a Sofía» la parte es lo de Sofía entre quienes invitan en ese instante, y el total del teléfono es el del cuadro grande ' + inv.mal.join(' | '));
   ok(hal.marcas.length === 0, 'película: toda marca de toque cae dentro de la caja de lo que se toca (' + hal.n + ' toques) ' + hal.marcas.slice(0, 6).join(' | '));
   ok(hal.n >= 40 && hal.mal.length === 0, 'película: cada resaltado coincide con la caja de lo que se toca (± 4 px), tiene su radio y se ve (' + hal.n + ' toques, ' + hal.fijas + ' con caja declarada dentro de una captura) ' + hal.mal.slice(0, 6).join(' | '));
   await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
