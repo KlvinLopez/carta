@@ -121,15 +121,15 @@ const TOMAS = [
   ["pivote", 2, 6.6, [], ["¿Y si lo", "*reimaginamos*?"], "medio", 0.5],
   /* C · Carta, en el mismo orden */
   ["ofrece", 3, 9.2, [], [], ""],
-  ["escanea", 3, 7.5, [["hoy", "Entrar con el QR, sin descarga ni registro (capturas reales de la app, con datos de ejemplo)"]], ["Sin descarga.", "*Sin registro*."], "izq", 1.8],
-  ["filtra", 3, 12.5, [["hoy", "Lo agotado se ve atenuado en la carta"], ["hoy", "Filtros de alérgenos que viven en tu teléfono (no sustituyen preguntar al personal)"], ["vis", "Una carta que aprende de tus visitas"]], ["~Antes: preguntar platillo por platillo.", "Lo que no comes,", "*fuera*."], "izq"],
-  ["top3", 3, 7.5, [["vis", "«Elegido para ti»"]], ["Elegido", "*para ti*."], "izq"],
+  ["escanea", 3, 7.5, [["hoy", "Entrar con el QR, sin descarga (capturas reales de la app, con datos de ejemplo)"], ["vis", "Entrar con un perfil de comensal ya hecho"]], ["Sin descargar", "*nada*."], "izq", 1.8],
+  ["filtra", 3, 12.5, [["hoy", "Lo agotado se ve atenuado en la carta"], ["vis", "Perfil del comensal con sus restricciones guardadas: la carta quita sola lo que no puede comer (no sustituye avisar al personal)"]], ["~Antes: preguntar platillo por platillo.", "Lo que no comes,", "*fuera*."], "izq"],
+  ["top3", 3, 7.5, [["vis", "«✦ Para ti»: recomendaciones por restaurantes visitados y por lo que le dio me gusta"]], ["Elegido", "*para ti*."], "izq"],
   ["plato", 3, 6.5, [["vis", "El platillo como modelo que gira, con sus ingredientes"]], ["Sabe lo que", "*lleva*."], "izq"],
   ["agrega", 3, 4, [["f3", "Agregar platillos a la orden de la mesa"]], ["Directo a", "*tu mesa*."], "izq"],
   ["juntos", 4, 10.7, [["f3", "La mesa pide junta: cada quien ve lo de todos"]], ["~Antes: al tanteo.", "La mesa *pide junta*."], "hook", 5.1],
   ["recomienda", 4, 6.5, [["vis", "Pasarle un platillo a otra persona de la mesa"]], ["Pásaselo *a Carlos*."], "linea"],
-  ["confirma", 4, 5.1, [["f3", "La mesa manda una sola comanda desde los teléfonos y avisa al mesero"]], ["La mesa *llama al mesero*."], "centro"],
-  ["esperan", 4, 7.6, [["f3", "Cada quien ve en su teléfono que la mesa llamó al mesero"]], [], ""],
+  ["confirma", 4, 5.1, [["f3", "Cuando todos están listos, Carta manda una sola comanda y llama al mesero"]], ["Carta *llama al mesero*."], "centro"],
+  ["esperan", 4, 3.2, [["f3", "Cada quien ve en su teléfono que Carta llamó al mesero"]], [], ""],
   ["avisa", 4, 6, [["f3", "El mesero recibe la comanda en su teléfono"], ["vis", "Aviso con el teléfono bloqueado"]], ["Al mesero le llega", "*al instante*."], "izq", 0.2, 4.2, 0.6],
   ["llega", 4, 12.4, [["f3", "El mesero valida y atiende la comanda"]], ["~Antes: cuatro órdenes, a mano.", "Una sola comanda. *Él la valida*."], "linea"],
   ["cocina", 4, 5.6, [["f3", "El seguimiento de la orden en el teléfono de cada quien"]], [], ""],
@@ -366,17 +366,7 @@ const cineCss = `
 #cine .sb b{position:absolute;left:34px;top:13px;font:700 16px 'DM Sans',sans-serif}
 #cine .sb i{position:absolute;left:50%;top:10px;width:100px;height:28px;margin-left:-50px;border-radius:16px;background:#0b0809}
 #cine .sb u{position:absolute;right:30px;top:16px;width:24px;height:11px;border-radius:4px;box-shadow:inset 0 0 0 1.6px currentColor;background:linear-gradient(90deg,currentColor 72%,transparent 72%)}
-#cine .halo{position:absolute;width:170px;height:66px;margin:-33px 0 0 -85px;border-radius:33px;box-shadow:0 0 0 4px #fdc34d,0 0 26px 8px rgba(253,195,77,.75);opacity:0;visibility:hidden;z-index:8;pointer-events:none}
-#cine .foto{flex:none;display:inline-block;width:64px;height:64px;border-radius:50%;overflow:hidden;background:#2a1d17;box-shadow:0 0 0 2.5px rgba(253,195,77,.7)}
-#cine .foto img{width:100%;height:100%;object-fit:cover;object-position:50% 18%}
-#cine .pjav{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-weight:700}#cine .pjav .foto{width:36px;height:36px;box-shadow:0 0 0 2px #b8860b}
-/* los cuatro teléfonos en fila: líneas doradas entre ellos, y arriba de cada uno su foto y su nombre */
-#cine .dvq{position:absolute;top:196px;width:2px;height:790px;z-index:2;background:linear-gradient(180deg,rgba(253,195,77,0),rgba(253,195,77,.7) 18%,rgba(253,195,77,.7) 82%,rgba(253,195,77,0));transform-origin:50% 0;opacity:0;visibility:hidden}
-#cine .nq{position:absolute;top:122px;width:350px;display:flex;align-items:center;justify-content:center;gap:14px;font:400 40px 'DM Serif Display',serif;color:#fef9f1;z-index:4;opacity:0;visibility:hidden}
-#cine .qL .eord{top:150px}
-#cine .qL .lst{position:absolute;left:24px;top:330px;display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:999px;background:#eef0e2;color:#4c5630;font-size:18px;font-weight:700}
-#cine .qL .lst svg,#intro #cine .qL .lst svg{width:18px;height:18px;stroke:#4c5630}
-#cine .qL .lesp{position:absolute;left:26px;right:26px;bottom:36px;height:56px;border-radius:999px;background:#efe6d6;color:#8a7a6c;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
+#cine .halo{position:absolute;left:0;top:0;width:0;height:0;border-radius:20px;box-shadow:0 0 0 5px #fdc34d,0 0 0 10px rgba(253,195,77,.32),0 0 34px 12px rgba(253,195,77,.65);opacity:0;visibility:hidden;z-index:8;pointer-events:none}
 #cine .toque{position:absolute;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:rgba(255,255,255,.4);box-shadow:0 0 0 3px rgba(255,255,255,.9),0 6px 18px rgba(0,0,0,.25);opacity:0;z-index:8}
 /* visor de la cámara */
 #cine .cs.visor img{position:absolute;inset:0;width:400px;height:866px}
@@ -655,7 +645,7 @@ const cineCss = `
 #cine .qhero b{display:block;font:400 34px 'DM Serif Display',serif}#cine .qhero small{font-size:15px;opacity:.8}
 #cine .qC .kcta span{position:relative;padding-right:46px}
 #cine .qC .kcta span i{margin-left:auto}
-#cine .qlike{position:absolute;right:0;top:9px;width:30px;height:30px;font-size:26px;line-height:30px;text-align:center;color:#d9cbb4}
+#cine .qlike{position:absolute;right:0;top:9px;width:30px;height:30px;border-radius:50%;font-size:26px;line-height:30px;text-align:center;color:#d9cbb4}
 #cine .qlike u{position:absolute;inset:0;text-decoration:none;color:#9b2c4a}
 #cine .qseg{margin-left:auto;position:relative;display:flex;border-radius:999px;background:#eadfcd;flex:none}
 #cine .qseg i{position:relative;z-index:1;width:58px;height:44px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;font-weight:700;color:#5b4a3d}
@@ -757,15 +747,15 @@ const pantallas = () => `
 <div class="cs cx pHola">${sb()}${cab()}
   <div class="hola"><span class="av ca">A</span><h4>Hola, Ana</h4></div>
   <div class="carga"><span>Afilando los cuchillos…</span><span>Calentando el comal…</span><span>Probando la salsa…</span></div>
-  <div class="cchips"><span class="cchip">${ico.no}sin lácteos</span><span class="cchip">${ico.no}sin cacahuate</span></div>
-  <div class="tel">${ico.tel}Se queda en tu teléfono</div>
-  <div class="clista">${cRen("aguachile", "Aguachile verde", "$210")}${cRen("enchiladas", "Enchiladas suizas", "$165", "lácteos")}${cRen("pescado", "Pescado a la talla", "$245")}${cRen("mole", "Mole negro", "$190", "cacahuate")}${cRen("ensalada", "Ensalada de betabel", "$140")}<div class="cfila cagot"><img src="${CI("plato-tacos")}" alt=""><div><b>Tacos de pescado</b><small>$175</small></div><span class="cag">agotado</span></div></div>
+  <div class="cchips"><span class="cchip">${ico.ok}Perfil de Ana</span><span class="cchip">${ico.no}sin cacahuate</span></div>
+  <div class="tel">${ico.tel}Tus restricciones, guardadas en tu perfil</div>
+  <div class="clista">${cRen("aguachile", "Aguachile verde", "$210")}${cRen("enchiladas", "Enchiladas suizas", "$165", "cacahuate")}${cRen("pescado", "Pescado a la talla", "$245")}${cRen("mole", "Mole negro", "$190", "cacahuate")}${cRen("ensalada", "Ensalada de betabel", "$140")}<div class="cfila cagot"><img src="${CI("plato-tacos")}" alt=""><div><b>Tacos de pescado</b><small>$175</small></div><span class="cag">agotado</span></div></div>
   <div class="clisto">${ico.ok}Listo: tu carta</div>
 </div>
 <div class="cs cx pTop3">${sb()}${cab(true)}
-  <div class="sec sx"><h4 class="sx0">Recomendado para ti <span class="es">✦</span></h4><h4 class="sx1">Platos fuertes</h4><h4 class="sx2">Postres</h4><h4 class="sx3">Bebidas</h4></div>
-  <div class="porq">${ico.tel}Por lo que te gustó en otros lugares</div>
-  <div class="tira"><div class="rail">${cTarj("pescado", "Pescado a la talla", "$245", "Te gustó el zarandeado en El Faro")}${cTarj("aguachile", "Aguachile verde", "$210", "Pediste ceviche 3 veces")}${cTarj("ensalada", "Ensalada de betabel", "$140", "Sin lácteos, como te gusta")}${cTarj("res", "Arrachera", "$230", "Para compartir")}${cTarj("mole", "Mole negro", "$190", "Lleva cacahuate")}${cTarj("flan", "Flan de la casa", "$85", "El favorito de la casa")}${cTarj("jamaica", "Agua de jamaica", "$45", "Hecha en casa")}${cTarj("limonada", "Limonada", "$45", "Con hierbabuena")}</div></div>
+  <div class="sec sx"><h4 class="sx0"><span class="es">✦</span> Para ti</h4><h4 class="sx1">Platos fuertes</h4><h4 class="sx2">Postres</h4><h4 class="sx3">Bebidas</h4></div>
+  <div class="porq">${ico.tel}Por los restaurantes que has visitado y tus me gusta</div>
+  <div class="tira"><div class="rail">${cTarj("pescado", "Pescado a la talla", "$245", "♥ Le diste me gusta al zarandeado")}${cTarj("aguachile", "Aguachile verde", "$210", "Has visitado 3 marisquerías")}${cTarj("ensalada", "Ensalada de betabel", "$140", "♥ Te gustó una ensalada parecida")}${cTarj("res", "Arrachera", "$230", "Para compartir")}${cTarj("tacos", "Tacos de pescado", "$175", "Del mar")}${cTarj("flan", "Flan de la casa", "$85", "El favorito de la casa")}${cTarj("jamaica", "Agua de jamaica", "$45", "Hecha en casa")}${cTarj("limonada", "Limonada", "$45", "Con hierbabuena")}</div></div>
   <div class="sec"><h4>La carta</h4></div>
   <div class="cats"><span>Para empezar</span><span>Del mar</span><span>Postres</span></div>
   <div class="clista">${cRen("tacos", "Tacos de pescado", "$175")}${cRen("flan", "Flan de la casa", "$85")}</div>
@@ -905,6 +895,36 @@ const pantallasP = () => `
 </div>
 <i class="halo"></i><i class="toque"></i>`;
 
+/* El resaltado antes de un toque: busca lo que hay bajo el punto (x, y) de la pantalla del teléfono A y copia su caja y su radio.
+   Las medidas son las de la maqueta (sin la escala ni el giro del teléfono), más lo que GSAP haya desplazado a sus contenedores. */
+const TOQUES = [], HALO_AIRE = 3, HALO_ENTERO = ".tj, .cfila, .qlike", HALO_FIJA = {".agA|200|366": [24, 347, 352, 52, 26]};
+function haloCaja(pan, el) {
+  let x = 0, y = 0;
+  for (let n = el; n && n !== pan; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+  for (let n = el; n && n !== pan; n = n.parentElement) { x += +gsap.getProperty(n, "x") || 0; y += +gsap.getProperty(n, "y") || 0; }
+  const c = getComputedStyle(el), r = Math.min(parseFloat(c.borderTopLeftRadius) || 0, el.offsetWidth / 2, el.offsetHeight / 2);
+  return {x, y, w: el.offsetWidth, h: el.offsetHeight, r};
+}
+function haloPon(A, x, y) {
+  const ag = document.querySelector("#cine " + A); if (!ag) return;
+  const pan = ag.querySelector(".pan"), h = ag.querySelector(".halo"); if (!pan || !h) return;
+  /* el punto de la maqueta llevado a la ventana: el propio resaltado, sin tamaño, puesto en (x, y) */
+  h.style.left = x + "px"; h.style.top = y + "px"; h.style.width = "0px"; h.style.height = "0px";
+  const rh = h.getBoundingClientRect(), px = rh.left, py = rh.top;
+  const pila = document.elementsFromPoint(px, py).filter(e => pan.contains(e) && e !== pan && e.parentElement !== pan && !e.classList.contains("toque") && !e.classList.contains("halo"));
+  const pinta = e => { const c = getComputedStyle(e); return (c.backgroundColor !== "rgba(0, 0, 0, 0)" && c.backgroundColor !== "transparent") || c.backgroundImage !== "none" || parseFloat(c.borderTopLeftRadius) > 0 || c.boxShadow !== "none"; };
+  let el = pila[0]; if (!el) return;
+  const fija = HALO_FIJA[A + "|" + x + "|" + y]; /* lo que se toca dentro de una captura (una imagen) no tiene elemento propio: su caja se declara */
+  const cerca = el.closest(HALO_ENTERO);
+  if (cerca && pan.contains(cerca) && cerca !== pan) el = cerca;
+  else { while (!pinta(el) && el.parentElement && el.parentElement.parentElement !== pan && pan.contains(el.parentElement)) el = el.parentElement;
+    if (el.offsetWidth * el.offsetHeight > 0.45 * pan.offsetWidth * pan.offsetHeight) el = pila[0]; }
+  if (fija) { const [fx, fy, fw, fh, fr] = fija; h.style.left = (fx - HALO_AIRE) + "px"; h.style.top = (fy - HALO_AIRE) + "px"; h.style.width = (fw + 2 * HALO_AIRE) + "px"; h.style.height = (fh + 2 * HALO_AIRE) + "px"; h.style.borderRadius = (fr + HALO_AIRE) + "px"; h.__obj = el; h.__fija = fija; return; }
+  h.__fija = null;
+  const b = haloCaja(pan, el);
+  h.style.left = (b.x - HALO_AIRE) + "px"; h.style.top = (b.y - HALO_AIRE) + "px"; h.style.width = (b.w + 2 * HALO_AIRE) + "px"; h.style.height = (b.h + 2 * HALO_AIRE) + "px"; h.style.borderRadius = (b.r ? b.r + HALO_AIRE : 0) + "px";
+  h.__obj = el;
+}
 /* una capa de apoyo/cine en su caja; orig = punto de giro en coordenadas del cuadro */
 const K = (n, cl = "") => { const c = CAPAS[n]; return `<img class="k k-${n}${cl ? " " + cl : ""}" src="${c[0]}" alt="" style="left:${c[1]}px;top:${c[2]}px;width:${c[3]}px;height:${c[4]}px">`; };
 const orig = (n, x, y) => `${x - CAPAS[n][1]}px ${y - CAPAS[n][2]}px`;
@@ -977,6 +997,7 @@ const GIRO = {"ana-cabeza": [456, 596], "carlos-cabeza": [1464, 596], "mesero-ca
 
 /* la línea de tiempo: estados iniciales con set en 0 y después tweens; buscar hacia atrás o adelante da el mismo cuadro */
 function filmLinea() {
+  TOQUES.length = 0;
   const g = window.gsap; if (!g) return null;
   const tl = g.timeline({paused: true}), f = $("#cine"), q = s => [...f.querySelectorAll(s)];
   const T = id => tomaIni(id);
@@ -989,7 +1010,13 @@ function filmLinea() {
   const brazo = (quien, v, t, d = 0.22) => BRAZOS[quien].forEach(x => tl.to(q(`.k-${quien}-${x}`), {autoAlpha: x === v ? 1 : 0, duration: d, ease: "none"}, t));
   const cabeza = (quien, ang, t, d = 0.5) => tl.to(q(`.k-${quien}-cabeza`), {rotation: ang, duration: d, ease: "sine.inOut"}, t);
   const gesto = (quien, t, n = 3, ang = 10) => tl.to(q(`.k-${quien}-brazo`), {rotation: quien === "ana" ? -ang : ang, duration: 0.32, yoyo: true, repeat: 2 * n - 1, ease: "sine.inOut"}, t);
-  const toque = (A, x, y, t) => { tl.set(q(A + " .halo"), {left: x, top: y}, t - 0.62); tl.fromTo(q(A + " .halo"), {autoAlpha: 0, scale: 0.8}, {autoAlpha: 1, scale: 1, duration: 0.22, ease: "power2.out", immediateRender: false}, t - 0.6); tl.to(q(A + " .halo"), {autoAlpha: 0, duration: 0.2}, t + 0.02);
+  const toque = (A, x, y, t) => {
+    /* el resaltado sale 0.6 s antes; si el mismo teléfono se acaba de tocar, espera a que lo nuevo esté en pantalla */
+    const prev = TOQUES.filter(o => o[0] === A && o[3] < t).reduce((m, o) => Math.max(m, o[3]), -9), d = clamp(t - prev - 0.45, 0.3, 0.62), fija = () => haloPon(A, x, y);
+    TOQUES.push([A, x, y, t, d]);
+    tl.fromTo(q(A + " .halo"), {autoAlpha: 0, scale: 1.12}, {autoAlpha: 1, scale: 1, duration: 0.2, ease: "power2.out", immediateRender: false, onStart: fija, onUpdate: fija}, t - d);
+    tl.fromTo(q(A + " .halo"), {scale: 1}, {scale: 1.06, duration: (d - 0.24) / 2, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false, onUpdate: fija}, t - d + 0.2);
+    tl.to(q(A + " .halo"), {autoAlpha: 0, duration: 0.2}, t + 0.02);
     tl.set(q(A + " .toque"), {left: x, top: y}, t - 0.01); tl.fromTo(q(A + " .toque"), {autoAlpha: 0.95, scale: 0.4}, {autoAlpha: 0, scale: 1.6, duration: 0.7, ease: "power2.out", immediateRender: false}, t); };
   const mueve = (A, x, y, t, d = 0.45) => tl.to(q(A + " .dedo"), {x, y, duration: d, ease: "power2.inOut"}, t);
   /* tocar: el índice llega, baja, deja su marca y se aparta a un lado del teléfono para dejar ver la pantalla; s = -1 si la mano entra por la izquierda */
@@ -1267,13 +1294,13 @@ function filmLinea() {
   sale(".reco2", t + 5.6, 0.3);
   entra(".cs.pCarlos .toast", t + 5.6, 0.35, {y: -14}, {y: 0});
   entra(".conf", t + 5.9, 0.4, {y: 20}, {y: 0});
-  /* 10 · Carlos confirma: la mesa llama al mesero */
+  /* 10 · Carlos confirma: Carta llama al mesero */
   t = T("confirma");
   toca(".agC", 200, 800, t + 0.9, -1);
   pantalla(".cs.pListosB", t + 1.05, 0.4);
   pantalla(".cs.pListosA", t + 1.35, 0.4);
   retira(".agC", t + 1.9, REPC);
-  /* 10b · a los cuatro les cambia la pantalla: «Orden de la mesa», llamando al mesero y luego «va en camino» */
+  /* 10b · a los cuatro les cambia la pantalla: «Orden de la mesa», llamando al mesero y «va en camino»; en ese instante, corte al teléfono de Javier */
   const SLOT = k => ({x: 64 + k * 378 + PQF.x, y: 150 + PQF.y, rotation: 0, scale: PQF.scale});
   const fila = (t0, t1, cls, cuales, lados) => { cuales.forEach(k => { tl.set(q(".cq" + k), {...FILA(k), overflow: "visible", background: "none", boxShadow: "none"}, t0); tl.set(q(".agQ" + k), {...PQF, autoAlpha: 1}, t0);
       tl.set(q(".agQ" + k + " .pan>.cs"), {autoAlpha: 0}, t0); tl.set(q(".agQ" + k + " " + cls), {autoAlpha: 1}, t0);
@@ -1283,19 +1310,19 @@ function filmLinea() {
   t = T("esperan");
   /* los teléfonos de Ana y de Carlos se hacen pequeños y se van a su lugar; suben los de Sofía y Diego; luego las líneas y los nombres */
   tl.to(q(".nom, .divi"), {autoAlpha: 0, duration: 0.3}, t);
-  tl.to(q(".agA"), {...SLOT(0), duration: 0.9, ease: "power3.inOut"}, t + 0.1); tl.to(q(".agC"), {...SLOT(3), duration: 0.9, ease: "power3.inOut"}, t + 0.1);
+  tl.to(q(".agA"), {...SLOT(0), duration: 0.8, ease: "power3.inOut"}, t + 0.05); tl.to(q(".agC"), {...SLOT(3), duration: 0.8, ease: "power3.inOut"}, t + 0.05);
   tl.set(q(".qE .e1"), {autoAlpha: 1}, t); tl.set(q(".qE .e2"), {autoAlpha: 0}, t);
-  fila(t + 0.8, t + 7.1, ".qL", [1, 2], false); sale(".agA, .agC", t + 7.1, 0.4);
-  [".agA", ".agQ1", ".agQ2", ".agC"].forEach(A => pantalla(A + " .qE", t + 3.0, 0.45));
-  sale(".qE .e1", t + 4.9, 0.2); entra(".qE .e2", t + 5.05, 0.45, {scale: 0.9}, {scale: 1, ease: "back.out(2)"});
+  fila(t + 0.4, t + 2.85, ".qL", [1, 2], false); sale(".agA, .agC", t + 2.85, 0.35);
+  [".agA", ".agQ1", ".agQ2", ".agC"].forEach(A => pantalla(A + " .qE", t + 1.35, 0.3));
+  sale(".qE .e1", t + 2.1, 0.15); entra(".qE .e2", t + 2.2, 0.35, {scale: 0.9}, {scale: 1, ease: "back.out(2)"});
   /* ===== acto 4: el mesero ===== */
   /* 11 · el mesero, en otra parte del salón: le vibra el bolsillo (aviso con el teléfono bloqueado: visión), mira y dice «Ya voy» */
   t = T("avisa");
   pon(".cs.bloq", t, true); tl.set(q(".agM"), {...PM, autoAlpha: 0}, t);
   tl.to(q(".cfon"), {x: -160, duration: 1.2, ease: "power2.inOut"}, t);
-  tl.fromTo(q(".agM"), {y: PM.y + 220, autoAlpha: 0}, {y: PM.y, autoAlpha: 1, duration: 1.0, ease: "power3.out", immediateRender: false}, t + 0.3);
-  entra(".noti", t + 1.1, 0.5, {y: -24, scale: 0.92}, {y: 0, scale: 1, ease: "back.out(1.7)"});
-  toca(".agM", 200, 425, t + 2.8);
+  tl.fromTo(q(".agM"), {y: PM.y + 120, autoAlpha: 0}, {y: PM.y, autoAlpha: 1, duration: 0.4, ease: "power3.out", immediateRender: false}, t);
+  entra(".noti", t + 0.7, 0.5, {y: -24, scale: 0.92}, {y: 0, scale: 1, ease: "back.out(1.7)"});
+  toca(".agM", 200, 400, t + 2.8);
   pantalla(".cs.pOrden", t + 3.0, 0.4);
   retira(".agM", t + 3.9, REP, 0.5);
   /* de vuelta a la mesa: el mesero llega con su teléfono en la mano */
@@ -1472,7 +1499,7 @@ function filmLinea() {
     entra(".cq" + k, t + 2.9 + k * 0.12, 0.6, {y: 40}, {y: 0, ease: "power3.out"}); });
   QUIEN.forEach((_, k) => pantalla(".agQ" + k + " .qC", t + 4.3 + k * 0.15, 0.45));
   tl.to(q(".agQ .qin"), {y: -150, duration: 0.9, ease: "power2.inOut", stagger: 0.1}, t + 5.0);
-  QUIEN.forEach((_, k) => { const tt = t + 5.9 + k * 0.15; toque(".agQ" + k, 356, 134, tt); tl.fromTo(q(".agQ" + k + " .qlk"), {autoAlpha: 0, scale: 0.3}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(3)", stagger: 0.25, immediateRender: false}, tt + 0.05); });
+  QUIEN.forEach((_, k) => { const tt = t + 5.9 + k * 0.15; toque(".agQ" + k, 359, 114, tt); tl.fromTo(q(".agQ" + k + " .qlk"), {autoAlpha: 0, scale: 0.3}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(3)", stagger: 0.25, immediateRender: false}, tt + 0.05); });
   entra(".dvv", t + 2.9, 0.7, {scaleY: 0}, {scaleY: 1, ease: "power2.out"}); entra(".dvh", t + 3.1, 0.7, {scaleX: 0}, {scaleX: 1, ease: "power2.out"});
   entra(".ctt", t + 3.2, 0.4); entra(".celda .w0", t + 3.4, 0.4, {y: 10}, {y: 0});
   tl.fromTo(q(".agQ .cpc.on"), {scale: 1}, {scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, stagger: 0.2, immediateRender: false}, t + 6.5);
