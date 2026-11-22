@@ -569,7 +569,7 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   ok((await p.isVisible('#intro')) && !(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && !pausaI && tI > 0)), 'presentación con voz: al reabrir tras un gesto no hay puerta y arranca con sonido');
   /* versión 18: antes de cada toque, el resaltado tiene la caja (± 4 px) y el radio de lo que se toca, y se ve */
   const hal = await p.evaluate(() => {
-    pausaI = true; const mal = []; let fijas = 0;
+    pausaI = true; const mal = [], marcas = []; let fijas = 0;
     for (const [A, x, y, t] of TOQUES) {
       for (const d of [0.3, 0.05]) { vozSalto = true; tI = (t - d) * 1000; pintaIntro(); }
       const ag = document.querySelector('#cine ' + A), pan = ag.querySelector('.pan'), h = ag.querySelector('.halo'), o = h.__obj, de = A + ' (' + x + ', ' + y + ') a los ' + t.toFixed(1) + ' s';
@@ -584,9 +584,15 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
       if (dif > 4) mal.push(de + ': caja a ' + dif.toFixed(1) + ' px de ' + o.className);
       else if (Math.abs(parseFloat(h.style.borderRadius) - rq) > 0.5) mal.push(de + ': radio ' + h.style.borderRadius + ' y el de ' + o.className + ' es ' + r);
       else if (!pt.includes(o)) mal.push(de + ': ' + o.className + ' no está a la vista');
+      /* y la marca del toque cae dentro de la caja de lo que se toca */
+      vozSalto = true; tI = (t + 0.04) * 1000; pintaIntro();
+      const m = ag.querySelector('.toque'), rm = m.getBoundingClientRect(), r2 = o.getBoundingClientRect(), mx = (rm.left + rm.right) / 2, my = (rm.top + rm.bottom) / 2;
+      if (!(+getComputedStyle(m).opacity > 0.3)) marcas.push(de + ': la marca del toque no se ve');
+      else if (mx < r2.left - 1 || mx > r2.right + 1 || my < r2.top - 1 || my > r2.bottom + 1) marcas.push(de + ': la marca cae fuera de ' + o.className);
     }
-    pausaI = false; return { n: TOQUES.length, fijas, mal };
+    pausaI = false; return { n: TOQUES.length, fijas, mal, marcas };
   });
+  ok(hal.marcas.length === 0, 'película: toda marca de toque cae dentro de la caja de lo que se toca (' + hal.n + ' toques) ' + hal.marcas.slice(0, 6).join(' | '));
   ok(hal.n >= 40 && hal.mal.length === 0, 'película: cada resaltado coincide con la caja de lo que se toca (± 4 px), tiene su radio y se ve (' + hal.n + ' toques, ' + hal.fijas + ' con caja declarada dentro de una captura) ' + hal.mal.slice(0, 6).join(' | '));
   await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 }

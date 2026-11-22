@@ -319,7 +319,7 @@
   "toma": "filtra",
   "quien": "narrador",
   "texto": "[whispers] Al mesero se lo dijo también. Por si acaso.",
-  "inicio": 9.2,
+  "inicio": 8.6,
   "tras": 0.3
  },
  {
@@ -510,7 +510,7 @@
   "quien": "diego",
   "texto": "Se me antojó un guacamole.",
   "inicio": 11.7,
-  "tras": 0.2
+  "encima": 1.5
  },
  {
   "id": "abierta-11",
@@ -668,7 +668,7 @@
   "toma": "cierres",
   "quien": "ana",
   "texto": "[excited] ¡Feliz cumpleaños, Sofi!",
-  "inicio": 20,
+  "inicio": 17.9,
   "encima": 0.2
  },
  {
@@ -676,7 +676,7 @@
   "toma": "cierres",
   "quien": "carlos",
   "texto": "[cheering] ¡Felicidades, Sofi! ¡Eeeh!",
-  "inicio": 20.3,
+  "inicio": 18.2,
   "con": 0.3
  },
  {
@@ -684,7 +684,7 @@
   "toma": "cierres",
   "quien": "diego",
   "texto": "[singing] ¡Feliz cumpleaños a ti…!",
-  "inicio": 20.6,
+  "inicio": 18.5,
   "con": 0.3
  },
  {
@@ -692,7 +692,7 @@
   "toma": "cierres",
   "quien": "sofia",
   "texto": "[touched] ¡Ay, amigos… muchas gracias! [giggles]",
-  "inicio": 22.6,
+  "inicio": 21,
   "encima": 0.5
  },
  {
@@ -708,7 +708,7 @@
   "toma": "cierres",
   "quien": "carlos",
   "texto": "¿Ya nadie va a pedir nada más?",
-  "inicio": 31.9,
+  "inicio": 32,
   "tras": 0.3
  },
  {
@@ -716,7 +716,7 @@
   "toma": "cierres",
   "quien": "ana",
   "texto": "[jumping in] No, todo bien.",
-  "inicio": 33.9,
+  "inicio": 34,
   "encima": 0.2
  },
  {
@@ -724,7 +724,7 @@
   "toma": "cierres",
   "quien": "narrador",
   "texto": "[warmly] Y cuando cerró el último, la mesa entera quedó en cuenta cerrada.",
-  "inicio": 35.6,
+  "inicio": 35.7,
   "tras": 0.3
  },
  {
@@ -803,14 +803,14 @@
   "toma": "pagada",
   "quien": "narrador",
   "texto": "[warmly] Y cada quien pagó a su manera.",
-  "inicio": 0.3
+  "inicio": 0.5
  },
  {
   "id": "pagada-02",
   "toma": "pagada",
   "quien": "mesero",
   "texto": "Con la terminal, cuando gusten.",
-  "inicio": 2.9,
+  "inicio": 3.6,
   "tras": 0.3
  },
  {
@@ -818,7 +818,7 @@
   "toma": "pagada",
   "quien": "diego",
   "texto": "Yo, por transferencia.",
-  "inicio": 5.6,
+  "inicio": 7.5,
   "tras": 0.2
  },
  {
@@ -826,7 +826,7 @@
   "toma": "pagada",
   "quien": "narrador",
   "texto": "[softly] Carta le puso en pantalla los datos del restaurante.",
-  "inicio": 7.6,
+  "inicio": 9.8,
   "tras": 0.3
  },
  {
@@ -834,15 +834,15 @@
   "toma": "pagada",
   "quien": "carlos",
   "texto": "Yo pago en efectivo.",
-  "inicio": 11.7,
+  "inicio": 14.5,
   "tras": 0.3
  },
  {
   "id": "pagada-06",
   "toma": "pagada",
   "quien": "mesero",
-  "texto": "Cuatrocientos treinta y uno… completo. Validado.",
-  "inicio": 13.6,
+  "texto": "Está completo. Validado.",
+  "inicio": 18,
   "tras": 0.2
  },
  {
@@ -850,8 +850,8 @@
   "toma": "pagada",
   "quien": "mesero",
   "texto": "Todo pagado. ¡Muchas gracias!",
-  "inicio": 17.6,
-  "tras": 0.2
+  "inicio": 21.5,
+  "tras": 0.3
  },
  {
   "id": "factura-01",
