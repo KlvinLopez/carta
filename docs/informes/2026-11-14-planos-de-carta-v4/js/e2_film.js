@@ -109,7 +109,7 @@ const CICLO = [["f3", "El personal lleva el ciclo de la mesa: abierta, cuenta ce
 const TOMAS = [
   /* A · el gancho */
   ["mesa", 1, 10, [["hoy", "El QR de cada mesa"]], ["Todo empieza en *la mesa*."], "hook", 0.6],
-  ["cumple", 1, 8.6, [], ["Mira esta mesa: *un cumpleaños, cuatro amigos*."], "linea", 1.0],
+  ["cumple", 1, 12.4, [], ["Mira esta mesa: *un cumpleaños, cuatro amigos*."], "linea", 1.0],
   /* B · las problemáticas, rápidas: el problema es el sistema, no las personas */
   ["b1", 2, 13.1, [], ["Ponerse de acuerdo, *al tanteo*."], "linea", 0.3],
   ["b2", 2, 21.2, [], ["Un menú que *no te conoce*."], "linea", 0.3],
@@ -153,7 +153,7 @@ const ACTOS = [[1, "El gancho"], [2, "El problema"], [3, "Tu carta"], [4, "La me
    El audio es un archivo por toma, apoyo/voz/<toma>.mp3, con todo lo de esa toma ya mezclado en sus segundos. */
 const VOZ = {
   mesa: [[0.4, "narrador", "[whispers] Viernes en la noche. [pause] [mischievously] Imaginemos una mesa. Mantel blanco, una vela… y cuatro sillas que todavía no saben la noche que les espera."]],
-  cumple: [[0.3, "narrador", "[gasps] ¡Es el cumpleaños de Sofía! [warmly] Ana, Diego y Carlos llegaron temprano. [giggles] Bueno… casi."], [6.2, "mesero", "Buenas noches. Aquí está la carta.", {g: 1}]],
+  cumple: [[0.3, "narrador", "[gasps] ¡Es el cumpleaños de Sofía! [warmly] Ana, Diego y Carlos llegaron temprano. [giggles] Bueno… casi."], [9.7, "mesero", "Buenas noches. Aquí está la carta.", {g: 1}]],
   b1: [[0.2, "narrador", "[mischievously] Primero, lo de siempre: ponerse de acuerdo."], [4.4, "ana", "¿Pedimos algo para compartir?", {g: 10}], [6.3, "diego", "¿La parrillada alcanza para cuatro?", {g: 11}],
     [8.5, "carlos", "[sighs] Es el mismo menú, pero en PDF.", {g: 12}], [11.0, "sofia", "[jumping in] ¿Y eso qué trae?", {g: 13, encima: 0.2}]],
   b2: [[0.2, "narrador", "[softly] Luego, un menú que no sabe nada de ellos."], [4.0, "ana", "Los tacos de pescado, por favor.", {g: 14}], [6.0, "mesero", "Se nos terminaron. Una disculpa.", {g: 15}], [8.0, "ana", "¿Y el mole?", {g: 16}],
@@ -207,10 +207,10 @@ const VOZ = {
 };
 /* Las tomas que ya tienen audio y cuánto dura cada uno, en segundos: {b1: 9.8, …}. Vacío = película en silencio.
    Una toma se alarga sola a lo que dure su audio más el margen. */
-const VOZ_AUDIO = {"mesa":11.14,"cumple":10.13,"b1":12.7,"b2":21.12,"b3":10.3,"b3t":6.0,"espera":11.74,"ticket":5.35,"b4":8.45,"pivote":6.43,"ofrece":9.46,"escanea":5.95,"filtra":11.52,"top3":8.06,"plato":2.64,"agrega":3.29,"juntos":10.94,"recomienda":5.28,"confirma":5.23,"avisa":4.82,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":38.64,"cuenta":32.21,"pagada":23.54,"factura":10.03,"sucia":4.54,"prepara":2.54,"limpia":6.0,"fin":3.43};
+const VOZ_AUDIO = {"mesa":11.14,"cumple":12.05,"b1":12.7,"b2":21.12,"b3":10.3,"b3t":6.0,"espera":11.74,"ticket":5.35,"b4":8.45,"pivote":6.43,"ofrece":9.46,"escanea":5.95,"filtra":11.52,"top3":8.06,"plato":2.64,"agrega":3.29,"juntos":10.94,"recomienda":5.28,"confirma":5.23,"avisa":4.82,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":38.64,"cuenta":32.21,"pagada":23.54,"factura":10.03,"sucia":4.54,"prepara":2.54,"limpia":6.0,"fin":3.43};
 /* Los tiempos medidos del audio, por toma: {b1: [[inicio, fin], …]}, uno por línea de VOZ en su orden (null si no se midió). Vacío = se usan los segundos de VOZ.
    Con tiempos aquí, los globos de esa toma entran y salen con ellos; puede haber dos globos a la vez. */
-const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[7.78,9.93]],"b1":[[0.2,3.43],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[0.2,3.31],[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[17.96,19.49],[19.79,20.93]],"b3":[[0.2,4.14],[4.44,7.02],[6.82,7.94],[8.14,10.12]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[0.9,2.75],[3.05,4.0],[3.8,4.95],[5.25,9.78],[10.08,11.55]],"ticket":[[0.9,2.08],[2.38,5.17]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,6.24]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,5.77]],"filtra":[[0.4,2.1],[2.4,8.11],[8.41,11.32]],"top3":[[0.4,7.87]],"plato":[[0.4,2.46]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"recomienda":[[0.4,5.08]],"confirma":[[0.3,5.05]],"avisa":[[0.4,4.63]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,20.53],[20.83,22.86],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,42.42],[42.72,44.26],[50.0,52.89],[53.19,54.69],[54.99,56.85],[57.15,57.73],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[17.76,19.51],[18.06,20.76],[18.36,21.34],[20.84,24.37],[25.0,27.29],[32.0,33.5],[33.3,34.32],[34.62,38.45]],"cuenta":[[0.3,5.56],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,32.03]],"pagada":[[0.5,2.56],[3.6,5.17],[7.5,9.05],[9.36,12.05],[14.5,15.83],[18.0,19.88],[21.5,23.35]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,9.83]],"sucia":[[0.1,1.59],[1.89,4.34]],"prepara":[[0.3,2.35]],"limpia":[[2.0,5.81]],"fin":[[1.2,3.24]]};
+const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[9.7,11.85]],"b1":[[0.2,3.43],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[0.2,3.31],[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[17.96,19.49],[19.79,20.93]],"b3":[[0.2,4.14],[4.44,7.02],[6.82,7.94],[8.14,10.12]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[0.9,2.75],[3.05,4.0],[3.8,4.95],[5.25,9.78],[10.08,11.55]],"ticket":[[0.9,2.08],[2.38,5.17]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,6.24]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,5.77]],"filtra":[[0.4,2.1],[2.4,8.11],[8.41,11.32]],"top3":[[0.4,7.87]],"plato":[[0.4,2.46]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"recomienda":[[0.4,5.08]],"confirma":[[0.3,5.05]],"avisa":[[0.4,4.63]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,20.53],[20.83,22.86],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,42.42],[42.72,44.26],[50.0,52.89],[53.19,54.69],[54.99,56.85],[57.15,57.73],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[17.76,19.51],[18.06,20.76],[18.36,21.34],[20.84,24.37],[25.0,27.29],[32.0,33.5],[33.3,34.32],[34.62,38.45]],"cuenta":[[0.3,5.56],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,32.03]],"pagada":[[0.5,2.56],[3.6,5.17],[7.5,9.05],[9.36,12.05],[14.5,15.83],[18.0,19.88],[21.5,23.35]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,9.83]],"sucia":[[0.1,1.59],[1.89,4.34]],"prepara":[[0.3,2.35]],"limpia":[[2.0,5.81]],"fin":[[1.2,3.24]]};
 const VOZ_MARGEN = 0.6;
 TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
 const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
@@ -265,6 +265,9 @@ const cineCss = `
 #cine .sala,#cine .cerca,#cine .pfon,#cine .pfig,#cine .gp,#cine .cfon{position:absolute;left:0;top:0;width:1920px;height:1080px}
 /* el informe tiene una clase .gp (puntos de sus gráficas) con una animación de entrada: aquí no aplica, o anula los movimientos de los personajes */
 #cine .gp{animation:none;transform-box:border-box}
+#cine .silu{position:absolute;left:1318px;top:470px;width:380px;height:520px;border-radius:50%;background:radial-gradient(closest-side,rgba(253,214,140,.55),rgba(253,195,77,.18) 55%,rgba(253,195,77,0));mix-blend-mode:screen;opacity:0;visibility:hidden;pointer-events:none}
+/* B · el nombre de cada quien, bajo su figura: va dentro de su grupo, así entra, sale y se mueve con él */
+#cine .nmb{position:absolute;transform:translateX(-50%);padding:4px 14px;border-radius:999px;background:rgba(23,18,16,.46);color:rgba(254,249,241,.92);font:600 21px 'DM Sans',sans-serif;letter-spacing:.02em;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.6);pointer-events:none}
 #cine .sala{z-index:1}#cine .cerca{z-index:2;opacity:0;visibility:hidden}
 #cine .pfig{transform-origin:0 0}
 #cine img.k{position:absolute;display:block;max-width:none}
@@ -986,12 +989,12 @@ const agarre = (cl, quien, pant, nom = "") => `<div class="agarre ${cl}">${K(qui
 function cineHtml() {
   const bz = q => BRAZOS[q].map(v => K(`${q}-${v}`, "bz")).join("");
   const sala = `<div class="sala"><div class="pfon">${K("fondo")}</div><div class="pfig">` +
-    K("ana-silla") + K("carlos-silla") +
+    K("ana-silla") + K("carlos-silla") + `<i class="silu"></i>` +
     `<div class="gp gm">${K("mesero-cabeza")}${K("mesero-cuerpo")}</div><div class="gp gS">${K("sofia-cabeza")}${K("sofia-cuerpo")}</div><div class="gp gD">${K("diego-cabeza")}${K("diego-cuerpo")}</div>` +
     `<div class="gp gA">${K("ana-cabeza")}${K("ana-cuerpo")}</div><div class="gp gC">${K("carlos-cabeza")}${K("carlos-cuerpo")}</div>` + K("mesa") +
-    `<div class="gp gS">${bz("sofia")}</div><div class="gp gD">${bz("diego")}</div>` +
+    `<div class="gp gS">${bz("sofia")}<span class="nmb" style="left:800px;top:828px">Sofía</span></div><div class="gp gD">${bz("diego")}<span class="nmb" style="left:1080px;top:828px">Diego</span></div>` +
     ["montaje", "ticket", "pastel", "sucia-migas", "sucia-a", "sucia-c", "sucia-vaso", "platillo-a", "platillo-c", "copa-a", "copa-c", "qr-brillo", "acrilico", "vela", "llama"].map(n => K(n)).join("") +
-    `<div class="gp gm">${bz("mesero")}<span class="buzz"><i></i><i></i></span>${K("mesero-brazo-pluma", "bz")}</div><div class="gp gA">${bz("ana")}</div><div class="gp gC">${bz("carlos")}</div><i class="bill"></i>` +
+    `<div class="gp gm">${bz("mesero")}<span class="buzz"><i></i><i></i></span>${K("mesero-brazo-pluma", "bz")}<span class="nmb" style="left:1250px;top:522px">Javier</span></div><div class="gp gA">${bz("ana")}<span class="nmb" style="left:462px;top:890px">Ana</span></div><div class="gp gC">${bz("carlos")}<span class="nmb" style="left:1460px;top:890px">Carlos</span></div><i class="bill"></i>` +
     K("resplandor") + K("nuevos") + `</div></div>`;
   const cerca = `<div class="cerca"><div class="cfon">${K("cerca-fondo")}</div>${agarre("agA", "ana", pantallas() + pantEspera(0), "Ana")}${agarre("agC", "carlos", pantallasB() + pantEspera(3), "Carlos")}${agarre("agM", "mesero", pantallasM())}${SOLIC.map((x, i) => agarre("agY" + i, QUIEN[x.k][0], pantCocina(x) + `<i class="halo"></i><i class="toque"></i>`, QUIEN[x.k][3])).join("")}${agarre("agZ3", "sofia", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Sofía")}${agarre("agZ4", "diego", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Diego")}${agarre("agZ", "ana", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Ana")}${agarre("agZ2", "carlos", pantSeg() + `<i class="halo"></i><i class="toque"></i>`, "Carlos")}${agarre("agT", "diego", pantallasT(), "Diego")}<svg class="repa" viewBox="0 0 1920 1080"><path class="rps" d="${tuboD("s")}"/><path class="rp1" d="${tuboD(0)}"/><path class="rp2" d="${tuboD(2)}"/><path class="rp3" d="${tuboD(3)}"/></svg>${QUIEN.map((u, k) => `<div class="celda cq${k}">${agarre("agQ agQ" + k, u[0], pantallasQ(k), u[3])}${totalCelda(k)}<div class="gq gq${k}">${DICE[k]}</div>${k === 1 ? `<div class="gqf">🥳</div>` : ""}</div>`).join("")}<i class="dvc dvv"></i><i class="dvc dvh"></i><div class="cnt4"><span>${icoGente}</span><b class="vv"><i class="w1">entre 1</i><i class="w2">entre 2</i><i class="w3">entre 3</i></b><small class="vv vm"><i class="w1">$180</i><i class="w2">$90 + $90</i><i class="w3">$60 + $60 + $60</i></small></div>${["s", 0, 2, 3].map(k => `<span class="vj vj${k}">${k === "s" ? "$180" : [1, 2, 3].filter(n => n >= ENTRA[k]).map(n => `<i class="w${n}">${pesoF(QSOFIA / n)}</i>`).join("")}</span>`).join("")}</div>`;
   const pip = `<div class="pip"><b class="pipt">Tablero del mesero</b><div class="reloj"><span class="x4 hd"></span><span class="esfera"><i class="hh"></i><i class="mm"></i></span></div>${agarre("agP", "mesero", pantallasP())}</div>`;
@@ -1136,12 +1139,20 @@ function filmLinea() {
   tl.fromTo(q(".gA"), {autoAlpha: 0, x: -90}, {autoAlpha: 1, x: 0, duration: 1.1, ease: "power3.out", immediateRender: false}, t + 0.4);
   tl.fromTo(q(".gS"), {autoAlpha: 0, y: 30}, {autoAlpha: 1, y: 0, duration: 1.0, ease: "power3.out", immediateRender: false}, t + 0.7);
   tl.fromTo(q(".gD"), {autoAlpha: 0, y: 30}, {autoAlpha: 1, y: 0, duration: 1.0, ease: "power3.out", immediateRender: false}, t + 1.0);
-  tl.fromTo(q(".gC"), {autoAlpha: 0, x: 90}, {autoAlpha: 1, x: 0, duration: 1.1, ease: "power3.out", immediateRender: false}, t + 1.3);
-  tl.fromTo(q(".gm"), {autoAlpha: 0, x: 200}, {autoAlpha: 1, x: 56, duration: 1.2, ease: "power2.out", immediateRender: false}, t + 2.2);
   entra(".hora", t + 2.6, 0.5, {y: -12}, {y: 0});
-  cam(t, C1, 6.5, "sine.inOut");
-  mira(1, t + 3.0); globo(1, t + 3.5, t + 5.9); inclina(".gm", -1.5, t + 3.2, 0.9);
-  cabeza("ana", -5, t + 3.5); cabeza("carlos", 5, t + 3.7);
+  cam(t, C1, 5.4, "sine.inOut");
+  /* «…llegaron temprano. Bueno… casi.»: la silla de Carlos sigue vacía; la luz y la cámara la señalan y entonces llega él */
+  const casi = t + 6.2, llega = casi + 0.9, sentado = llega + 1.5, m0 = GT[1] ? GT[1][0] : t + 9.7;
+  entra(".silu", casi, 0.45, {scale: 0.7}, {scale: 1}); tl.to(q(".silu"), {scale: 1.08, duration: 0.35, yoyo: true, repeat: 1, ease: "sine.inOut"}, casi + 0.45); sale(".silu", sentado - 0.5, 0.6);
+  cam(casi - 0.2, {s: 1.07, x: -170, y: -40}, 0.9, "power2.inOut"); cam(sentado - 0.3, C1, 1.5, "sine.inOut");
+  cabeza("ana", 6, casi + 0.3); tl.to(q(".k-sofia-cabeza, .k-diego-cabeza"), {rotation: 4, duration: 0.5, ease: "sine.inOut"}, casi + 0.4);
+  tl.fromTo(q(".gC"), {autoAlpha: 0, x: 300}, {autoAlpha: 1, x: 0, duration: 1.5, ease: "power2.out", immediateRender: false}, llega);
+  tl.fromTo(q(".gC"), {y: 0}, {y: -9, duration: 0.19, yoyo: true, repeat: 5, ease: "sine.inOut", immediateRender: false}, llega + 0.1);
+  cabeza("ana", 0, sentado + 0.2); tl.to(q(".k-sofia-cabeza, .k-diego-cabeza"), {rotation: 0, duration: 0.5, ease: "sine.inOut"}, sentado + 0.2);
+  /* el mesero entra cuando Carlos ya se sentó */
+  tl.fromTo(q(".gm"), {autoAlpha: 0, x: 200}, {autoAlpha: 1, x: 56, duration: 1.1, ease: "power2.out", immediateRender: false}, Math.max(sentado, m0 - 1.3));
+  mira(1, m0 - 0.5); globo(1, m0, m0 + 2.4); inclina(".gm", -1.5, m0 - 0.3, 0.9);
+  cabeza("ana", -5, m0); cabeza("carlos", 5, m0 + 0.2);
   /* ===== B · las problemáticas ===== */
   const habla = (k, t0, t1, quien, ang = 4) => { if (GT[k]) { t0 = GT[k][0]; t1 = GT[k][1]; } globo(k, t0, t1); if (quien === "mesero") { cabeza("mesero", ang, t0, 0.4); cabeza("mesero", 0, t1 - 0.2, 0.4); } else if (quien) { cabeza(quien, ang, t0, 0.35); cabeza(quien, -ang / 2, (t0 + t1) / 2, 0.35); cabeza(quien, 0, t1 - 0.2, 0.35); } };
   /* la lupa: entra junto a quien mira, con un aro sobre su pantalla o su papel */

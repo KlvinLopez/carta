@@ -533,6 +533,30 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390,
   ok(n >= 24 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos fuera del cuadro ni encimados ` + mal.slice(0, 3).join('; '));
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
+/* versión 19: en las tomas de mesa, cada personaje a la vista lleva su nombre, y ningún nombre se encima con un globo o un rótulo.
+   Se mira cada toma en tres instantes; en `cumple`, antes de «casi», la silla de Carlos está vacía y el mesero aún no llega. */
+const nom = await p.evaluate(async () => {
+  const f = document.querySelector('#cine'), mal = [], vistos = {}, tomas = new Set();
+  const vis = (el) => { let o = 1, n = el; while (n && n !== f) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; n = n.parentElement; } return o; };
+  const mira = async (s) => { tI = s * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 30)); };
+  for (let i = 0; i < TOMAS.length; i++) for (const fr of [0.3, 0.55, 0.8]) {
+    const s = T0[i] + (T0[i + 1] - T0[i]) * fr; await mira(s);
+    if (vis(f.querySelector('.sala')) < 0.9) continue;
+    const textos = [...f.querySelectorAll('.r .cln, .globo')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
+    for (const n of [...f.querySelectorAll('.nmb')]) { const g = n.parentElement;
+      if (vis(g) < 0.9) { if (vis(n) > 0.1 && vis(g) < 0.05) mal.push(s.toFixed(1) + ' s: «' + n.textContent + '» sin su personaje'); continue; }
+      tomas.add(TOMAS[i][0]); vistos[n.textContent] = (vistos[n.textContent] || 0) + 1; const r = n.getBoundingClientRect();
+      if (vis(n) < 0.9 || !r.width) { mal.push(s.toFixed(1) + ' s: falta el nombre de ' + n.textContent); continue; }
+      for (const [e, rt] of textos) if (r.left < rt.right - 1 && rt.left < r.right - 1 && r.top < rt.bottom - 1 && rt.top < r.bottom - 1) mal.push(s.toFixed(1) + ' s (' + TOMAS[i][0] + '): «' + n.textContent + '» encima de «' + e.textContent.slice(0, 18) + '»');
+    }
+  }
+  const ic = TOMAS.findIndex((x) => x[0] === 'cumple'); await mira(T0[ic] + VOZ_TIEMPOS.cumple[0][1] - 1.6);
+  const de = (c) => vis(f.querySelector('.gp.' + c)); const antes = { C: de('gC'), m: de('gm'), A: de('gA'), S: de('gS'), D: de('gD'), silla: vis(f.querySelector('.k-carlos-silla')) };
+  await mira(T0[ic] + VOZ_TIEMPOS.cumple[1][0] + 0.3); const luego = { C: de('gC'), m: de('gm'), x: +gsap.getProperty(f.querySelector('.gp.gC'), 'x') };
+  return { mal, vistos, tomas: tomas.size, antes, luego };
+});
+ok(nom.tomas >= 12 && ['Ana', 'Sofía', 'Diego', 'Carlos', 'Javier'].every((n) => nom.vistos[n] > 0) && nom.mal.length === 0, 'película: en las tomas de mesa (' + nom.tomas + ') cada personaje a la vista lleva su nombre y ningún nombre se encima con un globo o un rótulo ' + nom.mal.slice(0, 5).join('; '));
+ok(nom.antes.C < 0.05 && nom.antes.m < 0.05 && nom.antes.silla > 0.9 && nom.antes.A > 0.9 && nom.antes.S > 0.9 && nom.antes.D > 0.9 && nom.luego.C > 0.9 && nom.luego.m > 0.9 && Math.abs(nom.luego.x) < 1, 'película: en `cumple`, antes de «casi» la silla de Carlos está vacía y no hay mesero; cuando el mesero habla, Carlos ya está sentado');
 // capítulo 7: la capacidad depende de quién paga; capítulo 5: si la mediana real fuera otra
 await p.evaluate(() => { const i = document.getElementById('intro'); if (i) i.style.display = 'none'; });
 await abre(p, 'recursos7');
