@@ -670,6 +670,7 @@ salida = {
         "consultas": consultas,
         "nota": "Datos sintéticos; el tamaño de una fila no depende del valor salvo en texto y jsonb. Los bytes de datos de una fila = cabecera + columnas + relleno + 4 del puntero de línea; los de índices = entradas de índice (con su puntero de línea).",
     },
+    "codigos_de_evento": {str(v): k for k, v in CODIGO.items()},  # tipo smallint de las tablas propuestas (evento_dia, platillo_dia) → nombre del tipo de evento
     "pasos": pasos,
     "tablas_de_la_mesa": tablas_de_la_mesa,
     "bytes_de_la_mesa_sin_analitica": bytes_mesa,

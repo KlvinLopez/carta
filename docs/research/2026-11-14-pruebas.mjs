@@ -662,6 +662,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   const ids = new Set(todasFilas.map((x) => x.id));
   prueba('todo lo que un paso escribe existe como fila', d.pasos.every((p) => p.escribe.every((e) => ids.has(e.fila))), true);
   prueba('la fila por visita no lleva filtros por comensal', !f.fila_por_visita.tablas[0].filas[0].columnas.some((c) => /filtro/.test(c.nombre)), true);
+  prueba('el JSON trae los códigos de evento (1 scan … 6 item_add)', Object.entries(d.codigos_de_evento).map(([k, v]) => `${k}${v}`).join(','), '1scan,2menu_view,3dish_view,4search,5filter,6item_add');
   prueba('la diferencia con el informe se explica y se concilia tabla por tabla', d.diferencia_con_el_informe.explicacion.length >= 4 && d.diferencia_con_el_informe.conciliacion_por_tabla.length === 8, true);
 }
 
