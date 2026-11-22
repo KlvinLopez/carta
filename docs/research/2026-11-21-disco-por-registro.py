@@ -27,7 +27,13 @@ if "PGPASSWORD" not in os.environ:
     )
 RAIZ = Path(__file__).resolve().parents[2]
 AQUI = Path(__file__).resolve().parent
-ENV = dict(os.environ)  # el host es siempre 127.0.0.1 y la base de trabajo es carta_med_registro_*
+import importlib.util  # noqa: E402
+
+_espec = importlib.util.spec_from_file_location("entorno", AQUI / "2026-11-21-disco-por-registro-entorno.py")
+entorno = importlib.util.module_from_spec(_espec)
+_espec.loader.exec_module(entorno)
+entorno.entorno_de_la_app(os.environ, "")  # aborta ya, antes de crear nada, si hay variables R2_* o CLOUDFLARE_* definidas
+ENV = entorno.entorno_psql(os.environ)  # sin PGHOST, PGHOSTADDR, PGPORT ni PGSERVICE: el host y el puerto los pasa este guion
 VERSION = "2026-11-21-r16"
 MAXALIGN = 8
 PUNTERO_DE_LINEA = 4
@@ -41,6 +47,8 @@ def psql(db, q, uno=False, filas=False):
             "psql",
             "-h",
             "127.0.0.1",
+            "-p",
+            "5432",
             "-U",
             "carta",
             "-d",
@@ -74,8 +82,8 @@ while psql("postgres", f"select 1 from pg_database where datname='carta_med_regi
     n += 1
 DB = f"carta_med_registro_{n}"
 psql("postgres", f"create database {DB}")
-url = f"postgresql+asyncpg://carta:{os.environ['PGPASSWORD']}@127.0.0.1:5432/{DB}"
-entorno_app = {**os.environ, "DATABASE_URL": url, "ENTORNO": "desarrollo"}
+url = entorno.url_de_la_base(os.environ["PGPASSWORD"], DB)
+entorno_app = entorno.entorno_de_la_app(os.environ, url)  # aborta si hay R2_* o CLOUDFLARE_* definidas
 for cmd in (
     ["uv", "run", "alembic", "upgrade", "head"],
     ["uv", "run", "python", "scripts/seed.py"],
@@ -678,7 +686,7 @@ salida = {
     "comparacion": comparacion,
     "diferencia_con_el_informe": diferencia,
 }
-(AQUI / "2026-11-21-disco-por-registro.json").write_text(
+(Path(os.environ.get("CARTA_SALIDA", AQUI)) / "2026-11-21-disco-por-registro.json").write_text(
     json.dumps(salida, ensure_ascii=False, indent=1) + "\n"
 )
 print(

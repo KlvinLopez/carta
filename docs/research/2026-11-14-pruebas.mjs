@@ -577,7 +577,7 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('la curva de crecimiento se rotula como ajuste a dos metas', /extrapolación/.test(M.sueldo(cfg, s, 9577).curva_de_crecimiento), true);
   prueba('la fila por visita no lleva filtros por comensal', M.PALANCAS.fila_por_visita_de_comensal.que_es.includes('no van por comensal') && !/filtros_n|filtros_seg/.test(readFileSync(join(aqui, '2026-11-17-fila-por-visita-medir.py'), 'utf8').replace(/#.*|"""[\s\S]*?"""/g, '')), true);
   prueba('el informe de recursos no cita «antes: 279» ni «279 → 495»', !/antes: 279|279 → 495/.test(readFileSync(join(aqui, '2026-11-14-recursos-y-palancas.md'), 'utf8')), true);
-  prueba('los guiones de medición piden PGPASSWORD y no guardan contraseña', ['2026-11-17-fila-por-visita-medir.py', '2026-11-17-platillo-medir.py', '2026-11-14-recursos-medir.py', '2026-11-14-disco-e-historial-medir.py'].every((f) => { const x = readFileSync(join(aqui, f), 'utf8'); return /PGPASSWORD/.test(x) && !/carta_dev_password/.test(x); }), true);
+  prueba('los guiones de medición piden PGPASSWORD y no guardan contraseña', ['2026-11-17-fila-por-visita-medir.py', '2026-11-17-platillo-medir.py', '2026-11-14-recursos-medir.py', '2026-11-14-disco-e-historial-medir.py', '2026-11-21-disco-por-registro.py'].every((f) => { const x = readFileSync(join(aqui, f), 'utf8'); return /PGPASSWORD/.test(x) && !/carta_dev_password/.test(x); }), true);
 }
 
 // 12i) ronda 12, commit 2: sensibilidades y pruebas más duras
@@ -664,6 +664,24 @@ prueba('el financiamiento máximo no es negativo', pr.financiamiento_maximo >= 0
   prueba('la fila por visita no lleva filtros por comensal', !f.fila_por_visita.tablas[0].filas[0].columnas.some((c) => /filtro/.test(c.nombre)), true);
   prueba('el JSON trae los códigos de evento (1 scan … 6 item_add)', Object.entries(d.codigos_de_evento).map(([k, v]) => `${k}${v}`).join(','), '1scan,2menu_view,3dish_view,4search,5filter,6item_add');
   prueba('la diferencia con el informe se explica y se concilia tabla por tabla', d.diferencia_con_el_informe.explicacion.length >= 4 && d.diferencia_con_el_informe.conciliacion_por_tabla.length === 8, true);
+}
+
+// 12l) el guion del disco por registro no puede tocar la nube ni salirse de la base local (sin red: sólo arma entornos)
+{
+  const py = (codigo) => { try { return { ok: true, salida: execFileSync('python3', ['-I', '-c', codigo, join(aqui, '2026-11-21-disco-por-registro-entorno.py')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim() }; } catch (e) { return { ok: false, salida: `${e.stderr ?? ''}${e.stdout ?? ''}`.trim() }; } };
+  const cargar = "import importlib.util, sys\nespec = importlib.util.spec_from_file_location('e', sys.argv[1])\ne = importlib.util.module_from_spec(espec)\nespec.loader.exec_module(e)\n";
+  const r2 = py(cargar + "e.entorno_de_la_app({'R2_BUCKET': 'staging', 'PATH': '/usr/bin'}, 'url')");
+  prueba('con una variable R2_* definida el guion aborta y lo dice', !r2.ok && /R2_BUCKET/.test(r2.salida), true);
+  const cf = py(cargar + "e.entorno_de_la_app({'CLOUDFLARE_API_TOKEN': 'x', 'CLOUDFLARE_ZONE_ID': 'y'}, 'url')");
+  prueba('con variables CLOUDFLARE_* definidas aborta y las nombra todas', !cf.ok && /CLOUDFLARE_API_TOKEN/.test(cf.salida) && /CLOUDFLARE_ZONE_ID/.test(cf.salida), true);
+  const vacias = py(cargar + "import json\nprint(json.dumps(e.entorno_de_la_app({'R2_BUCKET': '', 'CLOUDFLARE_API_TOKEN': ''}, 'u')))");
+  prueba('las variables de la nube vacías cuentan como ausentes', vacias.ok && JSON.parse(vacias.salida).ENTORNO === 'desarrollo', true);
+  const ps = py(cargar + "import json\nprint(json.dumps(e.entorno_psql({'PGHOST': 'a', 'PGHOSTADDR': '1.2.3.4', 'PGPORT': '1', 'PGSERVICE': 's', 'PGPASSFILE': 'f', 'PGPASSWORD': 'p', 'PATH': '/bin'})))");
+  prueba('el entorno de psql sólo conserva PGPASSWORD entre las PG*', ps.ok && JSON.stringify(Object.keys(JSON.parse(ps.salida)).sort()) === JSON.stringify(['PATH', 'PGPASSWORD']), true);
+  const url = py(cargar + "print(e.url_de_la_base('p@ss/w:rd', 'carta_med_registro_1'))");
+  prueba('la contraseña va escapada en la URL: una @ no cambia el host', url.ok && url.salida === 'postgresql+asyncpg://carta:p%40ss%2Fw%3Ard@127.0.0.1:5432/carta_med_registro_1', true);
+  const guion = readFileSync(join(aqui, '2026-11-21-disco-por-registro.py'), 'utf8');
+  prueba('el guion pasa -p explícito a psql y usa las funciones del entorno', /"-p",\s*"5432"/.test(guion) && /entorno\.entorno_psql\(os\.environ\)/.test(guion) && /entorno\.entorno_de_la_app\(os\.environ/.test(guion), true);
 }
 
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
