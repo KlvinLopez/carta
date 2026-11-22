@@ -109,7 +109,7 @@ const tipsS = await p.evaluate(() => [...new Set([...document.querySelectorAll('
 ok(tipsS.includes('64 de 166') && tipsS.includes('81 de 166') && tipsS.includes('21 de 166') && tipsS.includes('71 con el dominio'), 'capítulo 2: el desglose fino (64 / 81 / 21 de 166) va al hover');
 const refY = await p.evaluate(() => { const r = document.querySelector('#svLinea .rm[style*="2.5px"]'); return r ? 1 : 0; });
 const orden = await p.evaluate(() => { const hijos = [...document.querySelectorAll('#svLinea > *')], ref = hijos.findIndex((e) => e.style.width === '2.5px'), barra = hijos.findIndex((e) => e.getAttribute('aria-label') && e.getAttribute('aria-label').includes('declara sitio web')); return [ref, barra]; });
-ok(orden[0] > 0 && orden[0] < orden[1] || orden[0] > 0, 'capítulo 2: la línea de referencia existe (' + orden.join(',') + ')');
+ok(orden[0] > 0 && orden[1] >= 0 && orden[0] > orden[1], 'capítulo 2: la línea de referencia existe y va dibujada encima de la barra de internet (' + orden.join(',') + ')');
 ok(!(await p.evaluate(() => document.documentElement.innerHTML.includes('1,780') || document.documentElement.innerHTML.includes('alcanzables'))), 'capítulo 2: la cifra de «alcanzables» ya no se pinta');
 await sinDesborde(p, 'capítulo 2 sitios'); await cierra(p);
 // matriz interactiva
@@ -214,17 +214,20 @@ for (const i of [0, 2]) {
   await p.click(`#svLinea [data-i="${i}"]`); await p.waitForTimeout(500);
   const tx = await texto(p, '#svLinea');
   ok(tx.includes('Ingreso de este tamaño') && tx.includes(f7(pt2[i].media)) && tx.includes(f7(pt2[i].peor)) && tx.includes(f7(pt2[i].mejor)) && tx.includes('Techo teórico'), 'capítulo 2: el tramo ' + i + ' muestra su ingreso en los tres escenarios (' + f7(pt2[i].peor) + ' · ' + f7(pt2[i].media) + ' · ' + f7(pt2[i].mejor) + ') con la advertencia de techo teórico');
-  ok(i === 0 ? tx.includes('en Chef: anuncios') : tx.includes('Ninguno cae en Chef'), 'capítulo 2: el tramo ' + i + (i === 0 ? ' muestra los anuncios de Chef' : ' dice que ninguno cae en Chef'));
+  const chefTot = await p.evaluate(() => Math.round(MOD.potencialPorTramo(config(S), sup(S)).tramos.reduce((a, t) => a + t.en_chef, 0)));
+  ok(i === 0 ? tx.includes(f7(pt2[0].chef) + ' en Chef: anuncios') : tx.includes('Ninguno cae en Chef'), 'capítulo 2: el tramo ' + i + (i === 0 ? ' muestra los anuncios de ' + f7(pt2[0].chef) + ' negocios en Chef' : ' dice que ninguno cae en Chef'));
+  ok(tx.includes(f7(chefTot) + ' negocios'), 'capítulo 2: el corchete de Chef suma ' + f7(chefTot) + ' negocios, la suma de los tramos del modelo');
 }
 await sinDesborde(p, 'capítulo 2 (ingreso por tamaño)'); await cierra(p);
 
 // el control del tope de platillos ofrece las cuatro opciones
 await abre(p, 'topes');
 const pil = await p.evaluate(() => { const pt = MOD.potencialPorTramo(config(S), SP), f = (x) => Math.round(x).toLocaleString('en-US'), txt = [...document.querySelectorAll('#svT text')].map((e) => e.textContent), pills = pt.tramos.slice(0, 2).map((t) => (100 * t.parte_en_chef).toFixed(1) + ' % en Chef'); return { okPills: pills.every((q) => txt.some((x) => x.replace(/,/g, '') === q || x === q)), pills, suma: f(pt.tramos.reduce((a, t) => a + t.en_chef, 0)), total: f(pt.total.en_chef), mismoTotal: Math.abs(pt.tramos.reduce((a, t) => a + t.en_chef, 0) - pt.total.en_chef) < 1 }; });
-ok(pil.okPills && pil.mismoTotal, 'topes: las píldoras «en Chef» (' + pil.pills.join(' · ') + ') salen de potencialPorTramo y suman el total (' + pil.suma + ' = ' + pil.total + ')');
+const sumaP = await p.evaluate(() => { const pt = MOD.potencialPorTramo(config(S), SP), txt = [...document.querySelectorAll('#svT text')].map((e) => e.textContent), pc = (i) => { const m = txt.map((x) => /^(\d+\.\d) % en Chef$/.exec(x)).filter(Boolean)[i]; return m ? +m[1] : NaN; }; return { p0: pc(0), p1: pc(1), e0: +(100 * pt.tramos[0].parte_en_chef).toFixed(1), e1: +(100 * pt.tramos[1].parte_en_chef).toFixed(1), suma: (pc(0) * pt.tramos[0].negocios + pc(1) * pt.tramos[1].negocios) / 100, total: pt.total.en_chef }; });
+ok(sumaP.p0 === sumaP.e0 && sumaP.p1 === sumaP.e1 && sumaP.e1 > 0 && Math.abs(sumaP.suma - sumaP.total) < 0.002 * sumaP.total, 'topes: las píldoras (' + sumaP.p0 + ' % y ' + sumaP.p1 + ' %; la de 6 a 10 es la de su tramo) suman ' + Math.round(sumaP.suma).toLocaleString('en-US') + ' ≈ ' + Math.round(sumaP.total).toLocaleString('en-US') + ' en Chef, el total del capítulo 2');
 const igual = await p.evaluate(() => { const c = config(S), pc = MOD.potencialChef(c, SP), pt = MOD.potencialPorTramo(c, SP); return [Math.round(pc.negocios_en_chef), Math.round(pt.total.en_chef)]; });
 ok(igual[0] === igual[1], 'topes: el total «en Chef» es el mismo en el capítulo 2, el hallazgo y las píldoras (' + igual.join(' = ') + ')');
-for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForFunction((x) => document.querySelector('#svT') && document.querySelector('#svT').textContent.includes(String(x)), v, { timeout: 5000 }); ok((await texto(p, '#svT')).includes(String(v)), 'capítulo 6: el control marca ' + v + ' platillos'); }
+for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForFunction((x) => [...document.querySelectorAll('#svT [data-tip]')].some((e) => e.getAttribute('data-tip').includes('|' + x + ' platillos|')), v, { timeout: 5000 }).catch(() => {}); ok(await p.evaluate((x) => S.topePlatillos === x && [...document.querySelectorAll('#svT [data-tip]')].some((e) => e.getAttribute('data-tip').includes('|' + x + ' platillos|')) && ![50, 80, 100, 150].filter((y) => y !== x).some((y) => [...document.querySelectorAll('#svT [data-tip]')].some((e) => e.getAttribute('data-tip').includes('|' + y + ' platillos|'))), v), 'capítulo 6: el control marca ' + v + ' platillos (y sólo ese)'); }
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 await cierra(p);
 
@@ -242,9 +245,9 @@ for (let i = 0; i < 7; i++) await p.click('#hiSig');
 await p.waitForTimeout(700);
 const tf = await texto(p, '#svHi');
 ok(tf.includes(f7(comp7.total) + ' bytes') && tf.includes('% es analítica'), 'capítulo 7: al final la mesa de 3 suma ' + f7(comp7.total) + ' bytes y dice qué parte es analítica');
-const act = await p.evaluate(() => { const t = [...document.querySelectorAll('#svHi text')].map((e) => e.textContent); return { quien: ['A escanea el QR', 'B y C escanean', 'Cada quien abre su orden', 'La mesa envía la comanda', 'Alguien llama al mesero'].every((x) => t.some((y) => y.includes(x.split(' ').slice(0, 3).join(' ')))), chips: new Set([...document.querySelectorAll('#svHi circle')].filter((c) => +getComputedStyle(c).opacity > 0.5).map((c) => getComputedStyle(c).fill)).size, menor12: [...document.querySelectorAll('#svHi text, #svOp text')].filter((e) => e.textContent.trim() && parseFloat(e.getAttribute('font-size')) < 12).map((e) => e.textContent.trim().slice(0, 20)) }; });
+const act = await p.evaluate(() => { const t = [...document.querySelectorAll('#svHi text')].map((e) => e.textContent); return { quien: ['A escanea el QR', 'B y C escanean', 'Cada quien abre su orden', 'La mesa envía la comanda', 'Alguien llama al mesero'].every((x) => t.some((y) => y.includes(x.split(' ').slice(0, 3).join(' ')))), chips: new Set([...document.querySelectorAll('#svHi circle')].filter((c) => +getComputedStyle(c).opacity > 0.5).map((c) => getComputedStyle(c).fill)).size, menor12: [...document.querySelectorAll('#svHi text')].filter((e) => e.textContent.trim() && parseFloat(e.getAttribute('font-size')) < 12).map((e) => e.textContent.trim().slice(0, 20)) }; });
 ok(act.quien && act.chips >= 4, 'capítulo 7: la historia dice quién hace qué en cada paso y las piezas llevan el color de A, B, C y la mesa (' + act.chips + ' colores)');
-ok(act.menor12.length === 0, 'capítulo 7: historia y siete formas sin letra menor de 12 px ' + act.menor12.slice(0, 3).join(' | '));
+ok(act.menor12.length === 0, 'capítulo 7: la historia de la mesa sin letra menor de 12 px ' + act.menor12.slice(0, 3).join(' | '));
 if (png) await p.locator('#svHi').screenshot({ path: `${png}/v12_historia.png` });
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 ok((await texto(p, '#hiN')).includes('Paso 8 de 8'), 'capítulo 7: tocar otro control no reinicia la historia');
@@ -276,9 +279,9 @@ await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(400
 const cd = await p.evaluate(() => { const f = DR.formas.find((x) => x.id === 'contar_por_dia'), g = (v) => Math.round(v).toLocaleString('en-US'); return { tot: g(f.bytes_total), ana: g(f.bytes_analitica) }; });
 tr = await texto(p, '#dReg');
 ok(tr.includes('evento_dia') && !tr.includes('evento_analitica#') && tr.includes(cd.tot + ' B') && tr.includes('propuesta') && tr.includes('primera del día') && tr.includes('Frente a Hoy: desaparecen 12 eventos'), 'capítulo 7: al cambiar a «contar por día» los eventos desaparecen, entran los contadores (' + cd.ana + ' B), se marca propuesta y se dice que la mesa es la primera del día');
-const pct = await p.evaluate(() => { const g = (id) => DR.formas.find((x) => x.id === id), h = g('hoy'), r = (x) => Math.round(Math.abs(x)); return ['contar_por_dia', 'fila_por_visita'].map((id) => ({ id, an: r(100 * (g(id).bytes_analitica / h.bytes_analitica - 1)), me: r(100 * (g(id).bytes_total / h.bytes_total - 1)) })); });
-const tarj = await texto(p, '.drL');
-ok(pct.every((q) => tarj.includes('analítica −' + q.an + ' %') && tarj.includes('la mesa entera −' + q.me + ' %')) && pct[0].an !== pct[0].me, 'capítulo 7: las tarjetas dicen dos porcentajes, el de la analítica y el de la mesa entera, calculados de los bytes del archivo (' + pct.map((q) => q.id + ' −' + q.an + ' / −' + q.me).join('; ') + ')');
+const pct = await p.evaluate(() => { const g = (id) => DR.formas.find((x) => x.id === id), h = g('hoy'), r = (x) => Math.round(Math.abs(x)); return ['contar_por_dia', 'fila_por_visita', 'fila_mas_platillo_y_filtros_por_dia'].map((id) => ({ id, an: r(100 * (g(id).bytes_analitica / h.bytes_analitica - 1)), me: r(100 * (g(id).bytes_total / h.bytes_total - 1)) })); });
+const tarjs = await p.evaluate((ids) => ids.map((id) => document.querySelector('#dReg [data-forma="' + id + '"]').textContent), pct.map((q) => q.id));
+ok(pct.every((q, i) => tarjs[i].includes('analítica −' + q.an + ' %') && tarjs[i].includes('la mesa entera −' + q.me + ' %')) && pct[0].an !== pct[0].me, 'capítulo 7: las tarjetas dicen dos porcentajes, el de la analítica y el de la mesa entera, calculados de los bytes del archivo (' + pct.map((q) => q.id + ' −' + q.an + ' / −' + q.me).join('; ') + ')');
 ok(/\d \((scan|menu_view|dish_view|search|filter|item_add)\)/.test(await texto(p, '#dReg')) && (await p.evaluate(() => document.querySelector('#dReg').previousElementSibling.textContent)).includes('lo oscuro son los datos de la fila') , 'capítulo 7: las filas de las formas propuestas nombran el evento y la barra tiene su leyenda');
 await p.click('#drSig'); await p.waitForTimeout(250);
 const trP = await texto(p, '#dReg');
@@ -357,8 +360,8 @@ const t6 = await texto(p, '#svT');
 ok(t6.includes('dos muestras') && t6.includes('sesgos opuestos'), 'topes: la marca del platillo dice «dos muestras, sesgos opuestos»');
 ok(/\d+\.\d–\d+\.\d % de 0 a 5 se queda en Chef/.test(t6), 'topes: «se queda en Chef» es una banda entre las dos cotas');
 await p.evaluate(() => cambiar({ topeMesas: 6, topeCuentas: 1, topePlatillos: 150, platSel: 'todo' })); await p.waitForTimeout(400);
-const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP); return [c.todo.baja, c.todo.alta, c.comida.baja, c.comida.alta].map((v) => +(100 * v).toFixed(1)); });
-ok(cobT[0] > 0 && cobT[1] >= cobT[0] && cobT[1] <= 100, 'topes: la cobertura de Chef (6 mesas, 1 cuenta, 150 platillos, cuenta todo) es una banda del modelo (' + cobT.join(' ') + ')');
+const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP).todo, g = TRK.find((k) => k.k === 'topePlatillos').tipv(S.topePlatillos); return { alta: Math.round(100 * c.alta).toLocaleString('en-US'), baja: Math.round(100 * c.baja).toLocaleString('en-US'), panel: g }; });
+ok(cobT.panel.includes('reparto (cortas)|') && cobT.panel.includes(cobT.alta + ' %;') && cobT.panel.endsWith(cobT.baja + ' %') && cobT.alta !== cobT.baja, 'topes: el panel del tope de platillos (6 mesas, 1 cuenta, 150 platillos, cuenta todo) dice cortas ' + cobT.alta + ' % y largas ' + cobT.baja + ' %, lo que da MOD.coberturaChef');
 ok(!(await p.$('#platSel')), 'topes: ya no hay selector de «cuenta todo · sólo comida · sin tope»');
 const mg0 = await p.evaluate(() => [evalS(S).margen_operacion, evalCota(S, 'baja').margen_operacion].map(Math.round));
 const mgM = await p.evaluate(() => { const e = MOD.desgloses(config(S), sup(S), 1000).escenarios.find((q) => q.escenario === 'recomendado'); return Math.round(e.cascada_margen.margen_operacion); });
@@ -468,8 +471,10 @@ ok((await p.evaluate(() => S.topeMesas)) === 6, 'recomendaciones: aplicar lo rec
 if (png) await p.screenshot({ path: `${png}/v5_recs.png` });
 await sinDesborde(p, 'recomendaciones');
 // persistencia del escenario que se edita dentro de cada detalle
+await p.evaluate(() => cambiar({ topeMesas: 14 })); await p.waitForTimeout(200);
 await p.reload(); await p.waitForTimeout(400);
-ok((await p.evaluate(() => S.topeMesas)) === 6, 'lo editado dentro del detalle persiste al recargar');
+ok((await p.evaluate(() => S.topeMesas)) === 14 && (await p.evaluate(() => BASE.topeMesas)) !== 14, 'lo editado dentro del detalle persiste al recargar (14 mesas, que no es el valor de base)');
+await p.evaluate(() => cambiar({ topeMesas: BASE.topeMesas })); await p.waitForTimeout(200);
 await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);
@@ -801,11 +806,14 @@ async function pasada(w, h, bloqueadas) {
   await q.goto(url); await q.evaluate(() => document.fonts.ready);
   const et = `${w}×${h}${bloqueadas ? ' sin fuentes' : ''}`;
   await sinDesborde(q, `${et} portada`); await fuera(q, `${et} portada`); await revisaHovers(q, '#kpis', `${et} cifras de arriba`);
+  ok(!/MXN (mil|M)\b/.test(await q.evaluate(() => document.getElementById('kpis').textContent)), `${et} cifras de arriba: ninguna unidad al revés`);
   if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_portada.png`, fullPage: true });
   const ids = await q.$$eval('.cap', (b) => b.map((x) => x.dataset.cap));
   for (const id of ids) {
     await q.evaluate((i) => document.getElementById('cap-' + i).scrollIntoView(), id); await q.waitForTimeout(w < 600 ? 500 : 900);
     await sinDesborde(q, `${et} ${id}`); await fuera(q, `${et} ${id}`); await revisaHovers(q, '#cap-' + id, `${et} ${id}`);
+    const malU = await q.evaluate((i) => (document.getElementById('cap-' + i).textContent.match(/MXN (mil|M)\b/g) || []), id);
+    ok(malU.length === 0, `${et} ${id}: ninguna unidad al revés («MXN mil», «MXN M») ${malU.slice(0, 2).join(' | ')}`);
     if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_${id}.png` });
   }
   await ctx.close();
