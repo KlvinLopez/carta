@@ -1,37 +1,37 @@
 {
- "version": "2026-11-20-r15",
+ "version": "2026-11-21-r16",
  "decisiones": [
   {
    "id": "dos_planes",
    "decision": "Dos planes: Chef (gratis, 0 a 5 personas) y Master Chef (DECIDIDA por Calvin el 17-nov)",
-   "recomendacion": "**Chef = 6 mesas y 1 cuenta de personal (una sola persona con PIN); Master Chef 225 = todo lo que pase de ahí, hasta los topes técnicos (500 mesas y 50 personas activas); Chef Ejecutivo apagado.** Con el modelo de mesas y cuentas cabe en Chef el 48.4 % de los negocios de 0 a 5 personas (rango 42.4 %–54.5 %) y ninguno de 6 a 10.",
-   "depende": "**Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato): «cuentas» = las que el negocio querría crear.** Si una fonda de 4 personas se arregla con una sola cuenta, cabría más que el 48.4 %; con la alternativa de 2 cuentas cabría el 66.5 %. **Sobre el ADR-017:** el dueño es el validador y el primer mesero; con una cuenta, el plan gratuito es operación de una sola persona con PIN.",
-   "cifras": "Frente a tres planes (1,000 restaurantes, curva media): pagantes 116 (antes 30); margen recomendado +14,752 (antes +8,719); peor −1,513 (antes −47).",
+   "recomendacion": "**Chef = 6 mesas, el dueño y hasta 3 cuentas de personal con PIN (decisión de Calvin, 21-nov: «el dueño del restaurante y 3 meseros máximo»); Master Chef 225 = todo lo que pase de ahí, hasta los topes técnicos (500 mesas y 50 personas activas); Chef Ejecutivo apagado.** Con el modelo de mesas y cuentas cabe en Chef el 44.3 % de los negocios de 0 a 5 personas (rango 38.1 %–59.8 %) y el 7.8 % de los de 6 a 10.",
+   "depende": "**Del modelo de mesas y cuentas y de su dispersión (σ = 0.5, supuesto sin dato): «cuentas» = las que el negocio querría crear.** Si una fonda de 4 personas se arregla con menos cuentas de las que el tope permite, cabría más que el 44.3 %; con sólo 1 cuenta cabría el 31.1 %. **Sobre el ADR-017:** el dueño es el validador y el primer mesero; las 3 cuentas son los meseros que llevan el ciclo de la mesa.",
+   "cifras": "Frente a tres planes (1,000 restaurantes, curva media): pagantes 119 (antes 30); margen recomendado +15,221 (antes +8,719); peor −1,362 (antes −47).",
    "alternativas": [
     {
-     "opcion": "5 mesas · 1 cuenta",
-     "pros": "48.4 % de 0 a 5 personas dentro; margen +15,435",
-     "contras": "100 % de 6 a 10 personas cae en Master Chef"
+     "opcion": "6 mesas · 3 cuentas",
+     "pros": "44.3 % de 0 a 5 personas dentro; margen +15,221",
+     "contras": "92.2 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "6 mesas · 1 cuenta",
-     "pros": "48.4 % de 0 a 5 personas dentro; margen +14,752",
+     "pros": "31.1 % de 0 a 5 personas dentro; margen +17,957",
      "contras": "100 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "6 mesas · 2 cuentas",
-     "pros": "66.5 % de 0 a 5 personas dentro; margen +11,469",
+     "pros": "42.7 % de 0 a 5 personas dentro; margen +15,849",
      "contras": "100 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "8 mesas · 2 cuentas",
-     "pros": "76.2 % de 0 a 5 personas dentro; margen +9,377",
+     "pros": "48.9 % de 0 a 5 personas dentro; margen +14,362",
      "contras": "100 % de 6 a 10 personas cae en Master Chef"
     },
     {
      "opcion": "10 mesas · 3 cuentas",
-     "pros": "85.9 % de 0 a 5 personas dentro; margen +5,969",
-     "contras": "69.7 % de 6 a 10 personas cae en Master Chef"
+     "pros": "55.2 % de 0 a 5 personas dentro; margen +12,030",
+     "contras": "80.6 % de 6 a 10 personas cae en Master Chef"
     }
    ],
    "ejemplo": "Una fonda de 2 personas y 4 mesas cabe en Chef (una cuenta); una taquería de 5 personas que quiere cuenta para el mesero y para el cocinero ya necesita Master Chef.",
@@ -39,10 +39,10 @@
   },
   {
    "id": "tope_platillos",
-   "decision": "Tope de platillos del plan Chef (cuenta todo, bebidas incluidas, decidido el 17-nov; el VALOR del tope, REABIERTO por Calvin el mismo día)",
-   "recomendacion": "**El tope cuenta TODO, bebidas incluidas (decisión de Calvin, 17 de noviembre de 2026); su valor (hoy 150) quedó REABIERTO** («se me hace demasiado»): de 50 a 150 el disco casi no se mueve (0.2 %) y el procesador tampoco se acaba; cambia la cobertura y los de paga (ver `2026-11-17-costo-de-platillo.md`). La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 150 platillos caben 52 % de las cartas de sitios propios (56; largas y formales) y 98 % de las de reparto (148; cortas, sin bebidas; el 150 es extrapolación). Dentro de 150: fondas y taquerías 7 de 8, cafeterías 9 de 11, formales 3 de 14.",
+   "decision": "Tope de platillos del plan Chef (DECIDIDO por Calvin el 21-nov: 50 de base, contando todo, bebidas incluidas)",
+   "recomendacion": "**El tope de platillos de Chef es 50 de base y cuenta TODO, bebidas incluidas (decisión de Calvin, 21 de noviembre de 2026; antes se recomendaba 100).** De 50 a 150 el disco casi no se mueve (0.2 %) y el procesador tampoco se acaba; lo que cambia es la cobertura y quién paga (ver `2026-11-17-costo-de-platillo.md`). La banda de dos cotas se conserva porque no se sabe cuál muestra tiene razón: con 50 platillos caben 15 % de las cartas de sitios propios (56; largas y formales) y 63 % de las de reparto (148; cortas, sin bebidas). Quien tenga una carta más larga pasa a Master Chef.",
    "depende": "**De cómo se cuente «platillo»** (las dos muestras no usan la misma regla) y **de quién sea el negocio**. **Si falla:** con una cobertura baja se cobra a negocios que debían ser gratis; con una alta, se regalan negocios que podrían pagar.",
-   "cifras": "Alternativas descartadas el 17 de noviembre: Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): dentro de Chef de 0 a 5 personas 49.4 % (cota baja) · Subir el tope a 200 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 36.2 % (cota baja) · Subir el tope a 300 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 41.4 % (cota baja) · Quitar el tope de platillos y limitar sólo por mesas y cuentas: dentro de Chef de 0 a 5 personas 49.4 % (cota baja).",
+   "cifras": "Alternativas descartadas el 17 de noviembre: Tope de 150 que cuenta sólo comida (las bebidas no tienen tope): dentro de Chef de 0 a 5 personas 70.3 % (cota baja) · Subir el tope a 200 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 51.5 % (cota baja) · Subir el tope a 300 platillos (bebidas incluidas): dentro de Chef de 0 a 5 personas 59 % (cota baja) · Quitar el tope de platillos y limitar sólo por mesas y cuentas: dentro de Chef de 0 a 5 personas 70.3 % (cota baja).",
    "alternativas": [
     {
      "opcion": "Tope de 150 que cuenta sólo comida (las bebidas no tienen tope) (descartada el 17-nov)",
@@ -65,7 +65,7 @@
      "contras": "Sin freno para cartas enormes"
     }
    ],
-   "ejemplo": "Una cafetería con 120 platillos (comida y bebidas) cabe en un tope de 150; una cena formal con 276 (la mediana de los formales de la muestra) no cabe.",
+   "ejemplo": "Una cafetería con 40 platillos (comida y bebidas) cabe en un tope de 50; una con 120 ya pasa a Master Chef, igual que una cena formal con 276 (la mediana de los formales de la muestra).",
    "prueba": "Pendiente: la carta real de los negocios del piloto, contada con la instrucción de conteo de la muestra (comida y bebidas por separado) y la plataforma por la que llegaron."
   },
   {
@@ -73,7 +73,7 @@
    "decision": "Precio de Master Chef",
    "recomendacion": "**Master Chef 225 es una decisión de posicionamiento de Calvin (pegado a Meniu Business), no un resultado del modelo.** El modelo no puede elegir entre 199, 225, 249 y 299: lo decide la prueba de tres precios del piloto. Chef Ejecutivo queda apagado (futura escalación).",
    "depende": "**De la curva de pago (supuesto).** Con la mediana en 150 gana 199; en 225, 225; en 300, 299; en 450, 299. Ver [precio de entrada](2026-11-14-precio-de-entrada.md). **Si falla:** si los dueños pagan lo de un menú QR (157), 225 pierde clientes; si pagan lo de un POS (652), 225 deja dinero sobre la mesa.",
-   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 135 / 116 / 100 / 74; margen de operación (media) 14,213 / 14,752 / 14,733 / 13,661.",
+   "cifras": "Master Chef 199 / 225 / 249 / 299: pagantes (media) 138 / 119 / 103 / 75; margen de operación (media) 14,668 / 15,221 / 15,202 / 14,107.",
    "alternativas": [
     {
      "opcion": "199",
@@ -93,7 +93,7 @@
     {
      "opcion": "299",
      "pros": "Más margen por pagante",
-     "contras": "Menos pagantes (74 contra 116)"
+     "contras": "Menos pagantes (75 contra 119)"
     }
    ],
    "ejemplo": "Un restaurante de 25 mesas (ingreso medio 737,584 al mes [INEGI, promedio]): 225 son 0.03 % de su ingreso.",
@@ -102,8 +102,8 @@
   {
    "id": "anuncios",
    "decision": "Anuncios en Chef: cuándo llegan y cuánto dejan",
-   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 282 restaurantes (rango 164 a 282).",
-   "depende": "**De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 277 (rango 101 a imposible) (tarifa baja), 21 (rango 10 a 101) (media) y no se paga solo (rango ∞ a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 28). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.",
+   "recomendacion": "**El plan gratuito lleva anuncios; llegan hacia el mes 9 (supuesto de trabajo), no personalizados.** Mientras no hay, los paga Calvin: con 1,000 pesos al mes caben 283 restaurantes (rango 167 a 283).",
+   "depende": "**De supuestos sin dato:** que la red apruebe el sitio, la tarifa por mil visitas, la parte de visitas con anuncio y el soporte por gratuito. **Se paga solo desde:** 264 (rango 99 a imposible) (tarifa baja), 21 (rango 10 a 99) (media) y no se paga solo (rango ∞ a imposible) (adverso). Vale con el canal de eventos construido (con el sondeo de hoy caben 28). No modelado: moderación de anuncios (revisar y bloquear categorías); tasa de llenado y bloqueadores (van dentro de `parte_visitas_con_anuncio`, sin modelar por separado); comisión de la red de anuncios; impuestos sobre los ingresos de anuncios y de suscripción.",
    "cifras": "Requisitos: ADR, abrir la política de seguridad (`script-src 'self'`), aviso de privacidad, aprobación de la red.",
    "alternativas": [
     {
@@ -114,7 +114,7 @@
     {
      "opcion": "Anuncios desde el mes 9 (supuesto)",
      "pros": "Tiempo realista",
-     "contras": "Calvin pone hasta 5,550 pesos acumulados"
+     "contras": "Calvin pone hasta 5,573 pesos acumulados"
     },
     {
      "opcion": "Sin anuncios",
@@ -128,32 +128,32 @@
   {
    "id": "bolsa",
    "decision": "Cuánta bolsa poner mientras no hay anuncios",
-   "recomendacion": "**1,000 pesos al mes** alcanzan para 282 restaurantes gratuitos (rango 164 a 282); acumulado, Calvin pone hasta **5,550 pesos** en el caso recomendado, 98,706 en el peor y 231,283 en el piso de verdad.",
+   "recomendacion": "**1,000 pesos al mes** alcanzan para 283 restaurantes gratuitos (rango 167 a 283); acumulado, Calvin pone hasta **5,573 pesos** en el caso recomendado, 93,796 en el peor y 228,022 en el piso de verdad.",
    "depende": "**Del ritmo de adopción (supuesto) y del soporte por gratuito (sin fuente).** Vale con el canal de eventos construido.",
-   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 83 (28–151) / 282 (164–282) / 282 (282–282) / 943 (566–1,132) restaurantes gratuitos (con la carga de sus topes; sólo gratuitos, sin la mezcla de paga que usa «¿Qué nos limita?»: 28 registrados con avisos).",
+   "cifras": "Bolsa 500 / 1,000 / 2,000 / 5,000 → 88 (28–171) / 283 (167–283) / 283 (283–283) / 1,014 (567–1,132) restaurantes gratuitos (con la carga de sus topes; sólo gratuitos, sin la mezcla de paga que usa «¿Qué nos limita?»: 28 registrados con avisos).",
    "alternativas": [
     {
      "opcion": "500 pesos al mes",
-     "pros": "83 restaurantes y 0.2 M de comensales",
-     "contras": "rango 28–151 según el soporte"
+     "pros": "88 restaurantes y 0.2 M de comensales",
+     "contras": "rango 28–171 según el soporte"
     },
     {
      "opcion": "1,000 pesos al mes",
-     "pros": "282 restaurantes y 0.6 M de comensales",
-     "contras": "rango 164–282 según el soporte"
+     "pros": "283 restaurantes y 0.6 M de comensales",
+     "contras": "rango 167–283 según el soporte"
     },
     {
      "opcion": "2,000 pesos al mes",
-     "pros": "282 restaurantes y 0.6 M de comensales",
-     "contras": "rango 282–282 según el soporte"
+     "pros": "283 restaurantes y 0.6 M de comensales",
+     "contras": "rango 283–283 según el soporte"
     },
     {
      "opcion": "5,000 pesos al mes",
-     "pros": "943 restaurantes y 1.9 M de comensales",
-     "contras": "rango 566–1,132 según el soporte"
+     "pros": "1,014 restaurantes y 2.1 M de comensales",
+     "contras": "rango 567–1,132 según el soporte"
     }
    ],
-   "ejemplo": "Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 282 fondas y taquerías gratuitas.",
+   "ejemplo": "Con 1,000 pesos al mes pagas servidor y soporte básico de ≈ 283 fondas y taquerías gratuitas.",
    "prueba": "El costo real de Railway del primer mes con restaurantes del piloto y los minutos reales de soporte."
   },
   {
@@ -182,7 +182,7 @@
    "decision": "Soporte",
    "recomendacion": "**WhatsApp o correo en horario hábil para la paga (≈ 60 pesos al mes por cliente) y autoservicio para el gratuito (0.5, sin fuente).**",
    "depende": "**Del tiempo real de soporte (supuesto).** Si cada cliente de paga cuesta 150, Master Chef a 225 queda debajo del piso ×3 (238) y hay que subir el precio o acotar el soporte.",
-   "cifras": "Efecto en el margen (±50 %): soporte del gratuito 442 pesos; de paga 6,953.",
+   "cifras": "Efecto en el margen (±50 %): soporte del gratuito 441 pesos; de paga 7,118.",
    "alternativas": [
     {
      "opcion": "Autoservicio y correo (30)",
@@ -242,10 +242,10 @@
     },
     "topes": {
      "gratuito": {
-      "platillos": 150,
+      "platillos": 50,
       "platillos_cuenta": "todo",
       "mesas": 6,
-      "cuentas": 1,
+      "cuentas": 3,
       "lecturas_pdf": 3,
       "meses_en_linea": 24
      },

@@ -3809,7 +3809,7 @@
    "min": null,
    "max": null,
    "origen": "medido",
-   "fuente": "2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con 145 bytes por fila y 31 días × (5 tipos + platillos): la cota usa los 150 platillos que permite el plan gratuito y 'con_platillos_de_la_copia' los 60 de la copia",
+   "fuente": "2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con 145 bytes por fila y 31 días × (5 tipos + platillos): la cota usa 150 platillos (cota fija del cálculo, un supuesto: no es el tope de ningún plan) y 'con_platillos_de_la_copia' los 60 de la copia",
    "nota": "fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy",
    "mueve_resultado": true
   },
@@ -4637,7 +4637,7 @@
      {
       "funcion": "Plan gratuito permanente",
       "meniu": false,
-      "carta": "Sí: Chef (0 a 5 personas, 6 mesas, 1 cuenta) con anuncios",
+      "carta": "Sí: Chef (6 mesas, el dueño y hasta 3 cuentas de personal, 50 platillos) con anuncios",
       "rescatar": "es de Carta: el hueco"
      },
      {
@@ -4705,7 +4705,7 @@
    "min": null,
    "max": null,
    "origen": "supuesto",
-   "fuente": "el simulador: un negocio chico con 10 mesas y 1,800 visitas al mes [documento: planes-y-costo §0] → 180 visitas por mesa; las líneas del comensal por mesa se calibran para que el perfil típico (10 mesas, 3 cuentas) dé las 4.7 líneas por restaurante de la capacidad",
+   "fuente": "el simulador: un negocio chico con 10 mesas y 1,800 visitas al mes [documento: planes-y-costo §0] → 180 visitas por mesa; cada cuenta de personal abre una línea `/op/eventos` (ADR-018 §3: una por teléfono del personal) y se supone que todas están conectadas en la hora pico (cota alta; la línea del dueño en el panel no se cuenta); las líneas del comensal por mesa se calibran para que el perfil típico (10 mesas, 3 cuentas) dé las 4.7 líneas por restaurante de la capacidad",
    "nota": "la carga por restaurante crece con las mesas (visitas y eventos), las cuentas (líneas del personal) y los platillos (disco, fotos y armado del menú); proporcionalidad supuesta",
    "mueve_resultado": false
   },

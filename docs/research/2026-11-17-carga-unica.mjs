@@ -8,7 +8,7 @@ import * as M from './2026-11-14-modelo-de-escenarios.mjs';
 const aqui = dirname(fileURLToPath(import.meta.url));
 const out = process.env.CARTA_SALIDA ?? aqui;
 const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
-const cfg = M.configInicial();
+const cfg = M.configR15(); // el archivo de la ronda 11: plan Chef de entonces (1 cuenta, 150 platillos)
 const c = M.comparacionDeCarga(cfg, s);
 const A = c.antes_tipica_no_vigente;
 const D = c.despues_por_topes_vigente;

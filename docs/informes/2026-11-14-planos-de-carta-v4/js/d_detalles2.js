@@ -82,7 +82,7 @@ const COLPLAN = [C.vino, C.dorado], NOMPLAN = [PLAN.gratis, PLAN.paga]; // Chef 
 DET.topes = {
   titulo: "Chef es gratis para los dos tamaños chicos; mueve los límites y mira dónde cae cada tamaño.",
   fu: ["carta_tres_planes", "carta_estadistica", "calvin_posturas"],
-  nota: "Dos planes: Chef gratis para 0 a 5 personas (6 mesas, 1 cuenta); Master Chef desde ahí. Chef Ejecutivo queda como futura escalación. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato.",
+  nota: `Dos planes: Chef gratis para 0 a 5 personas (${BASE.topeMesas} mesas, el dueño y hasta ${BASE.topeCuentas} meseros, ${BASE.topePlatillos} platillos); Master Chef desde ahí. Chef Ejecutivo queda como futura escalación. Mesas y cuentas por tamaño son un modelo (cuentas = 0.425 × personas; mesas = 3.25 × cuentas), no un dato.`,
   montar(host) {
     host.innerHTML = `<div class="viz"><svg id="svT" viewBox="0 0 960 590" role="img" font-family="DM Sans, sans-serif"></svg></div>`;
     this.rm = RM($("#svT", host)); this.svg = $("#svT", host); this.armado = false;
@@ -112,20 +112,21 @@ DET.topes = {
     { const mgB = evalCota(S, "baja").margen_operacion, mgA = e.margen_operacion; rm.put("mgb", "text", {x: 620, y: 240, text: Math.abs(mgB - mgA) < 1 ? "" : `con cartas largas (cota baja): ${mp(mgB)}`, size: 12, weight: 700, fill: C.t2, attrs: {"data-tip": `Margen con cartas largas|${mp(mgB)}|Supone que la mitad de los negocios chicos rebasa el tope y paga: no es un margen real.`}}); }
     rm.put("me", "text", {x: 620, y: 214, text: `${n(e.clientes.de_paga, 1)} clientes de paga por cada 1,000`, size: 13, fill: C.t2});
     // la segmentación: a qué plan cae cada tamaño
-    const tot = SEG.estratos.reduce((a, q) => a + q.negocios, 0);
+    const tot = SEG.estratos.reduce((a, q) => a + q.negocios, 0), ptT = conCache("potTramo", () => MOD.potencialPorTramo(c, SP)); // la misma función que el hallazgo y el capítulo «¿Cuántos están en línea?»
     SEG.estratos.forEach((q, i) => {
-      const x = 30 + i * 132, p = planDe(q, c), sh0 = i === 0 ? clamp(chef05(c), 0, 1) : 0, g = rm.put("dz" + i, "g", {x: x + 8, y: 262});
+      const x = 30 + i * 132, p = planDe(q, c), sh0 = i === 0 ? clamp(ptT.tramos[0].parte_en_chef, 0, 1) : 0, g = rm.put("dz" + i, "g", {x: x + 8, y: 262});
       if (!g.__i) { g.__i = 1; g.innerHTML = dibujo(EJTAM[i][0], 0, 0, 0.7); }
       if (i === 0) { // 0 a 5 personas: una parte cabe en Chef y el resto va a Master Chef
         rm.put("cp0", "rect", {x, y: 342, w: 124, h: 44, rx: 20, fill: COLPLAN[1]});
         rm.put("cp0b", "rect", {x, y: 342, w: Math.max(sh0 * 124, 24), h: 44, rx: 20, fill: COLPLAN[0]});
-        rm.put("cpt0", "text", {x: x + 62, y: 360, text: `Chef · ${n(100 * sh0)} %`, size: 12, weight: 700, fill: "#fff", anchor: "middle"});
-        rm.put("cpt0b", "text", {x: x + 62, y: 377, text: `Master Chef · ${n(100 * (1 - sh0))} %`, size: 11.5, weight: 700, fill: "#fff", anchor: "middle"});
+        rm.put("cpt0", "text", {x: x + 62, y: 360, text: `Chef · ${n(100 * sh0, 1)} %`, size: 12, weight: 700, fill: "#fff", anchor: "middle"});
+        rm.put("cpt0b", "text", {x: x + 62, y: 377, text: `Master Chef · ${n(100 * (1 - sh0), 1)} %`, size: 11.5, weight: 700, fill: "#fff", anchor: "middle"});
       } else {
         rm.put("cp" + i, "rect", {x, y: 352, w: 124, h: 34, rx: 17, fill: COLPLAN[p]});
         rm.put("cpt" + i, "text", {x: x + 62, y: 374, text: NOMPLAN[p], size: 13, weight: 700, fill: "#fff", anchor: "middle"});
       }
-      { const sc = i === 0 ? [100 * chef05(c, "minimo"), 100 * chef05(c, "centro"), 100 * chef05(c, "maximo")] : null, enChef = p === 0 ? "todos" : "ninguno"; rm.put("qc" + i, "text", {x: x + 62, y: 400, text: sc ? `≈ ${n(sc[1])} % en Chef` : `${enChef} en Chef`, size: 12, weight: 700, fill: sc || p === 0 ? C.vino : C.t2, anchor: "middle", attrs: {"data-tip": sc ? `Negocios de ${q.estrato} personas en Chef|≈ ${n(sc[1])} %|Rango ${n(sc[0])}–${n(sc[2])} %: es un modelo, no una medida.` : `Negocios de ${q.estrato} personas|${enChef} en Chef|Con ${S.topeMesas} mesas y ${S.topeCuentas} ${S.topeCuentas === 1 ? "cuenta" : "cuentas"} ${p === 0 ? "caben" : "no caben"} en el plan gratuito.`}}); }
+      { const tr = ptT.tramos[i], pc = 100 * tr.parte_en_chef, banda = i <= 1 ? [100 * chef05(c, "minimo"), 100 * chef05(c, "maximo")] : null;
+        rm.put("qc" + i, "text", {x: x + 62, y: 400, text: pc > 0 ? `${n(pc, 1)} % en Chef` : "ninguno en Chef", size: 12, weight: 700, fill: pc > 0 ? C.vino : C.t2, anchor: "middle", attrs: {"data-tip": `${q.estrato} personas en Chef|${n(pc, 1)} % (${n(tr.en_chef)} de ${n(tr.negocios)})|${banda && i === 0 ? `Banda ${n(banda[0])}–${n(banda[1])} %; ` : ""}${S.topeMesas} mesas, ${S.topeCuentas} cuentas, ${S.topePlatillos} platillos.`}}); }
       rm.put("tl" + i, "text", {x: x + 62, y: 420, text: q.estrato + " personas", size: 12.5, weight: 700, fill: C.tinta, anchor: "middle"});
       rm.put("tm" + i, "text", {x: x + 62, y: 438, text: `≈ ${n(mesasDe(q))} mesas`, size: 11, fill: C.t2, anchor: "middle"});
       rm.put("tc" + i, "text", {x: x + 62, y: 453, text: `≈ ${n(cuentasDe(q))} ${Math.round(cuentasDe(q)) === 1 ? "cuenta" : "cuentas"}`, size: 11, fill: C.t2, anchor: "middle"});

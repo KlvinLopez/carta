@@ -11,7 +11,7 @@ const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes 
 DET.sostiene = {
   titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
-  nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
+  nota: `Modelo de escenarios ${MOD.VERSION} (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.`,
   montar(host) {
     this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
     host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div>`;
@@ -55,7 +55,7 @@ DET.sostiene = {
   v5() { // sensibilidad al supuesto que ahora mueve todo: visitas por mesa al mes
     const sv = this.sv, cm = conCache("cmpCarga", () => MOD.comparacionDeCarga(config(S), sup(S))), D = cm.despues_por_topes_vigente, sn = cm.sensibilidad_visitas_por_mesa;
     const f = (v, d = 0) => (v < 0 ? "−" : v > 0 && d === 0 ? "+" : "") + n(Math.abs(v), d);
-    let b = T(30, 26, `Cada restaurante gratuito carga mesas × visitas por mesa: hoy ${n(D.carga_del_gratuito.visitas_al_mes)} visitas al mes (6 mesas × 180)`, 14.5, C.vino, "start", 700);
+    let b = T(30, 26, `Cada restaurante gratuito carga mesas × visitas por mesa: hoy ${n(D.carga_del_gratuito.visitas_al_mes)} visitas al mes (${n(D.carga_del_gratuito.visitas_al_mes / SP.perfil_por_topes.visitas_por_mesa_mes)} mesas × ${n(SP.perfil_por_topes.visitas_por_mesa_mes)})`, 14.5, C.vino, "start", 700);
     b += T(30, 52, "El 180 sale del simulador y no está medido: es el supuesto que ahora mueve todas las cifras.", 13, C.t2, "start", 700);
     const Y1 = 90, cx = [40, 230, 420, 610, 790];
     ["Visitas por mesa", "Margen recomendado", "Gratuitos por cliente de paga", "Anuncios por gratuito (baja)", "Caben con avisos"].forEach((h, j) => { b += T(cx[j], Y1 + 6, h, 12.5, C.t2, "start", 700); });
@@ -221,7 +221,7 @@ const sinMd = t => String(t).replace(/\*\*/g, "").replace(/\*/g, "");
 const aplicadaP = p => p && Object.entries(p).every(([k, v]) => S[k] === v);
 /* tarjetas: qué hacer (5 a 8 palabras), por qué (una cifra), qué pasa si no (una línea); lo demás, detrás de «ver más» */
 const PARCHES = {
-  dos_planes: [{topeMesas: 5, topeCuentas: 1}, {topeMesas: 6, topeCuentas: 1}, {topeMesas: 6, topeCuentas: 2}, {topeMesas: 8, topeCuentas: 2}, {topeMesas: 10, topeCuentas: 3}],
+  dos_planes: [{topeMesas: 5, topeCuentas: BASE.topeCuentas}, {topeMesas: BASE.topeMesas, topeCuentas: BASE.topeCuentas - 1}, {topeMesas: BASE.topeMesas, topeCuentas: BASE.topeCuentas}, {topeMesas: 8, topeCuentas: BASE.topeCuentas}, {topeMesas: 10, topeCuentas: BASE.topeCuentas + 1}],
   tope_platillos: [null, {topePlatillos: 200}, {topePlatillos: 300}, null],
   precios: [{precioServicio: 199}, {precioServicio: 225}, {precioServicio: 249}, {precioServicio: 299}],
   anuncios: [{mesAds: 3}, {mesAds: 9}, {mesAds: 99}],
@@ -253,16 +253,16 @@ function opcionesPlatillos() {
 }
 const TARJ = {
   tope_platillos: {
-    que: "Tope de platillos de Chef: por decidir (50, 80, 100 o 150; cuenta todo, decidido)",
-    cif: () => { const f = costoPl().filas; return [`${n(f[f.length - 1].clientes_de_paga_por_1000_por_el_tope)} a ${n(f[0].clientes_de_paga_por_1000_por_el_tope)}`, "de paga por cada 1,000 restaurantes, de 150 a 50 platillos"]; },
+    que: `Tope de platillos de Chef: decidido el 21 de noviembre, ${BASE.topePlatillos} (cuenta todo)`,
+    cif: () => { const f = costoPl().filas; return [`${n(f[f.length - 1].clientes_de_paga_por_1000_por_el_tope)} a ${n(f[0].clientes_de_paga_por_1000_por_el_tope)}`, `de paga por cada 1,000 restaurantes, de ${f[f.length - 1].platillos} a ${f[0].platillos} platillos`]; },
     si: () => "Los bytes del platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: más gente de paga llena antes el disco.",
     rec: -1,
   },
   dos_planes: {
-    que: "Chef gratis (0 a 5 personas): 6 mesas, 1 cuenta, 150 platillos; el resto, Master Chef",
-    cif: () => [n(segC(6, 1, 150), 1) + " %", "de los negocios de 0 a 5 personas cabe en Chef por mesas y cuentas (modelo; rango 42–55 %)"],
-    si: () => `Con 2 cuentas queda ${n(segC(6, 2, 150), 1)} %: más gratuitos y un margen menor.`,
-    rec: 1,
+    que: `Chef gratis (0 a 5 personas): ${BASE.topeMesas} mesas, el dueño y hasta ${BASE.topeCuentas} meseros, ${BASE.topePlatillos} platillos; el resto, Master Chef`,
+    cif: () => [n(segC(BASE.topeMesas, BASE.topeCuentas, BASE.topePlatillos), 1) + " %", "de los negocios de 0 a 5 personas cabe en Chef por mesas, cuentas y platillos (modelo)"],
+    si: () => `Con ${BASE.topeCuentas + 1} cuentas queda ${n(segC(BASE.topeMesas, BASE.topeCuentas + 1, BASE.topePlatillos), 1)} %: más gratuitos y un margen menor.`,
+    rec: 2,
   },
   precios: {
     que: "Master Chef 225 MXN al mes (Chef Ejecutivo: futura escalación)",
@@ -363,5 +363,5 @@ $("#pantallaTop").innerHTML = BTN_PANTALLA;
 $("#verDecisiones").addEventListener("click", () => abre("recomendaciones"));
 const h0 = location.hash.slice(1);
 if (h0 && CAPS.some(c => c.id === h0)) setTimeout(() => irCap(h0), 300);
-else if (h0 && DET[h0]) abre(h0, false);
+else if (h0 && Object.hasOwn(DET, h0)) abre(h0, false);
 else { let visto = false; try { visto = localStorage.getItem("carta-v9-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }

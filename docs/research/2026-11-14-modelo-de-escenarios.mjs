@@ -13,7 +13,7 @@
 //    10 personas queda dentro del gratuito), no un óptimo; mesas y cuentas son un MODELO, no estadística.
 //  · Más allá de la capacidad medida (cap_conexiones gratuitos típicos) todo costo es EXTRAPOLACIÓN sin medir.
 
-export const VERSION = '2026-11-20-r15';
+export const VERSION = '2026-11-21-r16';
 
 // ---------------------------------------------------------------- utilidades
 /** Aplana el JSON de parámetros {parametros:{clave:{valor}}} a {clave: valor}; `sobre` sustituye valores. */
@@ -51,11 +51,21 @@ export function phi(z) {
 }
 
 // ---------------------------------------------------------------- configuración
+/** El plan Chef de la ronda 15 (1 cuenta de personal y 150 platillos), sólo para comparar antes y después de la decisión de Calvin del 21 de noviembre. */
+export function configR15() {
+  const c = configInicial();
+  c.topes.gratuito.cuentas = 1;
+  c.topes.gratuito.platillos = 150;
+  return c;
+}
+
 /**
  * Configuración inicial = DOS PLANES (decisión de Calvin, 17 de noviembre de 2026): **Chef** (gratis) = negocios de 0 a 5 personas, con
- * 6 mesas y UNA cuenta de personal (el dueño con su PIN); **Master Chef** (225) = todo lo que pase de ahí, hasta los topes técnicos del
- * producto (500 mesas activas, 50 personas activas). **Chef Ejecutivo queda APAGADO** (`precios.salon = 0` y `planes.chef_ejecutivo.activo
- * = false`): es una futura escalación, no se borró. El tope de 150 platillos cuenta TODO, bebidas incluidas (decidido por Calvin el 17-nov); la banda de dos cotas de cobertura se conserva porque no se sabe cuál muestra tiene razón.
+ * 6 mesas, el dueño y hasta 3 cuentas de personal (meseros con PIN) y 50 platillos de base (decisión de Calvin del 21 de noviembre de 2026; el
+ * plan de la ronda 15, con 1 cuenta y 150 platillos, queda en `configR15()` sólo para comparar); **Master Chef** (225) = todo lo que pase de
+ * ahí, hasta los topes técnicos del producto (500 mesas activas, 50 personas activas). **Chef Ejecutivo queda APAGADO** (`precios.salon = 0` y
+ * `planes.chef_ejecutivo.activo = false`): es una futura escalación, no se borró. El tope de platillos cuenta TODO, bebidas incluidas (decidido
+ * por Calvin el 17-nov); la banda de dos cotas de cobertura se conserva porque no se sabe cuál muestra tiene razón.
  * Los anuncios van en Chef; empiezan en `supuestos.mes_inicio_anuncios`. `configBase` es alias de esta función. La configuración anterior
  * de tres planes se conserva como `configTresPlanes25Mesas()` y la de la primera ronda como `configTopes10Mesas3Cuentas()`.
  */
@@ -65,7 +75,7 @@ export function configInicial() {
     precios: { servicio: 225, salon: 0 },
     planes: { chef_ejecutivo: { activo: false, nota: 'futura escalación: precio y topes de configTresPlanes25Mesas()' } },
     topes: {
-      gratuito: { platillos: 150, platillos_cuenta: 'todo', mesas: 6, cuentas: 1, lecturas_pdf: 3, meses_en_linea: 24 }, // POLÍTICA VIGENTE (03 §7: sesiones y comandas 24 meses; la analítica 13, abajo). El tope de 150 cuenta TODO, bebidas incluidas (decisión de Calvin, 17-nov)
+      gratuito: { platillos: 50, platillos_cuenta: 'todo', mesas: 6, cuentas: 3, lecturas_pdf: 3, meses_en_linea: 24 }, // PLAN CHEF (decisión de Calvin, 21-nov): 6 mesas, 3 cuentas de personal además del dueño y 50 platillos de base (cuentan todo, bebidas incluidas). Historial: POLÍTICA VIGENTE (03 §7: sesiones y comandas 24 meses; la analítica 13, abajo). El tope de 150 cuenta TODO, bebidas incluidas (decisión de Calvin, 17-nov)
       servicio: { platillos: 300, mesas: 500, cuentas: 50, lecturas_pdf_mes: 10, meses_en_linea: 12 },
       salon: { platillos: 300, mesas: 500, cuentas: 150, lecturas_pdf_mes: 20, meses_en_linea: 12 },
     },
@@ -232,7 +242,7 @@ export function coberturaChef(config, s, clave = 'centro', tope = undefined) {
  */
 export function opcionesTopePlatillos(config, s, n = 1000) {
   const opciones = [
-    { id: 'actual', nombre: 'Tope de 150 platillos, bebidas incluidas (la propuesta actual)', tope: 150, cuenta: 'todo' },
+    { id: 'actual', nombre: `Tope de ${config.topes.gratuito.platillos} platillos, bebidas incluidas (la decisión vigente de Calvin, 21-nov)`, tope: config.topes.gratuito.platillos, cuenta: 'todo' },
     { id: 'solo_comida', nombre: 'Tope de 150 que cuenta sólo comida (las bebidas no tienen tope)', tope: 150, cuenta: 'comida' },
     { id: 'subir_200', nombre: 'Subir el tope a 200 platillos (bebidas incluidas)', tope: 200, cuenta: 'todo' },
     { id: 'subir_300', nombre: 'Subir el tope a 300 platillos (bebidas incluidas)', tope: 300, cuenta: 'todo' },
@@ -1413,7 +1423,7 @@ export function modeloDeNegocio(config, s, n = 1000) {
       { modelo: 'Comisión por transacción (Airbnb, Uber, BlaBlaCar)', quien_paga: 'el que gana con la transacción (anfitrión, conductor)', quien_usa_gratis: 'el lado que trae la demanda (huésped, pasajero) no paga o paga una cuota', conecta_oferta_y_demanda_nuevas: true, hay_transaccion_dentro: true, cifras_verificadas: 'Airbnb 15.5 % al anfitrión en el esquema único (3 % en el compartido); Uber: la tarifa al conductor varía por viaje y la meta es acercarse a 25 % [fuente primaria, 17-nov]; BlaBlaCar no verificada' },
       { modelo: 'Gratuito con anuncios más suscripción (Spotify, YouTube)', quien_paga: 'el anunciante y el usuario que quiere quitar anuncios', quien_usa_gratis: 'el usuario de masas', conecta_oferta_y_demanda_nuevas: false, hay_transaccion_dentro: false, cifras_verificadas: 'YouTube paga 55 % del ingreso neto de anuncios de la página de reproducción [fuente primaria]; Spotify: la fuente primaria dice «cerca de dos tercios» a titulares de derechos, no 70 %' },
       { modelo: 'Economía de la atención (redes sociales)', quien_paga: 'el anunciante', quien_usa_gratis: 'todos los usuarios; el producto es la audiencia y sus datos', conecta_oferta_y_demanda_nuevas: true, hay_transaccion_dentro: false, cifras_verificadas: 'Meta: 97.6 % de sus ingresos viene de publicidad (cálculo sobre el 10-K 2025)' },
-      { modelo: 'Carta v1', quien_paga: 'el restaurante que pasa de los topes de Chef (suscripción) y, después, el anunciante', quien_usa_gratis: 'el comensal (anónimo) y el restaurante de 0 a 5 personas con 6 mesas y 1 cuenta', conecta_oferta_y_demanda_nuevas: false, hay_transaccion_dentro: false, cifras_verificadas: 'reglas vigentes: sin pagos, sin cuenta del comensal, sin datos personales ni venta de datos' },
+      { modelo: 'Carta v1', quien_paga: 'el restaurante que pasa de los topes de Chef (suscripción) y, después, el anunciante', quien_usa_gratis: 'el comensal (anónimo) y el restaurante de hasta ' + config.topes.gratuito.mesas + ' mesas, con el dueño y ' + config.topes.gratuito.cuentas + ' cuentas de personal, y hasta ' + config.topes.gratuito.platillos + ' platillos', conecta_oferta_y_demanda_nuevas: false, hay_transaccion_dentro: false, cifras_verificadas: 'reglas vigentes: sin pagos, sin cuenta del comensal, sin datos personales ni venta de datos' },
     ],
     donde_cae_la_v1: ['Quién paga: el restaurante (suscripción) y, más adelante, un anunciante; el comensal no paga.', 'Quién usa gratis: el comensal y el negocio chico de Chef.', 'Oferta y demanda nuevas: no; el comensal ya está sentado en la mesa del restaurante.', 'Transacción dentro: no; la v1 no cobra ni procesa pagos.'],
     vision_v2_de_calvin: visionV2(config, s),
@@ -1430,7 +1440,7 @@ export function modeloDeNegocio(config, s, n = 1000) {
       parte_que_cabe_en_chef: est.dentro_0_5,
       rango_parte_que_cabe: [estMin.dentro_0_5, estMax.dentro_0_5],
       parte_de_los_clientes_potenciales_que_cabe_en_chef: e05.negocios_en_chef / chef.universo,
-      lectura: `Con un producto sin plan gratuito (Meniu: prueba de ${meniu.prueba_dias} días y ${meniu.precio_mes} pesos al mes), quedan sin servir los negocios de 0 a 5 personas: ${e05.negocios.toLocaleString('en-US')} de ${chef.universo.toLocaleString('en-US')} clientes potenciales [medido, DENUE]; con 6 mesas y 1 cuenta caben en Chef ${Math.round(e05.negocios_en_chef).toLocaleString('en-US')} (${(est.dentro_0_5 * 100).toFixed(1)} % de ellos; rango ${(estMin.dentro_0_5 * 100).toFixed(1)}–${(estMax.dentro_0_5 * 100).toFixed(1)} %), un juicio del modelo de mesas y cuentas.`,
+      lectura: `Con un producto sin plan gratuito (Meniu: prueba de ${meniu.prueba_dias} días y ${meniu.precio_mes} pesos al mes), quedan sin servir los negocios de 0 a 5 personas: ${e05.negocios.toLocaleString('en-US')} de ${chef.universo.toLocaleString('en-US')} clientes potenciales [medido, DENUE]; con ${config.topes.gratuito.mesas} mesas y ${config.topes.gratuito.cuentas} cuentas de personal (más el dueño) y ${config.topes.gratuito.platillos} platillos caben en Chef ${Math.round(e05.negocios_en_chef).toLocaleString('en-US')} (${(est.dentro_0_5 * 100).toFixed(1)} % de ellos; rango ${(estMin.dentro_0_5 * 100).toFixed(1)}–${(estMax.dentro_0_5 * 100).toFixed(1)} %), un juicio del modelo de mesas y cuentas.`,
       supuesto: 'sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef es el modelo de mesas y cuentas con dispersión',
     },
   };
@@ -1701,6 +1711,71 @@ export function sensibilidadDeLaMediana(config, s, medianas = [150, 225, 300], t
 }
 
 
+// ---------------------------------------------------------------- el plan Chef que decidió Calvin (21 de noviembre): antes → después
+/**
+ * Cifras de cabecera con el plan Chef de la ronda 15 (6 mesas, 1 cuenta de personal, 150 platillos) y con el que decidió Calvin el 21 de
+ * noviembre (6 mesas, 3 cuentas de personal además del dueño, 50 platillos), con la misma política de historial (la vigente, 03 §7) y con la
+ * propuesta de 30 días al lado.
+ */
+export function comparacionPlanChef(config, s) {
+  const antes = configR15();
+  const despues = config;
+  const cifras = (cfg) => {
+    const cg = cargaGratuita(cfg, s);
+    const pf = perfilDeCarga(cfg, s);
+    const esc = Object.fromEntries(['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map((e) => [e, evaluarEscenario(e, cfg, s, 1000)]));
+    const rs = resumen(cfg, s);
+    const f = (k) => rs.cifras.find((x) => x.clave === k);
+    const est = coberturaEstratos(cfg, s, 'centro');
+    const m12 = meta12MesesBase(cfg, s).escenarios.recomendado.mes_12;
+    const sm = sueldoBase(cfg, s, tablaSueldos(config, s)[0].sueldo_mensual).escenarios.recomendado;
+    const ev = esc.recomendado;
+    const cota = (c) => coberturaPlatillos(cfg, { ...s, cota_platillos: c }, { tope: cfg.topes.gratuito.platillos });
+    return {
+      topes: { mesas: cfg.topes.gratuito.mesas, cuentas_de_personal: cfg.topes.gratuito.cuentas, platillos: cfg.topes.gratuito.platillos },
+      carga_del_gratuito: { visitas_al_mes: cg.visitas_mes, mb_con_la_politica_vigente: cg.mb, gb_de_fotos: cg.gb_fotos, lineas_abiertas_en_la_hora_pico: pf.lineas_gratuito, lineas_por_restaurante_registrado: pf.lineas_por_restaurante },
+      quien_cae_en_chef: { negocios_de_0_a_5_personas_dentro: est.dentro_0_5, negocios_de_6_a_10_personas_dentro: est.dentro_6_10, cobertura_de_platillos_cota_baja: cota('baja'), cobertura_de_platillos_cota_alta: cota('alta') },
+      parte_que_paga: ev.clientes.de_paga / 1000,
+      pagantes_por_1000: ev.clientes.de_paga,
+      costo_por_gratuito: ev.por_cliente.costo_gratuito,
+      costo_por_cliente_de_paga: ev.por_cliente.costo_servicio,
+      gratuitos_que_sostiene_un_pagante_sin_anuncios: ev.gratuitos_que_sostiene_un_pagante_sin_anuncios,
+      margen_operacion_1000: Object.fromEntries(Object.entries(esc).map(([k, v]) => [k, v.margen_operacion])),
+      mes_12_con_300_restaurantes: { margen_operacion: m12.margen_operacion, margen_despues_de_captacion: m12.margen_despues_de_captacion },
+      sueldo_de_1_salario_minimo: { restaurantes_en_regimen: sm.restaurantes_necesarios_en_regimen, mes_en_que_el_margen_lo_cubre: sm.mes_en_que_el_margen_despues_de_captacion_lo_cubre },
+      capacidad: { politica_vigente: { con_avisos: f('restaurantes_que_caben').recomendado, con_sondeo: f('restaurantes_que_caben').peor }, propuesta_30_dias: { con_avisos: f('restaurantes_que_caben_propuesta_30_dias').recomendado, con_sondeo: f('restaurantes_que_caben_propuesta_30_dias').peor }, sin_purga_12_meses: f('restaurantes_que_caben_sin_purga').recomendado },
+      con_la_propuesta_de_30_dias: { margen_operacion_1000: Object.fromEntries(['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map((e) => [e, evaluarEscenario(e, conPropuesta30Dias(cfg), s, 1000).margen_operacion])) },
+    };
+  };
+  // qué mueve la capacidad: cada cambio del plan por separado (no se suman a ojo: se evalúan)
+  const variante = (cuentas, platillos) => {
+    const c = configInicial();
+    c.topes.gratuito.cuentas = cuentas;
+    c.topes.gratuito.platillos = platillos;
+    const rs = resumen(c, s);
+    const f = rs.cifras.find((x) => x.clave === 'restaurantes_que_caben_propuesta_30_dias');
+    return { cuentas_de_personal: cuentas, platillos, pagantes_por_1000: evaluarEscenario('recomendado', c, s, 1000).clientes.de_paga, caben_con_avisos: f.recomendado, caben_con_sondeo: f.peor, procesador_con_sondeo: topesDeTamano(conPropuesta30Dias(c), s, 'hobby_sondeo', 'sondeo', 'topes').procesador, disco: topesDeTamano(conPropuesta30Dias(c), s, 'hobby_sondeo', 'sondeo', 'topes').disco };
+  };
+  const a15 = antes.topes.gratuito;
+  const d16 = despues.topes.gratuito;
+  const descomposicion = { plan_de_la_ronda_15: variante(a15.cuentas, a15.platillos), sólo_cambian_las_cuentas: variante(d16.cuentas, a15.platillos), sólo_cambia_el_tope_de_platillos: variante(a15.cuentas, d16.platillos), plan_vigente: variante(d16.cuentas, d16.platillos),
+    lectura: `La capacidad con la propuesta de 30 días no cambia por las líneas ni por el procesador de las cuentas de personal: el sondeo de 5 s del personal NO está modelado (el procesador cuenta las visitas de los comensales y no las cuentas), y las líneas abiertas sólo limitan con avisos y no limitan. Las cuentas mueven la capacidad por quién paga: con más cuentas caben en Chef más negocios (menos de paga, menos disco): con el sondeo de hoy caben ${variante(d16.cuentas, a15.platillos).caben_con_sondeo} en vez de ${variante(a15.cuentas, a15.platillos).caben_con_sondeo} sólo por eso. El tope de ${d16.platillos} platillos baja la cobertura de platillos y empuja a más negocios a pagar: ${variante(d16.cuentas, a15.platillos).caben_con_sondeo} baja a ${variante(d16.cuentas, d16.platillos).caben_con_sondeo}. El neto del plan es ${variante(a15.cuentas, a15.platillos).caben_con_sondeo} → ${variante(d16.cuentas, d16.platillos).caben_con_sondeo} con el sondeo.` };
+  return {
+    version: VERSION,
+    decision: 'Calvin, 21 de noviembre de 2026: «Quiero que un restaurante en Chef pueda tener hasta 3 cuentas sincronizadas. O sea, el dueño del restaurante y 3 meseros máximo. Y de mesa serían 6. Platillos base, dejémoslos en 50.»',
+    supuestos_nuevos: [
+      'Cada cuenta de personal abre una línea `/op/eventos` (ADR-018 §3: una por teléfono del personal); se supone que las 3 están conectadas en la hora pico del restaurante (cota alta); la línea del dueño en el panel no se cuenta. Se mide con las líneas abiertas del piloto.',
+      'El modelo de mesas y cuentas (dispersión lognormal σ = 0.5, supuesto) da la parte de negocios que cabe en 6 mesas y 3 cuentas; sólo los conteos por estrato son medidos.',
+      'La cobertura de platillos con el tope de 50 depende de la cota (sitios propios contra reparto): sigue sin saberse cuál muestra tiene razón.',
+      'NO está modelado el sondeo de 5 s del personal: con el sondeo de hoy el procesador cuenta las visitas de los comensales, no las cuentas de personal; las 3 cuentas sólo mueven la capacidad por quién paga (ver la descomposición).',
+    ],
+    descomposicion_de_la_capacidad: descomposicion,
+    antes_plan_chef_ronda_15: cifras(antes),
+    despues_plan_chef_21_nov: cifras(despues),
+  };
+}
+
+
 // ---------------------------------------------------------------- una sola carga: antes (gratuito típico) y después (por topes)
 /**
  * La carga de un restaurante gratuito tiene UNA definición (`cargaGratuita`): sale de los topes (visitas = mesas × `visitas_por_mesa_mes`).
@@ -1831,7 +1906,7 @@ export function historiaDelDisco(config, s, comensales = 3) {
 function n1x(x) { return (Math.round(x * 10) / 10).toLocaleString('en-US'); }
 
 
-// ---------------------------------------------------------------- lo que cuesta un platillo (el tope de platillos del plan Chef, reabierto)
+// ---------------------------------------------------------------- lo que cuesta un platillo (el tope de platillos del plan Chef: decidido en 50 el 21 de noviembre; la tabla de 50 a 150 queda como referencia)
 /**
  * Para decidir el tope de platillos: qué cuesta técnicamente un platillo (bytes en la base, fotos en R2, peso del menú y procesador de
  * armarlo), cuántos restaurantes caben en lo gratuito de R2 con 50, 80, 100 y 150 platillos con foto, cuánto cuesta pasarse, la cobertura

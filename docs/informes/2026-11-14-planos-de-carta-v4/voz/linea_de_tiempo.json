@@ -1,0 +1,166 @@
+{
+ "ritmo": 1.13,
+ "total": 355.3,
+ "tomas": [
+  {
+   "toma": "mesa",
+   "inicio": 0,
+   "duracion": 11.5
+  },
+  {
+   "toma": "cumple",
+   "inicio": 11.5,
+   "duracion": 12.1
+  },
+  {
+   "toma": "b1",
+   "inicio": 23.6,
+   "duracion": 12.1
+  },
+  {
+   "toma": "b2",
+   "inicio": 35.7,
+   "duracion": 18.4
+  },
+  {
+   "toma": "b3",
+   "inicio": 54.1,
+   "duracion": 10.2
+  },
+  {
+   "toma": "b3t",
+   "inicio": 64.3,
+   "duracion": 6.4
+  },
+  {
+   "toma": "espera",
+   "inicio": 70.7,
+   "duracion": 10.3
+  },
+  {
+   "toma": "ticket",
+   "inicio": 81,
+   "duracion": 4.6
+  },
+  {
+   "toma": "b4",
+   "inicio": 85.6,
+   "duracion": 8.8
+  },
+  {
+   "toma": "pivote",
+   "inicio": 94.4,
+   "duracion": 5.5
+  },
+  {
+   "toma": "ofrece",
+   "inicio": 99.9,
+   "duracion": 9.8
+  },
+  {
+   "toma": "escanea",
+   "inicio": 109.7,
+   "duracion": 5.9
+  },
+  {
+   "toma": "filtra",
+   "inicio": 115.6,
+   "duracion": 8.7
+  },
+  {
+   "toma": "top3",
+   "inicio": 124.3,
+   "duracion": 8.4
+  },
+  {
+   "toma": "plato",
+   "inicio": 132.7,
+   "duracion": 3
+  },
+  {
+   "toma": "agrega",
+   "inicio": 135.7,
+   "duracion": 3.7
+  },
+  {
+   "toma": "juntos",
+   "inicio": 139.4,
+   "duracion": 11.3
+  },
+  {
+   "toma": "recomienda",
+   "inicio": 150.7,
+   "duracion": 4
+  },
+  {
+   "toma": "confirma",
+   "inicio": 154.7,
+   "duracion": 5.6
+  },
+  {
+   "toma": "esperan",
+   "inicio": 160.3,
+   "duracion": 3
+  },
+  {
+   "toma": "avisa",
+   "inicio": 163.3,
+   "duracion": 4.4
+  },
+  {
+   "toma": "llega",
+   "inicio": 167.7,
+   "duracion": 13.3
+  },
+  {
+   "toma": "cocina",
+   "inicio": 181,
+   "duracion": 5
+  },
+  {
+   "toma": "abierta",
+   "inicio": 186,
+   "duracion": 57.5
+  },
+  {
+   "toma": "cierres",
+   "inicio": 243.5,
+   "duracion": 37
+  },
+  {
+   "toma": "cuenta",
+   "inicio": 280.5,
+   "duracion": 28.4
+  },
+  {
+   "toma": "pagada",
+   "inicio": 308.9,
+   "duracion": 22.2
+  },
+  {
+   "toma": "factura",
+   "inicio": 331.1,
+   "duracion": 8.3
+  },
+  {
+   "toma": "sucia",
+   "inicio": 339.4,
+   "duracion": 4.9
+  },
+  {
+   "toma": "prepara",
+   "inicio": 344.3,
+   "duracion": 3
+  },
+  {
+   "toma": "limpia",
+   "inicio": 347.3,
+   "duracion": 3
+  },
+  {
+   "toma": "fin",
+   "inicio": 350.3,
+   "duracion": 5
+  }
+ ]
+}

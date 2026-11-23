@@ -6,8 +6,6 @@
   const NOM_T = {sesion_grupal: "sesión", miembro_sesion: "miembros", orden_personal: "órdenes", item_orden: "platillos", comanda: "comanda", comanda_orden: "enlace", llamada_mesero: "llamada", evento_analitica: "eventos del teléfono"};
   const FORMA = () => conCache("palTab", () => MOD.palancasEnTablero(config(S), sup(S))).grupos_excluyentes.forma_de_guardar_la_analitica.miembros;
   const sinForma = ps => ps.filter(x => !FORMA().includes(x));
-  const CORTO_OP = {hoy: "Hoy", contar_por_dia: "Contar por día", fila_por_visita: "Fila por visita", fila_mas_platillo: "Fila más platillo", adelgazar: "Adelgazar la tabla", archivar_paga: "Archivar sólo las de paga", archivar_todos: "Archivar las de todos los planes"};
-  const ALC = {archivar_paga: "archivar_sesiones_de_paga", archivar_todos: "archivar_sesiones_de_todos_los_planes"};
   D7.hp = 0;
 
   D7.montar = function (host, sec) {
@@ -16,8 +14,8 @@
 <div class="viz"><svg id="svDc" viewBox="0 0 1100 300" role="img" aria-label="Quién llena el disco" font-family="DM Sans, sans-serif"></svg></div>
 <div class="r7p r7bar"><span class="selr">Un ejemplo guiado: una mesa de 3 comensales</span><button class="btn" id="hiAt" aria-label="Paso anterior">◀</button><button class="btn" id="hiSig">Siguiente ▶</button><button class="btn" id="hiPl">▶ Reproducir</button><span class="selr" id="hiN"></span></div>
 <div class="viz"><svg id="svHi" viewBox="0 0 1100 500" role="img" aria-label="Cómo se acumulan las filas de una mesa de tres comensales" font-family="DM Sans, sans-serif"></svg></div>
-<div class="viz"><svg id="svOp" viewBox="0 0 1100 710" role="img" aria-label="Las formas de guardar la analítica, lado a lado" font-family="DM Sans, sans-serif"></svg></div>
-<div class="viz"><svg id="svCo" viewBox="0 0 1100 410" role="img" aria-label="La combinación de forma, archivo e historial" font-family="DM Sans, sans-serif"></svg></div>
+<div class="r7p r7bar"><span class="selr">Lo que escribe en la base la mesa de ejemplo, registro por registro. En cada barra, lo oscuro son los datos de la fila y lo dorado sus índices; el largo se mide contra el registro más pesado.</span></div><div id="dReg" class="dr"></div>
+
 <div class="viz"><svg id="svSe" viewBox="0 0 1100 330" role="img" aria-label="La capacidad depende de quién paga" font-family="DM Sans, sans-serif"></svg></div></div>`);
     this.rmH = RM($("#svHi", host));
     const mueve = d => { this.hp = clamp(this.hp + d, 0, 8); if (this.hp === 8 || this.hp === 0) this.paraJuego(); this.pintaHistoria(); };
@@ -29,21 +27,16 @@
         if (this.juego) { this.paraJuego(); this.pintaHistoria(); return; }
         if (this.hp >= 8) this.hp = 0;
         this.juego = setInterval(() => { if (this.hp >= 8) { this.paraJuego(); this.pintaHistoria(); return; } mueve(1); }, 1100); mueve(1);
-      } else if (t.dataset && t.dataset.op) this.eligeOpcion(t.dataset.op);
+      } else if (t.dataset && t.dataset.forma) { const ps = S.palancas || []; cambiar({palancas: [...sinForma(ps), ...(FM[t.dataset.forma] || [])]}); }
+      else if (t.dataset && t.dataset.fila) { this.abierta = this.abierta === t.dataset.fila ? null : t.dataset.fila; this.pintaRegistros(); }
+      else if (t.id === "drAt") { this.pasoReg = (this.pasoReg || 0) <= 1 ? 0 : this.pasoReg - 1; this.pintaRegistros(); }
+      else if (t.id === "drSig") { this.pasoReg = Math.min(7, (this.pasoReg || 0) + 1); this.pintaRegistros(); }
+      else if (t.id === "drTodo") { this.pasoReg = 0; this.pintaRegistros(); }
     });
-    host.addEventListener("keydown", ev => { if ((ev.key === "Enter" || ev.key === " ") && ev.target.dataset && ev.target.dataset.op) { ev.preventDefault(); this.eligeOpcion(ev.target.dataset.op); } });
   };
   D7.paraJuego = function () { if (this.juego) { clearInterval(this.juego); this.juego = null; } };
   D7.actualizar = function () { const o = actBase.call(this); if (this.r && $("#svDc")) this.pintaExtra(); return o; };
-  D7.pintaExtra = function () { this.pintaComposicion(); this.pintaHistoria(); this.pintaOpciones(); this.pintaCombo(); this.pintaSensib(); };
-
-  /* una opción de las formas de guardar: reemplaza la forma elegida (nunca se suman) */
-  D7.eligeOpcion = function (id) {
-    const h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), o = h.opciones.find(q => q.id === id); if (!o) return;
-    const ps = S.palancas || [];
-    if (ALC[id]) { const a = ALC[id], otros = Object.values(ALC); cambiar({palancas: ps.includes(a) ? ps.filter(x => x !== a) : [...ps.filter(x => !otros.includes(x)), a]}); return; }
-    cambiar({palancas: [...sinForma(ps), ...o.palancas]});
-  };
+  D7.pintaExtra = function () { this.pintaComposicion(); this.pintaHistoria(); this.pintaRegistros(); this.pintaSensib(); };
 
   /* 1 · quién llena el disco */
   D7.pintaComposicion = function () {
@@ -94,31 +87,49 @@
     for (let k = 0; k < 2; k++) rm.put("mp" + k, "text", {x: X0, y: 466 + k * 18, text: lin2[k] || "", size: 13, fill: C.tinta});
   };
 
-  /* 3 · las formas de guardar la analítica, lado a lado, como una sola elección */
-  D7.pintaOpciones = function () {
-    const h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), ops = h.opciones, ps = S.palancas || [], enF = ps.filter(x => FORMA().includes(x));
-    const mxB = Math.max(...ops.map(o => o.bytes_analitica_por_mesa_de_3)), mxC = Math.max(...ops.flatMap(o => [o.restaurantes_que_caben_sin_purga, o.restaurantes_que_caben_con_historial_30_dias]));
-    const hoyB = ops[0].bytes_analitica_por_mesa_de_3, W = 126, G = 6;
-    let b = T(30, 26, "La misma mesa de 3: cinco formas de guardar la analítica (se elige una) y dos alcances de archivo (se elige uno, se suma a la forma)", 14, C.vino, "start", 700);
-    const todas = [...ops, {id: "comprar", nombre: "Comprar disco"}];
-    todas.forEach((o, i) => {
-      const x = 20 + i * (W + G), esForma = o.palancas && !ALC[o.id], sel = ALC[o.id] ? ps.includes(ALC[o.id]) : o.id === "comprar" ? false : (o.id === "hoy" ? enF.length === 0 : enF.length === o.palancas.length && o.palancas.every(p => enF.includes(p))), calvin = o.id === "fila_por_visita";
-      const nom = o.nombre.replace(/ \(propuesta de Calvin\)/, ""), lin = parr(CORTO_OP[o.id] || nom, 15);
-      b += `<g ${o.id !== "comprar" ? `data-op="${o.id}" role="button" tabindex="0" style="cursor:pointer" aria-pressed="${sel}"` : ""} data-tip="${esc2(o.id === "comprar" ? "Comprar disco|sube el costo del escalón|No cambia lo que se guarda: es la opción que no ahorra bytes." : `${CORTO_OP[o.id] || nom}|caben ${n(o.restaurantes_que_caben_sin_purga)} y ${n(o.restaurantes_que_caben_con_historial_30_dias)}|Queda: ${pal20(o.que_queda, 6)} Se pierde: ${pal20(o.se_pierde, 5)}`)}">` + Rc(x, 40, W, 566, sel ? "#f6e9d4" : "#fff", 20, `stroke="${sel ? C.vino : calvin ? C.dorado : C.arena}" stroke-width="${sel ? 3.4 : calvin ? 3 : 1.5}" ${calvin && !sel ? 'stroke-dasharray="7 5"' : ""}`);
-      lin.slice(0, 3).forEach((l, j) => { b += T(x + 12, 68 + j * 17, l, 12.5, C.tinta, "start", 700); });
-      if (calvin) b += Rc(x + 12, 118, 116, 20, C.dorado, 10) + T(x + 70, 132, "idea de Calvin", 12, "#fff", "middle", 700);
-      if (o.id === "comprar") { b += T(x + 12, 170, "no cambia lo", 12.5, C.t2, "start", 700) + T(x + 12, 187, "guardado: sube el", 12.5, C.t2, "start", 700) + T(x + 12, 204, "costo del escalón", 12.5, C.t2, "start", 700) + T(x + 12, 224, "(ver la escalera)", 12.5, C.t2, "start") + `</g>`; return; }
-      b += T(x + 12, 168, "analítica de la mesa", 12, C.t2, "start", 700) + Rc(x + 12, 176, W - 24, 12, C.a2, 6) + Rc(x + 12, 176, Math.max((W - 24) * o.bytes_analitica_por_mesa_de_3 / mxB, 3), 12, calvin ? C.dorado : C.vino, 6) + T(x + 12, 216, `${n(o.bytes_analitica_por_mesa_de_3)} B`, 21, C.vino, "start", 400, true) + (o.id === "hoy" ? T(x + 12, 234, "una fila por toque", 12, C.t2, "start", 700) : o.bytes_analitica_por_mesa_de_3 === hoyB ? T(x + 12, 234, "mismos bytes que hoy", 12, C.t2, "start", 700) : T(x + 12, 234, `${n(100 * (1 - o.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy`, 12, C.verde, "start", 700));
-      b += T(x + 12, 270, "caben, a 12 meses", 12, C.t2, "start", 700) + Rc(x + 12, 278, W - 24, 12, C.a2, 6) + Rc(x + 12, 278, Math.max((W - 24) * o.restaurantes_que_caben_sin_purga / mxC, 3), 12, C.dorado, 6) + T(x + 12, 318, n(o.restaurantes_que_caben_sin_purga), 26, C.tinta, "start", 400, true);
-      b += T(x + 12, 350, "caben, con 30 días", 12, C.t2, "start", 700) + Rc(x + 12, 358, W - 24, 12, C.a2, 6) + Rc(x + 12, 358, Math.max((W - 24) * o.restaurantes_que_caben_con_historial_30_dias / mxC, 3), 12, C.verde, 6) + T(x + 12, 398, n(o.restaurantes_que_caben_con_historial_30_dias), 26, C.tinta, "start", 400, true);
-      b += T(x + 12, 432, "se pierde:", 12, C.rojo, "start", 700); parr(o.se_pierde, 16).slice(0, 6).forEach((l, j) => { b += T(x + 12, 448 + j * 15, l, 12, C.tinta, "start"); });
-      b += T(x + 12, 558, sel ? "✓ elegida" : ALC[o.id] ? "toca para sumar" : "toca para elegir", 12, sel ? C.vino : C.t2, "start", 700) + `</g>`;
-    });
-    // la propuesta de Calvin, medida
-    const f = ops.find(o => o.id === "fila_por_visita"), porVisita = f.bytes_analitica_por_mesa_de_3 / h.comensales;
-    const cap1 = `La propuesta de Calvin, medida: ${n(porVisita)} bytes por visita de comensal, ${n(100 * (1 - f.bytes_analitica_por_mesa_de_3 / hoyB))} % menos que hoy y sin huella de red. Se pierde qué platillo se vio; conviene un solo envío al terminar.`, cap2 = "Por conseguir con el piloto: los eventos reales por comensal; cuántas visitas el teléfono no alcanza a mandar (se compara con los scan); el tamaño con fillfactor 70 si se actualiza la fila; la reserva de disco para WAL y vacuum.";
-    b += parr(cap1, 150).map((l, k) => T(20, 626 + k * 17, l, 12, C.osc, "start", 700)).join("") + parr(cap2, 150).map((l, k) => T(20, 668 + k * 17, l, 12, C.t2, "start", 700)).join("");
-    $("#svOp").innerHTML = b;
+  /* 3 · lo que escribe en la base la mesa de ejemplo, registro por registro (datos medidos: docs/research/2026-11-21-disco-por-registro.json) */
+  const FM = {hoy: [], contar_por_dia: ["analitica_agregada_por_dia"], fila_por_visita: ["fila_por_visita_de_comensal"], fila_mas_platillo_y_filtros_por_dia: ["fila_por_visita_mas_platillo_por_dia"]};
+  const ORD = ["p1", "p2", "p3", "p4", "p5", "p6"], PASO_FORMA = {contar_por_dia: "pcd", fila_por_visita: "pfv", fila_mas_platillo_y_filtros_por_dia: "pcb"};
+  const TIPO_EVENTO = DR.codigos_de_evento; // los nombres de los códigos de tipo vienen del archivo de datos
+  const pasoN = id => { const i = ORD.indexOf(id); return i < 0 ? 7 : i + 1; };
+  const todasLasFilas = DR.tablas_de_la_mesa.concat(...DR.formas.map(f => f.tablas)).flatMap(t => t.filas), MXB = Math.max(...todasLasFilas.map(f => f.bytes_total));
+  D7.pintaRegistros = function () {
+    const el = $("#dReg"); if (!el) return;
+    const ps = S.palancas || [], enF = ps.filter(x => FORMA().includes(x));
+    const fid = Object.keys(FM).find(k => FM[k].length === enF.length && FM[k].every(p => enF.includes(p))) || "hoy";
+    const forma = DR.formas.find(f => f.id === fid), hoy = DR.formas.find(f => f.id === "hoy"), maxPaso = fid === "hoy" ? 6 : 7;
+    if (this.pasoReg > maxPaso) this.pasoReg = maxPaso;
+    const paso = this.pasoReg || 0, visible = f => !paso || pasoN(f.paso) <= paso;
+    if (this.abierta === undefined) this.abierta = hoy.tablas[0].filas[0].id;
+    const sumaT = (tbs, cond = visible) => tbs.reduce((a, t) => a + t.filas.filter(cond).reduce((b, f) => b + f.bytes_total, 0), 0);
+    const bM = sumaT(DR.tablas_de_la_mesa), bA = sumaT(forma.tablas), bT = bM + bA;
+    const resumen = f => f.columnas.filter(c => c.valor != null && !/^[0-9a-f]{8}-/.test(String(c.valor)) && String(c.valor).length <= 16).slice(0, 3).map(c => `${c.nombre}: ${c.nombre === "tipo" && TIPO_EVENTO[c.valor] ? `${c.valor} (${TIPO_EVENTO[c.valor]})` : c.valor}`).join(" · ");
+    const detalle = f => {
+      const cols = f.columnas.reduce((a, c) => a + c.bytes, 0);
+      return `<div class="ddet"><table class="dcol"><thead><tr><th>Columna</th><th>Tipo</th><th>Valor de ejemplo</th><th>Bytes</th></tr></thead><tbody>${f.columnas.map(c => `<tr><td>${esc(c.nombre)}</td><td>${esc(c.tipo)}</td><td>${c.valor == null ? "<i>vacío</i>" : esc(String(c.valor).slice(0, 44))}</td><td>${n(c.bytes)}${c.relleno_antes ? ` <small>+${c.relleno_antes} de relleno</small>` : ""}</td></tr>`).join("")}</tbody></table>
+        <div class="dsum">Cabecera ${n(f.cabecera_bytes)} B + columnas ${n(cols)} B + relleno ${n(f.relleno_bytes)} B + puntero de línea ${n(f.puntero_de_linea_bytes)} B = <b>${n(f.bytes_datos)} B de datos</b></div>
+        <div class="dind">${f.indices.map(i => `<span>${esc(i.nombre)}: ${n(i.bytes)} B</span>`).join("")}<span>→ <b>${n(f.bytes_indices)} B de índices</b> (${n(100 * f.bytes_indices / f.bytes_total)} % de la fila)</span></div></div>`;
+    };
+    const fila = f => {
+      const abre = this.abierta === f.id, nuevo = paso && pasoN(f.paso) === paso;
+      return `<div class="dfila${abre ? " on" : ""}${nuevo ? " nuevo" : ""}"><button class="dfb" data-fila="${esc(f.id)}" aria-expanded="${abre}"><span class="dfi">${esc(f.id)}</span><span class="dfr">${esc(resumen(f))}</span><span class="dfbar" title="datos y índices"><i style="width:${100 * f.bytes_datos / MXB}%;background:var(--vino)"></i><i style="width:${100 * f.bytes_indices / MXB}%;background:var(--dorado)"></i></span><b>${n(f.bytes_total)} B</b></button>${abre ? detalle(f) : ""}</div>`;
+    };
+    const tabla = (t, an) => { const fl = t.filas.filter(visible); if (!fl.length) return ""; const tot = fl.reduce((a, f) => a + f.bytes_total, 0); return `<section class="dtab${an ? " an" : ""}"><h4>${esc(t.tabla)} <small>${esc(t.que_guarda)}${an ? " · analítica" : ""}</small><b>${n(fl.length)} ${fl.length === 1 ? "fila" : "filas"} · ${n(tot)} B</b></h4>${fl.map(fila).join("")}</section>`; };
+    const cmp = id => (DR.comparacion.find(q => q.forma === id) || {}).frente_a_hoy;
+    const lateral = DR.formas.map(f => { const c = cmp(f.id); return `<button class="dfm${f.id === fid ? " on" : ""}" data-forma="${f.id}" aria-pressed="${f.id === fid}"><span>${esc(f.nombre)}</span><small>${f.estado === "propuesta" ? "propuesta" : "lo que hace hoy"}</small><b>${n(f.bytes_total)} B</b><em>${c ? `analítica ${n(100 * (f.bytes_analitica / hoy.bytes_analitica - 1)).replace("-", "−")} % · la mesa entera ${n(100 * (f.bytes_total / hoy.bytes_total - 1)).replace("-", "−")} %` : "la base de comparación"}</em></button>`; }).join("");
+    const dp = paso ? (DR.pasos.find(q => q.id === (paso <= 6 ? ORD[paso - 1] : PASO_FORMA[fid])) || null) : null;
+    const hoyF = hoy.tablas.reduce((a, t) => a + t.filas.length, 0), hoyB = hoy.bytes_analitica, fF = forma.tablas.reduce((a, t) => a + t.filas.length, 0);
+    const dif = fid === "hoy" ? "" : `<div class="drDif">Frente a Hoy: desaparecen ${n(hoyF)} eventos (${n(hoyB)} B) y entran ${n(fF)} filas de ${forma.tablas.map(t => esc(t.tabla)).join(" y ")} (${n(forma.bytes_analitica)} B); las ${n(DR.tablas_de_la_mesa.reduce((a, t) => a + t.filas.length, 0))} filas de la mesa quedan igual.</div>`;
+    const f1 = forma.tablas[0].filas[0], d = DR.diferencia_con_el_informe;
+    el.innerHTML = `<div class="drL" role="group" aria-label="Formas de guardar la analítica"><div class="drT">Forma de guardar la analítica</div>${lateral}</div>
+<div class="drR"><div class="drH"><span class="t">${esc(DR.ejemplo.descripcion)}</span><button class="btn" id="drAt" aria-label="Paso anterior"${paso === 0 ? " disabled" : ""}>◀</button><span class="drPaso" id="drN">${paso ? `Paso ${paso} de ${maxPaso}` : "Todos los pasos"}</span><button class="btn" id="drSig"${paso >= maxPaso ? " disabled" : ""}>Siguiente ▶</button><button class="btn" id="drTodo"${paso === 0 ? " disabled" : ""}>Todo</button></div>
+${dp ? `<div class="drMed">${esc(dp.quien === "M" ? "" : dp.quien + ": ")}${esc(dp.que_hace)}</div>` : ""}
+${DR.tablas_de_la_mesa.map(t => tabla(t, false)).join("")}${forma.tablas.map(t => tabla(t, true)).join("")}
+<div class="drTot"><div><small>mesa, sin analítica</small><b>${n(bM)} B</b></div><div class="an"><small>analítica de la forma elegida</small><b>${n(bA)} B</b></div><div><small>total de la mesa</small><b>${n(bT)} B</b></div><div><small>parte que es analítica</small><b>${bT ? n(100 * bA / bT) : 0} %</b></div></div>
+${dif}
+<div class="drMed">Una fila de ${esc(forma.tablas[0].tabla)} pesa ${n(f1.bytes_total)} B: ${n(f1.bytes_datos)} la tupla y ${n(f1.bytes_indices)} ${f1.indices.length === 1 ? 'su única entrada' : 'sus ' + f1.indices.length + ' entradas'} de índice (${n(100 * f1.bytes_indices / f1.bytes_total)} %).</div>
+<div class="drDif">Esta mesa suelta escribe ${n(d.medido_bytes)} B; el informe usa ${n(d.informe_bytes)} B por mesa, el promedio a escala: PostgreSQL junta las entradas de índice repetidas y un registro suelto no puede. Las dos son ciertas y la capacidad usa el promedio.</div>
+<div class="drNota">${forma.notas.map(q => `<p>${esc(q)}</p>`).join("")}</div></div>`;
   };
 
   /* 5 · la capacidad depende de quién paga: tres casos a la vez (`recursos().sensibilidad_de_la_capacidad`) */
@@ -139,34 +150,4 @@
     $("#svSe").innerHTML = b;
   };
 
-  /* 4 · la combinación que importa: forma + archivar + historial del gratuito */
-  D7.pintaCombo = function () {
-    const ps = S.palancas || [], h = conCache("hist7", () => MOD.historiaDelDisco(config(S), sup(S))), cb = h.combinaciones;
-    const ARCHS = ["sin archivo", "archivar sólo las de paga", "archivar las de todos los planes"], AN = [["una fila por evento (hoy)", "Hoy: una fila por toque", []], ["contar por día", "Contar por día", ["analitica_agregada_por_dia"]], ["fila por visita", "Fila por visita", ["fila_por_visita_de_comensal"]], ["fila por visita más platillo por día", "Fila por visita + platillo", ["fila_por_visita_mas_platillo_por_dia"]]];
-    const K30 = "caben_con_historial_del_gratuito_a_30_dias", K12 = "caben_con_el_gratuito_a_12_meses_sin_purga";
-    const ALCP = [[], ["archivar_sesiones_de_paga"], ["archivar_sesiones_de_todos_los_planes"]];
-    const vig = conCache("comboVig", () => { const c = config(S), s = sup(S), o = {}; ARCHS.forEach((a, ai) => AN.forEach(([an, , pl]) => { o[a + "|" + an] = MOD.recursos({...c, palancas: [...ALCP[ai], ...pl]}, s, {canal: "eventos"}).cuello_con_eventos.restaurantes; })); return o; });
-    const val = (arch, an, k) => k === "vigente" ? vig[arch + "|" + an] : (cb.find(x => x.archivo === arch && x.analitica === an) || {})[k];
-    const mx = Math.max(...cb.flatMap(x => [x[K30], x[K12]]), ...Object.values(vig)), X0 = 300, CW = 190, BW = 168, RH = 52, Y0 = 84;
-    const selH = this.his === "30d" ? K30 : this.his === "12" ? K12 : this.his === "vigente" ? "vigente" : null, selA = ps.includes("archivar_sesiones_de_todos_los_planes") ? 2 : ps.includes("archivar_sesiones_de_paga") ? 1 : 0, selF = AN.findIndex(([, , pl]) => pl.length === ps.filter(x => pl.includes(x)).length && ps.filter(x => FORMA().includes(x)).length === pl.length);
-    let b = T(30, 26, "La combinación que importa: archivo × forma de guardar × historial del gratuito (restaurantes que caben, con avisos)", 14, C.vino, "start", 700);
-    AN.forEach(([, nom], j) => { b += T(X0 + j * CW + BW / 2, 62, nom, 12.5, C.tinta, "middle", 700); });
-    let i = 0;
-    [["vigente", "Política vigente (03 §7)", C.vino], [K12, "Gratuito a 12 meses (sin purga)", C.dorado], [K30, "Gratuito a 30 días (propuesta)", C.verde]].forEach(([k, tit, col]) => {
-      ARCHS.forEach((arch, ai) => {
-        const y = Y0 + i * RH;
-        b += T(30, y + 16, tit, 12, C.t2, "start", 700) + T(30, y + 34, arch, 13, C.tinta, "start", 700);
-        AN.forEach(([an, nom], j) => {
-          const v = val(arch, an, k), on = selH === k && selA === ai && selF === j, base = val("sin archivo", "una fila por evento (hoy)", k);
-          b += `<g data-tip="${esc2(`${nom}|${n(v)} restaurantes|${tit}; ${arch}.${v !== base ? ` ${v > base ? n(v - base) + " más" : n(base - v) + " menos"} que sin cambios.` : ""}`)}" data-tipp="${v / mx}" tabindex="0">` + Rc(X0 + j * CW - 6, y - 2, BW + 12, RH - 6, on ? "#f6e9d4" : "rgba(0,0,0,0)", 12, on ? `stroke="${C.vino}" stroke-width="2.4"` : "") + Rc(X0 + j * CW, y + 6, BW, 12, C.a2, 6) + Rc(X0 + j * CW, y + 6, Math.max(BW * v / mx, 3), 12, col, 6) + T(X0 + j * CW, y + 38, n(v), 17, C.tinta, "start", 400, true) + `</g>`;
-        });
-        i++;
-      });
-    });
-    const yC = Y0 + i * RH + 14, v0 = val("sin archivo", "una fila por evento (hoy)", "vigente"), vP = val("archivar sólo las de paga", "fila por visita", "vigente"), vT = val("archivar las de todos los planes", "fila por visita", "vigente"), d30 = val("sin archivo", "una fila por evento (hoy)", K30), p12 = val("archivar sólo las de paga", "una fila por evento (hoy)", K12), t12 = val("archivar las de todos los planes", "una fila por evento (hoy)", K12), b12 = val("sin archivo", "una fila por evento (hoy)", K12);
-    parr(`Con la política vigente, archivar en R2 el historial de más de 3 meses de todos los planes más la fila por visita lleva de ${n(v0)} a ${n(vT)} sin borrar nada; archivar sólo la paga con la fila por visita da ${n(vP)}. Con el gratuito a 12 meses, archivar sólo la paga da ${n(p12)} (sin archivar, ${n(b12)}) y archivar todos los planes, ${n(t12)}; recortar el gratuito a 30 días da ${n(d30)}. El salto lo da sacar de la base el historial del gratuito: archivándolo (se conserva en R2) o recortándolo (se borra). Archivar sólo la paga no alcanza.`, 112).forEach((l, k) => { b += T(30, yC + k * 20, l, 14, C.vino, "start", 700); });
-    parr("Cualquiera de estas palancas cambia qué se guarda y por cuánto tiempo: antes de construirse pasa por especificación, por actualizar 03 §7 y por un ADR (archivar toca las reglas 8 y 9).", 140).forEach((l, k) => { b += T(30, yC + 66 + k * 18, l, 12, C.t2, "start", 700); });
-    $("#svCo").setAttribute("viewBox", `0 0 1100 ${yC + 112}`);
-    $("#svCo").innerHTML = b;
-  };
 })();

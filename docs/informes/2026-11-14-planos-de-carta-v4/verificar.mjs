@@ -83,6 +83,9 @@ await abre(p, 'linea');
 const t0 = await texto(p, '#svLinea');
 await p.hover('#svLinea [data-i="3"]'); await p.waitForTimeout(500);
 ok((await texto(p, '#svLinea')) !== t0, 'línea: pasar el cursor por un tamaño cambia su ejemplo y sus números');
+const vbL = await p.evaluate(() => { const sv = document.querySelector('#svLinea'), v = sv.viewBox.baseVal, sr = sv.getBoundingClientRect(), k = v.width / sr.width, ux = (e) => { const r = e.getBoundingClientRect(); return [(r.left - sr.left) * k, (r.right - sr.left) * k]; }, t = [...sv.querySelectorAll('text')].filter((e) => e.textContent.trim() && +getComputedStyle(e).opacity > 0.3), ti = t.find((e) => e.textContent.includes('Ingreso de este tamaño')); return { h: v.height, w: v.width, dos: !!ti && ux(ti)[0] >= 1090, fuera: t.filter((e) => ux(e)[1] > v.width + 1).length }; });
+ok(vbL.dos && vbL.fuera === 0 && vbL.h <= 540 && vbL.w >= 1300, 'línea: el panel del tamaño va en dos paneles, ningún texto sale del viewBox y la gráfica no crece en alto (' + vbL.w + ' × ' + vbL.h + ')');
+if (png) await p.locator('#svLinea').screenshot({ path: `${png}/v18_linea.png` });
 ok(!(await texto(p, '#svLinea')).includes('toca un tamaño'), 'línea: sin texto de instrucciones');
 if (png) await p.screenshot({ path: `${png}/v5_linea.png` });
 await sinDesborde(p, 'línea'); await cierra(p);
@@ -106,11 +109,12 @@ const tipsS = await p.evaluate(() => [...new Set([...document.querySelectorAll('
 ok(tipsS.includes('64 de 166') && tipsS.includes('81 de 166') && tipsS.includes('21 de 166') && tipsS.includes('71 con el dominio'), 'capítulo 2: el desglose fino (64 / 81 / 21 de 166) va al hover');
 const refY = await p.evaluate(() => { const r = document.querySelector('#svLinea .rm[style*="2.5px"]'); return r ? 1 : 0; });
 const orden = await p.evaluate(() => { const hijos = [...document.querySelectorAll('#svLinea > *')], ref = hijos.findIndex((e) => e.style.width === '2.5px'), barra = hijos.findIndex((e) => e.getAttribute('aria-label') && e.getAttribute('aria-label').includes('declara sitio web')); return [ref, barra]; });
-ok(orden[0] > 0 && orden[0] < orden[1] || orden[0] > 0, 'capítulo 2: la línea de referencia existe (' + orden.join(',') + ')');
+ok(orden[0] > 0 && orden[1] >= 0 && orden[0] > orden[1], 'capítulo 2: la línea de referencia existe y va dibujada encima de la barra de internet (' + orden.join(',') + ')');
 ok(!(await p.evaluate(() => document.documentElement.innerHTML.includes('1,780') || document.documentElement.innerHTML.includes('alcanzables'))), 'capítulo 2: la cifra de «alcanzables» ya no se pinta');
 await sinDesborde(p, 'capítulo 2 sitios'); await cierra(p);
 // matriz interactiva
 await abre(p, 'matriz');
+if (png) await p.locator('#svMx').screenshot({ path: `${png}/v18_matriz.png` });
 const fila0 = async () => p.$eval('#svMx text[font-weight="700"]', (e) => e.textContent).catch(() => '');
 const ys = () => p.$$eval('#svMx text.rm', (els) => els.filter((e) => /Business|Avanzado|Advanced|Premium|Starter|Lite|Plan 0|gratis/.test(e.textContent)).map((e) => [e.textContent, e.style.transform]));
 const antes = JSON.stringify(await ys());
@@ -193,7 +197,8 @@ await sinDesborde(p, 'capítulo 7'); await cierra(p);
 
 // los topes del capítulo 6 mueven el capítulo 7, desde el valor anterior y diciendo con qué topes está calculado
 await abre(p, 'recursos7');
-ok((await texto(p, '#topesR')).includes('Con tus topes: 6 mesas · 1 cuenta · 150 platillos'), 'capítulo 7: dice con qué topes está calculado (6 mesas · 1 cuenta · 150 platillos)');
+const topesTxt = await p.evaluate(() => `${BASE.topeMesas} mesas · ${BASE.topeCuentas} ${BASE.topeCuentas === 1 ? 'cuenta' : 'cuentas'} · ${BASE.topePlatillos} platillos`);
+ok((await texto(p, '#topesR')).includes('Con tus topes: ' + topesTxt) && /3 cuentas/.test(topesTxt) && /50 platillos/.test(topesTxt), 'capítulo 7: dice con qué topes está calculado (el plan Chef de Calvin: ' + topesTxt + ')');
 const antT = await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'procesador').v);
 await p.evaluate(() => cambiar({ topeMesas: 12 })); await p.waitForTimeout(900);
 const desT = await p.evaluate(() => DET.recursos7.caps().find((x) => x.recurso === 'procesador').v);
@@ -209,17 +214,24 @@ for (const i of [0, 2]) {
   await p.click(`#svLinea [data-i="${i}"]`); await p.waitForTimeout(500);
   const tx = await texto(p, '#svLinea');
   ok(tx.includes('Ingreso de este tamaño') && tx.includes(f7(pt2[i].media)) && tx.includes(f7(pt2[i].peor)) && tx.includes(f7(pt2[i].mejor)) && tx.includes('Techo teórico'), 'capítulo 2: el tramo ' + i + ' muestra su ingreso en los tres escenarios (' + f7(pt2[i].peor) + ' · ' + f7(pt2[i].media) + ' · ' + f7(pt2[i].mejor) + ') con la advertencia de techo teórico');
-  ok(i === 0 ? tx.includes('en Chef: anuncios') : tx.includes('Ninguno cae en Chef'), 'capítulo 2: el tramo ' + i + (i === 0 ? ' muestra los anuncios de Chef' : ' dice que ninguno cae en Chef'));
+  const chefTot = await p.evaluate(() => Math.round(MOD.potencialPorTramo(config(S), sup(S)).tramos.reduce((a, t) => a + t.en_chef, 0)));
+  ok(i === 0 ? tx.includes(f7(pt2[0].chef) + ' en Chef: anuncios') : tx.includes('Ninguno cae en Chef'), 'capítulo 2: el tramo ' + i + (i === 0 ? ' muestra los anuncios de ' + f7(pt2[0].chef) + ' negocios en Chef' : ' dice que ninguno cae en Chef'));
+  ok(tx.includes(f7(chefTot) + ' negocios'), 'capítulo 2: el corchete de Chef suma ' + f7(chefTot) + ' negocios, la suma de los tramos del modelo');
 }
 await sinDesborde(p, 'capítulo 2 (ingreso por tamaño)'); await cierra(p);
 
 // el control del tope de platillos ofrece las cuatro opciones
 await abre(p, 'topes');
-for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForFunction((x) => document.querySelector('#svT') && document.querySelector('#svT').textContent.includes(String(x)), v, { timeout: 5000 }); ok((await texto(p, '#svT')).includes(String(v)), 'capítulo 6: el control marca ' + v + ' platillos'); }
+const pil = await p.evaluate(() => { const pt = MOD.potencialPorTramo(config(S), SP), f = (x) => Math.round(x).toLocaleString('en-US'), txt = [...document.querySelectorAll('#svT text')].map((e) => e.textContent), pills = pt.tramos.slice(0, 2).map((t) => (100 * t.parte_en_chef).toFixed(1) + ' % en Chef'); return { okPills: pills.every((q) => txt.some((x) => x.replace(/,/g, '') === q || x === q)), pills, suma: f(pt.tramos.reduce((a, t) => a + t.en_chef, 0)), total: f(pt.total.en_chef), mismoTotal: Math.abs(pt.tramos.reduce((a, t) => a + t.en_chef, 0) - pt.total.en_chef) < 1 }; });
+const sumaP = await p.evaluate(() => { const pt = MOD.potencialPorTramo(config(S), SP), txt = [...document.querySelectorAll('#svT text')].map((e) => e.textContent), pc = (i) => { const m = txt.map((x) => /^(\d+\.\d) % en Chef$/.exec(x)).filter(Boolean)[i]; return m ? +m[1] : NaN; }; return { p0: pc(0), p1: pc(1), e0: +(100 * pt.tramos[0].parte_en_chef).toFixed(1), e1: +(100 * pt.tramos[1].parte_en_chef).toFixed(1), suma: (pc(0) * pt.tramos[0].negocios + pc(1) * pt.tramos[1].negocios) / 100, total: pt.total.en_chef }; });
+ok(sumaP.p0 === sumaP.e0 && sumaP.p1 === sumaP.e1 && sumaP.e1 > 0 && Math.abs(sumaP.suma - sumaP.total) < 0.002 * sumaP.total, 'topes: las píldoras (' + sumaP.p0 + ' % y ' + sumaP.p1 + ' %; la de 6 a 10 es la de su tramo) suman ' + Math.round(sumaP.suma).toLocaleString('en-US') + ' ≈ ' + Math.round(sumaP.total).toLocaleString('en-US') + ' en Chef, el total del capítulo 2');
+const igual = await p.evaluate(() => { const c = config(S), pc = MOD.potencialChef(c, SP), pt = MOD.potencialPorTramo(c, SP); return [Math.round(pc.negocios_en_chef), Math.round(pt.total.en_chef)]; });
+ok(igual[0] === igual[1], 'topes: el total «en Chef» es el mismo en el capítulo 2, el hallazgo y las píldoras (' + igual.join(' = ') + ')');
+for (const v of [50, 80, 100]) { await p.evaluate((x) => cambiar({ topePlatillos: x }), v); await p.waitForFunction((x) => [...document.querySelectorAll('#svT [data-tip]')].some((e) => e.getAttribute('data-tip').includes('|' + x + ' platillos|')), v, { timeout: 5000 }).catch(() => {}); ok(await p.evaluate((x) => S.topePlatillos === x && [...document.querySelectorAll('#svT [data-tip]')].some((e) => e.getAttribute('data-tip').includes('|' + x + ' platillos|')) && ![50, 80, 100, 150].filter((y) => y !== x).some((y) => [...document.querySelectorAll('#svT [data-tip]')].some((e) => e.getAttribute('data-tip').includes('|' + y + ' platillos|'))), v), 'capítulo 6: el control marca ' + v + ' platillos (y sólo ese)'); }
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 await cierra(p);
 
-// capítulo 7, segunda parte: quién llena el disco, la historia de la mesa, las formas de guardar y la combinación
+// capítulo 7, segunda parte: quién llena el disco, la historia de la mesa, las formas de guardar
 await abre(p, 'recursos7');
 const comp7 = await p.evaluate(() => { const r = MOD.recursos(config(S), sup(S), 'hoy'), c = r.composicion_del_disco, h = MOD.historiaDelDisco(config(S), sup(S)); return { paga: c.parte_del_disco.de_paga, total: h.bytes_total, an: h.bytes_de_analitica, ops: h.opciones.map((o) => [o.restaurantes_que_caben_sin_purga, o.restaurantes_que_caben_con_historial_30_dias]) }; });
 ok((await texto(p, '#svDc')).includes(String(Math.round(100 * comp7.paga * 10) / 10)) || (await texto(p, '#svDc')).includes((100 * comp7.paga).toFixed(1)), 'capítulo 7: quién llena el disco muestra el ' + (100 * comp7.paga).toFixed(1) + ' % de los de paga (del modelo)');
@@ -233,30 +245,52 @@ for (let i = 0; i < 7; i++) await p.click('#hiSig');
 await p.waitForTimeout(700);
 const tf = await texto(p, '#svHi');
 ok(tf.includes(f7(comp7.total) + ' bytes') && tf.includes('% es analítica'), 'capítulo 7: al final la mesa de 3 suma ' + f7(comp7.total) + ' bytes y dice qué parte es analítica');
-const act = await p.evaluate(() => { const t = [...document.querySelectorAll('#svHi text')].map((e) => e.textContent); return { quien: ['A escanea el QR', 'B y C escanean', 'Cada quien abre su orden', 'La mesa envía la comanda', 'Alguien llama al mesero'].every((x) => t.some((y) => y.includes(x.split(' ').slice(0, 3).join(' ')))), chips: new Set([...document.querySelectorAll('#svHi circle')].filter((c) => +getComputedStyle(c).opacity > 0.5).map((c) => getComputedStyle(c).fill)).size, menor12: [...document.querySelectorAll('#svHi text, #svOp text')].filter((e) => e.textContent.trim() && parseFloat(e.getAttribute('font-size')) < 12).map((e) => e.textContent.trim().slice(0, 20)) }; });
+const act = await p.evaluate(() => { const t = [...document.querySelectorAll('#svHi text')].map((e) => e.textContent); return { quien: ['A escanea el QR', 'B y C escanean', 'Cada quien abre su orden', 'La mesa envía la comanda', 'Alguien llama al mesero'].every((x) => t.some((y) => y.includes(x.split(' ').slice(0, 3).join(' ')))), chips: new Set([...document.querySelectorAll('#svHi circle')].filter((c) => +getComputedStyle(c).opacity > 0.5).map((c) => getComputedStyle(c).fill)).size, menor12: [...document.querySelectorAll('#svHi text')].filter((e) => e.textContent.trim() && parseFloat(e.getAttribute('font-size')) < 12).map((e) => e.textContent.trim().slice(0, 20)) }; });
 ok(act.quien && act.chips >= 4, 'capítulo 7: la historia dice quién hace qué en cada paso y las piezas llevan el color de A, B, C y la mesa (' + act.chips + ' colores)');
-ok(act.menor12.length === 0, 'capítulo 7: historia y siete formas sin letra menor de 12 px ' + act.menor12.slice(0, 3).join(' | '));
+ok(act.menor12.length === 0, 'capítulo 7: la historia de la mesa sin letra menor de 12 px ' + act.menor12.slice(0, 3).join(' | '));
 if (png) await p.locator('#svHi').screenshot({ path: `${png}/v12_historia.png` });
 await p.evaluate(() => cambiar({ topePlatillos: 150 })); await p.waitForTimeout(300);
 ok((await texto(p, '#hiN')).includes('Paso 8 de 8'), 'capítulo 7: tocar otro control no reinicia la historia');
 const FILA = 'fila_por_visita_de_comensal', DIA = 'analitica_agregada_por_dia';
-await p.click('#svOp [data-op="contar_por_dia"]'); await p.waitForTimeout(400);
-await p.click('#svOp [data-op="fila_por_visita"]'); await p.waitForTimeout(400);
+await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(400);
+await p.click('#dReg [data-forma="fila_por_visita"]'); await p.waitForTimeout(400);
 const pl1 = await p.evaluate(() => S.palancas.slice());
 ok(pl1.includes(FILA) && !pl1.includes(DIA), 'capítulo 7: la forma de guardar la analítica es una sola elección (elegir la fila por visita quita contar por día)');
 await p.click('#palR [data-pal="' + DIA + '"]'); await p.waitForTimeout(400);
 const pl2 = await p.evaluate(() => S.palancas.slice());
 ok(pl2.includes(DIA) && !pl2.includes(FILA), 'capítulo 7: lo mismo desde las palancas del tablero (contar por día reemplaza la fila por visita)');
-await p.click('#svOp [data-op="archivar_paga"]'); await p.waitForTimeout(400);
+await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(300);
+await p.click('#palR [data-pal="archivar_sesiones_de_paga"]'); await p.waitForTimeout(400);
 ok(await p.evaluate(() => S.palancas.includes('archivar_sesiones_de_paga') && S.palancas.includes('analitica_agregada_por_dia')), 'capítulo 7: archivar sólo la paga se suma a la forma elegida');
-await p.click('#svOp [data-op="archivar_todos"]'); await p.waitForTimeout(400);
+await p.click('#palR [data-pal="archivar_sesiones_de_todos_los_planes"]'); await p.waitForTimeout(400);
 ok(await p.evaluate(() => S.palancas.includes('archivar_sesiones_de_todos_los_planes') && !S.palancas.includes('archivar_sesiones_de_paga') && S.palancas.includes('analitica_agregada_por_dia')), 'capítulo 7: los dos alcances del archivo son excluyentes y la forma se conserva');
 await p.evaluate(() => cambiar({ palancas: [] })); await p.waitForTimeout(400);
-const co = await texto(p, '#svCo');
-const cmb = await p.evaluate(() => { const c = MOD.historiaDelDisco(config(S), sup(S)).combinaciones, v = (a, an, k) => c.find((x) => x.archivo === a && x.analitica === an)[k], H = 'una fila por evento (hoy)'; return [v('archivar sólo las de paga', H, 'caben_con_el_gratuito_a_12_meses_sin_purga'), v('archivar las de todos los planes', H, 'caben_con_el_gratuito_a_12_meses_sin_purga'), v('sin archivo', H, 'caben_con_historial_del_gratuito_a_30_dias'), c.length]; });
-ok(co.includes(f7(cmb[0])) && co.includes(f7(cmb[1])) && co.includes(f7(cmb[2])) && cmb[3] === 24 && co.includes('archivar sólo la paga no alcanza') || co.includes('Archivar sólo la paga no alcanza'), 'capítulo 7: la combinación sale de historiaDelDisco().combinaciones (' + cmb.join(' · ') + ') y concluye que archivar sólo la paga no alcanza');
-const vg = await p.evaluate(() => { const c = config(S), s = sup(S), g = (pl) => MOD.recursos({ ...c, palancas: pl }, s, { canal: 'eventos' }).cuello_con_eventos.restaurantes; return [g([]), g(['archivar_sesiones_de_todos_los_planes', 'fila_por_visita_de_comensal'])]; });
-ok(co.includes('Política vigente (03 §7)') && co.includes('de ' + f7(vg[0]) + ' a ' + f7(vg[1]) + ' sin borrar nada'), 'capítulo 7: la tabla tiene la columna de la política vigente (' + vg.join(' → ') + ' con archivar todos + fila por visita)');
+// capítulo 7: lo que escribe la mesa de ejemplo, registro por registro (datos medidos de docs/research/2026-11-21-disco-por-registro.json)
+await p.click('#dReg [data-forma="hoy"]'); await p.waitForTimeout(300);
+const reg = await p.evaluate(() => { const f = (v) => Math.round(v).toLocaleString('en-US'), h = DR.formas.find((x) => x.id === 'hoy'); return { total: f(h.bytes_total), ana: f(h.bytes_analitica), sin: f(DR.bytes_de_la_mesa_sin_analitica), medido: f(DR.diferencia_con_el_informe.medido_bytes), informe: f(DR.diferencia_con_el_informe.informe_bytes), nForm: DR.formas.length }; });
+let tr = await texto(p, '#dReg');
+ok([reg.total, reg.ana, reg.sin].every((v) => tr.includes(v + ' B')) && tr.includes('evento_analitica') && tr.includes('miembro_sesion') && tr.includes('sesion_grupal'), 'capítulo 7: la vista por registro lista las tablas de la mesa y los bytes medidos (' + reg.sin + ' + ' + reg.ana + ' = ' + reg.total + ')');
+ok(tr.includes('Esta mesa suelta escribe ' + reg.medido + ' B') && tr.includes(reg.informe + ' B por mesa'), 'capítulo 7: la vista concilia ' + reg.medido + ' (esta mesa) con ' + reg.informe + ' (promedio del informe) en una línea');
+ok((await p.$$('#dReg [data-forma]')).length === reg.nForm && !tr.includes('Comprar disco'), 'capítulo 7: las formas se recorren a la izquierda y ya no hay «Comprar disco»');
+await p.click('#dReg [data-fila="miembro_sesion#1"]'); await p.waitForTimeout(200);
+const col = await p.evaluate(() => ({ cols: document.querySelectorAll('#dReg .dcol tbody tr').length, hay: document.querySelector('#dReg .dsum') ? document.querySelector('#dReg .dsum').textContent : '' }));
+ok(col.cols >= 3 && /Cabecera \d+ B/.test(col.hay) && /de datos/.test(col.hay), 'capítulo 7: abrir un registro muestra columna por columna con valor y bytes, más cabecera, relleno e índices');
+await p.click('#dReg [data-forma="contar_por_dia"]'); await p.waitForTimeout(400);
+const cd = await p.evaluate(() => { const f = DR.formas.find((x) => x.id === 'contar_por_dia'), g = (v) => Math.round(v).toLocaleString('en-US'); return { tot: g(f.bytes_total), ana: g(f.bytes_analitica) }; });
+tr = await texto(p, '#dReg');
+ok(tr.includes('evento_dia') && !tr.includes('evento_analitica#') && tr.includes(cd.tot + ' B') && tr.includes('propuesta') && tr.includes('primera del día') && tr.includes('Frente a Hoy: desaparecen 12 eventos'), 'capítulo 7: al cambiar a «contar por día» los eventos desaparecen, entran los contadores (' + cd.ana + ' B), se marca propuesta y se dice que la mesa es la primera del día');
+const pct = await p.evaluate(() => { const g = (id) => DR.formas.find((x) => x.id === id), h = g('hoy'), r = (x) => Math.round(Math.abs(x)); return ['contar_por_dia', 'fila_por_visita', 'fila_mas_platillo_y_filtros_por_dia'].map((id) => ({ id, an: r(100 * (g(id).bytes_analitica / h.bytes_analitica - 1)), me: r(100 * (g(id).bytes_total / h.bytes_total - 1)) })); });
+const tarjs = await p.evaluate((ids) => ids.map((id) => document.querySelector('#dReg [data-forma="' + id + '"]').textContent), pct.map((q) => q.id));
+ok(pct.every((q, i) => tarjs[i].includes('analítica −' + q.an + ' %') && tarjs[i].includes('la mesa entera −' + q.me + ' %')) && pct[0].an !== pct[0].me, 'capítulo 7: las tarjetas dicen dos porcentajes, el de la analítica y el de la mesa entera, calculados de los bytes del archivo (' + pct.map((q) => q.id + ' −' + q.an + ' / −' + q.me).join('; ') + ')');
+ok(/\d \((scan|menu_view|dish_view|search|filter|item_add)\)/.test(await texto(p, '#dReg')) && (await p.evaluate(() => document.querySelector('#dReg').previousElementSibling.textContent)).includes('lo oscuro son los datos de la fila') , 'capítulo 7: las filas de las formas propuestas nombran el evento y la barra tiene su leyenda');
+await p.click('#drSig'); await p.waitForTimeout(250);
+const trP = await texto(p, '#dReg');
+ok(trP.includes('Paso 1 de 7') && trP.includes('sesion_grupal') && !trP.includes('item_orden'), 'capítulo 7: el paso 1 enciende sólo lo que escribe el primer comensal');
+await p.click('#drTodo'); await p.waitForTimeout(250);
+const chicos = await p.evaluate(() => [...document.querySelectorAll('#dReg *')].filter((e) => e.children.length === 0 && e.textContent.trim() && parseFloat(getComputedStyle(e).fontSize) < 12).map((e) => e.className + ':' + e.textContent.trim().slice(0, 18)));
+ok(chicos.length === 0, 'capítulo 7: la vista por registro sin letra menor de 12 px ' + chicos.slice(0, 4).join(' | '));
+if (png) await p.locator('#dReg').screenshot({ path: `${png}/v18_registros.png` });
+await p.click('#dReg [data-forma="hoy"]'); await p.waitForTimeout(300);
 await sinDesborde(p, 'capítulo 7 (historia del disco)'); await cierra(p);
 
 // el capítulo 7 recorre varias combinaciones de topes, canal e historial: ninguna etiqueta sobre una línea ni sobre otra etiqueta
@@ -326,8 +360,8 @@ const t6 = await texto(p, '#svT');
 ok(t6.includes('dos muestras') && t6.includes('sesgos opuestos'), 'topes: la marca del platillo dice «dos muestras, sesgos opuestos»');
 ok(/\d+\.\d–\d+\.\d % de 0 a 5 se queda en Chef/.test(t6), 'topes: «se queda en Chef» es una banda entre las dos cotas');
 await p.evaluate(() => cambiar({ topeMesas: 6, topeCuentas: 1, topePlatillos: 150, platSel: 'todo' })); await p.waitForTimeout(400);
-const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP); return [c.todo.baja, c.todo.alta, c.comida.baja, c.comida.alta].map((v) => +(100 * v).toFixed(1)); });
-ok(cobT[0] === 20.6 && cobT[1] === 38.9, 'topes: cobertura de Chef (6 mesas, 1 cuenta, 150 platillos, cuenta todo): 20.6 / 38.9 (' + cobT.join(' ') + ')');
+const cobT = await p.evaluate(() => { const c = MOD.coberturaChef(config(S), SP).todo, g = TRK.find((k) => k.k === 'topePlatillos').tipv(S.topePlatillos); return { alta: Math.round(100 * c.alta).toLocaleString('en-US'), baja: Math.round(100 * c.baja).toLocaleString('en-US'), panel: g }; });
+ok(cobT.panel.includes('reparto (cortas)|') && cobT.panel.includes(cobT.alta + ' %;') && cobT.panel.endsWith(cobT.baja + ' %') && cobT.alta !== cobT.baja, 'topes: el panel del tope de platillos (6 mesas, 1 cuenta, 150 platillos, cuenta todo) dice cortas ' + cobT.alta + ' % y largas ' + cobT.baja + ' %, lo que da MOD.coberturaChef');
 ok(!(await p.$('#platSel')), 'topes: ya no hay selector de «cuenta todo · sólo comida · sin tope»');
 const mg0 = await p.evaluate(() => [evalS(S).margen_operacion, evalCota(S, 'baja').margen_operacion].map(Math.round));
 const mgM = await p.evaluate(() => { const e = MOD.desgloses(config(S), sup(S), 1000).escenarios.find((q) => q.escenario === 'recomendado'); return Math.round(e.cascada_margen.margen_operacion); });
@@ -355,6 +389,9 @@ if (png) await p.screenshot({ path: `${png}/v5_precio.png` });
 await sinDesborde(p, 'precio'); await cierra(p);
 // sostiene: cuatro vistas
 await p.evaluate(() => cambiar({...BASE})); await abre(p, 'sostiene');
+// la revisión del modelo que dice la página es la del modelo que carga (sin número a mano)
+const rev = await p.evaluate(() => ({ v: MOD.VERSION, nota: document.body.textContent, visibles: (document.body.textContent.match(/\b20\d\d-\d\d-\d\d-r\d+\b|\bModelo de escenarios r\d+\b/g) || []) }));
+ok(/^\d{4}-\d\d-\d\d-r\d+$/.test(rev.v) && rev.nota.includes('Modelo de escenarios ' + rev.v) && rev.visibles.every((x) => x === rev.v || x === 'Modelo de escenarios ' + rev.v), 'modelo: la nota del detalle nombra la revisión del modelo que carga (' + rev.v + ') y ningún texto visible nombra otra ' + rev.visibles.join(' | '));
 const k0 = await texto(p, '#svK');
 await p.focus('#hN'); await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(300);
 ok((await texto(p, '#svK')) !== k0, 'sostiene: mover el deslizador cambia comensales y costo');
@@ -412,13 +449,19 @@ await p.click('#tabsK [data-vista="0"]'); await p.waitForTimeout(500);
 await sinDesborde(p, 'sostiene'); await cierra(p);
 // cuánto puede pagar
 await abre(p, 'pagar');
+await p.evaluate(() => { const d = document.querySelector('#svG').closest('details'); if (d) d.open = true; }); await p.waitForTimeout(200);
+const izq = await p.evaluate(() => { const sv = document.querySelector('#svG'), rects = [...sv.querySelectorAll('rect')].map((r) => r.getBBox()).filter((b) => b.width > 400), x0 = Math.min(...rects.map((b) => b.x)), y0 = Math.min(...rects.map((b) => b.y)); const mal = [...sv.querySelectorAll('text')].filter((t) => t.textContent.trim() && t.getBBox().x < x0 - 5 && t.getBBox().y >= y0 - 6).filter((t) => { const b = t.getBBox(); return b.x + b.width > x0 - 4; }).map((t) => t.textContent.slice(0, 30)); return { x0, mal, texto: sv.textContent }; });
+ok(izq.mal.length === 0 && !/MXN M\b|MXN mil/.test(izq.texto) && /millones de MXN al mes/.test(izq.texto) && /mil MXN al mes/.test(izq.texto), 'pagar: ningún texto de la columna izquierda pasa del inicio de la tira (x ' + Math.round(izq.x0) + ') y las unidades van juntas con su número ' + izq.mal.join(' | '));
+await p.click('#ejPagar summary'); await p.waitForTimeout(300);
+const ejP = await p.evaluate(() => ({ t: document.querySelector('#ejPagar').textContent, ing: D.inegi_tamano[1].ingreso.toLocaleString('en-US'), n: document.querySelectorAll('#ejPagar li').length, master: document.querySelector('#svV').textContent.includes('desde 6') }));
+ok(ejP.n === 5 && ejP.t.includes(ejP.ing) && ejP.t.includes('Dónde cae el precio') && !ejP.master, 'pagar: el ejemplo desplegable recorre cinco pasos con el ingreso del generador (' + ejP.ing + ') y ya no hay franja de Master Chef desde 6 personas');
 ok((await p.$$('#svG .gh')).length >= 4, 'pagar: una imagen con punto de venta y Carta por tamaño');
 if (png) await p.screenshot({ path: `${png}/v8_pagar.png` });
 await sinDesborde(p, 'pagar'); await cierra(p);
 // recomendaciones
 await p.click('#verDecisiones'); await p.waitForTimeout(450);
 ok((await p.$$('.rcard')).length === 8 && (await p.evaluate(() => REC.decisiones[1].id)) === 'tope_platillos', 'decisiones: ocho, y la 2 es el tope de platillos');
-ok((await texto(p, '#r_tope_platillos')).includes('por decidir') && (await p.$$('#r_tope_platillos svg g[data-tip]')).length === 12, 'decisiones: el tope de platillos está por decidir, con las cuatro opciones a la vista');
+ok((await texto(p, '#r_tope_platillos')).includes('decidido el 21 de noviembre') && (await p.$$('#r_tope_platillos svg g[data-tip]')).length === 12, 'decisiones: el tope de platillos está decidido (50) y se muestran sus opciones, con las cuatro opciones a la vista');
 const pv = await p.evaluate(() => MOD.costoDePlatillo(config(S), sup(S)).filas.flatMap((q) => { const v = q.con_la_mezcla_de_paga_variable; return [v.baja.pagantes_por_1000, v.alta.pagantes_por_1000, v.baja.disco_con_avisos, v.alta.disco_con_avisos].map((x) => Math.round(x).toLocaleString('en-US')); }));
 const tpv = await texto(p, '#r_tope_platillos');
 ok(pv.length === 16 && pv.every((x) => tpv.includes(x)) && tpv.includes('parte de paga variable'), 'decisiones: cada tope de platillos dibuja pagantes por 1,000 y restaurantes por disco con las dos cotas (' + pv.slice(0, 4).join(' · ') + ' …)');
@@ -431,36 +474,293 @@ ok((await p.evaluate(() => S.topeMesas)) === 6, 'recomendaciones: aplicar lo rec
 if (png) await p.screenshot({ path: `${png}/v5_recs.png` });
 await sinDesborde(p, 'recomendaciones');
 // persistencia del escenario que se edita dentro de cada detalle
+await p.evaluate(() => cambiar({ topeMesas: 14 })); await p.waitForTimeout(200);
 await p.reload(); await p.waitForTimeout(400);
-ok((await p.evaluate(() => S.topeMesas)) === 6, 'lo editado dentro del detalle persiste al recargar');
+ok((await p.evaluate(() => S.topeMesas)) === 14 && (await p.evaluate(() => BASE.topeMesas)) !== 14, 'lo editado dentro del detalle persiste al recargar (14 mesas, que no es el valor de base)');
+await p.evaluate(() => cambiar({ topeMesas: BASE.topeMesas })); await p.waitForTimeout(200);
 await p.evaluate(() => localStorage.clear());
 // presentación
 await p.goto(url.replace('?nointro', '')); await p.waitForTimeout(500);
 ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
+/* la voz en disco: las tablas de la película son las medidas, el guion tiene las mismas frases que las grabaciones, y hay un mp3 por toma */
+{
+  const fs = require('node:fs');
+  const medido = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/tiempos.json'), 'utf8'));
+  const tablas = await p.evaluate(() => ({ VOZ_AUDIO, VOZ_TIEMPOS }));
+  ok(JSON.stringify(tablas.VOZ_AUDIO) === JSON.stringify(medido.VOZ_AUDIO) && JSON.stringify(tablas.VOZ_TIEMPOS) === JSON.stringify(medido.VOZ_TIEMPOS), 'voz: VOZ_AUDIO y VOZ_TIEMPOS de la película son iguales a voz/tiempos.json');
+  /* versión 20: la película, la voz mezclada y la línea de tiempo de la música dicen el mismo ritmo */
+  { const rp = await p.evaluate(() => RITMO), rl = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/linea_de_tiempo.json'), 'utf8')).ritmo;
+    ok(rp === medido.RITMO && rp === rl && rp >= 1 && rp <= 1.15, `ritmo: la película (${rp}), voz/tiempos.json (${medido.RITMO}) y voz/linea_de_tiempo.json (${rl}) dicen el mismo ritmo, entre 1 y 1.15`);
+    /* cada mp3 de voz dura sus segundos de guion entre el ritmo (± 0.15 s), medido con ffprobe */
+    const { execFileSync } = require('node:child_process'); const malos = [];
+    for (const [toma, d] of Object.entries(medido.VOZ_AUDIO)) { const real = parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', resolve(aqui, `apoyo/voz/${toma}.mp3`)], { encoding: 'utf8' })); if (Math.abs(real * rp - d) > 0.03) malos.push(`${toma}: ${real.toFixed(2)} s × ${rp} ≠ ${d}`); }
+    ok(malos.length === 0, `ritmo: cada pista de voz dura sus segundos de guion entre el ritmo, ± 0.03 s (${Object.keys(medido.VOZ_AUDIO).length} pistas) ` + malos.join('; '));
+    /* la meta de la versión 20: 5:15 de reloj o menos, sin aire muerto */
+    const ag = await p.evaluate(() => { const hs = []; let mayor = 0;
+      TOMAS.forEach(([toma], i) => { const fr = (VOZ_TIEMPOS[toma] || []).slice().sort((x, y) => x[0] - y[0]), un = []; for (const [a, b] of fr) { if (un.length && a <= un[un.length - 1][1] + 0.01) un[un.length - 1][1] = Math.max(un[un.length - 1][1], b); else un.push([a, b]); }
+        let ant = 0; for (const [a, b] of un) { if (a - ant > 1.85) hs.push([toma, +(a - ant).toFixed(2)]); mayor = Math.max(mayor, a - ant); ant = b; }
+        const cola = TOMAS[i][2] - ant; if (cola > 1.85) hs.push([toma, +cola.toFixed(2)]); mayor = Math.max(mayor, cola); });
+      return { reloj: TOT / RITMO, guion: TOT, hs, mayor, sinVoz: TOMAS.filter((x) => !VOZ_AUDIO[x[0]]).map((x) => [x[0], x[2]]) }; });
+    ok(ag.reloj <= 315, `ritmo: la película dura ${ag.reloj.toFixed(1)} s de reloj (${ag.guion.toFixed(1)} s de guion): 5:15 o menos`);
+    /* Toda la película de corrido (también de una toma a la siguiente): ningún hueco sin voz pasa de 1.8 s de guion, salvo los de esta lista,
+       uno por uno: [toma donde empieza, toma donde acaba, tope en segundos de guion, por qué]. Un hueco nuevo, o uno que crezca, falla. */
+    const HUECOS = [['cumple', 'cumple', 2.0, 'Carlos llega y se sienta'], ['b1', 'b2', 2.2, 'cambio de toma'], ['b3t', 'espera', 2.2, 'cambio de toma'], ['ticket', 'b4', 2.8, 'el ticket y su rótulo'],
+      ['escanea', 'filtra', 2.9, '«Hola de nuevo, Ana» y el menú'], ['filtra', 'top3', 3.1, 'la nota «También se lo dijo al mesero»'], ['top3', 'agrega', 3.9, '`plato`, sin voz (3 s)'], ['juntos', 'confirma', 4.9, '`recomienda`, sin voz (4 s)'],
+      ['confirma', 'avisa', 4.0, '`esperan`, sin voz (3 s)'], ['avisa', 'llega', 2.3, '«Ya voy»'], ['abierta', 'abierta', 3.7, 'la solicitud de Ana en su teléfono'], ['abierta', 'abierta', 3.7, 'la solicitud de Carlos en su teléfono'],
+      ['cierres', 'cierres', 3.1, 'Carlos pide el flan'], ['cierres', 'cierres', 3.1, 'Sofía y Diego cierran'], ['cierres', 'cuenta', 3.6, 'el rótulo «Cuenta cerrada», que entra cuando se va el teléfono de Carlos'], ['pagada', 'pagada', 2.5, 'Javier valida la transferencia'],
+      ['sucia', 'fin', 7.8, '`prepara` y `limpia`, sin voz (3 s cada una), y la entrada de la tarjeta final']];
+    const hg = await p.evaluate(() => { const iv = []; TOMAS.forEach(([toma], i) => (VOZ_TIEMPOS[toma] || []).forEach(([a, b]) => iv.push([T0[i] + a, T0[i] + b]))); iv.sort((x, y) => x[0] - y[0]);
+      const un = []; for (const [a, b] of iv) { if (un.length && a <= un[un.length - 1][1] + 0.01) un[un.length - 1][1] = Math.max(un[un.length - 1][1], b); else un.push([a, b]); }
+      const en = (s) => { let i = 0; while (i < TOMAS.length - 1 && s >= T0[i + 1]) i++; return TOMAS[i][0]; }, hs = []; let ant = 0;
+      for (const [a, b] of un) { if (a - ant > 1.85) hs.push([en(ant), en(a - 0.001), +(a - ant).toFixed(2)]); ant = b; }
+      if (TOT - ant > 1.85) hs.push([en(ant), 'final', +(TOT - ant).toFixed(2)]); return hs; });
+    const libres = HUECOS.map((x) => x.slice()), fuera = [];
+    for (const [de, a, h] of hg) { const k = libres.findIndex((x) => x[0] === de && x[1] === a && h <= x[2] + 0.01); if (k < 0) fuera.push(`${de}→${a} ${h} s`); else libres.splice(k, 1); }
+    ok(fuera.length === 0, `ritmo: en toda la película ningún hueco sin voz pasa de 1.8 s de guion, salvo los ${HUECOS.length} de la lista, cada uno con su tope (hay ${hg.length}; el mayor, ${Math.max(0, ...hg.map((x) => x[2])).toFixed(1)} s) ` + fuera.join('; '));
+    /* 6 · ningún tramo de CORTES se encima con una frase: lo que se acelera es sólo silencio */
+    const ce = await p.evaluate(() => { const mal = []; let n = 0; TOMAS.forEach(([toma], i) => (CORTES[toma] || []).forEach(([a, b, k]) => { n++; const g0 = corta(i, a), g1 = g0 + k;
+      (VOZ_TIEMPOS[toma] || []).forEach(([x, y], j) => { if (x < g1 - 0.02 && y > g0 + 0.02) mal.push(`${toma} [${a}, ${b}, ${k}] (guion ${g0.toFixed(2)}–${g1.toFixed(2)}) con la frase ${j + 1} (${x}–${y})`); }); })); return { n, mal }; });
+    ok(ce.n >= 30 && ce.mal.length === 0, `ritmo: ninguno de los ${ce.n} tramos de CORTES se encima con una frase de VOZ_TIEMPOS ` + ce.mal.join('; '));
+    const sv = ag.sinVoz.filter(([t, d]) => d > (t === 'recomienda' ? 4 : 3) + 0.01);
+    ok(ag.sinVoz.length >= 5 && sv.length === 0, 'ritmo: las tomas sin voz duran 3 s de guion o menos (recomienda, 4): ' + ag.sinVoz.map((x) => x.join(' ')).join(', ')); }
+  /* versión 19: la línea de tiempo que usa la mezcla de la música es la que calcula la película */
+  const lt = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/linea_de_tiempo.json'), 'utf8'));
+  const peli = await p.evaluate(() => ({ ritmo: RITMO, total: Math.round(TOT * 10) / 10, tomas: TOMAS.map((x, i) => ({ toma: x[0], inicio: Math.round(T0[i] * 10) / 10, duracion: Math.round(x[2] * 10) / 10 })) }));
+  ok(JSON.stringify(lt) === JSON.stringify(peli), 'voz: voz/linea_de_tiempo.json es la línea de tiempo que calcula la película (' + peli.tomas.length + ' tomas, ' + peli.total + ' s)');
+  const ids = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8')).map((l) => l.id).sort();
+  const grabadas = fs.readdirSync(resolve(aqui, 'voz/lineas')).filter((f) => f.endsWith('.mp3')).map((f) => f.slice(0, -4)).sort();
+  ok(JSON.stringify(ids) === JSON.stringify(grabadas), `voz: apoyo/voz/guion.json tiene los mismos id que voz/lineas (${ids.length} y ${grabadas.length})`);
+  const faltan = Object.keys(tablas.VOZ_AUDIO).filter((t) => !fs.existsSync(resolve(aqui, `apoyo/voz/${t}.mp3`)));
+  ok(faltan.length === 0, `voz: existe apoyo/voz/<toma>.mp3 para cada toma de VOZ_AUDIO (${Object.keys(tablas.VOZ_AUDIO).length}) ${faltan.join(', ')}`);
+}
+/* con voz, la película espera tras una puerta de entrada; sin voz, no hay puerta */
+if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
+  ok(await p.isVisible('#introPuerta'), 'presentación con voz: la puerta de entrada aparece');
+  const tq = await p.evaluate(() => tI); await p.waitForTimeout(1000);
+  ok((await p.evaluate(() => tI)) === tq, 'presentación con voz: no avanza mientras la puerta está puesta');
+  await p.mouse.click(300, 420); await p.waitForTimeout(200);
+  ok((await p.evaluate(() => tI)) === tq && (await p.isVisible('#introPuerta')) && !(await p.evaluate(() => vozLibre)), 'presentación con voz: un clic fuera de los botones no hace nada');
+  /* la voz se prueba con un doble de Audio que anota qué pista se pide (los mp3 reales los prueba la música, más abajo, y la corrida con carga de la maestra) */
+  /* el doble corre con su propio reloj (a `ritmo` veces el tiempo real) y cuenta cuántas veces se le escribe `currentTime` */
+  await p.evaluate(() => { window.__pistas = []; window.__ritmo = 1; window.__escrituras = 0; window.Audio = class {
+    constructor(src) { this.src = src; this.paused = true; this._t = 0; this._t0 = 0; this.duration = NaN; this.readyState = 4; this.seeking = false; this.ended = false; window.__pistas.push(String(src)); }
+    get currentTime() { return this.paused || this.readyState < 2 || this.atascada ? this._t : this._t + (performance.now() - this._t0) / 1000 * window.__ritmo; } /* sin datos, la pista no avanza */
+    set currentTime(v) { window.__escrituras++; this._t = v; this._t0 = performance.now(); this.ended = false; }
+    play() { this.plays = (this.plays || 0) + 1; if (this.ended) { this._t = 0; this.ended = false; } if (this.paused) { this._t0 = performance.now(); this.paused = false; } return Promise.resolve(); }
+    pause() { if (!this.paused) { this._t = this.currentTime; this.paused = true; } } }; });
+  const pre = await p.evaluate(() => { const k = Object.keys(vozPistas), esperadas = TOMAS.filter((t) => VOZ_AUDIO[t[0]]).slice(0, 2).map((t) => t[0]); k.forEach((n) => { vozPistas[n] = new Audio(vozRuta(n)); }); return { k, esperadas, musica: !!musica }; });
+  ok(JSON.stringify(pre.k) === JSON.stringify(pre.esperadas) && pre.musica, 'presentación con voz: con la puerta puesta ya se precargan la música y las dos primeras pistas de voz (' + pre.k.join(', ') + ')');
+  /* hallazgo 3: si la primera pista aún no puede sonar, el reloj espera (1.5 s como mucho) y la voz que llega tarde no retrocede la imagen */
+  await p.evaluate(() => { vozPista(TOMAS[0][0]).readyState = 0; }); /* vozPista la crea si no estaba: sin precarga falla la comprobación de arriba, no ésta */
+  await p.click('#introPuerta [data-intro="consonido"]'); await p.waitForTimeout(700);
+  const e1 = await p.evaluate(() => tI); await p.waitForTimeout(1300);
+  const e2 = await p.evaluate(() => ({ t: tI, a: vozAct ? vozAct.currentTime * RITMO : -1 }));
+  ok(e1 === 0 && e2.t > 100 && e2.t < 1500, `presentación con voz: sin datos de la primera pista el reloj espera (a los 0.7 s va en ${e1} ms) y arranca solo a los 1.5 s (a los 2 s va en ${Math.round(e2.t)} ms)`);
+  await p.waitForTimeout(600); const e3 = await p.evaluate(() => { const t = tI, a = vozPista(TOMAS[0][0]); a._t0 = performance.now(); a.readyState = 4; return t; }); /* llegan los datos: la pista empieza a avanzar desde 0, con la imagen ya adelantada */ await p.waitForTimeout(500);
+  const e4 = await p.evaluate(() => ({ t: tI, dif: Math.abs(vozAct.currentTime * RITMO - tI / 1000) }));
+  ok(e4.t > e3 && e4.dif < 0.2, `presentación con voz: cuando la voz llega tarde no retrocede la imagen (de ${Math.round(e3)} a ${Math.round(e4.t)} ms) y se coloca donde va la imagen (a ${e4.dif.toFixed(2)} s)`);
+  await p.evaluate(() => { vozSalto = musSalto = true; tI = 600; pintaIntro(); }); await p.waitForTimeout(300);
+  ok(!(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && tI > 0)), 'presentación con voz: «Ver con sonido» quita la puerta, desbloquea el sonido y la película corre');
+  ok((await p.evaluate(() => window.__pistas[0] || '')).endsWith('apoyo/voz/mesa.mp3'), 'presentación con voz: pide la pista de la primera toma');
+  /* mientras suena, la imagen sigue al audio y nadie rebobina la pista; sólo un salto del usuario la coloca, una vez */
+  const e0 = await p.evaluate(() => window.__escrituras);
+  await p.evaluate(() => { window.__ritmo = 1.6; }); await p.waitForTimeout(1200);
+  const sigue = await p.evaluate(() => ({ dif: Math.abs(tI / 1000 - T0[vozToma] - vozAct.currentTime * RITMO), esc: window.__escrituras }));
+  ok(sigue.dif < 0.2 && sigue.esc === e0, `presentación con voz: con el audio más rápido, la imagen lo sigue (${sigue.dif.toFixed(2)} s) y nadie escribe currentTime (${sigue.esc - e0})`);
+  await p.evaluate(() => { window.__ritmo = 1; }); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(500);
+  const trasSalto = await p.evaluate(() => window.__escrituras);
+  ok(trasSalto === e0 + 1, `presentación con voz: tras +3 s, currentTime se escribe exactamente una vez (${trasSalto - e0})`);
+  /* versión 19: la música de fondo es una segunda pista (el archivo real, no el doble) que sigue al reloj de la película */
+  { const fs = require('node:fs'); ok(fs.existsSync(resolve(aqui, 'apoyo/musica/fondo.mp3')), 'música: existe apoyo/musica/fondo.mp3');
+    await p.waitForTimeout(1800);
+    const m1 = await p.evaluate(() => (musica ? { src: String(musica.src), pausada: musica.paused, dif: Math.abs(musica.currentTime - tI / 1000 / RITMO), dur: musica.duration, total: TOT / RITMO, vol: musica.volume, ritmo: musica.playbackRate } : null));
+    ok(m1 && m1.src.endsWith('apoyo/musica/fondo.mp3') && Math.abs(m1.dur - m1.total) <= 0.5, `música: fondo.mp3 dura lo que la película en el reloj (${m1 ? m1.dur.toFixed(2) : '?'} s y ${m1 ? m1.total.toFixed(1) : '?'} s, ± 0.5)`);
+    ok(m1 && !m1.pausada && m1.dif < 0.6 && m1.vol === 1 && m1.ritmo >= 0.97 && m1.ritmo <= 1.03, `música: con sonido, suena y sigue al reloj de la película (a ${m1 ? m1.dif.toFixed(2) : '?'} s, volumen ${m1 ? m1.vol : '?'}, velocidad ${m1 ? m1.ritmo : '?'})`);
+    const c0 = await p.evaluate(() => musColocadas); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
+    const m2 = await p.evaluate(() => ({ n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000 / RITMO) }));
+    ok(m2.n === c0 + 1 && m2.dif < 0.6, `música: tras +3 s se coloca exactamente una vez (${m2.n - c0}) y queda a ${m2.dif.toFixed(2)} s del reloj`);
+    await p.evaluate(() => { pausaI = true; }); await p.waitForFunction(() => musica.paused && (!vozAct || vozAct.paused), null, { timeout: 5000 }).catch(() => {});
+    const m3 = await p.evaluate(() => ({ pausada: musica.paused, voz: !vozAct || vozAct.paused }));
+    await p.evaluate(() => { pausaI = false; ultI = performance.now(); }); await p.waitForFunction(() => !musica.paused, null, { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(200);
+    const m4 = await p.evaluate(() => ({ pausada: musica.paused, n: musColocadas }));
+    ok(m3.pausada && m3.voz && !m4.pausada && m4.n === m2.n, 'música: se pausa y se reanuda con la película, sin recolocarse');
+    await p.evaluate(() => { vozOn = false; }); await p.waitForTimeout(300);
+    const m5 = await p.evaluate(() => musica.paused); await p.evaluate(() => { vozOn = true; }); await p.waitForTimeout(300);
+    ok(m5, 'música: sin sonido, la música no suena');
+    const cred = await p.evaluate(async () => { const f = document.querySelector('#cine'), e = f.querySelector('.marca small'); if (!e) return { texto: '' };
+      const antes = [tI, pausaI]; pausaI = true; vozSalto = musSalto = true; tI = (tomaIni('fin') + 3) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 60));
+      let o = 1; for (let n = e; n && n !== f; n = n.parentElement) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; }
+      const r = e.getBoundingClientRect(), fr = f.getBoundingClientRect(), res = { texto: e.textContent, o, w: r.width, h: r.height, dentro: r.left >= fr.left - 1 && r.right <= fr.right + 1 && r.top >= fr.top - 1 && r.bottom <= fr.bottom + 1 };
+      vozSalto = musSalto = true; tI = antes[0]; pausaI = antes[1]; ultI = performance.now(); pintaIntro(); return res; });
+    ok(["What's The Angle?", 'Shane Ivers', 'silvermansound.com', 'CC BY 4.0', 'creativecommons.org/licenses/by/4.0', 'adaptada'].every((x) => cred.texto.includes(x)) && cred.o > 0.9 && cred.w > 0 && cred.h > 0 && cred.dentro, `música: el crédito completo (título, autor, fuente, licencia con su enlace y «adaptada») se ve y está dentro del cuadro a los 3 s de la toma final (opacidad ${cred.o}, ${Math.round(cred.w || 0)}×${Math.round(cred.h || 0)} px): ` + cred.texto);
+    /* con la pestaña oculta paran la voz, la música y la película; al volver siguen, recolocadas una vez (evento simulado) */
+    await p.waitForTimeout(600);
+    const oculta = (v) => p.evaluate((x) => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => x }); Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (x ? 'hidden' : 'visible') }); document.dispatchEvent(new Event('visibilitychange')); }, v);
+    const quieto = async () => { const a = await p.evaluate(() => ({ m: musica.paused, v: !vozAct || vozAct.paused, c: musica.currentTime, cv: vozAct ? vozAct.currentTime : 0, t: tI })); await p.waitForTimeout(700); const b = await p.evaluate(() => ({ c: musica.currentTime, cv: vozAct ? vozAct.currentTime : 0, t: tI })); return { ok: a.m && a.v && a.c === b.c && a.cv === b.cv, quietaPeli: a.t === b.t, det: `música en pausa ${a.m}, voz en pausa ${a.v}, música avanzó ${(b.c - a.c).toFixed(2)} s, voz avanzó ${(b.cv - a.cv).toFixed(2)} s` }; };
+    const corre = async () => { await p.waitForTimeout(700); return p.evaluate(() => !musica.paused && !!vozAct && !vozAct.paused && !pausaI); };
+    ok(await corre(), 'salidas: antes de probarlas, la película corre con voz y música');
+    const cv0 = await p.evaluate(() => musColocadas); await oculta(true); await p.waitForTimeout(200); const q0 = await quieto();
+    await oculta(false); await p.waitForTimeout(700); const v1 = await p.evaluate(() => ({ m: !musica.paused, v: !!vozAct && !vozAct.paused, n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000 / RITMO) }));
+    ok(q0.ok && q0.quietaPeli && v1.m && v1.v && v1.n === cv0 + 1 && v1.dif < 0.6, `pestaña oculta: paran la voz, la música y la película (${q0.det}); al volver siguen y la música se coloca una vez (${v1.n - cv0})`);
+    await p.evaluate(() => { pausaI = true; pintaIntro(); }); await p.waitForTimeout(200); await oculta(true); await p.waitForTimeout(200); await oculta(false); await p.waitForTimeout(500);
+    ok(await p.evaluate(() => pausaI && musica.paused && (!vozAct || vozAct.paused)), 'pestaña oculta: si la película estaba en pausa, al volver sigue en pausa y en silencio');
+    await p.evaluate(() => { pausaI = false; ultI = performance.now(); });
+    /* hallazgo 1: una pista que ya terminó no se vuelve a tocar ni arrastra la imagen al principio de la toma; un salto explícito sí la vuelve a poner */
+    const fin1 = await p.evaluate(async () => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); vozSalto = musSalto = true; tI = (T0[ix] + 4) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 400));
+      const a = vozAct, t0 = tI, n0 = a.plays || 0; a._t = VOZ_AUDIO.b2 / RITMO; a.paused = true; a.ended = true; /* así deja Chromium una pista al terminar, con la imagen todavía a media toma */
+      await new Promise((r) => setTimeout(r, 700)); const r1 = { atras: tI < t0, toma: vozToma === ix, plays: (a.plays || 0) - n0, pausa: a.paused, avanzo: tI - t0 };
+      vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 400));
+      return { ...r1, trasSalto: !a.paused && Math.abs(a.currentTime * RITMO - (tI / 1000 - T0[ix])) < 0.3 }; });
+    ok(!fin1.atras && fin1.toma && fin1.plays === 0 && fin1.pausa && fin1.avanzo > 300 && fin1.trasSalto, `película: una pista que terminó no se vuelve a tocar (play() ${fin1.plays} veces) ni arrastra la imagen al principio de la toma (avanzó ${Math.round(fin1.avanzo)} ms); tras un salto explícito vuelve a sonar en su sitio`);
+    /* hallazgo 2: el alcance de cada toma se ofrece en la tarjeta final, se abre con teclado y nombra cada toma con visión */
+    const alc = await p.evaluate(async () => { const antes = [tI, pausaI]; vozSalto = musSalto = true; pausaI = true; tI = TOTI - 200; pintaIntro(); await new Promise((r) => setTimeout(r, 900));
+      const b = document.querySelector('#introCta [data-intro="alcance"]'), d = document.querySelector('#introAlc'); if (!b || !d) return { hay: false };
+      const rb = b.getBoundingClientRect(), vis = !document.querySelector('#introCta').hidden && rb.width > 0 && rb.height >= 44; b.focus();
+      const conVis = TOMAS.filter((t) => (t[3] || []).some((x) => x[0] === 'vis')).map((t) => t[0]), conAlgo = TOMAS.filter((t) => (t[3] || []).length).map((t) => t[0]);
+      return { hay: true, vis, texto: b.textContent, enfocado: document.activeElement === b, conVis, conAlgo, antes }; });
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const alc2 = await p.evaluate(() => { const d = document.querySelector('#introAlc'); const li = [...d.querySelectorAll('ol > li')];
+      return { abierto: !d.hidden && d.getBoundingClientRect().width > 0, foco: d.contains(document.activeElement), tomas: li.map((x) => x.dataset.toma), vision: li.filter((x) => x.querySelector('.alc-vis')).map((x) => x.dataset.toma), etapas: [...new Set([...d.querySelectorAll('ol span[class^="alc-"]')].map((x) => x.textContent))], sinNombre: li.filter((x) => !x.querySelector('b').textContent.trim() || x.querySelector('b').textContent === x.dataset.toma).length }; });
+    await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+    const alc3 = await p.evaluate((antes) => { const r = { cerrado: document.querySelector('#introAlc').hidden, sigue: !document.querySelector('#intro').hidden, foco: document.activeElement && document.activeElement.dataset.intro }; vozSalto = musSalto = true; tI = antes[0]; pausaI = antes[1]; ultI = performance.now(); pintaIntro(); return r; }, alc.antes || [0, false]);
+    ok(alc.hay && alc.vis && alc.enfocado && alc.texto.includes('hoy') && alc.texto.includes('visión') && alc2.abierto && alc2.foco && alc3.cerrado && alc3.sigue && alc3.foco === 'alcance', 'alcance: la tarjeta final ofrece «' + (alc.texto || '') + '», se abre con Enter, el foco entra a la lista y Escape la cierra sin cerrar la película');
+    const VISION = ['ofrece', 'escanea', 'filtra', 'top3', 'plato', 'recomienda', 'avisa', 'abierta', 'cuenta', 'pagada', 'factura']; /* fijas aquí: quitarle la visión a una toma en TOMAS debe fallar */
+    ok(alc.hay && JSON.stringify(alc2.tomas) === JSON.stringify(alc.conAlgo) && JSON.stringify(alc2.vision) === JSON.stringify(VISION) && JSON.stringify(alc.conVis) === JSON.stringify(VISION) && alc2.sinNombre === 0 && ['Hoy', 'Fase 3', 'Versión 1.1', 'Visión'].every((e) => alc2.etapas.includes(e)), 'alcance: la lista nombra cada toma con alcance (' + (alc2.tomas || []).length + ') y marca como visión las ' + (alc2.vision || []).length + ' que lo son, con `ofrece` y `abierta`; etapas: ' + (alc2.etapas || []).join(', '));
+    await p.waitForTimeout(400);
+    /* hallazgo 13: si la voz va apenas detrás, la imagen no retrocede: afloja hasta que la alcance */
+    const mono = await p.evaluate(async () => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 5) * 1000; ultI = performance.now(); pintaIntro(); await new Promise((r) => setTimeout(r, 500));
+      const a = vozAct; a._t -= 0.18 / RITMO; let ant = tI, atras = 0, peor = 0; const fin = performance.now() + 1500;
+      while (performance.now() < fin) { await new Promise((r) => requestAnimationFrame(r)); if (tI < ant - 0.5) { atras++; peor = Math.max(peor, ant - tI); } ant = tI; }
+      return { atras, peor, dif: Math.abs(a.currentTime * RITMO - (tI / 1000 - T0[ix])) }; });
+    ok(mono.atras === 0 && mono.dif < 0.1, `película: con la voz 0.18 s detrás, la imagen no retrocede (${mono.atras} cuadros hacia atrás, el mayor de ${mono.peor.toFixed(0)} ms) y la voz la alcanza (queda a ${mono.dif.toFixed(2)} s)`);
+    /* hallazgo 10: tras un clic de ratón en un control, la barra espaciadora pausa (no repite el control); con el foco puesto por teclado, lo activa */
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); document.querySelector('#intro').classList.remove('quieto'); }); await p.waitForTimeout(200);
+    await p.click('.ictl [data-intro="mas"]'); await p.waitForTimeout(200); const sp0 = await p.evaluate(() => ({ t: tI, foco: document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.intro || '' : '' }));
+    await p.keyboard.press(' '); await p.waitForTimeout(400); const sp1 = await p.evaluate(() => ({ t: tI, pausa: pausaI }));
+    await p.keyboard.press(' '); await p.waitForTimeout(200); const sp2 = await p.evaluate(() => pausaI);
+    await p.focus('.ictl [data-intro="mas"]'); const sp3 = await p.evaluate(() => tI); await p.keyboard.press(' '); await p.waitForTimeout(200); const sp4 = await p.evaluate(() => ({ t: tI, pausa: pausaI }));
+    ok(sp0.foco !== 'mas' && sp1.pausa && sp1.t - sp0.t < 1500 && !sp2 && sp4.t - sp3 > 2500 && !sp4.pausa, `teclado: tras un clic de ratón en «+3 s», el espacio pausa (avanzó ${Math.round(sp1.t - sp0.t)} ms, no 3 s más) y otro espacio reanuda; con el foco puesto por teclado en «+3 s», el espacio lo activa (+${Math.round(sp4.t - sp3)} ms)`);
+    /* hallazgo 13: tras llegar sola al final, ← la devuelve y sigue corriendo */
+    await p.evaluate(() => { document.activeElement && document.activeElement.blur(); pausaI = false; vozSalto = musSalto = true; tI = TOTI - 600; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(1300);
+    const f0 = await p.evaluate(() => ({ pausa: pausaI, t: tI })); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(600); const f1 = await p.evaluate(() => ({ pausa: pausaI, t: tI, tot: TOTI }));
+    ok(f0.pausa && !f1.pausa && f1.t < f1.tot - 1500 && f1.t > f1.tot - 3000 * 1.2, `teclado: tras el final, ← retrocede 3 s de reloj y la película vuelve a correr (va en ${(f1.t / 1000).toFixed(1)} de ${(f1.tot / 1000).toFixed(1)} s, pausa ${f1.pausa})`);
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(400);
+    /* bloque 4, hallazgo 1: corte de red a media pista (la pista deja de avanzar con readyState 2): la imagen sigue sola, sin temblar, y la voz se coloca al volver */
+    const red = await p.evaluate(async () => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 6) * 1000; ultI = performance.now(); pintaIntro(); await new Promise((r) => setTimeout(r, 500));
+      const a = vozAct, m0 = musColocadas, w0 = window.__escrituras; a._t = a.currentTime; a.atascada = true; let ant = tI, atras = 0; const t0 = tI, fin = performance.now() + 1500;
+      while (performance.now() < fin) { await new Promise((r) => requestAnimationFrame(r)); if (tI < ant - 0.5) atras++; ant = tI; }
+      const medio = { atras, avanzo: tI - t0, musica: musColocadas - m0, escrituras: window.__escrituras - w0 };
+      a._t0 = performance.now(); a.atascada = false; ant = tI; let atras2 = 0; const fin2 = performance.now() + 700; while (performance.now() < fin2) { await new Promise((r) => requestAnimationFrame(r)); if (tI < ant - 0.5) atras2++; ant = tI; }
+      return { ...medio, atras2, dif: Math.abs(a.currentTime * RITMO - (tI / 1000 - T0[ix])) }; });
+    ok(red.atras === 0 && red.avanzo > 1300 && red.musica === 0 && red.escrituras === 0 && red.atras2 === 0 && red.dif < 0.2, `película: con la voz sin datos a media pista 1.5 s, la imagen no retrocede (${red.atras} cuadros) y avanza ${Math.round(red.avanzo)} ms, la música no se recoloca (${red.musica}) ni se escribe la posición de la voz (${red.escrituras}); al volver los datos la voz se coloca donde va la imagen (a ${red.dif.toFixed(2)} s)`);
+    /* hallazgos 2 y 3: el alcance es modal de verdad, y al cerrar la película vuelve a la pausa que tenía */
+    const mo0 = await p.evaluate(async () => { pausaI = false; vozSalto = musSalto = true; tI = (tomaIni('fin') + 2.7) * 1000; ultI = performance.now(); pintaIntro(); await new Promise((r) => setTimeout(r, 250)); const corria = !pausaI && !document.querySelector('#introCta').hidden; document.querySelector('#introCta [data-intro="alcance"]').focus(); return { corria }; });
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250); const mo1 = await p.evaluate(() => ({ abierto: !document.querySelector('#introAlc').hidden, pausa: pausaI, t: tI }));
+    for (const k of ['1', 'ArrowLeft', 'ArrowRight', '3']) { await p.keyboard.press(k); await p.waitForTimeout(120); }
+    const focos = []; for (let k = 0; k < 6; k++) { await p.keyboard.press('Tab'); focos.push(await p.evaluate(() => document.querySelector('#introAlc').contains(document.activeElement))); }
+    await p.mouse.click(40, 780); await p.waitForTimeout(150);
+    const mo2 = await p.evaluate(() => ({ abierto: !document.querySelector('#introAlc').hidden, pausa: pausaI, t: tI, musica: musica.paused, voz: !vozAct || vozAct.paused, foco: document.querySelector('#introAlc').contains(document.activeElement) }));
+    ok(mo0.corria && mo1.abierto && mo1.pausa && mo2.abierto && mo2.pausa && mo2.t === mo1.t && mo2.musica && mo2.voz && focos.every(Boolean) && mo2.foco, `alcance: con el diálogo abierto las teclas 1, ←, → y 3 no mueven la película (${Math.round(mo2.t - mo1.t)} ms), no suena nada, Tab ×6 no saca el foco del diálogo (${focos.filter(Boolean).length} de 6) y un clic fuera no lo cierra ni lo saca`);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(400); const mo3 = await p.evaluate(() => ({ cerrado: document.querySelector('#introAlc').hidden, pausa: pausaI, t: tI }));
+    ok(mo3.cerrado && !mo3.pausa && mo3.t > mo1.t, `alcance: si la película corría al abrirlo, al cerrarlo vuelve a correr (pausa ${mo3.pausa}; avanzó ${Math.round(mo3.t - mo1.t)} ms)`);
+    await p.evaluate(() => { pausaI = true; }); await p.focus('#introCta [data-intro="alcance"]'); await p.keyboard.press('Enter'); await p.waitForTimeout(200); await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    ok(await p.evaluate(() => pausaI && document.querySelector('#introAlc').hidden), 'alcance: si la película estaba en pausa al abrirlo, al cerrarlo sigue en pausa');
+    /* hallazgo 4a: espacio tras un clic de ratón en «pantalla completa» pausa (no vuelve a pulsarla) */
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; finI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); document.querySelector('#intro').classList.remove('quieto'); }); await p.waitForTimeout(200);
+    if (await p.evaluate(() => !!document.querySelector('#intro .ictl [data-pantalla]'))) {
+      await p.click('#intro .ictl [data-pantalla]'); await p.waitForTimeout(300); const fs0 = await p.evaluate(() => ({ foco: !!document.activeElement && document.activeElement.hasAttribute && document.activeElement.hasAttribute('data-pantalla'), completa: !!document.fullscreenElement }));
+      await p.keyboard.press(' '); await p.waitForTimeout(300); const fs1 = await p.evaluate(() => ({ pausa: pausaI, completa: !!document.fullscreenElement }));
+      ok(!fs0.foco && fs1.pausa && fs1.completa === fs0.completa, `teclado: tras un clic de ratón en «pantalla completa», el espacio pausa (pausa ${fs1.pausa}) y no vuelve a pulsarla (pantalla completa ${fs0.completa} → ${fs1.completa})`);
+      await p.evaluate(async () => { if (document.fullscreenElement) await document.exitFullscreen().catch(() => {}); pausaI = false; ultI = performance.now(); }); await p.waitForTimeout(300);
+    } else ok(true, 'teclado: este visor no ofrece pantalla completa (sin botón que probar)');
+    /* hallazgo 5: un final viejo no hace que ← arranque sola una película reabierta y pausada */
+    await p.evaluate(() => { pausaI = false; vozSalto = musSalto = true; tI = TOTI - 500; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(1200);
+    await p.click('#introCta [data-intro="saltar"]'); await p.waitForTimeout(300); await p.evaluate(() => abrirIntro()); await p.waitForTimeout(600);
+    await p.evaluate(() => { vozSalto = musSalto = true; tI = 20000; pausaI = true; pintaIntro(); }); await p.waitForTimeout(200); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(500);
+    const vf = await p.evaluate(() => ({ pausa: pausaI, t: tI, fin: finI })); ok(vf.pausa && !vf.fin && vf.t < 20000, `teclado: tras ver el final, salir y reabrir, ← en pausa retrocede y la película sigue en pausa (pausa ${vf.pausa}, va en ${(vf.t / 1000).toFixed(1)} s)`);
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(400);
+    /* tras cada forma de salir, la música y la voz quedan en pausa y su posición no avanza en 700 ms */
+    const sal = [];
+    const prueba = async (nombre, salir, volver) => { if (!(await corre())) { sal.push(nombre + ': no estaba corriendo antes'); return; } await salir(); await p.waitForTimeout(250); const q = await quieto(); if (!q.ok) sal.push(nombre + ': ' + q.det); if (volver) await volver(); };
+    const reabre = async () => { await p.evaluate(() => abrirIntro()); await p.waitForTimeout(500); };
+    await prueba('pausa', () => p.click('#introPausa'), () => p.click('#introPausa'));
+    await prueba('botón de sonido', () => p.click('#introSon'), () => p.click('#introSon'));
+    await prueba('«Saltar ✕»', () => p.click('.ictl [data-intro="saltar"]'), reabre);
+    ok(!(await p.isVisible('#introPuerta')), 'salidas: al reabrir tras un gesto no vuelve la puerta');
+    await prueba('Escape', () => p.keyboard.press('Escape'), reabre);
+    await prueba('fin natural', async () => { await p.evaluate(() => { vozSalto = musSalto = true; tI = TOTI - 700; pintaIntro(); }); await p.waitForTimeout(1300); }, null);
+    const alFin = await p.evaluate(() => ({ pausa: pausaI, cta: !document.querySelector('#introCta').hidden }));
+    ok(alFin.pausa && alFin.cta, 'salidas: al terminar, la película queda en pausa y ofrece «Repetir» y «Ver el informe»');
+    await p.click('#introCta [data-intro="repetir"]'); await p.waitForTimeout(300);
+    await prueba('«Ver el informe»', async () => { await p.evaluate(() => { vozSalto = musSalto = true; tI = TOTI - 700; pintaIntro(); }); await p.waitForTimeout(1300); await p.click('#introCta [data-intro="saltar"]'); }, reabre);
+    ok(sal.length === 0, 'salidas: tras la pausa, el botón de sonido, «Saltar ✕», Escape, el fin natural y «Ver el informe», la música y la voz quedan en pausa y quietas 700 ms ' + sal.join(' | '));
+    ok(await corre(), 'salidas: después de probarlas, la película vuelve a correr con voz y música');
+    await p.evaluate(() => localStorage.removeItem('carta-v9-intro')); /* cerrar la película la marca como vista; las pruebas que siguen la esperan sin ver */
+    /* `pagada`: el contador sólo sube cuando Javier valida en su teléfono */
+    const pag = await p.evaluate(() => { const antes = [tI, pausaI]; pausaI = true; const f = document.querySelector('#cine'), ix = TOMAS.findIndex((x) => x[0] === 'pagada');
+      const vis = (el) => { let o = 1; for (let n = el; n && n !== f; n = n.parentElement) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; } return o; };
+      const en = (s) => { vozSalto = musSalto = true; tI = s * 1000; pintaIntro(); return { dice: [...f.querySelectorAll('.ppg .pn i')].filter((e) => vis(e) > 0.6).map((e) => e.textContent).join('|'), bot: [...f.querySelectorAll('.ppg .pve')].filter((e) => vis(e) > 0.6).map((e) => e.textContent).join('|') }; };
+      const tq = TOQUES.filter((o) => o[0] === '.agP' && o[3] >= T0[ix] && o[3] < T0[ix + 1]).map((o) => o[3]), ya = TOQUES.filter((o) => o[0] === '.agT' && o[3] >= T0[ix] && o[3] < T0[ix + 1]).map((o) => o[3]).pop();
+      const r = { n: tq.length, trasYa: ya ? en(ya + 0.45) : null, a0: tq[0] ? en(tq[0] - 0.15) : null, a1: tq[0] ? en(tq[0] + 0.7) : null, b0: tq[1] ? en(tq[1] - 0.15) : null, b1: tq[1] ? en(tq[1] + 0.6) : null };
+      vozSalto = musSalto = true; tI = antes[0]; pausaI = antes[1]; ultI = performance.now(); pintaIntro(); return r; });
+    const dos = (x) => x && x.dice.startsWith('2 de 4'), tres = (x) => x && x.dice.startsWith('3 de 4'), cuatro = (x) => x && x.dice.startsWith('4 de 4');
+    ok(pag.n === 2 && dos(pag.trasYa) && dos(pag.a0) && pag.a0.bot.includes('Validar transferencia') && tres(pag.a1) && tres(pag.b0) && pag.b0.bot.includes('Validar efectivo') && cuatro(pag.b1),
+      'película: en `pagada` el contador dice 2 de 4 tras «Ya transferí» y hasta que Javier toca «Validar transferencia», 3 después y 4 tras «Validar efectivo» ' + JSON.stringify([pag.trasYa, pag.a0, pag.a1, pag.b0, pag.b1].map((x) => x && x.dice)));
+    /* un solo susurro en todo el guion (el del arranque) y guion.json dice lo mismo que VOZ */
+    const gj = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8'));
+    /* la fila entera, armada como la arma apoyo/cine/guion.mjs: id, toma, quién, texto, inicio y con / encima / tras */
+    const vzf = await p.evaluate(() => TOMAS.flatMap(([toma]) => (VOZ[toma] || []).map((l, i, todas) => { const [inicio, quien, texto, o = {}] = l, ant = todas[i - 1], fila = { id: toma + '-' + String(i + 1).padStart(2, '0'), toma, quien, texto, inicio };
+      if (o.con !== undefined) fila.con = o.con; else if (o.encima !== undefined) fila.encima = o.encima; else if (o.tras !== undefined) fila.tras = o.tras; else if (ant) fila.tras = quien === 'narrador' || ant[1] === 'narrador' ? 0.3 : 0.2; return fila; })));
+    const vz = vzf.map((l) => [l.id, l.toma, l.quien, l.texto]);
+    const sus = vz.filter((l) => l[3].includes('[whispers]')).map((l) => l[0]);
+    ok(sus.length === 1 && sus[0] === 'mesa-01', 'voz: hay exactamente un susurro en todo VOZ y es mesa-01 (' + sus.join(', ') + ')');
+    { const dif = vzf.map((f, i) => (JSON.stringify(f) === JSON.stringify(gj[i]) ? null : f.id)).filter(Boolean);
+      ok(vzf.length > 100 && gj.length === vzf.length && dif.length === 0, 'voz: cada fila de apoyo/voz/guion.json (id, toma, quién, texto, inicio y con / encima / tras) es igual a la que sale de VOZ (' + vzf.length + ' frases) ' + dif.slice(0, 6).join(', ')); }
+    /* 11 · las pruebas de los mezcladores */
+    { const { spawnSync } = require('node:child_process'); const r = spawnSync('python3', [resolve(aqui, 'voz/comprueba_mezcladores.py')], { cwd: aqui, encoding: 'utf8', timeout: 300000 });
+      ok(r.status === 0, 'voz: `python3 voz/comprueba_mezcladores.py` termina con código 0 (' + r.status + ') ' + (r.status === 0 ? '' : String(r.stdout || '').split('\n').filter((x) => /FALLA|Error|error/.test(x)).slice(0, 3).join(' | ') + String(r.stderr || '').slice(-200))); } }
+  /* cada globo dice lo mismo que su frase en VOZ (sin las marcas), y con tiempos medidos toda frase de personaje tiene su globo a la vista a media frase */
+  const globos = await p.evaluate(async () => {
+    const limpia = (t) => t.replace(/\[[^\]]*\]\s*/g, '').trim(), el = (g) => document.querySelector(typeof g === 'string' ? '.g' + g : '.g' + g);
+    const visible = (n) => { if (!n) return false; for (let x = n; x && x.id !== 'intro'; x = x.parentElement) { const c = getComputedStyle(x); if (c.visibility === 'hidden' || c.display === 'none' || +c.opacity < 0.5) return false; } return n.getBoundingClientRect().width > 0; };
+    const distintos = [], sinGlobo = []; let frases = 0; const antes = [tI, pausaI]; pausaI = true;
+    for (const [toma, ls] of Object.entries(VOZ)) { const ix = TOMAS.findIndex((x) => x[0] === toma), med = VOZ_TIEMPOS[toma];
+      for (let i = 0; i < ls.length; i++) { const [, quien, texto, o] = ls[i]; if (quien === 'narrador') continue; frases++;
+        const n = o && o.g !== undefined ? el(o.g) : null, frase = limpia(texto);
+        if (n && frase && n.textContent.trim() !== frase) distintos.push(`${toma}: «${n.textContent.trim()}» ≠ «${frase}»`);
+        if (med && med[i]) { tI = (T0[ix] + med[i][0] + Math.min(0.9, (med[i][1] - med[i][0]) / 2)) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 20)); if (!visible(n)) sinGlobo.push(`${toma}-${i + 1} ${quien}`); } } }
+    tI = antes[0]; pausaI = antes[1]; vozSalto = true; pintaIntro();
+    return { distintos, sinGlobo, frases };
+  });
+  ok(globos.distintos.length === 0, `presentación con voz: cada globo dice lo mismo que su frase (${globos.frases} frases) ${globos.distintos.slice(0, 3).join(' | ')}`);
+  ok(globos.sinGlobo.length === 0, `presentación con voz: toda frase de personaje tiene su globo a la vista a media frase ${globos.sinGlobo.slice(0, 8).join(', ')}`);
+} else ok(!(await p.isVisible('#introPuerta')), 'presentación sin voz: no hay puerta de entrada');
 await p.waitForTimeout(1500);
 const t1 = await p.evaluate(() => tI);
-await p.click('.ictl [data-intro="mas"]'); await p.waitForTimeout(100);
+await p.keyboard.press('ArrowRight'); await p.waitForTimeout(100);
 ok((await p.evaluate(() => tI)) - t1 >= 2900, 'presentación: +3 s adelanta');
-await p.click('.ictl [data-intro="menos"]'); await p.waitForTimeout(100);
+await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(100);
 ok((await p.evaluate(() => tI)) < t1 + 2000, 'presentación: −3 s atrasa');
 await p.click('.ictl [data-intro="pausa"]'); const tp = await p.evaluate(() => tI); await p.waitForTimeout(400);
 ok((await p.evaluate(() => tI)) === tp, 'presentación: la pausa detiene el tiempo');
 ok((await p.isVisible('#intro [data-pantalla]')) || !(await p.evaluate(() => FSOK)), 'presentación: pantalla completa dentro de la presentación');
 ok(await p.evaluate(() => !!window.gsap && !!tlF), 'presentación: la línea de tiempo (GSAP) cargó');
-await p.click('.cactos [data-n="1"]'); await p.waitForTimeout(80);
+await p.keyboard.press('2'); await p.waitForTimeout(80);
 ok(Math.abs((await p.evaluate(() => tI / 1000)) - (await p.evaluate(() => ACT_INI[1]))) < 0.2, 'presentación: saltar al acto 2');
-await p.click('.cactos [data-n="0"]'); await p.waitForTimeout(80);
+await p.keyboard.press('1'); await p.waitForTimeout(80);
 ok((await p.evaluate(() => tI)) < 300, 'presentación: saltar al acto 1');
 await p.evaluate(() => { pausaI = true; });
 // la película en cinco tamaños: en ≥ 24 instantes, rótulos, globos y etiquetas dentro del cuadro, sin encimarse ni tapar el teléfono
 const revisaPelicula = () => p.evaluate(async () => {
-  const mal = []; const f = document.querySelector('#cine'), fr = f.getBoundingClientRect();
+  const mal = []; let nombres = 0; const f = document.querySelector('#cine'), fr = f.getBoundingClientRect();
   const vis = (el) => { let o = 1, n = el; while (n && n !== f) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; n = n.parentElement; } return o; };
   const inst = Array.from({ length: 48 }, (_, k) => (TOT * (k + 0.5)) / 48);
   for (const s of inst) {
     tI = s * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 30));
-    const textos = [...f.querySelectorAll('.r .cln, .globo, .etq span, .estado, .resu, .marca b, .marca span')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
+    const textos = [...f.querySelectorAll('.r .cln, .globo, .etq span, .estado, .resu, .marca b, .marca span, .marca small, .nmb')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
     const cels = [...f.querySelectorAll('.cel')].filter((c) => vis(c) > 0.9).map((c) => c.getBoundingClientRect());
+    /* en cada tamaño, todo personaje a la vista lleva su nombre a la vista (no vale esconderlos en pantallas chicas) */
+    if (vis(f.querySelector('.sala')) > 0.9) for (const n of f.querySelectorAll('.nmb')) if (vis(n.parentElement) > 0.9) { nombres++; if (vis(n) < 0.9 || !n.getBoundingClientRect().width) mal.push(s.toFixed(1) + ' s: no se ve el nombre de ' + n.textContent); }
     for (const [e, r] of textos) {
       if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.top < fr.top - 1 || r.bottom > fr.bottom + 1) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» fuera del cuadro');
       for (const rc of cels) if (e.matches('.r .cln, .globo, .estado, .resu') && r.right > rc.left - 8 && r.left < rc.right && r.bottom > rc.top && r.top < rc.bottom) mal.push(s.toFixed(1) + ' s: «' + e.textContent.slice(0, 24) + '» tapa un teléfono');
@@ -471,14 +771,46 @@ const revisaPelicula = () => p.evaluate(async () => {
       if (ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1) mal.push(s.toFixed(1) + ' s: «' + ea.textContent.slice(0, 18) + '» encima de «' + eb.textContent.slice(0, 18) + '»');
     }
   }
-  return { mal, n: inst.length };
+  return { mal, n: inst.length, nombres };
 });
 for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390, 844]]) {
   await p.setViewportSize({ width: w, height: h }); await p.waitForTimeout(120);
-  const { mal, n } = await revisaPelicula();
-  ok(n >= 24 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos fuera del cuadro ni encimados ` + mal.slice(0, 3).join('; '));
+  const { mal, n, nombres } = await revisaPelicula();
+  ok(n >= 24 && nombres >= 40 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos, nombres ni crédito fuera del cuadro ni encimados, y ${nombres} nombres a la vista ` + mal.slice(0, 3).join('; '));
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
+/* versión 20: con el ritmo nuevo, el rótulo de cada toma sigue en pantalla 1.6 s de reloj o más */
+const rot = await p.evaluate(async () => { const f = document.querySelector('#cine'), cortos = []; let n = 0; pausaI = true;
+  const vis = (el) => { let o = 1, x = el; while (x && x !== f) { const c = getComputedStyle(x); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; x = x.parentElement; } return o; };
+  for (let i = 0; i < TOMAS.length; i++) { if (!TOMAS[i][4].length) continue; n++; const r = f.querySelector('.r' + i), w = [...r.querySelectorAll('.cw')]; let seg = 0;
+    for (let s = T0[i]; s < Math.min(T0[i + 1] + 1.5, TOT); s += 0.1) { tI = s * 1000; pintaIntro(); if (vis(r) > 0.9 && w.every((e) => vis(e) > 0.85)) seg += 0.1; }
+    if (seg / RITMO < 1.6) cortos.push(TOMAS[i][0] + ' ' + (seg / RITMO).toFixed(1) + ' s'); }
+  return { n, cortos }; });
+ok(rot.n >= 20 && rot.cortos.length === 0, `ritmo: el rótulo completo de cada toma (${rot.n}) está en pantalla 1.6 s de reloj o más ` + rot.cortos.join(', '));
+/* versión 19: en las tomas de mesa, cada personaje a la vista lleva su nombre, y ningún nombre se encima con un globo o un rótulo.
+   Se mira cada toma en tres instantes; en `cumple`, antes de «casi», la silla de Carlos está vacía y el mesero aún no llega. */
+const nom = await p.evaluate(async () => {
+  const f = document.querySelector('#cine'), mal = [], vistos = {}, tomas = new Set();
+  const vis = (el) => { let o = 1, n = el; while (n && n !== f) { const c = getComputedStyle(n); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; n = n.parentElement; } return o; };
+  const mira = async (s) => { tI = s * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 30)); };
+  for (let i = 0; i < TOMAS.length; i++) for (const fr of [0.3, 0.55, 0.8]) {
+    const s = T0[i] + (T0[i + 1] - T0[i]) * fr; await mira(s);
+    if (vis(f.querySelector('.sala')) < 0.9) continue;
+    const textos = [...f.querySelectorAll('.r .cln, .globo')].filter((e) => vis(e) > 0.9).map((e) => [e, e.getBoundingClientRect()]).filter(([, r]) => r.width);
+    for (const n of [...f.querySelectorAll('.nmb')]) { const g = n.parentElement;
+      if (vis(g) < 0.9) continue;
+      tomas.add(TOMAS[i][0]); vistos[n.textContent] = (vistos[n.textContent] || 0) + 1; const r = n.getBoundingClientRect();
+      if (vis(n) < 0.9 || !r.width) { mal.push(s.toFixed(1) + ' s: falta el nombre de ' + n.textContent); continue; }
+      for (const [e, rt] of textos) if (r.left < rt.right - 1 && rt.left < r.right - 1 && r.top < rt.bottom - 1 && rt.top < r.bottom - 1) mal.push(s.toFixed(1) + ' s (' + TOMAS[i][0] + '): «' + n.textContent + '» encima de «' + e.textContent.slice(0, 18) + '»');
+    }
+  }
+  const ic = TOMAS.findIndex((x) => x[0] === 'cumple'); await mira(T0[ic] + VOZ_TIEMPOS.cumple[0][1] - 1.6);
+  const de = (c) => vis(f.querySelector('.gp.' + c)); const antes = { C: de('gC'), m: de('gm'), A: de('gA'), S: de('gS'), D: de('gD'), silla: vis(f.querySelector('.k-carlos-silla')) };
+  await mira(T0[ic] + VOZ_TIEMPOS.cumple[1][0] + 0.3); const luego = { C: de('gC'), m: de('gm'), x: +gsap.getProperty(f.querySelector('.gp.gC'), 'x') };
+  return { mal, vistos, tomas: tomas.size, antes, luego };
+});
+ok(nom.tomas >= 12 && ['Ana', 'Sofía', 'Diego', 'Carlos', 'Javier'].every((n) => nom.vistos[n] > 0) && nom.mal.length === 0, 'película: en las tomas de mesa (' + nom.tomas + ') cada personaje a la vista lleva su nombre y ningún nombre se encima con un globo o un rótulo ' + nom.mal.slice(0, 5).join('; '));
+ok(nom.antes.C < 0.05 && nom.antes.m < 0.05 && nom.antes.silla > 0.9 && nom.antes.A > 0.9 && nom.antes.S > 0.9 && nom.antes.D > 0.9 && nom.luego.C > 0.9 && nom.luego.m > 0.9 && Math.abs(nom.luego.x) < 1, 'película: en `cumple`, antes de «casi» la silla de Carlos está vacía y no hay mesero; cuando el mesero habla, Carlos ya está sentado');
 // capítulo 7: la capacidad depende de quién paga; capítulo 5: si la mediana real fuera otra
 await p.evaluate(() => { const i = document.getElementById('intro'); if (i) i.style.display = 'none'; });
 await abre(p, 'recursos7');
@@ -494,6 +826,14 @@ ok(md.length === 3 && md.every((v) => tmd.includes(v)) && tmd.includes('supuesto
 if (png) await p.locator('#svMd').screenshot({ path: `${png}/v12_mediana.png` });
 await cierra(p);
 await p.evaluate(() => { const i = document.getElementById('intro'); if (i) i.style.display = ''; });
+// una dirección con un nombre heredado de Object (#constructor, #__proto__, #toString) no rompe la página
+for (const h of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+  const ctxH = await nav.newContext({ viewport: { width: 1280, height: 800 } }), pH = await ctxH.newPage(), erH = [];
+  pH.on('console', (m) => m.type() === 'error' && erH.push(m.text())); pH.on('pageerror', (e) => erH.push(String(e.message)));
+  await pH.goto(url + '#' + h); await pH.waitForTimeout(900);
+  ok(erH.length === 0 && (await pH.$('#kpis')) !== null, 'dirección #' + h + ': la página abre sin errores en consola ' + erH.slice(0, 1).join(' | '));
+  await ctxH.close();
+}
 // cifras a mano: ninguna de estas literales vive en los js (salen del modelo, de los parámetros o de los datos)
 { const { readFileSync, readdirSync } = await import('node:fs'); const dir = resolve(dirname(fileURLToPath(import.meta.url)), 'js');
   const prohibidas = ['652 a 1,000', '(1,243 MXN)', '[0.23,', '≈ 3,000 y más', '≈ 0.4 pesos al año', '"7 días"'];
@@ -509,8 +849,61 @@ ok(errores.length === 0, 'presentación: sin errores de consola ' + errores.slic
 if (png) { for (const [i, s] of [[1, 4], [2, 10], [3, 17.5], [4, 25], [5, 30], [6, 37], [7, 41.5], [8, 47.5], [9, 53], [10, 59], [11, 65.5], [12, 72], [13, 76.5], [14, 80.5], [15, 84], [16, 88], [17, 92]]) { await p.evaluate((t) => { tI = t * 1000; pintaIntro(); }, s); await p.waitForTimeout(100); await p.screenshot({ path: `${png}/v10_pelicula${i}.png` }); } }
 await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
 ok(!(await p.isVisible('#intro')), 'la presentación se puede saltar');
+/* al reabrirla desde el informe la página ya recibió un gesto: no hay puerta y arranca con sonido */
+if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
+  await p.evaluate(() => abrirIntro()); await p.waitForTimeout(600);
+  ok((await p.isVisible('#intro')) && !(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && !pausaI && tI > 0)), 'presentación con voz: al reabrir tras un gesto no hay puerta y arranca con sonido');
+  /* versión 18: antes de cada toque, el resaltado tiene la caja (± 4 px) y el radio de lo que se toca, y se ve */
+  const hal = await p.evaluate(() => {
+    pausaI = true; const mal = [], marcas = []; let fijas = 0;
+    for (const [A, x, y, t] of TOQUES) {
+      for (const d of [0.3, 0.05]) { vozSalto = true; tI = (t - d) * 1000; pintaIntro(); }
+      const ag = document.querySelector('#cine ' + A), pan = ag.querySelector('.pan'), h = ag.querySelector('.halo'), o = h.__obj, de = A + ' (' + x + ', ' + y + ') a los ' + t.toFixed(1) + ' s';
+      if (!o || !pan.contains(o)) { mal.push(de + ': sin objetivo'); continue; }
+      if (+getComputedStyle(h).opacity < 0.9 || getComputedStyle(h).visibility === 'hidden') { mal.push(de + ': no se ve'); continue; }
+      const k = pan.getBoundingClientRect().width / pan.offsetWidth, rh = h.getBoundingClientRect(), ro = o.getBoundingClientRect(), co = getComputedStyle(o);
+      if (h.__fija) { fijas++; continue; } /* el botón vive dentro de una captura: su caja se declara a mano */
+      if (o.offsetWidth * o.offsetHeight > 0.45 * pan.offsetWidth * pan.offsetHeight) { mal.push(de + ': el objetivo es la pantalla entera (' + o.className + ')'); continue; }
+      const a = HALO_AIRE * k, dif = Math.max(Math.abs(rh.left + a - ro.left), Math.abs(rh.top + a - ro.top), Math.abs(rh.right - a - ro.right), Math.abs(rh.bottom - a - ro.bottom));
+      const r = Math.min(parseFloat(co.borderTopLeftRadius) || 0, o.offsetWidth / 2, o.offsetHeight / 2), rq = r ? r + HALO_AIRE : 0;
+      const pt = document.elementsFromPoint((ro.left + ro.right) / 2, (ro.top + ro.bottom) / 2);
+      if (dif > 4) mal.push(de + ': caja a ' + dif.toFixed(1) + ' px de ' + o.className);
+      else if (Math.abs(parseFloat(h.style.borderRadius) - rq) > 0.5) mal.push(de + ': radio ' + h.style.borderRadius + ' y el de ' + o.className + ' es ' + r);
+      else if (!pt.includes(o)) mal.push(de + ': ' + o.className + ' no está a la vista');
+      /* y la marca del toque cae dentro de la caja de lo que se toca */
+      vozSalto = true; tI = (t + 0.04) * 1000; pintaIntro();
+      const m = ag.querySelector('.toque'), rm = m.getBoundingClientRect(), r2 = o.getBoundingClientRect(), mx = (rm.left + rm.right) / 2, my = (rm.top + rm.bottom) / 2;
+      if (!(+getComputedStyle(m).opacity > 0.3)) marcas.push(de + ': la marca del toque no se ve');
+      else if (mx < r2.left - 1 || mx > r2.right + 1 || my < r2.top - 1 || my > r2.bottom + 1) marcas.push(de + ': la marca cae fuera de ' + o.className);
+    }
+    pausaI = false; return { n: TOQUES.length, fijas, mal, marcas };
+  });
+  /* el avatar del tablero es pequeño y su cabecera cabe en una línea; ninguna foto redonda pasa de su tamaño */
+  const cabT = await p.evaluate(() => { const c = document.querySelector('#cine .pMesa .cab'), f = c.querySelector('.foto'), lg = c.querySelector('.lg'); const fotos = [...document.querySelectorAll('#cine .foto')].map((e) => Math.max(e.offsetWidth, e.offsetHeight));
+    return { foto: Math.max(f.offsetWidth, f.offsetHeight), alto: c.offsetHeight, linea: Math.abs((f.offsetTop + f.offsetHeight / 2) - (lg.offsetTop + lg.offsetHeight / 2)), mayor: Math.max(...fotos), n: fotos.length }; });
+  ok(cabT.foto > 0 && cabT.foto <= 40 && cabT.alto <= 48 && cabT.linea <= 6 && cabT.mayor <= 64, 'película: el avatar del tablero mide ≤ 40 px (' + cabT.foto + '), su cabecera cabe en una línea (' + cabT.alto + ' px de alto) y ninguna de las ' + cabT.n + ' fotos redondas pasa de 64 px (' + cabT.mayor + ')');
+  /* «Invitar a Sofía»: en cada acercamiento la parte es lo de Sofía entre quienes invitan en ese instante, y al final el total del teléfono es el del cuadro grande */
+  const inv = await p.evaluate(() => { pausaI = true; const mal = [], vis = (e) => { const c = getComputedStyle(e); return c.visibility !== 'hidden' && +c.opacity > 0.5; }, txt = (sel) => [...document.querySelectorAll(sel)].filter(vis).map((e) => e.textContent.trim()).join('|');
+    const ix = TOMAS.findIndex((x) => x[0] === 'cuenta'); let n = 0;
+    for (const k of [0, 2, 3].sort((a, b) => ENTRA[a] - ENTRA[b])) { const tq = TOQUES.find((o) => o[0] === '.agQ' + k && o[1] === 271 && o[3] >= T0[ix] && o[3] < T0[ix + 1]); if (!tq) { mal.push('sin toque de invitar para ' + k); continue; }
+      n++; vozSalto = true; tI = (tq[3] + 0.7) * 1000; pintaIntro(); const parte = txt('#cine .agQ' + k + ' .cpar u'), esp = pesoF(QSOFIA / n); if (parte !== esp) mal.push(QUIEN[k][3] + ': dice ' + parte + ' y son ' + esp + ' (entre ' + n + ')'); }
+    vozSalto = true; tI = (T0[ix + 1] - 1.2) * 1000; pintaIntro();
+    for (const k of [0, 2, 3]) { const tel = txt('#cine .agQ' + k + ' .ktot i'), gr = txt('#cine .cq' + k + ' .vt i'); if (!tel || tel !== gr) mal.push(QUIEN[k][3] + ': total del teléfono ' + tel + ' y del cuadro ' + gr); }
+    pausaI = false; return { n, mal }; });
+  ok(inv.n === 3 && inv.mal.length === 0, 'película: en cada acercamiento de «Invitar a Sofía» la parte es lo de Sofía entre quienes invitan en ese instante, y el total del teléfono es el del cuadro grande ' + inv.mal.join(' | '));
+  ok(hal.marcas.length === 0, 'película: toda marca de toque cae dentro de la caja de lo que se toca (' + hal.n + ' toques) ' + hal.marcas.slice(0, 6).join(' | '));
+  ok(hal.n >= 40 && hal.fijas === 0 && hal.mal.length === 0, 'película: cada resaltado coincide con la caja de lo que se toca (± 4 px), tiene su radio y se ve (' + hal.n + ' toques, ' + hal.fijas + ' con caja declarada dentro de una captura) ' + hal.mal.slice(0, 6).join(' | '));
+  await p.click('.ictl [data-intro="saltar"]'); await p.waitForTimeout(200);
+}
 await p.reload(); await p.waitForTimeout(400);
 ok(!(await p.isVisible('#intro')), 'la presentación no se repite sola');
+/* bloque 4, hallazgo 4b: reabierta con un clic de ratón en «▶ Ver la presentación», el espacio pausa (antes volvía a pulsar ese botón y la reiniciaba) */
+{ await p.evaluate(() => document.querySelector('#verIntro').scrollIntoView()); await p.click('#verIntro'); await p.waitForTimeout(500);
+  const pu = await p.isVisible('#introPuerta'); if (pu) { await p.click('#introPuerta button:not([hidden])'); await p.waitForTimeout(300); }
+  await p.waitForTimeout(2200); const v0 = await p.evaluate(() => ({ t: tI, foco: document.activeElement ? document.activeElement.id : '' }));
+  await p.keyboard.press(' '); await p.waitForTimeout(500); const v1 = await p.evaluate(() => ({ t: tI, pausa: pausaI, abierta: !document.querySelector('#intro').hidden }));
+  ok(v0.foco !== 'verIntro' && v0.t > 1500 && v1.abierta && v1.pausa && v1.t >= v0.t, `teclado: reabierta con un clic en «Ver la presentación», el espacio la pausa (pausa ${v1.pausa}) y no la reinicia (iba en ${Math.round(v0.t)} ms y sigue en ${Math.round(v1.t)} ms)`);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(300); await p.reload(); await p.waitForTimeout(400); }
 await p.close();
 
 // ---------- otros tamaños, y una pasada con las fuentes bloqueadas: nada de texto fuera de su caja ----------
@@ -566,11 +959,14 @@ async function pasada(w, h, bloqueadas) {
   await q.goto(url); await q.evaluate(() => document.fonts.ready);
   const et = `${w}×${h}${bloqueadas ? ' sin fuentes' : ''}`;
   await sinDesborde(q, `${et} portada`); await fuera(q, `${et} portada`); await revisaHovers(q, '#kpis', `${et} cifras de arriba`);
+  ok(!/MXN (mil|M)\b/.test(await q.evaluate(() => document.getElementById('kpis').textContent)), `${et} cifras de arriba: ninguna unidad al revés`);
   if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_portada.png`, fullPage: true });
   const ids = await q.$$eval('.cap', (b) => b.map((x) => x.dataset.cap));
   for (const id of ids) {
     await q.evaluate((i) => document.getElementById('cap-' + i).scrollIntoView(), id); await q.waitForTimeout(w < 600 ? 500 : 900);
     await sinDesborde(q, `${et} ${id}`); await fuera(q, `${et} ${id}`); await revisaHovers(q, '#cap-' + id, `${et} ${id}`);
+    const malU = await q.evaluate((i) => (document.getElementById('cap-' + i).textContent.match(/MXN (mil|M)\b/g) || []), id);
+    ok(malU.length === 0, `${et} ${id}: ninguna unidad al revés («MXN mil», «MXN M») ${malU.slice(0, 2).join(' | ')}`);
     if (png && w < 600) await q.screenshot({ path: `${png}/v5_${w}_${id}.png` });
   }
   await ctx.close();
@@ -578,6 +974,25 @@ async function pasada(w, h, bloqueadas) {
 for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [768, 1024], [390, 844]]) await pasada(w, h, false);
 await pasada(1440, 900, true);
 await pasada(1280, 720, true);
+/* versión 20, hallazgos 11 y 12: páginas aparte, sin la marca de «ya la vi» */
+{ const limpio = pathToFileURL(resolve(aqui, 'interactivo.html')).href;
+  /* 11 · con movimiento reducido no suena nada y el botón de sonido lo dice: apagado y sin efecto */
+  const cr = await nav.newContext({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' }); const pr = await cr.newPage(); const er = []; pr.on('console', (m) => m.type() === 'error' && er.push(m.text())); pr.on('pageerror', (e) => er.push(String(e)));
+  await pr.goto(limpio); await pr.waitForSelector('#introSon', { state: 'attached', timeout: 20000 }); await pr.waitForTimeout(1200); /* la película se arma cuando llega GSAP: en una página nueva puede tardar */
+  const r0 = await pr.evaluate(() => { const b = document.querySelector('#introSon'); return { reduce: REDUCE, intro: !document.querySelector('#intro').hidden, puerta: !document.querySelector('#introPuerta').hidden, apagado: b.disabled, icono: b.textContent, titulo: b.title, on: vozOn }; });
+  await pr.click('#introSon', { force: true }).catch(() => {}); await pr.waitForTimeout(200);
+  const r1 = await pr.evaluate(() => { const b = document.querySelector('#introSon'); return { icono: b.textContent, on: vozOn, pistas: Object.keys(vozPistas).length, musica: !!musica }; });
+  ok(r0.reduce && r0.intro && !r0.puerta && r0.apagado && r0.icono === '🔇' && /movimiento reducido/.test(r0.titulo) && r1.icono === '🔇' && r1.on === r0.on && r1.pistas === 0 && !r1.musica && er.length === 0, `movimiento reducido: el botón de sonido está apagado, dice «${r0.titulo}» y tocarlo no cambia nada; no se pide ningún audio (${r1.pistas} pistas) ${er.slice(0, 2).join(' | ')}`);
+  await cr.close();
+  /* 12 · sin los mp3 (publicada sin su audio), la puerta no ofrece sonido y no se piden las demás pistas */
+  const cs = await nav.newContext({ viewport: { width: 1280, height: 720 } }); let pedidos = 0; await cs.route(/\.mp3($|\?)/, (r) => { pedidos++; r.abort(); });
+  const ps = await cs.newPage(); const es = []; ps.on('pageerror', (e) => es.push(String(e)));
+  await ps.goto(limpio); await ps.waitForSelector('#introPuerta', { state: 'attached', timeout: 20000 }); await ps.waitForTimeout(1500);
+  const s0 = await ps.evaluate(() => { const v = [...document.querySelectorAll('#introPuerta button')].filter((b) => !b.hidden && b.getBoundingClientRect().width > 0); return { puerta: !document.querySelector('#introPuerta').hidden, botones: v.map((b) => b.textContent), foco: document.activeElement ? document.activeElement.textContent : '', sin: sinAudio }; });
+  await ps.click('#introPuerta button:not([hidden])'); await ps.waitForTimeout(2500);
+  const s1 = await ps.evaluate(() => { const b = document.querySelector('#introSon'); return { corre: tI > 1000 && !pausaI, apagado: b.disabled, titulo: b.title, icono: b.textContent, on: vozOn }; });
+  ok(s0.puerta && s0.sin && s0.botones.length === 1 && !/sonido/i.test(s0.botones[0]) && s0.foco === s0.botones[0] && s1.corre && s1.apagado && s1.icono === '🔇' && !s1.on && pedidos <= 3 && es.length === 0, `sin los mp3: la puerta sólo ofrece «${s0.botones.join('», «')}», la película corre en silencio, el botón de sonido dice «${s1.titulo}» y sólo se pidieron ${pedidos} audios (los de la precarga) ${es.slice(0, 2).join(' | ')}`);
+  await cs.close(); }
 await nav.close();
 console.log('errores de consola:', errores.length, errores.slice(0, 6).join(' | '), '· fallas:', fallos);
 process.exit(fallos || errores.length ? 1 : 0);

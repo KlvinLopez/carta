@@ -4,18 +4,18 @@ Generado por `2026-11-17-costo-de-platillo.mjs` desde `2026-11-14-parametros.jso
 
 ## Conclusión
 
-De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.3 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo disco (182 restaurantes con avisos y 173 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 137 a 116 de paga por cada 1,000).
+De 50 a 150 platillos (con la mezcla de gratuitos y de paga fija): el disco de la base casi no se mueve (caben 0.2 % menos restaurantes: 557 bytes por platillo); el procesador pierde 3.8 % con el sondeo de hoy y hasta 19.2 % con avisos (cota alta: se supone que el menú se arma cada 30 s en la hora pico, de 7 a 16 ms); NINGUNO de los dos se acaba por el tope (a mezcla de paga fija; el tope sí mueve quién paga: ver lo que sí mueve): el cuello de botella sigue siendo disco (179 restaurantes con avisos y 172 con el sondeo, con el historial a 30 días). Lo que sí crece es el almacenamiento de fotos en R2 (de 0.12 a 0.37 GB por restaurante, sobre todo por los originales, que son un supuesto; pasarse de lo gratis cuesta 0.10 pesos al mes por restaurante) y el menú que baja el teléfono (de 38 a 113 KB); y el tope cambia cuántos negocios pasan a pagar (de 119 a 87 de paga por cada 1,000).
 
 ## Lo que sí mueve el tope: quién paga
 
-Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: con la parte de paga variable y las dos cotas, el tope de 50 deja 166 pagantes por 1,000 con la cota baja (137 con la alta) y caben 142 restaurantes por disco con avisos (163 con la alta); el de 150, 144 pagantes (116) y 157 (182). Más gente de paga llena antes el disco (cada restaurante de paga guarda 12 meses). Margen con 1,000 restaurantes: 26,088 → 22,715 (cota baja).
+Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso mueve el disco: con la parte de paga variable y las dos cotas, el tope de 50 deja 162 pagantes por 1,000 con la cota baja (119 con la alta) y caben 145 restaurantes por disco con avisos (179 con la alta); el de 150, 129 pagantes (87) y 170 (216). Más gente de paga llena antes el disco (cada restaurante de paga guarda 12 meses). Margen con 1,000 restaurantes: 25,453 → 20,472 (cota baja).
 
 | Platillos | De paga por 1,000 (cota baja / alta) | Caben por disco con avisos (cota baja / alta) | Caben por disco con sondeo (cota baja / alta) | Margen con 1,000 restaurantes (cota baja / alta) |
 |---|---|---|---|---|
-| 50 | 166 / 137 | 142 / 163 | 142 / 163 | 26,088 / 21,782 |
-| 80 | 160 / 121 | 146 / 177 | 146 / 177 | 25,148 / 19,419 |
-| 100 | 158 / 117 | 147 / 180 | 147 / 180 | 24,815 / 18,809 |
-| 150 | 144 / 116 | 157 / 182 | 157 / 182 | 22,715 / 18,591 |
+| 50 | 162 / 119 | 145 / 179 | 145 / 179 | 25,453 / 19,058 |
+| 80 | 153 / 95 | 151 / 206 | 151 / 206 | 24,066 / 15,559 |
+| 100 | 149 / 89 | 153 / 213 | 153 / 213 | 23,577 / 14,658 |
+| 150 | 129 / 87 | 170 / 216 | 170 / 216 | 20,472 / 14,348 |
 
 *(con la propuesta de historial a 30 días para el gratuito, la parte de paga variable y las dos cotas de cobertura.)*
 
@@ -35,10 +35,10 @@ Los bytes de un platillo no importan, pero el tope mueve quién paga, y eso muev
 
 | Platillos | Base por restaurante | Fotos en R2 por restaurante | Gratuitos solos con foto que caben en R2 gratis (con la mezcla de paga: menos) | Menú (JSON) | Armar el menú | Disco (restaurantes, con avisos) | Procesador (con avisos / con sondeo) | Cuello |
 |---|---|---|---|---|---|---|---|---|
-| 50 | 27.9 KB | 0.12 GB (0.04 a 0.33) | 80 (30 a 242) | 38 KB | 7 ms | 182 | 1,091 / 180 | disco / procesador |
-| 80 | 44.6 KB | 0.2 GB (0.07 a 0.53) | 50 (18 a 151) | 60 KB | 9.8 ms | 182 | 1,018 / 177 | disco / procesador |
-| 100 | 55.7 KB | 0.25 GB (0.08 a 0.66) | 40 (15 a 121) | 75 KB | 11.6 ms | 182 | 974 / 176 | disco / procesador |
-| 150 | 83.6 KB | 0.37 GB (0.12 a 0.99) | 26 (10 a 80) | 113 KB | 16.2 ms | 182 | 880 / 173 | disco / procesador |
+| 50 | 27.9 KB | 0.12 GB (0.04 a 0.33) | 80 (30 a 242) | 38 KB | 7 ms | 179 | 1,086 / 179 | disco / disco |
+| 80 | 44.6 KB | 0.2 GB (0.07 a 0.53) | 50 (18 a 151) | 60 KB | 9.8 ms | 179 | 1,013 / 177 | disco / procesador |
+| 100 | 55.7 KB | 0.25 GB (0.08 a 0.66) | 40 (15 a 121) | 75 KB | 11.6 ms | 179 | 970 / 175 | disco / procesador |
+| 150 | 83.6 KB | 0.37 GB (0.12 a 0.99) | 26 (10 a 80) | 113 KB | 16.2 ms | 179 | 877 / 172 | disco / procesador |
 
 Pasarse de lo gratis de R2 cuesta 0.03 pesos al mes por restaurante con 50 platillos y 0.1 con 150.
 
@@ -46,10 +46,10 @@ Pasarse de lo gratis de R2 cuesta 0.03 pesos al mes por restaurante con 50 plati
 
 | Platillos | Caben, cota baja | Caben, cota alta | De 0 a 5 personas dentro de Chef (baja a alta) | De paga por cada 1,000 |
 |---|---|---|---|---|
-| 50 | 15 % | 63 % | 7 % a 31 % | 137 |
-| 80 | 25 % | 89 % | 12 % a 44 % | 121 |
-| 100 | 29 % | 96 % | 14 % a 47 % | 117 |
-| 150 | 52 % | 98 % | 26 % a 48 % | 116 |
+| 50 | 15 % | 63 % | 10 % a 44 % | 119 |
+| 80 | 25 % | 89 % | 18 % a 63 % | 95 |
+| 100 | 29 % | 96 % | 20 % a 67 % | 89 |
+| 150 | 52 % | 98 % | 36 % a 69 % | 87 |
 
 Las dos cotas son muestras de sesgo opuesto (sitios propios: 56 cartas largas; reparto: 148 cartas cortas) y no se sabe cuál es la real. La capacidad se calcula con la mezcla de gratuitos y de paga **fija** para aislar el efecto del tope; el efecto del tope sobre esa mezcla es la última columna.
 

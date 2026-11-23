@@ -1,0 +1,840 @@
+[
+ {
+  "id": "mesa-01",
+  "toma": "mesa",
+  "quien": "narrador",
+  "texto": "[whispers] Viernes en la noche. [pause] [mischievously] Imaginemos una mesa. Mantel blanco, una vela… y cuatro sillas que todavía no saben la noche que les espera.",
+  "inicio": 0.4
+ },
+ {
+  "id": "cumple-01",
+  "toma": "cumple",
+  "quien": "narrador",
+  "texto": "[gasps] ¡Es el cumpleaños de Sofía! [warmly] Ana, Diego y Carlos llegaron temprano. [giggles] Bueno… casi.",
+  "inicio": 0.3
+ },
+ {
+  "id": "cumple-02",
+  "toma": "cumple",
+  "quien": "mesero",
+  "texto": "Buenas noches. Aquí está la carta.",
+  "inicio": 9.4,
+  "tras": 0.3
+ },
+ {
+  "id": "b1-01",
+  "toma": "b1",
+  "quien": "narrador",
+  "texto": "[mischievously] Primero, lo de siempre.",
+  "inicio": 0.2
+ },
+ {
+  "id": "b1-02",
+  "toma": "b1",
+  "quien": "ana",
+  "texto": "¿Pedimos algo para compartir?",
+  "inicio": 3.4,
+  "tras": 0.3
+ },
+ {
+  "id": "b1-03",
+  "toma": "b1",
+  "quien": "diego",
+  "texto": "¿La parrillada alcanza para cuatro?",
+  "inicio": 5.3,
+  "tras": 0.2
+ },
+ {
+  "id": "b1-04",
+  "toma": "b1",
+  "quien": "carlos",
+  "texto": "[sighs] Es el mismo menú, pero en PDF.",
+  "inicio": 7.5,
+  "tras": 0.2
+ },
+ {
+  "id": "b1-05",
+  "toma": "b1",
+  "quien": "sofia",
+  "texto": "[jumping in] ¿Y eso qué trae?",
+  "inicio": 10,
+  "encima": 0.2
+ },
+ {
+  "id": "b2-01",
+  "toma": "b2",
+  "quien": "ana",
+  "texto": "Los tacos de pescado, por favor.",
+  "inicio": 1.5
+ },
+ {
+  "id": "b2-02",
+  "toma": "b2",
+  "quien": "mesero",
+  "texto": "Se nos terminaron. Una disculpa.",
+  "inicio": 3.5,
+  "tras": 0.2
+ },
+ {
+  "id": "b2-03",
+  "toma": "b2",
+  "quien": "ana",
+  "texto": "¿Y el mole?",
+  "inicio": 5.5,
+  "tras": 0.2
+ },
+ {
+  "id": "b2-04",
+  "toma": "b2",
+  "quien": "mesero",
+  "texto": "¿Es alérgica a algo? Lleva cacahuate.",
+  "inicio": 6.9,
+  "tras": 0.2
+ },
+ {
+  "id": "b2-05",
+  "toma": "b2",
+  "quien": "ana",
+  "texto": "Sí… ¿y las enchiladas?",
+  "inicio": 9.2,
+  "tras": 0.2
+ },
+ {
+  "id": "b2-06",
+  "toma": "b2",
+  "quien": "ana",
+  "texto": "[jumping in] Espere… ¿llevan cacahuate?",
+  "inicio": 11.1,
+  "encima": 0.2
+ },
+ {
+  "id": "b2-07",
+  "toma": "b2",
+  "quien": "mesero",
+  "texto": "Déjeme pregunto en cocina.",
+  "inicio": 13,
+  "tras": 0.2
+ },
+ {
+  "id": "b2-08",
+  "toma": "b2",
+  "quien": "mesero",
+  "texto": "Sí llevan cacahuate.",
+  "inicio": 16.7,
+  "tras": 0.2
+ },
+ {
+  "id": "b3-01",
+  "toma": "b3",
+  "quien": "narrador",
+  "texto": "Cuatro antojos, una libreta…",
+  "inicio": 0.2
+ },
+ {
+  "id": "b3-02",
+  "toma": "b3",
+  "quien": "mesero",
+  "texto": "¿Eran dos aguachiles… o tres?",
+  "inicio": 3.9,
+  "tras": 0.3
+ },
+ {
+  "id": "b3-03",
+  "toma": "b3",
+  "quien": "carlos",
+  "texto": "[jumping in] El mío sin cebolla.",
+  "inicio": 5.8,
+  "encima": 0.2
+ },
+ {
+  "id": "b3-04",
+  "toma": "b3",
+  "quien": "ana",
+  "texto": "[chuckles] Yo cambié de opinión.",
+  "inicio": 7.8,
+  "tras": 0.2
+ },
+ {
+  "id": "b3t-01",
+  "toma": "b3t",
+  "quien": "narrador",
+  "texto": "[chuckles] ¿Y con tableta? Lo mismo, pero con pantalla.",
+  "inicio": 0.2
+ },
+ {
+  "id": "b3t-02",
+  "toma": "b3t",
+  "quien": "mesero",
+  "texto": "Un momento… está cargando.",
+  "inicio": 3.5,
+  "tras": 0.3
+ },
+ {
+  "id": "espera-01",
+  "toma": "espera",
+  "quien": "carlos",
+  "texto": "Ya tardó, ¿no?",
+  "inicio": 1.5
+ },
+ {
+  "id": "espera-02",
+  "toma": "espera",
+  "quien": "diego",
+  "texto": "Yo ya tengo hambre.",
+  "inicio": 3.2,
+  "encima": 0.2
+ },
+ {
+  "id": "espera-03",
+  "toma": "espera",
+  "quien": "narrador",
+  "texto": "Llegó la comida, llegaron las risas… [mischievously] y llegó ese momento.",
+  "inicio": 5.1,
+  "tras": 0.3
+ },
+ {
+  "id": "espera-04",
+  "toma": "espera",
+  "quien": "ana",
+  "texto": "¿Nos trae la cuenta, por favor?",
+  "inicio": 9.3,
+  "tras": 0.3
+ },
+ {
+  "id": "ticket-01",
+  "toma": "ticket",
+  "quien": "mesero",
+  "texto": "Muchas gracias por venir.",
+  "inicio": 0.9
+ },
+ {
+  "id": "b4-01",
+  "toma": "b4",
+  "quien": "narrador",
+  "texto": "[giggles] Y cuatro calculadoras.",
+  "inicio": 0.2
+ },
+ {
+  "id": "b4-02",
+  "toma": "b4",
+  "quien": "diego",
+  "texto": "¿Quién pidió las limonadas?",
+  "inicio": 2.8,
+  "tras": 0.3
+ },
+ {
+  "id": "b4-03",
+  "toma": "b4",
+  "quien": "ana",
+  "texto": "[jumping in] A Sofi la invitamos: ¿entre tres?",
+  "inicio": 4.8,
+  "encima": 0.2
+ },
+ {
+  "id": "b4-04",
+  "toma": "b4",
+  "quien": "carlos",
+  "texto": "[sighs] ¿Y la propina?",
+  "inicio": 7.2,
+  "encima": 0.3
+ },
+ {
+  "id": "pivote-01",
+  "toma": "pivote",
+  "quien": "narrador",
+  "texto": "[mischievously] ¿Y si lo reimaginamos? [pause] Misma mesa. Mismos amigos.",
+  "inicio": 0.6
+ },
+ {
+  "id": "ofrece-01",
+  "toma": "ofrece",
+  "quien": "mesero",
+  "texto": "Aquí usamos Carta: con el QR ven el menú y piden desde su teléfono.",
+  "inicio": 1.2
+ },
+ {
+  "id": "ofrece-02",
+  "toma": "ofrece",
+  "quien": "ana",
+  "texto": "[excited] ¡Espléndido! Yo ya tengo mi perfil hecho y todo.",
+  "inicio": 5.8,
+  "tras": 0.2
+ },
+ {
+  "id": "escanea-01",
+  "toma": "escanea",
+  "quien": "narrador",
+  "texto": "…y ya está adentro. Sin descargar nada.",
+  "inicio": 1
+ },
+ {
+  "id": "filtra-01",
+  "toma": "filtra",
+  "quien": "narrador",
+  "texto": "Ana no come cacahuate.",
+  "inicio": 0.4
+ },
+ {
+  "id": "filtra-02",
+  "toma": "filtra",
+  "quien": "narrador",
+  "texto": "Carta guarda sus restricciones y quita lo que no puede comer.",
+  "inicio": 2.2,
+  "tras": 0.3
+ },
+ {
+  "id": "top3-01",
+  "toma": "top3",
+  "quien": "narrador",
+  "texto": "[warmly] Y como ya la conoce, le tenía tres ideas: por los restaurantes que ha visitado [giggles] y por lo que le dio me gusta.",
+  "inicio": 0.4
+ },
+ {
+  "id": "agrega-01",
+  "toma": "agrega",
+  "quien": "narrador",
+  "texto": "Un toque… [giggles] y a la mesa.",
+  "inicio": 0.3
+ },
+ {
+  "id": "juntos-01",
+  "toma": "juntos",
+  "quien": "narrador",
+  "texto": "[mischievously] Esta vez nadie pidió al tanteo: cada quien veía lo que pedían los demás.",
+  "inicio": 0.2
+ },
+ {
+  "id": "juntos-02",
+  "toma": "juntos",
+  "quien": "ana",
+  "texto": "Ya pedí. ¿Tú qué vas a pedir?",
+  "inicio": 6.3,
+  "tras": 0.3
+ },
+ {
+  "id": "juntos-03",
+  "toma": "juntos",
+  "quien": "carlos",
+  "texto": "Estoy viendo, todavía no sé.",
+  "inicio": 8.4,
+  "tras": 0.2
+ },
+ {
+  "id": "confirma-01",
+  "toma": "confirma",
+  "quien": "narrador",
+  "texto": "[warmly] Y cuando los cuatro estuvieron listos, Carta llamó al mesero automáticamente.",
+  "inicio": 0.3
+ },
+ {
+  "id": "avisa-01",
+  "toma": "avisa",
+  "quien": "narrador",
+  "texto": "A Javier le llegó una sola comanda.",
+  "inicio": 0.4
+ },
+ {
+  "id": "llega-01",
+  "toma": "llega",
+  "quien": "mesero",
+  "texto": "Para Ana, pescado a la talla.",
+  "inicio": 0.5
+ },
+ {
+  "id": "llega-02",
+  "toma": "llega",
+  "quien": "mesero",
+  "texto": "Para Sofía, ensalada. Para Diego, aguachile.",
+  "inicio": 2.2,
+  "tras": 0.2
+ },
+ {
+  "id": "llega-03",
+  "toma": "llega",
+  "quien": "mesero",
+  "texto": "Y para Carlos, arrachera.",
+  "inicio": 4.5,
+  "tras": 0.2
+ },
+ {
+  "id": "llega-04",
+  "toma": "llega",
+  "quien": "ana",
+  "texto": "Sí, todo bien.",
+  "inicio": 6.3,
+  "encima": 0.2
+ },
+ {
+  "id": "llega-05",
+  "toma": "llega",
+  "quien": "narrador",
+  "texto": "[warmly] Él la confirmó en voz alta. Nada se perdió en el camino.",
+  "inicio": 8,
+  "tras": 0.3
+ },
+ {
+  "id": "cocina-01",
+  "toma": "cocina",
+  "quien": "narrador",
+  "texto": "[softly] Y mientras la cocina trabajaba, cada quien veía cómo iba lo suyo.",
+  "inicio": 0.5
+ },
+ {
+  "id": "abierta-01",
+  "toma": "abierta",
+  "quien": "narrador",
+  "texto": "[warmly] La mesa siguió abierta. Como la plática.",
+  "inicio": 0.3
+ },
+ {
+  "id": "abierta-02",
+  "toma": "abierta",
+  "quien": "sofia",
+  "texto": "¿Han visto a Luis?",
+  "inicio": 3.3,
+  "tras": 0.3
+ },
+ {
+  "id": "abierta-03",
+  "toma": "abierta",
+  "quien": "diego",
+  "texto": "Fuimos a Cancún, estuvo muy bonito.",
+  "inicio": 5.1,
+  "tras": 0.2
+ },
+ {
+  "id": "abierta-04",
+  "toma": "abierta",
+  "quien": "ana",
+  "texto": "[jumping in] ¡No te creo!",
+  "inicio": 7.4,
+  "encima": 0.2
+ },
+ {
+  "id": "abierta-05",
+  "toma": "abierta",
+  "quien": "carlos",
+  "texto": "[overlapping] Ahí va otra vez con Cancún.",
+  "inicio": 7.9,
+  "encima": 0.3
+ },
+ {
+  "id": "abierta-06",
+  "toma": "abierta",
+  "quien": "sofia",
+  "texto": "[overlapping] [laughs] ¡Ay, Diego!",
+  "inicio": 9.6,
+  "encima": 0.4
+ },
+ {
+  "id": "abierta-07",
+  "toma": "abierta",
+  "quien": "ana",
+  "texto": "[laughs]",
+  "inicio": 9.9,
+  "encima": 0.6
+ },
+ {
+  "id": "abierta-08",
+  "toma": "abierta",
+  "quien": "carlos",
+  "texto": "[laughs]",
+  "inicio": 10.2,
+  "con": 0.35
+ },
+ {
+  "id": "abierta-09",
+  "toma": "abierta",
+  "quien": "diego",
+  "texto": "[laughs]",
+  "inicio": 10.5,
+  "con": 0.25
+ },
+ {
+  "id": "abierta-10",
+  "toma": "abierta",
+  "quien": "diego",
+  "texto": "Se me antojó un guacamole.",
+  "inicio": 11.7,
+  "encima": 1.5
+ },
+ {
+  "id": "abierta-11",
+  "toma": "abierta",
+  "quien": "narrador",
+  "texto": "[mischievously] A Diego se le antojó algo más.",
+  "inicio": 14,
+  "tras": 0.3
+ },
+ {
+  "id": "abierta-12",
+  "toma": "abierta",
+  "quien": "mesero",
+  "texto": "Sí se puede. Ahorita se lo traigo.",
+  "inicio": 19.8,
+  "tras": 0.3
+ },
+ {
+  "id": "abierta-13",
+  "toma": "abierta",
+  "quien": "ana",
+  "texto": "Mejor quiero los camarones.",
+  "inicio": 23.1,
+  "tras": 0.2
+ },
+ {
+  "id": "abierta-14",
+  "toma": "abierta",
+  "quien": "mesero",
+  "texto": "Ya no es posible: su pescado ya se está preparando.",
+  "inicio": 29,
+  "tras": 0.2
+ },
+ {
+  "id": "abierta-15",
+  "toma": "abierta",
+  "quien": "ana",
+  "texto": "No hay problema, muchas gracias.",
+  "inicio": 30.9,
+  "encima": 0.2
+ },
+ {
+  "id": "abierta-16",
+  "toma": "abierta",
+  "quien": "narrador",
+  "texto": "Ana quiso cambiar de opinión… demasiado tarde.",
+  "inicio": 33.8,
+  "tras": 0.3
+ },
+ {
+  "id": "abierta-17",
+  "toma": "abierta",
+  "quien": "carlos",
+  "texto": "Mejor sin el agua de jamaica.",
+  "inicio": 37.3,
+  "tras": 0.3
+ },
+ {
+  "id": "abierta-18",
+  "toma": "abierta",
+  "quien": "mesero",
+  "texto": "Ése sí: cocina todavía no lo prepara.",
+  "inicio": 42.6,
+  "tras": 0.2
+ },
+ {
+  "id": "abierta-19",
+  "toma": "abierta",
+  "quien": "narrador",
+  "texto": "[gasps] ¡Y llegó la comida!",
+  "inicio": 47,
+  "tras": 0.3
+ },
+ {
+  "id": "abierta-20",
+  "toma": "abierta",
+  "quien": "mesero",
+  "texto": "Provecho.",
+  "inicio": 48.9,
+  "tras": 0.3
+ },
+ {
+  "id": "abierta-21",
+  "toma": "abierta",
+  "quien": "ana",
+  "texto": "Prueba el pescado, está increíble.",
+  "inicio": 51.2,
+  "tras": 0.2
+ },
+ {
+  "id": "abierta-22",
+  "toma": "abierta",
+  "quien": "carlos",
+  "texto": "[jumping in] Y la arrachera. Hay que volver.",
+  "inicio": 53.1,
+  "encima": 0.2
+ },
+ {
+  "id": "abierta-23",
+  "toma": "abierta",
+  "quien": "sofia",
+  "texto": "¡Qué rico estuvo!",
+  "inicio": 55.1,
+  "encima": 0.3
+ },
+ {
+  "id": "cierres-01",
+  "toma": "cierres",
+  "quien": "ana",
+  "texto": "Yo ya quedé. Me gustó mucho.",
+  "inicio": 0.5
+ },
+ {
+  "id": "cierres-02",
+  "toma": "cierres",
+  "quien": "narrador",
+  "texto": "[softly] Ana fue la primera en decir: ya quedé. Cerró su cuenta desde su lugar.",
+  "inicio": 3,
+  "tras": 0.3
+ },
+ {
+  "id": "cierres-03",
+  "toma": "cierres",
+  "quien": "diego",
+  "texto": "Deja veo si pido un postre.",
+  "inicio": 8.1,
+  "tras": 0.3
+ },
+ {
+  "id": "cierres-04",
+  "toma": "cierres",
+  "quien": "carlos",
+  "texto": "[jumping in] Yo sí quiero un flan.",
+  "inicio": 10.6,
+  "encima": 0.2
+ },
+ {
+  "id": "cierres-05",
+  "toma": "cierres",
+  "quien": "diego",
+  "texto": "Y un pastel para la cumpleañera.",
+  "inicio": 13.4,
+  "tras": 0.2
+ },
+ {
+  "id": "cierres-06",
+  "toma": "cierres",
+  "quien": "ana",
+  "texto": "[excited] ¡Feliz cumpleaños, Sofi!",
+  "inicio": 15,
+  "encima": 0.2
+ },
+ {
+  "id": "cierres-07",
+  "toma": "cierres",
+  "quien": "carlos",
+  "texto": "[cheering] ¡Felicidades, Sofi! ¡Eeeh!",
+  "inicio": 15.3,
+  "con": 0.3
+ },
+ {
+  "id": "cierres-08",
+  "toma": "cierres",
+  "quien": "diego",
+  "texto": "[singing] ¡Feliz cumpleaños a ti…!",
+  "inicio": 15.6,
+  "con": 0.3
+ },
+ {
+  "id": "cierres-09",
+  "toma": "cierres",
+  "quien": "sofia",
+  "texto": "[touched] ¡Ay, amigos… muchas gracias! [giggles]",
+  "inicio": 18.1,
+  "encima": 0.5
+ },
+ {
+  "id": "cierres-10",
+  "toma": "cierres",
+  "quien": "narrador",
+  "texto": "[mischievously] Los demás, a su ritmo.",
+  "inicio": 22.1,
+  "tras": 0.3
+ },
+ {
+  "id": "cierres-11",
+  "toma": "cierres",
+  "quien": "carlos",
+  "texto": "¿Ya nadie va a pedir nada más?",
+  "inicio": 27.4,
+  "tras": 0.3
+ },
+ {
+  "id": "cierres-12",
+  "toma": "cierres",
+  "quien": "ana",
+  "texto": "[jumping in] No, todo bien.",
+  "inicio": 29.4,
+  "encima": 0.2
+ },
+ {
+  "id": "cierres-13",
+  "toma": "cierres",
+  "quien": "narrador",
+  "texto": "[warmly] Y cuando cerró el último, la mesa entera quedó en cuenta cerrada.",
+  "inicio": 31.1,
+  "tras": 0.3
+ },
+ {
+  "id": "cuenta-01",
+  "toma": "cuenta",
+  "quien": "narrador",
+  "texto": "[warmly] Cada quien vio su propia cuenta, con su propina.",
+  "inicio": 0.3
+ },
+ {
+  "id": "cuenta-02",
+  "toma": "cuenta",
+  "quien": "ana",
+  "texto": "[excited] Sofi, nosotros te invitamos, es tu cumpleaños.",
+  "inicio": 4.6,
+  "tras": 0.3
+ },
+ {
+  "id": "cuenta-03",
+  "toma": "cuenta",
+  "quien": "narrador",
+  "texto": "Entre uno.",
+  "inicio": 9.4,
+  "tras": 0.3
+ },
+ {
+  "id": "cuenta-04",
+  "toma": "cuenta",
+  "quien": "diego",
+  "texto": "[jumping in] Sí, nosotros te invitamos.",
+  "inicio": 11.6,
+  "encima": 0.3
+ },
+ {
+  "id": "cuenta-05",
+  "toma": "cuenta",
+  "quien": "narrador",
+  "texto": "Entre dos.",
+  "inicio": 14,
+  "tras": 0.3
+ },
+ {
+  "id": "cuenta-06",
+  "toma": "cuenta",
+  "quien": "carlos",
+  "texto": "[overlapping] Sí, nosotros te invitamos.",
+  "inicio": 15.9,
+  "encima": 0.3
+ },
+ {
+  "id": "cuenta-07",
+  "toma": "cuenta",
+  "quien": "narrador",
+  "texto": "[giggles] Entre tres. La cuenta de Sofía se repartió sola.",
+  "inicio": 18.3,
+  "tras": 0.3
+ },
+ {
+  "id": "cuenta-08",
+  "toma": "cuenta",
+  "quien": "sofia",
+  "texto": "[overlapping] [warmly] ¡Ay, muchas gracias, amigos!",
+  "inicio": 22,
+  "encima": 0.4
+ },
+ {
+  "id": "cuenta-09",
+  "toma": "cuenta",
+  "quien": "narrador",
+  "texto": "Revisaron su total…",
+  "inicio": 24.7,
+  "tras": 0.3
+ },
+ {
+  "id": "pagada-01",
+  "toma": "pagada",
+  "quien": "narrador",
+  "texto": "[warmly] Y cada quien pagó a su manera.",
+  "inicio": 0.5
+ },
+ {
+  "id": "pagada-02",
+  "toma": "pagada",
+  "quien": "mesero",
+  "texto": "Con la terminal, cuando gusten.",
+  "inicio": 3.6,
+  "tras": 0.3
+ },
+ {
+  "id": "pagada-03",
+  "toma": "pagada",
+  "quien": "diego",
+  "texto": "Yo, por transferencia.",
+  "inicio": 6.7,
+  "tras": 0.2
+ },
+ {
+  "id": "pagada-04",
+  "toma": "pagada",
+  "quien": "narrador",
+  "texto": "[softly] Carta le puso en pantalla los datos del restaurante.",
+  "inicio": 9,
+  "tras": 0.3
+ },
+ {
+  "id": "pagada-05",
+  "toma": "pagada",
+  "quien": "carlos",
+  "texto": "Yo pago en efectivo.",
+  "inicio": 13.7,
+  "tras": 0.3
+ },
+ {
+  "id": "pagada-06",
+  "toma": "pagada",
+  "quien": "mesero",
+  "texto": "Está completo. Validado.",
+  "inicio": 16.3,
+  "tras": 0.2
+ },
+ {
+  "id": "pagada-07",
+  "toma": "pagada",
+  "quien": "mesero",
+  "texto": "Todo pagado. ¡Muchas gracias!",
+  "inicio": 19.8,
+  "tras": 0.3
+ },
+ {
+  "id": "factura-01",
+  "toma": "factura",
+  "quien": "ana",
+  "texto": "¿Facturan?",
+  "inicio": 0.4
+ },
+ {
+  "id": "factura-02",
+  "toma": "factura",
+  "quien": "mesero",
+  "texto": "Sí, se pide desde la aplicación.",
+  "inicio": 2.1,
+  "encima": 0.2
+ },
+ {
+  "id": "factura-03",
+  "toma": "factura",
+  "quien": "narrador",
+  "texto": "Le llega al restaurante, que es quien la emite.",
+  "inicio": 4.9,
+  "tras": 0.3
+ },
+ {
+  "id": "sucia-01",
+  "toma": "sucia",
+  "quien": "ana",
+  "texto": "¡Gracias, buenas noches!",
+  "inicio": 0.1,
+  "encima": 0.2
+ },
+ {
+  "id": "sucia-02",
+  "toma": "sucia",
+  "quien": "narrador",
+  "texto": "[warmly] Fue una gran noche para nuestros invitados.",
+  "inicio": 2.3,
+  "tras": 0.3
+ },
+ {
+  "id": "fin-01",
+  "toma": "fin",
+  "quien": "narrador",
+  "texto": "[warmly] Carta. Tu menú, tu Carta.",
+  "inicio": 1.2
+ }
+]

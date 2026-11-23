@@ -34,7 +34,21 @@ def referenciados() -> set[str]:
     refs: set[str] = set()
     for t in textos:
         refs |= set(re.findall(r"apoyo/[A-Za-z0-9_./-]*\.(?:webp|png|jpg|svg|woff2|css|js|mp4)", t))
-    return refs
+    return refs | set(voz_de_la_pelicula()) | set(musica_de_la_pelicula())
+
+
+def voz_de_la_pelicula() -> list[str]:
+    """La voz: un mp3 por toma listada en VOZ_AUDIO (js/e2_film.js). La película arma la ruta por partes, así que se declaran aquí."""
+    m = re.search(r"const VOZ_AUDIO = \{([^}]*)\};", (AQUI / "js" / "e2_film.js").read_text(encoding="utf-8"))
+    if not m:
+        raise SystemExit("FALLA: no encuentro la tabla VOZ_AUDIO en js/e2_film.js; sin ella no sé qué pistas de voz se publican")
+    return [f"apoyo/voz/{k}.mp3" for k in re.findall(r'"(\w+)":', m.group(1))]
+
+
+def musica_de_la_pelicula() -> list[str]:
+    """La música de fondo: un solo mp3 para toda la película. La ruta también se arma por partes (MUS_RUTA), así que se declara aquí."""
+    t = (AQUI / "js" / "e2_film.js").read_text(encoding="utf-8")
+    return ["apoyo/musica/fondo.mp3"] if 'const MUS_RUTA = ["apoyo", "musica", "fondo.mp3"]' in t else []
 
 
 def main() -> int:
@@ -66,6 +80,7 @@ def main() -> int:
             print("FALLA: referenciados y no publicados en el artefacto:", *sin, sep="\n  ")
             mal = 1
     print(f"{len(refs)} rutas referenciadas · {len(pub)} archivos a publicar bajo apoyo/")
+    print(f"voz de la película: {len(voz_de_la_pelicula())} mp3 (uno por toma de VOZ_AUDIO), referenciados como cualquier otro recurso")
     if not mal:
         print("ok: nada referenciado queda fuera de la lista")
         print("\n".join(pub))
