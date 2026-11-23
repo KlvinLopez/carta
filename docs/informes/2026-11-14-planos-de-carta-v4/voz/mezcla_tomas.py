@@ -18,7 +18,7 @@ Cuándo entra cada frase, en segundos desde el inicio de su toma:
   último que siga hablando.
 
 El guion se revisa antes de mezclar, y si algo no tiene sentido no se escribe nada y el código de
-salida es 1: `con`, `tras` o `encima` negativos; `con` en la primera frase de una toma o junto a la
+salida es 1: un guion vacío; `inicio`, `con`, `tras` o `encima` negativos; `con` en la primera frase de una toma o junto a la
 narradora; `encima` mayor que lo que dura la frase anterior; un nombre de toma o de frase con algo
 más que minúsculas, cifras y guion (acaba en una ruta de archivo).
 
@@ -76,7 +76,10 @@ def sin_marcas(t: str) -> str:
 def lee_ritmo() -> float:
     if not LINEA.exists():
         return 1.0
-    ritmo = float(json.loads(LINEA.read_text(encoding="utf8")).get("ritmo", 1.0))
+    valor = json.loads(LINEA.read_text(encoding="utf8")).get("ritmo", 1.0)
+    if isinstance(valor, bool) or not isinstance(valor, (int, float)):
+        raise SystemExit(f"ritmo {valor!r} en {LINEA}: debe ser un número")
+    ritmo = float(valor)
     if not RITMO_MIN <= ritmo <= RITMO_MAX:
         raise SystemExit(f"ritmo {ritmo} fuera de {RITMO_MIN} a {RITMO_MAX} en {LINEA}")
     return ritmo
@@ -111,7 +114,7 @@ def prepara(linea: dict, tmp: Path) -> tuple[Path, float] | None:
 def revisa(linea: dict, prev: dict | None, prev_dur: float) -> list[str]:
     """Lo que el guion pide y no tiene sentido. `prev` es la frase anterior de la toma (None en la primera)."""
     malas = []
-    for campo in ("con", "tras", "encima"):
+    for campo in ("inicio", "con", "tras", "encima"):
         v = linea.get(campo)
         if v is not None and float(v) < 0:
             malas.append(f"{linea['id']}: `{campo}` negativo ({v})")
@@ -176,6 +179,9 @@ def mezcla(nombre: str, filas: list[dict], ritmo: float) -> float:
 
 def main() -> int:
     guion = json.loads(GUION.read_text(encoding="utf8"))
+    if not guion:
+        print(f"El guion {GUION} no trae ninguna frase; no se escribió nada.", file=sys.stderr)
+        return 1
     ritmo = lee_ritmo()
     raros = [x for linea in guion for x in (linea["toma"], linea["id"]) if not NOMBRE.match(str(x))]
     if raros:

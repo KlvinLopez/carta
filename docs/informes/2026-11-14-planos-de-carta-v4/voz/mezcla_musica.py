@@ -12,8 +12,10 @@ Qué hace:
   separadas por menos de HUECO_MINIMO segundos se queda abajo, para que no suba y baje.
 - Suena desde el principio, se apaga en la toma `pivote`, vuelve a empezar en `ofrece` y otra
   vez en `prepara`; al final se funde. Si falta alguna de esas tomas, suena de corrido.
-- Si un tramo dura más que la pieza, la pieza vuelve a empezar al terminar; si lo que falta del
-  tramo es menos de REPETIR_DESDE segundos, se queda en silencio hasta el tramo siguiente.
+- Si un tramo dura más que la pieza, la pieza vuelve a empezar cuando deja de sonar (el silencio
+  del final del archivo no cuenta). En el tramo de en medio, si lo que falta es menos de
+  REPETIR_DESDE segundos, se queda en silencio hasta el tramo siguiente; el primero y el último
+  se llenan siempre, para que la película no acabe sin música.
 - El volumen va horneado en el archivo: en un teléfono el navegador no deja cambiarlo por código.
 
 El ritmo: linea_de_tiempo.json y tiempos.json van en segundos «de guion»; si la película corre a
@@ -23,7 +25,9 @@ el ritmo. La música no se acelera: suena a su velocidad y dura lo que dura la p
 Los niveles se miden contra la voz: BAJO_LA_VOZ y ENTRE_FRASES son cuántas unidades de sonoridad
 (LU) queda la música por debajo de la voz ya mezclada en apoyo/voz.
 
-Si un tiempo de voz cae fuera de su toma, se detiene con un error: la música bajaría donde nadie habla.
+Se detiene con un error, sin escribir nada, si un tiempo de voz cae fuera de su toma (la música
+bajaría donde nadie habla), si tiempos.json no trae frases o se mezcló a otro ritmo, si el ritmo
+no es un número o si `pivote`, `ofrece` y `prepara` no van en ese orden.
 """
 
 import json
@@ -54,6 +58,8 @@ FUNDIDO_FINAL = 2.5
 ENTRADA = 0.6  # fundido de entrada de cada vuelta a empezar
 REPETIR_DESDE = 12.0  # la pieza sólo vuelve a empezar si quedan al menos estos segundos de tramo
 MARGEN_TOMA = 0.05  # cuánto puede pasarse un tiempo de voz del final de su toma (redondeos)
+SILENCIO_FINAL = "silencedetect=noise=-50dB:d=0.3"  # qué cuenta como silencio al final de la pieza
+COLA_DE_LA_PIEZA = 0.3  # segundos de ese silencio que se conservan antes de volver a empezar
 
 
 def corre(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -63,6 +69,39 @@ def corre(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def dur(p: Path) -> float:
     campos = ["-show_entries", "format=duration", "-of", "csv=p=0"]
     return float(corre(["ffprobe", "-v", "error", *campos, str(p)]).stdout)
+
+
+def suena_hasta(p: Path) -> float:
+    """Hasta qué segundo suena la pieza: su duración menos el silencio del final, si lo trae.
+
+    Al repetirla, la vuelta siguiente empieza cuando la música se acaba, no cuando se acaba el archivo.
+    """
+    total = dur(p)
+    r = subprocess.run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-nostats",
+            "-i",
+            str(p),
+            "-af",
+            SILENCIO_FINAL,
+            "-f",
+            "null",
+            "-",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    inicios = [float(x) for x in re.findall(r"silence_start: (-?[0-9.]+)", r.stderr)]
+    finales = [float(x) for x in re.findall(r"silence_end: (-?[0-9.]+)", r.stderr)]
+    if (
+        inicios
+        and (len(finales) < len(inicios) or finales[-1] >= total - 0.05)
+        and inicios[-1] > 1.0
+    ):
+        return min(total, inicios[-1] + COLA_DE_LA_PIEZA)
+    return total
 
 
 def sonoridad(entradas: list[Path], filtro: str = "") -> float:
@@ -84,7 +123,10 @@ def sonoridad(entradas: list[Path], filtro: str = "") -> float:
 
 def en_reloj(linea: dict) -> dict:
     """La línea de tiempo en segundos de reloj: los de guion entre el ritmo."""
-    ritmo = float(linea.get("ritmo", 1.0))
+    valor = linea.get("ritmo", 1.0)
+    if isinstance(valor, bool) or not isinstance(valor, (int, float)):
+        raise SystemExit(f"ritmo {valor!r} en {LINEA}: debe ser un número")
+    ritmo = float(valor)
     if not 0.8 <= ritmo <= 1.5:
         raise SystemExit(f"ritmo {ritmo} fuera de 0.8 a 1.5 en {LINEA}")
     tomas = [
@@ -121,12 +163,16 @@ def tramos_de_habla(linea: dict, tiempos: dict, ritmo: float) -> list[list[float
     return juntos
 
 
-def repite(desde: float, hasta: float, largo: float, entra: float, sale: float) -> list[dict]:
+def repite(
+    desde: float, hasta: float, largo: float, entra: float, sale: float, llena: bool = True
+) -> list[dict]:
     """Las vueltas de la pieza que llenan el tramo [desde, hasta]: la primera entra con `entra`;
-    la última se corta con el fundido `sale` si no cabe entera."""
+    la última se corta con el fundido `sale` si no cabe entera. Con `llena`, la pieza se repite
+    hasta el final del tramo; sin ella, no vuelve a empezar si quedan menos de REPETIR_DESDE
+    segundos (se queda en silencio hasta el tramo siguiente, que arranca la pieza otra vez)."""
     out: list[dict] = []
     ini = desde
-    while hasta - ini > 0.5 and (not out or hasta - ini >= REPETIR_DESDE):
+    while hasta - ini > 0.5 and (not out or llena or hasta - ini >= REPETIR_DESDE):
         dura = min(largo, hasta - ini)
         out.append({"inicio": ini, "dura": dura, "entra": entra if not out else 0.0, "sale": 0.0})
         ini += largo
@@ -141,9 +187,14 @@ def vueltas(linea: dict, largo: float) -> list[dict]:
     t0 = {t["toma"]: float(t["inicio"]) for t in linea["tomas"]}
     if not {"pivote", "ofrece", "prepara"} <= set(t0):
         return repite(0.0, total, largo, 0.0, FUNDIDO_FINAL)
+    if not t0["pivote"] < t0["ofrece"] < t0["prepara"]:
+        raise SystemExit(
+            "las tomas `pivote`, `ofrece` y `prepara` no van en ese orden en la línea de tiempo: "
+            "la música se encimaría consigo misma"
+        )
     acto1 = repite(0.0, t0["pivote"] + FUNDIDO_PIVOTE, largo, 0.0, FUNDIDO_PIVOTE)
     hasta = max(t0["ofrece"] + 1.0, t0["prepara"])
-    acto2 = repite(t0["ofrece"], hasta, largo, ENTRADA, FUNDIDO_TRAMO)
+    acto2 = repite(t0["ofrece"], hasta, largo, ENTRADA, FUNDIDO_TRAMO, llena=False)
     cierre = repite(t0["prepara"], total, largo, ENTRADA, FUNDIDO_FINAL)
     return [*acto1, *acto2, *cierre]
 
@@ -158,8 +209,12 @@ def main() -> int:
             "corre antes mezcla_tomas.py"
         )
     total = linea["total"]
-    largo = dur(FUENTE)
+    largo = suena_hasta(FUENTE)
     habla = tramos_de_habla(linea, tiempos, ritmo)
+    if not habla:
+        raise SystemExit(
+            f"{TIEMPOS} no trae ninguna frase: la música no sabría cuándo bajar. Corre antes mezcla_tomas.py"
+        )
     pistas = [
         VOCES / f"{t['toma']}.mp3" for t in linea["tomas"] if (VOCES / f"{t['toma']}.mp3").exists()
     ]
