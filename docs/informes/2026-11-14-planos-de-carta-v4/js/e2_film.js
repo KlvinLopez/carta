@@ -120,7 +120,7 @@ const TOMAS = [
   ["b4", 2, 10.3, [], ["Una cuenta, *cuatro calculadoras*."], "linea", 0.3],
   ["pivote", 2, 6.6, [], ["¿Y si lo", "*reimaginamos*?"], "medio", 0.5],
   /* C · Carta, en el mismo orden */
-  ["ofrece", 3, 10.1, [], [], ""],
+  ["ofrece", 3, 10.1, [["hoy", "El mesero ofrece la carta por QR"], ["vis", "Llegar con un perfil de comensal ya hecho (Ana: «Yo ya tengo mi perfil hecho»)"]], [], ""],
   ["escanea", 3, 7.5, [["hoy", "Entrar con el QR, sin descarga (el menú es captura real de la app, con datos de ejemplo)"], ["vis", "Carta reconoce a quien ya tiene perfil de comensal: «Hola de nuevo, Ana»"]], ["Sin descargar", "*nada*."], "izq", 1.8],
   ["filtra", 3, 12.5, [["hoy", "Lo agotado se ve atenuado en la carta"], ["vis", "Perfil del comensal con sus restricciones guardadas: la carta quita sola lo que no puede comer (no sustituye avisar al personal)"]], ["~Antes: preguntar platillo por platillo.", "Lo que no comes,", "*fuera*."], "izq"],
   ["top3", 3, 8.7, [["vis", "«✦ Para ti»: recomendaciones por restaurantes visitados y por lo que le dio me gusta"]], ["Elegido", "*para ti*."], "izq"],
@@ -133,7 +133,7 @@ const TOMAS = [
   ["avisa", 4, 6, [["f3", "El mesero recibe la comanda en su teléfono"], ["vis", "Aviso con el teléfono bloqueado"]], ["Al mesero le llega", "*al instante*."], "izq", 0.2, 4.2, 0.6],
   ["llega", 4, 13.6, [["f3", "El mesero valida y atiende la comanda"]], ["~Antes: cuatro órdenes, a mano.", "Una sola comanda. *Él la valida*."], "linea"],
   ["cocina", 4, 5.6, [["f3", "El seguimiento de la orden en el teléfono de cada quien"]], [], ""],
-  ["abierta", 5, 68.5, CICLO, ["Abierta"], "fase", 0.8],
+  ["abierta", 5, 68.5, [...CICLO, ["vis", "Solicitud de cambio del comensal desde su teléfono, que el mesero acepta o rechaza (no está en el plan)"]], ["Abierta"], "fase", 0.8],
   ["cierres", 5, 41.8, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 37.8],
   ["cuenta", 5, 32.9, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0, 3.3],
   ["pagada", 5, 24.2, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"], ["vis", "Elegir el método en la app, ver los datos de transferencia del restaurante y el contador «n de 4 comensales pagaron» (datos de ejemplo)"]], ["Pagada"], "fase", 20.4],
@@ -260,28 +260,38 @@ Object.entries(VOZ).forEach(([toma, ls]) => { const i = TOMAS.findIndex(x => x[0
 const VOZ_MARGEN = 0.35;
 TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
 const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
-let vozOn = true, vozLibre = false, vozAct = null, puertaI = false, vozSalto = true, vozToma = -1, vozUltT = 0;
+let vozOn = true, vozLibre = false, vozAct = null, puertaI = false, vozSalto = true, vozToma = -1, vozUltT = 0, vozHecha = -1, vozTarde = false, esperaVoz = 0;
+/* vozHecha: la toma cuya pista ya terminó; vozTarde: la pista aún no tenía datos cuando debía sonar; esperaVoz: desde cuándo se espera a la primera pista (ms) */
 const vozPistas = {};
 const vozRuta = id => ["apoyo", "voz", id + ".mp3"].join("/");
 /* cada cuadro: suena la pista de la toma en curso. Mientras suena, la IMAGEN se ajusta al audio (si no, un cuadro lento rebobinaría la voz);
    el audio sólo se coloca con un salto: ±3 s, teclas de acto, repetir o el cambio de toma. Si la pista no tiene datos o ya terminó, manda el reloj de cuadros. */
+const vozPista = n => vozPistas[n] || (vozPistas[n] = Object.assign(new Audio(vozRuta(n)), {preload: "auto"}));
 function vozSync() {
   if (!HAY_VOZ) return;
   if (Math.abs(tI - vozUltT) > 400) vozSalto = true; /* un brinco del tiempo que no viene de un cuadro es un salto */
   const s = tI / 1000; let i = 0; while (i < TOMAS.length - 1 && s >= T0[i + 1]) i++;
   const id = TOMAS[i][0], quiere = vozOn && vozLibre && !REDUCE;
-  const pista = n => vozPistas[n] || (vozPistas[n] = Object.assign(new Audio(vozRuta(n)), {preload: "auto"}));
+  const pista = vozPista;
   const a = quiere && VOZ_AUDIO[id] ? pista(id) : null;
   if (vozAct && vozAct !== a) vozAct.pause();
-  if (a !== vozAct || i !== vozToma) vozSalto = true;
+  if (a !== vozAct || i !== vozToma) { vozSalto = true; vozHecha = -1; vozTarde = false; }
   vozAct = a; vozToma = i; vozUltT = tI;
   if (quiere && i + 1 < TOMAS.length && T0[i + 1] - s < 3 && VOZ_AUDIO[TOMAS[i + 1][0]]) pista(TOMAS[i + 1][0]); /* la siguiente pista, cargada antes del cambio */
   if (!a) return;
-  const seg = s - T0[i];
-  if (pausaI || ocultaI || $("#intro").hidden || seg >= (a.duration ? a.duration * RITMO : VOZ_AUDIO[id])) { if (!a.paused) a.pause(); return; } /* el mp3 dura sus segundos de guion entre RITMO */
-  if (vozSalto) { vozSalto = false; try { a.currentTime = seg / RITMO; } catch (e) { /* aún sin datos */ } }
+  const seg = s - T0[i], fin = a.duration ? a.duration * RITMO : VOZ_AUDIO[id]; /* el mp3 dura sus segundos de guion entre RITMO */
+  /* Una pista que ya terminó en esta toma no se vuelve a tocar: el navegador la deja en pausa al acabar y un play() la reiniciaría desde 0,
+     arrastrando la imagen al principio de la toma. Sólo un salto (del usuario o de toma) a un punto anterior a su final la vuelve a poner. */
+  if (vozHecha === i && vozSalto && seg < fin - 0.1) vozHecha = -1;
+  if (a.ended && !vozSalto) vozHecha = i;
+  if (seg >= fin) vozHecha = i;
+  if (vozHecha === i || pausaI || ocultaI || $("#intro").hidden) { if (!a.paused) a.pause(); return; }
+  if (vozSalto) { vozSalto = false; vozTarde = false; try { a.currentTime = seg / RITMO; } catch (e) { /* aún sin datos */ } }
   if (a.paused) { a.play().catch(() => { /* falta el archivo o el permiso: la película sigue en silencio */ }); return; }
-  if (a.readyState < 2 || a.seeking || a.ended) return;
+  /* si la pista aún no tiene datos, la imagen sigue con su reloj; cuando lleguen, la voz se coloca donde va la imagen (no al revés) */
+  if (a.readyState < 2) { vozTarde = true; return; }
+  if (vozTarde) { vozTarde = false; try { a.currentTime = seg / RITMO; } catch (e) { /* sigue */ } return; }
+  if (a.seeking || a.ended) return;
   const dif = a.currentTime * RITMO - seg;
   if (Math.abs(dif) <= 0.08 || (dif < 0 && dif > -0.25 && seg < 1.5)) return; /* al empezar, si la pista va apenas detrás, que alcance sola */
   tI = clamp((T0[i] + a.currentTime * RITMO) * 1000, T0[i] * 1000, T0[i + 1] * 1000 - 1); vozUltT = tI;
@@ -308,6 +318,20 @@ function musSync() {
   else if (ad > 0.12) a.playbackRate = dif > 0 ? 0.97 : 1.03;
   else if (a.playbackRate !== 1 && ad < 0.04) a.playbackRate = 1;
 }
+/* El alcance de lo que muestra cada toma (TOMAS[i][3]) no se rotula durante la película: se ofrece en la tarjeta final, en una lista por toma. */
+const ETAPAS = {hoy: "Hoy", f3: "Fase 3", v11: "Versión 1.1", vis: "Visión"};
+const NOMBRE_TOMA = {mesa: "La mesa", cumple: "Llegan los cuatro", b1: "Ponerse de acuerdo", b2: "El menú en papel y en PDF", b3: "La libreta del mesero", b3t: "La comanda a mano", espera: "La espera", ticket: "Un solo ticket", b4: "Dividir la cuenta",
+  pivote: "¿Y si lo reimaginamos?", ofrece: "El mesero ofrece Carta", escanea: "Escanear el QR", filtra: "La carta sin lo que no comes", top3: "«Para ti»", plato: "La ficha del platillo", agrega: "Agregar a la orden", juntos: "La mesa pide junta",
+  recomienda: "Pasarle un platillo a otro", confirma: "Carta llama al mesero", esperan: "El mesero va en camino", avisa: "El aviso al mesero", llega: "El mesero valida la comanda", cocina: "El seguimiento de la orden", abierta: "Mesa abierta",
+  cierres: "Cuenta cerrada", cuenta: "La cuenta de cada quien", pagada: "Pagada", factura: "La factura", sucia: "Se van", prepara: "Preparar la mesa", limpia: "Mesa limpia", fin: "Carta"};
+const escH = t => String(t).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+function alcanceHtml() {
+  const filas = TOMAS.filter(t => t[3] && t[3].length).map(t => `<li data-toma="${t[0]}"><b>${escH(NOMBRE_TOMA[t[0]] || t[0])}</b><ul>${t[3].map(([e, q]) => `<li><span class="alc-${e}">${ETAPAS[e] || e}</span>${escH(q)}</li>`).join("")}</ul></li>`).join("");
+  return `<div id="introAlc" class="ialc" role="dialog" aria-modal="true" aria-labelledby="introAlcT" hidden><div class="ialcc"><button class="btn ialcx" data-intro="alcance-cierra">Cerrar</button><h3 id="introAlcT">Qué es de hoy y qué es visión</h3>
+    <p>La película mezcla lo que Carta ya hace con lo que viene. Toma por toma: <span class="alc-hoy">Hoy</span> ya está en producción; <span class="alc-f3">Fase 3</span> está en el plan y en construcción; <span class="alc-v11">Versión 1.1</span> viene después de la v1; <span class="alc-vis">Visión</span> no está en el plan.</p>
+    <ol>${filas}</ol></div></div>`;
+}
+function alcanceAbre(si) { const d = $("#introAlc"); if (!d) return; d.hidden = !si; if (si) { pausaI = true; d.querySelector("[data-intro='alcance-cierra']").focus(); d.querySelector(".ialcc").scrollTop = 0; } else { const b = $("#introCta [data-intro='alcance']"); if (b) b.focus(); } }
 function vozBoton() { const b = $("#introSon"); if (!b) return; b.textContent = HAY_VOZ && vozOn ? "🔊" : "🔇"; b.title = HAY_VOZ ? (vozOn ? "Quitar el sonido" : "Poner el sonido") : "Esta versión todavía no tiene voz"; b.disabled = !HAY_VOZ; }
 const T0 = TOMAS.reduce((a, t) => (a.push(a[a.length - 1] + t[2]), a), [0]);
 const TOT = T0[T0.length - 1], TOTI = TOT * 1000;
@@ -823,7 +847,21 @@ const cineCss = `
 #intro .ipuerta .ipv{min-height:64px;padding:0 44px;border-radius:999px;background:#fef9f1;color:#4f1728;font-size:24px;font-weight:700;box-shadow:0 18px 44px rgba(8,4,3,.55)}
 #intro .ipuerta .ips{min-height:44px;padding:0 18px;background:none;color:#fef9f1;font-size:18px;font-weight:600;text-decoration:underline;text-underline-offset:4px}
 #intro .ipuerta button:focus-visible{outline:3px solid #fdc34d;outline-offset:4px}
-#intro .icta{transition:opacity .7s ease}
+#intro .icta{transition:opacity .7s ease;flex-wrap:wrap;justify-content:center;width:max-content;max-width:92vw}
+#intro .icta .ialcb{flex-basis:100%;justify-content:center;text-align:center;background:none;color:rgba(254,249,241,.82);font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:6px 10px;min-height:44px}
+#intro .ialc{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:rgba(12,9,8,.82);padding:16px}
+#intro .ialc[hidden]{display:none}
+#intro .ialcc{width:min(720px,100%);max-height:86%;overflow:auto;border-radius:24px;background:#fef9f1;color:#1a1a1a;padding:26px 28px;font:400 15px/1.45 'DM Sans',sans-serif;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+#intro .ialcc h3{margin:0 0 8px;font:400 28px 'DM Serif Display',serif;color:#4f1728}
+#intro .ialcc p{margin:0 0 14px;color:#5b4a3d}
+#intro .ialcc ol{margin:0 0 18px;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+#intro .ialcc ol>li>b{display:block;font:400 18px 'DM Serif Display',serif;color:#4f1728}
+#intro .ialcc ul{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+#intro .ialcc ul li{display:flex;gap:10px;align-items:baseline}
+#intro .ialcc span[class^="alc-"]{flex:none;display:inline-block;min-width:92px;text-align:center;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#eee4d3;color:#4f1728}
+#intro .ialcc span.alc-hoy{background:#e3e8cf;color:#4c5630}#intro .ialcc span.alc-vis{background:#f3dfe4;color:#7a2f45}#intro .ialcc span.alc-v11{background:#f6e6bf;color:#7a5a06}
+#intro .ialcc p span[class^="alc-"]{min-width:0}
+#intro .ialcc .btn{float:right;margin:0 0 8px 16px;background:#4f1728;color:#fff;min-height:44px;padding:0 22px;border-radius:999px}
 #intro .icta[hidden]{display:flex;opacity:0;pointer-events:none}
 `;
 const palabras = l => l.split(/(\*[^*]+\*)/).filter(Boolean).map(tr => { const em = tr.startsWith("*"), tx = em ? tr.slice(1, -1) : tr; return (/^ /.test(tx) ? " " : "") + tx.split(" ").filter(Boolean).map(p => `<span class="cw">${em ? "<em>" + esc(p) + "</em>" : esc(p)}</span>`).join(" ") + (/ $/.test(tx) ? " " : ""); }).join("");
@@ -1806,13 +1844,15 @@ function saltaI(ms) {
 function muestraControles() { const el = $("#intro"); if (!el) return; el.classList.remove("quieto"); clearTimeout(ocultoT); ocultoT = setTimeout(() => el.classList.add("quieto"), 2600); }
 function frameIntro(ts) {
   if ($("#intro").hidden) return;
-  if (!pausaI && !ocultaI) { tI += clamp(ts - ultI, 0, 100) * RITMO; if (tI >= TOTI) { tI = TOTI - 1; pausaI = true; } }
+  /* tras «Ver con sonido», el reloj espera a que la primera pista pueda sonar (como mucho 1.5 s): así no corre muda y luego retrocede */
+  if (esperaVoz) { const a = vozAct || (vozOn && VOZ_AUDIO[TOMAS[0][0]] ? vozPistas[TOMAS[0][0]] : null); if (!a || a.readyState >= 3 || performance.now() - esperaVoz > 1500) esperaVoz = 0; }
+  if (!pausaI && !ocultaI && !esperaVoz) { tI += clamp(ts - ultI, 0, 100) * RITMO; if (tI >= TOTI) { tI = TOTI - 1; pausaI = true; } }
   ultI = ts; pintaIntro(); rafI = requestAnimationFrame(frameIntro);
 }
 function abrirIntro() {
   if (!$("#cineCss")) { const st = document.createElement("style"); st.id = "cineCss"; st.textContent = cineCss; document.head.appendChild(st); }
   const el = $("#intro");
-  el.innerHTML = `${cineHtml()}<div id="introPuerta" class="ipuerta" hidden><button class="ipv" data-intro="consonido" autofocus>▶ Ver con sonido</button><button class="ips" data-intro="sinsonido">Ver sin sonido</button></div><div id="introCta" class="icta" hidden><button class="btn" data-intro="repetir">↻ Repetir</button><button class="btn gran" data-intro="saltar">Ver el informe</button></div>` +
+  el.innerHTML = `${cineHtml()}<div id="introPuerta" class="ipuerta" hidden><button class="ipv" data-intro="consonido" autofocus>▶ Ver con sonido</button><button class="ips" data-intro="sinsonido">Ver sin sonido</button></div><div id="introCta" class="icta" hidden><button class="btn" data-intro="repetir">↻ Repetir</button><button class="btn gran" data-intro="saltar">Ver el informe</button><button class="btn ialcb" data-intro="alcance">Qué es de hoy y qué es visión</button></div>${alcanceHtml()}` +
     `<div class="ictl"><button class="btn" data-intro="saltar">Saltar ✕</button></div><div class="barras ictl"><i><b></b></i><button class="btn" data-intro="menos" aria-label="Atrás 3 segundos">−3 s</button><button class="btn" id="introPausa" data-intro="pausa" aria-label="Pausa o reanudar">❚❚</button><button class="btn" data-intro="mas" aria-label="Adelante 3 segundos">+3 s</button><button class="btn" id="introSon" data-intro="sonido" aria-label="Sonido">🔇</button>${BTN_PANTALLA}</div>`;
   el.hidden = false; document.body.style.overflow = "hidden"; filmEscala();
   if (tlF) tlF.kill(); tlF = filmLinea();
@@ -1820,7 +1860,7 @@ function abrirIntro() {
   /* con voz, la película espera en su primer cuadro tras una puerta: el sonido sólo puede empezar con un gesto y no debe perderse el arranque.
      Si la página ya recibió un gesto (se reabre desde el informe), arranca con sonido directo. */
   const yaHuboGesto = !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
-  puertaI = HAY_VOZ && !REDUCE && !yaHuboGesto; if (HAY_VOZ && !REDUCE) musPista(); /* la música se va cargando mientras la puerta espera */ if (HAY_VOZ && !REDUCE && yaHuboGesto) vozLibre = true;
+  puertaI = HAY_VOZ && !REDUCE && !yaHuboGesto; if (HAY_VOZ && !REDUCE) { musPista(); TOMAS.filter(t => VOZ_AUDIO[t[0]]).slice(0, 2).forEach(t => vozPista(t[0])); } /* la música y las dos primeras pistas de voz se van cargando mientras la puerta espera */ if (HAY_VOZ && !REDUCE && yaHuboGesto) vozLibre = true;
   if (puertaI) { pausaI = true; tI = 3000; /* de fondo, la mesa ya encendida con su título (la toma «mesa» a los 3 s); al elegir vuelve a 0 */ $("#introPuerta").hidden = false; $("#introPuerta .ipv").focus(); }
   ultI = performance.now(); pintaIntro(); muestraControles();
   cancelAnimationFrame(rafI); rafI = requestAnimationFrame(frameIntro);
@@ -1829,18 +1869,22 @@ function abrirIntro() {
     muestraControles(); const b = ev.target.closest("[data-intro]");
     if (puertaI) { /* con la puerta puesta sólo cuentan sus dos botones y «Saltar» */
       const a = b && b.dataset.intro; if (a === "saltar") cerrarIntro();
-      else if (a === "consonido" || a === "sinsonido") { vozOn = a === "consonido"; vozLibre = true; vozSalto = musSalto = true; tI = 0; pausaI = false; puertaI = false; $("#introPuerta").hidden = true; ultI = performance.now(); vozBoton(); pintaIntro(); }
+      else if (a === "consonido" || a === "sinsonido") { vozOn = a === "consonido"; vozLibre = true; vozSalto = musSalto = true; tI = 0; pausaI = false; puertaI = false; esperaVoz = vozOn ? performance.now() : 0; $("#introPuerta").hidden = true; ultI = performance.now(); vozBoton(); pintaIntro(); }
       return; }
     vozLibre = true; /* el navegador sólo deja sonar después de un gesto */
-    if (!b) { if (!ev.target.closest("button, .icta")) { pausaI = !pausaI; pintaIntro(); } return; } /* un clic en cualquier parte pausa o reanuda */
+    if (!b) { if (!ev.target.closest("button, .icta, .ialc")) { pausaI = !pausaI; pintaIntro(); } return; } /* un clic en cualquier parte pausa o reanuda */
     const a = b.dataset.intro;
     if (a === "saltar") cerrarIntro();
+    else if (a === "alcance") alcanceAbre(true);
+    else if (a === "alcance-cierra") alcanceAbre(false);
     else if (a === "repetir") { vozSalto = musSalto = true; tI = REDUCE ? CLAVES[0] * 1000 : 0; pausaI = REDUCE; ultI = performance.now(); pintaIntro(); }
     else if (a === "pausa") { pausaI = !pausaI; pintaIntro(); }
     else if (a === "sonido") { vozOn = !vozOn; vozBoton(); pintaIntro(); }
     else if (a === "menos") saltaI(-3000); else if (a === "mas") saltaI(3000);
   };
 }
+/* con la lista de alcance abierta, Escape la cierra (y no la película); va en captura para adelantarse al Escape del informe */
+document.addEventListener("keydown", e => { const d = $("#introAlc"); if (e.key === "Escape" && d && !d.hidden && !$("#intro").hidden) { e.stopImmediatePropagation(); e.preventDefault(); alcanceAbre(false); } }, true);
 /* con la pestaña oculta no corren los cuadros, pero el audio seguiría: se pausan voz, música y película; al volver siguen si estaban corriendo, recolocadas una vez */
 document.addEventListener("visibilitychange", () => { const el = $("#intro"); if (!el || el.hidden) { ocultaI = false; return; }
   if (document.hidden) { ocultaI = true; if (vozAct) vozAct.pause(); if (musica) musica.pause(); }

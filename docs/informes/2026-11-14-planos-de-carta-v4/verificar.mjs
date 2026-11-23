@@ -525,11 +525,22 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   /* el doble corre con su propio reloj (a `ritmo` veces el tiempo real) y cuenta cuántas veces se le escribe `currentTime` */
   await p.evaluate(() => { window.__pistas = []; window.__ritmo = 1; window.__escrituras = 0; window.Audio = class {
     constructor(src) { this.src = src; this.paused = true; this._t = 0; this._t0 = 0; this.duration = NaN; this.readyState = 4; this.seeking = false; this.ended = false; window.__pistas.push(String(src)); }
-    get currentTime() { return this.paused ? this._t : this._t + (performance.now() - this._t0) / 1000 * window.__ritmo; }
-    set currentTime(v) { window.__escrituras++; this._t = v; this._t0 = performance.now(); }
-    play() { if (this.paused) { this._t0 = performance.now(); this.paused = false; } return Promise.resolve(); }
+    get currentTime() { return this.paused || this.readyState < 2 ? this._t : this._t + (performance.now() - this._t0) / 1000 * window.__ritmo; } /* sin datos, la pista no avanza */
+    set currentTime(v) { window.__escrituras++; this._t = v; this._t0 = performance.now(); this.ended = false; }
+    play() { this.plays = (this.plays || 0) + 1; if (this.ended) { this._t = 0; this.ended = false; } if (this.paused) { this._t0 = performance.now(); this.paused = false; } return Promise.resolve(); }
     pause() { if (!this.paused) { this._t = this.currentTime; this.paused = true; } } }; });
-  await p.click('#introPuerta [data-intro="consonido"]'); await p.waitForTimeout(600);
+  const pre = await p.evaluate(() => { const k = Object.keys(vozPistas), esperadas = TOMAS.filter((t) => VOZ_AUDIO[t[0]]).slice(0, 2).map((t) => t[0]); k.forEach((n) => { vozPistas[n] = new Audio(vozRuta(n)); }); return { k, esperadas, musica: !!musica }; });
+  ok(JSON.stringify(pre.k) === JSON.stringify(pre.esperadas) && pre.musica, 'presentación con voz: con la puerta puesta ya se precargan la música y las dos primeras pistas de voz (' + pre.k.join(', ') + ')');
+  /* hallazgo 3: si la primera pista aún no puede sonar, el reloj espera (1.5 s como mucho) y la voz que llega tarde no retrocede la imagen */
+  await p.evaluate(() => { vozPista(TOMAS[0][0]).readyState = 0; }); /* vozPista la crea si no estaba: sin precarga falla la comprobación de arriba, no ésta */
+  await p.click('#introPuerta [data-intro="consonido"]'); await p.waitForTimeout(700);
+  const e1 = await p.evaluate(() => tI); await p.waitForTimeout(1300);
+  const e2 = await p.evaluate(() => ({ t: tI, a: vozAct ? vozAct.currentTime * RITMO : -1 }));
+  ok(e1 === 0 && e2.t > 100 && e2.t < 1500, `presentación con voz: sin datos de la primera pista el reloj espera (a los 0.7 s va en ${e1} ms) y arranca solo a los 1.5 s (a los 2 s va en ${Math.round(e2.t)} ms)`);
+  await p.waitForTimeout(600); const e3 = await p.evaluate(() => { const t = tI, a = vozPista(TOMAS[0][0]); a._t0 = performance.now(); a.readyState = 4; return t; }); /* llegan los datos: la pista empieza a avanzar desde 0, con la imagen ya adelantada */ await p.waitForTimeout(500);
+  const e4 = await p.evaluate(() => ({ t: tI, dif: Math.abs(vozAct.currentTime * RITMO - tI / 1000) }));
+  ok(e4.t > e3 && e4.dif < 0.2, `presentación con voz: cuando la voz llega tarde no retrocede la imagen (de ${Math.round(e3)} a ${Math.round(e4.t)} ms) y se coloca donde va la imagen (a ${e4.dif.toFixed(2)} s)`);
+  await p.evaluate(() => { vozSalto = musSalto = true; tI = 600; pintaIntro(); }); await p.waitForTimeout(300);
   ok(!(await p.isVisible('#introPuerta')) && (await p.evaluate(() => vozLibre && vozOn && tI > 0)), 'presentación con voz: «Ver con sonido» quita la puerta, desbloquea el sonido y la película corre');
   ok((await p.evaluate(() => window.__pistas[0] || '')).endsWith('apoyo/voz/mesa.mp3'), 'presentación con voz: pide la pista de la primera toma');
   /* mientras suena, la imagen sigue al audio y nadie rebobina la pista; sólo un salto del usuario la coloca, una vez */
@@ -575,6 +586,27 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     await p.evaluate(() => { pausaI = true; pintaIntro(); }); await p.waitForTimeout(200); await oculta(true); await p.waitForTimeout(200); await oculta(false); await p.waitForTimeout(500);
     ok(await p.evaluate(() => pausaI && musica.paused && (!vozAct || vozAct.paused)), 'pestaña oculta: si la película estaba en pausa, al volver sigue en pausa y en silencio');
     await p.evaluate(() => { pausaI = false; ultI = performance.now(); });
+    /* hallazgo 1: una pista que ya terminó no se vuelve a tocar ni arrastra la imagen al principio de la toma; un salto explícito sí la vuelve a poner */
+    const fin1 = await p.evaluate(async () => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); vozSalto = musSalto = true; tI = (T0[ix] + 4) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 400));
+      const a = vozAct, t0 = tI, n0 = a.plays || 0; a._t = VOZ_AUDIO.b2 / RITMO; a.paused = true; a.ended = true; /* así deja Chromium una pista al terminar, con la imagen todavía a media toma */
+      await new Promise((r) => setTimeout(r, 700)); const r1 = { atras: tI < t0, toma: vozToma === ix, plays: (a.plays || 0) - n0, pausa: a.paused, avanzo: tI - t0 };
+      vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; pintaIntro(); await new Promise((r) => setTimeout(r, 400));
+      return { ...r1, trasSalto: !a.paused && Math.abs(a.currentTime * RITMO - (tI / 1000 - T0[ix])) < 0.3 }; });
+    ok(!fin1.atras && fin1.toma && fin1.plays === 0 && fin1.pausa && fin1.avanzo > 300 && fin1.trasSalto, `película: una pista que terminó no se vuelve a tocar (play() ${fin1.plays} veces) ni arrastra la imagen al principio de la toma (avanzó ${Math.round(fin1.avanzo)} ms); tras un salto explícito vuelve a sonar en su sitio`);
+    /* hallazgo 2: el alcance de cada toma se ofrece en la tarjeta final, se abre con teclado y nombra cada toma con visión */
+    const alc = await p.evaluate(async () => { const antes = [tI, pausaI]; vozSalto = musSalto = true; pausaI = true; tI = TOTI - 200; pintaIntro(); await new Promise((r) => setTimeout(r, 900));
+      const b = document.querySelector('#introCta [data-intro="alcance"]'), d = document.querySelector('#introAlc'); if (!b || !d) return { hay: false };
+      const rb = b.getBoundingClientRect(), vis = !document.querySelector('#introCta').hidden && rb.width > 0 && rb.height >= 44; b.focus();
+      const conVis = TOMAS.filter((t) => (t[3] || []).some((x) => x[0] === 'vis')).map((t) => t[0]), conAlgo = TOMAS.filter((t) => (t[3] || []).length).map((t) => t[0]);
+      return { hay: true, vis, texto: b.textContent, enfocado: document.activeElement === b, conVis, conAlgo, antes }; });
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const alc2 = await p.evaluate(() => { const d = document.querySelector('#introAlc'); const li = [...d.querySelectorAll('ol > li')];
+      return { abierto: !d.hidden && d.getBoundingClientRect().width > 0, foco: d.contains(document.activeElement), tomas: li.map((x) => x.dataset.toma), vision: li.filter((x) => x.querySelector('.alc-vis')).map((x) => x.dataset.toma), etapas: [...new Set([...d.querySelectorAll('ol span[class^="alc-"]')].map((x) => x.textContent))], sinNombre: li.filter((x) => !x.querySelector('b').textContent.trim() || x.querySelector('b').textContent === x.dataset.toma).length }; });
+    await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+    const alc3 = await p.evaluate((antes) => { const r = { cerrado: document.querySelector('#introAlc').hidden, sigue: !document.querySelector('#intro').hidden, foco: document.activeElement && document.activeElement.dataset.intro }; vozSalto = musSalto = true; tI = antes[0]; pausaI = antes[1]; ultI = performance.now(); pintaIntro(); return r; }, alc.antes || [0, false]);
+    ok(alc.hay && alc.vis && alc.enfocado && alc.texto.includes('hoy') && alc.texto.includes('visión') && alc2.abierto && alc2.foco && alc3.cerrado && alc3.sigue && alc3.foco === 'alcance', 'alcance: la tarjeta final ofrece «' + (alc.texto || '') + '», se abre con Enter, el foco entra a la lista y Escape la cierra sin cerrar la película');
+    ok(alc.hay && JSON.stringify(alc2.tomas) === JSON.stringify(alc.conAlgo) && JSON.stringify(alc2.vision) === JSON.stringify(alc.conVis) && alc.conVis.includes('ofrece') && alc.conVis.includes('abierta') && alc2.sinNombre === 0 && ['Hoy', 'Fase 3', 'Versión 1.1', 'Visión'].every((e) => alc2.etapas.includes(e)), 'alcance: la lista nombra cada toma con alcance (' + (alc2.tomas || []).length + ') y marca como visión las ' + (alc2.vision || []).length + ' que lo son, con `ofrece` y `abierta`; etapas: ' + (alc2.etapas || []).join(', '));
+    await p.waitForTimeout(400);
     /* tras cada forma de salir, la música y la voz quedan en pausa y su posición no avanza en 700 ms */
     const sal = [];
     const prueba = async (nombre, salir, volver) => { if (!(await corre())) { sal.push(nombre + ': no estaba corriendo antes'); return; } await salir(); await p.waitForTimeout(250); const q = await quieto(); if (!q.ok) sal.push(nombre + ': ' + q.det); if (volver) await volver(); };
