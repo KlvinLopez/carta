@@ -1,4 +1,4 @@
-/* ===== estado + motor: modelo de escenarios r3 de la sesión de análisis (incrustado tal cual) ===== */
+/* ===== estado + motor: modelo de escenarios de la sesión de análisis (incrustado tal cual; su revisión es MOD.VERSION) ===== */
 const SP = MOD.valores(PAR);
 const SERVS = SP.escalones.filter(e => e.id !== "hobby_sondeo"); // los de «con eventos»: Hobby 2, Pro 2, Pro 4, Pro 8
 const SUSTS = ["Meniu Business", "Fudo Avanzado", "Fudo Avanzado + módulo de mesas"];

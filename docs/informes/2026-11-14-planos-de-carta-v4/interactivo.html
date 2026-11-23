@@ -9023,7 +9023,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Tab" && abierto) { const f = $$("button,input,select,a[href],[tabindex='0']", det).filter(x => !x.disabled); if (!f.length) return; const a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
 });
 
-/* ===== estado + motor: modelo de escenarios r3 de la sesión de análisis (incrustado tal cual) ===== */
+/* ===== estado + motor: modelo de escenarios de la sesión de análisis (incrustado tal cual; su revisión es MOD.VERSION) ===== */
 const SP = MOD.valores(PAR);
 const SERVS = SP.escalones.filter(e => e.id !== "hobby_sondeo"); // los de «con eventos»: Hobby 2, Pro 2, Pro 4, Pro 8
 const SUSTS = ["Meniu Business", "Fudo Avanzado", "Fudo Avanzado + módulo de mesas"];
@@ -11765,7 +11765,7 @@ const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes 
 DET.sostiene = {
   titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
-  nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
+  nota: `Modelo de escenarios ${MOD.VERSION} (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.`,
   montar(host) {
     this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
     host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div>`;
@@ -12117,7 +12117,7 @@ $("#pantallaTop").innerHTML = BTN_PANTALLA;
 $("#verDecisiones").addEventListener("click", () => abre("recomendaciones"));
 const h0 = location.hash.slice(1);
 if (h0 && CAPS.some(c => c.id === h0)) setTimeout(() => irCap(h0), 300);
-else if (h0 && DET[h0]) abre(h0, false);
+else if (h0 && Object.hasOwn(DET, h0)) abre(h0, false);
 else { let visto = false; try { visto = localStorage.getItem("carta-v9-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }
 
 /* ===== las cuatro cifras de abajo, como imagen: los tres escenarios a la vez, con su diferencia contra el recomendado.
@@ -12254,7 +12254,7 @@ const FRASE_REC = {
 DET.recursos7 = {
   titulo: "Hoy nada limpia el historial: el disco manda y empeora cada mes; con 30 días, manda el procesador.",
   fu: ["carta_capacidad", "railway_limites", "carta_disco", "cloudflare_r2_precios"],
-  nota: "Modelo de escenarios r6 (docs/research/2026-11-14-recursos.mjs). Hoy ningún proceso purga el historial del plan gratuito; «30 días» es una propuesta que contradice 03 §7 y la regla 9: pide cambiar el documento y un ADR antes. Los límites de procesador están medidos en local (±2×) y faltan en Railway; las palancas llevan su marca «medido» o «estimado» en su hover. El restaurante típico (1,800 visitas al mes, 114 comensales al día) es un supuesto del simulador. Un escalón es un tamaño del servidor: cuántos procesos de la API corre, cuánto disco tiene y cuánto cuesta; se sube cuando un recurso se llena. Cada control conserva su valor hasta que lo muevas; los números pasan del valor anterior al nuevo.",
+  nota: `Modelo de escenarios ${MOD.VERSION} (docs/research/2026-11-14-modelo-de-escenarios.mjs). Hoy ningún proceso purga el historial del plan gratuito; «30 días» es una propuesta que contradice 03 §7 y la regla 9: pide cambiar el documento y un ADR antes. Los límites de procesador están medidos en local (±2×) y faltan en Railway; las palancas llevan su marca «medido» o «estimado» en su hover. El restaurante típico (1,800 visitas al mes, 114 comensales al día) es un supuesto del simulador. Un escalón es un tamaño del servidor: cuántos procesos de la API corre, cuánto disco tiene y cuánto cuesta; se sube cuando un recurso se llena. Cada control conserva su valor hasta que lo muevas; los números pasan del valor anterior al nuevo.`,
   montar(host) {
     this.est = "hoy"; this.sel = "procesador"; this.his = "vigente"; this.n = null; this.vals = null; this.palKey = ""; this.akey = "";
     host.innerHTML = `<div class="r7 r7L"><div class="r7p"><div class="r7pl"><div class="r7row"><div id="topesR" class="r7tp"></div></div><div class="r7row"><span class="selr">Cómo se entera el teléfono:</span><div class="seg" id="estR"><button class="btn" data-est="hoy">Hoy: pregunta cada 3 s</button><button class="btn" data-est="avisos">Con avisos (Fase 3)</button></div></div><div class="r7row"><span class="selr">Historial guardado del plan gratuito:</span><div class="seg" id="hisR">${HIS.map(h => `<button class="btn" data-his="${h[0]}">${h[1]}</button>`).join("")}</div></div><div class="r7w" id="hisW"></div><div class="r7row rdesl"><label for="rN">Restaurantes en la plataforma</label><input type="range" id="rN" min="0" max="1200" step="1" value="23"><output id="rNv">23</output></div></div><div class="r7pr"><span class="selr">Palancas (lo que hay que hacer):</span><div class="r7ch" id="palR"></div></div></div><div class="r7g"><div class="r7c1"><div class="viz"><svg id="svM" viewBox="0 0 700 410" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svE" viewBox="0 0 700 350" role="img" font-family="DM Sans, sans-serif"></svg></div></div><div class="r7c2"><div class="viz"><svg id="svH" viewBox="0 0 380 450" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="viz"><svg id="svA" viewBox="0 0 380 270" role="img" font-family="DM Sans, sans-serif"></svg></div></div></div></div>`;
