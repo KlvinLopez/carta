@@ -1,6 +1,6 @@
 {
  "ritmo": 1.13,
- "total": 353.5,
+ "total": 355.3,
  "tomas": [
   {
    "toma": "mesa",
@@ -125,41 +125,41 @@
   {
    "toma": "cierres",
    "inicio": 243.5,
-   "duracion": 36.3
+   "duracion": 37
   },
   {
    "toma": "cuenta",
-   "inicio": 279.8,
+   "inicio": 280.5,
    "duracion": 28.4
   },
   {
    "toma": "pagada",
-   "inicio": 308.2,
-   "duracion": 21.1
+   "inicio": 308.9,
+   "duracion": 22.2
   },
   {
    "toma": "factura",
-   "inicio": 329.3,
+   "inicio": 331.1,
    "duracion": 8.3
   },
   {
    "toma": "sucia",
-   "inicio": 337.6,
+   "inicio": 339.4,
    "duracion": 4.9
   },
   {
    "toma": "prepara",
-   "inicio": 342.5,
+   "inicio": 344.3,
    "duracion": 3
   },
   {
    "toma": "limpia",
-   "inicio": 345.5,
+   "inicio": 347.3,
    "duracion": 3
   },
   {
    "toma": "fin",
-   "inicio": 348.5,
+   "inicio": 350.3,
    "duracion": 5
   }
  ]

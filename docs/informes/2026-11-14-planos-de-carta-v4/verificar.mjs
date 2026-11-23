@@ -493,8 +493,8 @@ ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
     ok(rp === medido.RITMO && rp === rl && rp >= 1 && rp <= 1.15, `ritmo: la película (${rp}), voz/tiempos.json (${medido.RITMO}) y voz/linea_de_tiempo.json (${rl}) dicen el mismo ritmo, entre 1 y 1.15`);
     /* cada mp3 de voz dura sus segundos de guion entre el ritmo (± 0.15 s), medido con ffprobe */
     const { execFileSync } = require('node:child_process'); const malos = [];
-    for (const [toma, d] of Object.entries(medido.VOZ_AUDIO)) { const real = parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', resolve(aqui, `apoyo/voz/${toma}.mp3`)], { encoding: 'utf8' })); if (Math.abs(real * rp - d) > 0.15 * rp) malos.push(`${toma}: ${real.toFixed(2)} s × ${rp} ≠ ${d}`); }
-    ok(malos.length === 0, `ritmo: cada pista de voz dura sus segundos de guion entre el ritmo (${Object.keys(medido.VOZ_AUDIO).length} pistas) ` + malos.join('; '));
+    for (const [toma, d] of Object.entries(medido.VOZ_AUDIO)) { const real = parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', resolve(aqui, `apoyo/voz/${toma}.mp3`)], { encoding: 'utf8' })); if (Math.abs(real * rp - d) > 0.03) malos.push(`${toma}: ${real.toFixed(2)} s × ${rp} ≠ ${d}`); }
+    ok(malos.length === 0, `ritmo: cada pista de voz dura sus segundos de guion entre el ritmo, ± 0.03 s (${Object.keys(medido.VOZ_AUDIO).length} pistas) ` + malos.join('; '));
     /* la meta de la versión 20: 5:15 de reloj o menos, sin aire muerto */
     const ag = await p.evaluate(() => { const hs = []; let mayor = 0;
       TOMAS.forEach(([toma], i) => { const fr = (VOZ_TIEMPOS[toma] || []).slice().sort((x, y) => x[0] - y[0]), un = []; for (const [a, b] of fr) { if (un.length && a <= un[un.length - 1][1] + 0.01) un[un.length - 1][1] = Math.max(un[un.length - 1][1], b); else un.push([a, b]); }
@@ -502,9 +502,25 @@ ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
         const cola = TOMAS[i][2] - ant; if (cola > 1.85) hs.push([toma, +cola.toFixed(2)]); mayor = Math.max(mayor, cola); });
       return { reloj: TOT / RITMO, guion: TOT, hs, mayor, sinVoz: TOMAS.filter((x) => !VOZ_AUDIO[x[0]]).map((x) => [x[0], x[2]]) }; });
     ok(ag.reloj <= 315, `ritmo: la película dura ${ag.reloj.toFixed(1)} s de reloj (${ag.guion.toFixed(1)} s de guion): 5:15 o menos`);
-    const LEER = { cumple: 2.0, ticket: 2.6, escanea: 2.5, filtra: 2.7, abierta: 3.7, cierres: 3.1, pagada: 2.4, fin: 2.0, plato: 3.0, prepara: 3.0, limpia: 3.0, esperan: 3.0, recomienda: 4.0 }; /* tomas donde la pantalla necesita leerse: su hueco mayor permitido */
-    const largos = ag.hs.filter(([t, h]) => !(h <= (LEER[t] || 1.85) + 0.01));
-    ok(largos.length === 0, `ritmo: dentro de una toma ningún hueco sin voz pasa de 1.8 s, salvo donde la pantalla necesita leerse (${ag.hs.length} huecos de más de 1.8 s, el mayor de ${ag.mayor.toFixed(1)} s) ` + largos.map((x) => x.join(' ')).join('; '));
+    /* Toda la película de corrido (también de una toma a la siguiente): ningún hueco sin voz pasa de 1.8 s de guion, salvo los de esta lista,
+       uno por uno: [toma donde empieza, toma donde acaba, tope en segundos de guion, por qué]. Un hueco nuevo, o uno que crezca, falla. */
+    const HUECOS = [['cumple', 'cumple', 2.0, 'Carlos llega y se sienta'], ['b1', 'b2', 2.2, 'cambio de toma'], ['b3t', 'espera', 2.2, 'cambio de toma'], ['ticket', 'b4', 2.8, 'el ticket y su rótulo'],
+      ['escanea', 'filtra', 2.9, '«Hola de nuevo, Ana» y el menú'], ['filtra', 'top3', 3.1, 'la nota «También se lo dijo al mesero»'], ['top3', 'agrega', 3.9, '`plato`, sin voz (3 s)'], ['juntos', 'confirma', 4.9, '`recomienda`, sin voz (4 s)'],
+      ['confirma', 'avisa', 4.0, '`esperan`, sin voz (3 s)'], ['avisa', 'llega', 2.3, '«Ya voy»'], ['abierta', 'abierta', 3.7, 'la solicitud de Ana en su teléfono'], ['abierta', 'abierta', 3.7, 'la solicitud de Carlos en su teléfono'],
+      ['cierres', 'cierres', 3.1, 'Carlos pide el flan'], ['cierres', 'cierres', 3.1, 'Sofía y Diego cierran'], ['cierres', 'cuenta', 3.6, 'el rótulo «Cuenta cerrada», que entra cuando se va el teléfono de Carlos'], ['pagada', 'pagada', 2.5, 'Javier valida la transferencia'],
+      ['sucia', 'fin', 7.8, '`prepara` y `limpia`, sin voz (3 s cada una), y la entrada de la tarjeta final']];
+    const hg = await p.evaluate(() => { const iv = []; TOMAS.forEach(([toma], i) => (VOZ_TIEMPOS[toma] || []).forEach(([a, b]) => iv.push([T0[i] + a, T0[i] + b]))); iv.sort((x, y) => x[0] - y[0]);
+      const un = []; for (const [a, b] of iv) { if (un.length && a <= un[un.length - 1][1] + 0.01) un[un.length - 1][1] = Math.max(un[un.length - 1][1], b); else un.push([a, b]); }
+      const en = (s) => { let i = 0; while (i < TOMAS.length - 1 && s >= T0[i + 1]) i++; return TOMAS[i][0]; }, hs = []; let ant = 0;
+      for (const [a, b] of un) { if (a - ant > 1.85) hs.push([en(ant), en(a - 0.001), +(a - ant).toFixed(2)]); ant = b; }
+      if (TOT - ant > 1.85) hs.push([en(ant), 'final', +(TOT - ant).toFixed(2)]); return hs; });
+    const libres = HUECOS.map((x) => x.slice()), fuera = [];
+    for (const [de, a, h] of hg) { const k = libres.findIndex((x) => x[0] === de && x[1] === a && h <= x[2] + 0.01); if (k < 0) fuera.push(`${de}→${a} ${h} s`); else libres.splice(k, 1); }
+    ok(fuera.length === 0, `ritmo: en toda la película ningún hueco sin voz pasa de 1.8 s de guion, salvo los ${HUECOS.length} de la lista, cada uno con su tope (hay ${hg.length}; el mayor, ${Math.max(0, ...hg.map((x) => x[2])).toFixed(1)} s) ` + fuera.join('; '));
+    /* 6 · ningún tramo de CORTES se encima con una frase: lo que se acelera es sólo silencio */
+    const ce = await p.evaluate(() => { const mal = []; let n = 0; TOMAS.forEach(([toma], i) => (CORTES[toma] || []).forEach(([a, b, k]) => { n++; const g0 = corta(i, a), g1 = g0 + k;
+      (VOZ_TIEMPOS[toma] || []).forEach(([x, y], j) => { if (x < g1 - 0.02 && y > g0 + 0.02) mal.push(`${toma} [${a}, ${b}, ${k}] (guion ${g0.toFixed(2)}–${g1.toFixed(2)}) con la frase ${j + 1} (${x}–${y})`); }); })); return { n, mal }; });
+    ok(ce.n >= 30 && ce.mal.length === 0, `ritmo: ninguno de los ${ce.n} tramos de CORTES se encima con una frase de VOZ_TIEMPOS ` + ce.mal.join('; '));
     const sv = ag.sinVoz.filter(([t, d]) => d > (t === 'recomienda' ? 4 : 3) + 0.01);
     ok(ag.sinVoz.length >= 5 && sv.length === 0, 'ritmo: las tomas sin voz duran 3 s de guion o menos (recomienda, 4): ' + ag.sinVoz.map((x) => x.join(' ')).join(', ')); }
   /* versión 19: la línea de tiempo que usa la mezcla de la música es la que calcula la película */
@@ -528,7 +544,7 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   /* el doble corre con su propio reloj (a `ritmo` veces el tiempo real) y cuenta cuántas veces se le escribe `currentTime` */
   await p.evaluate(() => { window.__pistas = []; window.__ritmo = 1; window.__escrituras = 0; window.Audio = class {
     constructor(src) { this.src = src; this.paused = true; this._t = 0; this._t0 = 0; this.duration = NaN; this.readyState = 4; this.seeking = false; this.ended = false; window.__pistas.push(String(src)); }
-    get currentTime() { return this.paused || this.readyState < 2 ? this._t : this._t + (performance.now() - this._t0) / 1000 * window.__ritmo; } /* sin datos, la pista no avanza */
+    get currentTime() { return this.paused || this.readyState < 2 || this.atascada ? this._t : this._t + (performance.now() - this._t0) / 1000 * window.__ritmo; } /* sin datos, la pista no avanza */
     set currentTime(v) { window.__escrituras++; this._t = v; this._t0 = performance.now(); this.ended = false; }
     play() { this.plays = (this.plays || 0) + 1; if (this.ended) { this._t = 0; this.ended = false; } if (this.paused) { this._t0 = performance.now(); this.paused = false; } return Promise.resolve(); }
     pause() { if (!this.paused) { this._t = this.currentTime; this.paused = true; } } }; });
@@ -563,9 +579,9 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     const c0 = await p.evaluate(() => musColocadas); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
     const m2 = await p.evaluate(() => ({ n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000 / RITMO) }));
     ok(m2.n === c0 + 1 && m2.dif < 0.6, `música: tras +3 s se coloca exactamente una vez (${m2.n - c0}) y queda a ${m2.dif.toFixed(2)} s del reloj`);
-    await p.evaluate(() => { pausaI = true; }); await p.waitForTimeout(300);
+    await p.evaluate(() => { pausaI = true; }); await p.waitForFunction(() => musica.paused && (!vozAct || vozAct.paused), null, { timeout: 5000 }).catch(() => {});
     const m3 = await p.evaluate(() => ({ pausada: musica.paused, voz: !vozAct || vozAct.paused }));
-    await p.evaluate(() => { pausaI = false; ultI = performance.now(); }); await p.waitForTimeout(500);
+    await p.evaluate(() => { pausaI = false; ultI = performance.now(); }); await p.waitForFunction(() => !musica.paused, null, { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(200);
     const m4 = await p.evaluate(() => ({ pausada: musica.paused, n: musColocadas }));
     ok(m3.pausada && m3.voz && !m4.pausada && m4.n === m2.n, 'música: se pausa y se reanuda con la película, sin recolocarse');
     await p.evaluate(() => { vozOn = false; }); await p.waitForTimeout(300);
@@ -608,7 +624,8 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     await p.keyboard.press('Escape'); await p.waitForTimeout(300);
     const alc3 = await p.evaluate((antes) => { const r = { cerrado: document.querySelector('#introAlc').hidden, sigue: !document.querySelector('#intro').hidden, foco: document.activeElement && document.activeElement.dataset.intro }; vozSalto = musSalto = true; tI = antes[0]; pausaI = antes[1]; ultI = performance.now(); pintaIntro(); return r; }, alc.antes || [0, false]);
     ok(alc.hay && alc.vis && alc.enfocado && alc.texto.includes('hoy') && alc.texto.includes('visión') && alc2.abierto && alc2.foco && alc3.cerrado && alc3.sigue && alc3.foco === 'alcance', 'alcance: la tarjeta final ofrece «' + (alc.texto || '') + '», se abre con Enter, el foco entra a la lista y Escape la cierra sin cerrar la película');
-    ok(alc.hay && JSON.stringify(alc2.tomas) === JSON.stringify(alc.conAlgo) && JSON.stringify(alc2.vision) === JSON.stringify(alc.conVis) && alc.conVis.includes('ofrece') && alc.conVis.includes('abierta') && alc2.sinNombre === 0 && ['Hoy', 'Fase 3', 'Versión 1.1', 'Visión'].every((e) => alc2.etapas.includes(e)), 'alcance: la lista nombra cada toma con alcance (' + (alc2.tomas || []).length + ') y marca como visión las ' + (alc2.vision || []).length + ' que lo son, con `ofrece` y `abierta`; etapas: ' + (alc2.etapas || []).join(', '));
+    const VISION = ['ofrece', 'escanea', 'filtra', 'top3', 'plato', 'recomienda', 'avisa', 'abierta', 'cuenta', 'pagada', 'factura']; /* fijas aquí: quitarle la visión a una toma en TOMAS debe fallar */
+    ok(alc.hay && JSON.stringify(alc2.tomas) === JSON.stringify(alc.conAlgo) && JSON.stringify(alc2.vision) === JSON.stringify(VISION) && JSON.stringify(alc.conVis) === JSON.stringify(VISION) && alc2.sinNombre === 0 && ['Hoy', 'Fase 3', 'Versión 1.1', 'Visión'].every((e) => alc2.etapas.includes(e)), 'alcance: la lista nombra cada toma con alcance (' + (alc2.tomas || []).length + ') y marca como visión las ' + (alc2.vision || []).length + ' que lo son, con `ofrece` y `abierta`; etapas: ' + (alc2.etapas || []).join(', '));
     await p.waitForTimeout(400);
     /* hallazgo 13: si la voz va apenas detrás, la imagen no retrocede: afloja hasta que la alcance */
     const mono = await p.evaluate(async () => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 5) * 1000; ultI = performance.now(); pintaIntro(); await new Promise((r) => setTimeout(r, 500));
@@ -627,6 +644,40 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     await p.evaluate(() => { document.activeElement && document.activeElement.blur(); pausaI = false; vozSalto = musSalto = true; tI = TOTI - 600; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(1300);
     const f0 = await p.evaluate(() => ({ pausa: pausaI, t: tI })); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(600); const f1 = await p.evaluate(() => ({ pausa: pausaI, t: tI, tot: TOTI }));
     ok(f0.pausa && !f1.pausa && f1.t < f1.tot - 1500 && f1.t > f1.tot - 3000 * 1.2, `teclado: tras el final, ← retrocede 3 s de reloj y la película vuelve a correr (va en ${(f1.t / 1000).toFixed(1)} de ${(f1.tot / 1000).toFixed(1)} s, pausa ${f1.pausa})`);
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(400);
+    /* bloque 4, hallazgo 1: corte de red a media pista (la pista deja de avanzar con readyState 2): la imagen sigue sola, sin temblar, y la voz se coloca al volver */
+    const red = await p.evaluate(async () => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 6) * 1000; ultI = performance.now(); pintaIntro(); await new Promise((r) => setTimeout(r, 500));
+      const a = vozAct, m0 = musColocadas, w0 = window.__escrituras; a._t = a.currentTime; a.atascada = true; let ant = tI, atras = 0; const t0 = tI, fin = performance.now() + 1500;
+      while (performance.now() < fin) { await new Promise((r) => requestAnimationFrame(r)); if (tI < ant - 0.5) atras++; ant = tI; }
+      const medio = { atras, avanzo: tI - t0, musica: musColocadas - m0, escrituras: window.__escrituras - w0 };
+      a._t0 = performance.now(); a.atascada = false; ant = tI; let atras2 = 0; const fin2 = performance.now() + 700; while (performance.now() < fin2) { await new Promise((r) => requestAnimationFrame(r)); if (tI < ant - 0.5) atras2++; ant = tI; }
+      return { ...medio, atras2, dif: Math.abs(a.currentTime * RITMO - (tI / 1000 - T0[ix])) }; });
+    ok(red.atras === 0 && red.avanzo > 1300 && red.musica === 0 && red.escrituras === 0 && red.atras2 === 0 && red.dif < 0.2, `película: con la voz sin datos a media pista 1.5 s, la imagen no retrocede (${red.atras} cuadros) y avanza ${Math.round(red.avanzo)} ms, la música no se recoloca (${red.musica}) ni se escribe la posición de la voz (${red.escrituras}); al volver los datos la voz se coloca donde va la imagen (a ${red.dif.toFixed(2)} s)`);
+    /* hallazgos 2 y 3: el alcance es modal de verdad, y al cerrar la película vuelve a la pausa que tenía */
+    const mo0 = await p.evaluate(async () => { pausaI = false; vozSalto = musSalto = true; tI = (tomaIni('fin') + 2.7) * 1000; ultI = performance.now(); pintaIntro(); await new Promise((r) => setTimeout(r, 250)); const corria = !pausaI && !document.querySelector('#introCta').hidden; document.querySelector('#introCta [data-intro="alcance"]').focus(); return { corria }; });
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250); const mo1 = await p.evaluate(() => ({ abierto: !document.querySelector('#introAlc').hidden, pausa: pausaI, t: tI }));
+    for (const k of ['1', 'ArrowLeft', 'ArrowRight', '3']) { await p.keyboard.press(k); await p.waitForTimeout(120); }
+    const focos = []; for (let k = 0; k < 6; k++) { await p.keyboard.press('Tab'); focos.push(await p.evaluate(() => document.querySelector('#introAlc').contains(document.activeElement))); }
+    await p.mouse.click(40, 780); await p.waitForTimeout(150);
+    const mo2 = await p.evaluate(() => ({ abierto: !document.querySelector('#introAlc').hidden, pausa: pausaI, t: tI, musica: musica.paused, voz: !vozAct || vozAct.paused, foco: document.querySelector('#introAlc').contains(document.activeElement) }));
+    ok(mo0.corria && mo1.abierto && mo1.pausa && mo2.abierto && mo2.pausa && mo2.t === mo1.t && mo2.musica && mo2.voz && focos.every(Boolean) && mo2.foco, `alcance: con el diálogo abierto las teclas 1, ←, → y 3 no mueven la película (${Math.round(mo2.t - mo1.t)} ms), no suena nada, Tab ×6 no saca el foco del diálogo (${focos.filter(Boolean).length} de 6) y un clic fuera no lo cierra ni lo saca`);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(400); const mo3 = await p.evaluate(() => ({ cerrado: document.querySelector('#introAlc').hidden, pausa: pausaI, t: tI }));
+    ok(mo3.cerrado && !mo3.pausa && mo3.t > mo1.t, `alcance: si la película corría al abrirlo, al cerrarlo vuelve a correr (pausa ${mo3.pausa}; avanzó ${Math.round(mo3.t - mo1.t)} ms)`);
+    await p.evaluate(() => { pausaI = true; }); await p.focus('#introCta [data-intro="alcance"]'); await p.keyboard.press('Enter'); await p.waitForTimeout(200); await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    ok(await p.evaluate(() => pausaI && document.querySelector('#introAlc').hidden), 'alcance: si la película estaba en pausa al abrirlo, al cerrarlo sigue en pausa');
+    /* hallazgo 4a: espacio tras un clic de ratón en «pantalla completa» pausa (no vuelve a pulsarla) */
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; finI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); document.querySelector('#intro').classList.remove('quieto'); }); await p.waitForTimeout(200);
+    if (await p.evaluate(() => !!document.querySelector('#intro .ictl [data-pantalla]'))) {
+      await p.click('#intro .ictl [data-pantalla]'); await p.waitForTimeout(300); const fs0 = await p.evaluate(() => ({ foco: !!document.activeElement && document.activeElement.hasAttribute && document.activeElement.hasAttribute('data-pantalla'), completa: !!document.fullscreenElement }));
+      await p.keyboard.press(' '); await p.waitForTimeout(300); const fs1 = await p.evaluate(() => ({ pausa: pausaI, completa: !!document.fullscreenElement }));
+      ok(!fs0.foco && fs1.pausa && fs1.completa === fs0.completa, `teclado: tras un clic de ratón en «pantalla completa», el espacio pausa (pausa ${fs1.pausa}) y no vuelve a pulsarla (pantalla completa ${fs0.completa} → ${fs1.completa})`);
+      await p.evaluate(async () => { if (document.fullscreenElement) await document.exitFullscreen().catch(() => {}); pausaI = false; ultI = performance.now(); }); await p.waitForTimeout(300);
+    } else ok(true, 'teclado: este visor no ofrece pantalla completa (sin botón que probar)');
+    /* hallazgo 5: un final viejo no hace que ← arranque sola una película reabierta y pausada */
+    await p.evaluate(() => { pausaI = false; vozSalto = musSalto = true; tI = TOTI - 500; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(1200);
+    await p.click('#introCta [data-intro="saltar"]'); await p.waitForTimeout(300); await p.evaluate(() => abrirIntro()); await p.waitForTimeout(600);
+    await p.evaluate(() => { vozSalto = musSalto = true; tI = 20000; pausaI = true; pintaIntro(); }); await p.waitForTimeout(200); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(500);
+    const vf = await p.evaluate(() => ({ pausa: pausaI, t: tI, fin: finI })); ok(vf.pausa && !vf.fin && vf.t < 20000, `teclado: tras ver el final, salir y reabrir, ← en pausa retrocede y la película sigue en pausa (pausa ${vf.pausa}, va en ${(vf.t / 1000).toFixed(1)} s)`);
     await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(400);
     /* tras cada forma de salir, la música y la voz quedan en pausa y su posición no avanza en 700 ms */
     const sal = [];
@@ -656,11 +707,18 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     ok(pag.n === 2 && dos(pag.trasYa) && dos(pag.a0) && pag.a0.bot.includes('Validar transferencia') && tres(pag.a1) && tres(pag.b0) && pag.b0.bot.includes('Validar efectivo') && cuatro(pag.b1),
       'película: en `pagada` el contador dice 2 de 4 tras «Ya transferí» y hasta que Javier toca «Validar transferencia», 3 después y 4 tras «Validar efectivo» ' + JSON.stringify([pag.trasYa, pag.a0, pag.a1, pag.b0, pag.b1].map((x) => x && x.dice)));
     /* un solo susurro en todo el guion (el del arranque) y guion.json dice lo mismo que VOZ */
-    const gj = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8')).map((l) => [l.id, l.toma, l.quien, l.texto]);
-    const vz = await p.evaluate(() => TOMAS.flatMap(([t]) => (VOZ[t] || []).map((l, i) => [t + '-' + String(i + 1).padStart(2, '0'), t, l[1], l[2]])));
+    const gj = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8'));
+    /* la fila entera, armada como la arma apoyo/cine/guion.mjs: id, toma, quién, texto, inicio y con / encima / tras */
+    const vzf = await p.evaluate(() => TOMAS.flatMap(([toma]) => (VOZ[toma] || []).map((l, i, todas) => { const [inicio, quien, texto, o = {}] = l, ant = todas[i - 1], fila = { id: toma + '-' + String(i + 1).padStart(2, '0'), toma, quien, texto, inicio };
+      if (o.con !== undefined) fila.con = o.con; else if (o.encima !== undefined) fila.encima = o.encima; else if (o.tras !== undefined) fila.tras = o.tras; else if (ant) fila.tras = quien === 'narrador' || ant[1] === 'narrador' ? 0.3 : 0.2; return fila; })));
+    const vz = vzf.map((l) => [l.id, l.toma, l.quien, l.texto]);
     const sus = vz.filter((l) => l[3].includes('[whispers]')).map((l) => l[0]);
     ok(sus.length === 1 && sus[0] === 'mesa-01', 'voz: hay exactamente un susurro en todo VOZ y es mesa-01 (' + sus.join(', ') + ')');
-    ok(vz.length > 100 && JSON.stringify(gj) === JSON.stringify(vz), 'voz: cada frase de apoyo/voz/guion.json (id, toma, quién y texto) es igual a la de VOZ (' + vz.length + ' frases)'); }
+    { const dif = vzf.map((f, i) => (JSON.stringify(f) === JSON.stringify(gj[i]) ? null : f.id)).filter(Boolean);
+      ok(vzf.length > 100 && gj.length === vzf.length && dif.length === 0, 'voz: cada fila de apoyo/voz/guion.json (id, toma, quién, texto, inicio y con / encima / tras) es igual a la que sale de VOZ (' + vzf.length + ' frases) ' + dif.slice(0, 6).join(', ')); }
+    /* 11 · las pruebas de los mezcladores */
+    { const { spawnSync } = require('node:child_process'); const r = spawnSync('python3', [resolve(aqui, 'voz/comprueba_mezcladores.py')], { cwd: aqui, encoding: 'utf8', timeout: 300000 });
+      ok(r.status === 0, 'voz: `python3 voz/comprueba_mezcladores.py` termina con código 0 (' + r.status + ') ' + (r.status === 0 ? '' : String(r.stdout || '').split('\n').filter((x) => /FALLA|Error|error/.test(x)).slice(0, 3).join(' | ') + String(r.stderr || '').slice(-200))); } }
   /* cada globo dice lo mismo que su frase en VOZ (sin las marcas), y con tiempos medidos toda frase de personaje tiene su globo a la vista a media frase */
   const globos = await p.evaluate(async () => {
     const limpia = (t) => t.replace(/\[[^\]]*\]\s*/g, '').trim(), el = (g) => document.querySelector(typeof g === 'string' ? '.g' + g : '.g' + g);
@@ -839,6 +897,13 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
 }
 await p.reload(); await p.waitForTimeout(400);
 ok(!(await p.isVisible('#intro')), 'la presentación no se repite sola');
+/* bloque 4, hallazgo 4b: reabierta con un clic de ratón en «▶ Ver la presentación», el espacio pausa (antes volvía a pulsar ese botón y la reiniciaba) */
+{ await p.evaluate(() => document.querySelector('#verIntro').scrollIntoView()); await p.click('#verIntro'); await p.waitForTimeout(500);
+  const pu = await p.isVisible('#introPuerta'); if (pu) { await p.click('#introPuerta button:not([hidden])'); await p.waitForTimeout(300); }
+  await p.waitForTimeout(2200); const v0 = await p.evaluate(() => ({ t: tI, foco: document.activeElement ? document.activeElement.id : '' }));
+  await p.keyboard.press(' '); await p.waitForTimeout(500); const v1 = await p.evaluate(() => ({ t: tI, pausa: pausaI, abierta: !document.querySelector('#intro').hidden }));
+  ok(v0.foco !== 'verIntro' && v0.t > 1500 && v1.abierta && v1.pausa && v1.t >= v0.t, `teclado: reabierta con un clic en «Ver la presentación», el espacio la pausa (pausa ${v1.pausa}) y no la reinicia (iba en ${Math.round(v0.t)} ms y sigue en ${Math.round(v1.t)} ms)`);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(300); await p.reload(); await p.waitForTimeout(400); }
 await p.close();
 
 // ---------- otros tamaños, y una pasada con las fuentes bloqueadas: nada de texto fuera de su caja ----------
