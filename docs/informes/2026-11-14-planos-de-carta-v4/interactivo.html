@@ -231,7 +231,7 @@ details.mas{margin-top:8px}details.mas summary{cursor:pointer;font-weight:700;co
 </style>
 <div class="wrap">
   <header class="top">
-    <div><div class="kick">Planos de Carta · 22 de noviembre de 2026 · versión 19</div>
+    <div><div class="kick">Planos de Carta · 23 de noviembre de 2026 · versión 20</div>
     <h1 class="op">Carta hoy, Carta mañana</h1><p class="sub" id="oportunidad"></p></div>
     <div class="acc"><button class="btn gran" id="verIntro">▶ Ver la presentación</button><button class="btn gran dec" id="verDecisiones">Decisiones a tomar</button><span id="pantallaTop"></span><span class="et prop">propuesta · la v1 no cobra</span></div>
   </header>
@@ -10066,39 +10066,39 @@ const CI = n => CAPAS[n][0];
 const CICLO = [["f3", "El personal lleva el ciclo de la mesa: abierta, cuenta cerrada, pagada y mesa limpia"]];
 const TOMAS = [
   /* A · el gancho */
-  ["mesa", 1, 10, [["hoy", "El QR de cada mesa"]], ["Todo empieza en *la mesa*."], "hook", 0.6],
-  ["cumple", 1, 12.4, [], ["Mira esta mesa: *un cumpleaños, cuatro amigos*."], "linea", 1.0],
+  ["mesa", 1, 11.8, [["hoy", "El QR de cada mesa"]], ["Todo empieza en *la mesa*."], "hook", 0.6],
+  ["cumple", 1, 12.7, [], ["Mira esta mesa: *un cumpleaños, cuatro amigos*."], "linea", 1.0],
   /* B · las problemáticas, rápidas: el problema es el sistema, no las personas */
-  ["b1", 2, 13.1, [], ["Ponerse de acuerdo, *al tanteo*."], "linea", 0.3],
-  ["b2", 2, 21.2, [], ["Un menú que *no te conoce*."], "linea", 0.3],
+  ["b1", 2, 13.3, [], ["Ponerse de acuerdo, *al tanteo*."], "linea", 0.3],
+  ["b2", 2, 21.7, [], ["Un menú que *no te conoce*."], "linea", 0.3],
   ["b3", 2, 11.5, [], ["Cuatro órdenes, *a mano*."], "linea", 0.3],
   ["b3t", 2, 8.2, [], ["En papel o en tableta, *el mismo problema*."], "linea", 0.3],
   ["espera", 2, 12.9, [], [], ""],
-  ["ticket", 2, 8.5, [], ["Un solo papel *para todos*."], "linea", 3.4],
+  ["ticket", 2, 8.5, [], ["Un solo papel *para todos*."], "linea", 1.0],
   ["b4", 2, 10.3, [], ["Una cuenta, *cuatro calculadoras*."], "linea", 0.3],
   ["pivote", 2, 6.6, [], ["¿Y si lo", "*reimaginamos*?"], "medio", 0.5],
   /* C · Carta, en el mismo orden */
-  ["ofrece", 3, 9.2, [], [], ""],
+  ["ofrece", 3, 10.1, [], [], ""],
   ["escanea", 3, 7.5, [["hoy", "Entrar con el QR, sin descarga (el menú es captura real de la app, con datos de ejemplo)"], ["vis", "Carta reconoce a quien ya tiene perfil de comensal: «Hola de nuevo, Ana»"]], ["Sin descargar", "*nada*."], "izq", 1.8],
   ["filtra", 3, 12.5, [["hoy", "Lo agotado se ve atenuado en la carta"], ["vis", "Perfil del comensal con sus restricciones guardadas: la carta quita sola lo que no puede comer (no sustituye avisar al personal)"]], ["~Antes: preguntar platillo por platillo.", "Lo que no comes,", "*fuera*."], "izq"],
-  ["top3", 3, 7.5, [["vis", "«✦ Para ti»: recomendaciones por restaurantes visitados y por lo que le dio me gusta"]], ["Elegido", "*para ti*."], "izq"],
+  ["top3", 3, 8.7, [["vis", "«✦ Para ti»: recomendaciones por restaurantes visitados y por lo que le dio me gusta"]], ["Elegido", "*para ti*."], "izq"],
   ["plato", 3, 6.5, [["vis", "El platillo como modelo que gira, con sus ingredientes"]], ["Sabe lo que", "*lleva*."], "izq"],
   ["agrega", 3, 4, [["f3", "Agregar platillos a la orden de la mesa"]], ["Directo a", "*tu mesa*."], "izq"],
-  ["juntos", 4, 10.7, [["f3", "La mesa pide junta: cada quien ve lo de todos"]], ["~Antes: al tanteo.", "La mesa *pide junta*."], "hook", 5.1],
+  ["juntos", 4, 11.6, [["f3", "La mesa pide junta: cada quien ve lo de todos"]], ["~Antes: al tanteo.", "La mesa *pide junta*."], "hook", 5.1],
   ["recomienda", 4, 6.5, [["vis", "Pasarle un platillo a otra persona de la mesa"]], ["Pásaselo *a Carlos*."], "linea"],
-  ["confirma", 4, 5.1, [["f3", "Cuando todos están listos, Carta manda una sola comanda y llama al mesero"]], ["Carta *llama al mesero*."], "centro"],
+  ["confirma", 4, 5.9, [["f3", "Cuando todos están listos, Carta manda una sola comanda y llama al mesero"]], ["Carta *llama al mesero*."], "centro"],
   ["esperan", 4, 3.2, [["f3", "Cada quien ve en su teléfono que Carta llamó al mesero"]], [], ""],
   ["avisa", 4, 6, [["f3", "El mesero recibe la comanda en su teléfono"], ["vis", "Aviso con el teléfono bloqueado"]], ["Al mesero le llega", "*al instante*."], "izq", 0.2, 4.2, 0.6],
-  ["llega", 4, 12.4, [["f3", "El mesero valida y atiende la comanda"]], ["~Antes: cuatro órdenes, a mano.", "Una sola comanda. *Él la valida*."], "linea"],
+  ["llega", 4, 13.6, [["f3", "El mesero valida y atiende la comanda"]], ["~Antes: cuatro órdenes, a mano.", "Una sola comanda. *Él la valida*."], "linea"],
   ["cocina", 4, 5.6, [["f3", "El seguimiento de la orden en el teléfono de cada quien"]], [], ""],
-  ["abierta", 5, 67.8, CICLO, ["Abierta"], "fase", 0.8],
-  ["cierres", 5, 41.8, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 39.6],
-  ["cuenta", 5, 32.9, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0.3, 1.9],
+  ["abierta", 5, 68.5, CICLO, ["Abierta"], "fase", 0.8],
+  ["cierres", 5, 41.8, [["f3", "Cada quien cierra su cuenta desde el seguimiento de su orden; la mesa pasa a «cuenta cerrada» cuando todos cerraron la suya"]], ["Cuenta *cerrada*"], "fase", 37.8],
+  ["cuenta", 5, 32.9, [["f3", "Cada quien ve su cuenta, con su propina"], ["vis", "Decir qué te gustó"], ["v11", "Invitar a alguien: lo suyo se reparte solo entre quienes invitan"]], ["~Antes: un ticket y cuatro calculadoras.", "Cada quien, *su cuenta*."], "linea", 0, 3.3],
   ["pagada", 5, 24.2, [["f3", "El cobro ocurre fuera de Carta (terminal o efectivo); el mesero valida el pago"], ["vis", "Elegir el método en la app, ver los datos de transferencia del restaurante y el contador «n de 4 comensales pagaron» (datos de ejemplo)"]], ["Pagada"], "fase", 20.4],
   ["factura", 5, 10.6, [["vis", "Pedir la factura desde la app; la emite el restaurante (fuera de la v1)"]], [], ""],
-  ["sucia", 5, 4.6, CICLO, ["Fue una gran noche", "*para nuestros invitados*."], "linea", 1.6],
-  ["prepara", 5, 4.2, CICLO, ["Preparemos la mesa", "*para los siguientes*."], "linea", 0.0],
-  ["limpia", 5, 8.3, CICLO, ["Mesa *limpia*"], "fase", 1.6, 6.2],
+  ["sucia", 5, 5.2, CICLO, ["Fue una gran noche", "*para nuestros invitados*."], "linea", 0.9],
+  ["prepara", 5, 4.2, CICLO, ["Preparemos la mesa", "*para los siguientes*."], "linea", 0.0, 4.6],
+  ["limpia", 5, 8.3, CICLO, ["Mesa *limpia*"], "fase", 1.4, 8.9],
   ["fin", 6, 5, [], [], ""],
 ];
 const ACTOS = [[1, "El gancho"], [2, "El problema"], [3, "Tu carta"], [4, "La mesa"], [5, "El ciclo"], [6, "Fin"]];
@@ -10161,11 +10161,61 @@ const VOZ = {
 };
 /* Las tomas que ya tienen audio y cuánto dura cada uno, en segundos: {b1: 9.8, …}. Vacío = película en silencio.
    Una toma se alarga sola a lo que dure su audio más el margen. */
-const VOZ_AUDIO = {"mesa":11.14,"cumple":12.05,"b1":12.7,"b2":21.02,"b3":9.77,"b3t":6.0,"espera":11.4,"ticket":2.28,"b4":8.45,"pivote":5.14,"ofrece":9.46,"escanea":3.7,"filtra":6.24,"top3":8.06,"agrega":3.29,"juntos":10.94,"confirma":5.23,"avisa":2.9,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":38.64,"cuenta":30.74,"pagada":23.54,"factura":6.89,"sucia":4.54,"fin":3.43};
+const VOZ_AUDIO = {"mesa":11.12,"cumple":11.72,"b1":11.69,"b2":18.01,"b3":9.76,"b3t":5.99,"espera":9.9,"ticket":2.25,"b4":8.43,"pivote":5.13,"ofrece":9.44,"escanea":3.69,"filtra":6.21,"top3":8.05,"agrega":3.28,"juntos":10.93,"confirma":5.23,"avisa":2.9,"llega":12.91,"cocina":4.61,"abierta":57.14,"cierres":34.01,"cuenta":27.23,"pagada":20.72,"factura":6.86,"sucia":4.5,"fin":3.42};
 /* Los tiempos medidos del audio, por toma: {b1: [[inicio, fin], …]}, uno por línea de VOZ en su orden (null si no se midió). Vacío = se usan los segundos de VOZ.
    Con tiempos aquí, los globos de esa toma entran y salen con ellos; puede haber dos globos a la vez. */
-const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[9.7,11.85]],"b1":[[0.2,1.87],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[19.7,20.84]],"b3":[[0.2,2.7],[3.9,6.48],[6.28,7.4],[7.6,9.58]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[3.0,3.95],[3.75,4.91],[5.21,9.45],[9.75,11.22]],"ticket":[[0.9,2.08]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,4.95]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,3.52]],"filtra":[[0.4,2.1],[2.4,6.05]],"top3":[[0.4,7.87]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"confirma":[[0.3,5.05]],"avisa":[[0.4,2.73]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,18.32],[20.6,22.63],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,40.98],[41.28,42.82],[50.0,52.89],[55.6,57.46],[57.76,58.34],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[17.76,19.51],[18.06,20.76],[18.36,21.34],[20.84,24.37],[25.0,27.29],[32.0,33.5],[33.3,34.32],[34.62,38.45]],"cuenta":[[0.3,3.14],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,30.56]],"pagada":[[0.5,2.56],[3.6,5.17],[7.5,9.05],[9.36,12.05],[14.5,15.83],[18.0,19.88],[21.5,23.35]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,6.7]],"sucia":[[0.1,1.59],[1.89,4.34]],"fin":[[1.2,3.24]]};
-const VOZ_MARGEN = 0.6;
+const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[9.4,11.55]],"b1":[[0.2,1.87],[3.4,4.98],[5.18,7.08],[7.28,10.56],[10.36,11.51]],"b2":[[1.5,3.34],[3.54,5.65],[5.85,6.49],[6.69,9.22],[9.42,11.85],[11.65,13.51],[13.71,15.16],[16.7,17.84]],"b3":[[0.2,2.7],[3.9,6.48],[6.28,7.4],[7.6,9.58]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[1.5,2.45],[2.25,3.41],[3.71,7.95],[8.25,9.72]],"ticket":[[0.9,2.08]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,4.95]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,3.52]],"filtra":[[0.4,2.1],[2.4,6.05]],"top3":[[0.4,7.87]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"confirma":[[0.3,5.05]],"avisa":[[0.4,2.73]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,18.32],[19.8,21.83],[23.1,25.37],[29.0,32.07],[31.87,33.74],[34.04,37.18],[37.48,39.02],[42.6,45.49],[47.0,48.86],[49.16,49.74],[51.2,53.88],[53.68,55.66],[55.36,56.96]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[13.4,15.06],[14.86,16.61],[15.16,17.86],[15.46,18.44],[17.94,21.47],[22.1,24.39],[27.4,28.9],[28.7,29.72],[30.02,33.85]],"cuenta":[[0.3,3.14],[4.6,7.88],[9.4,10.07],[11.6,13.33],[13.63,14.37],[15.9,17.57],[17.87,21.7],[22.0,25.47],[25.77,27.06]],"pagada":[[0.5,2.56],[3.6,5.17],[6.7,8.26],[8.56,11.25],[11.55,12.88],[15.2,17.08],[18.7,20.55]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,6.7]],"sucia":[[0.1,1.59],[1.89,4.34]],"fin":[[1.2,3.24]]};
+/* EL RITMO (versión 20). Hay tres relojes:
+   · segundos de COREOGRAFÍA: como se escribió cada toma (las duraciones de TOMAS, los `t + x` de filmLinea y los inicios de VOZ);
+   · segundos de GUION: la coreografía con sus CORTES ya aplicados. En ellos van TOMAS[i][2], T0, TOT, tI, VOZ_AUDIO, VOZ_TIEMPOS y los mezcladores;
+   · segundos de RELOJ: los de guion entre RITMO. La película avanza RITMO segundos de guion por cada segundo real; los mp3 de voz ya vienen
+     acelerados por RITMO (voz/mezcla_tomas.py) y la música va en reloj real (voz/mezcla_musica.py). Con RITMO = 1 y CORTES vacío no cambia nada.
+   CORTES quita aire muerto sin reescribir la coreografía: {toma: [[a, b, n], …]} = el tramo de `a` a `b` (segundos de coreografía dentro de la toma,
+   sin voz) se reproduce en `n` segundos: lo que pasa ahí dentro va más rápido. */
+const RITMO = 1.13;
+const CORTES = {
+  mesa: [[11.06, 11.8, 0.25]],
+  cumple: [[7.68, 9.5, 1.5], [11.95, 12.7, 0.25]],
+  b1: [[2.07, 4.2, 1.1], [12.61, 13.3, 0.25]],
+  b2: [[0.2, 3.8, 1.1], [17.86, 19.5, 1.1], [20.94, 21.7, 0.25]],
+  b3: [[9.68, 11.5, 0.25]],
+  b3t: [[5.92, 8.2, 0.25]],
+  espera: [[0.2, 2.8, 1.1], [11.32, 12.9, 0.25]],
+  ticket: [[2.18, 8.5, 2.4]],
+  b4: [[8.35, 10.3, 0.25]],
+  pivote: [[5.05, 6.6, 0.25]],
+  ofrece: [[9.38, 10.1, 0.25]],
+  escanea: [[3.62, 7.5, 2.3]],
+  filtra: [[6.15, 12.5, 2.5]],
+  top3: [[7.97, 8.7, 0.25]],
+  plato: [[0.2, 6.5, 2.8]],
+  agrega: [[3.2, 4, 0.25]],
+  juntos: [[10.85, 11.6, 0.25]],
+  recomienda: [[0.2, 6.5, 3.8]],
+  confirma: [[5.15, 5.9, 0.25]],
+  esperan: [[0.2, 3.2, 2.8]],
+  avisa: [[2.83, 6, 1.6]],
+  llega: [[12.84, 13.6, 0.25]],
+  cocina: [[4.55, 5.6, 0.25]],
+  abierta: [[18.52, 20.4, 1.1], [26.37, 32.6, 3.2], [43.02, 49.8, 3.2], [53.09, 55.4, 1.1], [58.54, 61.7, 1.1], [67.76, 68.5, 0.25]],
+  cierres: [[10.6, 16.1, 2.6], [27.49, 31.8, 2.6], [38.55, 41.8, 2.4]],
+  cuenta: [[3.34, 6.8, 1.1], [12.67, 14.2, 1.1], [17.37, 19.2, 1.1], [30.66, 32.9, 1.3]],
+  pagada: [[5.37, 7.3, 1.1], [12.25, 14.3, 0.9], [16.03, 17.8, 0.9], [23.45, 24.2, 0.25]],
+  factura: [[6.8, 10.6, 1.5]],
+  sucia: [[4.44, 5.2, 0.25]],
+  prepara: [[0.2, 4.2, 2.8]],
+  limpia: [[0.2, 8.3, 2.8]]
+};
+const DUR_COREO = TOMAS.map(t => t[2]), T0C = DUR_COREO.reduce((a, d) => (a.push(a[a.length - 1] + d), a), [0]);
+const cortesDe = i => (CORTES[TOMAS[i][0]] || []).slice().sort((x, y) => x[0] - y[0]);
+/* de coreografía a guion, dentro de la toma i; y al revés */
+const corta = (i, x) => { let y = x; for (const [a, b, n] of cortesDe(i)) { if (x >= b) y -= b - a - n; else if (x > a) y -= (x - a) * (1 - n / (b - a)); } return y; };
+const descorta = (i, y) => { let x = y, q = 0; for (const [a, b, n] of cortesDe(i)) { const a1 = a - q; if (y >= a1 + n) x += b - a - n; else if (y > a1) x = a + (y - a1) * (b - a) / n; q += b - a - n; } return x; };
+const r1 = x => Math.round(x * 10) / 10;
+TOMAS.forEach((t, i) => { t[2] = r1(corta(i, DUR_COREO[i])); });
+/* VOZ se escribe en segundos de coreografía (junto a la acción que acompaña) y aquí pasa a segundos de guion, que es lo que leen el mezclador y la película */
+Object.entries(VOZ).forEach(([toma, ls]) => { const i = TOMAS.findIndex(x => x[0] === toma); if (i < 0) return; ls.forEach(l => { l[0] = r1(corta(i, l[0])); if (l[3] && l[3].fin !== undefined) l[3].fin = r1(corta(i, l[3].fin)); }); });
+const VOZ_MARGEN = 0.35;
 TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
 const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
 let vozOn = true, vozLibre = false, vozAct = null, puertaI = false, vozSalto = true, vozToma = -1, vozUltT = 0;
@@ -10186,13 +10236,13 @@ function vozSync() {
   if (quiere && i + 1 < TOMAS.length && T0[i + 1] - s < 3 && VOZ_AUDIO[TOMAS[i + 1][0]]) pista(TOMAS[i + 1][0]); /* la siguiente pista, cargada antes del cambio */
   if (!a) return;
   const seg = s - T0[i];
-  if (pausaI || ocultaI || $("#intro").hidden || seg >= (a.duration || VOZ_AUDIO[id])) { if (!a.paused) a.pause(); return; }
-  if (vozSalto) { vozSalto = false; try { a.currentTime = seg; } catch (e) { /* aún sin datos */ } }
+  if (pausaI || ocultaI || $("#intro").hidden || seg >= (a.duration ? a.duration * RITMO : VOZ_AUDIO[id])) { if (!a.paused) a.pause(); return; } /* el mp3 dura sus segundos de guion entre RITMO */
+  if (vozSalto) { vozSalto = false; try { a.currentTime = seg / RITMO; } catch (e) { /* aún sin datos */ } }
   if (a.paused) { a.play().catch(() => { /* falta el archivo o el permiso: la película sigue en silencio */ }); return; }
   if (a.readyState < 2 || a.seeking || a.ended) return;
-  const dif = a.currentTime - seg;
+  const dif = a.currentTime * RITMO - seg;
   if (Math.abs(dif) <= 0.08 || (dif < 0 && dif > -0.25 && seg < 1.5)) return; /* al empezar, si la pista va apenas detrás, que alcance sola */
-  tI = clamp((T0[i] + a.currentTime) * 1000, T0[i] * 1000, T0[i + 1] * 1000 - 1); vozUltT = tI;
+  tI = clamp((T0[i] + a.currentTime * RITMO) * 1000, T0[i] * 1000, T0[i + 1] * 1000 - 1); vozUltT = tI;
 }
 /* La música de fondo: UN archivo continuo para toda la película (apoyo/musica/fondo.mp3, de voz/mezcla_musica.py), con los volúmenes ya horneados.
    Sólo suena con el sonido puesto y sigue al reloj de la película: nunca mueve la imagen. Se coloca una vez en cada salto; en marcha normal,
@@ -10203,10 +10253,10 @@ function musPista() { return musica || (musica = Object.assign(new Audio(MUS_RUT
 function musSync() {
   if (!HAY_VOZ) return;
   if (!(vozOn && vozLibre && !REDUCE)) { if (musica && !musica.paused) musica.pause(); return; }
-  const a = musPista(), obj = tI / 1000;
+  const a = musPista(), obj = tI / 1000 / RITMO; /* la música va en segundos de reloj */
   if (Math.abs(tI - musUltT) > 400) musSalto = true; /* un brinco del tiempo que no viene de un cuadro es un salto */
   musUltT = tI;
-  if (pausaI || ocultaI || $("#intro").hidden || obj >= (a.duration || TOT)) { if (!a.paused) a.pause(); return; }
+  if (pausaI || ocultaI || $("#intro").hidden || obj >= (a.duration || TOT / RITMO)) { if (!a.paused) a.pause(); return; }
   const coloca = () => { try { a.currentTime = obj; musColocadas++; } catch (e) { /* aún sin datos */ } a.playbackRate = 1; };
   if (musSalto) { musSalto = false; coloca(); }
   if (a.paused) { a.play().catch(() => { /* falta el archivo o el permiso: la película sigue sin música */ }); return; }
@@ -10220,6 +10270,10 @@ function vozBoton() { const b = $("#introSon"); if (!b) return; b.textContent = 
 const T0 = TOMAS.reduce((a, t) => (a.push(a[a.length - 1] + t[2]), a), [0]);
 const TOT = T0[T0.length - 1], TOTI = TOT * 1000;
 const tomaIni = id => T0[TOMAS.findIndex(t => t[0] === id)];
+/* un instante de la película, de coreografía a guion y al revés (para la línea de tiempo, que se escribe en coreografía) */
+const tomaEnC = p => { let i = 0; while (i < TOMAS.length - 1 && p >= T0C[i + 1]) i++; return i; };
+const aGuion = p => { if (p <= 0) return p; const fin = T0C[T0C.length - 1]; if (p >= fin) return TOT + (p - fin); const i = tomaEnC(p); return T0[i] + corta(i, p - T0C[i]); };
+const aCoreo = s => { if (s <= 0) return s; if (s >= TOT) return T0C[T0C.length - 1] + (s - TOT); let i = 0; while (i < TOMAS.length - 1 && s >= T0[i + 1]) i++; return Math.min(T0C[i] + descorta(i, s - T0[i]), T0C[i + 1]); };
 const ACT_INI = ACTOS.map(([n]) => T0[TOMAS.findIndex(t => t[1] === n)]);
 const ACT_FIN = ACTOS.map((_, k) => (k + 1 < ACTOS.length ? ACT_INI[k + 1] : TOT));
 /* instantes de guion gráfico (movimiento reducido): el momento de cada toma en que ya está todo en pantalla */
@@ -11032,8 +11086,13 @@ const GIRO = {"ana-cabeza": [456, 596], "carlos-cabeza": [1464, 596], "mesero-ca
 function filmLinea() {
   TOQUES.length = 0;
   const g = window.gsap; if (!g) return null;
-  const tl = g.timeline({paused: true}), f = $("#cine"), q = s => [...f.querySelectorAll(s)];
-  const T = id => tomaIni(id);
+  const tl0 = g.timeline({paused: true}), f = $("#cine"), q = s => [...f.querySelectorAll(s)];
+  /* todo lo de aquí abajo está en segundos de coreografía (T, T0, GT, los `t + x`); `tl` lo coloca en la línea real, en segundos de guion */
+  const T0 = T0C, T = id => T0C[TOMAS.findIndex(t => t[0] === id)];
+  const esc = (v, p) => { if (typeof p !== "number" || !v || !v.duration) return v; const tot = v.duration * (v.repeat > 0 ? v.repeat + 1 : 1), k = (aGuion(p + tot) - aGuion(p)) / tot; if (Math.abs(k - 1) < 1e-6 || !(k > 0)) return v;
+    const o = {...v, duration: v.duration * k}; if (typeof o.stagger === "number") o.stagger *= k; else if (o.stagger && typeof o.stagger.each === "number") o.stagger = {...o.stagger, each: o.stagger.each * k}; return o; };
+  const en = p => typeof p === "number" ? aGuion(p) : p;
+  const tl = {to: (a, v, p) => tl0.to(a, esc(v, p), en(p)), fromTo: (a, de, v, p) => tl0.fromTo(a, de, esc(v, p), en(p)), set: (a, v, p) => tl0.set(a, v, en(p)), time: () => aCoreo(tl0.time()), eventCallback: (...x) => tl0.eventCallback(...x)};
   const entra = (sel, t, d = 0.5, de = {}, a = {}) => tl.fromTo(q(sel), {autoAlpha: 0, ...de}, {autoAlpha: 1, duration: d, ease: "power2.out", immediateRender: false, ...a}, t);
   const sale = (sel, t, d = 0.4, a = {}) => tl.to(q(sel), {autoAlpha: 0, duration: d, ease: "power2.in", ...a}, t);
   const pon = (sel, t, v) => tl.set(q(sel), {autoAlpha: v ? 1 : 0}, t);
@@ -11044,22 +11103,22 @@ function filmLinea() {
   const cabeza = (quien, ang, t, d = 0.5) => tl.to(q(`.k-${quien}-cabeza`), {rotation: ang, duration: d, ease: "sine.inOut"}, t);
   const gesto = (quien, t, n = 3, ang = 10) => tl.to(q(`.k-${quien}-brazo`), {rotation: quien === "ana" ? -ang : ang, duration: 0.32, yoyo: true, repeat: 2 * n - 1, ease: "sine.inOut"}, t);
   const toque = (A, x, y, t) => {
-    /* el resaltado sale 0.6 s antes; si el mismo teléfono se acaba de tocar, espera a que lo nuevo esté en pantalla */
-    const prev = TOQUES.filter(o => o[0] === A && o[3] < t).reduce((m, o) => Math.max(m, o[3]), -9), d = clamp(t - prev - 0.45, 0.3, 0.62), fija = () => haloPon(A, x, y);
-    TOQUES.push([A, x, y, t, d]);
-    tl.fromTo(q(A + " .halo"), {autoAlpha: 0, scale: 1.12}, {autoAlpha: 1, scale: 1, duration: 0.2, ease: "power2.out", immediateRender: false, onStart: fija, onUpdate: fija}, t - d);
-    tl.fromTo(q(A + " .halo"), {scale: 1}, {scale: 1.06, duration: (d - 0.24) / 2, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false, onUpdate: fija}, t - d + 0.2);
-    tl.to(q(A + " .halo"), {autoAlpha: 0, duration: 0.2}, t + 0.02);
+    /* el resaltado se coloca en segundos de GUION (no se comprime con los cortes): sale 0.6 s antes y, si el mismo teléfono se acaba de tocar, espera a que lo nuevo esté en pantalla */
+    const tg = aGuion(t), prev = TOQUES.filter(o => o[0] === A && o[3] < tg).reduce((m, o) => Math.max(m, o[3]), -9), d = clamp(tg - prev - 0.3, 0.26, 0.62), fija = () => haloPon(A, x, y);
+    TOQUES.push([A, x, y, tg, d]);
+    tl0.fromTo(q(A + " .halo"), {autoAlpha: 0, scale: 1.12}, {autoAlpha: 1, scale: 1, duration: 0.12, ease: "power2.out", immediateRender: false, onStart: fija, onUpdate: fija}, tg - d);
+    tl0.fromTo(q(A + " .halo"), {scale: 1}, {scale: 1.06, duration: (d - 0.16) / 2, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false, onUpdate: fija}, tg - d + 0.12);
+    tl0.to(q(A + " .halo"), {autoAlpha: 0, duration: 0.15}, tg + 0.02);
     tl.set(q(A + " .toque"), {left: x, top: y}, t - 0.01); tl.fromTo(q(A + " .toque"), {autoAlpha: 0.95, scale: 0.4}, {autoAlpha: 0, scale: 1.6, duration: 0.7, ease: "power2.out", immediateRender: false}, t); };
   const mueve = (A, x, y, t, d = 0.45) => tl.to(q(A + " .dedo"), {x, y, duration: d, ease: "power2.inOut"}, t);
   /* tocar: el índice llega, baja, deja su marca y se aparta a un lado del teléfono para dejar ver la pantalla; s = -1 si la mano entra por la izquierda */
   const toca = (A, x, y, t, s = 1) => { mueve(A, x + 16 * s, y + 46, t - 0.6, 0.45); tl.to(q(A + " .dedo"), {x, y, duration: 0.12, ease: "power1.in"}, t - 0.13); toque(A, x, y, t); tl.to(q(A + " .dedo"), {x: x + 14 * s, y: y + 40, duration: 0.2, ease: "power1.out"}, t + 0.1); tl.to(q(A + " .dedo"), {x: s > 0 ? 510 : -110, y: y + 80, duration: 0.5, ease: "power2.inOut"}, t + 0.3); };
   const retira = (A, t, R = REP, d = 0.6) => mueve(A, R.x, R.y, t, d);
   const GT = {};
-  Object.entries(VOZ).forEach(([toma, ls]) => { const ix = TOMAS.findIndex(x => x[0] === toma); if (ix < 0) return; const i0 = T0[ix], i1 = T0[ix + 1], med = VOZ_TIEMPOS[toma] && VOZ_TIEMPOS[toma].length === ls.length ? VOZ_TIEMPOS[toma] : null;
-    ls.forEach((l, i) => { const o = l[3]; if (!o || o.g === undefined) return; const m = med && med[i], ini = i0 + (m ? m[0] : l[0]);
+  Object.entries(VOZ).forEach(([toma, ls]) => { const ix = TOMAS.findIndex(x => x[0] === toma); if (ix < 0) return; const v = x => T0C[ix] + descorta(ix, x), i1 = T0C[ix + 1], med = VOZ_TIEMPOS[toma] && VOZ_TIEMPOS[toma].length === ls.length ? VOZ_TIEMPOS[toma] : null;
+    ls.forEach((l, i) => { const o = l[3]; if (!o || o.g === undefined) return; const m = med && med[i], ini = v(m ? m[0] : l[0]);
       const sig = ls.slice(i + 1).find(x => x[1] === l[1] && x[3] && x[3].g !== undefined);
-      GT[o.g] = [ini, m ? i0 + m[1] : o.fin ? i0 + o.fin : Math.min(ini + Math.max(1.3, l[2].replace(/\[[^\]]*\]\s*/g, "").length / 13), sig ? i0 + sig[0] - 0.1 : 1e9, i1 - 0.15), !!m]; }); });
+      GT[o.g] = [ini, m ? v(m[1]) : o.fin ? v(o.fin) : Math.min(ini + Math.max(1.3, l[2].replace(/\[[^\]]*\]\s*/g, "").length / 13), sig ? v(sig[0]) - 0.1 : 1e9, i1 - 0.15), !!m]; }); });
   const globo = (k, t, fin) => { if (GT[k]) { t = GT[k][0]; fin = GT[k][1]; } entra(".g" + k, t, 0.45, {scale: 0.6}, {scale: 1, ease: "back.out(1.5)"}); sale(".g" + k, fin, 0.25); };
   const mira = (lado, tt) => tl.to(q(".k-mesero-cabeza"), {scaleX: -lado, duration: 0.3, ease: "power1.inOut"}, tt); /* 1 = hacia Carlos (derecha), -1 = hacia Ana */
   const pantalla = (sel, t, d = 0.4) => entra(sel, t, d, {scale: 0.97}, {scale: 1});
@@ -11098,9 +11157,11 @@ function filmLinea() {
     const t0 = T0[i], t1 = T0[i + 1];
     if (t[4].length) {
       const rr = t0 + (t[6] || 0);
-      tl.set(q(".r" + i), {autoAlpha: 1}, rr + 0.25);
-      tl.fromTo(q(".r" + i + " .cw"), {y: 36, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 0.9, ease: "power3.out", stagger: 0.14, immediateRender: false}, rr + 0.3);
-      sale(".r" + i, t[7] ? t0 + t[7] : t1 - 0.45, 0.35);
+      /* el rótulo entra y sale en segundos de GUION (los cortes no lo aceleran), para que se alcance a leer */
+      const rg = aGuion(rr), nw = q(".r" + i + " .cw").length;
+      tl0.set(q(".r" + i), {autoAlpha: 1}, rg + 0.2);
+      tl0.fromTo(q(".r" + i + " .cw"), {y: 36, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 0.55, ease: "power3.out", stagger: Math.min(0.1, 0.6 / Math.max(1, nw)), immediateRender: false}, rg + 0.25);
+      tl0.to(q(".r" + i), {autoAlpha: 0, duration: 0.3, ease: "power2.in"}, t[7] ? aGuion(t0 + t[7]) : aGuion(t1) - 0.4);
     }
   });
   /* ===== acto 1 ===== */
@@ -11265,7 +11326,7 @@ function filmLinea() {
   entra(".cs.pHola .cfuera .cno", t + 4.6, 0.3, {scale: 0.6}, {scale: 1, stagger: 0.2});
   tl.to(q(".cs.pHola .cfuera"), {height: 0, autoAlpha: 0, duration: 0.6, ease: "power2.inOut", stagger: 0.15}, t + 5.6);
   tl.to(q(".carga span:last-child"), {autoAlpha: 0, duration: 0.3}, t + 6.3);
-  { const n0 = (VOZ_TIEMPOS.filtra && VOZ_TIEMPOS.filtra[1] ? VOZ_TIEMPOS.filtra[1][1] : 8.1) + 0.2; entra(".nfil", t + n0, 0.5, {x: -16}, {x: 0}); sale(".nfil", T("top3") - 0.35, 0.3); }
+  { const n0 = descorta(TOMAS.findIndex(x => x[0] === "filtra"), VOZ_TIEMPOS.filtra && VOZ_TIEMPOS.filtra[1] ? VOZ_TIEMPOS.filtra[1][1] : 6.0) + 0.2; entra(".nfil", t + n0, 0.5, {x: -16}, {x: 0}); sale(".nfil", T("top3") - 0.35, 0.3); }
   entra(".clisto", t + 6.6, 0.5, {y: 30, scale: 0.9}, {y: 0, scale: 1, ease: "back.out(1.8)"});
   /* 5 · su Top 3: el índice de su otra mano lo recorre y elige */
   t = T("top3");
@@ -11552,12 +11613,12 @@ function filmLinea() {
   tl.set(q(".cfon"), {scale: 1.5, x: 420, y: -200, scaleX: 1.5}, t);
   corte(".sala", ".cerca", t, 0.7); t -= 0.4;
   QUIEN.forEach((_, k) => { tl.set(q(".cq" + k), {...GEO(k), x: 0, y: 0, overflow: "hidden", clearProps: "background,boxShadow"}, t); tl.set(q(".agQ" + k + " .qE, .agQ" + k + " .qK"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k + " .qS, .agQ" + k + " .sgw"), {autoAlpha: 1}, t); tl.set(q(".agQ" + k + " .sgb"), {autoAlpha: 0}, t); tl.set(q(".agQ" + k), {...PQ(k), autoAlpha: 1}, t);
-    entra(".cq" + k, t + 2.9 + k * 0.12, 0.6, {y: 40}, {y: 0, ease: "power3.out"}); });
+    entra(".cq" + k, t + 3.5 + k * 0.1, 0.6, {y: 40}, {y: 0, ease: "power3.out"}); });
   QUIEN.forEach((_, k) => pantalla(".agQ" + k + " .qC", t + 4.3 + k * 0.15, 0.45));
   tl.to(q(".agQ .qin"), {y: -150, duration: 0.9, ease: "power2.inOut", stagger: 0.1}, t + 5.0);
-  QUIEN.forEach((_, k) => { const tt = t + 5.9 + k * 0.15; toque(".agQ" + k, 359, 114, tt); tl.fromTo(q(".agQ" + k + " .qlk"), {autoAlpha: 0, scale: 0.3}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(3)", stagger: 0.25, immediateRender: false}, tt + 0.05); });
-  entra(".dvv", t + 2.9, 0.7, {scaleY: 0}, {scaleY: 1, ease: "power2.out"}); entra(".dvh", t + 3.1, 0.7, {scaleX: 0}, {scaleX: 1, ease: "power2.out"});
-  entra(".ctt", t + 3.2, 0.4); entra(".celda .w0", t + 3.4, 0.4, {y: 10}, {y: 0});
+  QUIEN.forEach((_, k) => { const tt = t + 7.25 + k * 0.12; toque(".agQ" + k, 359, 114, tt); tl.fromTo(q(".agQ" + k + " .qlk"), {autoAlpha: 0, scale: 0.3}, {autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(3)", stagger: 0.25, immediateRender: false}, tt + 0.05); });
+  entra(".dvv", t + 3.5, 0.7, {scaleY: 0}, {scaleY: 1, ease: "power2.out"}); entra(".dvh", t + 3.6, 0.7, {scaleX: 0}, {scaleX: 1, ease: "power2.out"});
+  entra(".ctt", t + 3.7, 0.4); entra(".celda .w0", t + 3.8, 0.4, {y: 10}, {y: 0});
   tl.fromTo(q(".agQ .cpc.on"), {scale: 1}, {scale: 1.3, duration: 0.25, yoyo: true, repeat: 1, stagger: 0.2, immediateRender: false}, t + 6.5);
   const dice = (k, t0, t1) => { const g = GT["q" + k]; if (g) { t0 = g[0]; if (g[2]) t1 = g[1]; } entra(".gq" + k, t0, 0.45, {scale: 0.6}, {scale: 1, ease: "back.out(1.5)"}); if (t1) sale(".gq" + k, t1, 0.25); };
   /* la cifra viaja por su tubería, tramo a tramo */
@@ -11680,8 +11741,8 @@ function filmLinea() {
   sale(".sala", t + 0.1, 0.9);
   tl.set(q(".marca"), {autoAlpha: 1}, t + 1.1);
   tl.fromTo(q(".marca b, .marca i, .marca span, .marca small"), {y: 24, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 1.0, ease: "power3.out", stagger: 0.3, immediateRender: false}, t + 1.1);
-  tl.set({}, {}, TOT);
-  return tl;
+  tl0.set({}, {}, TOT);
+  return tl0;
 }
 
 function cerrarIntro() { cancelAnimationFrame(rafI); if (vozAct) vozAct.pause(); if (musica) musica.pause(); $("#intro").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("carta-v9-intro", "1"); } catch (e) { /* ignorar */ } }
@@ -11697,13 +11758,13 @@ function irActo(k) { vozSalto = musSalto = true; tI = (REDUCE ? CLAVES[TOMAS.fin
 function saltaI(ms) {
   vozSalto = musSalto = true;
   if (REDUCE) { let e = 0; CLAVES.forEach((c, i) => { if (tI / 1000 >= c - 0.01) e = i; }); e = clamp(e + (ms > 0 ? 1 : -1), 0, TOMAS.length - 1); tI = CLAVES[e] * 1000; }
-  else tI = clamp(tI + ms, 0, TOTI - 1);
+  else tI = clamp(tI + ms * RITMO, 0, TOTI - 1); /* ±3 s de reloj */
   pintaIntro();
 }
 function muestraControles() { const el = $("#intro"); if (!el) return; el.classList.remove("quieto"); clearTimeout(ocultoT); ocultoT = setTimeout(() => el.classList.add("quieto"), 2600); }
 function frameIntro(ts) {
   if ($("#intro").hidden) return;
-  if (!pausaI && !ocultaI) { tI += clamp(ts - ultI, 0, 100); if (tI >= TOTI) { tI = TOTI - 1; pausaI = true; } }
+  if (!pausaI && !ocultaI) { tI += clamp(ts - ultI, 0, 100) * RITMO; if (tI >= TOTI) { tI = TOTI - 1; pausaI = true; } }
   ultI = ts; pintaIntro(); rafI = requestAnimationFrame(frameIntro);
 }
 function abrirIntro() {
