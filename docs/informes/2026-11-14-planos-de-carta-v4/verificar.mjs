@@ -389,6 +389,9 @@ if (png) await p.screenshot({ path: `${png}/v5_precio.png` });
 await sinDesborde(p, 'precio'); await cierra(p);
 // sostiene: cuatro vistas
 await p.evaluate(() => cambiar({...BASE})); await abre(p, 'sostiene');
+// la revisión del modelo que dice la página es la del modelo que carga (sin número a mano)
+const rev = await p.evaluate(() => ({ v: MOD.VERSION, nota: document.body.textContent, visibles: (document.body.textContent.match(/\b20\d\d-\d\d-\d\d-r\d+\b|\bModelo de escenarios r\d+\b/g) || []) }));
+ok(/^\d{4}-\d\d-\d\d-r\d+$/.test(rev.v) && rev.nota.includes('Modelo de escenarios ' + rev.v) && rev.visibles.every((x) => x === rev.v || x === 'Modelo de escenarios ' + rev.v), 'modelo: la nota del detalle nombra la revisión del modelo que carga (' + rev.v + ') y ningún texto visible nombra otra ' + rev.visibles.join(' | '));
 const k0 = await texto(p, '#svK');
 await p.focus('#hN'); await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(300);
 ok((await texto(p, '#svK')) !== k0, 'sostiene: mover el deslizador cambia comensales y costo');
@@ -688,6 +691,14 @@ ok(md.length === 3 && md.every((v) => tmd.includes(v)) && tmd.includes('supuesto
 if (png) await p.locator('#svMd').screenshot({ path: `${png}/v12_mediana.png` });
 await cierra(p);
 await p.evaluate(() => { const i = document.getElementById('intro'); if (i) i.style.display = ''; });
+// una dirección con un nombre heredado de Object (#constructor, #__proto__, #toString) no rompe la página
+for (const h of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+  const ctxH = await nav.newContext({ viewport: { width: 1280, height: 800 } }), pH = await ctxH.newPage(), erH = [];
+  pH.on('console', (m) => m.type() === 'error' && erH.push(m.text())); pH.on('pageerror', (e) => erH.push(String(e.message)));
+  await pH.goto(url + '#' + h); await pH.waitForTimeout(900);
+  ok(erH.length === 0 && (await pH.$('#kpis')) !== null, 'dirección #' + h + ': la página abre sin errores en consola ' + erH.slice(0, 1).join(' | '));
+  await ctxH.close();
+}
 // cifras a mano: ninguna de estas literales vive en los js (salen del modelo, de los parámetros o de los datos)
 { const { readFileSync, readdirSync } = await import('node:fs'); const dir = resolve(dirname(fileURLToPath(import.meta.url)), 'js');
   const prohibidas = ['652 a 1,000', '(1,243 MXN)', '[0.23,', '≈ 3,000 y más', '≈ 0.4 pesos al año', '"7 días"'];
