@@ -61,9 +61,11 @@ export function configR15() {
 
 /**
  * Configuración inicial = DOS PLANES (decisión de Calvin, 17 de noviembre de 2026): **Chef** (gratis) = negocios de 0 a 5 personas, con
- * 6 mesas y UNA cuenta de personal (el dueño con su PIN); **Master Chef** (225) = todo lo que pase de ahí, hasta los topes técnicos del
- * producto (500 mesas activas, 50 personas activas). **Chef Ejecutivo queda APAGADO** (`precios.salon = 0` y `planes.chef_ejecutivo.activo
- * = false`): es una futura escalación, no se borró. El tope de 150 platillos cuenta TODO, bebidas incluidas (decidido por Calvin el 17-nov); la banda de dos cotas de cobertura se conserva porque no se sabe cuál muestra tiene razón.
+ * 6 mesas, el dueño y hasta 3 cuentas de personal (meseros con PIN) y 50 platillos de base (decisión de Calvin del 21 de noviembre de 2026; el
+ * plan de la ronda 15, con 1 cuenta y 150 platillos, queda en `configR15()` sólo para comparar); **Master Chef** (225) = todo lo que pase de
+ * ahí, hasta los topes técnicos del producto (500 mesas activas, 50 personas activas). **Chef Ejecutivo queda APAGADO** (`precios.salon = 0` y
+ * `planes.chef_ejecutivo.activo = false`): es una futura escalación, no se borró. El tope de platillos cuenta TODO, bebidas incluidas (decidido
+ * por Calvin el 17-nov); la banda de dos cotas de cobertura se conserva porque no se sabe cuál muestra tiene razón.
  * Los anuncios van en Chef; empiezan en `supuestos.mes_inicio_anuncios`. `configBase` es alias de esta función. La configuración anterior
  * de tres planes se conserva como `configTresPlanes25Mesas()` y la de la primera ronda como `configTopes10Mesas3Cuentas()`.
  */
@@ -1438,7 +1440,7 @@ export function modeloDeNegocio(config, s, n = 1000) {
       parte_que_cabe_en_chef: est.dentro_0_5,
       rango_parte_que_cabe: [estMin.dentro_0_5, estMax.dentro_0_5],
       parte_de_los_clientes_potenciales_que_cabe_en_chef: e05.negocios_en_chef / chef.universo,
-      lectura: `Con un producto sin plan gratuito (Meniu: prueba de ${meniu.prueba_dias} días y ${meniu.precio_mes} pesos al mes), quedan sin servir los negocios de 0 a 5 personas: ${e05.negocios.toLocaleString('en-US')} de ${chef.universo.toLocaleString('en-US')} clientes potenciales [medido, DENUE]; con 6 mesas y 1 cuenta caben en Chef ${Math.round(e05.negocios_en_chef).toLocaleString('en-US')} (${(est.dentro_0_5 * 100).toFixed(1)} % de ellos; rango ${(estMin.dentro_0_5 * 100).toFixed(1)}–${(estMax.dentro_0_5 * 100).toFixed(1)} %), un juicio del modelo de mesas y cuentas.`,
+      lectura: `Con un producto sin plan gratuito (Meniu: prueba de ${meniu.prueba_dias} días y ${meniu.precio_mes} pesos al mes), quedan sin servir los negocios de 0 a 5 personas: ${e05.negocios.toLocaleString('en-US')} de ${chef.universo.toLocaleString('en-US')} clientes potenciales [medido, DENUE]; con ${config.topes.gratuito.mesas} mesas y ${config.topes.gratuito.cuentas} cuentas de personal (más el dueño) y ${config.topes.gratuito.platillos} platillos caben en Chef ${Math.round(e05.negocios_en_chef).toLocaleString('en-US')} (${(est.dentro_0_5 * 100).toFixed(1)} % de ellos; rango ${(estMin.dentro_0_5 * 100).toFixed(1)}–${(estMax.dentro_0_5 * 100).toFixed(1)} %), un juicio del modelo de mesas y cuentas.`,
       supuesto: 'sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef es el modelo de mesas y cuentas con dispersión',
     },
   };
@@ -1745,6 +1747,19 @@ export function comparacionPlanChef(config, s) {
       con_la_propuesta_de_30_dias: { margen_operacion_1000: Object.fromEntries(['recomendado', 'peor', 'mejor', 'piso_de_verdad'].map((e) => [e, evaluarEscenario(e, conPropuesta30Dias(cfg), s, 1000).margen_operacion])) },
     };
   };
+  // qué mueve la capacidad: cada cambio del plan por separado (no se suman a ojo: se evalúan)
+  const variante = (cuentas, platillos) => {
+    const c = configInicial();
+    c.topes.gratuito.cuentas = cuentas;
+    c.topes.gratuito.platillos = platillos;
+    const rs = resumen(c, s);
+    const f = rs.cifras.find((x) => x.clave === 'restaurantes_que_caben_propuesta_30_dias');
+    return { cuentas_de_personal: cuentas, platillos, pagantes_por_1000: evaluarEscenario('recomendado', c, s, 1000).clientes.de_paga, caben_con_avisos: f.recomendado, caben_con_sondeo: f.peor, procesador_con_sondeo: topesDeTamano(conPropuesta30Dias(c), s, 'hobby_sondeo', 'sondeo', 'topes').procesador, disco: topesDeTamano(conPropuesta30Dias(c), s, 'hobby_sondeo', 'sondeo', 'topes').disco };
+  };
+  const a15 = antes.topes.gratuito;
+  const d16 = despues.topes.gratuito;
+  const descomposicion = { plan_de_la_ronda_15: variante(a15.cuentas, a15.platillos), sólo_cambian_las_cuentas: variante(d16.cuentas, a15.platillos), sólo_cambia_el_tope_de_platillos: variante(a15.cuentas, d16.platillos), plan_vigente: variante(d16.cuentas, d16.platillos),
+    lectura: `La capacidad con la propuesta de 30 días no cambia por las líneas ni por el procesador de las cuentas de personal: el sondeo de 5 s del personal NO está modelado (el procesador cuenta las visitas de los comensales y no las cuentas), y las líneas abiertas sólo limitan con avisos y no limitan. Las cuentas mueven la capacidad por quién paga: con más cuentas caben en Chef más negocios (menos de paga, menos disco): con el sondeo de hoy caben ${variante(d16.cuentas, a15.platillos).caben_con_sondeo} en vez de ${variante(a15.cuentas, a15.platillos).caben_con_sondeo} sólo por eso. El tope de ${d16.platillos} platillos baja la cobertura de platillos y empuja a más negocios a pagar: ${variante(d16.cuentas, a15.platillos).caben_con_sondeo} baja a ${variante(d16.cuentas, d16.platillos).caben_con_sondeo}. El neto del plan es ${variante(a15.cuentas, a15.platillos).caben_con_sondeo} → ${variante(d16.cuentas, d16.platillos).caben_con_sondeo} con el sondeo.` };
   return {
     version: VERSION,
     decision: 'Calvin, 21 de noviembre de 2026: «Quiero que un restaurante en Chef pueda tener hasta 3 cuentas sincronizadas. O sea, el dueño del restaurante y 3 meseros máximo. Y de mesa serían 6. Platillos base, dejémoslos en 50.»',
@@ -1752,7 +1767,9 @@ export function comparacionPlanChef(config, s) {
       'Cada cuenta de personal abre una línea `/op/eventos` (ADR-018 §3: una por teléfono del personal); se supone que las 3 están conectadas en la hora pico del restaurante (cota alta); la línea del dueño en el panel no se cuenta. Se mide con las líneas abiertas del piloto.',
       'El modelo de mesas y cuentas (dispersión lognormal σ = 0.5, supuesto) da la parte de negocios que cabe en 6 mesas y 3 cuentas; sólo los conteos por estrato son medidos.',
       'La cobertura de platillos con el tope de 50 depende de la cota (sitios propios contra reparto): sigue sin saberse cuál muestra tiene razón.',
+      'NO está modelado el sondeo de 5 s del personal: con el sondeo de hoy el procesador cuenta las visitas de los comensales, no las cuentas de personal; las 3 cuentas sólo mueven la capacidad por quién paga (ver la descomposición).',
     ],
+    descomposicion_de_la_capacidad: descomposicion,
     antes_plan_chef_ronda_15: cifras(antes),
     despues_plan_chef_21_nov: cifras(despues),
   };

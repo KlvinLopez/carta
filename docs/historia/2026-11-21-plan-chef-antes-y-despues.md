@@ -27,13 +27,25 @@
 | Mes 12, 300 restaurantes: margen de operación | +3,596 | +3,737 |
 | Sueldo de 1 salario mínimo: restaurantes en régimen | 760 | 740 |
 | Capacidad con lo que se paga hoy (política vigente), con avisos | 28 | 28 |
-| Capacidad con la propuesta de 30 días, con avisos / con sondeo | 182 / 173 | 179 / 179 |
+| Capacidad con la propuesta de 30 días, con avisos / con sondeo (qué la mueve: ver «Qué mueve la capacidad») | 182 / 173 | 179 / 179 |
 | Capacidad sin purga (12 meses) | 41 | 41 |
 
 ## Supuestos nuevos
 - Cada cuenta de personal abre una línea `/op/eventos` (ADR-018 §3: una por teléfono del personal); se supone que las 3 están conectadas en la hora pico del restaurante (cota alta); la línea del dueño en el panel no se cuenta. Se mide con las líneas abiertas del piloto.
 - El modelo de mesas y cuentas (dispersión lognormal σ = 0.5, supuesto) da la parte de negocios que cabe en 6 mesas y 3 cuentas; sólo los conteos por estrato son medidos.
 - La cobertura de platillos con el tope de 50 depende de la cota (sitios propios contra reparto): sigue sin saberse cuál muestra tiene razón.
+- NO está modelado el sondeo de 5 s del personal: con el sondeo de hoy el procesador cuenta las visitas de los comensales, no las cuentas de personal; las 3 cuentas sólo mueven la capacidad por quién paga (ver la descomposición).
+
+## Qué mueve la capacidad (cada cambio por separado, con la propuesta de 30 días)
+
+| Plan | Cuentas de personal | Platillos | De paga por 1,000 | Caben con avisos | Caben con sondeo |
+|---|---|---|---|---|---|
+| Plan de la ronda 15 | 1 | 150 | 116 | 182 | 173 |
+| Sólo cambian las cuentas | 3 | 150 | 87 | 216 | 183 |
+| Sólo cambia el tope de platillos | 1 | 50 | 137 | 163 | 163 |
+| Plan vigente (21-nov) | 3 | 50 | 119 | 179 | 179 |
+
+La capacidad con la propuesta de 30 días no cambia por las líneas ni por el procesador de las cuentas de personal: el sondeo de 5 s del personal NO está modelado (el procesador cuenta las visitas de los comensales y no las cuentas), y las líneas abiertas sólo limitan con avisos y no limitan. Las cuentas mueven la capacidad por quién paga: con más cuentas caben en Chef más negocios (menos de paga, menos disco): con el sondeo de hoy caben 183 en vez de 173 sólo por eso. El tope de 50 platillos baja la cobertura de platillos y empuja a más negocios a pagar: 183 baja a 179. El neto del plan es 173 → 179 con el sondeo.
 
 ## Lectura
 - **Líneas abiertas:** con tres cuentas de personal en vez de una, un gratuito abre 4.04 líneas en la hora pico en vez de 2.04 (cota alta); el recurso de líneas no es el que limita.

@@ -44,11 +44,19 @@ ${f('Margen recomendado con la propuesta de 30 días', A.con_la_propuesta_de_30_
 ${f('Mes 12, 300 restaurantes: margen de operación', A.mes_12_con_300_restaurantes.margen_operacion, D.mes_12_con_300_restaurantes.margen_operacion, sg)}
 ${f('Sueldo de 1 salario mínimo: restaurantes en régimen', A.sueldo_de_1_salario_minimo.restaurantes_en_regimen, D.sueldo_de_1_salario_minimo.restaurantes_en_regimen)}
 ${f('Capacidad con lo que se paga hoy (política vigente), con avisos', A.capacidad.politica_vigente.con_avisos, D.capacidad.politica_vigente.con_avisos)}
-${f('Capacidad con la propuesta de 30 días, con avisos / con sondeo', A.capacidad.propuesta_30_dias.con_avisos + ' / ' + A.capacidad.propuesta_30_dias.con_sondeo, D.capacidad.propuesta_30_dias.con_avisos + ' / ' + D.capacidad.propuesta_30_dias.con_sondeo, (x) => x)}
+${f('Capacidad con la propuesta de 30 días, con avisos / con sondeo (qué la mueve: ver «Qué mueve la capacidad»)', A.capacidad.propuesta_30_dias.con_avisos + ' / ' + A.capacidad.propuesta_30_dias.con_sondeo, D.capacidad.propuesta_30_dias.con_avisos + ' / ' + D.capacidad.propuesta_30_dias.con_sondeo, (x) => x)}
 ${f('Capacidad sin purga (12 meses)', A.capacidad.sin_purga_12_meses, D.capacidad.sin_purga_12_meses)}
 
 ## Supuestos nuevos
 ${c.supuestos_nuevos.map((x) => `- ${x}`).join('\n')}
+
+## Qué mueve la capacidad (cada cambio por separado, con la propuesta de 30 días)
+
+| Plan | Cuentas de personal | Platillos | De paga por 1,000 | Caben con avisos | Caben con sondeo |
+|---|---|---|---|---|---|
+${[['Plan de la ronda 15', 'plan_de_la_ronda_15'], ['Sólo cambian las cuentas', 'sólo_cambian_las_cuentas'], ['Sólo cambia el tope de platillos', 'sólo_cambia_el_tope_de_platillos'], ['Plan vigente (21-nov)', 'plan_vigente']].map(([n, k]) => { const v = c.descomposicion_de_la_capacidad[k]; return `| ${n} | ${v.cuentas_de_personal} | ${v.platillos} | ${n0(v.pagantes_por_1000)} | ${v.caben_con_avisos} | ${v.caben_con_sondeo} |`; }).join('\n')}
+
+${c.descomposicion_de_la_capacidad.lectura}
 
 ## Lectura
 - **Líneas abiertas:** con tres cuentas de personal en vez de una, un gratuito abre ${n2(D.carga_del_gratuito.lineas_abiertas_en_la_hora_pico)} líneas en la hora pico en vez de ${n2(A.carga_del_gratuito.lineas_abiertas_en_la_hora_pico)} (cota alta); el recurso de líneas no es el que limita.

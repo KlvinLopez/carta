@@ -184,7 +184,7 @@ El gratuito carga mesas × visitas por mesa al mes; las **180 visitas por mesa**
 
 ## 4. Palancas por recurso
 
-Cada palanca se evalúa **sola** sobre la base **de la política vigente (03 §7)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de 150 platillos** (el gratuito permite 150; la copia tiene 60: con ellos el factor es 0.0462 en vez de 0.1101). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
+Cada palanca se evalúa **sola** sobre la base **de la política vigente (03 §7)** y, para el disco, también sobre la base **con el historial del gratuito a 30 días**; no se suman las que se pisan. «Caben» = restaurantes típicos por el recurso, en Hobby con avisos. **La analítica agregada por día usa la cota de 150 platillos** (es una cota fija del cálculo, no el tope de ningún plan: Chef permite 50 y Master Chef 300; la copia tiene 60: con ellos el factor es 0.0462 en vez de 0.1101). **Las palancas «índices mínimos» y «tipos» salen de datos sintéticos y pueden quedar optimistas** (con tráfico real el índice pesa más). Dos muestras de cartas con sesgos opuestos (148 cartas de reparto: cortas; sitios propios: largas y formales) respaldan el tope de 150 platillos: ver [tres-planes](2026-11-14-tres-planes.md).
 
 ### Procesador (el trabajo de la API)
 

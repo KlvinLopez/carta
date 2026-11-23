@@ -11,7 +11,7 @@ const VISTAS = ["¿Hasta dónde aguanto con todos gratuitos?", "Crecimiento mes 
 DET.sostiene = {
   titulo: "¿Se sostiene? Cuántos gratuitos aguanto, cómo crece mes a mes y a dónde se va cada 100 pesos.",
   fu: ["carta_tres_planes", "carta_planes", "carta_anuncios", "carta_mercado"],
-  nota: "Modelo de escenarios r3 (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.",
+  nota: `Modelo de escenarios ${MOD.VERSION} (docs/research/2026-11-14-modelo-de-escenarios.mjs), aún sin revisión independiente. Los comensales por restaurante son simulados, no medidos. La tarifa de anuncios en México no está publicada y AdSense podría no aprobar el sitio: es supuesto. La curva de pago la sustituye la prueba del piloto.`,
   montar(host) {
     this.v = 0; this.N = 300; this.nivel = "medio"; this.mes = 12;
     host.innerHTML = `<div class="seg" id="tabsK" style="margin-bottom:8px">${VISTAS.map((t, i) => `<button class="btn" data-vista="${i}">${t}</button>`).join("")}</div><div class="viz"><svg id="svK" viewBox="0 0 960 540" role="img" font-family="DM Sans, sans-serif"></svg></div><div class="seg" id="banK" style="margin-top:8px" hidden></div>`;
@@ -363,5 +363,5 @@ $("#pantallaTop").innerHTML = BTN_PANTALLA;
 $("#verDecisiones").addEventListener("click", () => abre("recomendaciones"));
 const h0 = location.hash.slice(1);
 if (h0 && CAPS.some(c => c.id === h0)) setTimeout(() => irCap(h0), 300);
-else if (h0 && DET[h0]) abre(h0, false);
+else if (h0 && Object.hasOwn(DET, h0)) abre(h0, false);
 else { let visto = false; try { visto = localStorage.getItem("carta-v9-intro") === "1"; } catch (e) { /* ignorar */ } if (!visto && !location.search.includes("nointro")) abrirIntro(); }

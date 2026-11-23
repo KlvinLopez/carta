@@ -16,7 +16,7 @@ Archivo de datos: [`2026-11-21-disco-por-registro.json`](2026-11-21-disco-por-re
 
 **Qué no cuenta.** Las actualizaciones (estado de la orden, última actividad de la sesión, confirmación de la comanda) dejan versiones nuevas de fila hasta el vacuum; no se cuentan, igual que en el informe. Los datos son sintéticos: el tamaño de una fila no depende del valor salvo en texto y `jsonb`.
 
-**Por qué no da 8,382.** Ver `diferencia_con_el_informe` en el JSON, con su conciliación tabla por tabla. En resumen: las seis tablas de la visita coinciden con el informe dentro de unas decenas de bytes por fila; la diferencia está en la analítica, donde un registro suelto paga siete entradas de índice sin deduplicar y la copia de 180,000 eventos, que usa el informe, deduplica las entradas iguales. Las dos cifras son ciertas y miden cosas distintas (costo de escribir esta mesa frente a lo que ocupa el disco a escala); no se corrigió ninguna.
+**Por qué no da 8,382.** Ver `diferencia_con_el_informe` en el JSON, con su conciliación tabla por tabla. En resumen: las siete tablas de la visita coinciden con el informe dentro de unas decenas de bytes por fila; la diferencia está en la analítica, donde un registro suelto paga siete entradas de índice sin deduplicar y la copia de 180,000 eventos, que usa el informe, deduplica las entradas iguales. Las dos cifras son ciertas y miden cosas distintas (costo de escribir esta mesa frente a lo que ocupa el disco a escala); no se corrigió ninguna.
 
 **Cómo regenerarlo** (desde la raíz del repositorio; hace falta PostgreSQL local, `psql` y `uv`):
 

@@ -4,8 +4,48 @@
   "supuestos_nuevos": [
     "Cada cuenta de personal abre una línea `/op/eventos` (ADR-018 §3: una por teléfono del personal); se supone que las 3 están conectadas en la hora pico del restaurante (cota alta); la línea del dueño en el panel no se cuenta. Se mide con las líneas abiertas del piloto.",
     "El modelo de mesas y cuentas (dispersión lognormal σ = 0.5, supuesto) da la parte de negocios que cabe en 6 mesas y 3 cuentas; sólo los conteos por estrato son medidos.",
-    "La cobertura de platillos con el tope de 50 depende de la cota (sitios propios contra reparto): sigue sin saberse cuál muestra tiene razón."
+    "La cobertura de platillos con el tope de 50 depende de la cota (sitios propios contra reparto): sigue sin saberse cuál muestra tiene razón.",
+    "NO está modelado el sondeo de 5 s del personal: con el sondeo de hoy el procesador cuenta las visitas de los comensales, no las cuentas de personal; las 3 cuentas sólo mueven la capacidad por quién paga (ver la descomposición)."
   ],
+  "descomposicion_de_la_capacidad": {
+    "plan_de_la_ronda_15": {
+      "cuentas_de_personal": 1,
+      "platillos": 150,
+      "pagantes_por_1000": 115.88394988411602,
+      "caben_con_avisos": 182,
+      "caben_con_sondeo": 173,
+      "procesador_con_sondeo": 173,
+      "disco": 182
+    },
+    "sólo_cambian_las_cuentas": {
+      "cuentas_de_personal": 3,
+      "platillos": 150,
+      "pagantes_por_1000": 87.20914991279083,
+      "caben_con_avisos": 216,
+      "caben_con_sondeo": 183,
+      "procesador_con_sondeo": 183,
+      "disco": 216
+    },
+    "sólo_cambia_el_tope_de_platillos": {
+      "cuentas_de_personal": 1,
+      "platillos": 50,
+      "pagantes_por_1000": 137.03926303547445,
+      "caben_con_avisos": 163,
+      "caben_con_sondeo": 163,
+      "procesador_con_sondeo": 172,
+      "disco": 163
+    },
+    "plan_vigente": {
+      "cuentas_de_personal": 3,
+      "platillos": 50,
+      "pagantes_por_1000": 118.62604809144003,
+      "caben_con_avisos": 179,
+      "caben_con_sondeo": 179,
+      "procesador_con_sondeo": 179,
+      "disco": 179
+    },
+    "lectura": "La capacidad con la propuesta de 30 días no cambia por las líneas ni por el procesador de las cuentas de personal: el sondeo de 5 s del personal NO está modelado (el procesador cuenta las visitas de los comensales y no las cuentas), y las líneas abiertas sólo limitan con avisos y no limitan. Las cuentas mueven la capacidad por quién paga: con más cuentas caben en Chef más negocios (menos de paga, menos disco): con el sondeo de hoy caben 183 en vez de 173 sólo por eso. El tope de 50 platillos baja la cobertura de platillos y empuja a más negocios a pagar: 183 baja a 179. El neto del plan es 173 → 179 con el sondeo."
+  },
   "antes_plan_chef_ronda_15": {
     "topes": {
       "mesas": 6,

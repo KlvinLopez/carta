@@ -3809,7 +3809,7 @@
    "min": null,
    "max": null,
    "origen": "medido",
-   "fuente": "2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con 145 bytes por fila y 31 días × (5 tipos + platillos): la cota usa los 150 platillos que permite el plan gratuito y 'con_platillos_de_la_copia' los 60 de la copia",
+   "fuente": "2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con 145 bytes por fila y 31 días × (5 tipos + platillos): la cota usa 150 platillos (cota fija del cálculo, un supuesto: no es el tope de ningún plan) y 'con_platillos_de_la_copia' los 60 de la copia",
    "nota": "fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy",
    "mueve_resultado": true
   },
