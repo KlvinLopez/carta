@@ -8,10 +8,10 @@
   ],
   "descripcion": "Una mesa de tres comensales (Ana, Beto y Carla): entran a la misma sesión, cada uno agrega tres platillos, la mesa envía la comanda y Beto llama al mesero. 12 eventos de analítica (4 por comensal).",
   "restaurante": "La Ceiba (datos de desarrollo), plan Chef",
-  "base_de_medicion": "carta_med_registro_5"
+  "base_de_medicion": "carta_med_registro_7"
  },
  "medido_con": {
-  "base": "carta_med_registro_5 (PostgreSQL local, esquema de las migraciones)",
+  "base": "carta_med_registro_7 (PostgreSQL local, esquema de las migraciones)",
   "extension": "pageinspect",
   "consultas": [
    {
@@ -373,21 +373,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "mesa_id",
        "tipo": "uuid",
-       "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+       "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "restaurante_id",
        "tipo": "uuid",
-       "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+       "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -401,7 +401,7 @@
       {
        "nombre": "inicio",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:47.168353+00",
+       "valor": "2026-11-23 14:32:26.784113+00",
        "bytes": 8,
        "relleno_antes": 1
       },
@@ -415,7 +415,7 @@
       {
        "nombre": "ultima_actividad_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:47.168353+00",
+       "valor": "2026-11-23 14:32:26.784113+00",
        "bytes": 8,
        "relleno_antes": 0
       },
@@ -484,14 +484,14 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+       "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -533,7 +533,7 @@
       {
        "nombre": "unido_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:47.711142+00",
+       "valor": "2026-11-23 14:32:27.460504+00",
        "bytes": 8,
        "relleno_antes": 5
       }
@@ -576,14 +576,14 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "95281322-aafe-4c38-a652-538997942aa4",
+       "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -625,7 +625,7 @@
       {
        "nombre": "unido_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:48.621603+00",
+       "valor": "2026-11-23 14:32:28.536368+00",
        "bytes": 8,
        "relleno_antes": 4
       }
@@ -668,14 +668,14 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+       "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -717,7 +717,7 @@
       {
        "nombre": "unido_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:49.510334+00",
+       "valor": "2026-11-23 14:32:29.460604+00",
        "bytes": 8,
        "relleno_antes": 3
       }
@@ -769,21 +769,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "f9f1924d-a755-4514-aa8b-1c4f4e88ef61",
+       "valor": "33a416e5-b8d4-4b64-8f8a-b90b13950c81",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "miembro_id",
        "tipo": "uuid",
-       "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+       "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -811,7 +811,7 @@
       {
        "nombre": "creada_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:48.133553+00",
+       "valor": "2026-11-23 14:32:27.983241+00",
        "bytes": 8,
        "relleno_antes": 4
       },
@@ -861,21 +861,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "8cb5f65d-6bac-4d1d-a1c7-02f06ab1bb77",
+       "valor": "0713cd61-f5c8-44e5-aeb6-40e6f8a9bf91",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "miembro_id",
        "tipo": "uuid",
-       "valor": "95281322-aafe-4c38-a652-538997942aa4",
+       "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -903,7 +903,7 @@
       {
        "nombre": "creada_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:49.07449+00",
+       "valor": "2026-11-23 14:32:28.991718+00",
        "bytes": 8,
        "relleno_antes": 4
       },
@@ -953,21 +953,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "87e19358-f397-4bb8-b798-5a797fd5517f",
+       "valor": "0f321928-330a-4a31-acba-484b2056c958",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "miembro_id",
        "tipo": "uuid",
-       "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+       "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -995,7 +995,7 @@
       {
        "nombre": "creada_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:30:49.975859+00",
+       "valor": "2026-11-23 14:32:29.976171+00",
        "bytes": 8,
        "relleno_antes": 4
       },
@@ -1054,21 +1054,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "6481e6d9-d982-43e7-9385-64f3057b7a4f",
+       "valor": "a61f54ae-43ad-4821-83da-5552fade73d6",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "f9f1924d-a755-4514-aa8b-1c4f4e88ef61",
+       "valor": "33a416e5-b8d4-4b64-8f8a-b90b13950c81",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "39f3547d-f800-47dc-8e15-7623669026f9",
+       "valor": "2b7148f9-c02e-4bf2-b0eb-872dc212c740",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1134,21 +1134,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "ab78fd2c-bb39-4c51-ab07-37b0788d54d6",
+       "valor": "8ae726b7-5917-4aba-819d-493b0d356d7e",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "f9f1924d-a755-4514-aa8b-1c4f4e88ef61",
+       "valor": "33a416e5-b8d4-4b64-8f8a-b90b13950c81",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "26343210-33d1-4372-87ce-b7a0830a5f20",
+       "valor": "41ea1fd0-89cb-4549-9e0c-2b78725cb061",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1214,21 +1214,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "d2656a50-b0f8-4c83-8079-cacdc8754d95",
+       "valor": "d561b71a-32a2-4e62-9330-272a5f6cdbf4",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "f9f1924d-a755-4514-aa8b-1c4f4e88ef61",
+       "valor": "33a416e5-b8d4-4b64-8f8a-b90b13950c81",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+       "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1294,21 +1294,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "38128890-d33c-4abd-a4d9-1c02f3b40e0a",
+       "valor": "06a61c24-d977-4439-9579-575595df2e13",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "8cb5f65d-6bac-4d1d-a1c7-02f06ab1bb77",
+       "valor": "0713cd61-f5c8-44e5-aeb6-40e6f8a9bf91",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "39f3547d-f800-47dc-8e15-7623669026f9",
+       "valor": "2b7148f9-c02e-4bf2-b0eb-872dc212c740",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1374,21 +1374,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "04d71f17-0e22-4b4b-9e35-b790605c13be",
+       "valor": "735aa9a2-3d55-45ed-a0ac-b3e1c286e8c1",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "8cb5f65d-6bac-4d1d-a1c7-02f06ab1bb77",
+       "valor": "0713cd61-f5c8-44e5-aeb6-40e6f8a9bf91",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "26343210-33d1-4372-87ce-b7a0830a5f20",
+       "valor": "41ea1fd0-89cb-4549-9e0c-2b78725cb061",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1454,21 +1454,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "8278944c-4620-4601-af0b-724e30b015f7",
+       "valor": "6558dbe2-20aa-40ea-95d5-042a56cd206f",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "8cb5f65d-6bac-4d1d-a1c7-02f06ab1bb77",
+       "valor": "0713cd61-f5c8-44e5-aeb6-40e6f8a9bf91",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+       "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1534,21 +1534,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "c3d6c5f2-efa1-4ae8-9a3e-13a2702ee5fd",
+       "valor": "a184afc5-756d-4d4d-a6c7-c461f1276210",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "87e19358-f397-4bb8-b798-5a797fd5517f",
+       "valor": "0f321928-330a-4a31-acba-484b2056c958",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "39f3547d-f800-47dc-8e15-7623669026f9",
+       "valor": "2b7148f9-c02e-4bf2-b0eb-872dc212c740",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1614,21 +1614,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "07d140f8-4fac-4777-b417-88e2dc3fb2c3",
+       "valor": "f708871e-d30c-44f9-99fb-99d52f7b521a",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "87e19358-f397-4bb8-b798-5a797fd5517f",
+       "valor": "0f321928-330a-4a31-acba-484b2056c958",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "26343210-33d1-4372-87ce-b7a0830a5f20",
+       "valor": "41ea1fd0-89cb-4549-9e0c-2b78725cb061",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1694,21 +1694,21 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "47259add-9e08-4fc0-842f-593c08d1dab3",
+       "valor": "eb02306c-22a2-49a3-a6b9-ba9bd0d0c485",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "87e19358-f397-4bb8-b798-5a797fd5517f",
+       "valor": "0f321928-330a-4a31-acba-484b2056c958",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "platillo_id",
        "tipo": "uuid",
-       "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+       "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1783,28 +1783,28 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "6c35a994-04e1-4dee-9d16-19880ee999e8",
+       "valor": "c1e3df07-0c4e-42f9-8b79-13d12bb97f9c",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "restaurante_id",
        "tipo": "uuid",
-       "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+       "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "mesa_id",
        "tipo": "uuid",
-       "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+       "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -1839,7 +1839,7 @@
       {
        "nombre": "creada_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:31:01.115866+00",
+       "valor": "2026-11-23 14:32:43.457241+00",
        "bytes": 8,
        "relleno_antes": 4
       },
@@ -1929,14 +1929,14 @@
       {
        "nombre": "comanda_id",
        "tipo": "uuid",
-       "valor": "6c35a994-04e1-4dee-9d16-19880ee999e8",
+       "valor": "c1e3df07-0c4e-42f9-8b79-13d12bb97f9c",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "f9f1924d-a755-4514-aa8b-1c4f4e88ef61",
+       "valor": "33a416e5-b8d4-4b64-8f8a-b90b13950c81",
        "bytes": 16,
        "relleno_antes": 0
       }
@@ -1969,14 +1969,14 @@
       {
        "nombre": "comanda_id",
        "tipo": "uuid",
-       "valor": "6c35a994-04e1-4dee-9d16-19880ee999e8",
+       "valor": "c1e3df07-0c4e-42f9-8b79-13d12bb97f9c",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "8cb5f65d-6bac-4d1d-a1c7-02f06ab1bb77",
+       "valor": "0713cd61-f5c8-44e5-aeb6-40e6f8a9bf91",
        "bytes": 16,
        "relleno_antes": 0
       }
@@ -2009,14 +2009,14 @@
       {
        "nombre": "comanda_id",
        "tipo": "uuid",
-       "valor": "6c35a994-04e1-4dee-9d16-19880ee999e8",
+       "valor": "c1e3df07-0c4e-42f9-8b79-13d12bb97f9c",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "orden_id",
        "tipo": "uuid",
-       "valor": "87e19358-f397-4bb8-b798-5a797fd5517f",
+       "valor": "0f321928-330a-4a31-acba-484b2056c958",
        "bytes": 16,
        "relleno_antes": 0
       }
@@ -2058,35 +2058,35 @@
       {
        "nombre": "id",
        "tipo": "uuid",
-       "valor": "5bf15846-60bc-4d1d-98e7-2ca210d0b70f",
+       "valor": "4796fccb-147e-40ad-a505-95635ee48839",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "restaurante_id",
        "tipo": "uuid",
-       "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+       "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "mesa_id",
        "tipo": "uuid",
-       "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+       "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "sesion_id",
        "tipo": "uuid",
-       "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+       "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
        "bytes": 16,
        "relleno_antes": 0
       },
       {
        "nombre": "miembro_id",
        "tipo": "uuid",
-       "valor": "95281322-aafe-4c38-a652-538997942aa4",
+       "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
        "bytes": 16,
        "relleno_antes": 0
       },
@@ -2114,7 +2114,7 @@
       {
        "nombre": "creada_en",
        "tipo": "timestamp with time zone",
-       "valor": "2026-11-22 02:31:02.640581+00",
+       "valor": "2026-11-23 14:32:45.027913+00",
        "bytes": 8,
        "relleno_antes": 7
       }
@@ -2196,28 +2196,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+         "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -2259,7 +2259,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:50.417809+00",
+         "valor": "2026-11-23 14:32:30.454967+00",
          "bytes": 8,
          "relleno_antes": 6
         }
@@ -2324,28 +2324,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+         "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -2387,7 +2387,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:51.028886+00",
+         "valor": "2026-11-23 14:32:31.172395+00",
          "bytes": 8,
          "relleno_antes": 1
         }
@@ -2452,28 +2452,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "95281322-aafe-4c38-a652-538997942aa4",
+         "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -2515,7 +2515,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:51.646465+00",
+         "valor": "2026-11-23 14:32:31.899966+00",
          "bytes": 8,
          "relleno_antes": 6
         }
@@ -2580,28 +2580,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "95281322-aafe-4c38-a652-538997942aa4",
+         "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -2643,7 +2643,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:52.272087+00",
+         "valor": "2026-11-23 14:32:32.700271+00",
          "bytes": 8,
          "relleno_antes": 1
         }
@@ -2708,28 +2708,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+         "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -2771,7 +2771,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:52.901707+00",
+         "valor": "2026-11-23 14:32:33.50924+00",
          "bytes": 8,
          "relleno_antes": 6
         }
@@ -2836,28 +2836,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+         "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -2899,7 +2899,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:53.482249+00",
+         "valor": "2026-11-23 14:32:34.258975+00",
          "bytes": 8,
          "relleno_antes": 1
         }
@@ -2964,35 +2964,35 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+         "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "39f3547d-f800-47dc-8e15-7623669026f9",
+         "valor": "2b7148f9-c02e-4bf2-b0eb-872dc212c740",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3027,7 +3027,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:54.125348+00",
+         "valor": "2026-11-23 14:32:35.004752+00",
          "bytes": 8,
          "relleno_antes": 1
         }
@@ -3092,28 +3092,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+         "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3155,7 +3155,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:54.717549+00",
+         "valor": "2026-11-23 14:32:35.773102+00",
          "bytes": 8,
          "relleno_antes": 4
         }
@@ -3220,35 +3220,35 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "95281322-aafe-4c38-a652-538997942aa4",
+         "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "26343210-33d1-4372-87ce-b7a0830a5f20",
+         "valor": "41ea1fd0-89cb-4549-9e0c-2b78725cb061",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3283,7 +3283,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:56.466511+00",
+         "valor": "2026-11-23 14:32:37.768825+00",
          "bytes": 8,
          "relleno_antes": 1
         }
@@ -3348,28 +3348,28 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "95281322-aafe-4c38-a652-538997942aa4",
+         "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3411,7 +3411,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:57.133111+00",
+         "valor": "2026-11-23 14:32:38.500572+00",
          "bytes": 8,
          "relleno_antes": 4
         }
@@ -3476,35 +3476,35 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+         "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+         "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3539,7 +3539,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:58.903333+00",
+         "valor": "2026-11-23 14:32:40.691531+00",
          "bytes": 8,
          "relleno_antes": 1
         }
@@ -3604,35 +3604,35 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "mesa_id",
          "tipo": "uuid",
-         "valor": "f1f79dae-1f8a-48a2-9324-e0615a287e9b",
+         "valor": "2207a55c-7dfa-4fa8-b39e-732af0153736",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "sesion_id",
          "tipo": "uuid",
-         "valor": "2d25fa02-0b38-4c47-b5a0-13353eeb3b86",
+         "valor": "b6963988-0d05-43a3-8478-63463d49fd15",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+         "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+         "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3667,7 +3667,7 @@
         {
          "nombre": "ocurrido_en",
          "tipo": "timestamp with time zone",
-         "valor": "2026-11-22 02:30:59.48949+00",
+         "valor": "2026-11-23 14:32:41.485876+00",
          "bytes": 8,
          "relleno_antes": 2
         }
@@ -3748,14 +3748,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -3804,14 +3804,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -3860,14 +3860,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -3881,7 +3881,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+         "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3916,14 +3916,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -3937,7 +3937,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "26343210-33d1-4372-87ce-b7a0830a5f20",
+         "valor": "2b7148f9-c02e-4bf2-b0eb-872dc212c740",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -3972,14 +3972,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -3993,7 +3993,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "39f3547d-f800-47dc-8e15-7623669026f9",
+         "valor": "41ea1fd0-89cb-4549-9e0c-2b78725cb061",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4028,14 +4028,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -4084,14 +4084,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -4140,14 +4140,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -4161,7 +4161,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+         "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4220,21 +4220,21 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+         "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4304,21 +4304,21 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "95281322-aafe-4c38-a652-538997942aa4",
+         "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4388,21 +4388,21 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+         "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4496,21 +4496,21 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "b2e26ba7-f94a-43d2-a8ba-3adb7fd112a4",
+         "valor": "d4d13da6-8c32-49ee-b14e-d908e752e9f7",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4580,21 +4580,21 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "95281322-aafe-4c38-a652-538997942aa4",
+         "valor": "52d59f71-69b4-458c-9a66-1a08cf6b4f22",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4664,21 +4664,21 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
         {
          "nombre": "miembro_id",
          "tipo": "uuid",
-         "valor": "f1b3c524-b124-4b48-9de6-7e8a9c1cb373",
+         "valor": "ed760c7c-2c77-445a-a10d-3a8e337a8e4c",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4757,14 +4757,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -4778,7 +4778,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+         "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4813,14 +4813,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -4834,7 +4834,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "26343210-33d1-4372-87ce-b7a0830a5f20",
+         "valor": "2b7148f9-c02e-4bf2-b0eb-872dc212c740",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4869,14 +4869,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -4890,7 +4890,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "39f3547d-f800-47dc-8e15-7623669026f9",
+         "valor": "41ea1fd0-89cb-4549-9e0c-2b78725cb061",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -4925,14 +4925,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -4981,14 +4981,14 @@
         {
          "nombre": "restaurante_id",
          "tipo": "uuid",
-         "valor": "1ad492e9-8363-4ac5-8439-55e08d25fa9d",
+         "valor": "a88ae3a7-dde9-4981-9932-a767ea12ae93",
          "bytes": 16,
          "relleno_antes": 0
         },
         {
          "nombre": "dia",
          "tipo": "date",
-         "valor": "2026-11-22",
+         "valor": "2026-11-23",
          "bytes": 4,
          "relleno_antes": 0
         },
@@ -5002,7 +5002,7 @@
         {
          "nombre": "platillo_id",
          "tipo": "uuid",
-         "valor": "02d2305d-e8c9-4daa-ab93-31824525ef8c",
+         "valor": "25c167e4-9220-4f8a-ba6f-6741d55924d9",
          "bytes": 16,
          "relleno_antes": 0
         },
@@ -5130,7 +5130,7 @@
    },
    {
     "tabla": "llamada_mesero",
-    "informe_filas": 0.3,
+    "informe_filas": 0.301,
     "informe_bytes_por_fila": 304,
     "informe_bytes": 92,
     "medido_filas": 1,
@@ -5139,7 +5139,7 @@
    },
    {
     "tabla": "evento_analitica",
-    "informe_filas": 11.56,
+    "informe_filas": 11.564,
     "informe_bytes_por_fila": 353,
     "informe_bytes": 4082,
     "medido_filas": 12,
@@ -5151,7 +5151,7 @@
    "El informe (2026-11-17-historia-del-disco) usa valores ESPERADOS por mesa de tres (1.3 comandas, 0.3 llamadas, 11.56 eventos) y bytes por fila = tamaño total de la tabla (con sus índices) ÷ sus filas, medido en una copia de 18,000 sesiones. Esta medición escribe UNA mesa concreta (1 comanda, 1 llamada, 12 eventos) y mide cada registro contra el esquema real.",
    "El promedio de la copia (tamaño de la tabla con sus índices ÷ sus filas) mezcla efectos que un registro suelto no ve: huecos de las páginas de 8 KB, páginas internas de los índices y la deduplicación de entradas de índice iguales; según la tabla empujan el promedio hacia arriba o hacia abajo de la suma exacta de la tupla y sus entradas.",
    "El informe cuenta en el ejemplo un comensal por comanda_orden y fracciones de comanda y de llamada porque promedia 18,000 mesas; esta mesa escribe filas enteras. No se corrigió la cifra del informe: se añadió esta vista por registro y se explica la diferencia fila por fila en `conciliacion_por_tabla`.",
-   "Dónde está la diferencia: el informe da 8382 bytes por mesa; esta medición da 9028. En las seis tablas de la visita coinciden dentro de unas decenas de bytes por fila (264 contra 276 la sesión: 100 de tupla más 176 de seis entradas de índice). La diferencia grande es la analítica: 402 bytes por evento medidos contra 353 del informe. Un evento real escribe 7 entradas de índice (188 bytes la primera) y en la copia de 180,000 eventos los índices pesan 137 bytes por evento (la tupla, 216): al repetirse miembro, sesión, mesa, tipo y restaurante, PostgreSQL deduplica las entradas de índice iguales (btree con deduplicación) y cada una cuesta menos que el registro suelto, que no puede deduplicar contra nadie.",
+   "Dónde está la diferencia: el informe da 8382 bytes por mesa; esta medición da 9028. En las siete tablas de la visita (sesión, miembros, órdenes, platillos, comanda, enlaces y llamada) coinciden dentro de unas decenas de bytes por fila (264 contra 276 la sesión: 100 de tupla más 176 de seis entradas de índice). La diferencia grande es la analítica: 402 bytes por evento medidos contra 353 del informe. Un evento real escribe 7 entradas de índice y, en promedio de los 12 de ejemplo, 207 bytes de tupla y 195 de índice (204 y 188 sólo en los eventos sin platillo ni nulos extra; cambian con los nulos y el platillo) y en la copia de 180,000 eventos los índices pesan 137 bytes por evento (la tupla, 216): al repetirse miembro, sesión, mesa, tipo y restaurante, PostgreSQL deduplica las entradas de índice iguales (btree con deduplicación) y cada una cuesta menos que el registro suelto, que no puede deduplicar contra nadie.",
    "Por eso las dos cifras son ciertas y miden cosas distintas: el registro suelto es el costo de escribir ESTA mesa (cota alta de índices); el promedio de la copia es lo que ocupa el disco a escala. La capacidad del informe usa el promedio de la copia. No se corrigió ninguna de las dos; la corrección pendiente es medir con tráfico real cuánto deduplican los índices.",
    "No se cuentan las ACTUALIZACIONES (estado de la orden, ultima_actividad_en de la sesión, confirmación de la comanda): cada una deja una versión nueva de la fila hasta el vacuum. El informe tampoco las cuenta; es una subestimación común, pendiente de medir cuando exista la Fase 3."
   ]

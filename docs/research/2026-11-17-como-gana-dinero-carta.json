@@ -1136,7 +1136,7 @@
      0.5982092325120552
     ],
     "parte_de_los_clientes_potenciales_que_cabe_en_chef": 0.3089059356096736,
-    "lectura": "Con un producto sin plan gratuito (Meniu: prueba de 7 días y 225 pesos al mes), quedan sin servir los negocios de 0 a 5 personas: 73,193 de 104,882 clientes potenciales [medido, DENUE]; con 6 mesas y 1 cuenta caben en Chef 32,399 (44.3 % de ellos; rango 38.1–59.8 %), un juicio del modelo de mesas y cuentas.",
+    "lectura": "Con un producto sin plan gratuito (Meniu: prueba de 7 días y 225 pesos al mes), quedan sin servir los negocios de 0 a 5 personas: 73,193 de 104,882 clientes potenciales [medido, DENUE]; con 6 mesas y 3 cuentas de personal (más el dueño) y 50 platillos caben en Chef 32,399 (44.3 % de ellos; rango 38.1–59.8 %), un juicio del modelo de mesas y cuentas.",
     "supuesto": "sólo los conteos por estrato son medidos; el reparto entre Chef y Master Chef es el modelo de mesas y cuentas con dispersión"
    }
   },

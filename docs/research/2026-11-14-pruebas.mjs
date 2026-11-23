@@ -715,6 +715,23 @@ for (const [plan, mk] of PLANES) {
   prueba(`[${plan}] sumar una segunda forma de guardar la analítica no cambia la capacidad`, cap(['fila_por_visita_de_comensal', 'fila_por_visita_mas_platillo_por_dia']), cap(['fila_por_visita_mas_platillo_por_dia']));
 }
 
+// 12n) lectura de 'tamaño del hueco': las mesas y las cuentas que nombra salen de la configuración, no de un literal
+{
+  const s = M.valores(JSON.parse(readFileSync(join(aqui, '2026-11-14-parametros.json'), 'utf8')));
+  const lee = (c) => { const m = /con (\d+) mesas y (\d+) cuentas de personal/.exec(M.modeloDeNegocio(c, s).hueco_frente_a_meniu.tamano_del_hueco.lectura); return m ? `${m[1]}·${m[2]}` : null; };
+  const base = M.configInicial();
+  prueba('la lectura del hueco nombra las mesas y cuentas del plan vigente (6·3)', `${lee(base)}/${base.topes.gratuito.mesas}·${base.topes.gratuito.cuentas}`, '6·3/6·3');
+  const otra = JSON.parse(JSON.stringify(base));
+  otra.topes.gratuito.mesas = 8;
+  otra.topes.gratuito.cuentas = 1;
+  prueba('si la configuración cambia (8 mesas, 1 cuenta) la lectura cambia con ella', lee(otra), '8·1');
+  const md = readFileSync(join(aqui, '2026-11-17-como-gana-dinero-carta.md'), 'utf8');
+  prueba('el informe generado nombra 6 mesas y 3 cuentas de personal, y ya no «6 mesas y 1 cuenta»', md.includes(`con ${base.topes.gratuito.mesas} mesas y ${base.topes.gratuito.cuentas} cuentas de personal`) && !/6 mesas y 1 cuenta/.test(md), true);
+  const dsc = M.comparacionPlanChef(base, s).descomposicion_de_la_capacidad;
+  prueba('capacidad con sondeo: 173 (r15) → 183 sólo por las cuentas, 163 sólo por 50 platillos, 179 el plan vigente', `${dsc.plan_de_la_ronda_15.caben_con_sondeo}/${dsc['sólo_cambian_las_cuentas'].caben_con_sondeo}/${dsc['sólo_cambia_el_tope_de_platillos'].caben_con_sondeo}/${dsc.plan_vigente.caben_con_sondeo}`, '173/183/163/179');
+  prueba('las cuentas de personal no cambian el procesador con sondeo si no cambia quién paga (misma parte de paga)', (() => { const c1 = JSON.parse(JSON.stringify(base)); const c3 = JSON.parse(JSON.stringify(base)); c1.topes.gratuito.cuentas = 1; const f = (c) => M.topesDeTamano(M.conPropuesta30Dias({ ...c, parte_de_paga_fija: 0.1 }), s, 'hobby_sondeo', 'sondeo', 'topes').procesador; return f(c1) === f(c3); })(), true);
+}
+
 // 13) los archivos generados y commiteados coinciden con la salida del modelo (si alguien cambia el modelo y no regenera, esto falla)
 {
   const tmp = mkdtempSync(join(tmpdir(), 'carta-gen-'));
