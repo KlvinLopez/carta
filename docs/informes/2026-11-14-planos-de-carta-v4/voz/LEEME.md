@@ -15,6 +15,7 @@ partir de una grabación por frase; la música, a partir de una pieza y de los t
 | La música de fondo, ya con su volumen | `apoyo/musica/fondo.mp3` | Sí |
 | La pieza de música original | `voz/musica/whats-the-angle.mp3` | No |
 | El mezclador de la música | `voz/mezcla_musica.py` | No |
+| La comprobación de los dos mezcladores | `voz/comprueba_mezcladores.py` | No |
 | Cuándo empieza y cuánto dura cada toma | `voz/linea_de_tiempo.json`, lo escribe `apoyo/cine/guion.mjs` | No |
 
 ## Reparto
@@ -123,6 +124,19 @@ por ese ritmo sin cambiar el tono (`atempo` de ffmpeg) y dura sus segundos de gu
 música no se acelera: `mezcla_musica.py` pasa los tiempos a segundos de reloj y la pista dura lo que
 la película en el reloj.
 
+## Comprobar los mezcladores
+
+```bash
+python3 comprueba_mezcladores.py
+```
+
+Corre los dos mezcladores sobre copias, sin tocar el repositorio: que rechacen con código 1 y sin
+escribir nada un guion imposible (los casos de arriba, más un nombre de toma que sale de su carpeta),
+que la narradora espere al último que sigue hablando, que el guion del repositorio vuelva a dar
+`voz/tiempos.json`, y que el de la música se detenga con un ritmo distinto o una frase fuera de su
+toma y repita una pieza corta hasta cubrir la película. Tarda cerca de un minuto. Hay que correrlo
+cada vez que se toque un mezclador; `verificar.mjs` no lo llama.
+
 ## La música
 
 «What's The Angle?», de Shane Ivers: jazz «de detective», con trompeta con sordina, contrabajo
@@ -140,7 +154,11 @@ crédito que pide el autor:
 
 ```
 Music: What's The Angle? by Shane Ivers – https://silvermansound.com
+Licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/
 ```
+
+La primera línea es la que pide el autor; la segunda la añadimos para que la licencia quede escrita
+aquí con su dirección, sin depender de la ficha.
 
 La película lo muestra en la tarjeta final con la licencia y la palabra «adaptada», porque aquí se
 recorta, se repite y se le cambia el volumen. Un aviso de la ficha: en YouTube puede saltar un reclamo

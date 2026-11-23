@@ -19,7 +19,8 @@ Cuándo entra cada frase, en segundos desde el inicio de su toma:
 
 El guion se revisa antes de mezclar, y si algo no tiene sentido no se escribe nada y el código de
 salida es 1: `con`, `tras` o `encima` negativos; `con` en la primera frase de una toma o junto a la
-narradora; `encima` mayor que lo que dura la frase anterior.
+narradora; `encima` mayor que lo que dura la frase anterior; un nombre de toma o de frase con algo
+más que minúsculas, cifras y guion (acaba en una ruta de archivo).
 
 El ritmo: la película puede correr más rápido que como se escribió (`ritmo` en linea_de_tiempo.json,
 que sale de RITMO en js/e2_film.js; 1 si no está). Todos los segundos de aquí y de tiempos.json son
@@ -51,6 +52,9 @@ PLATICA = 1.0  # si el hueco nominal es menor, la frase va pegada a la anterior
 OBJETIVO_DB = -23.0  # volumen medio por frase (la música de fondo se mide contra esto)
 COLA = 0.15  # silencio al final de cada mp3 (la película añade su propio margen)
 RITMO_MIN, RITMO_MAX = 0.8, 1.5  # fuera de esto la voz deja de sonar natural
+NOMBRE = re.compile(
+    r"^[a-z0-9-]+$"
+)  # toma e id acaban en una ruta: sólo minúsculas, cifras y guion
 
 
 def corre(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -173,6 +177,15 @@ def mezcla(nombre: str, filas: list[dict], ritmo: float) -> float:
 def main() -> int:
     guion = json.loads(GUION.read_text(encoding="utf8"))
     ritmo = lee_ritmo()
+    raros = [x for linea in guion for x in (linea["toma"], linea["id"]) if not NOMBRE.match(str(x))]
+    if raros:
+        print(
+            "Nombres de toma o de frase que no pueden ser un archivo; no se escribió nada:",
+            file=sys.stderr,
+        )
+        for x in sorted(set(map(str, raros))):
+            print("  " + repr(x), file=sys.stderr)
+        return 1
     SALIDA.mkdir(parents=True, exist_ok=True)
     por_toma: dict[str, list[dict]] = {}
     for linea in guion:
