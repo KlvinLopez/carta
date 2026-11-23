@@ -127,7 +127,7 @@ p("factores_disco_eventos", {
     "agregada_por_dia_con_platillos_de_la_copia": round(_f_dia(_plat_copia), 4),
     "platillos_cota": 150, "platillos_en_la_copia": _plat_copia,
     "retencion_7_dias": round(7 / 30, 4)},
-  origen="medido", fuente="2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con %d bytes por fila y 31 días × (5 tipos + platillos): la cota usa los 150 platillos que permite el plan gratuito y 'con_platillos_de_la_copia' los %d de la copia" % (round(_dia_bytes), _plat_copia),
+  origen="medido", fuente="2026-11-14-recursos-medir.py: MEDIDO CON DATOS SINTÉTICOS sobre una copia de carta_med_mediano (10 restaurantes medianos, un mes, 10 eventos por visita [supuesto]) con miembro, platillo, ip_hash y navegador rellenados con valores variados; la agregada por día se calcula con %d bytes por fila y 31 días × (5 tipos + platillos): la cota usa 150 platillos (cota fija del cálculo, un supuesto: no es el tope de ningún plan) y 'con_platillos_de_la_copia' los %d de la copia" % (round(_dia_bytes), _plat_copia),
   nota="fracción de lo que ocupa hoy la analítica (tabla + índices) que quedaría con cada palanca; 1 = igual que hoy")
 # --- fila por visita de comensal (ronda 10): medido en local con 2026-11-17-fila-por-visita-medir.py ---
 _fv = _j.load(open(__import__("os").path.join(AQUI, "2026-11-17-fila-por-visita-datos.json")))
