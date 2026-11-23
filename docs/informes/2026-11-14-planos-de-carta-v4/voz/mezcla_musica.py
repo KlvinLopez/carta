@@ -32,7 +32,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-PIEZA = "swing-has-swung.mp3"  # la pieza de ./musica que suena
+PIEZA = "whats-the-angle.mp3"  # la pieza de ./musica que suena
 
 AQUI = Path(__file__).resolve().parent
 ARGS = sys.argv[1:]

@@ -1144,7 +1144,7 @@ ${SOLIC.map((x, i) => globo(60 + i, ["b", "c", "b"][i], [929, 404, 1250][i], [46
 ${globo(71, "c", 404, 500, "¡No te creo!") + globo(72, "b", 1250, 500, "Ahí va otra vez con Cancún.", 330) + globo(73, "a", 688, 462, "¡Ay, Diego!") + globo(74, "b", 929, 462, "¡Ja, ja!") + globo(41, "a", 688, 462, "¿Han visto a Luis?") + globo(42, "b", 929, 462, "Fuimos a Cancún, estuvo muy bonito.", 330) + globo(43, "c", 404, 500, "¡Ja, ja, ja!") + globo(44, "b", 1250, 500, "¡Ja, ja!") + globo(45, "a", 688, 462, "¡Qué rico estuvo!") + globo(8, "c", 404, 500, "Prueba el pescado, está increíble.", 330)}${globo(9, "b", 1250, 500, "Y la arrachera. Hay que volver.", 330)}
 
 ${rot}
-<div class="marca"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span><small>Música: «Swing Has Swung», Shane Ivers (silvermansound.com)<br>CC BY 4.0 (creativecommons.org/licenses/by/4.0) · adaptada</small></div></div>`;
+<div class="marca"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span><small>Música: «What's The Angle?», Shane Ivers (silvermansound.com)<br>CC BY 4.0 (creativecommons.org/licenses/by/4.0) · adaptada</small></div></div>`;
 }
 
 function filmEscala() {
