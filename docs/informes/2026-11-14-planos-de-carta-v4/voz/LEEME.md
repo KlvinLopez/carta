@@ -13,7 +13,7 @@ partir de una grabación por frase; la música, a partir de una pieza y de los t
 | Los tiempos medidos de la mezcla | `voz/tiempos.json` (`RITMO`, `VOZ_AUDIO` y `VOZ_TIEMPOS`) | No: son las tablas de `js/e2_film.js` |
 | El cortador de bloques | `voz/corta_lotes.py` | No |
 | La música de fondo, ya con su volumen | `apoyo/musica/fondo.mp3` | Sí |
-| La pieza de música original | `voz/musica/swing-has-swung.mp3` | No |
+| La pieza de música original | `voz/musica/whats-the-angle.mp3` | No |
 | El mezclador de la música | `voz/mezcla_musica.py` | No |
 | Cuándo empieza y cuánto dura cada toma | `voz/linea_de_tiempo.json`, lo escribe `apoyo/cine/guion.mjs` | No |
 
@@ -125,26 +125,26 @@ la película en el reloj.
 
 ## La música
 
-«Swing Has Swung», de Shane Ivers: una big band de swing con metales, a 195 pulsos por minuto según su
-autor. La puso la sesión maestra el 23 de noviembre de 2026 como apuesta, después de que Calvin pidió
-el 22 «algo tipo Monsters, Inc., tipo jazz, algo más animado» en lugar de «Bossa Antigua» (Kevin
-MacLeod), que oyó como música de elevador. **Calvin la confirma o la cambia de oído**: las otras cinco
-candidatas (todas CC BY 4.0) están en la página «Música de Carta» que se le entregó ese día.
+«What's The Angle?», de Shane Ivers: jazz «de detective», con trompeta con sordina, contrabajo
+caminando y batería, según su autor. **La eligió Calvin de oído el 23 de noviembre de 2026**, entre
+seis candidatas de jazz y swing (todas CC BY 4.0) que se le presentaron ese día en la página «Música
+de Carta», después de pedir el 22 «algo tipo Monsters, Inc., tipo jazz, algo más animado» en lugar de
+«Bossa Antigua» (Kevin MacLeod), que oyó como música de elevador. La versión 20 salió unas horas con
+«Swing Has Swung», del mismo autor, que era la apuesta de la sesión maestra.
 
 Licencia Creative Commons Atribución 4.0: se puede usar en público dando crédito y diciendo si se
 adaptó. La ficha con la licencia es
-https://freemusicarchive.org/music/shane-ivers/single/swing-has-swung/ (leída el 23 de noviembre de
-2026); el mp3 es el que esa ficha sirve a su reproductor (320 kb/s, sha256 `17819a49…52567648`). El
+https://freemusicarchive.org/music/shane-ivers/single/whats-the-angle/ (leída el 23 de noviembre de
+2026); el mp3 es el que esa ficha sirve a su reproductor (320 kb/s, sha256 `6a86cf4c…f93737e2df`). El
 crédito que pide el autor:
 
 ```
-Music: Swing Has Swung by Shane Ivers – https://silvermansound.com
+Music: What's The Angle? by Shane Ivers – https://silvermansound.com
 ```
 
 La película lo muestra en la tarjeta final con la licencia y la palabra «adaptada», porque aquí se
-recorta, se repite y se le cambia el volumen. Dos avisos de la ficha: no la marca como instrumental
-(un reconocedor de voz no encontró palabras, pero nadie la ha oído completa) y en YouTube puede saltar
-un reclamo automático, que el autor libera en su sitio.
+recorta, se repite y se le cambia el volumen. Un aviso de la ficha: en YouTube puede saltar un reclamo
+automático, que el autor libera en su sitio.
 
 ```bash
 python3 mezcla_musica.py
@@ -154,7 +154,7 @@ Lee `voz/linea_de_tiempo.json`, `voz/tiempos.json` y las voces de `apoyo/voz`, y
 `apoyo/musica/fondo.mp3`, que dura lo que la película en el reloj. La música va 13 unidades de
 sonoridad por debajo de la voz mientras alguien habla y 9 cuando nadie habla; sube sólo si el silencio
 dura más de 1.5 s. Se apaga en la toma `pivote`, vuelve a empezar en `ofrece` y otra vez en `prepara`.
-La pieza dura 2:25 y el tramo de en medio de la película es más largo: al terminar vuelve a empezar,
+La pieza dura 2:40 y el tramo de en medio de la película es más largo: al terminar vuelve a empezar,
 salvo que falten menos de 12 s para el tramo siguiente. Todo eso son constantes al principio del
 guion, y la pieza es `PIEZA`. Hay que volver a correrlo cada vez que cambie un tiempo de la voz, la
 duración de una toma o el ritmo. Si un tiempo de voz cae fuera de su toma, o `tiempos.json` se mezcló
