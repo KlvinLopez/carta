@@ -16,6 +16,7 @@ partir de una grabación por frase; la música, a partir de una pieza y de los t
 | La pieza de música original | `voz/musica/whats-the-angle.mp3` | No |
 | El mezclador de la música | `voz/mezcla_musica.py` | No |
 | La comprobación de los dos mezcladores | `voz/comprueba_mezcladores.py` | No |
+| La medición de susurros de la narradora | `voz/mide_susurros.py` | No |
 | Cuándo empieza y cuánto dura cada toma | `voz/linea_de_tiempo.json`, lo escribe `apoyo/cine/guion.mjs` | No |
 
 ## Reparto
@@ -62,9 +63,14 @@ conservar esas frases en voz normal. Sin créditos para regrabar, **decidió el 
 quitarlas por ahora**. Las marcas `[softly]` y `[sighs]` hacen susurrar a esta voz, igual que `[whispers]`.
 
 Cómo se midió (23 de noviembre de 2026): un susurro es sonido sin tono, porque no vibran las cuerdas
-vocales. Con `librosa.pyin` se marca, cada 10 ms, si hay sonido y si hay tono; un tramo susurrado es una
-ventana de 0.4 s con sonido en la que menos del 15 % de los cuadros tiene tono. Un transcriptor
-(`faster-whisper`) dio el segundo de cada palabra para cortar sólo en un final de frase o en una pausa.
+vocales. `voz/mide_susurros.py` marca, cada 10 ms, si hay sonido y si hay tono (`librosa.pyin`), y
+busca en cada frase de la narradora la racha más larga de cuadros con sonido y sin tono; desde 0.40 s
+la cuenta como susurro y sale con código 1. Un transcriptor (`faster-whisper`) dio el segundo de cada
+palabra para cortar sólo en un final de frase o en una pausa, y volvió a leer cada frase ya cortada.
+
+```bash
+uv run --no-project --with librosa --with numpy python mide_susurros.py
+```
 
 Quitadas enteras (7), por regrabar en la voz normal de Jade:
 
@@ -89,12 +95,15 @@ Recortadas (7): se conserva el tramo en voz normal y falta regrabar la frase com
 
 A `espera-03` sólo se le quitó la respiración del final.
 
-Lo que queda, medido con la misma regla sobre las 35 frases de la narradora: fuera de `mesa` y de
-`cumple` no hay ningún tramo susurrado de más de 0.45 s, y los que hay son la risita escrita en
-`agrega-01` y sílabas finales con aire, propias de esta voz («-dos» en `sucia-02`, «ideas» en `top3-01`).
-Dos frases conviene regrabarlas de todos modos: `pagada-04` («Carta le puso en pantalla los datos del
-restaurante.», con aire al empezar y al terminar; un corte la dejaba irreconocible) y `juntos-01` (el
-«-teo» de «tanteo»).
+Lo que queda, según esa medición sobre las 35 frases de la narradora: fuera de `mesa-01` y `cumple-01`,
+que van exentas por decisión de Calvin, ninguna llega al umbral. Las rachas sin tono más largas son
+0.37 s en `pagada-04` (el final de «restaurante»; la frase además empieza con aire en «Car-»), 0.30 s
+en `sucia-02` («-dos») y 0.29 s en `top3-01`; las demás miden 0.27 s o menos, contando las risitas y
+los jadeos escritos en el guion. `pagada-04` («Carta le puso en pantalla los datos del restaurante.»)
+queda a 0.03 s del umbral y un corte la dejaba irreconocible: es la primera que conviene regrabar, y
+`juntos-01` (el «-teo» de «tanteo», 0.26 s) la segunda. La cifra depende de la regla: la lente de
+pruebas, con umbrales propios, contó 1.07 s sin tono en `pagada-04` sumando sus dos extremos. La regla
+que se vigila es la del guion, y el oído es de Calvin.
 
 De la ronda anterior siguen pendientes, en voz normal: `b3-01` «…y mucha fe.», `ticket` «La cuenta. Un
 solo papel para los cuatro.», `pivote-01` «Desde el principio.», `filtra` «Al mesero se lo dijo también.
@@ -130,12 +139,14 @@ la película en el reloj.
 python3 comprueba_mezcladores.py
 ```
 
-Corre los dos mezcladores sobre copias, sin tocar el repositorio: que rechacen con código 1 y sin
-escribir nada un guion imposible (los casos de arriba, más un nombre de toma que sale de su carpeta),
-que la narradora espere al último que sigue hablando, que el guion del repositorio vuelva a dar
-`voz/tiempos.json`, y que el de la música se detenga con un ritmo distinto o una frase fuera de su
-toma y repita una pieza corta hasta cubrir la película. Tarda cerca de un minuto. Hay que correrlo
-cada vez que se toque un mezclador; `verificar.mjs` no lo llama.
+Corre los dos mezcladores sobre copias, sin tocar el repositorio. Del de la voz: que rechace con
+código 1 y sin escribir nada un guion imposible (los casos de arriba, más un guion vacío, un `inicio`
+negativo, un nombre de toma que sale de su carpeta y un ritmo que no es un número o cae fuera de 0.8 a
+1.5), que la narradora espere al último que sigue hablando y que el guion del repositorio vuelva a dar
+`voz/tiempos.json`. Del de la música: que se detenga con un ritmo distinto o que no sirve, sin frases,
+con una frase fuera de su toma o con `prepara` antes que `ofrece`; que repita una pieza corta hasta el
+final de la película; y que en el tramo de en medio sólo vuelva a empezar si quedan 12 s o más. Tarda
+cerca de dos minutos. Hay que correrlo cada vez que se toque un mezclador.
 
 ## La música
 
@@ -172,8 +183,9 @@ Lee `voz/linea_de_tiempo.json`, `voz/tiempos.json` y las voces de `apoyo/voz`, y
 `apoyo/musica/fondo.mp3`, que dura lo que la película en el reloj. La música va 13 unidades de
 sonoridad por debajo de la voz mientras alguien habla y 9 cuando nadie habla; sube sólo si el silencio
 dura más de 1.5 s. Se apaga en la toma `pivote`, vuelve a empezar en `ofrece` y otra vez en `prepara`.
-La pieza dura 2:40 y el tramo de en medio de la película es más largo: al terminar vuelve a empezar,
-salvo que falten menos de 12 s para el tramo siguiente. Todo eso son constantes al principio del
+La pieza dura 2:40 y el tramo de en medio de la película es más largo: cuando deja de sonar (el
+silencio del final del archivo no cuenta) vuelve a empezar, salvo que falten menos de 12 s para el
+tramo siguiente; el primer tramo y el último se llenan siempre. Todo eso son constantes al principio del
 guion, y la pieza es `PIEZA`. Hay que volver a correrlo cada vez que cambie un tiempo de la voz, la
 duración de una toma o el ritmo. Si un tiempo de voz cae fuera de su toma, o `tiempos.json` se mezcló
 a otro ritmo, se detiene con un error en vez de hornear una pista mala.
