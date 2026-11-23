@@ -610,6 +610,24 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     ok(alc.hay && alc.vis && alc.enfocado && alc.texto.includes('hoy') && alc.texto.includes('visión') && alc2.abierto && alc2.foco && alc3.cerrado && alc3.sigue && alc3.foco === 'alcance', 'alcance: la tarjeta final ofrece «' + (alc.texto || '') + '», se abre con Enter, el foco entra a la lista y Escape la cierra sin cerrar la película');
     ok(alc.hay && JSON.stringify(alc2.tomas) === JSON.stringify(alc.conAlgo) && JSON.stringify(alc2.vision) === JSON.stringify(alc.conVis) && alc.conVis.includes('ofrece') && alc.conVis.includes('abierta') && alc2.sinNombre === 0 && ['Hoy', 'Fase 3', 'Versión 1.1', 'Visión'].every((e) => alc2.etapas.includes(e)), 'alcance: la lista nombra cada toma con alcance (' + (alc2.tomas || []).length + ') y marca como visión las ' + (alc2.vision || []).length + ' que lo son, con `ofrece` y `abierta`; etapas: ' + (alc2.etapas || []).join(', '));
     await p.waitForTimeout(400);
+    /* hallazgo 13: si la voz va apenas detrás, la imagen no retrocede: afloja hasta que la alcance */
+    const mono = await p.evaluate(async () => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 5) * 1000; ultI = performance.now(); pintaIntro(); await new Promise((r) => setTimeout(r, 500));
+      const a = vozAct; a._t -= 0.18 / RITMO; let ant = tI, atras = 0, peor = 0; const fin = performance.now() + 1500;
+      while (performance.now() < fin) { await new Promise((r) => requestAnimationFrame(r)); if (tI < ant - 0.5) { atras++; peor = Math.max(peor, ant - tI); } ant = tI; }
+      return { atras, peor, dif: Math.abs(a.currentTime * RITMO - (tI / 1000 - T0[ix])) }; });
+    ok(mono.atras === 0 && mono.dif < 0.1, `película: con la voz 0.18 s detrás, la imagen no retrocede (${mono.atras} cuadros hacia atrás, el mayor de ${mono.peor.toFixed(0)} ms) y la voz la alcanza (queda a ${mono.dif.toFixed(2)} s)`);
+    /* hallazgo 10: tras un clic de ratón en un control, la barra espaciadora pausa (no repite el control); con el foco puesto por teclado, lo activa */
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); document.querySelector('#intro').classList.remove('quieto'); }); await p.waitForTimeout(200);
+    await p.click('.ictl [data-intro="mas"]'); await p.waitForTimeout(200); const sp0 = await p.evaluate(() => ({ t: tI, foco: document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.intro || '' : '' }));
+    await p.keyboard.press(' '); await p.waitForTimeout(400); const sp1 = await p.evaluate(() => ({ t: tI, pausa: pausaI }));
+    await p.keyboard.press(' '); await p.waitForTimeout(200); const sp2 = await p.evaluate(() => pausaI);
+    await p.focus('.ictl [data-intro="mas"]'); const sp3 = await p.evaluate(() => tI); await p.keyboard.press(' '); await p.waitForTimeout(200); const sp4 = await p.evaluate(() => ({ t: tI, pausa: pausaI }));
+    ok(sp0.foco !== 'mas' && sp1.pausa && sp1.t - sp0.t < 1500 && !sp2 && sp4.t - sp3 > 2500 && !sp4.pausa, `teclado: tras un clic de ratón en «+3 s», el espacio pausa (avanzó ${Math.round(sp1.t - sp0.t)} ms, no 3 s más) y otro espacio reanuda; con el foco puesto por teclado en «+3 s», el espacio lo activa (+${Math.round(sp4.t - sp3)} ms)`);
+    /* hallazgo 13: tras llegar sola al final, ← la devuelve y sigue corriendo */
+    await p.evaluate(() => { document.activeElement && document.activeElement.blur(); pausaI = false; vozSalto = musSalto = true; tI = TOTI - 600; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(1300);
+    const f0 = await p.evaluate(() => ({ pausa: pausaI, t: tI })); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(600); const f1 = await p.evaluate(() => ({ pausa: pausaI, t: tI, tot: TOTI }));
+    ok(f0.pausa && !f1.pausa && f1.t < f1.tot - 1500 && f1.t > f1.tot - 3000 * 1.2, `teclado: tras el final, ← retrocede 3 s de reloj y la película vuelve a correr (va en ${(f1.t / 1000).toFixed(1)} de ${(f1.tot / 1000).toFixed(1)} s, pausa ${f1.pausa})`);
+    await p.evaluate(() => { const ix = TOMAS.findIndex((x) => x[0] === 'b2'); pausaI = false; vozSalto = musSalto = true; tI = (T0[ix] + 2) * 1000; ultI = performance.now(); pintaIntro(); }); await p.waitForTimeout(400);
     /* tras cada forma de salir, la música y la voz quedan en pausa y su posición no avanza en 700 ms */
     const sal = [];
     const prueba = async (nombre, salir, volver) => { if (!(await corre())) { sal.push(nombre + ': no estaba corriendo antes'); return; } await salir(); await p.waitForTimeout(250); const q = await quieto(); if (!q.ok) sal.push(nombre + ': ' + q.det); if (volver) await volver(); };
@@ -891,6 +909,25 @@ async function pasada(w, h, bloqueadas) {
 for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [768, 1024], [390, 844]]) await pasada(w, h, false);
 await pasada(1440, 900, true);
 await pasada(1280, 720, true);
+/* versión 20, hallazgos 11 y 12: páginas aparte, sin la marca de «ya la vi» */
+{ const limpio = pathToFileURL(resolve(aqui, 'interactivo.html')).href;
+  /* 11 · con movimiento reducido no suena nada y el botón de sonido lo dice: apagado y sin efecto */
+  const cr = await nav.newContext({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' }); const pr = await cr.newPage(); const er = []; pr.on('console', (m) => m.type() === 'error' && er.push(m.text())); pr.on('pageerror', (e) => er.push(String(e)));
+  await pr.goto(limpio); await pr.waitForTimeout(1200);
+  const r0 = await pr.evaluate(() => { const b = document.querySelector('#introSon'); return { reduce: REDUCE, intro: !document.querySelector('#intro').hidden, puerta: !document.querySelector('#introPuerta').hidden, apagado: b.disabled, icono: b.textContent, titulo: b.title, on: vozOn }; });
+  await pr.click('#introSon', { force: true }).catch(() => {}); await pr.waitForTimeout(200);
+  const r1 = await pr.evaluate(() => { const b = document.querySelector('#introSon'); return { icono: b.textContent, on: vozOn, pistas: Object.keys(vozPistas).length, musica: !!musica }; });
+  ok(r0.reduce && r0.intro && !r0.puerta && r0.apagado && r0.icono === '🔇' && /movimiento reducido/.test(r0.titulo) && r1.icono === '🔇' && r1.on === r0.on && r1.pistas === 0 && !r1.musica && er.length === 0, `movimiento reducido: el botón de sonido está apagado, dice «${r0.titulo}» y tocarlo no cambia nada; no se pide ningún audio (${r1.pistas} pistas) ${er.slice(0, 2).join(' | ')}`);
+  await cr.close();
+  /* 12 · sin los mp3 (publicada sin su audio), la puerta no ofrece sonido y no se piden las demás pistas */
+  const cs = await nav.newContext({ viewport: { width: 1280, height: 720 } }); let pedidos = 0; await cs.route(/\.mp3($|\?)/, (r) => { pedidos++; r.abort(); });
+  const ps = await cs.newPage(); const es = []; ps.on('pageerror', (e) => es.push(String(e)));
+  await ps.goto(limpio); await ps.waitForTimeout(1500);
+  const s0 = await ps.evaluate(() => { const v = [...document.querySelectorAll('#introPuerta button')].filter((b) => !b.hidden && b.getBoundingClientRect().width > 0); return { puerta: !document.querySelector('#introPuerta').hidden, botones: v.map((b) => b.textContent), foco: document.activeElement ? document.activeElement.textContent : '', sin: sinAudio }; });
+  await ps.click('#introPuerta button:not([hidden])'); await ps.waitForTimeout(2500);
+  const s1 = await ps.evaluate(() => { const b = document.querySelector('#introSon'); return { corre: tI > 1000 && !pausaI, apagado: b.disabled, titulo: b.title, icono: b.textContent, on: vozOn }; });
+  ok(s0.puerta && s0.sin && s0.botones.length === 1 && !/sonido/i.test(s0.botones[0]) && s0.foco === s0.botones[0] && s1.corre && s1.apagado && s1.icono === '🔇' && !s1.on && pedidos <= 3 && es.length === 0, `sin los mp3: la puerta sólo ofrece «${s0.botones.join('», «')}», la película corre en silencio, el botón de sonido dice «${s1.titulo}» y sólo se pidieron ${pedidos} audios (los de la precarga) ${es.slice(0, 2).join(' | ')}`);
+  await cs.close(); }
 await nav.close();
 console.log('errores de consola:', errores.length, errores.slice(0, 6).join(' | '), '· fallas:', fallos);
 process.exit(fallos || errores.length ? 1 : 0);
