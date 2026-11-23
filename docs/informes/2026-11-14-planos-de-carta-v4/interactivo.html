@@ -10095,23 +10095,22 @@ const ACTOS = [[1, "El gancho"], [2, "El problema"], [3, "Tu carta"], [4, "La me
 const VOZ = {
   mesa: [[0.4, "narrador", "[whispers] Viernes en la noche. [pause] [mischievously] Imaginemos una mesa. Mantel blanco, una vela… y cuatro sillas que todavía no saben la noche que les espera."]],
   cumple: [[0.3, "narrador", "[gasps] ¡Es el cumpleaños de Sofía! [warmly] Ana, Diego y Carlos llegaron temprano. [giggles] Bueno… casi."], [9.7, "mesero", "Buenas noches. Aquí está la carta.", {g: 1}]],
-  b1: [[0.2, "narrador", "[mischievously] Primero, lo de siempre: ponerse de acuerdo."], [4.4, "ana", "¿Pedimos algo para compartir?", {g: 10}], [6.3, "diego", "¿La parrillada alcanza para cuatro?", {g: 11}],
+  b1: [[0.2, "narrador", "[mischievously] Primero, lo de siempre."], [4.4, "ana", "¿Pedimos algo para compartir?", {g: 10}], [6.3, "diego", "¿La parrillada alcanza para cuatro?", {g: 11}],
     [8.5, "carlos", "[sighs] Es el mismo menú, pero en PDF.", {g: 12}], [11.0, "sofia", "[jumping in] ¿Y eso qué trae?", {g: 13, encima: 0.2}]],
-  b2: [[0.2, "narrador", "[softly] Luego, un menú que no sabe nada de ellos."], [4.0, "ana", "Los tacos de pescado, por favor.", {g: 14}], [6.0, "mesero", "Se nos terminaron. Una disculpa.", {g: 15}], [8.0, "ana", "¿Y el mole?", {g: 16}],
+  b2: [[4.0, "ana", "Los tacos de pescado, por favor.", {g: 14}], [6.0, "mesero", "Se nos terminaron. Una disculpa.", {g: 15}], [8.0, "ana", "¿Y el mole?", {g: 16}],
     [9.4, "mesero", "¿Es alérgica a algo? Lleva cacahuate.", {g: 17}], [11.7, "ana", "Sí… ¿y las enchiladas?", {g: 18}], [13.6, "ana", "[jumping in] Espere… ¿llevan cacahuate?", {g: 26, encima: 0.2}], [15.5, "mesero", "Déjeme pregunto en cocina.", {g: 27}],
-    [17.9, "narrador", "[sighs] Y a esperar."], [19.7, "mesero", "Sí llevan cacahuate.", {g: 36}]],
+    [19.7, "mesero", "Sí llevan cacahuate.", {g: 36}]],
   b3: [[0.2, "narrador", "Cuatro antojos, una libreta…"], [3.9, "mesero", "¿Eran dos aguachiles… o tres?", {g: 19}], [5.8, "carlos", "[jumping in] El mío sin cebolla.", {g: 20, encima: 0.2}], [7.8, "ana", "[chuckles] Yo cambié de opinión.", {g: 21}]],
   b3t: [[0.2, "narrador", "[chuckles] ¿Y con tableta? Lo mismo, pero con pantalla."], [3.5, "mesero", "Un momento… está cargando.", {g: 28}]],
-  espera: [[0.9, "narrador", "[softly] Por fin, la orden salió."], [3.0, "carlos", "Ya tardó, ¿no?", {g: 37}], [4.7, "diego", "Yo ya tengo hambre.", {g: 38, encima: 0.2}],
+  espera: [[3.0, "carlos", "Ya tardó, ¿no?", {g: 37}], [4.7, "diego", "Yo ya tengo hambre.", {g: 38, encima: 0.2}],
     [6.6, "narrador", "Llegó la comida, llegaron las risas… [mischievously] y llegó ese momento."], [10.8, "ana", "¿Nos trae la cuenta, por favor?", {g: 39}]],
   ticket: [[0.9, "mesero", "Muchas gracias por venir.", {g: 31}]],
   b4: [[0.2, "narrador", "[giggles] Y cuatro calculadoras."], [2.8, "diego", "¿Quién pidió las limonadas?", {g: 22}], [4.8, "ana", "[jumping in] A Sofi la invitamos: ¿entre tres?", {g: 23, encima: 0.2}], [7.2, "carlos", "[sighs] ¿Y la propina?", {g: 24, encima: 0.3}]],
   pivote: [[0.6, "narrador", "[mischievously] ¿Y si lo reimaginamos? [pause] Misma mesa. Mismos amigos."]],
   ofrece: [[1.2, "mesero", "Aquí usamos Carta: con el QR ven el menú y piden desde su teléfono.", {g: 40}], [5.8, "ana", "[excited] ¡Espléndido! Yo ya tengo mi perfil hecho y todo.", {g: 75, tras: 0.2}]],
-  escanea: [[1.0, "narrador", "[softly] Ana escanea el código… [gasps] y ya está adentro. Sin descargar nada."]],
-  filtra: [[0.4, "narrador", "Ana no come cacahuate."], [2.2, "narrador", "[mischievously] No tuvo que decir nada: Carta guarda sus restricciones y quita lo que no puede comer.", {tras: 0.3}]],
+  escanea: [[1.0, "narrador", "…y ya está adentro. Sin descargar nada."]],
+  filtra: [[0.4, "narrador", "Ana no come cacahuate."], [2.2, "narrador", "Carta guarda sus restricciones y quita lo que no puede comer.", {tras: 0.3}]],
   top3: [[0.4, "narrador", "[warmly] Y como ya la conoce, le tenía tres ideas: por los restaurantes que ha visitado [giggles] y por lo que le dio me gusta."]],
-  plato: [[0.4, "narrador", "[softly] Cada platillo le cuenta lo que lleva."]],
   agrega: [[0.3, "narrador", "Un toque… [giggles] y a la mesa."]],
   juntos: [[0.2, "narrador", "[mischievously] Esta vez nadie pidió al tanteo: cada quien veía lo que pedían los demás."], [6.3, "ana", "Ya pedí. ¿Tú qué vas a pedir?", {g: 3}], [8.4, "carlos", "Estoy viendo, todavía no sé.", {g: 4}]],
   confirma: [[0.3, "narrador", "[warmly] Y cuando los cuatro estuvieron listos, Carta llamó al mesero automáticamente."]],
@@ -10122,10 +10121,10 @@ const VOZ = {
   abierta: [[0.3, "narrador", "[warmly] La mesa siguió abierta. Como la plática."], [3.3, "sofia", "¿Han visto a Luis?", {g: 41}], [5.1, "diego", "Fuimos a Cancún, estuvo muy bonito.", {g: 42}],
     [7.4, "ana", "[jumping in] ¡No te creo!", {g: 71, encima: 0.2}], [7.9, "carlos", "[overlapping] Ahí va otra vez con Cancún.", {g: 72, encima: 0.3}], [9.6, "sofia", "[overlapping] [laughs] ¡Ay, Diego!", {g: 73, encima: 0.4}],
     [9.9, "ana", "[laughs]", {g: 43, encima: 0.6}], [10.2, "carlos", "[laughs]", {g: 44, con: 0.35}], [10.5, "diego", "[laughs]", {g: 74, con: 0.25}],
-    [11.7, "diego", "Se me antojó un guacamole.", {g: 60, encima: 1.5}], [14.0, "narrador", "[mischievously] A Diego se le antojó algo más. Lo pidió desde su teléfono."], [20.6, "mesero", "Sí se puede. Ahorita se lo traigo.", {g: 63}],
+    [11.7, "diego", "Se me antojó un guacamole.", {g: 60, encima: 1.5}], [14.0, "narrador", "[mischievously] A Diego se le antojó algo más."], [20.6, "mesero", "Sí se puede. Ahorita se lo traigo.", {g: 63}],
     [23.9, "ana", "Mejor quiero los camarones.", {g: 61, fin: 25.6}], [32.8, "mesero", "Ya no es posible: su pescado ya se está preparando.", {g: 64}], [34.7, "ana", "No hay problema, muchas gracias.", {g: 66, encima: 0.2}],
-    [37.6, "narrador", "[giggles] Ana quiso cambiar de opinión… demasiado tarde."], [41.1, "carlos", "Mejor sin el agua de jamaica.", {g: 62, fin: 42.8}], [50.0, "mesero", "Ése sí: cocina todavía no lo prepara.", {g: 65}],
-    [53.3, "narrador", "[softly] Carlos sí llegó a tiempo."], [55.6, "narrador", "[gasps] ¡Y llegó la comida!"], [57.5, "mesero", "Provecho.", {g: 70}],
+    [37.6, "narrador", "Ana quiso cambiar de opinión… demasiado tarde."], [41.1, "carlos", "Mejor sin el agua de jamaica.", {g: 62, fin: 42.8}], [50.0, "mesero", "Ése sí: cocina todavía no lo prepara.", {g: 65}],
+    [55.6, "narrador", "[gasps] ¡Y llegó la comida!"], [57.5, "mesero", "Provecho.", {g: 70}],
     [61.9, "ana", "Prueba el pescado, está increíble.", {g: 8}], [63.8, "carlos", "[jumping in] Y la arrachera. Hay que volver.", {g: 9, encima: 0.2}], [65.8, "sofia", "¡Qué rico estuvo!", {g: 45, encima: 0.3}]],
   cierres: [[0.5, "ana", "Yo ya quedé. Me gustó mucho.", {g: 46, fin: 2.4}], [3.0, "narrador", "[softly] Ana fue la primera en decir: ya quedé. Cerró su cuenta desde su lugar."], [8.1, "diego", "Deja veo si pido un postre.", {g: 47}],
     [10.7, "carlos", "[jumping in] Yo sí quiero un flan.", {g: 48, encima: 0.2}], [16.3, "diego", "Y un pastel para la cumpleañera.", {g: 49}],
@@ -10135,22 +10134,20 @@ const VOZ = {
     [35.7, "narrador", "[warmly] Y cuando cerró el último, la mesa entera quedó en cuenta cerrada.", {tras: 0.3}]],
   cuenta: [[0.3, "narrador", "[warmly] Cada quien vio su propia cuenta, con su propina."], [7.0, "ana", "[excited] Sofi, nosotros te invitamos, es tu cumpleaños.", {g: "q0"}], [11.8, "narrador", "Entre uno."],
     [14.4, "diego", "[jumping in] Sí, nosotros te invitamos.", {g: "q2", encima: 0.3}], [16.8, "narrador", "Entre dos."], [19.4, "carlos", "[overlapping] Sí, nosotros te invitamos.", {g: "q3", encima: 0.3}],
-    [21.8, "narrador", "[giggles] Entre tres. La cuenta de Sofía se repartió sola."], [25.5, "sofia", "[overlapping] [warmly] ¡Ay, muchas gracias, amigos!", {g: "q1", encima: 0.4}], [28.2, "narrador", "[softly] Revisaron su total… y llamaron a Javier."]],
+    [21.8, "narrador", "[giggles] Entre tres. La cuenta de Sofía se repartió sola."], [25.5, "sofia", "[overlapping] [warmly] ¡Ay, muchas gracias, amigos!", {g: "q1", encima: 0.4}], [28.2, "narrador", "Revisaron su total…"]],
   pagada: [[0.5, "narrador", "[warmly] Y cada quien pagó a su manera."], [3.6, "mesero", "Con la terminal, cuando gusten.", {g: 25, tras: 0.3}], [7.5, "diego", "Yo, por transferencia.", {g: 79}],
     [9.8, "narrador", "[softly] Carta le puso en pantalla los datos del restaurante.", {tras: 0.3}], [14.5, "carlos", "Yo pago en efectivo.", {g: 80}], [18.0, "mesero", "Está completo. Validado.", {g: 81}],
     [21.5, "mesero", "Todo pagado. ¡Muchas gracias!", {g: 7, tras: 0.3}]],
-  factura: [[0.4, "ana", "¿Facturan?", {g: 51}], [2.1, "mesero", "Sí, se pide desde la aplicación.", {g: 52, encima: 0.2}], [4.9, "narrador", "[mischievously] ¿Factura? También desde el teléfono. [softly] Le llega al restaurante, que es quien la emite."]],
+  factura: [[0.4, "ana", "¿Facturan?", {g: 51}], [2.1, "mesero", "Sí, se pide desde la aplicación.", {g: 52, encima: 0.2}], [4.9, "narrador", "Le llega al restaurante, que es quien la emite."]],
   sucia: [[0.1, "ana", "¡Gracias, buenas noches!", {g: 53, encima: 0.2}], [2.3, "narrador", "[warmly] Fue una gran noche para nuestros invitados."]],
-  prepara: [[0.3, "narrador", "[softly] Preparemos la mesa para los siguientes."]],
-  limpia: [[2.0, "narrador", "[mischievously] Y la mesa volvió a esperar."]],
   fin: [[1.2, "narrador", "[warmly] Carta. Tu menú, tu Carta."]],
 };
 /* Las tomas que ya tienen audio y cuánto dura cada uno, en segundos: {b1: 9.8, …}. Vacío = película en silencio.
    Una toma se alarga sola a lo que dure su audio más el margen. */
-const VOZ_AUDIO = {"mesa":11.14,"cumple":12.05,"b1":12.7,"b2":21.12,"b3":9.77,"b3t":6.0,"espera":11.74,"ticket":2.28,"b4":8.45,"pivote":5.14,"ofrece":9.46,"escanea":5.95,"filtra":8.28,"top3":8.06,"plato":2.64,"agrega":3.29,"juntos":10.94,"confirma":5.23,"avisa":2.9,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":38.64,"cuenta":32.21,"pagada":23.54,"factura":10.03,"sucia":4.54,"prepara":2.54,"limpia":4.1,"fin":3.43};
+const VOZ_AUDIO = {"mesa":11.14,"cumple":12.05,"b1":12.7,"b2":21.02,"b3":9.77,"b3t":6.0,"espera":11.4,"ticket":2.28,"b4":8.45,"pivote":5.14,"ofrece":9.46,"escanea":3.7,"filtra":6.24,"top3":8.06,"agrega":3.29,"juntos":10.94,"confirma":5.23,"avisa":2.9,"llega":12.91,"cocina":4.63,"abierta":67.85,"cierres":38.64,"cuenta":30.74,"pagada":23.54,"factura":6.89,"sucia":4.54,"fin":3.43};
 /* Los tiempos medidos del audio, por toma: {b1: [[inicio, fin], …]}, uno por línea de VOZ en su orden (null si no se midió). Vacío = se usan los segundos de VOZ.
    Con tiempos aquí, los globos de esa toma entran y salen con ellos; puede haber dos globos a la vez. */
-const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[9.7,11.85]],"b1":[[0.2,3.43],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[0.2,3.31],[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[17.96,19.49],[19.79,20.93]],"b3":[[0.2,2.7],[3.9,6.48],[6.28,7.4],[7.6,9.58]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[0.9,2.75],[3.05,4.0],[3.8,4.95],[5.25,9.78],[10.08,11.55]],"ticket":[[0.9,2.08]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,4.95]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,5.77]],"filtra":[[0.4,2.1],[2.4,8.11]],"top3":[[0.4,7.87]],"plato":[[0.4,2.46]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"confirma":[[0.3,5.05]],"avisa":[[0.4,2.73]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,20.53],[20.83,22.86],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,42.42],[42.72,44.26],[50.0,52.89],[53.19,54.69],[54.99,56.85],[57.15,57.73],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[17.76,19.51],[18.06,20.76],[18.36,21.34],[20.84,24.37],[25.0,27.29],[32.0,33.5],[33.3,34.32],[34.62,38.45]],"cuenta":[[0.3,3.14],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,32.03]],"pagada":[[0.5,2.56],[3.6,5.17],[7.5,9.05],[9.36,12.05],[14.5,15.83],[18.0,19.88],[21.5,23.35]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,9.83]],"sucia":[[0.1,1.59],[1.89,4.34]],"prepara":[[0.3,2.35]],"limpia":[[2.0,3.91]],"fin":[[1.2,3.24]]};
+const VOZ_TIEMPOS = {"mesa":[[0.4,10.96]],"cumple":[[0.3,7.48],[9.7,11.85]],"b1":[[0.2,1.87],[4.4,5.98],[6.18,8.08],[8.28,11.56],[11.36,12.51]],"b2":[[4.0,5.84],[6.04,8.15],[8.35,8.99],[9.19,11.72],[11.92,14.35],[14.15,16.01],[16.21,17.66],[19.7,20.84]],"b3":[[0.2,2.7],[3.9,6.48],[6.28,7.4],[7.6,9.58]],"b3t":[[0.2,3.87],[4.17,5.82]],"espera":[[3.0,3.95],[3.75,4.91],[5.21,9.45],[9.75,11.22]],"ticket":[[0.9,2.08]],"b4":[[0.2,2.54],[2.84,4.17],[3.97,7.15],[6.85,8.25]],"pivote":[[0.6,4.95]],"ofrece":[[1.2,5.56],[5.76,9.28]],"escanea":[[1.0,3.52]],"filtra":[[0.4,2.1],[2.4,6.05]],"top3":[[0.4,7.87]],"agrega":[[0.3,3.1]],"juntos":[[0.2,4.94],[6.3,8.51],[8.71,10.75]],"confirma":[[0.3,5.05]],"avisa":[[0.4,2.73]],"llega":[[0.5,2.26],[2.46,5.54],[5.74,7.41],[7.21,8.91],[9.21,12.74]],"cocina":[[0.5,4.45]],"abierta":[[0.3,2.9],[3.2,4.29],[4.49,6.95],[6.75,8.43],[8.13,9.99],[9.59,12.02],[11.42,16.06],[11.77,14.82],[12.02,14.52],[14.56,16.06],[16.36,18.32],[20.6,22.63],[23.9,26.17],[32.8,35.87],[35.67,37.54],[37.84,40.98],[41.28,42.82],[50.0,52.89],[55.6,57.46],[57.76,58.34],[61.9,64.58],[64.38,66.36],[66.06,67.66]],"cierres":[[0.5,2.75],[3.05,7.53],[7.83,9.46],[9.26,10.4],[16.3,17.96],[17.76,19.51],[18.06,20.76],[18.36,21.34],[20.84,24.37],[25.0,27.29],[32.0,33.5],[33.3,34.32],[34.62,38.45]],"cuenta":[[0.3,3.14],[7.0,10.28],[11.8,12.47],[14.4,16.13],[16.43,17.17],[19.4,21.07],[21.37,25.2],[25.5,28.97],[29.27,30.56]],"pagada":[[0.5,2.56],[3.6,5.17],[7.5,9.05],[9.36,12.05],[14.5,15.83],[18.0,19.88],[21.5,23.35]],"factura":[[0.4,0.95],[2.1,3.96],[4.26,6.7]],"sucia":[[0.1,1.59],[1.89,4.34]],"fin":[[1.2,3.24]]};
 const VOZ_MARGEN = 0.6;
 TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]]; if (d && d + VOZ_MARGEN > t[2]) t[2] = Math.ceil((d + VOZ_MARGEN) * 10) / 10; });
 const HAY_VOZ = Object.keys(VOZ_AUDIO).length > 0;
@@ -10996,7 +10993,7 @@ ${SOLIC.map((x, i) => globo(60 + i, ["b", "c", "b"][i], [929, 404, 1250][i], [46
 ${globo(71, "c", 404, 500, "¡No te creo!") + globo(72, "b", 1250, 500, "Ahí va otra vez con Cancún.", 330) + globo(73, "a", 688, 462, "¡Ay, Diego!") + globo(74, "b", 929, 462, "¡Ja, ja!") + globo(41, "a", 688, 462, "¿Han visto a Luis?") + globo(42, "b", 929, 462, "Fuimos a Cancún, estuvo muy bonito.", 330) + globo(43, "c", 404, 500, "¡Ja, ja, ja!") + globo(44, "b", 1250, 500, "¡Ja, ja!") + globo(45, "a", 688, 462, "¡Qué rico estuvo!") + globo(8, "c", 404, 500, "Prueba el pescado, está increíble.", 330)}${globo(9, "b", 1250, 500, "Y la arrachera. Hay que volver.", 330)}
 
 ${rot}
-<div class="marca"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span><small>Música: «Bossa Antigua», Kevin MacLeod (incompetech.com)<br>CC BY 4.0 (creativecommons.org/licenses/by/4.0) · adaptada</small></div></div>`;
+<div class="marca"><b>Carta</b><i></i><span>Tu menú, Tu Carta.</span><small>Música: «Swing Has Swung», Shane Ivers (silvermansound.com)<br>CC BY 4.0 (creativecommons.org/licenses/by/4.0) · adaptada</small></div></div>`;
 }
 
 function filmEscala() {

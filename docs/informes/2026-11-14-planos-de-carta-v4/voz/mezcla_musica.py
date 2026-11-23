@@ -4,17 +4,26 @@ Uso:
     python3 mezcla_musica.py [linea_de_tiempo.json] [tiempos.json] [música fuente] [salida.mp3] [carpeta de voces]
 
 Sin argumentos usa ./linea_de_tiempo.json (lo escribe apoyo/cine/guion.mjs), ./tiempos.json (lo
-escribe mezcla_tomas.py), ./musica/bossa-antigua.mp3 ../apoyo/musica/fondo.mp3 y las voces de ../apoyo/voz. Necesita ffmpeg.
+escribe mezcla_tomas.py), ./musica/<PIEZA>, ../apoyo/musica/fondo.mp3 y las voces de ../apoyo/voz.
+Necesita ffmpeg.
 
 Qué hace:
 - La música baja cuando alguien habla y sube un poco cuando nadie habla; entre dos frases
   separadas por menos de HUECO_MINIMO segundos se queda abajo, para que no suba y baje.
 - Suena desde el principio, se apaga en la toma `pivote`, vuelve a empezar en `ofrece` y otra
   vez en `prepara`; al final se funde. Si falta alguna de esas tomas, suena de corrido.
+- Si un tramo dura más que la pieza, la pieza vuelve a empezar al terminar; si lo que falta del
+  tramo es menos de REPETIR_DESDE segundos, se queda en silencio hasta el tramo siguiente.
 - El volumen va horneado en el archivo: en un teléfono el navegador no deja cambiarlo por código.
+
+El ritmo: linea_de_tiempo.json y tiempos.json van en segundos «de guion»; si la película corre a
+otro ritmo (`ritmo` en linea_de_tiempo.json), aquí todo se pasa a segundos de reloj dividiendo entre
+el ritmo. La música no se acelera: suena a su velocidad y dura lo que dura la película en el reloj.
 
 Los niveles se miden contra la voz: BAJO_LA_VOZ y ENTRE_FRASES son cuántas unidades de sonoridad
 (LU) queda la música por debajo de la voz ya mezclada en apoyo/voz.
+
+Si un tiempo de voz cae fuera de su toma, se detiene con un error: la música bajaría donde nadie habla.
 """
 
 import json
@@ -23,11 +32,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+PIEZA = "swing-has-swung.mp3"  # la pieza de ./musica que suena
+
 AQUI = Path(__file__).resolve().parent
 ARGS = sys.argv[1:]
 LINEA = Path(ARGS[0]) if len(ARGS) > 0 else AQUI / "linea_de_tiempo.json"
 TIEMPOS = Path(ARGS[1]) if len(ARGS) > 1 else AQUI / "tiempos.json"
-FUENTE = Path(ARGS[2]) if len(ARGS) > 2 else AQUI / "musica" / "bossa-antigua.mp3"
+FUENTE = Path(ARGS[2]) if len(ARGS) > 2 else AQUI / "musica" / PIEZA
 SALIDA = Path(ARGS[3]) if len(ARGS) > 3 else AQUI.parent / "apoyo" / "musica" / "fondo.mp3"
 VOCES = Path(ARGS[4]) if len(ARGS) > 4 else AQUI.parent / "apoyo" / "voz"
 
@@ -38,8 +49,11 @@ ANTES = 0.3  # segundos que tarda en bajar; termina de bajar justo cuando empiez
 ESPERA = 0.3  # segundos que espera tras la frase antes de subir
 SUBIDA = 0.8  # segundos que tarda en subir
 FUNDIDO_PIVOTE = 1.5  # la música se apaga al empezar la toma `pivote`
+FUNDIDO_TRAMO = 2.0  # fundido con que se corta la pieza al acabar el tramo de en medio
 FUNDIDO_FINAL = 2.5
 ENTRADA = 0.6  # fundido de entrada de cada vuelta a empezar
+REPETIR_DESDE = 12.0  # la pieza sólo vuelve a empezar si quedan al menos estos segundos de tramo
+MARGEN_TOMA = 0.05  # cuánto puede pasarse un tiempo de voz del final de su toma (redondeos)
 
 
 def corre(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -68,13 +82,35 @@ def sonoridad(entradas: list[Path], filtro: str = "") -> float:
     return float(m[-1])
 
 
-def tramos_de_habla(linea: dict, tiempos: dict) -> list[list[float]]:
-    """Intervalos, en segundos de película, en que alguien habla; juntos si el hueco es corto."""
+def en_reloj(linea: dict) -> dict:
+    """La línea de tiempo en segundos de reloj: los de guion entre el ritmo."""
+    ritmo = float(linea.get("ritmo", 1.0))
+    if not 0.8 <= ritmo <= 1.5:
+        raise SystemExit(f"ritmo {ritmo} fuera de 0.8 a 1.5 en {LINEA}")
+    tomas = [
+        {"toma": t["toma"], "inicio": t["inicio"] / ritmo, "duracion": t["duracion"] / ritmo}
+        for t in linea["tomas"]
+    ]
+    return {"ritmo": ritmo, "total": float(linea["total"]) / ritmo, "tomas": tomas}
+
+
+def tramos_de_habla(linea: dict, tiempos: dict, ritmo: float) -> list[list[float]]:
+    """Intervalos, en segundos de reloj, en que alguien habla; juntos si el hueco es corto.
+
+    `linea` ya viene en segundos de reloj; `tiempos`, en segundos de guion.
+    """
     sueltos = []
     for t in linea["tomas"]:
-        for par in tiempos["VOZ_TIEMPOS"].get(t["toma"], []):
-            if par:
-                sueltos.append([t["inicio"] + par[0], t["inicio"] + par[1]])
+        for k, par in enumerate(tiempos["VOZ_TIEMPOS"].get(t["toma"], [])):
+            if not par:
+                continue
+            a, b = par[0] / ritmo, par[1] / ritmo
+            if not 0 <= a <= b <= t["duracion"] + MARGEN_TOMA:
+                raise SystemExit(
+                    f"la frase {k + 1} de `{t['toma']}` habla de {par[0]} a {par[1]} s y la toma dura "
+                    f"{t['duracion'] * ritmo:.2f} s: corre antes apoyo/cine/guion.mjs y mezcla_tomas.py"
+                )
+            sueltos.append([t["inicio"] + a, t["inicio"] + b])
     sueltos.sort()
     juntos: list[list[float]] = []
     for a, b in sueltos:
@@ -85,54 +121,45 @@ def tramos_de_habla(linea: dict, tiempos: dict) -> list[list[float]]:
     return juntos
 
 
+def repite(desde: float, hasta: float, largo: float, entra: float, sale: float) -> list[dict]:
+    """Las vueltas de la pieza que llenan el tramo [desde, hasta]: la primera entra con `entra`;
+    la última se corta con el fundido `sale` si no cabe entera."""
+    out: list[dict] = []
+    ini = desde
+    while hasta - ini > 0.5 and (not out or hasta - ini >= REPETIR_DESDE):
+        dura = min(largo, hasta - ini)
+        out.append({"inicio": ini, "dura": dura, "entra": entra if not out else 0.0, "sale": 0.0})
+        ini += largo
+    if out and out[-1]["dura"] < largo:
+        out[-1]["sale"] = min(sale, out[-1]["dura"] / 2)
+    return out
+
+
 def vueltas(linea: dict, largo: float) -> list[dict]:
     """Los tramos de música: cuándo empieza cada vuelta, cuánto dura y con qué fundidos."""
     total = float(linea["total"])
     t0 = {t["toma"]: float(t["inicio"]) for t in linea["tomas"]}
     if not {"pivote", "ofrece", "prepara"} <= set(t0):
-        out, ini = [], 0.0
-        while ini < total:
-            out.append(
-                {
-                    "inicio": ini,
-                    "dura": min(largo, total - ini),
-                    "entra": ENTRADA if ini else 0.0,
-                    "sale": 0.0,
-                }
-            )
-            ini += largo
-        out[-1]["sale"] = FUNDIDO_FINAL
-        return out
-    acto1 = {
-        "inicio": 0.0,
-        "dura": min(largo, t0["pivote"] + FUNDIDO_PIVOTE),
-        "entra": 0.0,
-        "sale": FUNDIDO_PIVOTE,
-    }
+        return repite(0.0, total, largo, 0.0, FUNDIDO_FINAL)
+    acto1 = repite(0.0, t0["pivote"] + FUNDIDO_PIVOTE, largo, 0.0, FUNDIDO_PIVOTE)
     hasta = max(t0["ofrece"] + 1.0, t0["prepara"])
-    dura2 = min(largo, hasta - t0["ofrece"])
-    # si la pieza se acaba sola antes de `prepara`, no hace falta fundirla; si no, se funde
-    acto2 = {
-        "inicio": t0["ofrece"],
-        "dura": dura2,
-        "entra": ENTRADA,
-        "sale": 0.0 if dura2 >= largo else 2.0,
-    }
-    cierre = {
-        "inicio": t0["prepara"],
-        "dura": min(largo, total - t0["prepara"]),
-        "entra": ENTRADA,
-        "sale": FUNDIDO_FINAL,
-    }
-    return [v for v in (acto1, acto2, cierre) if v["dura"] > 0.5]
+    acto2 = repite(t0["ofrece"], hasta, largo, ENTRADA, FUNDIDO_TRAMO)
+    cierre = repite(t0["prepara"], total, largo, ENTRADA, FUNDIDO_FINAL)
+    return [*acto1, *acto2, *cierre]
 
 
 def main() -> int:
-    linea = json.loads(LINEA.read_text(encoding="utf8"))
+    linea = en_reloj(json.loads(LINEA.read_text(encoding="utf8")))
     tiempos = json.loads(TIEMPOS.read_text(encoding="utf8"))
-    total = float(linea["total"])
+    ritmo = linea["ritmo"]
+    if abs(float(tiempos.get("RITMO", 1.0)) - ritmo) > 1e-9:
+        raise SystemExit(
+            f"tiempos.json se mezcló a ritmo {tiempos.get('RITMO', 1.0)} y la película va a {ritmo}: "
+            "corre antes mezcla_tomas.py"
+        )
+    total = linea["total"]
     largo = dur(FUENTE)
-    habla = tramos_de_habla(linea, tiempos)
+    habla = tramos_de_habla(linea, tiempos, ritmo)
     pistas = [
         VOCES / f"{t['toma']}.mp3" for t in linea["tomas"] if (VOCES / f"{t['toma']}.mp3").exists()
     ]
@@ -172,8 +199,10 @@ def main() -> int:
     corre([*cmd, "-filter_complex", grafo, *salida])
 
     resumen = {
+        "pieza": FUENTE.name,
+        "ritmo": ritmo,
         "duracion": round(dur(SALIDA), 2),
-        "pelicula": total,
+        "pelicula_en_reloj": round(total, 2),
         "voz_lufs": voz,
         "musica_fuente_lufs": fuente,
         "musica_bajo_la_voz_lufs": round(voz - BAJO_LA_VOZ, 1),

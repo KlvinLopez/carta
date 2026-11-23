@@ -1,5 +1,5 @@
 {
- "total": 420.1,
+ "total": 419.9,
  "tomas": [
   {
    "toma": "mesa",
@@ -19,146 +19,146 @@
   {
    "toma": "b2",
    "inicio": 37.8,
-   "duracion": 21.8
+   "duracion": 21.7
   },
   {
    "toma": "b3",
-   "inicio": 59.6,
+   "inicio": 59.5,
    "duracion": 11.5
   },
   {
    "toma": "b3t",
-   "inicio": 71.1,
+   "inicio": 71,
    "duracion": 8.2
   },
   {
    "toma": "espera",
-   "inicio": 79.3,
+   "inicio": 79.2,
    "duracion": 12.9
   },
   {
    "toma": "ticket",
-   "inicio": 92.2,
+   "inicio": 92.1,
    "duracion": 8.5
   },
   {
    "toma": "b4",
-   "inicio": 100.7,
+   "inicio": 100.6,
    "duracion": 10.3
   },
   {
    "toma": "pivote",
-   "inicio": 111,
+   "inicio": 110.9,
    "duracion": 6.6
   },
   {
    "toma": "ofrece",
-   "inicio": 117.6,
+   "inicio": 117.5,
    "duracion": 10.1
   },
   {
    "toma": "escanea",
-   "inicio": 127.7,
+   "inicio": 127.6,
    "duracion": 7.5
   },
   {
    "toma": "filtra",
-   "inicio": 135.2,
+   "inicio": 135.1,
    "duracion": 12.5
   },
   {
    "toma": "top3",
-   "inicio": 147.7,
+   "inicio": 147.6,
    "duracion": 8.7
   },
   {
    "toma": "plato",
-   "inicio": 156.4,
+   "inicio": 156.3,
    "duracion": 6.5
   },
   {
    "toma": "agrega",
-   "inicio": 162.9,
+   "inicio": 162.8,
    "duracion": 4
   },
   {
    "toma": "juntos",
-   "inicio": 166.9,
+   "inicio": 166.8,
    "duracion": 11.6
   },
   {
    "toma": "recomienda",
-   "inicio": 178.5,
+   "inicio": 178.4,
    "duracion": 6.5
   },
   {
    "toma": "confirma",
-   "inicio": 185,
+   "inicio": 184.9,
    "duracion": 5.9
   },
   {
    "toma": "esperan",
-   "inicio": 190.9,
+   "inicio": 190.8,
    "duracion": 3.2
   },
   {
    "toma": "avisa",
-   "inicio": 194.1,
+   "inicio": 194,
    "duracion": 6
   },
   {
    "toma": "llega",
-   "inicio": 200.1,
+   "inicio": 200,
    "duracion": 13.6
   },
   {
    "toma": "cocina",
-   "inicio": 213.7,
+   "inicio": 213.6,
    "duracion": 5.6
   },
   {
    "toma": "abierta",
-   "inicio": 219.3,
+   "inicio": 219.2,
    "duracion": 68.5
   },
   {
    "toma": "cierres",
-   "inicio": 287.8,
+   "inicio": 287.7,
    "duracion": 41.8
   },
   {
    "toma": "cuenta",
-   "inicio": 329.6,
+   "inicio": 329.5,
    "duracion": 32.9
   },
   {
    "toma": "pagada",
-   "inicio": 362.5,
+   "inicio": 362.4,
    "duracion": 24.2
   },
   {
    "toma": "factura",
-   "inicio": 386.7,
-   "duracion": 10.7
+   "inicio": 386.6,
+   "duracion": 10.6
   },
   {
    "toma": "sucia",
-   "inicio": 397.4,
+   "inicio": 397.2,
    "duracion": 5.2
   },
   {
    "toma": "prepara",
-   "inicio": 402.6,
+   "inicio": 402.4,
    "duracion": 4.2
   },
   {
    "toma": "limpia",
-   "inicio": 406.8,
+   "inicio": 406.6,
    "duracion": 8.3
   },
   {
    "toma": "fin",
-   "inicio": 415.1,
+   "inicio": 414.9,
    "duracion": 5
   }
  ]

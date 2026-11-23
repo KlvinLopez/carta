@@ -25,7 +25,7 @@
   "id": "b1-01",
   "toma": "b1",
   "quien": "narrador",
-  "texto": "[mischievously] Primero, lo de siempre: ponerse de acuerdo.",
+  "texto": "[mischievously] Primero, lo de siempre.",
   "inicio": 0.2
  },
  {
@@ -63,20 +63,12 @@
  {
   "id": "b2-01",
   "toma": "b2",
-  "quien": "narrador",
-  "texto": "[softly] Luego, un menú que no sabe nada de ellos.",
-  "inicio": 0.2
+  "quien": "ana",
+  "texto": "Los tacos de pescado, por favor.",
+  "inicio": 4
  },
  {
   "id": "b2-02",
-  "toma": "b2",
-  "quien": "ana",
-  "texto": "Los tacos de pescado, por favor.",
-  "inicio": 4,
-  "tras": 0.3
- },
- {
-  "id": "b2-03",
   "toma": "b2",
   "quien": "mesero",
   "texto": "Se nos terminaron. Una disculpa.",
@@ -84,7 +76,7 @@
   "tras": 0.2
  },
  {
-  "id": "b2-04",
+  "id": "b2-03",
   "toma": "b2",
   "quien": "ana",
   "texto": "¿Y el mole?",
@@ -92,7 +84,7 @@
   "tras": 0.2
  },
  {
-  "id": "b2-05",
+  "id": "b2-04",
   "toma": "b2",
   "quien": "mesero",
   "texto": "¿Es alérgica a algo? Lleva cacahuate.",
@@ -100,7 +92,7 @@
   "tras": 0.2
  },
  {
-  "id": "b2-06",
+  "id": "b2-05",
   "toma": "b2",
   "quien": "ana",
   "texto": "Sí… ¿y las enchiladas?",
@@ -108,7 +100,7 @@
   "tras": 0.2
  },
  {
-  "id": "b2-07",
+  "id": "b2-06",
   "toma": "b2",
   "quien": "ana",
   "texto": "[jumping in] Espere… ¿llevan cacahuate?",
@@ -116,7 +108,7 @@
   "encima": 0.2
  },
  {
-  "id": "b2-08",
+  "id": "b2-07",
   "toma": "b2",
   "quien": "mesero",
   "texto": "Déjeme pregunto en cocina.",
@@ -124,20 +116,12 @@
   "tras": 0.2
  },
  {
-  "id": "b2-09",
-  "toma": "b2",
-  "quien": "narrador",
-  "texto": "[sighs] Y a esperar.",
-  "inicio": 17.9,
-  "tras": 0.3
- },
- {
-  "id": "b2-10",
+  "id": "b2-08",
   "toma": "b2",
   "quien": "mesero",
   "texto": "Sí llevan cacahuate.",
   "inicio": 19.7,
-  "tras": 0.3
+  "tras": 0.2
  },
  {
   "id": "b3-01",
@@ -188,20 +172,12 @@
  {
   "id": "espera-01",
   "toma": "espera",
-  "quien": "narrador",
-  "texto": "[softly] Por fin, la orden salió.",
-  "inicio": 0.9
+  "quien": "carlos",
+  "texto": "Ya tardó, ¿no?",
+  "inicio": 3
  },
  {
   "id": "espera-02",
-  "toma": "espera",
-  "quien": "carlos",
-  "texto": "Ya tardó, ¿no?",
-  "inicio": 3,
-  "tras": 0.3
- },
- {
-  "id": "espera-03",
   "toma": "espera",
   "quien": "diego",
   "texto": "Yo ya tengo hambre.",
@@ -209,7 +185,7 @@
   "encima": 0.2
  },
  {
-  "id": "espera-04",
+  "id": "espera-03",
   "toma": "espera",
   "quien": "narrador",
   "texto": "Llegó la comida, llegaron las risas… [mischievously] y llegó ese momento.",
@@ -217,7 +193,7 @@
   "tras": 0.3
  },
  {
-  "id": "espera-05",
+  "id": "espera-04",
   "toma": "espera",
   "quien": "ana",
   "texto": "¿Nos trae la cuenta, por favor?",
@@ -288,7 +264,7 @@
   "id": "escanea-01",
   "toma": "escanea",
   "quien": "narrador",
-  "texto": "[softly] Ana escanea el código… [gasps] y ya está adentro. Sin descargar nada.",
+  "texto": "…y ya está adentro. Sin descargar nada.",
   "inicio": 1
  },
  {
@@ -302,7 +278,7 @@
   "id": "filtra-02",
   "toma": "filtra",
   "quien": "narrador",
-  "texto": "[mischievously] No tuvo que decir nada: Carta guarda sus restricciones y quita lo que no puede comer.",
+  "texto": "Carta guarda sus restricciones y quita lo que no puede comer.",
   "inicio": 2.2,
   "tras": 0.3
  },
@@ -311,13 +287,6 @@
   "toma": "top3",
   "quien": "narrador",
   "texto": "[warmly] Y como ya la conoce, le tenía tres ideas: por los restaurantes que ha visitado [giggles] y por lo que le dio me gusta.",
-  "inicio": 0.4
- },
- {
-  "id": "plato-01",
-  "toma": "plato",
-  "quien": "narrador",
-  "texto": "[softly] Cada platillo le cuenta lo que lleva.",
   "inicio": 0.4
  },
  {
@@ -493,7 +462,7 @@
   "id": "abierta-11",
   "toma": "abierta",
   "quien": "narrador",
-  "texto": "[mischievously] A Diego se le antojó algo más. Lo pidió desde su teléfono.",
+  "texto": "[mischievously] A Diego se le antojó algo más.",
   "inicio": 14,
   "tras": 0.3
  },
@@ -533,7 +502,7 @@
   "id": "abierta-16",
   "toma": "abierta",
   "quien": "narrador",
-  "texto": "[giggles] Ana quiso cambiar de opinión… demasiado tarde.",
+  "texto": "Ana quiso cambiar de opinión… demasiado tarde.",
   "inicio": 37.6,
   "tras": 0.3
  },
@@ -557,20 +526,12 @@
   "id": "abierta-19",
   "toma": "abierta",
   "quien": "narrador",
-  "texto": "[softly] Carlos sí llegó a tiempo.",
-  "inicio": 53.3,
-  "tras": 0.3
- },
- {
-  "id": "abierta-20",
-  "toma": "abierta",
-  "quien": "narrador",
   "texto": "[gasps] ¡Y llegó la comida!",
   "inicio": 55.6,
   "tras": 0.3
  },
  {
-  "id": "abierta-21",
+  "id": "abierta-20",
   "toma": "abierta",
   "quien": "mesero",
   "texto": "Provecho.",
@@ -578,7 +539,7 @@
   "tras": 0.3
  },
  {
-  "id": "abierta-22",
+  "id": "abierta-21",
   "toma": "abierta",
   "quien": "ana",
   "texto": "Prueba el pescado, está increíble.",
@@ -586,7 +547,7 @@
   "tras": 0.2
  },
  {
-  "id": "abierta-23",
+  "id": "abierta-22",
   "toma": "abierta",
   "quien": "carlos",
   "texto": "[jumping in] Y la arrachera. Hay que volver.",
@@ -594,7 +555,7 @@
   "encima": 0.2
  },
  {
-  "id": "abierta-24",
+  "id": "abierta-23",
   "toma": "abierta",
   "quien": "sofia",
   "texto": "¡Qué rico estuvo!",
@@ -771,7 +732,7 @@
   "id": "cuenta-09",
   "toma": "cuenta",
   "quien": "narrador",
-  "texto": "[softly] Revisaron su total… y llamaron a Javier.",
+  "texto": "Revisaron su total…",
   "inicio": 28.2,
   "tras": 0.3
  },
@@ -849,7 +810,7 @@
   "id": "factura-03",
   "toma": "factura",
   "quien": "narrador",
-  "texto": "[mischievously] ¿Factura? También desde el teléfono. [softly] Le llega al restaurante, que es quien la emite.",
+  "texto": "Le llega al restaurante, que es quien la emite.",
   "inicio": 4.9,
   "tras": 0.3
  },
@@ -868,20 +829,6 @@
   "texto": "[warmly] Fue una gran noche para nuestros invitados.",
   "inicio": 2.3,
   "tras": 0.3
- },
- {
-  "id": "prepara-01",
-  "toma": "prepara",
-  "quien": "narrador",
-  "texto": "[softly] Preparemos la mesa para los siguientes.",
-  "inicio": 0.3
- },
- {
-  "id": "limpia-01",
-  "toma": "limpia",
-  "quien": "narrador",
-  "texto": "[mischievously] Y la mesa volvió a esperar.",
-  "inicio": 2
  },
  {
   "id": "fin-01",
