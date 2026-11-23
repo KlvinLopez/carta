@@ -9,7 +9,9 @@ import { fileURLToPath } from 'node:url';
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const src = readFileSync(resolve(raiz, 'js/e2_film.js'), 'utf8');
 const a = src.indexOf('const CICLO ='), b = src.indexOf('/* Las tomas que ya tienen audio');
-const { TOMAS, VOZ } = new Function(src.slice(a, b) + '; return {TOMAS, VOZ};')();
+// TOMAS y VOZ salen del mismo código de la película, hasta donde aplica los cortes y alarga las tomas con audio: ya en segundos de guion
+const c = src.indexOf('TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]];'), finC = src.indexOf('\n', c);
+const { TOMAS, VOZ, RITMO } = new Function(src.slice(a, finC) + '; return {TOMAS, VOZ, RITMO};')();
 const lineas = [];
 for (const [toma] of TOMAS) {
   (VOZ[toma] || []).forEach((l, i, todas) => {
@@ -25,12 +27,11 @@ for (const [toma] of TOMAS) {
 mkdirSync(resolve(raiz, 'apoyo/voz'), { recursive: true });
 writeFileSync(resolve(raiz, 'apoyo/voz/guion.json'), JSON.stringify(lineas, null, 1) + '\n');
 // la línea de tiempo: el mismo código de la película, hasta donde alarga las tomas con audio
-const c = src.indexOf('TOMAS.forEach(t => { const d = VOZ_AUDIO[t[0]];'), finC = src.indexOf('\n', c);
-const tomasPeli = new Function(src.slice(a, finC) + '; return TOMAS;')();
+const tomasPeli = TOMAS;
 const r1 = (x) => Math.round(x * 10) / 10;
 let ini = 0; const tomas = tomasPeli.map(([toma, , duracion]) => { const f = { toma, inicio: r1(ini), duracion: r1(duracion) }; ini += duracion; return f; });
-writeFileSync(resolve(raiz, 'voz/linea_de_tiempo.json'), JSON.stringify({ total: r1(ini), tomas }, null, 1) + '\n');
+writeFileSync(resolve(raiz, 'voz/linea_de_tiempo.json'), JSON.stringify({ ritmo: RITMO, total: r1(ini), tomas }, null, 1) + '\n');
 const por = {};
 for (const l of lineas) por[l.quien] = (por[l.quien] || 0) + l.texto.length;
-console.log(`línea de tiempo: ${tomas.length} tomas, ${r1(ini)} s`);
+console.log(`línea de tiempo: ${tomas.length} tomas, ${r1(ini)} s de guion, ritmo ${RITMO}, ${r1(ini / RITMO)} s de reloj`);
 console.log(`${lineas.length} líneas · caracteres: ${Object.entries(por).map(([q, n]) => `${q} ${n}`).join(' · ')} · total ${Object.values(por).reduce((x, y) => x + y, 0)}`);

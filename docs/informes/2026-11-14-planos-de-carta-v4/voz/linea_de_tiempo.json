@@ -1,164 +1,165 @@
 {
- "total": 419.9,
+ "ritmo": 1.13,
+ "total": 353.5,
  "tomas": [
   {
    "toma": "mesa",
    "inicio": 0,
-   "duracion": 11.8
-  },
-  {
-   "toma": "cumple",
-   "inicio": 11.8,
-   "duracion": 12.7
-  },
-  {
-   "toma": "b1",
-   "inicio": 24.5,
-   "duracion": 13.3
-  },
-  {
-   "toma": "b2",
-   "inicio": 37.8,
-   "duracion": 21.7
-  },
-  {
-   "toma": "b3",
-   "inicio": 59.5,
    "duracion": 11.5
   },
   {
+   "toma": "cumple",
+   "inicio": 11.5,
+   "duracion": 12.1
+  },
+  {
+   "toma": "b1",
+   "inicio": 23.6,
+   "duracion": 12.1
+  },
+  {
+   "toma": "b2",
+   "inicio": 35.7,
+   "duracion": 18.4
+  },
+  {
+   "toma": "b3",
+   "inicio": 54.1,
+   "duracion": 10.2
+  },
+  {
    "toma": "b3t",
-   "inicio": 71,
-   "duracion": 8.2
+   "inicio": 64.3,
+   "duracion": 6.4
   },
   {
    "toma": "espera",
-   "inicio": 79.2,
-   "duracion": 12.9
-  },
-  {
-   "toma": "ticket",
-   "inicio": 92.1,
-   "duracion": 8.5
-  },
-  {
-   "toma": "b4",
-   "inicio": 100.6,
+   "inicio": 70.7,
    "duracion": 10.3
   },
   {
+   "toma": "ticket",
+   "inicio": 81,
+   "duracion": 4.6
+  },
+  {
+   "toma": "b4",
+   "inicio": 85.6,
+   "duracion": 8.8
+  },
+  {
    "toma": "pivote",
-   "inicio": 110.9,
-   "duracion": 6.6
+   "inicio": 94.4,
+   "duracion": 5.5
   },
   {
    "toma": "ofrece",
-   "inicio": 117.5,
-   "duracion": 10.1
+   "inicio": 99.9,
+   "duracion": 9.8
   },
   {
    "toma": "escanea",
-   "inicio": 127.6,
-   "duracion": 7.5
-  },
-  {
-   "toma": "filtra",
-   "inicio": 135.1,
-   "duracion": 12.5
-  },
-  {
-   "toma": "top3",
-   "inicio": 147.6,
-   "duracion": 8.7
-  },
-  {
-   "toma": "plato",
-   "inicio": 156.3,
-   "duracion": 6.5
-  },
-  {
-   "toma": "agrega",
-   "inicio": 162.8,
-   "duracion": 4
-  },
-  {
-   "toma": "juntos",
-   "inicio": 166.8,
-   "duracion": 11.6
-  },
-  {
-   "toma": "recomienda",
-   "inicio": 178.4,
-   "duracion": 6.5
-  },
-  {
-   "toma": "confirma",
-   "inicio": 184.9,
+   "inicio": 109.7,
    "duracion": 5.9
   },
   {
-   "toma": "esperan",
-   "inicio": 190.8,
-   "duracion": 3.2
+   "toma": "filtra",
+   "inicio": 115.6,
+   "duracion": 8.7
   },
   {
-   "toma": "avisa",
-   "inicio": 194,
-   "duracion": 6
+   "toma": "top3",
+   "inicio": 124.3,
+   "duracion": 8.4
   },
   {
-   "toma": "llega",
-   "inicio": 200,
-   "duracion": 13.6
+   "toma": "plato",
+   "inicio": 132.7,
+   "duracion": 3
   },
   {
-   "toma": "cocina",
-   "inicio": 213.6,
+   "toma": "agrega",
+   "inicio": 135.7,
+   "duracion": 3.7
+  },
+  {
+   "toma": "juntos",
+   "inicio": 139.4,
+   "duracion": 11.3
+  },
+  {
+   "toma": "recomienda",
+   "inicio": 150.7,
+   "duracion": 4
+  },
+  {
+   "toma": "confirma",
+   "inicio": 154.7,
    "duracion": 5.6
   },
   {
+   "toma": "esperan",
+   "inicio": 160.3,
+   "duracion": 3
+  },
+  {
+   "toma": "avisa",
+   "inicio": 163.3,
+   "duracion": 4.4
+  },
+  {
+   "toma": "llega",
+   "inicio": 167.7,
+   "duracion": 13.3
+  },
+  {
+   "toma": "cocina",
+   "inicio": 181,
+   "duracion": 5
+  },
+  {
    "toma": "abierta",
-   "inicio": 219.2,
-   "duracion": 68.5
+   "inicio": 186,
+   "duracion": 57.5
   },
   {
    "toma": "cierres",
-   "inicio": 287.7,
-   "duracion": 41.8
+   "inicio": 243.5,
+   "duracion": 36.3
   },
   {
    "toma": "cuenta",
-   "inicio": 329.5,
-   "duracion": 32.9
+   "inicio": 279.8,
+   "duracion": 28.4
   },
   {
    "toma": "pagada",
-   "inicio": 362.4,
-   "duracion": 24.2
+   "inicio": 308.2,
+   "duracion": 21.1
   },
   {
    "toma": "factura",
-   "inicio": 386.6,
-   "duracion": 10.6
-  },
-  {
-   "toma": "sucia",
-   "inicio": 397.2,
-   "duracion": 5.2
-  },
-  {
-   "toma": "prepara",
-   "inicio": 402.4,
-   "duracion": 4.2
-  },
-  {
-   "toma": "limpia",
-   "inicio": 406.6,
+   "inicio": 329.3,
    "duracion": 8.3
   },
   {
+   "toma": "sucia",
+   "inicio": 337.6,
+   "duracion": 4.9
+  },
+  {
+   "toma": "prepara",
+   "inicio": 342.5,
+   "duracion": 3
+  },
+  {
+   "toma": "limpia",
+   "inicio": 345.5,
+   "duracion": 3
+  },
+  {
    "toma": "fin",
-   "inicio": 414.9,
+   "inicio": 348.5,
    "duracion": 5
   }
  ]

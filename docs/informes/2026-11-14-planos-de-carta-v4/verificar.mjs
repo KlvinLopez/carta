@@ -485,9 +485,28 @@ ok(await p.isVisible('#intro'), 'la presentación abre la primera vez');
   const medido = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/tiempos.json'), 'utf8'));
   const tablas = await p.evaluate(() => ({ VOZ_AUDIO, VOZ_TIEMPOS }));
   ok(JSON.stringify(tablas.VOZ_AUDIO) === JSON.stringify(medido.VOZ_AUDIO) && JSON.stringify(tablas.VOZ_TIEMPOS) === JSON.stringify(medido.VOZ_TIEMPOS), 'voz: VOZ_AUDIO y VOZ_TIEMPOS de la película son iguales a voz/tiempos.json');
+  /* versión 20: la película, la voz mezclada y la línea de tiempo de la música dicen el mismo ritmo */
+  { const rp = await p.evaluate(() => RITMO), rl = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/linea_de_tiempo.json'), 'utf8')).ritmo;
+    ok(rp === medido.RITMO && rp === rl && rp >= 1 && rp <= 1.15, `ritmo: la película (${rp}), voz/tiempos.json (${medido.RITMO}) y voz/linea_de_tiempo.json (${rl}) dicen el mismo ritmo, entre 1 y 1.15`);
+    /* cada mp3 de voz dura sus segundos de guion entre el ritmo (± 0.15 s), medido con ffprobe */
+    const { execFileSync } = require('node:child_process'); const malos = [];
+    for (const [toma, d] of Object.entries(medido.VOZ_AUDIO)) { const real = parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', resolve(aqui, `apoyo/voz/${toma}.mp3`)], { encoding: 'utf8' })); if (Math.abs(real * rp - d) > 0.15 * rp) malos.push(`${toma}: ${real.toFixed(2)} s × ${rp} ≠ ${d}`); }
+    ok(malos.length === 0, `ritmo: cada pista de voz dura sus segundos de guion entre el ritmo (${Object.keys(medido.VOZ_AUDIO).length} pistas) ` + malos.join('; '));
+    /* la meta de la versión 20: 5:15 de reloj o menos, sin aire muerto */
+    const ag = await p.evaluate(() => { const hs = []; let mayor = 0;
+      TOMAS.forEach(([toma], i) => { const fr = (VOZ_TIEMPOS[toma] || []).slice().sort((x, y) => x[0] - y[0]), un = []; for (const [a, b] of fr) { if (un.length && a <= un[un.length - 1][1] + 0.01) un[un.length - 1][1] = Math.max(un[un.length - 1][1], b); else un.push([a, b]); }
+        let ant = 0; for (const [a, b] of un) { if (a - ant > 1.85) hs.push([toma, +(a - ant).toFixed(2)]); mayor = Math.max(mayor, a - ant); ant = b; }
+        const cola = TOMAS[i][2] - ant; if (cola > 1.85) hs.push([toma, +cola.toFixed(2)]); mayor = Math.max(mayor, cola); });
+      return { reloj: TOT / RITMO, guion: TOT, hs, mayor, sinVoz: TOMAS.filter((x) => !VOZ_AUDIO[x[0]]).map((x) => [x[0], x[2]]) }; });
+    ok(ag.reloj <= 315, `ritmo: la película dura ${ag.reloj.toFixed(1)} s de reloj (${ag.guion.toFixed(1)} s de guion): 5:15 o menos`);
+    const LEER = { cumple: 2.0, ticket: 2.6, escanea: 2.5, filtra: 2.7, abierta: 3.7, cierres: 3.1, pagada: 2.4, fin: 2.0, plato: 3.0, prepara: 3.0, limpia: 3.0, esperan: 3.0, recomienda: 4.0 }; /* tomas donde la pantalla necesita leerse: su hueco mayor permitido */
+    const largos = ag.hs.filter(([t, h]) => !(h <= (LEER[t] || 1.85) + 0.01));
+    ok(largos.length === 0, `ritmo: dentro de una toma ningún hueco sin voz pasa de 1.8 s, salvo donde la pantalla necesita leerse (${ag.hs.length} huecos de más de 1.8 s, el mayor de ${ag.mayor.toFixed(1)} s) ` + largos.map((x) => x.join(' ')).join('; '));
+    const sv = ag.sinVoz.filter(([t, d]) => d > (t === 'recomienda' ? 4 : 3) + 0.01);
+    ok(ag.sinVoz.length >= 5 && sv.length === 0, 'ritmo: las tomas sin voz duran 3 s de guion o menos (recomienda, 4): ' + ag.sinVoz.map((x) => x.join(' ')).join(', ')); }
   /* versión 19: la línea de tiempo que usa la mezcla de la música es la que calcula la película */
   const lt = JSON.parse(fs.readFileSync(resolve(aqui, 'voz/linea_de_tiempo.json'), 'utf8'));
-  const peli = await p.evaluate(() => ({ total: Math.round(TOT * 10) / 10, tomas: TOMAS.map((x, i) => ({ toma: x[0], inicio: Math.round(T0[i] * 10) / 10, duracion: Math.round(x[2] * 10) / 10 })) }));
+  const peli = await p.evaluate(() => ({ ritmo: RITMO, total: Math.round(TOT * 10) / 10, tomas: TOMAS.map((x, i) => ({ toma: x[0], inicio: Math.round(T0[i] * 10) / 10, duracion: Math.round(x[2] * 10) / 10 })) }));
   ok(JSON.stringify(lt) === JSON.stringify(peli), 'voz: voz/linea_de_tiempo.json es la línea de tiempo que calcula la película (' + peli.tomas.length + ' tomas, ' + peli.total + ' s)');
   const ids = JSON.parse(fs.readFileSync(resolve(aqui, 'apoyo/voz/guion.json'), 'utf8')).map((l) => l.id).sort();
   const grabadas = fs.readdirSync(resolve(aqui, 'voz/lineas')).filter((f) => f.endsWith('.mp3')).map((f) => f.slice(0, -4)).sort();
@@ -516,7 +535,7 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   /* mientras suena, la imagen sigue al audio y nadie rebobina la pista; sólo un salto del usuario la coloca, una vez */
   const e0 = await p.evaluate(() => window.__escrituras);
   await p.evaluate(() => { window.__ritmo = 1.6; }); await p.waitForTimeout(1200);
-  const sigue = await p.evaluate(() => ({ dif: Math.abs(tI / 1000 - T0[vozToma] - vozAct.currentTime), esc: window.__escrituras }));
+  const sigue = await p.evaluate(() => ({ dif: Math.abs(tI / 1000 - T0[vozToma] - vozAct.currentTime * RITMO), esc: window.__escrituras }));
   ok(sigue.dif < 0.2 && sigue.esc === e0, `presentación con voz: con el audio más rápido, la imagen lo sigue (${sigue.dif.toFixed(2)} s) y nadie escribe currentTime (${sigue.esc - e0})`);
   await p.evaluate(() => { window.__ritmo = 1; }); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(500);
   const trasSalto = await p.evaluate(() => window.__escrituras);
@@ -524,11 +543,11 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
   /* versión 19: la música de fondo es una segunda pista (el archivo real, no el doble) que sigue al reloj de la película */
   { const fs = require('node:fs'); ok(fs.existsSync(resolve(aqui, 'apoyo/musica/fondo.mp3')), 'música: existe apoyo/musica/fondo.mp3');
     await p.waitForTimeout(1800);
-    const m1 = await p.evaluate(() => (musica ? { src: String(musica.src), pausada: musica.paused, dif: Math.abs(musica.currentTime - tI / 1000), dur: musica.duration, total: TOT, vol: musica.volume, ritmo: musica.playbackRate } : null));
-    ok(m1 && m1.src.endsWith('apoyo/musica/fondo.mp3') && Math.abs(m1.dur - m1.total) <= 0.5, `música: fondo.mp3 dura lo que la película (${m1 ? m1.dur.toFixed(2) : '?'} s y ${m1 ? m1.total.toFixed(1) : '?'} s, ± 0.5)`);
+    const m1 = await p.evaluate(() => (musica ? { src: String(musica.src), pausada: musica.paused, dif: Math.abs(musica.currentTime - tI / 1000 / RITMO), dur: musica.duration, total: TOT / RITMO, vol: musica.volume, ritmo: musica.playbackRate } : null));
+    ok(m1 && m1.src.endsWith('apoyo/musica/fondo.mp3') && Math.abs(m1.dur - m1.total) <= 0.5, `música: fondo.mp3 dura lo que la película en el reloj (${m1 ? m1.dur.toFixed(2) : '?'} s y ${m1 ? m1.total.toFixed(1) : '?'} s, ± 0.5)`);
     ok(m1 && !m1.pausada && m1.dif < 0.6 && m1.vol === 1 && m1.ritmo >= 0.97 && m1.ritmo <= 1.03, `música: con sonido, suena y sigue al reloj de la película (a ${m1 ? m1.dif.toFixed(2) : '?'} s, volumen ${m1 ? m1.vol : '?'}, velocidad ${m1 ? m1.ritmo : '?'})`);
     const c0 = await p.evaluate(() => musColocadas); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
-    const m2 = await p.evaluate(() => ({ n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000) }));
+    const m2 = await p.evaluate(() => ({ n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000 / RITMO) }));
     ok(m2.n === c0 + 1 && m2.dif < 0.6, `música: tras +3 s se coloca exactamente una vez (${m2.n - c0}) y queda a ${m2.dif.toFixed(2)} s del reloj`);
     await p.evaluate(() => { pausaI = true; }); await p.waitForTimeout(300);
     const m3 = await p.evaluate(() => ({ pausada: musica.paused, voz: !vozAct || vozAct.paused }));
@@ -551,7 +570,7 @@ if (await p.evaluate(() => HAY_VOZ && !REDUCE)) {
     const corre = async () => { await p.waitForTimeout(700); return p.evaluate(() => !musica.paused && !!vozAct && !vozAct.paused && !pausaI); };
     ok(await corre(), 'salidas: antes de probarlas, la película corre con voz y música');
     const cv0 = await p.evaluate(() => musColocadas); await oculta(true); await p.waitForTimeout(200); const q0 = await quieto();
-    await oculta(false); await p.waitForTimeout(700); const v1 = await p.evaluate(() => ({ m: !musica.paused, v: !!vozAct && !vozAct.paused, n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000) }));
+    await oculta(false); await p.waitForTimeout(700); const v1 = await p.evaluate(() => ({ m: !musica.paused, v: !!vozAct && !vozAct.paused, n: musColocadas, dif: Math.abs(musica.currentTime - tI / 1000 / RITMO) }));
     ok(q0.ok && q0.quietaPeli && v1.m && v1.v && v1.n === cv0 + 1 && v1.dif < 0.6, `pestaña oculta: paran la voz, la música y la película (${q0.det}); al volver siguen y la música se coloca una vez (${v1.n - cv0})`);
     await p.evaluate(() => { pausaI = true; pintaIntro(); }); await p.waitForTimeout(200); await oculta(true); await p.waitForTimeout(200); await oculta(false); await p.waitForTimeout(500);
     ok(await p.evaluate(() => pausaI && musica.paused && (!vozAct || vozAct.paused)), 'pestaña oculta: si la película estaba en pausa, al volver sigue en pausa y en silencio');
@@ -649,6 +668,14 @@ for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [390,
   ok(n >= 24 && nombres >= 40 && mal.length === 0, `presentación ${w}×${h}: ${n} instantes sin rótulos, nombres ni crédito fuera del cuadro ni encimados, y ${nombres} nombres a la vista ` + mal.slice(0, 3).join('; '));
 }
 await p.setViewportSize({ width: 1920, height: 1080 });
+/* versión 20: con el ritmo nuevo, el rótulo de cada toma sigue en pantalla 1.6 s de reloj o más */
+const rot = await p.evaluate(async () => { const f = document.querySelector('#cine'), cortos = []; let n = 0; pausaI = true;
+  const vis = (el) => { let o = 1, x = el; while (x && x !== f) { const c = getComputedStyle(x); o *= parseFloat(c.opacity); if (c.visibility === 'hidden' || c.display === 'none') o = 0; x = x.parentElement; } return o; };
+  for (let i = 0; i < TOMAS.length; i++) { if (!TOMAS[i][4].length) continue; n++; const r = f.querySelector('.r' + i), w = [...r.querySelectorAll('.cw')]; let seg = 0;
+    for (let s = T0[i]; s < Math.min(T0[i + 1] + 1.5, TOT); s += 0.1) { tI = s * 1000; pintaIntro(); if (vis(r) > 0.9 && w.every((e) => vis(e) > 0.85)) seg += 0.1; }
+    if (seg / RITMO < 1.6) cortos.push(TOMAS[i][0] + ' ' + (seg / RITMO).toFixed(1) + ' s'); }
+  return { n, cortos }; });
+ok(rot.n >= 20 && rot.cortos.length === 0, `ritmo: el rótulo completo de cada toma (${rot.n}) está en pantalla 1.6 s de reloj o más ` + rot.cortos.join(', '));
 /* versión 19: en las tomas de mesa, cada personaje a la vista lleva su nombre, y ningún nombre se encima con un globo o un rótulo.
    Se mira cada toma en tres instantes; en `cumple`, antes de «casi», la silla de Carlos está vacía y el mesero aún no llega. */
 const nom = await p.evaluate(async () => {
