@@ -913,7 +913,7 @@ await pasada(1280, 720, true);
 { const limpio = pathToFileURL(resolve(aqui, 'interactivo.html')).href;
   /* 11 · con movimiento reducido no suena nada y el botón de sonido lo dice: apagado y sin efecto */
   const cr = await nav.newContext({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' }); const pr = await cr.newPage(); const er = []; pr.on('console', (m) => m.type() === 'error' && er.push(m.text())); pr.on('pageerror', (e) => er.push(String(e)));
-  await pr.goto(limpio); await pr.waitForTimeout(1200);
+  await pr.goto(limpio); await pr.waitForSelector('#introSon', { state: 'attached', timeout: 20000 }); await pr.waitForTimeout(1200); /* la película se arma cuando llega GSAP: en una página nueva puede tardar */
   const r0 = await pr.evaluate(() => { const b = document.querySelector('#introSon'); return { reduce: REDUCE, intro: !document.querySelector('#intro').hidden, puerta: !document.querySelector('#introPuerta').hidden, apagado: b.disabled, icono: b.textContent, titulo: b.title, on: vozOn }; });
   await pr.click('#introSon', { force: true }).catch(() => {}); await pr.waitForTimeout(200);
   const r1 = await pr.evaluate(() => { const b = document.querySelector('#introSon'); return { icono: b.textContent, on: vozOn, pistas: Object.keys(vozPistas).length, musica: !!musica }; });
@@ -922,7 +922,7 @@ await pasada(1280, 720, true);
   /* 12 · sin los mp3 (publicada sin su audio), la puerta no ofrece sonido y no se piden las demás pistas */
   const cs = await nav.newContext({ viewport: { width: 1280, height: 720 } }); let pedidos = 0; await cs.route(/\.mp3($|\?)/, (r) => { pedidos++; r.abort(); });
   const ps = await cs.newPage(); const es = []; ps.on('pageerror', (e) => es.push(String(e)));
-  await ps.goto(limpio); await ps.waitForTimeout(1500);
+  await ps.goto(limpio); await ps.waitForSelector('#introPuerta', { state: 'attached', timeout: 20000 }); await ps.waitForTimeout(1500);
   const s0 = await ps.evaluate(() => { const v = [...document.querySelectorAll('#introPuerta button')].filter((b) => !b.hidden && b.getBoundingClientRect().width > 0); return { puerta: !document.querySelector('#introPuerta').hidden, botones: v.map((b) => b.textContent), foco: document.activeElement ? document.activeElement.textContent : '', sin: sinAudio }; });
   await ps.click('#introPuerta button:not([hidden])'); await ps.waitForTimeout(2500);
   const s1 = await ps.evaluate(() => { const b = document.querySelector('#introSon'); return { corre: tI > 1000 && !pausaI, apagado: b.disabled, titulo: b.title, icono: b.textContent, on: vozOn }; });

@@ -336,7 +336,7 @@ const escH = t => String(t).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;",
 function alcanceHtml() {
   const filas = TOMAS.filter(t => t[3] && t[3].length).map(t => `<li data-toma="${t[0]}"><b>${escH(NOMBRE_TOMA[t[0]] || t[0])}</b><ul>${t[3].map(([e, q]) => `<li><span class="alc-${e}">${ETAPAS[e] || e}</span>${escH(q)}</li>`).join("")}</ul></li>`).join("");
   return `<div id="introAlc" class="ialc" role="dialog" aria-modal="true" aria-labelledby="introAlcT" hidden><div class="ialcc"><button class="btn ialcx" data-intro="alcance-cierra">Cerrar</button><h3 id="introAlcT">Qué es de hoy y qué es visión</h3>
-    <p>La película mezcla lo que Carta ya hace con lo que viene. Toma por toma: <span class="alc-hoy">Hoy</span> ya está en producción; <span class="alc-f3">Fase 3</span> está en el plan y en construcción; <span class="alc-v11">Versión 1.1</span> viene después de la v1; <span class="alc-vis">Visión</span> no está en el plan.</p>
+    <p>La película mezcla lo que Carta ya hace con lo que viene. Toma por toma: <span class="alc-hoy">Hoy</span> ya está en producción; <span class="alc-f3">Fase 3</span> está en el plan y es lo siguiente que se construye; <span class="alc-v11">Versión 1.1</span> viene después de la v1; <span class="alc-vis">Visión</span> no está en el plan.</p>
     <ol>${filas}</ol></div></div>`;
 }
 function alcanceAbre(si) { const d = $("#introAlc"); if (!d) return; d.hidden = !si; if (si) { pausaI = true; d.querySelector("[data-intro='alcance-cierra']").focus(); d.querySelector(".ialcc").scrollTop = 0; } else { const b = $("#introCta [data-intro='alcance']"); if (b) b.focus(); } }
