@@ -11,7 +11,15 @@ carta y `personal.py` (T-1.6) el personal y su PIN, todas aisladas por restauran
 
 from fastapi import APIRouter, Depends
 
-from app.api.admin import fotos, importaciones, menu, mesas, personal, restaurantes
+from app.api.admin import (
+    contrato,
+    fotos,
+    importaciones,
+    menu,
+    mesas,
+    personal,
+    restaurantes,
+)
 from app.api.admin.dependencias import operador_actual
 from app.schemas.comun import errores
 
@@ -27,5 +35,7 @@ router.include_router(fotos.router)
 router.include_router(mesas.router)
 router.include_router(importaciones.router)
 router.include_router(personal.router)
+# Pedidos en vivo del dueño (T-3.7), sólo declarados por T-3.0: responden 404 tras el token.
+router.include_router(contrato.router)
 
 __all__ = ["router"]
