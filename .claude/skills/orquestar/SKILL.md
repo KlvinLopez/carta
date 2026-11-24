@@ -144,3 +144,12 @@ Tiempos reales: la hija de T-2.1 en Opus, 34 min la tarea y 25 min la ronda; las
 57. **Segunda pasada de las lentes sobre el delta** cuando la ronda posterior a las lentes añade comportamiento y no sólo arreglos (`git diff <commit de las lentes>..HEAD`, encargos acotados). En la película versión 20 encontró un fallo alto que la primera pasada no podía ver.
 58. **El guion de reproducción de un hallazgo se conserva y lo corre la maestra antes y después del arreglo.** La hija no logró reproducir el corte de red y lo cubrió con un doble; con el guion de la lente se vio el fallo en la página anterior y que ya no ocurría en la nueva.
 59. **Lo que la maestra mide en su carpeta de trabajo y luego afirma en un documento entra al repositorio con su guion, su regla y su umbral, o no se afirma.** «Ningún susurro de más de 0.45 s» no salía de ninguna medición commiteada y la lente de pruebas no pudo reproducirlo.
+
+## Lecciones de la primera ola de la Fase 3 (24 de noviembre de 2026, T-3.0)
+
+Tiempos reales: hija en Opus, 45 min y 17 USD hasta la primera entrega; tres rondas cortas de 15 a 25 min cada una. Lentes de la primera vuelta: seguridad 12 min, adversarial 20 min, pruebas 73 min. Las segundas vueltas sobre el delta, reanudadas con `SendMessage` al mismo agente, tardaron 7 min la de seguridad y 33 min la de pruebas.
+
+60. **Bases de las lentes con `test` en el nombre** (`carta_test_t30seg`, no `carta_t30seg`): `tests/bd_pruebas.py` se niega a correr sobre una base cuyo nombre no lleva `test` como segmento. Una lente que no puede correr el Verificar revisa a ciegas. Para quitarlas, `dropdb --maintenance-db=<url>/postgres <base>`: el guard bloquea la sentencia SQL, pero no el programa.
+61. **El `prompt` de `create_session` no puede empezar con `/`.** Se abre con palabras («Ejecuta la tarea T-x.y … con el skill tarea (invócalo como `/tarea T-x.y`)»).
+62. **Una tarea de contrato y migración se revisa dos veces.** La segunda vuelta de seguridad, sobre el delta de la ronda, encontró en T-3.0 cuatro caminos nuevos para romper INV-10 que los triggers recién añadidos no cubrían, porque comprobaban la fila sólo al escribirla: mover al padre después, un operador de otro restaurante, la sesión de otra mesa y una cascada que borraba marcas. En una tabla nueva, la lente ataca también «escribo bien y luego muevo al padre».
+
