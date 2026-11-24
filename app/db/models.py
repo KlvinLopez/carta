@@ -213,7 +213,9 @@ def _fk_compuesta(
     El nombre es el de la FK simple que sustituye (`fk_<tabla>_<columna>`, por convención).
     `SET NULL` lleva la lista de columnas de PostgreSQL 15+ para no anular la clave compartida.
     """
-    accion = f"SET NULL ({columna})" if ondelete == "SET NULL" else ondelete
+    accion: str | None = f"SET NULL ({columna})" if ondelete == "SET NULL" else ondelete
+    if accion == "NO ACTION":
+        accion = None  # sin cláusula: así lo refleja PostgreSQL
     return ForeignKeyConstraint(
         [columna, clave], [f"{padre}.id", f"{padre}.{clave}"], ondelete=accion
     )
@@ -1173,8 +1175,9 @@ class MarcaCiclo(Base):
 
     __table_args__ = (
         _fk_compuesta("sesion_id", "sesion_grupal", ondelete="CASCADE"),
-        _fk_compuesta("miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
-        _fk_compuesta("comanda_id", "comanda", ondelete="CASCADE", clave="sesion_id"),
+        # Sin acción al borrar (B18): borrar un miembro o una comanda no se lleva sus marcas.
+        _fk_compuesta("miembro_id", "miembro_sesion", ondelete="NO ACTION", clave="sesion_id"),
+        _fk_compuesta("comanda_id", "comanda", ondelete="NO ACTION", clave="sesion_id"),
         _fk_compuesta("autor_personal_id", "personal_restaurante", ondelete="SET NULL"),
         CheckConstraint(f"paso IN ({_lista_sql(PASOS_CICLO)})", name="ck_marca_ciclo_paso"),
         CheckConstraint(

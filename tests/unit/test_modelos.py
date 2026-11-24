@@ -142,15 +142,17 @@ TRIGGERS = {
     # INV-10 en las columnas de 0004 sin FK compuesta posible (ronda de revisión de T-3.0, A1)
     "tr_item_orden_autores": (
         "CREATE TRIGGER tr_item_orden_autores BEFORE INSERT OR UPDATE OF orden_id, "
-        "pedido_por_miembro_id, cancelado_por_personal_id ON public.item_orden FOR EACH ROW "
-        "EXECUTE FUNCTION fn_autores_de_la_sesion('pedido_por_miembro_id', "
-        "'cancelado_por_personal_id')"
+        "pedido_por_miembro_id, cancelado_por_personal_id, cancelado_por_usuario_id "
+        "ON public.item_orden FOR EACH ROW EXECUTE FUNCTION fn_autores_de_la_sesion("
+        "'pedido_por_miembro_id', 'cancelado_por_personal_id', 'cancelado_por_usuario_id')"
     ),
     "tr_miembro_sesion_autores": (
         "CREATE TRIGGER tr_miembro_sesion_autores BEFORE INSERT OR UPDATE OF "
-        "cuenta_cerrada_por_personal_id, pago_validado_por_personal_id ON public.miembro_sesion "
+        "cuenta_cerrada_por_personal_id, pago_validado_por_personal_id, "
+        "cuenta_cerrada_por_usuario_id, pago_validado_por_usuario_id ON public.miembro_sesion "
         "FOR EACH ROW EXECUTE FUNCTION fn_autores_de_la_sesion("
-        "'cuenta_cerrada_por_personal_id', 'pago_validado_por_personal_id')"
+        "'cuenta_cerrada_por_personal_id', 'pago_validado_por_personal_id', "
+        "'cuenta_cerrada_por_usuario_id', 'pago_validado_por_usuario_id')"
     ),
     "tr_reparto_cargo_autores": (
         "CREATE TRIGGER tr_reparto_cargo_autores BEFORE INSERT OR UPDATE OF item_id "
@@ -158,8 +160,24 @@ TRIGGERS = {
     ),
     "tr_movimiento_cargo_autores": (
         "CREATE TRIGGER tr_movimiento_cargo_autores BEFORE INSERT OR UPDATE OF item_id, "
-        "propuesto_por_personal_id ON public.movimiento_cargo FOR EACH ROW "
-        "EXECUTE FUNCTION fn_autores_de_la_sesion('item_id', 'propuesto_por_personal_id')"
+        "propuesto_por_personal_id, propuesto_por_usuario_id ON public.movimiento_cargo "
+        "FOR EACH ROW EXECUTE FUNCTION fn_autores_de_la_sesion('item_id', "
+        "'propuesto_por_personal_id', 'propuesto_por_usuario_id')"
+    ),
+    # Ronda 2 de revisión (B15, B16)
+    "tr_sesion_grupal_autores": (
+        "CREATE TRIGGER tr_sesion_grupal_autores BEFORE INSERT OR UPDATE OF "
+        "cerrada_por_usuario_id ON public.sesion_grupal FOR EACH ROW "
+        "EXECUTE FUNCTION fn_autores_de_la_sesion('cerrada_por_usuario_id')"
+    ),
+    "tr_item_orden_orden_inmutable": (
+        "CREATE TRIGGER tr_item_orden_orden_inmutable BEFORE UPDATE OF orden_id "
+        "ON public.item_orden FOR EACH ROW EXECUTE FUNCTION fn_columna_inmutable('orden_id')"
+    ),
+    "tr_personal_restaurante_inmutable": (
+        "CREATE TRIGGER tr_personal_restaurante_inmutable BEFORE UPDATE OF restaurante_id "
+        "ON public.personal_restaurante FOR EACH ROW "
+        "EXECUTE FUNCTION fn_columna_inmutable('restaurante_id')"
     ),
     "tr_solicitud_entrada_coherente": (
         "CREATE TRIGGER tr_solicitud_entrada_coherente BEFORE INSERT OR UPDATE "
@@ -225,6 +243,7 @@ FUNCIONES_DE_TRIGGER = {
     "fn_avisar_cambio",
     "fn_autores_de_la_sesion",
     "fn_solicitud_entrada_coherente",
+    "fn_columna_inmutable",
 }
 
 # INV-10 (0002): cada FK compuesta `(columna, clave) → padre(id, clave)` y su `ON DELETE`.
@@ -252,11 +271,11 @@ _FK_INQUILINO_0004 = [
     ("solicitud_entrada", "mesa_id", "mesa", R, "CASCADE"),
     ("solicitud_entrada", "sesion_id", "sesion_grupal", R, "SET NULL"),
     ("solicitud_entrada", "resuelta_por_personal_id", "personal_restaurante", R, "SET NULL"),
-    ("marca_ciclo", "comanda_id", "comanda", S, "CASCADE"),
+    ("marca_ciclo", "comanda_id", "comanda", S, "NO ACTION"),
     ("movimiento_cargo", "propuesto_por_miembro_id", "miembro_sesion", S, "SET NULL"),
     ("movimiento_cargo", "aceptado_por_miembro_id", "miembro_sesion", S, "SET NULL"),
     ("marca_ciclo", "sesion_id", "sesion_grupal", R, "CASCADE"),
-    ("marca_ciclo", "miembro_id", "miembro_sesion", S, "CASCADE"),
+    ("marca_ciclo", "miembro_id", "miembro_sesion", S, "NO ACTION"),
     ("marca_ciclo", "autor_personal_id", "personal_restaurante", R, "SET NULL"),
     ("reparto_cargo", "miembro_id", "miembro_sesion", S, "CASCADE"),
     ("movimiento_cargo", "de_miembro_id", "miembro_sesion", S, "CASCADE"),
@@ -304,13 +323,19 @@ TRIGGERS_0004 = {
         "tr_solicitud_entrada_coherente",
         "tr_reparto_cargo_sesion_inmutable",
         "tr_movimiento_cargo_sesion_inmutable",
+        "tr_sesion_grupal_autores",
+        "tr_item_orden_orden_inmutable",
+        "tr_personal_restaurante_inmutable",
     }
 }
 
 
 def _fk_compuesta_esperada(padre: str, columna: str, clave: str, accion: str) -> str:
+    base = f"FOREIGN KEY ({columna}, {clave}) REFERENCES {padre}(id, {clave})"
+    if accion == "NO ACTION":
+        return base  # PostgreSQL no escribe la cláusula por omisión
     sufijo = f"SET NULL ({columna})" if accion == "SET NULL" else accion
-    return f"FOREIGN KEY ({columna}, {clave}) REFERENCES {padre}(id, {clave}) ON DELETE {sufijo}"
+    return f"{base} ON DELETE {sufijo}"
 
 
 # Fragmentos que la definición real de cada CHECK de invariante debe contener.

@@ -749,6 +749,13 @@ async def test_borrar_al_usuario_que_cancelo_deja_el_item_sin_autor(
     )
     await sesion.execute(
         text(
+            "INSERT INTO operador_restaurante (usuario_id, restaurante_id, rol) "
+            "VALUES (:u, :r, 'propietario')"
+        ),
+        {"u": usuario, "r": restaurante.id},
+    )
+    await sesion.execute(
+        text(
             "UPDATE item_orden SET estado = 'cancelado_personal', cancelado_en = now(), "
             "cancelado_por_usuario_id = :u WHERE id = :i"
         ),

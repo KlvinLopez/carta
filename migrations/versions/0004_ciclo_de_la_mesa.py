@@ -299,6 +299,12 @@ BEGIN
         -- «Sin sobrescribir» es también «sin inventar»: la hora es la de la transacción que
         -- escribe la marca, nunca una que traiga quien la escribe (AC-35.2).
         NEW.ocurrido_en := now();
+        IF NEW.autor_usuario_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM operador_restaurante o
+                    WHERE o.usuario_id = NEW.autor_usuario_id AND o.restaurante_id = NEW.restaurante_id AND o.activo
+                    FOR SHARE) THEN
+            RAISE EXCEPTION 'El operador de la marca no es de este restaurante (INV-10)'
+                USING ERRCODE = 'foreign_key_violation';
+        END IF;
         IF (NEW.autor = 'personal' AND NEW.autor_personal_id IS NULL)
             OR (NEW.autor = 'operador' AND NEW.autor_usuario_id IS NULL)
         THEN
@@ -353,6 +359,8 @@ DECLARE
 BEGIN
     IF TG_TABLE_NAME = 'item_orden' THEN
         SELECT o.sesion_id INTO v_sesion FROM orden_personal o WHERE o.id = NEW.orden_id;
+    ELSIF TG_TABLE_NAME = 'sesion_grupal' THEN
+        v_sesion := NEW.id;
     ELSIF TG_TABLE_NAME = 'miembro_sesion' THEN
         v_sesion := NEW.sesion_id;
     ELSE
@@ -363,12 +371,22 @@ BEGIN
     END IF;
     SELECT s.restaurante_id INTO v_restaurante FROM sesion_grupal s WHERE s.id = v_sesion;
 
-    -- Personas del personal (TG_ARGV): del restaurante de la sesión.
+    -- Columnas de TG_ARGV, sólo si se escriben ahora (al insertar o al cambiar su valor): un
+    -- operador al que después se le quita el acceso no hace fallar otra escritura de la fila.
     FOR i IN 0 .. TG_NARGS - 1 LOOP
         v_columna := TG_ARGV[i];
         v_id := (v_fila ->> v_columna)::UUID;
         CONTINUE WHEN v_id IS NULL;
-        IF v_columna LIKE '%_por_personal_id' THEN
+        CONTINUE WHEN TG_OP = 'UPDATE' AND (to_jsonb(OLD) ->> v_columna)::UUID = v_id;
+        IF v_columna LIKE '%_por_usuario_id' THEN
+            -- El operador que actúa desde su panel es operador activo del restaurante.
+            IF NOT EXISTS (SELECT 1 FROM operador_restaurante o
+                    WHERE o.usuario_id = v_id AND o.restaurante_id = v_restaurante AND o.activo
+                    FOR SHARE) THEN
+                RAISE EXCEPTION '% no es operador de este restaurante (INV-10)', v_columna
+                    USING ERRCODE = 'foreign_key_violation';
+            END IF;
+        ELSIF v_columna LIKE '%_por_personal_id' THEN
             SELECT p.restaurante_id INTO v_de FROM personal_restaurante p WHERE p.id = v_id FOR SHARE;
             IF v_de IS DISTINCT FROM v_restaurante THEN
                 RAISE EXCEPTION '% es de otro restaurante (INV-10)', v_columna
@@ -398,14 +416,21 @@ TRIGGERS_MISMA_SESION = (
     (
         "tr_item_orden_autores",
         "item_orden",
-        "INSERT OR UPDATE OF orden_id, pedido_por_miembro_id, cancelado_por_personal_id",
-        ("pedido_por_miembro_id", "cancelado_por_personal_id"),
+        "INSERT OR UPDATE OF orden_id, pedido_por_miembro_id, cancelado_por_personal_id, "
+        "cancelado_por_usuario_id",
+        ("pedido_por_miembro_id", "cancelado_por_personal_id", "cancelado_por_usuario_id"),
     ),
     (
         "tr_miembro_sesion_autores",
         "miembro_sesion",
-        "INSERT OR UPDATE OF cuenta_cerrada_por_personal_id, pago_validado_por_personal_id",
-        ("cuenta_cerrada_por_personal_id", "pago_validado_por_personal_id"),
+        "INSERT OR UPDATE OF cuenta_cerrada_por_personal_id, pago_validado_por_personal_id, "
+        "cuenta_cerrada_por_usuario_id, pago_validado_por_usuario_id",
+        (
+            "cuenta_cerrada_por_personal_id",
+            "pago_validado_por_personal_id",
+            "cuenta_cerrada_por_usuario_id",
+            "pago_validado_por_usuario_id",
+        ),
     ),
     (
         "tr_reparto_cargo_autores",
@@ -416,8 +441,14 @@ TRIGGERS_MISMA_SESION = (
     (
         "tr_movimiento_cargo_autores",
         "movimiento_cargo",
-        "INSERT OR UPDATE OF item_id, propuesto_por_personal_id",
-        ("item_id", "propuesto_por_personal_id"),
+        "INSERT OR UPDATE OF item_id, propuesto_por_personal_id, propuesto_por_usuario_id",
+        ("item_id", "propuesto_por_personal_id", "propuesto_por_usuario_id"),
+    ),
+    (
+        "tr_sesion_grupal_autores",
+        "sesion_grupal",
+        "INSERT OR UPDATE OF cerrada_por_usuario_id",
+        ("cerrada_por_usuario_id",),
     ),
 )
 
@@ -430,9 +461,10 @@ def _sql_tr_misma_sesion(trigger: str, tabla: str, eventos: str, columnas: Seque
     )
 
 
-# La solicitud no se muda: ni de restaurante ni de mesa (como `sesion_grupal` en 0002), y su
-# miembro es de su sesión. Cuando la cascada anula la sesión (se borró), el miembro no cambia y
-# se acepta: la FK del miembro lo anula después, al borrarse los miembros de esa sesión.
+# La solicitud no se muda: ni de restaurante ni de mesa (como `sesion_grupal` en 0002); su
+# sesión es la de su mesa, su miembro es de su sesión y quien la resolvió desde el panel es
+# operador del restaurante. Cuando la cascada anula la sesión (se borró), el miembro se anula con
+# ella.
 SQL_FN_SOLICITUD_COHERENTE = """
 CREATE OR REPLACE FUNCTION fn_solicitud_entrada_coherente()
 RETURNS TRIGGER
@@ -447,6 +479,12 @@ BEGIN
         RAISE EXCEPTION 'Una solicitud no cambia de mesa ni de restaurante (INV-10)'
             USING ERRCODE = 'check_violation';
     END IF;
+    -- La sesión se borró (su FK la anula): sin sesión no hay miembro. Se anula aquí porque
+    -- PostgreSQL revalida la FK del miembro en una fila de la misma transacción, y la del
+    -- miembro puede no haberse anulado todavía.
+    IF TG_OP = 'UPDATE' AND NEW.sesion_id IS NULL AND OLD.sesion_id IS NOT NULL THEN
+        NEW.miembro_id := NULL;
+    END IF;
     IF NEW.miembro_id IS NOT NULL
         AND (TG_OP = 'INSERT'
              OR NEW.miembro_id IS DISTINCT FROM OLD.miembro_id
@@ -455,6 +493,23 @@ BEGIN
             SELECT m.sesion_id FROM miembro_sesion m WHERE m.id = NEW.miembro_id)
     THEN
         RAISE EXCEPTION 'El miembro de una solicitud es de su sesión (INV-10)'
+            USING ERRCODE = 'foreign_key_violation';
+    END IF;
+    IF NEW.sesion_id IS NOT NULL
+        AND (TG_OP = 'INSERT' OR NEW.sesion_id IS DISTINCT FROM OLD.sesion_id)
+        AND NEW.mesa_id IS DISTINCT FROM (
+            SELECT s.mesa_id FROM sesion_grupal s WHERE s.id = NEW.sesion_id)
+    THEN
+        RAISE EXCEPTION 'La sesión de una solicitud es la de su mesa (INV-10)'
+            USING ERRCODE = 'foreign_key_violation';
+    END IF;
+    IF NEW.resuelta_por_usuario_id IS NOT NULL
+        AND (TG_OP = 'INSERT' OR NEW.resuelta_por_usuario_id IS DISTINCT FROM OLD.resuelta_por_usuario_id)
+        AND NOT EXISTS (SELECT 1 FROM operador_restaurante o
+                    WHERE o.usuario_id = NEW.resuelta_por_usuario_id AND o.restaurante_id = NEW.restaurante_id AND o.activo
+                    FOR SHARE)
+    THEN
+        RAISE EXCEPTION 'Quien resolvió no es operador de este restaurante (INV-10)'
             USING ERRCODE = 'foreign_key_violation';
     END IF;
     RETURN NEW;
@@ -467,6 +522,28 @@ CREATE TRIGGER tr_solicitud_entrada_coherente
     FOR EACH ROW EXECUTE FUNCTION fn_solicitud_entrada_coherente();
 """
 # `sesion_id` inmutable en las tablas del reparto (la función es de 0001).
+# Ni un ítem cambia de orden (una corrección es cancelar y agregar, ADR-017; «pasar la cuenta»
+# va por el reparto) ni una persona del personal cambia de restaurante (ninguna ruta lo hace):
+# si no, el padre se mudaría con sus cargos o con lo que validó (ronda 2 de revisión, B15).
+SQL_FN_COLUMNA_INMUTABLE = """
+CREATE OR REPLACE FUNCTION fn_columna_inmutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+    IF (to_jsonb(NEW) ->> TG_ARGV[0]) IS DISTINCT FROM (to_jsonb(OLD) ->> TG_ARGV[0]) THEN
+        RAISE EXCEPTION '%.% no cambia (INV-10)', TG_TABLE_NAME, TG_ARGV[0]
+            USING ERRCODE = 'check_violation';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+"""
+TRIGGERS_COLUMNA_INMUTABLE = (
+    ("tr_item_orden_orden_inmutable", "item_orden", "orden_id"),
+    ("tr_personal_restaurante_inmutable", "personal_restaurante", "restaurante_id"),
+)
 TRIGGERS_SESION_INMUTABLE = (
     ("tr_reparto_cargo_sesion_inmutable", "reparto_cargo"),
     ("tr_movimiento_cargo_sesion_inmutable", "movimiento_cargo"),
@@ -597,6 +674,7 @@ FUNCIONES_NUEVAS = (
     "fn_marca_ciclo_inmutable",
     "fn_autores_de_la_sesion",
     "fn_solicitud_entrada_coherente",
+    "fn_columna_inmutable",
 )
 
 
@@ -1010,17 +1088,17 @@ def upgrade() -> None:
             name="fk_marca_ciclo_sesion_id",
             ondelete="CASCADE",
         ),
+        # Sin acción al borrar (ronda 2 de revisión, B18): ni borrar un miembro ni una comanda
+        # se lleva sus marcas; purgar la sesión sí, por la FK de la marca a su sesión.
         sa.ForeignKeyConstraint(
             ["miembro_id", "sesion_id"],
             ["miembro_sesion.id", "miembro_sesion.sesion_id"],
             name="fk_marca_ciclo_miembro_id",
-            ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["comanda_id", "sesion_id"],
             ["comanda.id", "comanda.sesion_id"],
             name="fk_marca_ciclo_comanda_id",
-            ondelete="CASCADE",
         ),
         _fk_personal_inquilino("marca_ciclo", "autor_personal_id"),
         _fk_usuario("marca_ciclo", "autor_usuario_id"),
@@ -1159,6 +1237,12 @@ def upgrade() -> None:
             f"CREATE TRIGGER {trigger} BEFORE UPDATE OF sesion_id ON {tabla} "
             "FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable()"
         )
+    op.execute(SQL_FN_COLUMNA_INMUTABLE)
+    for trigger, tabla, columna in TRIGGERS_COLUMNA_INMUTABLE:
+        op.execute(
+            f"CREATE TRIGGER {trigger} BEFORE UPDATE OF {columna} ON {tabla} "
+            f"FOR EACH ROW EXECUTE FUNCTION fn_columna_inmutable('{columna}')"
+        )
 
     # --- disparador de avisos (ADR-018), al final: la siembra de arriba no avisa ------------
     op.execute(SQL_FN_AVISAR_CAMBIO)
@@ -1174,6 +1258,8 @@ def downgrade() -> None:
         op.execute(f"DROP TRIGGER IF EXISTS {trigger} ON {tabla}")
     op.execute("DROP TRIGGER IF EXISTS tr_solicitud_entrada_coherente ON solicitud_entrada")
     for trigger, tabla in TRIGGERS_SESION_INMUTABLE:
+        op.execute(f"DROP TRIGGER IF EXISTS {trigger} ON {tabla}")
+    for trigger, tabla, _columna in TRIGGERS_COLUMNA_INMUTABLE:
         op.execute(f"DROP TRIGGER IF EXISTS {trigger} ON {tabla}")
     op.execute("DROP TRIGGER IF EXISTS tr_restaurante_siembra ON restaurante")
     for funcion in FUNCIONES_NUEVAS:

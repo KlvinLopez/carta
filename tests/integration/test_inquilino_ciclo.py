@@ -31,6 +31,7 @@ class Lado:
     platillo: UUID
     item: UUID
     comanda: UUID
+    operador: UUID  # `usuario` que es operador (propietario) de este restaurante
 
 
 async def _uno(sesion: AsyncSession, sql: str, **p: object) -> Any:
@@ -90,7 +91,19 @@ async def _lado(sesion: AsyncSession, nombre: str) -> Lado:
         m=m,
         s=s,
     )
-    return Lado(r, m, pr, s, mb, o, p, it, c)
+    u = await _uno(
+        sesion,
+        "INSERT INTO usuario (firebase_uid, provider) VALUES (:f, 'google') RETURNING id",
+        f=f"inq-{r.hex}",
+    )
+    await sesion.execute(
+        text(
+            "INSERT INTO operador_restaurante (usuario_id, restaurante_id, rol) "
+            "VALUES (:u, :r, 'propietario')"
+        ),
+        {"u": u, "r": r},
+    )
+    return Lado(r, m, pr, s, mb, o, p, it, c, u)
 
 
 @pytest.fixture
@@ -344,3 +357,224 @@ async def test_la_cascada_sigue_funcionando_con_los_controles_nuevos(
             )
         ).scalar_one()
         assert quedan == 0, tabla
+
+
+# ---------------------------------------------------------------------------
+# Ronda 2 de revisión (B15–B18)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.ac("AC-15.2")
+async def test_un_item_no_cambia_de_orden(sesion: AsyncSession, dos: tuple[Lado, Lado]) -> None:
+    """B15 a): moverlo a la orden (y al platillo) de otro restaurante, o a otra orden de su
+    misma sesión, dejaría su reparto y sus movimientos en una sesión y el cargo en otra. Una
+    corrección es cancelar y agregar (ADR-017)."""
+    a, b = dos
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET orden_id = :o, platillo_id = :p WHERE id = :i",
+        o=b.orden,
+        p=b.platillo,
+        i=a.item,
+    )
+    otro = await _uno(
+        sesion, "INSERT INTO miembro_sesion (sesion_id) VALUES (:s) RETURNING id", s=a.sesion
+    )
+    otra_orden = await _uno(
+        sesion,
+        "INSERT INTO orden_personal (sesion_id, miembro_id) VALUES (:s, :m) RETURNING id",
+        s=a.sesion,
+        m=otro,
+    )
+    await _falla(
+        sesion, "UPDATE item_orden SET orden_id = :o WHERE id = :i", o=otra_orden, i=a.item
+    )
+    # Lo demás de una orden que se arma sigue cambiando.
+    await _pasa(sesion, "UPDATE item_orden SET cantidad = 3, subtotal = 30 WHERE id = :i", i=a.item)
+
+
+@pytest.mark.ac("AC-15.2")
+async def test_una_persona_del_personal_no_cambia_de_restaurante(
+    sesion: AsyncSession, dos: tuple[Lado, Lado]
+) -> None:
+    """B15 b): quien validó un pago de A (y a quien se anota la propina, AC-37.7) no se muda a
+    B, ni con historial ni sin él."""
+    a, b = dos
+    await _pasa(
+        sesion,
+        "UPDATE miembro_sesion SET pago_validado_por_personal_id = :p WHERE id = :m",
+        p=a.personal,
+        m=a.miembro,
+    )
+    await _falla(
+        sesion,
+        "UPDATE personal_restaurante SET restaurante_id = :r WHERE id = :p",
+        r=b.restaurante,
+        p=a.personal,
+    )
+    nueva = await _uno(
+        sesion,
+        "INSERT INTO personal_restaurante (restaurante_id, nombre, pin_hash) "
+        "VALUES (:r, 'Sin historial', :h) RETURNING id",
+        r=a.restaurante,
+        h=PIN_HASH,
+    )
+    await _falla(
+        sesion,
+        "UPDATE personal_restaurante SET restaurante_id = :r WHERE id = :p",
+        r=b.restaurante,
+        p=nueva,
+    )
+
+
+def _escrituras_de_operador(a: Lado) -> dict[str, tuple[str, dict[str, object]]]:
+    """Cada columna `*_por_usuario_id` (y el autor de una marca): SQL con `:u` = el usuario."""
+    return {
+        "item cancelado": (
+            "UPDATE item_orden SET estado = 'cancelado_personal', cancelado_en = now(), "
+            "cancelado_por_usuario_id = :u WHERE id = :i",
+            {"i": a.item},
+        ),
+        "cuenta cerrada": (
+            "UPDATE miembro_sesion SET cuenta_cerrada_por_usuario_id = :u WHERE id = :m",
+            {"m": a.miembro},
+        ),
+        "pago validado": (
+            "UPDATE miembro_sesion SET pago_validado_por_usuario_id = :u WHERE id = :m",
+            {"m": a.miembro},
+        ),
+        "marca del operador": (
+            "INSERT INTO marca_ciclo (restaurante_id, sesion_id, paso, autor, autor_usuario_id) "
+            "VALUES (:r, :s, 'mesa_limpia', 'operador', :u)",
+            {"r": a.restaurante, "s": a.sesion},
+        ),
+        "solicitud resuelta": (
+            "INSERT INTO solicitud_entrada (restaurante_id, mesa_id, alias, motivo, vence_en, "
+            "estado, resuelta_en, resuelta_por_usuario_id) VALUES (:r, :m, 'Luis', "
+            "'fuera_de_horario', now() + interval '10 minutes', 'rechazada', now(), :u)",
+            {"r": a.restaurante, "m": a.mesa},
+        ),
+        "movimiento propuesto": (
+            "INSERT INTO movimiento_cargo (sesion_id, tipo, de_miembro_id, "
+            "propuesto_por_usuario_id) VALUES (:s, 'flotante', :m, :u)",
+            {"s": a.sesion, "m": a.miembro},
+        ),
+        "sesión cerrada": (
+            "UPDATE sesion_grupal SET cerrada_por_usuario_id = :u WHERE id = :s",
+            {"s": a.sesion},
+        ),
+    }
+
+
+ESCRITURAS_DE_OPERADOR = [
+    "item cancelado",
+    "cuenta cerrada",
+    "pago validado",
+    "marca del operador",
+    "solicitud resuelta",
+    "movimiento propuesto",
+    "sesión cerrada",
+]
+
+
+@pytest.mark.ac("AC-15.2")
+@pytest.mark.parametrize("caso", ESCRITURAS_DE_OPERADOR)
+async def test_el_operador_autor_es_del_restaurante(
+    sesion: AsyncSession, dos: tuple[Lado, Lado], caso: str
+) -> None:
+    """B16: un usuario que sólo es operador de B no queda como autor de algo de A."""
+    a, b = dos
+    escrituras = _escrituras_de_operador(a)
+    assert set(escrituras) == set(ESCRITURAS_DE_OPERADOR)
+    sql, parametros = escrituras[caso]
+    await _falla(sesion, sql, u=b.operador, **parametros)
+    await _pasa(sesion, sql, u=a.operador, **parametros)
+
+
+@pytest.mark.ac("AC-15.2")
+async def test_quitarle_el_acceso_al_operador_no_rompe_lo_que_ya_firmo(
+    sesion: AsyncSession, dos: tuple[Lado, Lado]
+) -> None:
+    """B16: la comprobación es al escribir la columna, no después."""
+    a, _ = dos
+    await _pasa(
+        sesion,
+        "UPDATE miembro_sesion SET pago_validado_por_usuario_id = :u WHERE id = :m",
+        u=a.operador,
+        m=a.miembro,
+    )
+    await _pasa(
+        sesion,
+        "UPDATE operador_restaurante SET activo = false WHERE usuario_id = :u",
+        u=a.operador,
+    )
+    await _pasa(
+        sesion,
+        "UPDATE miembro_sesion SET cuenta_cerrada_por_personal_id = :p WHERE id = :m",
+        p=a.personal,
+        m=a.miembro,
+    )
+    # Y ya no puede firmar nada nuevo.
+    await _falla(
+        sesion,
+        "UPDATE miembro_sesion SET cuenta_cerrada_por_usuario_id = :u, "
+        "cuenta_cerrada_por_personal_id = NULL WHERE id = :m",
+        u=a.operador,
+        m=a.miembro,
+    )
+
+
+@pytest.mark.ac("AC-15.2")
+async def test_la_sesion_de_una_solicitud_es_la_de_su_mesa(
+    sesion: AsyncSession, dos: tuple[Lado, Lado]
+) -> None:
+    """B17: aprobar una solicitud de la mesa 1 atada a la sesión de la mesa 2 metería a la
+    persona en el grupo equivocado."""
+    a, _ = dos
+    mesa_2 = await _uno(
+        sesion,
+        "INSERT INTO mesa (restaurante_id, numero, codigo_publico) VALUES (:r, 2, :c) RETURNING id",
+        r=a.restaurante,
+        c=f"mesa-2-{a.restaurante.hex}",
+    )
+    sesion_2 = await _uno(
+        sesion,
+        "INSERT INTO sesion_grupal (mesa_id, restaurante_id) VALUES (:m, :r) RETURNING id",
+        m=mesa_2,
+        r=a.restaurante,
+    )
+    miembro_2 = await _uno(
+        sesion, "INSERT INTO miembro_sesion (sesion_id) VALUES (:s) RETURNING id", s=sesion_2
+    )
+    sql = (
+        "INSERT INTO solicitud_entrada (restaurante_id, mesa_id, sesion_id, miembro_id, alias, "
+        "motivo, vence_en) VALUES (:r, :m, :s, :mb, 'Luis', 'entrada_cerrada', "
+        "now() + interval '10 minutes')"
+    )
+    await _falla(sesion, sql, r=a.restaurante, m=a.mesa, s=sesion_2, mb=miembro_2)
+    await _falla(sesion, sql, r=a.restaurante, m=a.mesa, s=sesion_2, mb=None)
+    await _pasa(sesion, sql, r=a.restaurante, m=mesa_2, s=sesion_2, mb=miembro_2)
+
+
+@pytest.mark.ac("AC-35.2")
+async def test_borrar_una_comanda_o_un_miembro_no_se_lleva_sus_marcas(
+    sesion: AsyncSession, dos: tuple[Lado, Lado]
+) -> None:
+    """B18: las marcas sólo se van con la purga de su sesión (03 §7)."""
+    a, _ = dos
+    for columna, valor in (("comanda_id", a.comanda), ("miembro_id", a.miembro)):
+        await _pasa(
+            sesion,
+            f"INSERT INTO marca_ciclo (restaurante_id, sesion_id, {columna}, paso, autor) "
+            "VALUES (:r, :s, :v, 'comanda', 'sistema')",
+            r=a.restaurante,
+            s=a.sesion,
+            v=valor,
+        )
+    await _falla(sesion, "DELETE FROM comanda WHERE id = :c", c=a.comanda)
+    # El miembro no tiene órdenes confirmadas: lo que retiene su borrado es su marca.
+    await sesion.execute(text("DELETE FROM orden_personal WHERE miembro_id = :m"), {"m": a.miembro})
+    await _falla(sesion, "DELETE FROM miembro_sesion WHERE id = :m", m=a.miembro)
+    await sesion.execute(text("DELETE FROM sesion_grupal WHERE id = :s"), {"s": a.sesion})
+    quedan = await _uno(sesion, "SELECT count(*) FROM marca_ciclo WHERE sesion_id = :s", s=a.sesion)
+    assert quedan == 0
