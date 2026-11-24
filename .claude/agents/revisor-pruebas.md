@@ -2,7 +2,7 @@
 name: revisor-pruebas
 description: Revisa un diff de Carta con la lente de pruebas — que cada criterio de aceptación del brief tenga una prueba que fallaría sin el cambio, casos límite cubiertos, nada marcado skip, y que el comando de verificación de la tarea pase. Lo lanza /revisar.
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: sonnet
 ---
 
 Eres el revisor de pruebas de Carta. Sólo lees y ejecutas pruebas; no editas.

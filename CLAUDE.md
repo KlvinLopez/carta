@@ -122,7 +122,7 @@ Detalle en `docs/plan/07_Spec_Driven.md`. Cada sesión recorre cinco pasos y cad
 | 3 · Revisar | `/revisar` (seguridad · pruebas · adversarial), `/analizar T-x.y` (spec ↔ contrato ↔ código ↔ pruebas) y `/code-review` antes del PR | Hallazgos resueltos |
 | 4 · Compound | `/compound` antes de cerrar: ¿qué aprendimos que la próxima sesión debería saber? | Memoria para la próxima |
 
-Cada lección se vuelve un artefacto: bug que regresa → test (`tests/`); hallazgo de revisión → regla (aquí, corto); procedimiento repetido → skill (`.claude/skills/`); regla que no puede fallar → hook (`.claude/hooks/`); decisión costosa → ADR (`docs/mvp/adr/`). Varias tareas en paralelo: una sesión maestra con `/orquestar`, una hija por carril. Este archivo no pasa de 150 líneas; lo que crezca se mueve a una skill.
+Cada lección se vuelve un artefacto: bug que regresa → test (`tests/`); hallazgo de revisión → regla (aquí, corto); procedimiento repetido → skill (`.claude/skills/`); regla que no puede fallar → hook (`.claude/hooks/`); decisión costosa → ADR (`docs/mvp/adr/`). Varias tareas en paralelo: una sesión maestra con `/orquestar`, una hija por carril; qué modelo corre cada quien (la maestra en Opus 5.5, cada hija con su modelo explícito, Fable 5.2 sólo si la tarea lo amerita) está en `docs/plan/README.md` §Decisiones, fila 10. Este archivo no pasa de 150 líneas; lo que crezca se mueve a una skill.
 
 ---
 
