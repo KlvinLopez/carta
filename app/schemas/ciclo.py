@@ -25,8 +25,9 @@ from app.schemas.comun import Entrada, Esquema, Precio
 # Centavos: `INTEGER` en la base (≤ 21 millones de pesos por cuenta, de sobra).
 Centavos = Annotated[int, Field(ge=0, le=2_000_000_000, examples=[48000])]
 # La propina que declara el comensal: hasta 1 millón de pesos [supuesto: muy por encima de
-# cualquier cuenta real], para que consumo + propina quepa en el total (`Centavos`) y nunca dé
-# un 500 al armar la cuenta (ronda de revisión de T-3.0, D2).
+# cualquier cuenta real]. No basta para que consumo + propina quepa siempre en el total
+# (`Centavos`, ≤ 2e9; un consumo de 1,950,000,000 centavos más la propina máxima se pasa): el
+# servicio de T-3.8 responde 422 cuando el total pasa el tope (ronda de revisión de T-3.0, C4).
 PROPINA_MAXIMA_CENTAVOS = 100_000_000
 CentavosPropina = Annotated[int, Field(ge=0, le=PROPINA_MAXIMA_CENTAVOS, examples=[7200])]
 

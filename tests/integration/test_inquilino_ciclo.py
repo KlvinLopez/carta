@@ -32,6 +32,7 @@ class Lado:
     item: UUID
     comanda: UUID
     operador: UUID  # `usuario` que es operador (propietario) de este restaurante
+    confirmado: UUID  # ítem de una orden confirmada (sólo eso se cancela, ronda 3 B20)
 
 
 async def _uno(sesion: AsyncSession, sql: str, **p: object) -> Any:
@@ -103,7 +104,30 @@ async def _lado(sesion: AsyncSession, nombre: str) -> Lado:
         ),
         {"u": u, "r": r},
     )
-    return Lado(r, m, pr, s, mb, o, p, it, c, u)
+    otro = await _uno(
+        sesion, "INSERT INTO miembro_sesion (sesion_id) VALUES (:s) RETURNING id", s=s
+    )
+    oc = await _uno(
+        sesion,
+        "INSERT INTO orden_personal (sesion_id, miembro_id) VALUES (:s, :m) RETURNING id",
+        s=s,
+        m=otro,
+    )
+    confirmado = await _uno(
+        sesion,
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal) "
+        "VALUES (:o, :p, 10, 10) RETURNING id",
+        o=oc,
+        p=p,
+    )
+    await sesion.execute(
+        text(
+            "UPDATE orden_personal SET estado = 'confirmada', bloqueada = true, "
+            "confirmada_en = now() WHERE id = :o"
+        ),
+        {"o": oc},
+    )
+    return Lado(r, m, pr, s, mb, o, p, it, c, u, confirmado)
 
 
 @pytest.fixture
@@ -135,8 +159,8 @@ def _casos(a: Lado, b: Lado) -> list[tuple[str, str, dict[str, object], dict[str
             "ítem de A cancelado por una persona de B",
             "UPDATE item_orden SET estado = 'cancelado_personal', cancelado_en = now(), "
             "cancelado_por_personal_id = :x WHERE id = :i",
-            {"x": b.personal, "i": a.item},
-            {"x": a.personal, "i": a.item},
+            {"x": b.personal, "i": a.confirmado},
+            {"x": a.personal, "i": a.confirmado},
         ),
         (
             "cuenta de A cerrada y validada por una persona de B",
@@ -342,6 +366,13 @@ async def test_la_cascada_sigue_funcionando_con_los_controles_nuevos(
         s=a.sesion,
         mb=a.miembro,
     )
+    # Una orden confirmada no se borra (INV-3): se desbloquea antes de purgar la sesión.
+    await sesion.execute(
+        text(
+            "UPDATE orden_personal SET estado = 'armando', bloqueada = false WHERE sesion_id = :s"
+        ),
+        {"s": a.sesion},
+    )
     await sesion.execute(text("DELETE FROM sesion_grupal WHERE id = :s"), {"s": a.sesion})
     fila = (
         await sesion.execute(
@@ -433,7 +464,7 @@ def _escrituras_de_operador(a: Lado) -> dict[str, tuple[str, dict[str, object]]]
         "item cancelado": (
             "UPDATE item_orden SET estado = 'cancelado_personal', cancelado_en = now(), "
             "cancelado_por_usuario_id = :u WHERE id = :i",
-            {"i": a.item},
+            {"i": a.confirmado},
         ),
         "cuenta cerrada": (
             "UPDATE miembro_sesion SET cuenta_cerrada_por_usuario_id = :u WHERE id = :m",
@@ -575,6 +606,42 @@ async def test_borrar_una_comanda_o_un_miembro_no_se_lleva_sus_marcas(
     # El miembro no tiene órdenes confirmadas: lo que retiene su borrado es su marca.
     await sesion.execute(text("DELETE FROM orden_personal WHERE miembro_id = :m"), {"m": a.miembro})
     await _falla(sesion, "DELETE FROM miembro_sesion WHERE id = :m", m=a.miembro)
+    # Una orden confirmada no se borra (INV-3): se desbloquea antes de purgar la sesión.
+    await sesion.execute(
+        text(
+            "UPDATE orden_personal SET estado = 'armando', bloqueada = false WHERE sesion_id = :s"
+        ),
+        {"s": a.sesion},
+    )
     await sesion.execute(text("DELETE FROM sesion_grupal WHERE id = :s"), {"s": a.sesion})
     quedan = await _uno(sesion, "SELECT count(*) FROM marca_ciclo WHERE sesion_id = :s", s=a.sesion)
     assert quedan == 0
+
+
+# ---------------------------------------------------------------------------
+# Ronda 3 de revisión (B19)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.ac("AC-15.2")
+async def test_una_sesion_nace_o_se_cierra_con_un_operador_de_su_restaurante(
+    sesion: AsyncSession, dos: tuple[Lado, Lado]
+) -> None:
+    """B19: al insertar, la fila de la sesión todavía no está en la tabla; el restaurante sale
+    de la propia fila (antes, un operador de A fallaba al crear la sesión ya cerrada)."""
+    a, b = dos
+    mesa_2 = await _uno(
+        sesion,
+        "INSERT INTO mesa (restaurante_id, numero, codigo_publico) VALUES (:r, 3, :c) RETURNING id",
+        r=a.restaurante,
+        c=f"mesa-3-{a.restaurante.hex}",
+    )
+    sql = (
+        "INSERT INTO sesion_grupal (mesa_id, restaurante_id, estado, fin, "
+        "cerrada_por_usuario_id) VALUES (:m, :r, 'cerrada', now(), :u)"
+    )
+    await _falla(sesion, sql, m=mesa_2, r=a.restaurante, u=b.operador)
+    await _pasa(sesion, sql, m=mesa_2, r=a.restaurante, u=a.operador)
+    actualizar = "UPDATE sesion_grupal SET cerrada_por_usuario_id = :u WHERE id = :s"
+    await _falla(sesion, actualizar, u=b.operador, s=a.sesion)
+    await _pasa(sesion, actualizar, u=a.operador, s=a.sesion)

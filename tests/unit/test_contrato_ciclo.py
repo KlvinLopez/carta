@@ -629,3 +629,23 @@ def test_la_propina_declarada_cabe_en_el_total(openapi: dict[str, Any]) -> None:
     propina = _esquemas(openapi)["PropinaDeclarada"]["properties"]["propina_centavos"]
     total = _esquemas(openapi)["CuentaComensal"]["properties"]["total_a_cobrar_centavos"]
     assert propina["maximum"] * 2 <= total["maximum"]
+
+
+# ---------------------------------------------------------------------------
+# Ronda 3 de revisión (C5)
+# ---------------------------------------------------------------------------
+
+
+def test_la_zona_horaria_se_valida_contra_iana_una_sola_vez() -> None:
+    """C5: el conjunto de zonas se lee del disco una vez por proceso."""
+    from pydantic import ValidationError
+
+    from app.schemas import horario
+    from app.schemas.horario import HorarioCambios
+
+    assert HorarioCambios(zona_horaria="America/Mexico_City").zona_horaria == "America/Mexico_City"
+    with pytest.raises(ValidationError):
+        HorarioCambios(zona_horaria="Marte/Olympus")
+    antes = horario._zonas_iana.cache_info().misses
+    HorarioCambios(zona_horaria="Europe/Madrid")
+    assert horario._zonas_iana.cache_info().misses == antes

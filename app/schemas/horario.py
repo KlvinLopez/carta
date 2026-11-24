@@ -9,6 +9,7 @@ La evaluación al escanear es de T-3.10 y el editor del panel de T-3.19.
 
 from __future__ import annotations
 
+from functools import cache
 from typing import Annotated, Literal
 from zoneinfo import available_timezones
 
@@ -26,8 +27,14 @@ MAX_TRAMOS_POR_DIA = 4
 VERSION_HORARIO = 1
 
 
+@cache
+def _zonas_iana() -> frozenset[str]:
+    """Recorre la base de zonas del disco una sola vez por proceso."""
+    return frozenset(available_timezones())
+
+
 def _zona_iana(valor: str) -> str:
-    if valor not in available_timezones():
+    if valor not in _zonas_iana():
         raise ValueError("Zona horaria desconocida: usa un nombre IANA, como America/Mexico_City.")
     return valor
 

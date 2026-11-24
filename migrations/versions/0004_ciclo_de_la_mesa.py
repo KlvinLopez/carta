@@ -13,7 +13,8 @@ el código de la Fase 2. Por qué el código viejo no nota cada cambio:
   (`liberada_sin_pago`) sobre una sesión `cerrada`.
 - `miembro_sesion.estado` admite además `cuenta_cerrada`, `pagada`, `flotante` y `retirado`
   (`activo` es «pidiendo»); `desconectado` se conserva. El código viejo no lee ese estado.
-- `item_orden`: quién lo pidió, origen y «cancelado por el personal», con valores por
+- `item_orden`: quién lo pidió, origen y «cancelado por el personal» (sólo de un ítem confirmado,
+  y no se deshace), con valores por
   defecto (`comensal`, `vigente`). INV-3 se ajusta **una sola vez** (ADR-017 punto 8): en un
   ítem de una orden confirmada sólo cabe el paso `vigente → cancelado_personal`, con autor y
   hora y sin tocar ninguna otra columna, mientras ninguna comanda de su orden esté atendida o
@@ -222,6 +223,23 @@ BEGIN
         RETURN NEW;
     END IF;
 
+    -- Una cancelación no se deshace ni se reescribe, se arme o no la orden (AC-35.2, ADR-017
+    -- punto 11); sólo una cascada anula su autor (rama de arriba).
+    IF TG_OP = 'UPDATE' AND OLD.estado = 'cancelado_personal'
+        AND (NEW.estado, NEW.cancelado_en, NEW.cancelado_por_personal_id,
+             NEW.cancelado_por_usuario_id)
+            IS DISTINCT FROM (OLD.estado, OLD.cancelado_en, OLD.cancelado_por_personal_id,
+                              OLD.cancelado_por_usuario_id)
+    THEN
+        RAISE EXCEPTION 'Una cancelación no se deshace ni se reescribe (INV-3)'
+            USING ERRCODE = 'check_violation';
+    END IF;
+    -- Un ítem nace vigente: sólo se cancela uno confirmado.
+    IF TG_OP = 'INSERT' AND NEW.estado = 'cancelado_personal' THEN
+        RAISE EXCEPTION 'Un ítem nace vigente; se cancela después de confirmarlo (INV-3)'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
     IF TG_OP = 'UPDATE'
         AND NEW.orden_id = OLD.orden_id
         AND OLD.estado = 'vigente'
@@ -229,7 +247,13 @@ BEGIN
         AND (to_jsonb(NEW) - ARRAY[{_lista(COLUMNAS_CANCELACION)}])
             = (to_jsonb(OLD) - ARRAY[{_lista(COLUMNAS_CANCELACION)}])
     THEN
-        PERFORM 1 FROM orden_personal WHERE id = NEW.orden_id FOR SHARE;
+        -- El personal cancela lo que la cocina no empezó, que es lo confirmado (ADR-017); en una
+        -- orden que todavía se arma, el comensal quita el ítem él mismo.
+        SELECT bloqueada INTO v_bloqueada FROM orden_personal WHERE id = NEW.orden_id FOR SHARE;
+        IF NOT v_bloqueada THEN
+            RAISE EXCEPTION 'Sólo se cancela un ítem confirmado; en una orden que se arma se quita (INV-3)'
+                USING ERRCODE = 'check_violation';
+        END IF;
         FOR v_estado_comanda IN
             SELECT c.estado FROM comanda c
             JOIN comanda_orden co ON co.comanda_id = c.id
@@ -369,7 +393,12 @@ BEGIN
     IF v_sesion IS NULL THEN
         RETURN NEW;  -- falla la llave foránea, que es el error verdadero
     END IF;
-    SELECT s.restaurante_id INTO v_restaurante FROM sesion_grupal s WHERE s.id = v_sesion;
+    IF TG_TABLE_NAME = 'sesion_grupal' THEN
+        -- BEFORE INSERT: la fila todavía no está en la tabla; su restaurante es el de NEW.
+        v_restaurante := NEW.restaurante_id;
+    ELSE
+        SELECT s.restaurante_id INTO v_restaurante FROM sesion_grupal s WHERE s.id = v_sesion;
+    END IF;
 
     -- Columnas de TG_ARGV, sólo si se escriben ahora (al insertar o al cambiar su valor): un
     -- operador al que después se le quita el acceso no hace fallar otra escritura de la fila.
@@ -1251,6 +1280,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Producción nunca baja la base (05_Operacion §3, `scripts/predespliegue.py`). Bajar en
+    desarrollo pierde lo del ciclo: las sesiones `cuenta_cerrada`/`pagada` vuelven a `activa`,
+    los miembros a `activo`, y los ítems **cancelados por el personal** pierden su estado y
+    vuelven a contar en su orden y en la cuenta (`item_orden.estado` desaparece)."""
     for tabla in TABLAS_TRIGGER_AVISO:
         op.execute(f"DROP TRIGGER IF EXISTS tr_aviso_{tabla} ON {tabla}")
     op.execute("DROP TRIGGER IF EXISTS tr_marca_ciclo_inmutable ON marca_ciclo")
@@ -1277,7 +1310,7 @@ def downgrade() -> None:
         op.drop_table(tabla)
     op.drop_constraint("uq_comanda_id_sesion_id", "comanda", type_="unique")
 
-    # item_orden
+    # item_orden: los `cancelado_personal` vuelven a contar (ver el docstring).
     for nombre in ("ck_item_orden_cancelado", "ck_item_orden_origen"):
         op.drop_constraint(nombre, "item_orden", type_="check")
     for columna in (
