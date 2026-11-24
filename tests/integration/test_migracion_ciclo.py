@@ -259,6 +259,30 @@ async def test_0004_expande_sin_tocar_lo_que_habia_y_baja_a_0003(url_bd: str) ->
                     ),
                     {"m": datos["miembro"]},
                 )
+                # Un ítem cancelado por el personal en su orden confirmada (C3).
+                await conexion.execute(
+                    text(
+                        "UPDATE orden_personal SET estado = 'confirmada', bloqueada = true, "
+                        "confirmada_en = now() WHERE miembro_id = :m"
+                    ),
+                    {"m": datos["miembro"]},
+                )
+                persona = (
+                    await conexion.execute(
+                        text(
+                            "INSERT INTO personal_restaurante (restaurante_id, nombre, pin_hash) "
+                            "VALUES (:r, 'Marisol', :h) RETURNING id"
+                        ),
+                        {"r": datos["restaurante"], "h": PIN_HASH},
+                    )
+                ).scalar_one()
+                await conexion.execute(
+                    text(
+                        "UPDATE item_orden SET estado = 'cancelado_personal', "
+                        "cancelado_en = now(), cancelado_por_personal_id = :p WHERE id = :i"
+                    ),
+                    {"p": persona, "i": datos["item"]},
+                )
 
             alembic("downgrade", "0003_personal_sesiones_desde", url=url)
             async with motor.begin() as conexion:
@@ -277,6 +301,16 @@ async def test_0004_expande_sin_tocar_lo_que_habia_y_baja_a_0003(url_bd: str) ->
                     )
                 ).one()
                 assert tuple(estados) == ("activa", "activo")
+                # C3: al bajar (sólo en desarrollo), el ítem cancelado pierde su estado y vuelve
+                # a contar en su orden: la fila sigue y ya no hay columna que lo descuente.
+                assert "estado" not in restaurado["columnas"]["item_orden"]
+                vuelve = (
+                    await conexion.execute(
+                        text("SELECT subtotal FROM item_orden WHERE id = :i"),
+                        {"i": datos["item"]},
+                    )
+                ).scalar_one()
+                assert float(vuelve) == 60.0
 
             alembic("upgrade", "head", url=url)
             async with motor.connect() as conexion:
@@ -797,3 +831,94 @@ async def test_una_cancelacion_no_se_reescribe(
         i=datos["item"],
     )
     await _falla(sesion, CANCELAR, i=datos["item"], pr=b.id)
+
+
+# ---------------------------------------------------------------------------
+# Ronda 3 de revisión (B20)
+# ---------------------------------------------------------------------------
+
+
+async def test_una_cancelacion_no_se_deshace(
+    sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa
+) -> None:
+    """B20: volver a `vigente` falla (AC-35.2, ADR-017 punto 11); la cascada que anula el
+    autor sigue pasando."""
+    datos = await _orden_confirmada(sesion, restaurante, mesa)
+    persona = PersonalRestaurante(
+        restaurante_id=restaurante.id, nombre="Marisol", pin_hash=PIN_HASH
+    )
+    sesion.add(persona)
+    await sesion.flush()
+    await sesion.execute(text(CANCELAR), {"i": datos["item"], "pr": persona.id})
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET estado = 'vigente', cancelado_en = NULL, "
+        "cancelado_por_personal_id = NULL WHERE id = :i",
+        i=datos["item"],
+    )
+    # La orden vuelve a armarse (deshacer la confirmación, T-3.2, antes de la comanda): la
+    # cancelación sigue sin deshacerse.
+    await sesion.execute(
+        text("DELETE FROM comanda_orden WHERE orden_id = :o"), {"o": datos["orden"]}
+    )
+    await sesion.execute(
+        text("UPDATE orden_personal SET estado = 'armando', bloqueada = false WHERE id = :o"),
+        {"o": datos["orden"]},
+    )
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET estado = 'vigente', cancelado_en = NULL, "
+        "cancelado_por_personal_id = NULL WHERE id = :i",
+        i=datos["item"],
+    )
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET cancelado_en = now() - interval '1 hour' WHERE id = :i",
+        i=datos["item"],
+    )
+    await sesion.execute(text("DELETE FROM personal_restaurante WHERE id = :p"), {"p": persona.id})
+    estado = await _uno(sesion, "SELECT estado FROM item_orden WHERE id = :i", i=datos["item"])
+    assert estado == "cancelado_personal"
+
+
+async def test_en_una_orden_que_se_arma_no_se_cancela_se_quita(
+    sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa
+) -> None:
+    """B20: el personal cancela lo que la cocina no empezó, que es lo confirmado (ADR-017); en
+    una orden que se arma el ítem se quita. Ni cancelar ni nacer cancelado."""
+    datos = await _orden_confirmada(sesion, restaurante, mesa)
+    persona = PersonalRestaurante(
+        restaurante_id=restaurante.id, nombre="Marisol", pin_hash=PIN_HASH
+    )
+    sesion.add(persona)
+    await sesion.flush()
+    s = await _uno(sesion, "SELECT sesion_id FROM orden_personal WHERE id = :o", o=datos["orden"])
+    mb = await _uno(sesion, "INSERT INTO miembro_sesion (sesion_id) VALUES (:s) RETURNING id", s=s)
+    o = await _uno(
+        sesion,
+        "INSERT INTO orden_personal (sesion_id, miembro_id) VALUES (:s, :mb) RETURNING id",
+        s=s,
+        mb=mb,
+    )
+    platillo = await _uno(
+        sesion, "SELECT platillo_id FROM item_orden WHERE id = :i", i=datos["item"]
+    )
+    libre = await _uno(
+        sesion,
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal) "
+        "VALUES (:o, :p, 90, 90) RETURNING id",
+        o=o,
+        p=platillo,
+    )
+    await _falla(sesion, CANCELAR, i=libre, pr=persona.id)
+    await _falla(
+        sesion,
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal, estado, "
+        "cancelado_en, cancelado_por_personal_id) "
+        "VALUES (:o, :p, 90, 90, 'cancelado_personal', now(), :pr)",
+        o=o,
+        p=platillo,
+        pr=persona.id,
+    )
+    # Quitarlo sí (el comensal arma su orden).
+    await sesion.execute(text("DELETE FROM item_orden WHERE id = :i"), {"i": libre})
