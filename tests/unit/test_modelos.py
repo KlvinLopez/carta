@@ -135,9 +135,44 @@ TRIGGERS = {
         "CREATE TRIGGER tr_restaurante_siembra AFTER INSERT ON public.restaurante "
         "FOR EACH ROW EXECUTE FUNCTION fn_restaurante_siembra()"
     ),
-    "tr_marca_ciclo_inmutable": (  # AC-35.2: las marcas no se sobrescriben
-        "CREATE TRIGGER tr_marca_ciclo_inmutable BEFORE UPDATE ON public.marca_ciclo "
-        "FOR EACH ROW EXECUTE FUNCTION fn_marca_ciclo_inmutable()"
+    "tr_marca_ciclo_inmutable": (  # AC-35.2: las marcas nacen con autor, no se tocan ni se borran
+        "CREATE TRIGGER tr_marca_ciclo_inmutable BEFORE INSERT OR DELETE OR UPDATE "
+        "ON public.marca_ciclo FOR EACH ROW EXECUTE FUNCTION fn_marca_ciclo_inmutable()"
+    ),
+    # INV-10 en las columnas de 0004 sin FK compuesta posible (ronda de revisión de T-3.0, A1)
+    "tr_item_orden_autores": (
+        "CREATE TRIGGER tr_item_orden_autores BEFORE INSERT OR UPDATE OF orden_id, "
+        "pedido_por_miembro_id, cancelado_por_personal_id ON public.item_orden FOR EACH ROW "
+        "EXECUTE FUNCTION fn_autores_de_la_sesion('pedido_por_miembro_id', "
+        "'cancelado_por_personal_id')"
+    ),
+    "tr_miembro_sesion_autores": (
+        "CREATE TRIGGER tr_miembro_sesion_autores BEFORE INSERT OR UPDATE OF "
+        "cuenta_cerrada_por_personal_id, pago_validado_por_personal_id ON public.miembro_sesion "
+        "FOR EACH ROW EXECUTE FUNCTION fn_autores_de_la_sesion("
+        "'cuenta_cerrada_por_personal_id', 'pago_validado_por_personal_id')"
+    ),
+    "tr_reparto_cargo_autores": (
+        "CREATE TRIGGER tr_reparto_cargo_autores BEFORE INSERT OR UPDATE OF item_id "
+        "ON public.reparto_cargo FOR EACH ROW EXECUTE FUNCTION fn_autores_de_la_sesion('item_id')"
+    ),
+    "tr_movimiento_cargo_autores": (
+        "CREATE TRIGGER tr_movimiento_cargo_autores BEFORE INSERT OR UPDATE OF item_id, "
+        "propuesto_por_personal_id ON public.movimiento_cargo FOR EACH ROW "
+        "EXECUTE FUNCTION fn_autores_de_la_sesion('item_id', 'propuesto_por_personal_id')"
+    ),
+    "tr_solicitud_entrada_coherente": (
+        "CREATE TRIGGER tr_solicitud_entrada_coherente BEFORE INSERT OR UPDATE "
+        "ON public.solicitud_entrada FOR EACH ROW "
+        "EXECUTE FUNCTION fn_solicitud_entrada_coherente()"
+    ),
+    "tr_reparto_cargo_sesion_inmutable": (
+        "CREATE TRIGGER tr_reparto_cargo_sesion_inmutable BEFORE UPDATE OF sesion_id "
+        "ON public.reparto_cargo FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable()"
+    ),
+    "tr_movimiento_cargo_sesion_inmutable": (
+        "CREATE TRIGGER tr_movimiento_cargo_sesion_inmutable BEFORE UPDATE OF sesion_id "
+        "ON public.movimiento_cargo FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable()"
     ),
     # ADR-018: el disparador de avisos sobre la lista cerrada de 03 §2.4 (las pruebas de
     # comportamiento están en `tests/integration/test_disparador_avisos.py`).
@@ -162,13 +197,18 @@ TRIGGERS = {
                     "permiso_rol",
                     "reparto_cargo",
                     "restaurante",
-                    "sesion_grupal",
                     "solicitud_entrada",
                 ),
                 "INSERT OR DELETE OR UPDATE",
             ),
             "personal_restaurante": (
                 "INSERT OR DELETE OR UPDATE OF activo, rol, sesiones_desde, nombre"
+            ),
+            # Todas salvo `ultima_actividad_en` (ronda de revisión de T-3.0, B8).
+            "sesion_grupal": (
+                "INSERT OR DELETE OR UPDATE OF id, mesa_id, restaurante_id, estado, inicio, fin, "
+                "cerrada_por_personal_id, entrada_cerrada, liberada_sin_pago, cuenta_cerrada_en, "
+                "pagada_en, cerrada_por_usuario_id"
             ),
         }.items()
     },
@@ -183,6 +223,8 @@ FUNCIONES_DE_TRIGGER = {
     "fn_restaurante_siembra",
     "fn_marca_ciclo_inmutable",
     "fn_avisar_cambio",
+    "fn_autores_de_la_sesion",
+    "fn_solicitud_entrada_coherente",
 }
 
 # INV-10 (0002): cada FK compuesta `(columna, clave) → padre(id, clave)` y su `ON DELETE`.
@@ -210,6 +252,9 @@ _FK_INQUILINO_0004 = [
     ("solicitud_entrada", "mesa_id", "mesa", R, "CASCADE"),
     ("solicitud_entrada", "sesion_id", "sesion_grupal", R, "SET NULL"),
     ("solicitud_entrada", "resuelta_por_personal_id", "personal_restaurante", R, "SET NULL"),
+    ("marca_ciclo", "comanda_id", "comanda", S, "CASCADE"),
+    ("movimiento_cargo", "propuesto_por_miembro_id", "miembro_sesion", S, "SET NULL"),
+    ("movimiento_cargo", "aceptado_por_miembro_id", "miembro_sesion", S, "SET NULL"),
     ("marca_ciclo", "sesion_id", "sesion_grupal", R, "CASCADE"),
     ("marca_ciclo", "miembro_id", "miembro_sesion", S, "CASCADE"),
     ("marca_ciclo", "autor_personal_id", "personal_restaurante", R, "SET NULL"),
@@ -236,6 +281,7 @@ PADRES_INQUILINO = (
     ("personal_restaurante", R),
     ("platillo", R),
     ("miembro_sesion", S),
+    ("comanda", S),  # 0004
 )
 TRIGGERS_0002 = {
     "tr_item_orden_mismo_restaurante",
@@ -247,7 +293,18 @@ TRIGGERS_0004 = {
     nombre
     for nombre in TRIGGERS
     if nombre.startswith("tr_aviso_")
-    or nombre in {"tr_restaurante_siembra", "tr_marca_ciclo_inmutable"}
+    or nombre
+    in {
+        "tr_restaurante_siembra",
+        "tr_marca_ciclo_inmutable",
+        "tr_item_orden_autores",
+        "tr_miembro_sesion_autores",
+        "tr_reparto_cargo_autores",
+        "tr_movimiento_cargo_autores",
+        "tr_solicitud_entrada_coherente",
+        "tr_reparto_cargo_sesion_inmutable",
+        "tr_movimiento_cargo_sesion_inmutable",
+    }
 }
 
 

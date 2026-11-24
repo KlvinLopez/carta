@@ -14,7 +14,8 @@ from dataclasses import replace
 from fastapi import APIRouter
 
 from app.api.admin.dependencias import restaurante_del_operador
-from app.api.contrato import RutaDeContrato, registrar
+from app.api.admin.subidas import ruta_con_tope
+from app.api.contrato import PLAZO_CUERPO, TOPE_CUERPO, RutaDeContrato, registrar
 from app.api.operacion.contrato import ACCIONES_MESA, ACCIONES_PISO
 from app.core.errores import ErrorCarta
 from app.schemas.linea import MensajeLinea
@@ -78,7 +79,7 @@ def _sin_pase() -> ErrorCarta:
     return ErrorCarta("SIN_CREDENCIAL", "Necesitas identificarte para hacer esto.", 401)
 
 
-router = APIRouter()
+router = APIRouter(route_class=ruta_con_tope(TOPE_CUERPO, PLAZO_CUERPO))  # B4
 registrar(router, RUTAS_DUENO, dependencias=[restaurante_del_operador])
 
 router_linea = APIRouter(tags=["operador"])

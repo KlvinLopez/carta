@@ -71,7 +71,6 @@ async def test_cada_miembro_ve_avatar_y_estado_de_todos(cliente: AsyncClient, me
         "entrada_cerrada": False,
         "ultima_accion_en": None,
         "mi_orden": None,
-        "mi_cuenta": None,
         "comandas": [],
     }
     de_beto = await estado(cliente, beto["token"])

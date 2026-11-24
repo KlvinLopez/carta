@@ -468,6 +468,15 @@ async def test_cancelar_y_atender_a_la_vez_nunca_pasan_los_dos(motor_pruebas: As
                 {"r": r, "c": f"carrera-{sufijo}-xxxxxxxxxx"},
             )
         ).scalar_one()
+        pr = (
+            await c.execute(
+                text(
+                    "INSERT INTO personal_restaurante (restaurante_id, nombre, pin_hash) "
+                    "VALUES (:r, 'Marisol', :h) RETURNING id"
+                ),
+                {"r": r, "h": PIN_HASH},
+            )
+        ).scalar_one()
 
     async def preparar() -> dict[str, Any]:
         async with AsyncSession(motor_pruebas) as s:
@@ -489,11 +498,8 @@ async def test_cancelar_y_atender_a_la_vez_nunca_pasan_los_dos(motor_pruebas: As
             pid_b = (await b.execute(text("SELECT pg_backend_pid()"))).scalar_one()
             cancelacion = asyncio.create_task(
                 b.execute(
-                    text(
-                        "UPDATE item_orden SET estado = 'cancelado_personal', "
-                        "cancelado_en = now() WHERE id = :i"
-                    ),
-                    {"i": datos["item"]},
+                    text(CANCELAR),
+                    {"i": datos["item"], "pr": pr},
                 )
             )
             async with motor_pruebas.connect() as mira:
@@ -594,7 +600,167 @@ async def test_una_marca_de_tiempo_no_se_sobrescribe(
         m=marca,
     )
     await _falla(sesion, "UPDATE marca_ciclo SET paso = 'mesa_limpia' WHERE id = :m", m=marca)
-    # El único cambio admitido: perder el autor cuando la persona desaparece (FK SET NULL).
-    await sesion.execute(
-        text("UPDATE marca_ciclo SET autor_personal_id = NULL WHERE id = :m"), {"m": marca}
+    # Ni borrar el autor ni la marca a mano (ronda de revisión de T-3.0, B2).
+    await _falla(sesion, "UPDATE marca_ciclo SET autor_personal_id = NULL WHERE id = :m", m=marca)
+    await _falla(sesion, "DELETE FROM marca_ciclo WHERE id = :m", m=marca)
+    # Lo único admitido es la cascada: borrar a la persona deja la marca sin autor (FK
+    # `SET NULL`) y purgar la sesión (03 §7) se lleva sus marcas.
+    await sesion.execute(text("DELETE FROM personal_restaurante WHERE id = :p"), {"p": persona.id})
+    autor = (
+        await sesion.execute(
+            text("SELECT autor, autor_personal_id FROM marca_ciclo WHERE id = :m"), {"m": marca}
+        )
+    ).one()
+    assert tuple(autor) == ("personal", None)
+    await sesion.execute(text("DELETE FROM sesion_grupal WHERE id = :s"), {"s": s})
+    assert (
+        await sesion.execute(text("SELECT count(*) FROM marca_ciclo WHERE id = :m"), {"m": marca})
+    ).scalar_one() == 0
+
+
+@pytest.mark.parametrize("autor", ["personal", "operador"])
+async def test_una_marca_del_personal_o_del_operador_nace_con_autor(
+    sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa, autor: str
+) -> None:
+    """ADR-017 punto 11: «quién y cuándo» en toda transición (ronda de revisión, B2)."""
+    s = await _uno(
+        sesion,
+        "INSERT INTO sesion_grupal (mesa_id, restaurante_id) VALUES (:m, :r) RETURNING id",
+        m=mesa.id,
+        r=restaurante.id,
     )
+    await _falla(
+        sesion,
+        "INSERT INTO marca_ciclo (restaurante_id, sesion_id, paso, autor) "
+        "VALUES (:r, :s, 'mesa_limpia', :a)",
+        r=restaurante.id,
+        s=s,
+        a=autor,
+    )
+    # El comensal y el sistema no llevan autor.
+    for anonimo in ("comensal", "sistema"):
+        await sesion.execute(
+            text(
+                "INSERT INTO marca_ciclo (restaurante_id, sesion_id, paso, autor) "
+                "VALUES (:r, :s, 'pago_avisado', :a)"
+            ),
+            {"r": restaurante.id, "s": s, "a": anonimo},
+        )
+
+
+async def test_cancelar_un_item_exige_quien_y_el_autor_solo_lo_borra_una_cascada(
+    sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa
+) -> None:
+    """ADR-017 punto 11 (ronda de revisión de T-3.0, B2): sin autor no hay cancelación, ni en
+    una orden confirmada ni en una que se arma; el autor sólo desaparece si se borra la persona
+    (la FK `SET NULL`, en cascada), nunca a mano."""
+    datos = await _orden_confirmada(sesion, restaurante, mesa)
+    persona = PersonalRestaurante(
+        restaurante_id=restaurante.id, nombre="Marisol", pin_hash=PIN_HASH
+    )
+    sesion.add(persona)
+    await sesion.flush()
+    i = datos["item"]
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET estado = 'cancelado_personal', cancelado_en = now() WHERE id = :i",
+        i=i,
+    )
+    await sesion.execute(text(CANCELAR), {"i": i, "pr": persona.id})
+    await _falla(
+        sesion, "UPDATE item_orden SET cancelado_por_personal_id = NULL WHERE id = :i", i=i
+    )
+    await sesion.execute(text("DELETE FROM personal_restaurante WHERE id = :p"), {"p": persona.id})
+    fila = (
+        await sesion.execute(
+            text("SELECT estado, cancelado_por_personal_id FROM item_orden WHERE id = :i"),
+            {"i": i},
+        )
+    ).one()
+    assert tuple(fila) == ("cancelado_personal", None)
+
+    # En una orden que se arma tampoco se cancela sin autor (ni se inserta ya cancelado).
+    s = await _uno(
+        sesion,
+        "SELECT sesion_id FROM orden_personal WHERE id = :o",
+        o=datos["orden"],
+    )
+    mb = await _uno(sesion, "INSERT INTO miembro_sesion (sesion_id) VALUES (:s) RETURNING id", s=s)
+    o = await _uno(
+        sesion,
+        "INSERT INTO orden_personal (sesion_id, miembro_id) VALUES (:s, :mb) RETURNING id",
+        s=s,
+        mb=mb,
+    )
+    platillo = await _uno(sesion, "SELECT platillo_id FROM item_orden WHERE id = :i", i=i)
+    libre = await _uno(
+        sesion,
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal) "
+        "VALUES (:o, :p, 90, 90) RETURNING id",
+        o=o,
+        p=platillo,
+    )
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET estado = 'cancelado_personal', cancelado_en = now() WHERE id = :i",
+        i=libre,
+    )
+    await _falla(
+        sesion,
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal, estado, "
+        "cancelado_en) VALUES (:o, :p, 90, 90, 'cancelado_personal', now())",
+        o=o,
+        p=platillo,
+    )
+
+
+@pytest.mark.ac("AC-35.2")
+async def test_una_marca_no_se_inventa_con_otra_hora(
+    sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa
+) -> None:
+    """B9: «sin sobrescribir» también es «sin inventar»: la hora de una marca es la de la
+    transacción que la escribe, aunque quien la escribe traiga otra."""
+    s = await _uno(
+        sesion,
+        "INSERT INTO sesion_grupal (mesa_id, restaurante_id) VALUES (:m, :r) RETURNING id",
+        m=mesa.id,
+        r=restaurante.id,
+    )
+    marca = await _uno(
+        sesion,
+        "INSERT INTO marca_ciclo (restaurante_id, sesion_id, paso, autor, ocurrido_en) "
+        "VALUES (:r, :s, 'primer_escaneo', 'sistema', now() - interval '3 days') RETURNING id",
+        r=restaurante.id,
+        s=s,
+    )
+    igual = await _uno(sesion, "SELECT ocurrido_en = now() FROM marca_ciclo WHERE id = :m", m=marca)
+    assert igual is True
+
+
+async def test_borrar_al_usuario_que_cancelo_deja_el_item_sin_autor(
+    sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa
+) -> None:
+    """B7: la FK `SET NULL` del operador que canceló funciona en una orden confirmada."""
+    datos = await _orden_confirmada(sesion, restaurante, mesa)
+    usuario = await _uno(
+        sesion,
+        "INSERT INTO usuario (firebase_uid, provider) VALUES (:u, 'google') RETURNING id",
+        u=f"cancela-{datos['item'].hex}",
+    )
+    await sesion.execute(
+        text(
+            "UPDATE item_orden SET estado = 'cancelado_personal', cancelado_en = now(), "
+            "cancelado_por_usuario_id = :u WHERE id = :i"
+        ),
+        {"u": usuario, "i": datos["item"]},
+    )
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET cancelado_por_usuario_id = NULL WHERE id = :i",
+        i=datos["item"],
+    )
+    await sesion.execute(text("DELETE FROM usuario WHERE id = :u"), {"u": usuario})
+    autor = await _uno(
+        sesion, "SELECT cancelado_por_usuario_id FROM item_orden WHERE id = :i", i=datos["item"]
+    )
+    assert autor is None

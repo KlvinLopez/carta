@@ -4,9 +4,11 @@ Contrato de T-2.1, publicado antes de las rutas reales (contrato primero, 04 §2
 es anónimo: ningún campo pide ni devuelve datos personales (regla dura 10); el alias es un
 apodo que el propio comensal elige y puede quedarse en «Comensal N».
 
-Los campos que la Fase 3 añada (mi orden, ítems de los demás, comandas, mi cuenta, el ciclo)
+Los campos que la Fase 3 añada (mi orden, ítems de los demás, comandas, el ciclo)
 entran como opcionales: es un cambio compatible (04_API_Spec §1.6). Los publicó T-3.0; los
-llenan T-3.2 (orden y comandas), T-3.8 (cuenta), T-3.10 (entrada) y T-3.12 (última acción).
+llenan T-3.2 (orden y comandas), T-3.10 (entrada) y T-3.12 (última acción). La cuenta con la propina es
+de un miembro y tiene su propia ruta con su `ETag` (`GET /p/cuenta`, T-3.8): no va aquí, porque
+esta foto se comparte entre los miembros de la mesa (ronda de revisión de T-3.0, B1).
 """
 
 from __future__ import annotations
@@ -17,7 +19,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, StringConstraints
 
-from app.schemas.ciclo import CuentaComensal
 from app.schemas.comun import SIN_CONTROL, Entrada, Esquema
 from app.schemas.orden import ComandaDeSesion, ItemDeMiembro, MiOrden
 
@@ -133,7 +134,4 @@ class SesionEstado(BaseModel):
         default=None, description="Hora de la última acción de comensales o personal."
     )
     mi_orden: MiOrden | None = None
-    mi_cuenta: CuentaComensal | None = Field(
-        default=None, description="Desglose con propina y quién la cerró o validó (US-29, US-37)."
-    )
     comandas: list[ComandaDeSesion] = Field(default_factory=list)

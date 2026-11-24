@@ -421,3 +421,68 @@ async def test_un_restaurante_ajeno_da_el_mismo_404(
         f"{A}/restaurantes/{UUID_X}/mesas-vivo", headers=cabecera_operador
     )
     assert respuesta.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Ronda de revisión de T-3.0 (B1, B3, B4, B5)
+# ---------------------------------------------------------------------------
+
+
+def test_la_foto_compartida_de_la_mesa_no_lleva_la_cuenta_de_nadie(openapi: dict[str, Any]) -> None:
+    """B1: `GET /p/sesion` se cachea por sesión y se comparte entre sus miembros; la cuenta
+    con la propina es de uno solo y vive en `GET /p/cuenta`, con su propio `ETag`."""
+    sesion = _esquemas(openapi)["SesionEstado"]["properties"]
+    assert "mi_cuenta" not in sesion
+    assert not {"propina_centavos", "consumo_centavos"} & _propiedades(openapi, "SesionEstado")
+    assert "304" in openapi["paths"][f"{P}/cuenta"]["get"]["responses"]
+
+
+@pytest.mark.ac("AC-35.5")
+@pytest.mark.parametrize("tipo", ["comensal", "sistema"])
+def test_el_comensal_y_el_sistema_no_llevan_nombre(tipo: str) -> None:
+    """B3: «no hay alias, nombre, IP ni cookie» en una marca del comensal."""
+    from pydantic import ValidationError
+
+    from app.schemas.ciclo import Autor
+
+    with pytest.raises(ValidationError):
+        Autor(tipo=tipo, nombre="Ana")  # type: ignore[arg-type]
+    assert Autor(tipo=tipo).nombre is None  # type: ignore[arg-type]
+    assert Autor(tipo="personal", nombre="Marisol").nombre == "Marisol"
+
+
+GRANDE = b"{" + b'"x": "' + b"a" * (32 * 1024) + b'"}'
+
+
+@pytest.mark.parametrize(
+    "ruta",
+    [
+        f"{OP}/entrar",
+        f"{OP}/mesas/{UUID_X}/liberar",
+        f"{A}/restaurantes/{UUID_X}/pedidos/mesas/{UUID_X}/limpia",
+    ],
+)
+async def test_un_cuerpo_grande_es_413_antes_de_leerlo(cliente: AsyncClient, ruta: str) -> None:
+    """B4: tope de 16 KiB por `Content-Length` en los routers de contrato de `/op` y `/admin`
+    (sin token: el tope va antes de la autenticación y de la validación)."""
+    respuesta = await cliente.post(
+        ruta, content=GRANDE, headers={"Content-Type": "application/json"}
+    )
+    assert respuesta.status_code == 413, respuesta.text
+
+
+def test_los_parametros_de_consulta_tienen_cota(openapi: dict[str, Any]) -> None:
+    """B5: la tarea que implemente la ruta hereda la cota del contrato."""
+    comandas = {p["name"]: p for p in openapi["paths"][f"{OP}/comandas"]["get"]["parameters"]}
+    estado = next(e for e in comandas["estado"]["schema"]["anyOf"] if "enum" in e)
+    assert set(estado["enum"]) == {"abierta", "atendida", "servida"}
+    platillos = {p["name"]: p for p in openapi["paths"][f"{OP}/platillos"]["get"]["parameters"]}
+    q = next(e for e in platillos["q"]["schema"]["anyOf"] if e.get("type") == "string")
+    assert q["maxLength"] == 80
+
+
+def test_la_propina_declarada_cabe_en_el_total(openapi: dict[str, Any]) -> None:
+    """D2: consumo + propina nunca pasa del tope del total (la respuesta daría 500)."""
+    propina = _esquemas(openapi)["PropinaDeclarada"]["properties"]["propina_centavos"]
+    total = _esquemas(openapi)["CuentaComensal"]["properties"]["total_a_cobrar_centavos"]
+    assert propina["maximum"] * 2 <= total["maximum"]

@@ -18,12 +18,17 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from app.schemas.comun import Entrada, Esquema, Precio
 
 # Centavos: `INTEGER` en la base (≤ 21 millones de pesos por cuenta, de sobra).
 Centavos = Annotated[int, Field(ge=0, le=2_000_000_000, examples=[48000])]
+# La propina que declara el comensal: hasta 1 millón de pesos [supuesto: muy por encima de
+# cualquier cuenta real], para que consumo + propina quepa en el total (`Centavos`) y nunca dé
+# un 500 al armar la cuenta (ronda de revisión de T-3.0, D2).
+PROPINA_MAXIMA_CENTAVOS = 100_000_000
+CentavosPropina = Annotated[int, Field(ge=0, le=PROPINA_MAXIMA_CENTAVOS, examples=[7200])]
 
 # La mesa vista por el personal: `abierta` agrupa los `activa`/`lista_para_enviar` de la base;
 # «limpia» y «liberada» terminan la sesión y la mesa vuelve a `libre` (Spec 001 §0).
@@ -66,6 +71,13 @@ class Autor(Esquema):
 
     tipo: TipoAutor
     nombre: str | None = Field(default=None, examples=["Marisol"])
+
+    @model_validator(mode="after")
+    def _sin_nombre_del_comensal(self) -> Autor:
+        # AC-35.5: del comensal (o del sistema) no sale ningún nombre, ni su alias.
+        if self.nombre is not None and self.tipo not in ("personal", "operador"):
+            raise ValueError("Sólo el personal o el operador llevan nombre.")
+        return self
 
 
 class AccionRegistrada(Esquema):
@@ -130,14 +142,14 @@ class PropinaDeclarada(Entrada):
     """`PUT /p/cuenta/propina`: cambiar la propina declarada hasta que el personal valide el
     pago (AC-37.8). Sólo el monto calculado en el teléfono sobre el consumo (AC-37.4)."""
 
-    propina_centavos: Centavos = Field(examples=[7200])
+    propina_centavos: CentavosPropina
 
 
 class CerrarMiCuenta(Entrada):
     """`POST /p/cuenta/cerrar` (AC-29.3, AC-37.5). Con ítems sin confirmar, 409
     `PENDIENTES_SIN_CONFIRMAR` salvo que diga qué hacer con ellos."""
 
-    propina_centavos: Centavos | None = Field(
+    propina_centavos: CentavosPropina | None = Field(
         default=None, description="Propina declarada; `null` = sin propina elegida."
     )
     pendientes: Literal["confirmar", "descartar"] | None = None

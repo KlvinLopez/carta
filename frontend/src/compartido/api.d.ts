@@ -3794,8 +3794,6 @@ export interface components {
              */
             ultima_accion_en?: string | null;
             mi_orden?: components["schemas"]["MiOrden"] | null;
-            /** @description Desglose con propina y quién la cerró o validó (US-29, US-37). */
-            mi_cuenta?: components["schemas"]["CuentaComensal"] | null;
             /** Comandas */
             comandas?: components["schemas"]["ComandaDeSesion"][];
         };
@@ -6075,7 +6073,7 @@ export interface operations {
     contrato_get__comandas_api_v1_op_comandas_get: {
         parameters: {
             query?: {
-                estado?: string | null;
+                estado?: ("abierta" | "atendida" | "servida") | null;
             };
             header?: never;
             path?: never;
@@ -6184,6 +6182,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -6251,6 +6258,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -6311,6 +6327,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6447,6 +6472,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -6574,6 +6608,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -6638,6 +6681,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6716,6 +6768,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -6780,6 +6841,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6858,6 +6928,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -6922,6 +7001,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7000,6 +7088,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -7064,6 +7161,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7142,6 +7248,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -7206,6 +7321,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7284,6 +7408,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -7348,6 +7481,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7426,6 +7568,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -7493,6 +7644,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorRespuesta"];
                 };
             };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
                 headers: {
@@ -7553,6 +7713,15 @@ export interface operations {
             };
             /** @description Choca con el estado actual */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };

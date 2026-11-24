@@ -29,6 +29,9 @@ from app.core.errores import ErrorCarta
 from app.schemas.comun import errores
 
 MAX_IDEMPOTENCY_KEY = 200
+# Tope del cuerpo de las rutas de contrato de `/op` y `/admin` (el del comensal: `tope.py`).
+TOPE_CUERPO = 16 * 1024
+PLAZO_CUERPO = 10.0
 REF_ERROR = "#/components/schemas/ErrorRespuesta"
 # Los que el router del comensal declara para todas sus rutas (`app/api/publico/__init__.py`).
 CODIGOS_DE_LINEA = (400, 408, 413, 422, 429)

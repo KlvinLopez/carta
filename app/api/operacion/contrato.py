@@ -5,9 +5,12 @@ una ruta que no existe. `ACCIONES_MESA` es la misma lista que el panel del dueñ
 `/admin/restaurantes/{rid}/pedidos` (T-3.7): mismas acciones y cuerpos, otra autenticación.
 """
 
-from fastapi import APIRouter
+from typing import Annotated, Literal
 
-from app.api.contrato import RutaDeContrato, registrar
+from fastapi import APIRouter, Query
+
+from app.api.admin.subidas import ruta_con_tope
+from app.api.contrato import PLAZO_CUERPO, TOPE_CUERPO, RutaDeContrato, registrar
 from app.schemas.linea import MensajeLinea
 from app.schemas.personal_op import (
     ComandaOp,
@@ -27,7 +30,8 @@ from app.schemas.personal_op import (
     SobreSesion,
 )
 
-ERRORES_OP = (401, 404, 409, 422, 429)
+ERRORES_OP = (401, 404, 409, 413, 422, 429)
+MAX_BUSQUEDA = 80
 
 
 def _accion(
@@ -194,7 +198,7 @@ RUTAS_PERSONAL = [
         respuesta=ComandasOp,
         etag=True,
         errores=(401, 404, 429),
-        consulta={"estado": str | None},
+        consulta={"estado": Literal["abierta", "atendida", "servida"] | None},
     ),
     *ACCIONES_PISO,
     RutaDeContrato(
@@ -204,7 +208,7 @@ RUTAS_PERSONAL = [
         "Búsqueda rápida de platillos para «Agotado»",
         respuesta=list[PlatilloOp],
         errores=(401, 404, 429),
-        consulta={"q": str | None},
+        consulta={"q": Annotated[str | None, Query(max_length=MAX_BUSQUEDA)]},
     ),
     RutaDeContrato(
         "post",
@@ -226,5 +230,7 @@ RUTAS_PERSONAL = [
     *ACCIONES_MESA,
 ]
 
-router = APIRouter()
+# Todos sus cuerpos miden menos de 1 KB: el tope corta por `Content-Length` sin leer (413) y el
+# *chunked* al pasarlo (ronda de revisión de T-3.0, B4). Mismo tope que el comensal.
+router = APIRouter(route_class=ruta_con_tope(TOPE_CUERPO, PLAZO_CUERPO))
 registrar(router, RUTAS_PERSONAL)

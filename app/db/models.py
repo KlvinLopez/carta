@@ -805,6 +805,8 @@ class Comanda(Base):
         _fk_compuesta("mesa_id", "mesa", ondelete="CASCADE"),
         _fk_compuesta("atendida_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
         UniqueConstraint("sesion_id", "secuencia"),
+        # 0004: destino de `marca_ciclo (comanda_id, sesion_id)` (INV-10).
+        _unico_con("sesion_id"),
         # INV-6: el estado terminal exige su marca de tiempo.
         CheckConstraint(
             "(estado = 'abierta' AND atendida_en IS NULL AND servida_en IS NULL) OR "
@@ -1113,6 +1115,8 @@ class SolicitudEntrada(Base):
     resuelta_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
         "usuario.id", ondelete="SET NULL", nullable=True
     )
+    # Simple: una compuesta con `sesion_id` dejaría el id colgando al borrar la sesión; su
+    # coherencia la comprueba `tr_solicitud_entrada_coherente` (INV-10).
     miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
         "miembro_sesion.id", ondelete="SET NULL", nullable=True
     )
@@ -1136,6 +1140,8 @@ class SolicitudEntrada(Base):
         Index("idx_solicitud_resuelta_por_personal", "resuelta_por_personal_id"),
         Index("idx_solicitud_resuelta_por_usuario", "resuelta_por_usuario_id"),
         Index("idx_solicitud_miembro", "miembro_id"),
+        # Purga de 03 §7 (24 h después de vencer su plazo).
+        Index("idx_solicitud_purga", "vence_en"),
         Index(
             "idx_solicitud_pendiente",
             "restaurante_id",
@@ -1156,7 +1162,7 @@ class MarcaCiclo(Base):
     restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
     sesion_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     miembro_id: Mapped[uuid.UUID | None] = _uuid_nulo()
-    comanda_id: Mapped[uuid.UUID | None] = _fk_uuid("comanda.id", ondelete="CASCADE", nullable=True)
+    comanda_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     paso: Mapped[str] = mapped_column(String(30), nullable=False)
     autor: Mapped[str] = mapped_column(String(10), nullable=False)
     autor_personal_id: Mapped[uuid.UUID | None] = _uuid_nulo()
@@ -1168,6 +1174,7 @@ class MarcaCiclo(Base):
     __table_args__ = (
         _fk_compuesta("sesion_id", "sesion_grupal", ondelete="CASCADE"),
         _fk_compuesta("miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
+        _fk_compuesta("comanda_id", "comanda", ondelete="CASCADE", clave="sesion_id"),
         _fk_compuesta("autor_personal_id", "personal_restaurante", ondelete="SET NULL"),
         CheckConstraint(f"paso IN ({_lista_sql(PASOS_CICLO)})", name="ck_marca_ciclo_paso"),
         CheckConstraint(
@@ -1232,18 +1239,20 @@ class MovimientoCargo(Base):
     propuesto_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
         "usuario.id", ondelete="SET NULL", nullable=True
     )
-    propuesto_por_miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "miembro_sesion.id", ondelete="SET NULL", nullable=True
-    )
-    aceptado_por_miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
-        "miembro_sesion.id", ondelete="SET NULL", nullable=True
-    )
+    propuesto_por_miembro_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    aceptado_por_miembro_id: Mapped[uuid.UUID | None] = _uuid_nulo()
     aceptado_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
     creado_en: Mapped[datetime] = _marca_tiempo()
 
     __table_args__ = (
         _fk_compuesta("de_miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
         _fk_compuesta("a_miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
+        _fk_compuesta(
+            "propuesto_por_miembro_id", "miembro_sesion", ondelete="SET NULL", clave="sesion_id"
+        ),
+        _fk_compuesta(
+            "aceptado_por_miembro_id", "miembro_sesion", ondelete="SET NULL", clave="sesion_id"
+        ),
         CheckConstraint(
             f"tipo IN ({_lista_sql(TIPOS_MOVIMIENTO)})", name="ck_movimiento_cargo_tipo"
         ),

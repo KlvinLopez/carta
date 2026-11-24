@@ -236,7 +236,7 @@ def _sql(sentencia: str, *campos: str) -> Escritura:
 # tabla → (escritura, ¿avisa a la mesa?). Todas avisan al restaurante.
 ESCRITURAS: dict[str, tuple[Escritura, bool]] = {
     "sesion_grupal": (
-        _sql("UPDATE sesion_grupal SET ultima_actividad_en = now() WHERE id = $1", "sesion"),
+        _sql("UPDATE sesion_grupal SET entrada_cerrada = true WHERE id = $1", "sesion"),
         True,
     ),
     "miembro_sesion": (
@@ -520,3 +520,47 @@ async def test_lo_que_leen_las_lineas_avisa(
     assert leidas <= set(Base.metadata.tables), leidas
     sin_aviso = leidas - OBSERVADAS
     assert not sin_aviso, f"{lector} lee tablas que no avisan: {sorted(sin_aviso)}"
+
+
+async def test_la_ultima_actividad_no_despierta_a_la_mesa(
+    mesa_viva: MesaViva, oyente: Oyente, escritor: asyncpg.Connection
+) -> None:
+    """B8: `ultima_actividad_en` (la escriben `entrar` al reanudar y el alias) no cambia lo que
+    ven la mesa ni el personal, y un `NOTIFY` cuesta un candado global al confirmar."""
+    async with escritor.transaction():
+        await escritor.execute(
+            "UPDATE sesion_grupal SET ultima_actividad_en = now() WHERE id = $1", mesa_viva.sesion
+        )
+    assert await oyente.esperar(1, plazo=0.3) == []
+    async with escritor.transaction():
+        await escritor.execute(
+            "UPDATE sesion_grupal SET estado = 'lista_para_enviar' WHERE id = $1", mesa_viva.sesion
+        )
+    assert sorted(await oyente.esperar(2)) == _esperados(mesa_viva, True)
+
+
+async def test_toda_columna_de_la_sesion_salvo_la_ultima_actividad_avisa(
+    sesion: AsyncSession,
+) -> None:
+    """Una columna nueva de `sesion_grupal` que no entre en el `UPDATE OF` del disparador no
+    avisaría: se lee del catálogo, no de una lista escrita a mano."""
+    columnas = {
+        fila[0]
+        for fila in await sesion.execute(
+            text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_schema = 'public' AND table_name = 'sesion_grupal'"
+            )
+        )
+    }
+    definicion = (
+        await sesion.execute(
+            text(
+                "SELECT pg_get_triggerdef(oid) FROM pg_trigger "
+                "WHERE tgname = 'tr_aviso_sesion_grupal'"
+            )
+        )
+    ).scalar_one()
+    vigiladas = re.search(r"UPDATE OF (.+?) ON ", definicion)
+    assert vigiladas is not None, definicion
+    assert set(vigiladas.group(1).split(", ")) == columnas - {"ultima_actividad_en"}
