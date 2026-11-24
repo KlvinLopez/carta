@@ -3,7 +3,7 @@
 # en la VM). Un arranque = un respaldo; sale con código ≠ 0 si algo falla.
 # El cliente es PostgreSQL 18 porque la base de la plantilla de Railway es 18: pg_dump se niega a
 # volcar un servidor más nuevo que él. Alpine 3.22 no trae el cliente 18; 3.23 sí.
-FROM alpine:3.23@sha256:469c9ea410b9215eaee7976ba6c0639039b444be8e5d638f7abbada189971eb2
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 
 RUN apk add --no-cache postgresql18-client age rclone ca-certificates tzdata \
     && addgroup -S respaldo \
