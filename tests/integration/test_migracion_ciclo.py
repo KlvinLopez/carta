@@ -764,3 +764,29 @@ async def test_borrar_al_usuario_que_cancelo_deja_el_item_sin_autor(
         sesion, "SELECT cancelado_por_usuario_id FROM item_orden WHERE id = :i", i=datos["item"]
     )
     assert autor is None
+
+
+async def test_una_cancelacion_no_se_reescribe(
+    sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa
+) -> None:
+    """B12: un ítem ya cancelado no cambia de autor ni de hora (ADR-017 punto 11: quién y
+    cuándo, sin sobrescribir). Ni cambiando ambos ni sólo la hora."""
+    datos = await _orden_confirmada(sesion, restaurante, mesa)
+    a = PersonalRestaurante(restaurante_id=restaurante.id, nombre="Marisol", pin_hash=PIN_HASH)
+    b = PersonalRestaurante(restaurante_id=restaurante.id, nombre="Ernesto", pin_hash=PIN_HASH)
+    sesion.add_all([a, b])
+    await sesion.flush()
+    await sesion.execute(text(CANCELAR), {"i": datos["item"], "pr": a.id})
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET cancelado_en = now() + interval '1 minute', "
+        "cancelado_por_personal_id = :b WHERE id = :i",
+        b=b.id,
+        i=datos["item"],
+    )
+    await _falla(
+        sesion,
+        "UPDATE item_orden SET cancelado_en = now() - interval '1 hour' WHERE id = :i",
+        i=datos["item"],
+    )
+    await _falla(sesion, CANCELAR, i=datos["item"], pr=b.id)

@@ -15,6 +15,7 @@ confirma su escenario con su propia conexión y lo borra al terminar (skill `/pr
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 import time
 import uuid
@@ -172,30 +173,41 @@ async def mesa_viva(esquema_migrado: str) -> AsyncIterator[MesaViva]:
         await conexion.close()
 
 
+CENTINELA = "carta_prueba_centinela"
+
+
 class Oyente:
-    """Una conexión con `LISTEN` en los dos canales que junta lo que llega."""
+    """Una conexión con `LISTEN` en los dos canales que junta lo que llega.
+
+    Para saber que ya llegó todo (ronda de revisión, C2), `esperar` manda un `NOTIFY` propio
+    por un canal de la prueba y espera a recibirlo: PostgreSQL entrega los avisos en el orden en
+    que confirmaron sus transacciones, así que al llegar el centinela ya llegó todo lo que se
+    confirmó antes, sin ventanas de tiempo fijas."""
 
     def __init__(self, conexion: asyncpg.Connection) -> None:
         self.conexion = conexion
         self.recibidos: list[tuple[str, str]] = []
+        self._centinelas: set[str] = set()
 
     def _al_recibir(self, _c: object, _pid: int, canal: str, carga: str) -> None:
-        self.recibidos.append((canal, carga))
+        if canal == CENTINELA:
+            self._centinelas.add(carga)
+        else:
+            self.recibidos.append((canal, carga))
 
     async def escuchar(self) -> None:
-        for canal in CANALES:
+        for canal in (*CANALES, CENTINELA):
             await self.conexion.add_listener(canal, self._al_recibir)
 
-    async def esperar(self, cuantos: int, plazo: float = 3.0) -> list[tuple[str, str]]:
-        """Espera hasta tener `cuantos` avisos y después da una vuelta más para ver que no
-        llega ninguno de sobra (los avisos llegan cuando la conexión vuelve a estar libre)."""
+    async def esperar(self, cuantos: int = 0, plazo: float = 5.0) -> list[tuple[str, str]]:
+        """Todo lo confirmado antes de llamar; `cuantos` sólo sirve de diagnóstico."""
+        marca = uuid.uuid4().hex
+        await self.conexion.execute(f"NOTIFY {CENTINELA}, '{marca}'")
         limite = time.monotonic() + plazo
-        while len(self.recibidos) < cuantos and time.monotonic() < limite:
+        while marca not in self._centinelas:
+            assert time.monotonic() < limite, f"no llegó el centinela (esperaba {cuantos})"
             await self.conexion.execute("SELECT 1")
-            await asyncio.sleep(0.02)
-        for _ in range(5):
-            await self.conexion.execute("SELECT 1")
-            await asyncio.sleep(0.02)
+            await asyncio.sleep(0.01)
         return list(self.recibidos)
 
 
@@ -471,32 +483,119 @@ async def test_la_funcion_no_es_security_definer_y_fija_su_search_path(
     ).one()
     assert fila.prosecdef is False
     assert fila.proconfig == ["search_path=pg_catalog, public"]
-    # Sólo avisa por los dos canales y siempre con un id convertido a UUID.
+    # Sólo avisa por los dos canales; que la carga sea un id lo comprueban las pruebas por
+    # tabla (ronda de revisión, C1: no se fija el texto de la función).
     assert set(re.findall(r"pg_notify\('([a-z_]+)'", fila.prosrc)) == set(CANALES)
-    assert re.findall(r"pg_notify\('[a-z_]+', ([^)]*)\)", fila.prosrc) == [
-        "v_viva::TEXT",
-        "v_viva::TEXT",
-        "v_sesion::TEXT",
-        "v_restaurante::TEXT",
-    ]
 
 
-async def _lee_estado_del_comensal(
+Lectura = Callable[[], Awaitable[Any]]
+
+
+async def _prepara_estado_del_comensal(
     sesion: AsyncSession, restaurante: Restaurante, mesa: Mesa
-) -> None:
+) -> Lectura:
+    """Una mesa con varios comensales, uno con su orden confirmada y otro armando, ítems y una
+    comanda: que ninguna rama de `leer_estado` se quede sin ejercer (B14)."""
     grupal = SesionGrupal(mesa_id=mesa.id, restaurante_id=restaurante.id)
     sesion.add(grupal)
     await sesion.flush()
-    sesion.add(MiembroSesion(sesion_id=grupal.id, alias="Ana", color_avatar="#B8860B"))
+    miembros = [
+        MiembroSesion(sesion_id=grupal.id, alias=alias, color_avatar="#B8860B")
+        for alias in ("Ana", "Beto", "Carla")
+    ]
+    sesion.add_all(miembros)
     await sesion.flush()
-    await servicio_sesion.leer_estado(sesion, grupal.id)
+    platillo = await sesion.scalar(
+        text(
+            "INSERT INTO platillo (restaurante_id, nombre, precio) VALUES (:r, 'Flan', 60) "
+            "RETURNING id"
+        ),
+        {"r": restaurante.id},
+    )
+    for miembro, estado in zip(miembros, ("confirmada", "armando", "armando"), strict=True):
+        orden = await sesion.scalar(
+            text("INSERT INTO orden_personal (sesion_id, miembro_id) VALUES (:s, :m) RETURNING id"),
+            {"s": grupal.id, "m": miembro.id},
+        )
+        await sesion.execute(
+            text(
+                "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal, "
+                "pedido_por_miembro_id) VALUES (:o, :p, 60, 60, :m)"
+            ),
+            {"o": orden, "p": platillo, "m": miembro.id},
+        )
+        if estado == "confirmada":
+            await sesion.execute(
+                text(
+                    "UPDATE orden_personal SET estado = 'confirmada', bloqueada = true, "
+                    "confirmada_en = now() WHERE id = :o"
+                ),
+                {"o": orden},
+            )
+            comanda = await sesion.scalar(
+                text(
+                    "INSERT INTO comanda (restaurante_id, mesa_id, sesion_id) "
+                    "VALUES (:r, :m, :s) RETURNING id"
+                ),
+                {"r": restaurante.id, "m": mesa.id, "s": grupal.id},
+            )
+            await sesion.execute(
+                text("INSERT INTO comanda_orden (comanda_id, orden_id) VALUES (:c, :o)"),
+                {"c": comanda, "o": orden},
+            )
+
+    async def leer() -> Any:
+        return await servicio_sesion.leer_estado(sesion, grupal.id)
+
+    return leer
 
 
 # Lo que pinta cada línea de avisos. T-3.4 añade la lectura del estado del personal
 # (`GET /op/mesas`) y T-3.7 la del panel del dueño.
-LECTORES: dict[str, Callable[[AsyncSession, Restaurante, Mesa], Awaitable[None]]] = {
-    "leer_estado (comensal)": _lee_estado_del_comensal,
+LECTORES: dict[str, Callable[[AsyncSession, Restaurante, Mesa], Awaitable[Lectura]]] = {
+    "leer_estado (comensal)": _prepara_estado_del_comensal,
 }
+
+_LECTURA = re.compile(r"\s*(select|with)\b", re.IGNORECASE)
+
+
+def _relaciones(plan: Any) -> set[str]:
+    """Los `Relation Name` de un plan de `EXPLAIN (FORMAT JSON)`: ve CTE, subconsultas y
+    todas las tablas de un `FROM a, b`, escriba quien escriba el SQL."""
+    nombres: set[str] = set()
+    if isinstance(plan, dict):
+        if "Relation Name" in plan:
+            nombres.add(plan["Relation Name"])
+        for valor in plan.values():
+            nombres |= _relaciones(valor)
+    elif isinstance(plan, list):
+        for valor in plan:
+            nombres |= _relaciones(valor)
+    return nombres
+
+
+async def _tablas_leidas(sesion: AsyncSession, lectura: Lectura) -> set[str]:
+    """Captura cada lectura que hace `lectura` y pregunta a PostgreSQL qué tablas toca."""
+    capturadas: list[tuple[str, Any]] = []
+
+    def anotar(_c: Any, _cursor: Any, sentencia: str, parametros: Any, *_args: Any) -> None:
+        if _LECTURA.match(sentencia):
+            capturadas.append((sentencia, parametros))
+
+    event.listen(Engine, "before_cursor_execute", anotar)
+    try:
+        await lectura()
+    finally:
+        event.remove(Engine, "before_cursor_execute", anotar)
+    assert capturadas, "la captura de SQL no vio ninguna lectura"
+    conexion = await sesion.connection()
+    crudo = (await conexion.get_raw_connection()).driver_connection
+    assert crudo is not None
+    tablas: set[str] = set()
+    for sentencia, parametros in capturadas:
+        plan = await crudo.fetchval(f"EXPLAIN (FORMAT JSON) {sentencia}", *(parametros or ()))
+        tablas |= _relaciones(json.loads(plan) if isinstance(plan, str) else plan)
+    return tablas
 
 
 @pytest.mark.parametrize("lector", list(LECTORES))
@@ -505,21 +604,30 @@ async def test_lo_que_leen_las_lineas_avisa(
 ) -> None:
     """Falla si la foto de una línea lee una tabla que no avisa y no es excepción: esa
     escritura no llegaría a nadie (03 §2.4)."""
-    leidas: set[str] = set()
-
-    def anotar(_c: Any, _cursor: Any, sentencia: str, *_args: Any) -> None:
-        if sentencia.lstrip().upper().startswith("SELECT"):
-            leidas.update(re.findall(r"\b(?:FROM|JOIN)\s+([a-z_]+)", sentencia))
-
-    event.listen(Engine, "before_cursor_execute", anotar)
-    try:
-        await LECTORES[lector](sesion, restaurante, mesa)
-    finally:
-        event.remove(Engine, "before_cursor_execute", anotar)
-    assert leidas, "la captura de SQL no vio ninguna lectura"
+    leer = await LECTORES[lector](sesion, restaurante, mesa)
+    leidas = await _tablas_leidas(sesion, leer)
     assert leidas <= set(Base.metadata.tables), leidas
     sin_aviso = leidas - OBSERVADAS
     assert not sin_aviso, f"{lector} lee tablas que no avisan: {sorted(sin_aviso)}"
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "select p.id from platillo p limit 1",
+        "WITH x AS (SELECT id FROM platillo) SELECT count(*) FROM x",
+        "SELECT m.id, p.id FROM mesa m, platillo p LIMIT 1",
+        "SELECT id FROM mesa WHERE id IN (SELECT categoria_id FROM platillo)",
+    ],
+)
+async def test_el_detector_ve_una_lectura_escondida(sesion: AsyncSession, sql: str) -> None:
+    """Control (B14): una lectura de una tabla que no avisa se detecta aunque vaya en
+    minúsculas, en una CTE, en un `FROM a, b` o en una subconsulta."""
+
+    async def lectura() -> None:
+        await sesion.execute(text(sql))
+
+    assert "platillo" in await _tablas_leidas(sesion, lectura)
 
 
 async def test_la_ultima_actividad_no_despierta_a_la_mesa(

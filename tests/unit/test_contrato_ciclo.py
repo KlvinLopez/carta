@@ -366,8 +366,48 @@ RUTAS_DE_CONTRATO = [
 ]
 
 
-# Las que validan un cuerpo de entrada: con `{}`, 422 antes de llegar al manejador.
-CON_CUERPO = {(m, r) for m, r in RUTAS_DE_CONTRATO if "requestBody" in app.openapi()["paths"][r][m]}
+# Un cuerpo **válido** por esquema de entrada de la fase (ronda de revisión, B10): con `{}`
+# FastAPI respondería 422 antes de llegar al manejador y una ruta que devolviera datos de
+# ejemplo con un cuerpo bueno pasaría desapercibida. Un esquema de entrada nuevo sin su cuerpo
+# aquí rompe `test_cada_cuerpo_de_la_fase_tiene_su_ejemplo_valido`.
+CUERPOS_VALIDOS: dict[str, dict[str, Any]] = {
+    "ItemCrear": {"platillo_id": UUID_X, "cantidad": 1, "notas": "Sin cebolla"},
+    "ItemCambios": {"cantidad": 2},
+    "CerrarMiCuenta": {"propina_centavos": 7200, "pendientes": "confirmar"},
+    "PropinaDeclarada": {"propina_centavos": 7200},
+    "EntrarPersonal": {"slug": "la-ceiba", "personal_id": UUID_X, "pin": "1234"},
+    "DisponibleCuerpo": {"disponible": False},
+    "SobreSesion": {"sesion_id": UUID_X},
+    "LiberarMesa": {"sesion_id": UUID_X, "con_cargos": True},
+    "EntradaMesa": {"sesion_id": UUID_X, "cerrada": True},
+    "PasarCuenta": {"sesion_id": UUID_X, "destino_miembro_id": UUID_X},
+}
+
+
+def _esquema_de_entrada(metodo: str, ruta: str) -> str | None:
+    cuerpo = app.openapi()["paths"][ruta][metodo].get("requestBody")
+    if cuerpo is None:
+        return None
+    return str(cuerpo["content"]["application/json"]["schema"]["$ref"].rsplit("/", 1)[-1])
+
+
+def _cuerpo(metodo: str, ruta: str) -> dict[str, Any] | None:
+    esquema = _esquema_de_entrada(metodo, ruta)
+    return None if esquema is None else CUERPOS_VALIDOS[esquema]
+
+
+def test_cada_cuerpo_de_la_fase_tiene_su_ejemplo_valido() -> None:
+    from pydantic import TypeAdapter
+
+    import app.schemas.ciclo as ciclo
+    import app.schemas.orden as orden
+    import app.schemas.personal_op as personal_op
+
+    usados = {_esquema_de_entrada(m, r) for m, r in RUTAS_DE_CONTRATO} - {None}
+    assert usados == set(CUERPOS_VALIDOS)
+    for nombre, cuerpo in CUERPOS_VALIDOS.items():
+        modelo = next(getattr(m, nombre) for m in (ciclo, orden, personal_op) if hasattr(m, nombre))
+        TypeAdapter(modelo).validate_python(cuerpo)  # el cuerpo de la prueba es válido
 
 
 @pytest.fixture(params=["desarrollo", "staging", "produccion"])
@@ -379,17 +419,14 @@ def entorno(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> 
 async def test_sin_credencial_ninguna_ruta_de_contrato_responde_datos(
     cliente: AsyncClient, entorno: str
 ) -> None:
+    """Con un cuerpo válido: el comensal y el dueño, 401; `/op` (sin cookie del personal hasta
+    T-3.4) y la espera de una solicitud, el 404 de una ruta inexistente. Nunca 422 ni 2xx."""
     for metodo, ruta in RUTAS_DE_CONTRATO:
-        respuesta = await cliente.request(metodo, _llenar(ruta), json={})
-        esperado = {404 if ruta.startswith(OP) or ruta == f"{P}/solicitud" else 401}
-        if (metodo, ruta) in CON_CUERPO:
-            esperado.add(422)  # FastAPI valida el cuerpo `{}` antes que la credencial
-        assert respuesta.status_code in esperado, (entorno, metodo, ruta, respuesta.text)
-        assert respuesta.json()["error"]["codigo"] in {
-            "SIN_CREDENCIAL",
-            "RECURSO_NO_ENCONTRADO",
-            "PAYLOAD_INVALIDO",
-        }
+        respuesta = await cliente.request(metodo, _llenar(ruta), json=_cuerpo(metodo, ruta))
+        esperado = 404 if ruta.startswith(OP) or ruta == f"{P}/solicitud" else 401
+        assert respuesta.status_code == esperado, (entorno, metodo, ruta, respuesta.text)
+        codigo = "RECURSO_NO_ENCONTRADO" if esperado == 404 else "SIN_CREDENCIAL"
+        assert respuesta.json()["error"]["codigo"] == codigo
 
 
 async def test_con_credencial_una_ruta_de_contrato_es_un_404(
@@ -399,8 +436,9 @@ async def test_con_credencial_una_ruta_de_contrato_es_un_404(
     mesa: Mesa,
     cabecera_operador: dict[str, str],
 ) -> None:
-    """Con la cookie del comensal o el token del dueño (y su propio restaurante), el mismo 404
-    que una ruta que no existe: nada de datos de ejemplo, en ningún entorno."""
+    """Con la cookie del comensal o el token del dueño (y su propio restaurante) y un cuerpo
+    válido, el mismo 404 que una ruta que no existe: nada de datos de ejemplo, en ningún
+    entorno."""
     _, token = await entrar(cliente, mesa.codigo_publico)
     assert token is not None
     for metodo, ruta in RUTAS_DE_CONTRATO:
@@ -408,19 +446,124 @@ async def test_con_credencial_una_ruta_de_contrato_es_un_404(
             continue  # abre con el pase de línea, que no existe todavía: 401 (arriba)
         cabeceras = con_token(token) if ruta.startswith(P) else cabecera_operador
         url = _llenar(ruta).replace(f"/restaurantes/{UUID_X}", f"/restaurantes/{restaurante.id}")
-        respuesta = await cliente.request(metodo, url, json={}, headers=cabeceras)
-        esperado = {404, 422} if (metodo, ruta) in CON_CUERPO else {404}
-        assert respuesta.status_code in esperado, (entorno, metodo, ruta, respuesta.text)
-        assert "error" in respuesta.json()
+        respuesta = await cliente.request(
+            metodo, url, json=_cuerpo(metodo, ruta), headers=cabeceras
+        )
+        assert respuesta.status_code == 404, (entorno, metodo, ruta, respuesta.text)
+        assert respuesta.json()["error"]["codigo"] == "RECURSO_NO_ENCONTRADO"
 
 
-async def test_un_restaurante_ajeno_da_el_mismo_404(
-    cliente: AsyncClient, cabecera_operador: dict[str, str]
-) -> None:
-    respuesta = await cliente.get(
-        f"{A}/restaurantes/{UUID_X}/mesas-vivo", headers=cabecera_operador
-    )
-    assert respuesta.status_code == 404
+def _dependencias(dependant: Any) -> set[str]:
+    nombres: set[str] = set()
+    for sub in dependant.dependencies:
+        nombres.add(getattr(sub.call, "__name__", ""))
+        nombres |= _dependencias(sub)
+    return nombres
+
+
+def test_las_rutas_del_dueno_comprueban_su_restaurante() -> None:
+    """B11: toda ruta de contrato bajo `/admin/restaurantes/{rid}` depende de
+    `restaurante_del_operador` (un `{rid}` ajeno da 404 antes del manejador, regla dura 6).
+    Por HTTP no se distingue (toda ruta de contrato da 404): la prueba de «restaurante ajeno →
+    404» con datos reales la pone T-3.7 al implementarlas."""
+    from tests.integration.test_auth_admin import rutas_api
+
+    del_dueno = {r for _, r, _ in CONTRATO_FASE_3 if r.startswith(f"{A}/restaurantes/")}
+    vistas: set[str] = set()
+    for ruta, api, heredadas in rutas_api():
+        if ruta not in del_dueno:
+            continue
+        vistas.add(ruta)
+        nombres = _dependencias(api.dependant) | {
+            getattr(d.dependency, "__name__", "") for d in heredadas
+        }
+        assert "restaurante_del_operador" in nombres, ruta
+    assert vistas == del_dueno
+
+
+# ---------------------------------------------------------------------------
+# B13 · listas cerradas: ni rutas ni campos de entrada de más
+# ---------------------------------------------------------------------------
+
+# Lo que ya existía antes de la Fase 3 (Fases 1 y 2), escrito a mano.
+RUTAS_ANTERIORES = {
+    ("post", f"{P}/sesion/entrar"),
+    ("get", f"{P}/sesion"),
+    ("patch", f"{P}/miembro"),
+    ("get", f"{P}/menu/{{slug}}"),
+    ("get", f"{P}/platillos/{{platillo_id}}"),
+    ("post", f"{P}/eventos"),
+    ("get", f"{A}/restaurantes"),
+    ("post", f"{A}/restaurantes"),
+    ("get", f"{A}/restaurantes/{{rid}}"),
+    ("patch", f"{A}/restaurantes/{{rid}}"),
+    ("get", f"{A}/restaurantes/{{rid}}/categorias"),
+    ("post", f"{A}/restaurantes/{{rid}}/categorias"),
+    ("post", f"{A}/restaurantes/{{rid}}/categorias/reordenar"),
+    ("patch", f"{A}/categorias/{{categoria_id}}"),
+    ("delete", f"{A}/categorias/{{categoria_id}}"),
+    ("get", f"{A}/restaurantes/{{rid}}/platillos"),
+    ("post", f"{A}/restaurantes/{{rid}}/platillos"),
+    ("post", f"{A}/restaurantes/{{rid}}/platillos/reordenar"),
+    ("patch", f"{A}/platillos/{{platillo_id}}"),
+    ("delete", f"{A}/platillos/{{platillo_id}}"),
+    ("post", f"{A}/platillos/{{platillo_id}}/foto"),
+    ("delete", f"{A}/platillos/{{platillo_id}}/foto"),
+    ("get", f"{A}/restaurantes/{{rid}}/mesas"),
+    ("post", f"{A}/restaurantes/{{rid}}/mesas"),
+    ("post", f"{A}/mesas/{{mesa_id}}/regenerar-codigo"),
+    ("get", f"{A}/restaurantes/{{rid}}/mesas/qr.pdf"),
+    ("post", f"{A}/restaurantes/{{rid}}/importaciones"),
+    ("get", f"{A}/restaurantes/{{rid}}/importaciones/{{importacion_id}}"),
+    ("post", f"{A}/restaurantes/{{rid}}/importaciones/{{importacion_id}}/reintentar"),
+    ("post", f"{A}/restaurantes/{{rid}}/importaciones/{{importacion_id}}/confirmar"),
+    ("get", f"{A}/restaurantes/{{rid}}/personal"),
+    ("post", f"{A}/restaurantes/{{rid}}/personal"),
+    ("patch", f"{A}/personal/{{personal_id}}"),
+    ("post", f"{A}/personal/{{personal_id}}/pin"),
+}
+
+
+@pytest.mark.ac("AC-36.7")
+@pytest.mark.ac("AC-37.9")
+@pytest.mark.ac("AC-37.11")
+def test_el_contrato_de_la_fase_no_tiene_rutas_de_mas(openapi: dict[str, Any]) -> None:
+    """Ninguna ruta para editar permisos, cobrar, repartir o reportar propinas ni capturar
+    descuentos puede colarse con otro nombre: la API es exactamente lo de antes más la fase."""
+    publicadas = {
+        (metodo, ruta)
+        for ruta, operaciones in openapi["paths"].items()
+        if ruta.startswith(("/api/v1/p/", "/api/v1/op/", "/api/v1/admin/"))
+        for metodo in operaciones
+    }
+    esperadas = RUTAS_ANTERIORES | {(m, r) for m, r, _ in CONTRATO_FASE_3}
+    assert publicadas - esperadas == set(), "rutas de más"
+    assert esperadas - publicadas == set(), "rutas que faltan"
+
+
+# Campos de cada cuerpo de entrada de la fase, escritos a mano: un `descuento` o una `rebaja`
+# en `CerrarMiCuenta` (o un permiso que se cuele en un cuerpo) rompe esto.
+CAMPOS_DE_ENTRADA = {
+    "ItemCrear": {"platillo_id", "cantidad", "notas"},
+    "ItemCambios": {"cantidad", "notas"},
+    "CerrarMiCuenta": {"propina_centavos", "pendientes"},
+    "PropinaDeclarada": {"propina_centavos"},
+    "EntrarPersonal": {"slug", "personal_id", "pin"},
+    "DisponibleCuerpo": {"disponible"},
+    "SobreSesion": {"sesion_id"},
+    "LiberarMesa": {"sesion_id", "con_cargos"},
+    "EntradaMesa": {"sesion_id", "cerrada"},
+    "PasarCuenta": {"sesion_id", "destino_miembro_id"},
+}
+
+
+@pytest.mark.ac("AC-36.7")
+@pytest.mark.ac("AC-37.11")
+def test_los_cuerpos_de_entrada_son_los_esperados(openapi: dict[str, Any]) -> None:
+    usados = {_esquema_de_entrada(m, r) for m, r in RUTAS_DE_CONTRATO} - {None}
+    assert usados == set(CAMPOS_DE_ENTRADA)
+    for nombre, campos in CAMPOS_DE_ENTRADA.items():
+        assert set(_esquemas(openapi)[nombre]["properties"]) == campos, nombre
 
 
 # ---------------------------------------------------------------------------
