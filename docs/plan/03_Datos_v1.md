@@ -145,7 +145,17 @@ Una tarea periódica en proceso borra las filas de más de 24 h.
 
 ### 2.4 Fase 3: ciclo de la mesa (Spec 001, ADR-017) y avisos (ADR-018)
 
-**Propuesta para T-3.0**, que fija nombres, columnas, CHECK, índices y `downgrade()` con el skill `/migracion`. Lo que pide cada fila sale de la [Spec 001](../specs/001-ciclo-de-la-mesa/spec.md) §6 y §7; aquí no se repite el DDL hasta que exista la migración.
+**Hecho en T-3.0** con la migración `migrations/versions/0004_ciclo_de_la_mesa.py` (sólo de expansión: nada se renombra ni se borra, toda columna nueva es nula o tiene valor por defecto y los CHECK sólo amplían su lista; el código de `v0.1.0` no la nota). Lo que pide cada fila sale de la [Spec 001](../specs/001-ciclo-de-la-mesa/spec.md) §6 y §7; el DDL vive en la migración y en `app/db/models.py`, y `tests/unit/test_modelos.py` comprueba que coinciden. Nombres fijados:
+
+| Qué | Dónde (0004) |
+|---|---|
+| Ciclo de la sesión | `sesion_grupal.estado` admite además `cuenta_cerrada` y `pagada` (vivos, `uq_sesion_viva_por_mesa`); «limpia» es el `cerrada` de siempre; `liberada_sin_pago`, `entrada_cerrada`, `cuenta_cerrada_en`, `pagada_en`, `cerrada_por_usuario_id` (el dueño desde su panel) |
+| Cuenta del comensal | `miembro_sesion.estado` admite además `cuenta_cerrada`, `pagada`, `flotante`, `retirado` (`activo` = pidiendo; `desconectado` se conserva); `propina_centavos` (≥ 0), `cuenta_cerrada_en` y `_por_{personal,usuario}_id`, `aviso_pagado_en`, `pago_validado_en` y `_por_{personal,usuario}_id`, `retirado_en` |
+| Ítem | `item_orden.pedido_por_miembro_id`, `origen` (`comensal` · `personal`), `estado` (`vigente` · `cancelado_personal`), `cancelado_en`, `cancelado_por_{personal,usuario}_id`; INV-3 ajustada en `fn_item_orden_inmutable` (§5) |
+| Horario | `restaurante.horarios` (`{}` = sin horario; si no, `{version, dias: {lun: [{abre, cierra}]}}`, `app/schemas/horario.py`), `zona_horaria` (`America/Mexico_City` por defecto [supuesto: el piloto es en México]), `fuera_de_horario` (`pedir_aprobacion` · `rechazar`) |
+| Tablas nuevas | `solicitud_entrada`, `marca_ciclo` (inmutable, `tr_marca_ciclo_inmutable`), `ajuste_restaurante`, `permiso_rol`, `reparto_cargo` (`parte_pb` en puntos base, 10000 = 100 %), `movimiento_cargo` |
+| Siembra (AC-36.4) | `tr_restaurante_siembra` (AFTER INSERT en `restaurante`) crea los ajustes del piloto y la tabla de permisos de la Spec 001 §5; la migración siembra los restaurantes que ya existían |
+| Avisos | `fn_avisar_cambio` y un `tr_aviso_<tabla>` por tabla observada |
 
 | Qué | Para qué | Criterios |
 |---|---|---|
@@ -168,11 +178,12 @@ Una tarea periódica en proceso borra las filas de más de 24 h.
 | `sesion_grupal`, `miembro_sesion`, `orden_personal`, `item_orden`, `comanda`, `comanda_orden`, `llamada_mesero`, reparto del cargo y su registro, solicitud de entrada, marcas de tiempo | mesa (la sesión de la fila) y restaurante | Lo que ven la mesa y el personal |
 | `mesa` (`activa`, `numero`, capacidad, código) | restaurante; y mesa de la sesión viva de esa mesa | `leer_estado` lee la mesa; dar de baja una mesa cierra la mesa para el comensal (410) |
 | `restaurante` (`activo`, horarios, zona, ajuste fuera de horario) y ajustes por restaurante | restaurante; y mesa de cada sesión viva del restaurante | `leer_estado` lee `Restaurante.activo`; los ajustes cambian el estatus |
-| `personal_restaurante` (`activo`, rol, `sesiones_desde`) | restaurante | La línea del personal revalida la identidad (AC-40.11) |
+| `personal_restaurante` (`activo`, rol, `sesiones_desde`, nombre: el disparador es `UPDATE OF` esas columnas, no avisa por cada intento de PIN ni por `ultimo_acceso_en`) | restaurante | La línea del personal revalida la identidad (AC-40.11) |
+| `permiso_rol` | restaurante | La lee el estado del personal (lo que puede hacer quien entra); fija en la v1, pero avisar es gratis y la v1.1 la edita |
 | `platillo`, `categoria_menu` | **excepción** | El menú no viaja por la línea: es público y cacheable en el borde y se refresca cada 25 s (ADR-016) |
 | `evento_analitica`, `clave_idempotencia`, `importacion_menu`, `usuario`, `operador_restaurante` | **excepción** | No cambian lo que ve una mesa ni el personal (si T-3.7 adopta la línea del operador, `operador_restaurante` avisa para revalidarla) |
 
-**Seguridad del disparador:** la función es `SECURITY INVOKER` (por defecto; nunca `DEFINER`) con `SET search_path = pg_catalog, public`; sólo llama a `pg_notify(canal, id::text)` con ids de la propia fila (`NEW` u `OLD`), nunca con texto calculado de otra fuente. Los canales `carta_mesa` y `carta_restaurante` son de toda la base: cualquier sesión con permiso de conexión podría emitir un `NOTIFY` en ellos. Un aviso falso sólo provoca una lectura con ETag (que da `304` si nada cambió) porque el aviso no lleva datos y la versión se recalcula de la base; el usuario de la aplicación es el único que se conecta (03 §6) y la escucha ignora lo que no tenga forma de UUID.
+**Seguridad del disparador:** la función es `SECURITY INVOKER` (por defecto; nunca `DEFINER`) con `SET search_path = pg_catalog, public`; sólo llama a `pg_notify(canal, id::text)` con ids de la propia fila (`NEW` u `OLD`), nunca con texto calculado de otra fuente. `item_orden` y `comanda_orden` no guardan la sesión: su id se lee por llave de la orden o de la comanda de la fila (también un `uuid`), y el restaurante, de la sesión. Los canales `carta_mesa` y `carta_restaurante` son de toda la base: cualquier sesión con permiso de conexión podría emitir un `NOTIFY` en ellos. Un aviso falso sólo provoca una lectura con ETag (que da `304` si nada cambió) porque el aviso no lleva datos y la versión se recalcula de la base; el usuario de la aplicación es el único que se conecta (03 §6) y la escucha ignora lo que no tenga forma de UUID.
 
 ## 3. Alteraciones a tablas existentes
 
@@ -305,7 +316,7 @@ erDiagram
 |---|---|
 | INV-1 · una sesión viva por mesa | `uq_sesion_viva_por_mesa` |
 | INV-2 · una orden viva por miembro | `uq_orden_viva_por_miembro` |
-| INV-3 · ítems inmutables tras confirmar (**ajustada una vez en T-3.0, ADR-017:** se admite pasar un ítem a «cancelado por el personal» con autor y hora mientras su comanda no la empezó la cocina; ninguna otra columna cambia; una corrección es cancelar y agregar; el reparto del cargo cambia sin tocar lo que ve la cocina) | `ck_orden_bloqueada_coherente` (`bloqueada = (estado <> 'armando')`); trigger `tr_item_orden_inmutable` (INSERT, UPDATE y DELETE; mira la orden de NEW **y** la de OLD, y toma `FOR SHARE` sobre la orden para que una confirmación concurrente lo haga esperar); trigger `tr_orden_bloqueada_no_se_borra` (BEFORE DELETE en `orden_personal`) |
+| INV-3 · ítems inmutables tras confirmar (**ajustada una vez en T-3.0, ADR-017:** se admite pasar un ítem a «cancelado por el personal» con autor y hora mientras su comanda no la empezó la cocina; ninguna otra columna cambia; una corrección es cancelar y agregar; el reparto del cargo cambia sin tocar lo que ve la cocina) | `ck_orden_bloqueada_coherente` (`bloqueada = (estado <> 'armando')`); trigger `tr_item_orden_inmutable` (INSERT, UPDATE y DELETE; mira la orden de NEW **y** la de OLD, y toma `FOR SHARE` sobre la orden para que una confirmación concurrente lo haga esperar; **0004:** su única salida es `vigente → cancelado_personal` sin cambiar otra columna, comparando las filas como JSON sin las de la cancelación, y lee las comandas de la orden con `FOR SHARE`: con una `atendida` o `servida` falla, y un `atender` simultáneo hace esperar a la cancelación); `ck_item_orden_cancelado`; trigger `tr_orden_bloqueada_no_se_borra` (BEFORE DELETE en `orden_personal`) |
 | INV-4 · sin borrado físico con historial | `activo = false`; revisión de código; ningún `DELETE` sobre `platillo` en `app/services/` |
 | INV-6 · comanda con estado terminal | `ck_comanda_terminal` ampliado con `servida` |
 | INV-7 · el PIN nunca se guarda en claro | columna `pin_hash` única; prueba que inspecciona la fila tras crear |

@@ -167,6 +167,892 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/p/sesion/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Línea de avisos de la mesa (`text/event-stream`): `hola`, `cambio`, `latido`, `fin`
+         * @description Línea de avisos de la mesa (`text/event-stream`): `hola`, `cambio`, `latido`, `fin`
+         *
+         *     Contrato de T-3.0; la implementa **T-3.20**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__sesion_eventos_api_v1_p_sesion_eventos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/orden/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agrega un platillo a mi orden; el precio lo pone el servidor
+         * @description Agrega un platillo a mi orden; el precio lo pone el servidor
+         *
+         *     Contrato de T-3.0; la implementa **T-3.2**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__orden_items_api_v1_p_orden_items_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/orden/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Quita un ítem de mi orden
+         * @description Quita un ítem de mi orden
+         *
+         *     Contrato de T-3.0; la implementa **T-3.2**. Hasta entonces responde 404.
+         */
+        delete: operations["contrato_delete__orden_items__item_id__api_v1_p_orden_items__item_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Cambia cantidad o nota de un ítem de mi orden
+         * @description Cambia cantidad o nota de un ítem de mi orden
+         *
+         *     Contrato de T-3.0; la implementa **T-3.2**. Hasta entonces responde 404.
+         */
+        patch: operations["contrato_patch__orden_items__item_id__api_v1_p_orden_items__item_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/p/orden/confirmar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirma mi orden (`Idempotency-Key`); si todos están listos sale la comanda
+         * @description Confirma mi orden (`Idempotency-Key`); si todos están listos sale la comanda
+         *
+         *     Contrato de T-3.0; la implementa **T-3.2**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__orden_confirmar_api_v1_p_orden_confirmar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/orden/deshacer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deshace mi confirmación mientras no haya comanda
+         * @description Deshace mi confirmación mientras no haya comanda
+         *
+         *     Contrato de T-3.0; la implementa **T-3.2**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__orden_deshacer_api_v1_p_orden_deshacer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/llamar-mesero": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Llama al mesero (una por minuto por sesión, `Idempotency-Key`)
+         * @description Llama al mesero (una por minuto por sesión, `Idempotency-Key`)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.3**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__llamar_mesero_api_v1_p_llamar_mesero_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/cuenta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mi cuenta: partidas, consumo, propina declarada y total (AC-29.6)
+         * @description Mi cuenta: partidas, consumo, propina declarada y total (AC-29.6)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.8**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__cuenta_api_v1_p_cuenta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/cuenta/cerrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cierro mi cuenta con mi propina declarada (AC-29.3, AC-37.5)
+         * @description Cierro mi cuenta con mi propina declarada (AC-29.3, AC-37.5)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.8**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__cuenta_cerrar_api_v1_p_cuenta_cerrar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/cuenta/propina": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Cambio mi propina declarada hasta que el personal valide el pago (AC-37.8)
+         * @description Cambio mi propina declarada hasta que el personal valide el pago (AC-37.8)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.8**. Hasta entonces responde 404.
+         */
+        put: operations["contrato_put__cuenta_propina_api_v1_p_cuenta_propina_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/cuenta/ya-pague": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Ya pagué»: un aviso al personal, no un pago (AC-29.7)
+         * @description «Ya pagué»: un aviso al personal, no un pago (AC-29.7)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.8**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__cuenta_ya_pague_api_v1_p_cuenta_ya_pague_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/mesa/salir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Salir de la mesa sin cargos validados sin pagar (AC-34.4)
+         * @description Salir de la mesa sin cargos validados sin pagar (AC-34.4)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.10**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__mesa_salir_api_v1_p_mesa_salir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/p/solicitud": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado de mi solicitud de entrada; aprobada, emite la cookie de invitado
+         * @description Estado de mi solicitud de entrada; aprobada, emite la cookie de invitado
+         *
+         *     Contrato de T-3.0; la implementa **T-3.10**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__solicitud_api_v1_p_solicitud_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/personal/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Nombres activos para la pantalla de entrada (sin PIN)
+         * @description Nombres activos para la pantalla de entrada (sin PIN)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__personal__slug__api_v1_op_personal__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/entrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Entrar (o cambiar de persona) con PIN; cookie de 12 h
+         * @description Entrar (o cambiar de persona) con PIN; cookie de 12 h
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__entrar_api_v1_op_entrar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/salir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Salir
+         * @description Salir
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__salir_api_v1_op_salir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Línea de avisos del restaurante (`text/event-stream`)
+         * @description Línea de avisos del restaurante (`text/event-stream`)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__eventos_api_v1_op_eventos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mesas con su estado, tiempos y hora de la última acción
+         * @description Mesas con su estado, tiempos y hora de la última acción
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__mesas_api_v1_op_mesas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas/{mesa_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detalle de una mesa: comensales, cuentas, comandas
+         * @description Detalle de una mesa: comensales, cuentas, comandas
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__mesas__mesa_id__api_v1_op_mesas__mesa_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/comandas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Comandas y llamadas pendientes
+         * @description Comandas y llamadas pendientes
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__comandas_api_v1_op_comandas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/comandas/{comanda_id}/atender": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Atender una comanda
+         * @description Atender una comanda
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__comandas__comanda_id__atender_api_v1_op_comandas__comanda_id__atender_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/comandas/{comanda_id}/servir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Marcar una comanda servida
+         * @description Marcar una comanda servida
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__comandas__comanda_id__servir_api_v1_op_comandas__comanda_id__servir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/llamadas/{llamada_id}/atender": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Atender una llamada
+         * @description Atender una llamada
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__llamadas__llamada_id__atender_api_v1_op_llamadas__llamada_id__atender_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/platillos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Búsqueda rápida de platillos para «Agotado»
+         * @description Búsqueda rápida de platillos para «Agotado»
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__platillos_api_v1_op_platillos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/platillos/{platillo_id}/disponible": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Marcar agotado o de vuelta
+         * @description Marcar agotado o de vuelta
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__platillos__platillo_id__disponible_api_v1_op_platillos__platillo_id__disponible_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/resumen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resumen del turno (capitán)
+         * @description Resumen del turno (capitán)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.4**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__resumen_api_v1_op_resumen_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas/{mesa_id}/cuentas/cerrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar las cuentas de toda la mesa (atajo, AC-29.4)
+         * @description Cerrar las cuentas de toda la mesa (atajo, AC-29.4)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__mesas__mesa_id__cuentas_cerrar_api_v1_op_mesas__mesa_id__cuentas_cerrar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas/{mesa_id}/limpia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mesa limpia: termina la sesión y libera a todos (AC-29.9)
+         * @description Mesa limpia: termina la sesión y libera a todos (AC-29.9)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__mesas__mesa_id__limpia_api_v1_op_mesas__mesa_id__limpia_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas/{mesa_id}/reabrir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reabrir la mesa antes de «pagada» (AC-29.11)
+         * @description Reabrir la mesa antes de «pagada» (AC-29.11)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__mesas__mesa_id__reabrir_api_v1_op_mesas__mesa_id__reabrir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas/{mesa_id}/liberar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Liberar la mesa; con cargos, sólo con permiso (AC-29.12)
+         * @description Liberar la mesa; con cargos, sólo con permiso (AC-29.12)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__mesas__mesa_id__liberar_api_v1_op_mesas__mesa_id__liberar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas/{mesa_id}/todo-bien": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Todo bien con la mesa»: cuenta como acción (AC-30.7)
+         * @description «Todo bien con la mesa»: cuenta como acción (AC-30.7)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__mesas__mesa_id__todo_bien_api_v1_op_mesas__mesa_id__todo_bien_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/mesas/{mesa_id}/entrada": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar o abrir la entrada de la mesa (AC-33.1, AC-33.5)
+         * @description Cerrar o abrir la entrada de la mesa (AC-33.1, AC-33.5)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__mesas__mesa_id__entrada_api_v1_op_mesas__mesa_id__entrada_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/miembros/{miembro_id}/cuenta/cerrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar la cuenta de un comensal por él (AC-31.3)
+         * @description Cerrar la cuenta de un comensal por él (AC-31.3)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__miembros__miembro_id__cuenta_cerrar_api_v1_op_miembros__miembro_id__cuenta_cerrar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/miembros/{miembro_id}/cuenta/reabrir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reabrir la cuenta de un comensal (AC-29.11)
+         * @description Reabrir la cuenta de un comensal (AC-29.11)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__miembros__miembro_id__cuenta_reabrir_api_v1_op_miembros__miembro_id__cuenta_reabrir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/miembros/{miembro_id}/pago/validar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validar el pago; la propina se anota a quien valida (AC-29.8, AC-37.7)
+         * @description Validar el pago; la propina se anota a quien valida (AC-29.8, AC-37.7)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__miembros__miembro_id__pago_validar_api_v1_op_miembros__miembro_id__pago_validar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/miembros/{miembro_id}/quitar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Quitar a un comensal sin cargos (AC-31.1)
+         * @description Quitar a un comensal sin cargos (AC-31.1)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__miembros__miembro_id__quitar_api_v1_op_miembros__miembro_id__quitar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/miembros/{miembro_id}/flotante": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Perdió su lugar»: su cuenta queda flotante (AC-31.8)
+         * @description «Perdió su lugar»: su cuenta queda flotante (AC-31.8)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__miembros__miembro_id__flotante_api_v1_op_miembros__miembro_id__flotante_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/miembros/{miembro_id}/pasar-cuenta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pasar la cuenta a otro comensal (AC-31.7)
+         * @description Pasar la cuenta a otro comensal (AC-31.7)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__miembros__miembro_id__pasar_cuenta_api_v1_op_miembros__miembro_id__pasar_cuenta_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/items/{item_id}/cancelar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar un ítem que la cocina no empezó (AC-31.5)
+         * @description Cancelar un ítem que la cocina no empezó (AC-31.5)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__items__item_id__cancelar_api_v1_op_items__item_id__cancelar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/solicitudes/{solicitud_id}/aprobar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aprobar una solicitud de entrada (AC-33.3)
+         * @description Aprobar una solicitud de entrada (AC-33.3)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__solicitudes__solicitud_id__aprobar_api_v1_op_solicitudes__solicitud_id__aprobar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/op/solicitudes/{solicitud_id}/rechazar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rechazar una solicitud de entrada (AC-33.3)
+         * @description Rechazar una solicitud de entrada (AC-33.3)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.11**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__solicitudes__solicitud_id__rechazar_api_v1_op_solicitudes__solicitud_id__rechazar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/restaurantes": {
         parameters: {
             query?: never;
@@ -574,10 +1460,580 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/restaurantes/{rid}/mesas-vivo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mesas en vivo, como `GET /op/mesas` (AC-36.6)
+         * @description Mesas en vivo, como `GET /op/mesas` (AC-36.6)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__restaurantes__rid__mesas_vivo_api_v1_admin_restaurantes__rid__mesas_vivo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/mesas-vivo/{mesa_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detalle de una mesa en vivo
+         * @description Detalle de una mesa en vivo
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__restaurantes__rid__mesas_vivo__mesa_id__api_v1_admin_restaurantes__rid__mesas_vivo__mesa_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/comandas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Comandas y llamadas pendientes
+         * @description Comandas y llamadas pendientes
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__restaurantes__rid__comandas_api_v1_admin_restaurantes__rid__comandas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/linea": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Canjea el token por el pase de la línea del panel (cookie de vida corta)
+         * @description Canjea el token por el pase de la línea del panel (cookie de vida corta)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__linea_api_v1_admin_restaurantes__rid__linea_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/comandas/{comanda_id}/atender": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Atender una comanda
+         * @description Atender una comanda
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_comandas__comanda_id__atender_api_v1_admin_restaurantes__rid__pedidos_comandas__comanda_id__atender_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/comandas/{comanda_id}/servir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Marcar una comanda servida
+         * @description Marcar una comanda servida
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_comandas__comanda_id__servir_api_v1_admin_restaurantes__rid__pedidos_comandas__comanda_id__servir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/llamadas/{llamada_id}/atender": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Atender una llamada
+         * @description Atender una llamada
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_llamadas__llamada_id__atender_api_v1_admin_restaurantes__rid__pedidos_llamadas__llamada_id__atender_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/mesas/{mesa_id}/cuentas/cerrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar las cuentas de toda la mesa (atajo, AC-29.4)
+         * @description Cerrar las cuentas de toda la mesa (atajo, AC-29.4)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__cuentas_cerrar_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__cuentas_cerrar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/mesas/{mesa_id}/limpia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mesa limpia: termina la sesión y libera a todos (AC-29.9)
+         * @description Mesa limpia: termina la sesión y libera a todos (AC-29.9)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__limpia_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__limpia_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/mesas/{mesa_id}/reabrir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reabrir la mesa antes de «pagada» (AC-29.11)
+         * @description Reabrir la mesa antes de «pagada» (AC-29.11)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__reabrir_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__reabrir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/mesas/{mesa_id}/liberar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Liberar la mesa; con cargos, sólo con permiso (AC-29.12)
+         * @description Liberar la mesa; con cargos, sólo con permiso (AC-29.12)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__liberar_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__liberar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/mesas/{mesa_id}/todo-bien": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Todo bien con la mesa»: cuenta como acción (AC-30.7)
+         * @description «Todo bien con la mesa»: cuenta como acción (AC-30.7)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__todo_bien_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__todo_bien_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/mesas/{mesa_id}/entrada": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar o abrir la entrada de la mesa (AC-33.1, AC-33.5)
+         * @description Cerrar o abrir la entrada de la mesa (AC-33.1, AC-33.5)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__entrada_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__entrada_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/miembros/{miembro_id}/cuenta/cerrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar la cuenta de un comensal por él (AC-31.3)
+         * @description Cerrar la cuenta de un comensal por él (AC-31.3)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__cuenta_cerrar_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__cuenta_cerrar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/miembros/{miembro_id}/cuenta/reabrir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reabrir la cuenta de un comensal (AC-29.11)
+         * @description Reabrir la cuenta de un comensal (AC-29.11)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__cuenta_reabrir_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__cuenta_reabrir_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/miembros/{miembro_id}/pago/validar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validar el pago; la propina se anota a quien valida (AC-29.8, AC-37.7)
+         * @description Validar el pago; la propina se anota a quien valida (AC-29.8, AC-37.7)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__pago_validar_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__pago_validar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/miembros/{miembro_id}/quitar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Quitar a un comensal sin cargos (AC-31.1)
+         * @description Quitar a un comensal sin cargos (AC-31.1)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__quitar_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__quitar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/miembros/{miembro_id}/flotante": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Perdió su lugar»: su cuenta queda flotante (AC-31.8)
+         * @description «Perdió su lugar»: su cuenta queda flotante (AC-31.8)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__flotante_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__flotante_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/miembros/{miembro_id}/pasar-cuenta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pasar la cuenta a otro comensal (AC-31.7)
+         * @description Pasar la cuenta a otro comensal (AC-31.7)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__pasar_cuenta_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__pasar_cuenta_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/items/{item_id}/cancelar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar un ítem que la cocina no empezó (AC-31.5)
+         * @description Cancelar un ítem que la cocina no empezó (AC-31.5)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_items__item_id__cancelar_api_v1_admin_restaurantes__rid__pedidos_items__item_id__cancelar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/solicitudes/{solicitud_id}/aprobar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aprobar una solicitud de entrada (AC-33.3)
+         * @description Aprobar una solicitud de entrada (AC-33.3)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_solicitudes__solicitud_id__aprobar_api_v1_admin_restaurantes__rid__pedidos_solicitudes__solicitud_id__aprobar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/restaurantes/{rid}/pedidos/solicitudes/{solicitud_id}/rechazar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rechazar una solicitud de entrada (AC-33.3)
+         * @description Rechazar una solicitud de entrada (AC-33.3)
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        post: operations["contrato_post__restaurantes__rid__pedidos_solicitudes__solicitud_id__rechazar_api_v1_admin_restaurantes__rid__pedidos_solicitudes__solicitud_id__rechazar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Línea de avisos del panel del dueño (`text/event-stream`), con el pase de línea
+         * @description Línea de avisos del panel del dueño (`text/event-stream`), con el pase de línea
+         *
+         *     Contrato de T-3.0; la implementa **T-3.7**. Hasta entonces responde 404.
+         */
+        get: operations["contrato_get__eventos_api_v1_admin_eventos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AccionRegistrada
+         * @description Cuándo y quién (AC-29.8, AC-31.3: «Marisol cerró tu cuenta»).
+         */
+        AccionRegistrada: {
+            /**
+             * En
+             * Format: date-time
+             */
+            en: string;
+            por: components["schemas"]["Autor"];
+        };
+        /**
+         * AjustesEstatus
+         * @description Umbrales por restaurante: el teléfono calcula el color y el recordatorio con la hora de
+         *     la última acción (ADR-018 punto 4.4; AC-30.6, AC-30.7).
+         */
+        AjustesEstatus: {
+            /**
+             * Amarillo Min
+             * @example 20
+             */
+            amarillo_min: number;
+            /**
+             * Rojo Min
+             * @example 40
+             */
+            rojo_min: number;
+            /**
+             * Recordatorio Min
+             * @example 30
+             */
+            recordatorio_min: number;
+        };
+        /**
+         * Autor
+         * @description Quién hizo un paso. `nombre` sólo para el personal o el operador (p. ej. «Marisol»):
+         *     nunca el alias del comensal.
+         */
+        Autor: {
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "comensal" | "personal" | "operador" | "sistema";
+            /**
+             * Nombre
+             * @example Marisol
+             */
+            nombre?: string | null;
+        };
+        /** Cambio */
+        Cambio: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            evento: "cambio";
+            /**
+             * Etag
+             * @example "5f2b9c0e1a"
+             */
+            etag: string;
+        };
         /**
          * CategoriaCambios
          * @description `PATCH /categorias/{id}`: sólo los campos presentes cambian.
@@ -645,6 +2101,189 @@ export interface components {
             /** Activa */
             activa: boolean;
         };
+        /**
+         * CerrarMiCuenta
+         * @description `POST /p/cuenta/cerrar` (AC-29.3, AC-37.5). Con ítems sin confirmar, 409
+         *     `PENDIENTES_SIN_CONFIRMAR` salvo que diga qué hacer con ellos.
+         */
+        CerrarMiCuenta: {
+            /**
+             * Propina Centavos
+             * @description Propina declarada; `null` = sin propina elegida.
+             */
+            propina_centavos?: number | null;
+            /** Pendientes */
+            pendientes?: ("confirmar" | "descartar") | null;
+        };
+        /**
+         * ComandaDeSesion
+         * @description Cada ronda confirmada de la mesa (AC-29.2) y en qué va.
+         */
+        ComandaDeSesion: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Secuencia
+             * @example 1
+             */
+            secuencia: number;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "abierta" | "atendida" | "servida" | "cancelada";
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+        };
+        /**
+         * ComandaOp
+         * @description Una comanda para el personal, por comensal (US-13).
+         */
+        ComandaOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Mesa Id
+             * Format: uuid
+             */
+            mesa_id: string;
+            /**
+             * Mesa Numero
+             * @example 7
+             */
+            mesa_numero: number;
+            /**
+             * Sesion Id
+             * Format: uuid
+             */
+            sesion_id: string;
+            /** Secuencia */
+            secuencia: number;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "abierta" | "atendida" | "servida" | "cancelada";
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+            /** Atendida En */
+            atendida_en?: string | null;
+            /** Servida En */
+            servida_en?: string | null;
+            /**
+             * Atendida Por
+             * @example Marisol
+             */
+            atendida_por?: string | null;
+            /**
+             * Total Estimado
+             * @example 145
+             */
+            total_estimado: number;
+            /** Num Comensales */
+            num_comensales: number;
+            /** Por Comensal */
+            por_comensal: components["schemas"]["ComensalEnComanda"][];
+        };
+        /** ComandaResumenOp */
+        ComandaResumenOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Secuencia */
+            secuencia: number;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "abierta" | "atendida" | "servida" | "cancelada";
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+        };
+        /**
+         * ComandasOp
+         * @description `GET /op/comandas`, con `ETag`.
+         */
+        ComandasOp: {
+            /** Comandas */
+            comandas: components["schemas"]["ComandaOp"][];
+            /** Llamadas */
+            llamadas: components["schemas"]["LlamadaOp"][];
+        };
+        /** ComensalEnComanda */
+        ComensalEnComanda: {
+            /**
+             * Miembro Id
+             * Format: uuid
+             */
+            miembro_id: string;
+            /**
+             * Alias
+             * @example Ana
+             */
+            alias: string;
+            /** Items */
+            items: components["schemas"]["ItemComandaOp"][];
+        };
+        /**
+         * CuentaComensal
+         * @description La cuenta de un comensal: un **total estimado**, no comprobante (Spec 001 §6).
+         *
+         *     `consumo_centavos` suma las partidas vigentes según el reparto; la propina es `null`
+         *     mientras no se declare (el personal ve 0, AC-37.6); `total_a_cobrar_centavos` = consumo +
+         *     propina, nunca menos que el consumo.
+         */
+        CuentaComensal: {
+            /**
+             * Miembro Id
+             * Format: uuid
+             */
+            miembro_id: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "pidiendo" | "cuenta_cerrada" | "pagada" | "flotante" | "retirado";
+            /** Partidas */
+            partidas: components["schemas"]["Partida"][];
+            /**
+             * Consumo Centavos
+             * @example 48000
+             */
+            consumo_centavos: number;
+            /** Propina Centavos */
+            propina_centavos?: number | null;
+            /**
+             * Total A Cobrar Centavos
+             * @example 48000
+             */
+            total_a_cobrar_centavos: number;
+            cerrada?: components["schemas"]["AccionRegistrada"] | null;
+            /**
+             * Aviso Pagado En
+             * @description «Ya pagué»: sólo un aviso al personal (AC-29.7).
+             */
+            aviso_pagado_en?: string | null;
+            /** @description Quién validó el pago; a esa persona se anota la propina. */
+            pago_validado?: components["schemas"]["AccionRegistrada"] | null;
+        };
         /** DetalleError */
         DetalleError: {
             /**
@@ -667,6 +2306,24 @@ export interface components {
              */
             request_id: string | null;
         };
+        /** DisponibleCuerpo */
+        DisponibleCuerpo: {
+            /** Disponible */
+            disponible: boolean;
+        };
+        /**
+         * EntradaMesa
+         * @description Cerrar o abrir la entrada de la mesa (AC-33.1, AC-33.5).
+         */
+        EntradaMesa: {
+            /**
+             * Sesion Id
+             * Format: uuid
+             */
+            sesion_id: string;
+            /** Cerrada */
+            cerrada: boolean;
+        };
         /**
          * EntrarCuerpo
          * @description `POST /p/sesion/entrar`: el código que trae el QR (`/m/{codigo_mesa}`).
@@ -677,6 +2334,28 @@ export interface components {
              * @example Jx3k9QwLmN2pR7sT4vY8zA
              */
             codigo_mesa: string;
+        };
+        /**
+         * EntrarPersonal
+         * @description `POST /op/entrar`: también sirve para **cambiar de persona** en una tablet compartida
+         *     (AC-39.4): la cookie nueva sustituye a la anterior y cada acción queda a su nombre.
+         */
+        EntrarPersonal: {
+            /**
+             * Slug
+             * @example la-ceiba
+             */
+            slug: string;
+            /**
+             * Personal Id
+             * Format: uuid
+             */
+            personal_id: string;
+            /**
+             * Pin
+             * @example 1234
+             */
+            pin: string;
         };
         /**
          * EntrarRespuesta
@@ -748,6 +2427,38 @@ export interface components {
             /** Eventos */
             eventos: components["schemas"]["EventoEntrada"][];
         };
+        /** Fin */
+        Fin: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            evento: "fin";
+            /**
+             * Motivo
+             * @enum {string}
+             */
+            motivo: "reemplazada" | "retirado" | "sesion_cerrada" | "pase_vencido" | "persona_inactiva" | "sesion_revocada" | "restaurante_inactivo" | "acceso_revocado";
+        };
+        /** Hola */
+        Hola: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            evento: "hola";
+            /**
+             * Etag
+             * @example "5f2b9c0e1a"
+             */
+            etag: string;
+            /**
+             * Ventana Reconexion S
+             * @description Tras un corte masivo, esperar al azar hasta estos segundos (ADR-018 §8).
+             * @example 42
+             */
+            ventana_reconexion_s: number;
+        };
         /**
          * ImportacionRespuesta
          * @description Estado de una importación. Sin `archivo_url` (bucket privado) ni tokens ni modelo.
@@ -780,6 +2491,220 @@ export interface components {
             /** Confirmado En */
             confirmado_en?: string | null;
         };
+        /**
+         * ItemCambios
+         * @description `PATCH /p/orden/items/{item_id}`: cantidad o nota (sólo con la orden armando).
+         */
+        ItemCambios: {
+            /** Cantidad */
+            cantidad?: number | null;
+            /** Notas */
+            notas?: string | null;
+        };
+        /** ItemComandaOp */
+        ItemComandaOp: {
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * Nombre
+             * @example Enchiladas suizas
+             */
+            nombre: string;
+            /** Cantidad */
+            cantidad: number;
+            /** Notas */
+            notas?: string | null;
+            /**
+             * Estado
+             * @default vigente
+             * @enum {string}
+             */
+            estado: "vigente" | "cancelado_personal";
+        };
+        /**
+         * ItemCrear
+         * @description `POST /p/orden/items`. Sin precio: lo pone el servidor.
+         */
+        ItemCrear: {
+            /**
+             * Platillo Id
+             * Format: uuid
+             */
+            platillo_id: string;
+            /**
+             * Cantidad
+             * @default 1
+             * @example 1
+             */
+            cantidad: number;
+            /**
+             * Notas
+             * @example Sin cebolla
+             */
+            notas?: string | null;
+        };
+        /**
+         * ItemDeMiembro
+         * @description Lo que los demás ven de la orden de un comensal, en modo consulta (F3-1, AC-09.1).
+         */
+        ItemDeMiembro: {
+            /**
+             * Nombre
+             * @example Flan napolitano
+             */
+            nombre: string;
+            /**
+             * Cantidad
+             * @example 1
+             */
+            cantidad: number;
+            /** Notas */
+            notas?: string | null;
+        };
+        /** ItemDeOrden */
+        ItemDeOrden: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Platillo Id
+             * Format: uuid
+             */
+            platillo_id: string;
+            /**
+             * Nombre
+             * @example Enchiladas suizas
+             */
+            nombre: string;
+            /**
+             * Cantidad
+             * @example 2
+             */
+            cantidad: number;
+            /** Notas */
+            notas?: string | null;
+            /**
+             * Precio Unitario
+             * @example 145
+             */
+            precio_unitario: number;
+            /**
+             * Subtotal
+             * @example 145
+             */
+            subtotal: number;
+        };
+        /** Latido */
+        Latido: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            evento: "latido";
+            /**
+             * Etag
+             * @description Versión vigente si T-3.20 adopta el latido con versión.
+             */
+            etag?: string | null;
+        };
+        /**
+         * LiberarMesa
+         * @description Liberar la mesa. `con_cargos` exige el permiso `liberar_con_cargos` y la deja
+         *     «liberada sin pago verificado» (AC-29.12); sin cargos la libera cualquiera.
+         */
+        LiberarMesa: {
+            /**
+             * Sesion Id
+             * Format: uuid
+             */
+            sesion_id: string;
+            /**
+             * Con Cargos
+             * @default false
+             */
+            con_cargos: boolean;
+        };
+        /** LlamadaOp */
+        LlamadaOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Mesa Id
+             * Format: uuid
+             */
+            mesa_id: string;
+            /**
+             * Mesa Numero
+             * @example 7
+             */
+            mesa_numero: number;
+            /**
+             * Motivo
+             * @example atencion
+             */
+            motivo: string;
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+            /** Atendida En */
+            atendida_en?: string | null;
+        };
+        /**
+         * LlamadaRespuesta
+         * @description `POST /p/llamar-mesero` (T-3.3): una por minuto por sesión (AC-12.3).
+         */
+        LlamadaRespuesta: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+        };
+        /**
+         * MarcaTiempo
+         * @description Un paso del ciclo con hora y autor, sin sobrescribir (AC-35.1, AC-35.2). Sin alias,
+         *     IP ni cookie (AC-35.5).
+         */
+        MarcaTiempo: {
+            /**
+             * Paso
+             * @enum {string}
+             */
+            paso: "primer_escaneo" | "comanda" | "cuenta_cerrada_comensal" | "cuenta_reabierta_comensal" | "cuenta_cerrada_mesa" | "mesa_reabierta" | "pago_avisado" | "pago_validado" | "mesa_pagada" | "mesa_limpia" | "liberada_sin_cargos" | "liberada_con_cargos" | "comensal_retirado" | "comensal_flotante" | "cuenta_pasada" | "item_cancelado" | "entrada_cerrada" | "entrada_abierta" | "todo_bien" | "solicitud_aprobada" | "solicitud_rechazada";
+            /**
+             * Ocurrido En
+             * Format: date-time
+             */
+            ocurrido_en: string;
+            autor: components["schemas"]["Autor"];
+            /**
+             * Miembro Id
+             * @description Cuenta a la que se refiere.
+             */
+            miembro_id?: string | null;
+            /** Comanda Id */
+            comanda_id?: string | null;
+        };
+        /**
+         * MensajeLinea
+         * @description Un mensaje de la línea: `event:` = `evento`, `data:` = este JSON.
+         */
+        MensajeLinea: components["schemas"]["Hola"] | components["schemas"]["Cambio"] | components["schemas"]["Latido"] | components["schemas"]["Fin"];
         /** MenuPublico */
         MenuPublico: {
             restaurante: components["schemas"]["RestaurantePublico"];
@@ -812,6 +2737,97 @@ export interface components {
              * @example 4
              */
             capacidad: number;
+        };
+        /**
+         * MesaDetalleOp
+         * @description `GET /op/mesas/{mesa_id}` y la respuesta de toda acción sobre la mesa.
+         */
+        MesaDetalleOp: {
+            mesa: components["schemas"]["MesaOp"];
+            /** Miembros */
+            miembros: components["schemas"]["MiembroOp"][];
+            /** Comandas */
+            comandas: components["schemas"]["ComandaOp"][];
+            /** Llamadas */
+            llamadas: components["schemas"]["LlamadaOp"][];
+            /** Solicitudes */
+            solicitudes: components["schemas"]["SolicitudOp"][];
+            /**
+             * Historial
+             * @description Pasos del ciclo con hora y autor (US-35).
+             */
+            historial: components["schemas"]["MarcaTiempo"][];
+        };
+        /**
+         * MesaOp
+         * @description Una mesa en la lista del personal. `sesion_id` es la sesión viva (la que se manda al
+         *     actuar); `null` con la mesa libre.
+         */
+        MesaOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Numero
+             * @example 7
+             */
+            numero: number;
+            /**
+             * Capacidad
+             * @example 4
+             */
+            capacidad: number;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "libre" | "abierta" | "cuenta_cerrada" | "pagada";
+            /** Sesion Id */
+            sesion_id?: string | null;
+            /**
+             * Abierta En
+             * @description Primer escaneo (AC-29.1).
+             */
+            abierta_en?: string | null;
+            /**
+             * Ultima Accion En
+             * @description Para el estatus verde, amarillo y rojo del teléfono.
+             */
+            ultima_accion_en?: string | null;
+            /**
+             * Comensales
+             * @default 0
+             */
+            comensales: number;
+            /**
+             * Listos
+             * @default 0
+             */
+            listos: number;
+            /**
+             * Entrada Cerrada
+             * @default false
+             */
+            entrada_cerrada: boolean;
+            /**
+             * Solicitudes Pendientes
+             * @default 0
+             */
+            solicitudes_pendientes: number;
+            /**
+             * Avisos Pagado
+             * @description Cuentas con «ya pagué».
+             * @default 0
+             */
+            avisos_pagado: number;
+            /**
+             * Llamadas Pendientes
+             * @default 0
+             */
+            llamadas_pendientes: number;
+            ultima_comanda?: components["schemas"]["ComandaResumenOp"] | null;
         };
         /** MesaRespuesta */
         MesaRespuesta: {
@@ -847,6 +2863,39 @@ export interface components {
              * @default 4
              */
             capacidad: number;
+        };
+        /**
+         * MesasOp
+         * @description `GET /op/mesas` (y `GET /admin/restaurantes/{rid}/mesas-vivo`), con `ETag`.
+         */
+        MesasOp: {
+            yo: components["schemas"]["SesionPersonal"];
+            ajustes: components["schemas"]["AjustesEstatus"];
+            /** Mesas */
+            mesas: components["schemas"]["MesaOp"][];
+        };
+        /**
+         * MiOrden
+         * @description La orden viva del miembro: `armando` hasta confirmar; después, bloqueada (INV-3).
+         */
+        MiOrden: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "armando" | "confirmada" | "enviada" | "cerrada";
+            /** Items */
+            items: components["schemas"]["ItemDeOrden"][];
+            /**
+             * Subtotal
+             * @example 145
+             */
+            subtotal: number;
         };
         /**
          * MiembroCambios
@@ -886,7 +2935,41 @@ export interface components {
              * Estado
              * @enum {string}
              */
-            estado: "armando" | "listo";
+            estado: "armando" | "listo" | "cuenta_cerrada" | "pagada" | "flotante";
+            /**
+             * Items
+             * @description Su orden en modo consulta, platillo por platillo (F3-1, AC-09.1).
+             */
+            items?: components["schemas"]["ItemDeMiembro"][] | null;
+        };
+        /**
+         * MiembroOp
+         * @description Un comensal visto por el personal. Dos con el mismo alias se distinguen por color y
+         *     `numero_alias` («Ana ●1», «Ana ●2», AC-31.9).
+         */
+        MiembroOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Alias
+             * @example Ana
+             */
+            alias: string;
+            /**
+             * Color Avatar
+             * @description `#RRGGBB`
+             * @example #B8860B
+             */
+            color_avatar: string;
+            /**
+             * Numero Alias
+             * @example 1
+             */
+            numero_alias?: number | null;
+            cuenta: components["schemas"]["CuentaComensal"];
         };
         /**
          * MiembroRespuesta
@@ -916,6 +2999,112 @@ export interface components {
             rol: "host" | "miembro";
         };
         /**
+         * Partida
+         * @description Un cargo de la cuenta: quién lo pidió y quién responde (en la v1, la misma persona).
+         */
+        Partida: {
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * Platillo Id
+             * Format: uuid
+             */
+            platillo_id: string;
+            /**
+             * Nombre
+             * @example Enchiladas suizas
+             */
+            nombre: string;
+            /**
+             * Cantidad
+             * @example 2
+             */
+            cantidad: number;
+            /** Notas */
+            notas?: string | null;
+            /**
+             * Precio Unitario
+             * @example 145
+             */
+            precio_unitario: number;
+            /**
+             * Subtotal Centavos
+             * @example 48000
+             */
+            subtotal_centavos: number;
+            /**
+             * Pidio
+             * @description Miembro que lo pidió.
+             */
+            pidio: string | null;
+            /**
+             * Origen
+             * @default comensal
+             * @enum {string}
+             */
+            origen: "comensal" | "personal";
+            /**
+             * Estado
+             * @default vigente
+             * @enum {string}
+             */
+            estado: "vigente" | "cancelado_personal";
+            /** @description Si el personal la canceló: cuándo y quién (AC-31.5). */
+            cancelada?: components["schemas"]["AccionRegistrada"] | null;
+            /** Responde */
+            responde: components["schemas"]["Responsable"][];
+        };
+        /**
+         * PasarCuenta
+         * @description Pasar todos los cargos de un comensal a otro, sin aceptación (AC-31.7).
+         */
+        PasarCuenta: {
+            /**
+             * Sesion Id
+             * Format: uuid
+             */
+            sesion_id: string;
+            /**
+             * Destino Miembro Id
+             * Format: uuid
+             */
+            destino_miembro_id: string;
+        };
+        /** PersonaOp */
+        PersonaOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Nombre
+             * @example Marisol
+             */
+            nombre: string;
+            /**
+             * Rol
+             * @enum {string}
+             */
+            rol: "mesero" | "capitan";
+        };
+        /** PersonaParaEntrar */
+        PersonaParaEntrar: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Nombre
+             * @example Marisol
+             */
+            nombre: string;
+        };
+        /**
          * PersonalCambios
          * @description `PATCH /personal/{id}`. `activo = false` da de baja a la persona y revoca su sesión
          *     (AC-26.3); `activo = true` la reactiva (sus sesiones anteriores siguen sin valer).
@@ -943,6 +3132,19 @@ export interface components {
              * @description Sólo dígitos, de 4 a 6 (AC-26.1); `0123` vale. No se devuelve nunca.
              */
             pin: string;
+        };
+        /**
+         * PersonalDelRestaurante
+         * @description `GET /op/personal/{slug}`: los nombres activos para la pantalla de entrada (sin PIN).
+         */
+        PersonalDelRestaurante: {
+            /**
+             * Restaurante Nombre
+             * @example La Ceiba
+             */
+            restaurante_nombre: string;
+            /** Personas */
+            personas: components["schemas"]["PersonaParaEntrar"][];
         };
         /** PersonalRespuesta */
         PersonalRespuesta: {
@@ -1153,6 +3355,36 @@ export interface components {
             pagina?: number | null;
         };
         /**
+         * PlatilloOp
+         * @description Búsqueda rápida de «Agotado» (US-27).
+         */
+        PlatilloOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Nombre
+             * @example Pozole rojo
+             */
+            nombre: string;
+            /**
+             * Categoria
+             * @example Platos fuertes
+             */
+            categoria?: string | null;
+            /** Disponible */
+            disponible: boolean;
+            /** No Disponible Desde */
+            no_disponible_desde?: string | null;
+            /**
+             * No Disponible Por
+             * @example Marisol
+             */
+            no_disponible_por?: string | null;
+        };
+        /**
          * PlatilloPublico
          * @description Un platillo del menú con su imagen resuelta (foto → ilustración por categoría, 02 §8).
          */
@@ -1272,6 +3504,18 @@ export interface components {
             actualizado_en: string;
         };
         /**
+         * PropinaDeclarada
+         * @description `PUT /p/cuenta/propina`: cambiar la propina declarada hasta que el personal valide el
+         *     pago (AC-37.8). Sólo el monto calculado en el teléfono sobre el consumo (AC-37.4).
+         */
+        PropinaDeclarada: {
+            /**
+             * Propina Centavos
+             * @example 7200
+             */
+            propina_centavos: number;
+        };
+        /**
          * Reordenar
          * @description Cuerpo de `POST .../reordenar`: los ids en el orden nuevo, sin repetir. Un campo
          *     desconocido (`restaurante_id`) es 422 (revisión de T-1.3, B1).
@@ -1279,6 +3523,28 @@ export interface components {
         Reordenar: {
             /** Ids */
             ids: string[];
+        };
+        /**
+         * Responsable
+         * @description Una fila del reparto del cargo (Spec 001 §7). En la v1 siempre una, al 100 %.
+         */
+        Responsable: {
+            /**
+             * Miembro Id
+             * Format: uuid
+             */
+            miembro_id: string;
+            /**
+             * Parte Pb
+             * @description Parte en puntos base (10000 = 100 %).
+             * @example 10000
+             */
+            parte_pb: number;
+            /**
+             * Importe Centavos
+             * @example 48000
+             */
+            importe_centavos: number;
         };
         /**
          * RestauranteCambios
@@ -1353,6 +3619,24 @@ export interface components {
              * @example vino
              */
             tema: string;
+        };
+        /** RestauranteOp */
+        RestauranteOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Nombre
+             * @example La Ceiba
+             */
+            nombre: string;
+            /**
+             * Slug
+             * @example la-ceiba
+             */
+            slug: string;
         };
         /** RestaurantePublico */
         RestaurantePublico: {
@@ -1434,6 +3718,30 @@ export interface components {
             avisos?: string[];
         };
         /**
+         * ResumenTurno
+         * @description `GET /op/resumen` (capitán): el turno de hoy (US-26).
+         */
+        ResumenTurno: {
+            /**
+             * Desde
+             * Format: date-time
+             */
+            desde: string;
+            /** Comandas */
+            comandas: number;
+            /** Comandas Servidas */
+            comandas_servidas: number;
+            /** Mesas Atendidas */
+            mesas_atendidas: number;
+            /** Llamadas */
+            llamadas: number;
+            /**
+             * Atencion Media S
+             * @description De `creada_en` a `atendida_en`.
+             */
+            atencion_media_s?: number | null;
+        };
+        /**
          * RolPersonal
          * @enum {string}
          */
@@ -1453,7 +3761,7 @@ export interface components {
              * Estado
              * @enum {string}
              */
-            estado: "activa" | "lista_para_enviar";
+            estado: "activa" | "lista_para_enviar" | "cuenta_cerrada" | "pagada";
             mesa: components["schemas"]["MesaDeSesion"];
             /**
              * Yo
@@ -1475,6 +3783,32 @@ export interface components {
              * @description En orden de llegada; el `host` primero.
              */
             miembros: components["schemas"]["MiembroDeSesion"][];
+            /**
+             * Entrada Cerrada
+             * @description AC-33.1: con la entrada cerrada, los miembros siguen pidiendo (T-3.10).
+             */
+            entrada_cerrada?: boolean;
+            /**
+             * Ultima Accion En
+             * @description Hora de la última acción de comensales o personal.
+             */
+            ultima_accion_en?: string | null;
+            mi_orden?: components["schemas"]["MiOrden"] | null;
+            /** @description Desglose con propina y quién la cerró o validó (US-29, US-37). */
+            mi_cuenta?: components["schemas"]["CuentaComensal"] | null;
+            /** Comandas */
+            comandas?: components["schemas"]["ComandaDeSesion"][];
+        };
+        /**
+         * SesionPersonal
+         * @description Quién está operando y qué puede hacer (las opciones sin permiso no se muestran).
+         */
+        SesionPersonal: {
+            /** @description `null` cuando opera el dueño desde su panel (sin PIN, AC-36.6). */
+            persona: components["schemas"]["PersonaOp"] | null;
+            restaurante: components["schemas"]["RestauranteOp"];
+            /** Permisos */
+            permisos: ("cerrar_cuenta_comensal" | "cerrar_cuentas_mesa" | "validar_pago" | "mesa_limpia" | "reabrir" | "cancelar_item" | "pasar_cuenta" | "quitar_comensal" | "resolver_solicitud" | "cambiar_entrada" | "liberar_con_cargos" | "regenerar_codigo" | "marcar_agotado" | "editar_orden" | "cambiar_permisos_meseros")[];
         };
         /** SesionResumen */
         SesionResumen: {
@@ -1487,9 +3821,98 @@ export interface components {
              * Estado
              * @enum {string}
              */
-            estado: "activa" | "lista_para_enviar";
+            estado: "activa" | "lista_para_enviar" | "cuenta_cerrada" | "pagada";
             mesa: components["schemas"]["MesaDeSesion"];
             restaurante: components["schemas"]["RestauranteDeSesion"];
+        };
+        /**
+         * SobreSesion
+         * @description La sesión que el personal está viendo; 409 `SESION_NO_VIGENTE` si ya no es la viva.
+         */
+        SobreSesion: {
+            /**
+             * Sesion Id
+             * Format: uuid
+             */
+            sesion_id: string;
+        };
+        /**
+         * SolicitudEstado
+         * @description `GET /p/solicitud`: la pantalla de espera de quien pidió entrar (T-3.10, F3-4). Con
+         *     `aprobada`, la misma respuesta emite la cookie de invitado.
+         */
+        SolicitudEstado: {
+            /**
+             * Estado
+             * @enum {string}
+             */
+            estado: "pendiente" | "aprobada" | "rechazada" | "vencida";
+            /**
+             * Motivo
+             * @enum {string}
+             */
+            motivo: "entrada_cerrada" | "rojo" | "fuera_de_horario";
+            /**
+             * Alias
+             * @example Luis
+             */
+            alias: string;
+            /**
+             * Mesa Numero
+             * @example 7
+             */
+            mesa_numero: number;
+            /**
+             * Restaurante Nombre
+             * @example La Ceiba
+             */
+            restaurante_nombre: string;
+            /**
+             * Vence En
+             * Format: date-time
+             */
+            vence_en: string;
+        };
+        /**
+         * SolicitudOp
+         * @description Una solicitud de entrada vista por el personal (AC-33.8).
+         */
+        SolicitudOp: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Mesa Id
+             * Format: uuid
+             */
+            mesa_id: string;
+            /**
+             * Mesa Numero
+             * @example 7
+             */
+            mesa_numero: number;
+            /**
+             * Alias
+             * @example Luis
+             */
+            alias: string;
+            /**
+             * Motivo
+             * @enum {string}
+             */
+            motivo: "entrada_cerrada" | "rojo" | "fuera_de_horario";
+            /**
+             * Creada En
+             * Format: date-time
+             */
+            creada_en: string;
+            /**
+             * Vence En
+             * Format: date-time
+             */
+            vence_en: string;
         };
         /**
          * TipoImagen
@@ -2059,6 +4482,3077 @@ export interface operations {
             };
             /** @description El archivo es demasiado grande */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__sesion_eventos_api_v1_p_sesion_eventos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Línea de avisos: `event:` = `evento` y `data:` = este JSON. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["MensajeLinea"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__orden_items_api_v1_p_orden_items_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemCrear"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MiOrden"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_delete__orden_items__item_id__api_v1_p_orden_items__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MiOrden"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_patch__orden_items__item_id__api_v1_p_orden_items__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemCambios"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MiOrden"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__orden_confirmar_api_v1_p_orden_confirmar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MiOrden"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__orden_deshacer_api_v1_p_orden_deshacer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MiOrden"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__llamar_mesero_api_v1_p_llamar_mesero_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LlamadaRespuesta"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__cuenta_api_v1_p_cuenta_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuentaComensal"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__cuenta_cerrar_api_v1_p_cuenta_cerrar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CerrarMiCuenta"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuentaComensal"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_put__cuenta_propina_api_v1_p_cuenta_propina_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropinaDeclarada"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuentaComensal"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__cuenta_ya_pague_api_v1_p_cuenta_ya_pague_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CuentaComensal"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__mesa_salir_api_v1_p_mesa_salir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La sesión de la mesa ya se cerró (`SESION_CERRADA`): vuelve a escanear el QR */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__solicitud_api_v1_p_solicitud_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SolicitudEstado"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__personal__slug__api_v1_op_personal__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalDelRestaurante"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__entrar_api_v1_op_entrar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntrarPersonal"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SesionPersonal"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__salir_api_v1_op_salir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__eventos_api_v1_op_eventos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Línea de avisos: `event:` = `evento` y `data:` = este JSON. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["MensajeLinea"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__mesas_api_v1_op_mesas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesasOp"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__mesas__mesa_id__api_v1_op_mesas__mesa_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__comandas_api_v1_op_comandas_get: {
+        parameters: {
+            query?: {
+                estado?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComandasOp"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__comandas__comanda_id__atender_api_v1_op_comandas__comanda_id__atender_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comanda_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComandaOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__comandas__comanda_id__servir_api_v1_op_comandas__comanda_id__servir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comanda_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComandaOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__llamadas__llamada_id__atender_api_v1_op_llamadas__llamada_id__atender_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                llamada_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LlamadaOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__platillos_api_v1_op_platillos_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatilloOp"][];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__platillos__platillo_id__disponible_api_v1_op_platillos__platillo_id__disponible_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platillo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisponibleCuerpo"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatilloOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__resumen_api_v1_op_resumen_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumenTurno"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__mesas__mesa_id__cuentas_cerrar_api_v1_op_mesas__mesa_id__cuentas_cerrar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__mesas__mesa_id__limpia_api_v1_op_mesas__mesa_id__limpia_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__mesas__mesa_id__reabrir_api_v1_op_mesas__mesa_id__reabrir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__mesas__mesa_id__liberar_api_v1_op_mesas__mesa_id__liberar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LiberarMesa"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__mesas__mesa_id__todo_bien_api_v1_op_mesas__mesa_id__todo_bien_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__mesas__mesa_id__entrada_api_v1_op_mesas__mesa_id__entrada_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntradaMesa"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__miembros__miembro_id__cuenta_cerrar_api_v1_op_miembros__miembro_id__cuenta_cerrar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__miembros__miembro_id__cuenta_reabrir_api_v1_op_miembros__miembro_id__cuenta_reabrir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__miembros__miembro_id__pago_validar_api_v1_op_miembros__miembro_id__pago_validar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__miembros__miembro_id__quitar_api_v1_op_miembros__miembro_id__quitar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__miembros__miembro_id__flotante_api_v1_op_miembros__miembro_id__flotante_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__miembros__miembro_id__pasar_cuenta_api_v1_op_miembros__miembro_id__pasar_cuenta_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasarCuenta"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__items__item_id__cancelar_api_v1_op_items__item_id__cancelar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__solicitudes__solicitud_id__aprobar_api_v1_op_solicitudes__solicitud_id__aprobar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                solicitud_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__solicitudes__solicitud_id__rechazar_api_v1_op_solicitudes__solicitud_id__rechazar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                solicitud_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3772,6 +9266,1592 @@ export interface operations {
             };
             /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__restaurantes__rid__mesas_vivo_api_v1_admin_restaurantes__rid__mesas_vivo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesasOp"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__restaurantes__rid__mesas_vivo__mesa_id__api_v1_admin_restaurantes__rid__mesas_vivo__mesa_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__restaurantes__rid__comandas_api_v1_admin_restaurantes__rid__comandas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComandasOp"];
+                };
+            };
+            /** @description Sin cambios desde el `ETag` de `If-None-Match`. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__linea_api_v1_admin_restaurantes__rid__linea_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_comandas__comanda_id__atender_api_v1_admin_restaurantes__rid__pedidos_comandas__comanda_id__atender_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                comanda_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComandaOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_comandas__comanda_id__servir_api_v1_admin_restaurantes__rid__pedidos_comandas__comanda_id__servir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                comanda_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComandaOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_llamadas__llamada_id__atender_api_v1_admin_restaurantes__rid__pedidos_llamadas__llamada_id__atender_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                llamada_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LlamadaOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__cuentas_cerrar_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__cuentas_cerrar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__limpia_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__limpia_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__reabrir_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__reabrir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__liberar_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__liberar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LiberarMesa"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__todo_bien_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__todo_bien_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_mesas__mesa_id__entrada_api_v1_admin_restaurantes__rid__pedidos_mesas__mesa_id__entrada_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                mesa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntradaMesa"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__cuenta_cerrar_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__cuenta_cerrar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__cuenta_reabrir_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__cuenta_reabrir_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__pago_validar_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__pago_validar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__quitar_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__quitar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__flotante_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__flotante_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_miembros__miembro_id__pasar_cuenta_api_v1_admin_restaurantes__rid__pedidos_miembros__miembro_id__pasar_cuenta_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                miembro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasarCuenta"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_items__item_id__cancelar_api_v1_admin_restaurantes__rid__pedidos_items__item_id__cancelar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SobreSesion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_solicitudes__solicitud_id__aprobar_api_v1_admin_restaurantes__rid__pedidos_solicitudes__solicitud_id__aprobar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                solicitud_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_post__restaurantes__rid__pedidos_solicitudes__solicitud_id__rechazar_api_v1_admin_restaurantes__rid__pedidos_solicitudes__solicitud_id__rechazar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rid: string;
+                solicitud_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MesaDetalleOp"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Choca con el estado actual */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+        };
+    };
+    contrato_get__eventos_api_v1_admin_eventos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Línea de avisos: `event:` = `evento` y `data:` = este JSON. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["MensajeLinea"];
+                };
+            };
+            /** @description Petición malformada (multipart roto, `Content-Length` inválido, subida cortada) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Falta la credencial o expiró */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description No existe o no es de tu restaurante (nunca 403, AC-15.3) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description La subida no terminó a tiempo (`SUBIDA_INCOMPLETA`) */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description El archivo es demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Datos inválidos (`PAYLOAD_INVALIDO`, con `detalles.errores[]`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRespuesta"];
+                };
+            };
+            /** @description Demasiadas peticiones; espera un momento (`DEMASIADAS_PETICIONES`) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

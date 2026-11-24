@@ -63,9 +63,16 @@ async def test_cada_miembro_ve_avatar_y_estado_de_todos(cliente: AsyncClient, me
         "listos": 0,
         "total_miembros": 2,
         "miembros": [
-            {**ana["miembro"], "estado": "armando"},
-            {**beto["miembro"], "estado": "armando"},
+            {**ana["miembro"], "estado": "armando", "items": None},
+            {**beto["miembro"], "estado": "armando", "items": None},
         ],
+        # Campos de la Fase 3 que publicó el contrato de T-3.0 (cambio compatible, 04_API_Spec
+        # §1.6): salen con su valor neutro hasta que T-3.2, T-3.8, T-3.10 y T-3.12 los llenen.
+        "entrada_cerrada": False,
+        "ultima_accion_en": None,
+        "mi_orden": None,
+        "mi_cuenta": None,
+        "comandas": [],
     }
     de_beto = await estado(cliente, beto["token"])
     assert de_beto.json()["yo"] == beto["miembro"]["id"]

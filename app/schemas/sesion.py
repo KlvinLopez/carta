@@ -4,25 +4,31 @@ Contrato de T-2.1, publicado antes de las rutas reales (contrato primero, 04 §2
 es anónimo: ningún campo pide ni devuelve datos personales (regla dura 10); el alias es un
 apodo que el propio comensal elige y puede quedarse en «Comensal N».
 
-Los campos que la Fase 3 añada (mi orden, ítems de los demás, comandas) entran como
-opcionales: es un cambio compatible (04_API_Spec §1.6).
+Los campos que la Fase 3 añada (mi orden, ítems de los demás, comandas, mi cuenta, el ciclo)
+entran como opcionales: es un cambio compatible (04_API_Spec §1.6). Los publicó T-3.0; los
+llenan T-3.2 (orden y comandas), T-3.8 (cuenta), T-3.10 (entrada) y T-3.12 (última acción).
 """
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from datetime import datetime
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, StringConstraints
 
+from app.schemas.ciclo import CuentaComensal
 from app.schemas.comun import SIN_CONTROL, Entrada, Esquema
+from app.schemas.orden import ComandaDeSesion, ItemDeMiembro, MiOrden
 
 # Una sesión que el comensal todavía puede usar. `cerrada` y `cancelada` nunca salen en un
-# 200: la ruta responde 410 `SESION_CERRADA` (INV-11, 03 §5).
-EstadoSesionViva = Literal["activa", "lista_para_enviar"]
+# 200: la ruta responde 410 `SESION_CERRADA` (INV-11, 03 §5). Con el ciclo de la mesa (Spec
+# 001), «cuenta cerrada» y «pagada» siguen vivas: los miembros ven su cuenta (AC-29.5).
+EstadoSesionViva = Literal["activa", "lista_para_enviar", "cuenta_cerrada", "pagada"]
 RolMiembro = Literal["host", "miembro"]
-# `listo` cuando el miembro confirmó su orden (Fase 3); hasta entonces todos `armando`.
-EstadoMiembro = Literal["armando", "listo"]
+# `listo` cuando el miembro confirmó su orden; desde la Spec 001, también el estado de su
+# cuenta. Un comensal retirado no aparece en la lista.
+EstadoMiembro = Literal["armando", "listo", "cuenta_cerrada", "pagada", "flotante"]
 
 MAX_ALIAS = 24  # `miembro_sesion.alias VARCHAR(24)`, AC-03.2
 # El código del QR mide 22 caracteres (`secrets.token_urlsafe(16)`); se acepta cualquier texto
@@ -94,6 +100,14 @@ class MiembroCambios(Entrada):
 
 class MiembroDeSesion(MiembroRespuesta):
     estado: EstadoMiembro
+    items: list[ItemDeMiembro] | None = Field(
+        default=None,
+        description="Su orden en modo consulta, platillo por platillo (F3-1, AC-09.1).",
+    )
+
+
+def _sin_default(esquema: dict[str, Any]) -> None:
+    esquema.pop("default", None)
 
 
 class SesionEstado(BaseModel):
@@ -107,3 +121,19 @@ class SesionEstado(BaseModel):
     listos: int = Field(ge=0, examples=[1])
     total_miembros: int = Field(ge=1, le=12, examples=[3])
     miembros: list[MiembroDeSesion] = Field(description="En orden de llegada; el `host` primero.")
+    # Fase 3 (contrato de T-3.0; opcionales hasta que la tarea dueña los llene).
+    entrada_cerrada: bool = Field(
+        default=False,
+        description="AC-33.1: con la entrada cerrada, los miembros siguen pidiendo (T-3.10).",
+        # Opcional en el contrato (sin `default` publicado): los tipos generados lo dejan
+        # opcional hasta que T-3.10 lo llene, y los datos simulados de la Fase 2 siguen valiendo.
+        json_schema_extra=_sin_default,
+    )
+    ultima_accion_en: datetime | None = Field(
+        default=None, description="Hora de la última acción de comensales o personal."
+    )
+    mi_orden: MiOrden | None = None
+    mi_cuenta: CuentaComensal | None = Field(
+        default=None, description="Desglose con propina y quién la cerró o validó (US-29, US-37)."
+    )
+    comandas: list[ComandaDeSesion] = Field(default_factory=list)

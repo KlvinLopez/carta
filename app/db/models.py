@@ -87,8 +87,76 @@ def _enum_pg(tipo: type[enum.StrEnum], nombre: str) -> Enum:
 
 
 # Estados que siguen siendo VARCHAR con CHECK (como en el esquema de Fase 1).
-ESTADOS_SESION = ("activa", "lista_para_enviar", "cerrada", "cancelada")
+# 0004 (Spec 001): `cuenta_cerrada` y `pagada` son vivos (INV-1); «limpia» es `cerrada`.
+ESTADOS_SESION = (
+    "activa",
+    "lista_para_enviar",
+    "cerrada",
+    "cancelada",
+    "cuenta_cerrada",
+    "pagada",
+)
+ESTADOS_SESION_VIVA = ("activa", "lista_para_enviar", "cuenta_cerrada", "pagada")
+# `activo` es «pidiendo»; `desconectado` es de la Fase 1 y se conserva (migración de expansión).
+ESTADOS_MIEMBRO = (
+    "activo",
+    "desconectado",
+    "cuenta_cerrada",
+    "pagada",
+    "flotante",
+    "retirado",
+)
 ESTADOS_ORDEN = ("armando", "confirmada", "enviada", "cerrada")
+ESTADOS_ITEM = ("vigente", "cancelado_personal")
+ORIGENES_ITEM = ("comensal", "personal")
+MOTIVOS_SOLICITUD = ("entrada_cerrada", "rojo", "fuera_de_horario")
+ESTADOS_SOLICITUD = ("pendiente", "aprobada", "rechazada", "vencida")
+AUTORES_MARCA = ("comensal", "personal", "operador", "sistema")
+PASOS_CICLO = (
+    "primer_escaneo",
+    "comanda",
+    "cuenta_cerrada_comensal",
+    "cuenta_reabierta_comensal",
+    "cuenta_cerrada_mesa",
+    "mesa_reabierta",
+    "pago_avisado",
+    "pago_validado",
+    "mesa_pagada",
+    "mesa_limpia",
+    "liberada_sin_cargos",
+    "liberada_con_cargos",
+    "comensal_retirado",
+    "comensal_flotante",
+    "cuenta_pasada",
+    "item_cancelado",
+    "entrada_cerrada",
+    "entrada_abierta",
+    "todo_bien",
+    "solicitud_aprobada",
+    "solicitud_rechazada",
+)
+TIPOS_MOVIMIENTO = ("pasar_cuenta", "flotante")
+FUERA_DE_HORARIO = ("pedir_aprobacion", "rechazar")
+# Spec 001 §5, fija en la v1 (AC-36.7): permiso → (mesero, capitán). El dueño puede todo y no
+# tiene filas (AC-36.6). La migración 0004 y `tr_restaurante_siembra` siembran estos valores.
+PERMISOS_POR_ROL: dict[str, tuple[bool, bool]] = {
+    "cerrar_cuenta_comensal": (True, True),
+    "cerrar_cuentas_mesa": (True, True),
+    "validar_pago": (True, True),
+    "mesa_limpia": (True, True),
+    "reabrir": (True, True),
+    "cancelar_item": (True, True),
+    "pasar_cuenta": (True, True),
+    "quitar_comensal": (True, True),
+    "resolver_solicitud": (True, True),
+    "cambiar_entrada": (False, True),
+    "liberar_con_cargos": (False, False),
+    "regenerar_codigo": (False, False),
+    "marcar_agotado": (True, True),
+    # v1.1 (costuras de la Spec 001 §7): sembrados, sin uso en la v1.
+    "editar_orden": (True, True),
+    "cambiar_permisos_meseros": (False, False),
+}
 TIPOS_EVENTO = (
     "scan",
     "menu_view",
@@ -188,8 +256,19 @@ class Restaurante(Base):
     plan: Mapped[str] = mapped_column(
         String(20), nullable=False, default="gratis", server_default="gratis"
     )
+    # Horario (US-38, 0004): `{}` = sin horario (se admite siempre, AC-38.4); si no, la forma
+    # de `app.schemas.horario.Horario` (tramos por día y versión).
     horarios: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb")
+    )
+    zona_horaria: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+        default="America/Mexico_City",
+        server_default="America/Mexico_City",
+    )
+    fuera_de_horario: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="pedir_aprobacion", server_default="pedir_aprobacion"
     )
     activo: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default=text("true")
@@ -210,6 +289,12 @@ class Restaurante(Base):
         ),
         CheckConstraint("plan IN ('gratis', 'pro', 'enterprise')", name="ck_restaurante_plan"),
         CheckConstraint("slug <> ''", name="ck_restaurante_slug"),
+        CheckConstraint("length(btrim(zona_horaria)) > 0", name="ck_restaurante_zona_horaria"),
+        CheckConstraint(
+            f"fuera_de_horario IN ({_lista_sql(FUERA_DE_HORARIO)})",
+            name="ck_restaurante_fuera_de_horario",
+        ),
+        CheckConstraint("jsonb_typeof(horarios) = 'object'", name="ck_restaurante_horarios_objeto"),
         Index("idx_restaurante_activo", "activo", postgresql_where=text("activo")),
     )
 
@@ -441,6 +526,18 @@ class SesionGrupal(Base):
     fin: Mapped[datetime | None] = _marca_tiempo(nullable=True)
     ultima_actividad_en: Mapped[datetime] = _marca_tiempo()
     cerrada_por_personal_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    # Ciclo de la mesa (Spec 001, 0004). La historia de cada paso vive en `marca_ciclo`.
+    entrada_cerrada: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
+    liberada_sin_pago: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
+    cuenta_cerrada_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    pagada_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    cerrada_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "usuario.id", ondelete="SET NULL", nullable=True
+    )
 
     mesa: Mapped[Mesa] = relationship(
         back_populates="sesiones", primaryjoin="foreign(SesionGrupal.mesa_id) == Mesa.id"
@@ -460,13 +557,22 @@ class SesionGrupal(Base):
         ),
         Index("idx_sesion_mesa", "mesa_id"),
         Index("idx_sesion_restaurante", "restaurante_id"),
+        CheckConstraint(
+            "NOT liberada_sin_pago OR estado = 'cerrada'", name="ck_sesion_grupal_liberada"
+        ),
+        CheckConstraint(
+            "(estado <> 'cuenta_cerrada' OR cuenta_cerrada_en IS NOT NULL) "
+            "AND (estado <> 'pagada' OR pagada_en IS NOT NULL)",
+            name="ck_sesion_grupal_marcas_ciclo",
+        ),
         Index("idx_sesion_cerrada_por", "cerrada_por_personal_id"),
-        # INV-1: una sesión viva por mesa.
+        Index("idx_sesion_cerrada_por_usuario", "cerrada_por_usuario_id"),
+        # INV-1: una sesión viva por mesa (con el ciclo, también «cuenta cerrada» y «pagada»).
         Index(
             "uq_sesion_viva_por_mesa",
             "mesa_id",
             unique=True,
-            postgresql_where=text("estado IN ('activa', 'lista_para_enviar')"),
+            postgresql_where=text(f"estado IN ({_lista_sql(ESTADOS_SESION_VIVA)})"),
         ),
     )
 
@@ -490,6 +596,25 @@ class MiembroSesion(Base):
     alias: Mapped[str | None] = mapped_column(String(24))
     color_avatar: Mapped[str | None] = mapped_column(String(7))
     unido_en: Mapped[datetime] = _marca_tiempo()
+    # Cuenta del comensal (Spec 001 US-29, US-37; 0004). La propina es un dato declarado en
+    # centavos, nunca dinero recibido (AC-37.9); se anota a quien valida el pago (AC-37.7).
+    propina_centavos: Mapped[int | None] = mapped_column(Integer)
+    cuenta_cerrada_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    cuenta_cerrada_por_personal_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "personal_restaurante.id", ondelete="SET NULL", nullable=True
+    )
+    cuenta_cerrada_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "usuario.id", ondelete="SET NULL", nullable=True
+    )
+    aviso_pagado_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    pago_validado_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    pago_validado_por_personal_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "personal_restaurante.id", ondelete="SET NULL", nullable=True
+    )
+    pago_validado_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "usuario.id", ondelete="SET NULL", nullable=True
+    )
+    retirado_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
 
     sesion: Mapped[SesionGrupal] = relationship(back_populates="miembros")
     ordenes: Mapped[list[OrdenPersonal]] = relationship(
@@ -500,13 +625,38 @@ class MiembroSesion(Base):
     __table_args__ = (
         _unico_con("sesion_id"),
         CheckConstraint("rol IN ('host', 'miembro')", name="ck_miembro_sesion_rol"),
-        CheckConstraint("estado IN ('activo', 'desconectado')", name="ck_miembro_sesion_estado"),
+        CheckConstraint(
+            f"estado IN ({_lista_sql(ESTADOS_MIEMBRO)})", name="ck_miembro_sesion_estado"
+        ),
+        CheckConstraint("propina_centavos >= 0", name="ck_miembro_sesion_propina"),
+        CheckConstraint(
+            "estado NOT IN ('cuenta_cerrada', 'pagada') OR cuenta_cerrada_en IS NOT NULL",
+            name="ck_miembro_sesion_cuenta_cerrada",
+        ),
+        CheckConstraint(
+            "estado <> 'pagada' OR pago_validado_en IS NOT NULL", name="ck_miembro_sesion_pagada"
+        ),
+        CheckConstraint(
+            "estado <> 'retirado' OR retirado_en IS NOT NULL", name="ck_miembro_sesion_retirado"
+        ),
+        CheckConstraint(
+            "num_nonnulls(cuenta_cerrada_por_personal_id, cuenta_cerrada_por_usuario_id) <= 1",
+            name="ck_miembro_sesion_cuenta_cerrada_un_autor",
+        ),
+        CheckConstraint(
+            "num_nonnulls(pago_validado_por_personal_id, pago_validado_por_usuario_id) <= 1",
+            name="ck_miembro_sesion_pago_validado_un_autor",
+        ),
         CheckConstraint(
             "color_avatar IS NULL OR color_avatar ~ '^#[0-9A-Fa-f]{6}$'",
             name="ck_miembro_sesion_color",
         ),
         Index("idx_miembro_sesion", "sesion_id"),
         Index("idx_miembro_usuario", "usuario_id"),
+        Index("idx_miembro_cuenta_cerrada_por_personal_id", "cuenta_cerrada_por_personal_id"),
+        Index("idx_miembro_cuenta_cerrada_por_usuario_id", "cuenta_cerrada_por_usuario_id"),
+        Index("idx_miembro_pago_validado_por_personal_id", "pago_validado_por_personal_id"),
+        Index("idx_miembro_pago_validado_por_usuario_id", "pago_validado_por_usuario_id"),
     )
 
 
@@ -572,6 +722,24 @@ class ItemOrden(Base):
     notas: Mapped[str | None] = mapped_column(Text)
     precio_unitario: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     subtotal: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    # Costuras de la Spec 001 §7 (0004): quién lo pidió, de dónde vino y «cancelado por el
+    # personal» (INV-3 ajustada: es el único cambio que admite un ítem confirmado).
+    pedido_por_miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "miembro_sesion.id", ondelete="SET NULL", nullable=True
+    )
+    origen: Mapped[str] = mapped_column(
+        String(12), nullable=False, default="comensal", server_default="comensal"
+    )
+    estado: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="vigente", server_default="vigente"
+    )
+    cancelado_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    cancelado_por_personal_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "personal_restaurante.id", ondelete="SET NULL", nullable=True
+    )
+    cancelado_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "usuario.id", ondelete="SET NULL", nullable=True
+    )
 
     orden: Mapped[OrdenPersonal] = relationship(back_populates="items")
     platillo: Mapped[Platillo] = relationship()
@@ -583,8 +751,19 @@ class ItemOrden(Base):
         ),  # AC-10.1
         CheckConstraint("precio_unitario >= 0", name="ck_item_orden_precio"),
         CheckConstraint("subtotal >= 0", name="ck_item_orden_subtotal"),
+        CheckConstraint(f"origen IN ({_lista_sql(ORIGENES_ITEM)})", name="ck_item_orden_origen"),
+        CheckConstraint(
+            "(estado = 'vigente' AND cancelado_en IS NULL AND cancelado_por_personal_id IS NULL "
+            "AND cancelado_por_usuario_id IS NULL) OR (estado = 'cancelado_personal' "
+            "AND cancelado_en IS NOT NULL "
+            "AND num_nonnulls(cancelado_por_personal_id, cancelado_por_usuario_id) <= 1)",
+            name="ck_item_orden_cancelado",
+        ),
         Index("idx_item_orden", "orden_id"),
         Index("idx_item_platillo", "platillo_id"),
+        Index("idx_item_pedido_por", "pedido_por_miembro_id"),
+        Index("idx_item_cancelado_por_personal", "cancelado_por_personal_id"),
+        Index("idx_item_cancelado_por_usuario", "cancelado_por_usuario_id"),
     )
 
 
@@ -827,4 +1006,258 @@ class EventoAnalitica(Base):
         Index("idx_evento_mesa", "mesa_id"),
         Index("idx_evento_miembro", "miembro_id"),
         Index("idx_evento_platillo", "platillo_id"),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Ciclo de la mesa (Spec 001, ADR-017; migración 0004, 03 §2.4)
+# ---------------------------------------------------------------------------
+
+
+class AjusteRestaurante(Base):
+    """Topes del ciclo con los valores del piloto (Spec 001 §3). Los cambia Calvin, no el
+    operador; una fila por restaurante, sembrada por `tr_restaurante_siembra`."""
+
+    __tablename__ = "ajuste_restaurante"
+
+    restaurante_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("restaurante.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    max_comensales: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=12, server_default="12"
+    )
+    estatus_amarillo_min: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=20, server_default="20"
+    )
+    estatus_rojo_min: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=40, server_default="40"
+    )
+    recordatorio_min: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=30, server_default="30"
+    )
+    rojo_aprobacion_min: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=120, server_default="120"
+    )
+    solicitudes_por_mesa: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=5, server_default="5"
+    )
+    solicitudes_por_restaurante: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=20, server_default="20"
+    )
+    vigencia_solicitud_min: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=10, server_default="10"
+    )
+    actualizado_en: Mapped[datetime] = _marca_tiempo(al_actualizar=True)
+
+    __table_args__ = (
+        CheckConstraint("max_comensales BETWEEN 1 AND 12", name="ck_ajuste_max_comensales"),
+        CheckConstraint(
+            "estatus_amarillo_min > 0 AND estatus_rojo_min > estatus_amarillo_min",
+            name="ck_ajuste_estatus",
+        ),
+        CheckConstraint(
+            "recordatorio_min > 0 AND rojo_aprobacion_min > 0 AND vigencia_solicitud_min > 0",
+            name="ck_ajuste_minutos",
+        ),
+        CheckConstraint(
+            "solicitudes_por_mesa > 0 AND solicitudes_por_restaurante >= solicitudes_por_mesa",
+            name="ck_ajuste_solicitudes",
+        ),
+    )
+
+
+class PermisoRol(Base):
+    """Tabla de permisos por restaurante y rol (Spec 001 §5). En la v1 no se edita (AC-36.7);
+    la lee un solo punto del servidor, `puede(persona, permiso)` (T-3.13)."""
+
+    __tablename__ = "permiso_rol"
+
+    restaurante_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("restaurante.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    rol: Mapped[RolPersonal] = mapped_column(
+        _enum_pg(RolPersonal, "rol_personal"), primary_key=True
+    )
+    permiso: Mapped[str] = mapped_column(String(40), primary_key=True)
+    permitido: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+    __table_args__ = (
+        CheckConstraint(
+            f"permiso IN ({_lista_sql(tuple(PERMISOS_POR_ROL))})", name="ck_permiso_rol_permiso"
+        ),
+    )
+
+
+class SolicitudEntrada(Base):
+    """«Luis quiere entrar a la mesa 7» (US-33, US-38): no ocupa lugar; vence a los 10 min."""
+
+    __tablename__ = "solicitud_entrada"
+
+    id: Mapped[uuid.UUID] = _id_uuid()
+    restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
+    mesa_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    sesion_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    alias: Mapped[str] = mapped_column(String(24), nullable=False)
+    motivo: Mapped[str] = mapped_column(String(20), nullable=False)
+    estado: Mapped[str] = mapped_column(
+        String(12), nullable=False, default="pendiente", server_default="pendiente"
+    )
+    creada_en: Mapped[datetime] = _marca_tiempo()
+    vence_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    resuelta_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    resuelta_por_personal_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    resuelta_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "usuario.id", ondelete="SET NULL", nullable=True
+    )
+    miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "miembro_sesion.id", ondelete="SET NULL", nullable=True
+    )
+
+    __table_args__ = (
+        _fk_compuesta("mesa_id", "mesa", ondelete="CASCADE"),
+        _fk_compuesta("sesion_id", "sesion_grupal", ondelete="SET NULL"),
+        _fk_compuesta("resuelta_por_personal_id", "personal_restaurante", ondelete="SET NULL"),
+        CheckConstraint("length(btrim(alias)) > 0", name="ck_solicitud_alias"),
+        CheckConstraint(f"motivo IN ({_lista_sql(MOTIVOS_SOLICITUD)})", name="ck_solicitud_motivo"),
+        CheckConstraint(f"estado IN ({_lista_sql(ESTADOS_SOLICITUD)})", name="ck_solicitud_estado"),
+        CheckConstraint(
+            "(estado = 'pendiente') = (resuelta_en IS NULL) "
+            "AND num_nonnulls(resuelta_por_personal_id, resuelta_por_usuario_id) <= 1",
+            name="ck_solicitud_resuelta",
+        ),
+        CheckConstraint("vence_en > creada_en", name="ck_solicitud_vence"),
+        Index("idx_solicitud_restaurante", "restaurante_id", "creada_en"),
+        Index("idx_solicitud_mesa", "mesa_id", "creada_en"),
+        Index("idx_solicitud_sesion", "sesion_id"),
+        Index("idx_solicitud_resuelta_por_personal", "resuelta_por_personal_id"),
+        Index("idx_solicitud_resuelta_por_usuario", "resuelta_por_usuario_id"),
+        Index("idx_solicitud_miembro", "miembro_id"),
+        Index(
+            "idx_solicitud_pendiente",
+            "restaurante_id",
+            "mesa_id",
+            postgresql_where=text("estado = 'pendiente'"),
+        ),
+    )
+
+
+class MarcaCiclo(Base):
+    """Hora y autor de cada paso del ciclo (US-35), sin sobrescribir (`tr_marca_ciclo_inmutable`)
+    y sin datos del comensal (AC-35.5): ni alias, ni IP, ni cookie. `miembro_id` es el id opaco
+    de la cuenta, para «cuenta cerrada de cada comensal»."""
+
+    __tablename__ = "marca_ciclo"
+
+    id: Mapped[uuid.UUID] = _id_uuid()
+    restaurante_id: Mapped[uuid.UUID] = _fk_uuid("restaurante.id", ondelete="CASCADE")
+    sesion_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    miembro_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    comanda_id: Mapped[uuid.UUID | None] = _fk_uuid("comanda.id", ondelete="CASCADE", nullable=True)
+    paso: Mapped[str] = mapped_column(String(30), nullable=False)
+    autor: Mapped[str] = mapped_column(String(10), nullable=False)
+    autor_personal_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    autor_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "usuario.id", ondelete="SET NULL", nullable=True
+    )
+    ocurrido_en: Mapped[datetime] = _marca_tiempo()
+
+    __table_args__ = (
+        _fk_compuesta("sesion_id", "sesion_grupal", ondelete="CASCADE"),
+        _fk_compuesta("miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
+        _fk_compuesta("autor_personal_id", "personal_restaurante", ondelete="SET NULL"),
+        CheckConstraint(f"paso IN ({_lista_sql(PASOS_CICLO)})", name="ck_marca_ciclo_paso"),
+        CheckConstraint(
+            "(autor IN ('comensal', 'sistema') AND autor_personal_id IS NULL "
+            "AND autor_usuario_id IS NULL) "
+            "OR (autor = 'personal' AND autor_usuario_id IS NULL) "
+            "OR (autor = 'operador' AND autor_personal_id IS NULL)",
+            name="ck_marca_ciclo_autor",
+        ),
+        Index("idx_marca_sesion", "sesion_id", "ocurrido_en"),
+        Index("idx_marca_restaurante", "restaurante_id", "ocurrido_en"),
+        Index("idx_marca_miembro", "miembro_id"),
+        Index("idx_marca_comanda", "comanda_id"),
+        Index("idx_marca_autor_personal", "autor_personal_id"),
+        Index("idx_marca_autor_usuario", "autor_usuario_id"),
+    )
+
+
+class RepartoCargo(Base):
+    """Quién responde por un cargo y con qué parte (Spec 001 §7). En la v1, una fila al 100 %
+    (`parte_pb` = 10000 puntos base); la cuenta de un comensal se calcula siempre sobre esto."""
+
+    __tablename__ = "reparto_cargo"
+
+    id: Mapped[uuid.UUID] = _id_uuid()
+    item_id: Mapped[uuid.UUID] = _fk_uuid("item_orden.id", ondelete="CASCADE")
+    sesion_id: Mapped[uuid.UUID] = _fk_uuid("sesion_grupal.id", ondelete="CASCADE")
+    miembro_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    parte_pb: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=10000, server_default="10000"
+    )
+    posicion: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=1, server_default="1"
+    )
+    creado_en: Mapped[datetime] = _marca_tiempo()
+
+    __table_args__ = (
+        _fk_compuesta("miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
+        UniqueConstraint("item_id", "miembro_id"),
+        CheckConstraint("parte_pb BETWEEN 1 AND 10000", name="ck_reparto_cargo_parte"),
+        CheckConstraint("posicion >= 1", name="ck_reparto_cargo_posicion"),
+        Index("idx_reparto_sesion", "sesion_id"),
+        Index("idx_reparto_miembro", "miembro_id"),
+    )
+
+
+class MovimientoCargo(Base):
+    """Registro de movimientos del reparto: quién propuso, quién aceptó y cuándo (Spec 001 §7).
+    En la v1 lo escriben «pasar la cuenta» y «perdió su lugar» del personal (AC-31.7, AC-31.8)."""
+
+    __tablename__ = "movimiento_cargo"
+
+    id: Mapped[uuid.UUID] = _id_uuid()
+    sesion_id: Mapped[uuid.UUID] = _fk_uuid("sesion_grupal.id", ondelete="CASCADE")
+    item_id: Mapped[uuid.UUID | None] = _fk_uuid("item_orden.id", ondelete="CASCADE", nullable=True)
+    tipo: Mapped[str] = mapped_column(String(20), nullable=False)
+    de_miembro_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    a_miembro_id: Mapped[uuid.UUID | None] = _uuid_nulo()
+    propuesto_por_personal_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "personal_restaurante.id", ondelete="SET NULL", nullable=True
+    )
+    propuesto_por_usuario_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "usuario.id", ondelete="SET NULL", nullable=True
+    )
+    propuesto_por_miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "miembro_sesion.id", ondelete="SET NULL", nullable=True
+    )
+    aceptado_por_miembro_id: Mapped[uuid.UUID | None] = _fk_uuid(
+        "miembro_sesion.id", ondelete="SET NULL", nullable=True
+    )
+    aceptado_en: Mapped[datetime | None] = _marca_tiempo(nullable=True)
+    creado_en: Mapped[datetime] = _marca_tiempo()
+
+    __table_args__ = (
+        _fk_compuesta("de_miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
+        _fk_compuesta("a_miembro_id", "miembro_sesion", ondelete="CASCADE", clave="sesion_id"),
+        CheckConstraint(
+            f"tipo IN ({_lista_sql(TIPOS_MOVIMIENTO)})", name="ck_movimiento_cargo_tipo"
+        ),
+        CheckConstraint(
+            "num_nonnulls(propuesto_por_personal_id, propuesto_por_usuario_id, "
+            "propuesto_por_miembro_id) <= 1",
+            name="ck_movimiento_cargo_proponente",
+        ),
+        Index("idx_movimiento_sesion_id", "sesion_id"),
+        Index("idx_movimiento_item_id", "item_id"),
+        Index("idx_movimiento_de_miembro_id", "de_miembro_id"),
+        Index("idx_movimiento_a_miembro_id", "a_miembro_id"),
+        Index("idx_movimiento_propuesto_por_personal_id", "propuesto_por_personal_id"),
+        Index("idx_movimiento_propuesto_por_usuario_id", "propuesto_por_usuario_id"),
+        Index("idx_movimiento_propuesto_por_miembro_id", "propuesto_por_miembro_id"),
+        Index("idx_movimiento_aceptado_por_miembro_id", "aceptado_por_miembro_id"),
     )

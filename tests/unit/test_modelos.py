@@ -1,5 +1,6 @@
-"""T-0.2 y T-1.1: los modelos SQLAlchemy mapean contra el esquema real que crean `0001_base_v1`
-y `0002_consistencia_inquilino`.
+"""T-0.2, T-1.1 y T-3.0: los modelos SQLAlchemy mapean contra el esquema real que crean
+`0001_base_v1`, `0002_consistencia_inquilino`, `0003_personal_sesiones_desde` y
+`0004_ciclo_de_la_mesa`.
 
 Las pruebas usan la base de pruebas migrada por la CLI de Alembic (fixture `esquema_migrado`
 de `tests/conftest.py`, exactamente como en el despliegue) y comparan `Base.metadata` con lo
@@ -50,6 +51,13 @@ TABLAS_V1 = {
     "importacion_menu",
     "clave_idempotencia",
     "evento_analitica",
+    # 0004 (T-3.0): ciclo de la mesa (Spec 001, 03 §2.4)
+    "ajuste_restaurante",
+    "permiso_rol",
+    "solicitud_entrada",
+    "marca_ciclo",
+    "reparto_cargo",
+    "movimiento_cargo",
 }
 TABLAS_RETIRADAS = {"escaneo", "vista_platillo", "ad_restaurante", "modelo_3d", "trabajo_modelo_3d"}
 
@@ -70,8 +78,10 @@ PREDICADOS = {
     "uq_personal_activo_por_nombre": "activo",
     "uq_sesion_viva_por_mesa": (
         "((estado)::text = ANY ((ARRAY['activa'::character varying, "
-        "'lista_para_enviar'::character varying])::text[]))"
+        "'lista_para_enviar'::character varying, 'cuenta_cerrada'::character varying, "
+        "'pagada'::character varying])::text[]))"
     ),
+    "idx_solicitud_pendiente": "((estado)::text = 'pendiente'::text)",
 }
 INDICES_UNICOS_PARCIALES = {
     "uq_sesion_viva_por_mesa",  # INV-1
@@ -121,6 +131,47 @@ TRIGGERS = {
         "CREATE TRIGGER tr_miembro_sesion_inmutable BEFORE UPDATE OF sesion_id "
         "ON public.miembro_sesion FOR EACH ROW EXECUTE FUNCTION fn_sesion_id_inmutable()"
     ),
+    "tr_restaurante_siembra": (  # AC-36.4: ajustes y permisos al crear el restaurante
+        "CREATE TRIGGER tr_restaurante_siembra AFTER INSERT ON public.restaurante "
+        "FOR EACH ROW EXECUTE FUNCTION fn_restaurante_siembra()"
+    ),
+    "tr_marca_ciclo_inmutable": (  # AC-35.2: las marcas no se sobrescriben
+        "CREATE TRIGGER tr_marca_ciclo_inmutable BEFORE UPDATE ON public.marca_ciclo "
+        "FOR EACH ROW EXECUTE FUNCTION fn_marca_ciclo_inmutable()"
+    ),
+    # ADR-018: el disparador de avisos sobre la lista cerrada de 03 §2.4 (las pruebas de
+    # comportamiento están en `tests/integration/test_disparador_avisos.py`).
+    **{
+        f"tr_aviso_{tabla}": (
+            f"CREATE TRIGGER tr_aviso_{tabla} AFTER {eventos} ON public.{tabla} "
+            "FOR EACH ROW EXECUTE FUNCTION fn_avisar_cambio()"
+        )
+        for tabla, eventos in {
+            **dict.fromkeys(
+                (
+                    "ajuste_restaurante",
+                    "comanda",
+                    "comanda_orden",
+                    "item_orden",
+                    "llamada_mesero",
+                    "marca_ciclo",
+                    "mesa",
+                    "miembro_sesion",
+                    "movimiento_cargo",
+                    "orden_personal",
+                    "permiso_rol",
+                    "reparto_cargo",
+                    "restaurante",
+                    "sesion_grupal",
+                    "solicitud_entrada",
+                ),
+                "INSERT OR DELETE OR UPDATE",
+            ),
+            "personal_restaurante": (
+                "INSERT OR DELETE OR UPDATE OF activo, rol, sesiones_desde, nombre"
+            ),
+        }.items()
+    },
 }
 FUNCIONES_DE_TRIGGER = {
     "fn_item_orden_inmutable",
@@ -129,6 +180,9 @@ FUNCIONES_DE_TRIGGER = {
     "fn_sesion_id_inmutable",
     "fn_item_orden_mismo_restaurante",
     "fn_restaurante_id_inmutable",
+    "fn_restaurante_siembra",
+    "fn_marca_ciclo_inmutable",
+    "fn_avisar_cambio",
 }
 
 # INV-10 (0002): cada FK compuesta `(columna, clave) → padre(id, clave)` y su `ON DELETE`.
@@ -151,10 +205,29 @@ _FK_INQUILINO = [
     ("evento_analitica", "sesion_id", "sesion_grupal", R, "SET NULL"),
     ("evento_analitica", "platillo_id", "platillo", R, "SET NULL"),
 ]
+# 0004 (T-3.0): las tablas nuevas nacen con sus FK compuestas.
+_FK_INQUILINO_0004 = [
+    ("solicitud_entrada", "mesa_id", "mesa", R, "CASCADE"),
+    ("solicitud_entrada", "sesion_id", "sesion_grupal", R, "SET NULL"),
+    ("solicitud_entrada", "resuelta_por_personal_id", "personal_restaurante", R, "SET NULL"),
+    ("marca_ciclo", "sesion_id", "sesion_grupal", R, "CASCADE"),
+    ("marca_ciclo", "miembro_id", "miembro_sesion", S, "CASCADE"),
+    ("marca_ciclo", "autor_personal_id", "personal_restaurante", R, "SET NULL"),
+    ("reparto_cargo", "miembro_id", "miembro_sesion", S, "CASCADE"),
+    ("movimiento_cargo", "de_miembro_id", "miembro_sesion", S, "CASCADE"),
+    ("movimiento_cargo", "a_miembro_id", "miembro_sesion", S, "CASCADE"),
+]
 # nombre → (padre, columna, clave, ON DELETE simple)
-FK_INQUILINO = {
+FK_INQUILINO_0002 = {
     f"fk_{tabla}_{columna}": (padre, columna, clave, accion)
     for tabla, columna, padre, clave, accion in _FK_INQUILINO
+}
+FK_INQUILINO = {
+    **FK_INQUILINO_0002,
+    **{
+        f"fk_{tabla}_{columna}": (padre, columna, clave, accion)
+        for tabla, columna, padre, clave, accion in _FK_INQUILINO_0004
+    },
 }
 PADRES_INQUILINO = (
     ("sesion_grupal", R),
@@ -169,6 +242,12 @@ TRIGGERS_0002 = {
     "tr_platillo_restaurante_inmutable",
     "tr_sesion_restaurante_inmutable",
     "tr_miembro_sesion_inmutable",
+}
+TRIGGERS_0004 = {
+    nombre
+    for nombre in TRIGGERS
+    if nombre.startswith("tr_aviso_")
+    or nombre in {"tr_restaurante_siembra", "tr_marca_ciclo_inmutable"}
 }
 
 
@@ -185,6 +264,12 @@ FRAGMENTOS_CHECK = {
     "ck_orden_bloqueada_coherente": ["bloqueada =", "'armando'"],
     "ck_personal_pin_hash": ["$argon2id$"],
     "ck_importacion_confirmada": ["confirmado_en IS NOT NULL", "resultado IS NOT NULL"],
+    # 0004 (T-3.0)
+    "ck_sesion_grupal_estado": ["'cuenta_cerrada'", "'pagada'", "'cerrada'"],
+    "ck_miembro_sesion_estado": ["'flotante'", "'retirado'", "'desconectado'"],
+    "ck_miembro_sesion_propina": ["propina_centavos >= 0"],
+    "ck_item_orden_cancelado": ["'cancelado_personal'", "cancelado_en IS NOT NULL"],
+    "ck_reparto_cargo_parte": ["10000"],
 }
 
 TIPOS_ENUMERADOS = {
@@ -320,7 +405,7 @@ async def test_0002_baja_a_0001_y_vuelve_a_subir(url_bd: str) -> None:
             alembic("downgrade", "0001_base_v1", url=url)
             async with motor.connect() as conexion:
                 fks = await _definiciones_fk(conexion)
-                for nombre, (padre, columna, _clave, accion) in FK_INQUILINO.items():
+                for nombre, (padre, columna, _clave, accion) in FK_INQUILINO_0002.items():
                     assert fks[nombre] == (
                         f"FOREIGN KEY ({columna}) REFERENCES {padre}(id) ON DELETE {accion}"
                     ), nombre
@@ -328,7 +413,7 @@ async def test_0002_baja_a_0001_y_vuelve_a_subir(url_bd: str) -> None:
                 assert not {f"uq_{p}_id_{c}" for p, c in PADRES_INQUILINO} & unicas
                 triggers = await _triggers(conexion)
                 assert not TRIGGERS_0002 & triggers
-                assert set(TRIGGERS) - TRIGGERS_0002 == triggers  # los de 0001 siguen
+                assert set(TRIGGERS) - TRIGGERS_0002 - TRIGGERS_0004 == triggers  # los de 0001
                 funciones = await _funciones(conexion)
                 assert "fn_item_orden_mismo_restaurante" not in funciones
                 assert "fn_restaurante_id_inmutable" not in funciones
@@ -575,6 +660,7 @@ class Escenario:
     miembro: UUID
     orden: UUID
     otra_sesion: UUID
+    item: UUID
 
 
 async def _uno(conexion: AsyncConnection, sql: str, **parametros: object) -> UUID:
@@ -639,8 +725,15 @@ async def escenario(conexion: AsyncConnection) -> AsyncIterator[Escenario]:
         m=m,
         r=r,
     )
+    it = await _uno(
+        conexion,
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal) "
+        "VALUES (:o, :p, 145, 145) RETURNING id",
+        o=o,
+        p=p,
+    )
     try:
-        yield Escenario(r, c, p, m, u, pr, s, mb, o, s2)
+        yield Escenario(r, c, p, m, u, pr, s, mb, o, s2, it)
     finally:
         await transaccion.rollback()
 
@@ -750,6 +843,128 @@ CASOS_CHECK = {
     "usuario.provider fuera de la lista": (
         "INSERT INTO usuario (firebase_uid, provider) VALUES ('uid2', 'apple')"
     ),
+    # 0004 (T-3.0): ciclo de la mesa
+    "restaurante.zona_horaria vacía": (
+        "UPDATE restaurante SET zona_horaria = ' ' WHERE id = :restaurante"
+    ),
+    "restaurante.fuera_de_horario fuera de la lista": (
+        "UPDATE restaurante SET fuera_de_horario = 'cerrar' WHERE id = :restaurante"
+    ),
+    "restaurante.horarios no es objeto": (
+        "UPDATE restaurante SET horarios = '[]'::jsonb WHERE id = :restaurante"
+    ),
+    "sesion.estado fuera de la lista": (
+        "UPDATE sesion_grupal SET estado = 'limpia' WHERE id = :sesion"
+    ),
+    "sesion liberada sin pago y viva": (
+        "UPDATE sesion_grupal SET liberada_sin_pago = true WHERE id = :sesion"
+    ),
+    "sesion cuenta_cerrada sin hora": (
+        "UPDATE sesion_grupal SET estado = 'cuenta_cerrada' WHERE id = :sesion"
+    ),
+    "sesion pagada sin hora": (
+        "UPDATE sesion_grupal SET estado = 'pagada', cuenta_cerrada_en = now() WHERE id = :sesion"
+    ),
+    "miembro.estado fuera de la lista": (
+        "UPDATE miembro_sesion SET estado = 'expulsado' WHERE id = :miembro"
+    ),
+    "miembro.propina negativa (AC-37.6)": (
+        "UPDATE miembro_sesion SET propina_centavos = -1 WHERE id = :miembro"
+    ),
+    "miembro cuenta_cerrada sin hora": (
+        "UPDATE miembro_sesion SET estado = 'cuenta_cerrada' WHERE id = :miembro"
+    ),
+    "miembro pagada sin validación": (
+        "UPDATE miembro_sesion SET estado = 'pagada', cuenta_cerrada_en = now() WHERE id = :miembro"
+    ),
+    "miembro retirado sin hora": (
+        "UPDATE miembro_sesion SET estado = 'retirado' WHERE id = :miembro"
+    ),
+    "miembro cierre con dos autores": (
+        "UPDATE miembro_sesion SET cuenta_cerrada_por_personal_id = :personal, "
+        "cuenta_cerrada_por_usuario_id = :usuario WHERE id = :miembro"
+    ),
+    "miembro validación con dos autores": (
+        "UPDATE miembro_sesion SET pago_validado_por_personal_id = :personal, "
+        "pago_validado_por_usuario_id = :usuario WHERE id = :miembro"
+    ),
+    "item.origen fuera de la lista": (
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal, origen) "
+        "VALUES (:orden, :platillo, 145, 145, 'cocina')"
+    ),
+    "item cancelado sin hora": (
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal, estado) "
+        "VALUES (:orden, :platillo, 145, 145, 'cancelado_personal')"
+    ),
+    "item vigente con autor de cancelación": (
+        "INSERT INTO item_orden (orden_id, platillo_id, precio_unitario, subtotal, "
+        "cancelado_por_personal_id) VALUES (:orden, :platillo, 145, 145, :personal)"
+    ),
+    "ajuste.max_comensales 13": (
+        "UPDATE ajuste_restaurante SET max_comensales = 13 WHERE restaurante_id = :restaurante"
+    ),
+    "ajuste rojo antes que amarillo": (
+        "UPDATE ajuste_restaurante SET estatus_rojo_min = 10 WHERE restaurante_id = :restaurante"
+    ),
+    "ajuste recordatorio 0": (
+        "UPDATE ajuste_restaurante SET recordatorio_min = 0 WHERE restaurante_id = :restaurante"
+    ),
+    "ajuste tope por restaurante menor que por mesa": (
+        "UPDATE ajuste_restaurante SET solicitudes_por_restaurante = 4 "
+        "WHERE restaurante_id = :restaurante"
+    ),
+    "permiso fuera de la lista": (
+        "INSERT INTO permiso_rol (restaurante_id, rol, permiso, permitido) "
+        "VALUES (:restaurante, 'mesero', 'cobrar_propina', true)"
+    ),
+    "solicitud con alias en blanco": (
+        "INSERT INTO solicitud_entrada (restaurante_id, mesa_id, alias, motivo, vence_en) "
+        "VALUES (:restaurante, :mesa, '  ', 'entrada_cerrada', now() + interval '10 minutes')"
+    ),
+    "solicitud.motivo fuera de la lista": (
+        "INSERT INTO solicitud_entrada (restaurante_id, mesa_id, alias, motivo, vence_en) "
+        "VALUES (:restaurante, :mesa, 'Luis', 'capricho', now() + interval '10 minutes')"
+    ),
+    "solicitud.estado fuera de la lista": (
+        "INSERT INTO solicitud_entrada (restaurante_id, mesa_id, alias, motivo, vence_en, estado) "
+        "VALUES (:restaurante, :mesa, 'Luis', 'rojo', now() + interval '10 minutes', 'olvidada')"
+    ),
+    "solicitud resuelta sin hora": (
+        "INSERT INTO solicitud_entrada (restaurante_id, mesa_id, alias, motivo, vence_en, estado) "
+        "VALUES (:restaurante, :mesa, 'Luis', 'rojo', now() + interval '10 minutes', 'aprobada')"
+    ),
+    "solicitud que vence antes de crearse": (
+        "INSERT INTO solicitud_entrada (restaurante_id, mesa_id, alias, motivo, vence_en) "
+        "VALUES (:restaurante, :mesa, 'Luis', 'rojo', now() - interval '1 minute')"
+    ),
+    "marca.paso fuera de la lista": (
+        "INSERT INTO marca_ciclo (restaurante_id, sesion_id, paso, autor) "
+        "VALUES (:restaurante, :sesion, 'propina_cobrada', 'sistema')"
+    ),
+    "marca de comensal con autor del personal": (
+        "INSERT INTO marca_ciclo (restaurante_id, sesion_id, paso, autor, autor_personal_id) "
+        "VALUES (:restaurante, :sesion, 'mesa_limpia', 'comensal', :personal)"
+    ),
+    "reparto.parte 0": (
+        "INSERT INTO reparto_cargo (item_id, sesion_id, miembro_id, parte_pb) "
+        "VALUES (:item, :sesion, :miembro, 0)"
+    ),
+    "reparto.parte > 100 %": (
+        "INSERT INTO reparto_cargo (item_id, sesion_id, miembro_id, parte_pb) "
+        "VALUES (:item, :sesion, :miembro, 10001)"
+    ),
+    "reparto.posicion 0": (
+        "INSERT INTO reparto_cargo (item_id, sesion_id, miembro_id, posicion) "
+        "VALUES (:item, :sesion, :miembro, 0)"
+    ),
+    "movimiento.tipo fuera de la lista": (
+        "INSERT INTO movimiento_cargo (sesion_id, tipo, de_miembro_id) "
+        "VALUES (:sesion, 'regalo', :miembro)"
+    ),
+    "movimiento con dos proponentes": (
+        "INSERT INTO movimiento_cargo (sesion_id, tipo, de_miembro_id, propuesto_por_personal_id, "
+        "propuesto_por_miembro_id) VALUES (:sesion, 'pasar_cuenta', :miembro, :personal, :miembro)"
+    ),
 }
 
 
@@ -768,6 +983,7 @@ async def test_checks_de_dominio(
         platillo=escenario.platillo,
         miembro=escenario.miembro,
         orden=escenario.orden,
+        item=escenario.item,
         pin_hash=PIN_HASH,
     )
 

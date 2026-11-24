@@ -1,7 +1,8 @@
 """Comensal: `/api/v1/p/*`, cookie `carta_invitado` (ADR-003, 02 §5.1).
 
 `sesion.py` tiene las rutas de la sesión de mesa (T-2.1), `menu.py` las del menú público
-(T-2.2) y `eventos.py` la analítica del teléfono (T-2.3). Ya no quedan rutas de ejemplo: T-2.3
+(T-2.2), `eventos.py` la analítica del teléfono (T-2.3) y `contrato.py` las rutas de la
+Fase 3 declaradas por T-3.0 (responden 404 hasta que su tarea las implementa). Ya no quedan rutas de ejemplo: T-2.3
 borró `ejemplos.py` y `solo_desarrollo`.
 
 Toda ruta usa `tope.RutaComensal`, que cuenta la petición en `limites` antes de leer el cuerpo
@@ -11,7 +12,7 @@ Toda ruta usa `tope.RutaComensal`, que cuenta la petición en `limites` antes de
 
 from fastapi import APIRouter
 
-from app.api.publico import eventos, menu, sesion
+from app.api.publico import contrato, eventos, menu, sesion
 from app.schemas.comun import errores
 
 # Toda ruta del comensal puede responder 422 (cuerpo o ruta inválidos) y 429 (límite de tasa,
@@ -25,5 +26,7 @@ router = APIRouter(
 router.include_router(sesion.router)
 router.include_router(menu.router)
 router.include_router(eventos.router)
+# Rutas de la Fase 3 sólo declaradas (T-3.0): cada tarea borra las suyas al implementarlas.
+router.include_router(contrato.router)
 
 __all__ = ["router"]
